@@ -34,19 +34,24 @@ namespace Game.Player
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // Initialize yaw/pitch from current target rotation to avoid snap on first frame
+            // Initialize yaw/pitch from current target rotation to avoid snap on first frame.
+            // Use DeltaAngle to convert eulerAngles [0, 360] → signed [-180, 180] for pitch,
+            // so an initial downward tilt (e.g. 350°) is read as -10° instead of clamping to +70°.
             _yaw   = _cameraTarget.eulerAngles.y;
-            _pitch = _cameraTarget.eulerAngles.x;
+            _pitch = Mathf.DeltaAngle(0f, _cameraTarget.eulerAngles.x);
         }
 
         private void OnEnable()
         {
             _input = new InputSystem_Actions();
             _input.Player.Enable();
+            _input.UI.Enable();
         }
 
         private void OnDisable()
         {
+            if (_input == null) return; // Guard: Awake may disable component before OnEnable runs
+            _input.UI.Disable();
             _input.Player.Disable();
             _input.Dispose();
         }
@@ -64,14 +69,13 @@ namespace Game.Player
 
         private void HandleCursorLock()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_input.UI.Cancel.WasPressedThisFrame())
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
 
-            if (Mouse.current != null
-                && Mouse.current.leftButton.wasPressedThisFrame
+            if (_input.UI.Click.WasPressedThisFrame()
                 && Cursor.lockState == CursorLockMode.None)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -84,6 +88,7 @@ namespace Game.Player
             Vector2 lookDelta = _input.Player.Look.ReadValue<Vector2>();
 
             _yaw   += lookDelta.x * _mouseSensitivity;
+            _yaw   %= 360f; // Prevent float precision loss over extended play sessions
             _pitch -= lookDelta.y * _mouseSensitivity; // inverted: mouse up = look up
             _pitch  = Mathf.Clamp(_pitch, _pitchMin, _pitchMax);
 

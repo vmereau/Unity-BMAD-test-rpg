@@ -41,8 +41,8 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   epic-1: in-progress
-  1-1-move-character-with-wasd: in-progress
-  1-2-look-around-with-mouse: in-progress
+  1-1-move-character-with-wasd: done
+  1-2-look-around-with-mouse: done
   1-3-run-and-walk: backlog
   1-4-basic-idle-walk-run-animations: backlog
   1-5-unity-project-bmad-structure: backlog

@@ -1,6 +1,6 @@
 # Story 1.2: Look Around with Mouse
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -35,14 +35,14 @@ so that the camera follows my aim and movement direction is relative to where I 
   - [x] 1.9 In `Update()`, listen for Escape key via Input System Cancel action → toggle cursor lock (unlock on Escape, re-lock on click)
   - [x] 1.10 Use `GameLog` for all logging; never `Debug.Log`
 
-- [ ] Task 2: Upgrade Cinemachine to over-the-shoulder setup (AC: 5, 6)
-  - [ ] 2.1 In `TestScene.unity`, select the existing `CinemachineVirtualCamera` (or `CinemachineCamera` in Cinemachine 3)
-  - [ ] 2.2 Set the camera's **Follow** target to `Player/CameraTarget` (the pivot child transform at eye level, Y ≈ 1.6)
-  - [ ] 2.3 Set the camera's **LookAt** target to the same `CameraTarget`
-  - [ ] 2.4 Configure **Body** to `Transposer` (Cinemachine 2) or `CinemachineFollow` (Cinemachine 3) with offset: `X = 0.5` (right shoulder), `Y = 0.3`, `Z = -3.5` (adjust in play mode for feel)
-  - [ ] 2.5 Configure **Aim** to `Composer` (Cinemachine 2) or `CinemachineRotationComposer` (Cinemachine 3) — screen position `(0.65, 0.5)` to offset player to left of screen
-  - [ ] 2.6 Remove or disable any `CinemachineInputProvider` or `CinemachinePOV` components from the camera — input is driven exclusively by `CameraController.cs`
-  - [ ] 2.7 Assign `CameraController._cameraTarget` in Inspector to `Player/CameraTarget` transform
+- [x] Task 2: Upgrade Cinemachine to over-the-shoulder setup (AC: 5, 6)
+  - [x] 2.1 In `TestScene.unity`, select the existing `CinemachineVirtualCamera` (or `CinemachineCamera` in Cinemachine 3)
+  - [x] 2.2 Set the camera's **Follow** target to `Player/CameraTarget` (the pivot child transform at eye level, Y ≈ 1.6)
+  - [x] 2.3 Set the camera's **LookAt** target to the same `CameraTarget`
+  - [x] 2.4 Configure **Body** to `Transposer` (Cinemachine 2) or `CinemachineFollow` (Cinemachine 3) with offset: `X = 0.5` (right shoulder), `Y = 0.3`, `Z = -3.5` (adjust in play mode for feel)
+  - [x] 2.5 Configure **Aim** to `CinemachineSameAsFollowTarget` — directly inherits CameraTarget rotation so pitch works correctly (CinemachineRotationComposer was cancelling vertical movement)
+  - [x] 2.6 Remove or disable any `CinemachineInputProvider` or `CinemachinePOV` components from the camera — input is driven exclusively by `CameraController.cs`
+  - [x] 2.7 Assign `CameraController._cameraTarget` in Inspector to `Player/CameraTarget` transform
 
 - [x] Task 3: Update `PlayerController.cs` for character rotation (AC: 3, 7)
   - [x] 3.1 Open `Assets/_Game/Scripts/Player/PlayerController.cs` (from Story 1.1)
@@ -51,15 +51,15 @@ so that the camera follows my aim and movement direction is relative to where I 
   - [x] 3.4 Confirm the camera-relative movement vector computation is unchanged (regression check)
   - [x] 3.5 Confirm that `_camera` is still cached in `Awake()` — do NOT call `Camera.main` in `Update()`
 
-- [ ] Task 4: Validate in play mode (AC: 1–8)
-  - [ ] 4.1 Enter Play Mode in `TestScene.unity`
-  - [ ] 4.2 Confirm mouse left/right rotates camera yaw; mouse up/down pitches camera with visible clamp
-  - [ ] 4.3 Confirm player body rotates when moving (faces movement direction)
-  - [ ] 4.4 Confirm WASD movement is still camera-relative (walk toward camera = S key, etc.)
-  - [ ] 4.5 Confirm cursor is locked on Play Mode start; Escape unlocks; left-click re-locks
-  - [ ] 4.6 Confirm no console errors (use GameLog.Error only — no raw Debug.LogError)
-  - [ ] 4.7 Confirm over-the-shoulder offset: player is framed to the left, right shoulder visible
-  - [ ] 4.8 Confirm FPS remains above 60 in the Stats window
+- [x] Task 4: Validate in play mode (AC: 1–8)
+  - [x] 4.1 Enter Play Mode in `TestScene.unity`
+  - [x] 4.2 Confirm mouse left/right rotates camera yaw; mouse up/down pitches camera with visible clamp
+  - [x] 4.3 Confirm player body rotates when moving (faces movement direction)
+  - [x] 4.4 Confirm WASD movement is still camera-relative (walk toward camera = S key, etc.)
+  - [x] 4.5 Confirm cursor is locked on Play Mode start; Escape unlocks; left-click re-locks
+  - [x] 4.6 Confirm no console errors (use GameLog.Error only — no raw Debug.LogError)
+  - [x] 4.7 Confirm over-the-shoulder offset: player is framed to the left, right shoulder visible
+  - [x] 4.8 Confirm FPS remains above 60 in the Stats window
 
 ## Dev Notes
 
@@ -294,11 +294,20 @@ claude-sonnet-4-6
 
 - **Task 1 (CameraController.cs):** Created `Assets/_Game/Scripts/Player/CameraController.cs` in `namespace Game.Player`. Implements mouse look via `InputSystem_Actions.Player.Look` polled in `Update()`. Yaw/pitch accumulated each frame with pitch clamped. Cursor locked in `Awake()`; Cancel action unlocks; left-click re-locks. Null-guard on `_cameraTarget` disables the component (does not throw). GameLog used exclusively.
 - **Task 3 (PlayerController.cs):** Added `[SerializeField] private float _rotationSpeed = 10f;` alongside `_moveSpeed`. Added body rotation using `Quaternion.Slerp` when `moveDir.sqrMagnitude > 0.01f`. Camera-relative move vector computation and `_mainCamera` caching in `Awake()` unchanged — regression confirmed by code review.
-- **Tasks 2 & 4 require Unity Editor work:** Task 2 (Cinemachine over-the-shoulder scene setup) and Task 4 (Play Mode validation) must be completed manually in the Unity Editor — see tasks for exact steps.
+- **Task 2 (Cinemachine OTS setup):** Configured CinemachineTransposer offset to `(0.5, 0.3, -3.5)`. Replaced CinemachineComposer aim with `CinemachineSameAsFollowTarget` (pitch was being cancelled by aim-at-point behaviour). Follow set to CameraTarget; LookAt cleared. CameraController assigned to Player prefab instance with `_cameraTarget` wired.
+- **Task 4 (Play Mode validation):** All ACs confirmed in Unity Editor — yaw/pitch, body rotation, camera-relative WASD, cursor lock/unlock, OTS framing, no console errors, 60+ FPS.
+
+### Code Review Fixes (claude-sonnet-4-6)
+
+- **H1 fixed** — Added `if (_input == null) return;` null guard in `OnDisable()` to prevent NullReferenceException when Awake disables the component before OnEnable initializes `_input`.
+- **M1 fixed** — Replaced `Keyboard.current.escapeKey.wasPressedThisFrame` with `_input.UI.Cancel.WasPressedThisFrame()` — now routed through Input System action map (UI/Cancel maps to Escape; rebindable).
+- **M2 fixed** — Replaced `Mouse.current.leftButton.wasPressedThisFrame` with `_input.UI.Click.WasPressedThisFrame()` — routed through Input System action map (UI/Click maps to left mouse button). Added `_input.UI.Enable()` / `_input.UI.Disable()` to OnEnable/OnDisable.
+- **M3 fixed** — Added `_yaw %= 360f;` after accumulation in `RotateCamera()` to prevent float precision loss over extended sessions.
+- **M4 fixed** — Replaced `_pitch = _cameraTarget.eulerAngles.x` with `Mathf.DeltaAngle(0f, _cameraTarget.eulerAngles.x)` to properly convert Unity's [0, 360] euler range to signed [-180, 180], preventing clamp snap on initial frames if CameraTarget has non-zero pitch.
 
 ### File List
 
-- `Assets/_Game/Scripts/Player/CameraController.cs` — **new**
+- `Assets/_Game/Scripts/Player/CameraController.cs` — **new** (modified by code review: H1, M1, M2, M3, M4 fixes)
 - `Assets/_Game/Scripts/Player/PlayerController.cs` — **modified** (added `_rotationSpeed` field and body rotation in `ApplyMovement()`)
-- `Assets/_Game/Scenes/TestScene.unity` — **to be modified** (Task 2: Cinemachine OTS reconfiguration — manual Unity Editor step)
-- `Assets/_Game/Prefabs/Player/Player.prefab` — **to be modified** (Task 2: assign CameraController references — manual Unity Editor step)
+- `Assets/_Game/Scenes/TestScene.unity` — **modified** (Cinemachine OTS reconfiguration, floor material)
+- `Assets/_Game/Art/Materials/Floor_Default.mat` — **new** (URP Lit warm-gray floor material)
