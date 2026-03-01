@@ -1,0 +1,118 @@
+# generated: 2026-03-01
+# project: Unity-BMAD-test-rpg
+# project_key: N/A
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-01
+project: Unity-BMAD-test-rpg
+project_key: N/A
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-move-character-with-wasd: review
+  1-2-look-around-with-mouse: backlog
+  1-3-run-and-walk: backlog
+  1-4-basic-idle-walk-run-animations: backlog
+  1-5-unity-project-bmad-structure: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-stamina-bar-system: backlog
+  2-2-zero-stamina-gate: backlog
+  2-3-directional-attacks: backlog
+  2-4-manual-blocking: backlog
+  2-5-perfect-block: backlog
+  2-6-dodge-roll: backlog
+  2-7-enemy-ai-patrol-engage: backlog
+  2-8-health-system: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-xp-gain-from-combat: backlog
+  3-2-level-up-system: backlog
+  3-3-learning-points: backlog
+  3-4-trainer-stat-upgrade: backlog
+  3-5-tome-skill-learning: backlog
+  3-6-stat-combat-effects: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-starting-town-exploration: backlog
+  4-2-wilderness-region: backlog
+  4-3-dungeon-exploration: backlog
+  4-4-npc-daily-routines: backlog
+  4-5-no-enemy-respawn: backlog
+  4-6-day-night-cycle: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-npc-topic-dialogue: backlog
+  5-2-quest-acquisition: backlog
+  5-3-quest-log: backlog
+  5-4-quest-multiple-outcomes: backlog
+  5-5-permanent-quest-failure: backlog
+  5-6-quest-rewards: backlog
+  5-7-story-quest-world-changes: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-inventory-system: backlog
+  6-2-equipment-slots: backlog
+  6-3-equipped-item-stat-effects: backlog
+  6-4-shop-npc-trading: backlog
+  6-5-looting-system: backlog
+  6-6-gold-bribe-system: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-crouch-stealth: backlog
+  7-2-npc-visibility-cone: backlog
+  7-3-stealing-system: backlog
+  7-4-caught-stealing-hostile: backlog
+  7-5-resource-gathering: backlog
+  7-6-recipe-learning: backlog
+  7-7-crafting-system: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-free-asset-integration: backlog
+  8-2-ambient-audio-sfx: backlog
+  8-3-dynamic-background-music: backlog
+  8-4-functional-hud: backlog
+  8-5-save-load-system: backlog
+  8-6-key-rebinding: backlog
+  8-7-steam-achievements: backlog
+  8-8-performance-optimization: backlog
+  epic-8-retrospective: optional
