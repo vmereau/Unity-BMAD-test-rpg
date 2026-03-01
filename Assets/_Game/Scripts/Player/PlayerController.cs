@@ -16,6 +16,7 @@ namespace Game.Player
         private const float GROUNDED_VELOCITY = -2f;
 
         [SerializeField] private float _moveSpeed = 5f;
+        [SerializeField] private float _rotationSpeed = 10f;
 
         private CharacterController _characterController;
         private Camera _mainCamera;
@@ -88,6 +89,14 @@ namespace Game.Player
             {
                 // Fallback: world-space axes when no camera is present
                 moveDir = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+            }
+
+            // Rotate body to face movement direction
+            if (moveDir.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(moveDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
+                    _rotationSpeed * Time.deltaTime);
             }
 
             Vector3 velocity = moveDir * _moveSpeed + Vector3.up * _verticalVelocity;
