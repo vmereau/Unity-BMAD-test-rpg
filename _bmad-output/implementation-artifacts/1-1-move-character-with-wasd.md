@@ -1,6 +1,6 @@
 # Story 1.1: Move Character with WASD
 
-Status: review
+Status: in-progress
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -239,13 +239,17 @@ claude-sonnet-4-6
 - `Assets/_Game/Scripts/Core/GameLog.cs` (new)
 - `Assets/_Game/Scripts/Player/PlayerController.cs` (new)
 - `Assets/_Game/Scenes/TestScene.unity` (new)
-- `Assets/_Game/Scenes/Core.unity` (new)
+- `Assets/_Game/Scenes/Core.unity` (modified — added SaveSystem stub)
 - `Assets/Tests/EditMode/.gitkeep` (new)
+- `Assets/Tests/EditMode/Tests.EditMode.asmdef` (new)
 - `Assets/Tests/PlayMode/.gitkeep` (new)
+- `Assets/Tests/PlayMode/Tests.PlayMode.asmdef` (new)
 - `Assets/InputSystem_Actions.inputactions.meta` (modified — enabled C# wrapper code generation)
-- `ProjectSettings/TagManager.asset` (modified — added Player layer at slot 8)
+- `Assets/_Game/Prefabs/Player/Player.prefab` (modified — layer set to Player (8), PlayerInput component removed)
+- `ProjectSettings/TagManager.asset` (modified — added Player layer at slot 3)
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` (modified — story status: in-progress)
 
 ### Change Log
 
 - 2026-03-01: Created project foundation — `_Game/` folder hierarchy, `GameLog.cs`, `PlayerController.cs`, scene stubs (`TestScene.unity`, `Core.unity`), test folders. Enabled Input System wrapper code generation. Added Player physics layer. Completed Unity Editor tasks: Input System + Starter Assets installed, Player prefab built and placed in TestScene, Cinemachine follow camera configured, collision layers set. Play Mode validation passed — all 6 ACs satisfied.
+- 2026-03-01 (code-review fixes): Fixed Player prefab layer (Default→Player/8); removed redundant PlayerInput component from prefab; added Tests.EditMode.asmdef and Tests.PlayMode.asmdef; added SaveSystem stub to Core.unity; corrected GameLog.cs docstring (Error does not yet write to file — deferred to Epic 8). TestScene Player + Cinemachine setup pending manual save in Unity Editor (tasks 4.3, 4.4, 4.5, 6.1–6.4).

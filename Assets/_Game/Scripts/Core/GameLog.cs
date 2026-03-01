@@ -4,7 +4,7 @@ namespace Game.Core
 {
     /// <summary>
     /// Project-wide logging wrapper. Info and Warn are stripped in Release builds.
-    /// Error always writes to console and appends to game_log.txt in persistentDataPath.
+    /// Error writes to console in all builds. File write to game_log.txt deferred to Epic 8.
     /// All game scripts must use this class — never call Debug.Log directly.
     /// </summary>
     public static class GameLog
