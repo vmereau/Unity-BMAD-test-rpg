@@ -21,19 +21,6 @@ Review all changes and determine:
 
 If changes clearly belong to multiple unrelated types, commit them separately (stage and commit each group individually before pushing).
 
-### 3 — Quality checks
-
-Run all checks before staging anything:
-```bash
-npm run test:run && npm run check && npm run lint && npm run format:check
-```
-
-- If `test:run` fails: fix the failing tests (or the logic they cover), then re-run before proceeding.
-- If `check` or `lint` fail: fix the reported issues, then re-run before proceeding.
-- If `format:check` fails: run `npm run format` to auto-fix, then re-run `format:check` to confirm.
-
-Do not proceed to staging until all four pass.
-
 ### 4 — Stage changes
 Stage all relevant changes:
 ```
