@@ -125,4 +125,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ddc9a36ae8d91f4fa96549667ae1821, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerController
-  _moveSpeed: 5
+  _config: {fileID: 11400000, guid: b187ee82d09378f4888b6823b0af5d07, type: 2}

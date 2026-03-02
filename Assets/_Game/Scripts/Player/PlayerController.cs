@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Game.Player
 {
     /// <summary>
-    /// Handles WASD movement relative to the main camera using CharacterController.
+    /// Handles player movement relative to the main camera using CharacterController.
+    /// Supports walk speed (default) and run speed (Sprint held) configurable via PlayerConfigSO.
     /// Uses the new Input System via the generated InputSystem_Actions wrapper.
     /// Manual gravity is applied each frame — CharacterController does not apply it automatically.
     /// </summary>
@@ -15,8 +16,7 @@ namespace Game.Player
         private const float GRAVITY = -9.81f;
         private const float GROUNDED_VELOCITY = -2f;
 
-        [SerializeField] private float _moveSpeed = 5f;
-        [SerializeField] private float _rotationSpeed = 10f;
+        [SerializeField] private PlayerConfigSO _config;
 
         private CharacterController _characterController;
         private Camera _mainCamera;
@@ -29,6 +29,12 @@ namespace Game.Player
             if (_characterController == null)
             {
                 GameLog.Error(TAG, "CharacterController component not found. PlayerController cannot function.");
+                return;
+            }
+
+            if (_config == null)
+            {
+                GameLog.Error(TAG, "PlayerConfigSO not assigned. PlayerController cannot function.");
                 return;
             }
 
@@ -48,6 +54,7 @@ namespace Game.Player
 
         private void OnDisable()
         {
+            if (_input == null) return;  // Guard: OnDisable may fire before OnEnable
             _input.Player.Disable();
             _input.Dispose();
             GameLog.Info(TAG, "Input actions disabled.");
@@ -55,7 +62,7 @@ namespace Game.Player
 
         private void Update()
         {
-            if (_characterController == null)
+            if (_characterController == null || _config == null)
                 return;
 
             ApplyGravity();
@@ -96,10 +103,12 @@ namespace Game.Player
             {
                 Quaternion targetRot = Quaternion.LookRotation(moveDir);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
-                    _rotationSpeed * Time.deltaTime);
+                    _config.rotationSpeed * Time.deltaTime);
             }
 
-            Vector3 velocity = moveDir * _moveSpeed + Vector3.up * _verticalVelocity;
+            bool isSprinting = _input.Player.Sprint.IsPressed();
+            float currentSpeed = isSprinting ? _config.runSpeed : _config.walkSpeed;
+            Vector3 velocity = moveDir * currentSpeed + Vector3.up * _verticalVelocity;
             _characterController.Move(velocity * Time.deltaTime);
         }
     }
