@@ -84,6 +84,22 @@ private void OnDisable()
 }
 ```
 
+### CharacterController.velocity Includes Y Component
+
+`CharacterController.velocity.magnitude` is **never 0 when grounded** because `PlayerController` constantly applies `GROUNDED_VELOCITY = -2f` to keep the character snapped to the ground. Effects:
+- At rest: magnitude ≈ 2.0f (not 0) — blend tree never fully reaches idle threshold
+- At `walkSpeed=3f`: magnitude ≈ 3.6f (not 3f) — blend starts crossing walk→run threshold early
+- At `runSpeed=6f`: magnitude ≈ 6.3f — may never reach the run threshold if set above 6.3f
+
+**Always use horizontal speed for animation blend trees:**
+
+```csharp
+// In PlayerAnimator.Update() — correct pattern
+Vector3 horizontalVelocity = new Vector3(
+    _characterController.velocity.x, 0f, _characterController.velocity.z);
+float speed = horizontalVelocity.magnitude;
+```
+
 ### Float Accumulation & Euler Angle Quirks
 
 - **Unbounded yaw:** accumulated `_yaw` must be normalized: `_yaw %= 360f;` — without this,
@@ -111,16 +127,19 @@ Cinemachine reads `CameraTarget` passively — it never takes direct input.
 
 ```
 Player.prefab  (Assets/_Game/Prefabs/Player/)
-├── CharacterController
+├── CharacterController  (Height: 1.8, Center Y: 1.0)
+├── Animator             (Apply Root Motion: OFF; Controller: PlayerAnimatorController)
 ├── PlayerController.cs
-├── CameraController.cs
-└── CameraTarget  (child, local Y ≈ 1.6 — pure Transform pivot, no components)
+├── PlayerAnimator.cs
+├── CameraTarget         (child, local Y = 1.6 — pure Transform pivot, no components)
+└── Character            (child — nested Mixamo FBX prefab, Humanoid rig)
 ```
 
-- `CameraController._cameraTarget` → assigned to `CameraTarget` in Inspector
+- `CameraController` is wired **in `TestScene.unity`** as a scene component — **not** in the prefab (known drift from intended architecture; action item exists to move it)
 - Cinemachine `Follow` and `LookAt` → both point to `CameraTarget`
 - No Rigidbody on player — `CharacterController` only
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
+- `PlayerAnimator` reads `CharacterController.velocity` passively — never writes to movement state
 
 ---
 
@@ -136,5 +155,9 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |
 | MEDIUM | `eulerAngles` used as signed source without `Mathf.DeltaAngle` conversion |
 | MEDIUM | `GetComponent` or `Camera.main` called in `Update` instead of cached in `Awake` |
+| MEDIUM | `CharacterController.velocity.magnitude` used for animation speed (Y component inflates value; use `new Vector3(v.x,0,v.z).magnitude`) |
+| MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |
 | LOW | `Debug.Log` / `Debug.LogWarning` / `Debug.LogError` used directly (use `GameLog`) |
 | LOW | Magic numbers in gameplay logic (use `[SerializeField]` or config SO) |
+| LOW | Story File List missing Unity Editor-generated assets (FBX, AnimatorController, .meta files) — always audit art asset directories when story covers animation/import work |
+| HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside the asmdef folder |

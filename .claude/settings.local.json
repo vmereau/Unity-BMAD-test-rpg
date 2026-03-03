@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch"
+      "WebSearch",
+      "mcp__UnityMCP__batch_execute",
+      "mcp__UnityMCP__manage_scene",
+      "Bash(git:*)",
+      "mcp__UnityMCP__create_script",
+      "mcp__UnityMCP__refresh_unity",
+      "mcp__UnityMCP__read_console",
+      "mcp__UnityMCP__manage_asset",
+      "mcp__UnityMCP__execute_menu_item",
+      "mcp__UnityMCP__run_tests",
+      "mcp__UnityMCP__get_test_job",
+      "mcp__UnityMCP__manage_editor"
     ]
   }
 }
