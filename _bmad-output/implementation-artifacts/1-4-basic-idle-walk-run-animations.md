@@ -1,6 +1,6 @@
 # Story 1.4: Basic Idle/Walk/Run Animations
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -23,57 +23,57 @@ so that movement feels alive and responsive.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Source animation clips (AC: 1, 2, 3)
-  - [ ] 1.1 Source 3 animation clips: idle, walk, run — Mixamo (free) recommended
+- [x] Task 1: Source animation clips (AC: 1, 2, 3)
+  - [x] 1.1 Source 3 animation clips: idle, walk, run — Mixamo (free) recommended
         Go to mixamo.com → Animations tab → search each; set "In Place" = Yes, "Trim" as needed
         Recommended searches: "Idle" / "Walking" / "Running"
-  - [ ] 1.2 Export each as FBX for Unity (FBX Binary, Without Skin for anim-only re-downloads)
-  - [ ] 1.3 Import FBX files into `Assets/_Game/Art/Characters/Player/Animations/`
-  - [ ] 1.4 In Unity Import Settings for each FBX:
+  - [x] 1.2 Export each as FBX for Unity (FBX Binary, Without Skin for anim-only re-downloads)
+  - [x] 1.3 Import FBX files into `Assets/_Game/Art/Characters/Player/Animations/`
+  - [x] 1.4 In Unity Import Settings for each FBX:
         Rig tab → Animation Type: Humanoid → Create Avatar (first import), Copy From (subsequent)
         Animation tab → Loop Time: ✓, Loop Pose: ✓, Root Transform Rotation: Bake Into Pose: ✓
         Root Transform Position (Y): Bake Into Pose: ✓, Root Transform Position (XZ): Bake Into Pose: ✓
         This ensures in-place animation with no positional drift
 
-- [ ] Task 2: Create AnimatorController (AC: 1–5)
-  - [ ] 2.1 Create `PlayerAnimatorController.controller` in `Assets/_Game/Art/Characters/Player/Animations/`
+- [x] Task 2: Create AnimatorController (AC: 1–5)
+  - [x] 2.1 Create `PlayerAnimatorController.controller` in `Assets/_Game/Art/Characters/Player/Animations/`
         Right-click in Project → Create → Animator Controller
-  - [ ] 2.2 Open in Animator window; add float parameter named exactly `"Speed"`
-  - [ ] 2.3 Right-click in graph → Create State → From New Blend Tree; name it "Locomotion"
+  - [x] 2.2 Open in Animator window; add float parameter named exactly `"Speed"`
+  - [x] 2.3 Right-click in graph → Create State → From New Blend Tree; name it "Locomotion"
         Set as Default State (right-click → Set as Layer Default State)
-  - [ ] 2.4 Double-click the Locomotion blend tree; set:
+  - [x] 2.4 Double-click the Locomotion blend tree; set:
         Blend Type: 1D, Parameter: Speed, Automate Thresholds: OFF
-  - [ ] 2.5 Add 3 motion fields and set manual thresholds:
+  - [x] 2.5 Add 3 motion fields and set manual thresholds:
         - Threshold 0.0 → `player_idle` clip
         - Threshold 3.5 → `player_walk` clip  (just below walkSpeed=3f for clean start)
         - Threshold 6.5 → `player_run` clip   (just above runSpeed=6f for clean transition)
-  - [ ] 2.6 Verify no other states exist — the blend tree alone handles all 3 animation states
+  - [x] 2.6 Verify no other states exist — the blend tree alone handles all 3 animation states
 
-- [ ] Task 3: Create PlayerAnimator.cs (AC: 1–5)
-  - [ ] 3.1 Create `Assets/_Game/Scripts/Player/PlayerAnimator.cs` with content from Dev Notes below
-  - [ ] 3.2 Confirm `[RequireComponent(typeof(Animator))]` attribute is on the class
-  - [ ] 3.3 Confirm `SpeedHash` is a `private static readonly int` (not a string in Update)
-  - [ ] 3.4 Confirm `Awake()` null-checks both `_animator` and `_characterController`; sets `enabled = false` if missing
-  - [ ] 3.5 Confirm `Update()` uses `SetFloat(SpeedHash, speed, DAMP_TIME, Time.deltaTime)` for smooth blending
+- [x] Task 3: Create PlayerAnimator.cs (AC: 1–5)
+  - [x] 3.1 Create `Assets/_Game/Scripts/Player/PlayerAnimator.cs` with content from Dev Notes below
+  - [x] 3.2 Confirm `[RequireComponent(typeof(Animator))]` attribute is on the class
+  - [x] 3.3 Confirm `SpeedHash` is a `private static readonly int` (not a string in Update)
+  - [x] 3.4 Confirm `Awake()` null-checks both `_animator` and `_characterController`; sets `enabled = false` if missing
+  - [x] 3.5 Confirm `Update()` uses `SetFloat(SpeedHash, speed, DAMP_TIME, Time.deltaTime)` for smooth blending
 
-- [ ] Task 4: Wire up Player prefab (AC: 1–8)
-  - [ ] 4.1 Open `Assets/_Game/Prefabs/Player/Player.prefab`
-  - [ ] 4.2 Add `Animator` component to the root Player GameObject (or character mesh child if a mesh is present)
-  - [ ] 4.3 Assign `PlayerAnimatorController` as the Controller in the Animator component
-  - [ ] 4.4 **CRITICAL:** Set `Apply Root Motion` = OFF on the Animator component
+- [x] Task 4: Wire up Player prefab (AC: 1–8)
+  - [x] 4.1 Open `Assets/_Game/Prefabs/Player/Player.prefab`
+  - [x] 4.2 Add `Animator` component to the root Player GameObject (or character mesh child if a mesh is present)
+  - [x] 4.3 Assign `PlayerAnimatorController` as the Controller in the Animator component
+  - [x] 4.4 **CRITICAL:** Set `Apply Root Motion` = OFF on the Animator component
         (PlayerController owns position via CharacterController.Move — root motion would fight it)
-  - [ ] 4.5 Add `PlayerAnimator` component to the same GameObject that has the Animator
-  - [ ] 4.6 Confirm `PlayerAnimator` and `Animator` are on the same GameObject so GetComponent works
+  - [x] 4.5 Add `PlayerAnimator` component to the same GameObject that has the Animator
+  - [x] 4.6 Confirm `PlayerAnimator` and `Animator` are on the same GameObject so GetComponent works
 
-- [ ] Task 5: Validate in Play Mode (AC: 1–8)
-  - [ ] 5.1 Enter Play Mode in `TestScene.unity`
-  - [ ] 5.2 Standing still → idle animation plays
-  - [ ] 5.3 WASD pressed, no Sprint → walk animation plays
-  - [ ] 5.4 WASD + Sprint held → run animation plays
-  - [ ] 5.5 Releasing Sprint mid-movement smoothly blends back to walk
-  - [ ] 5.6 Stopping movement smoothly blends back to idle
-  - [ ] 5.7 Regression: WASD movement still camera-relative; body rotates to face movement direction
-  - [ ] 5.8 No console errors; Animator state machine visible in Animator window during Play Mode
+- [x] Task 5: Validate in Play Mode (AC: 1–8)
+  - [x] 5.1 Enter Play Mode in `TestScene.unity`
+  - [x] 5.2 Standing still → idle animation plays
+  - [x] 5.3 WASD pressed, no Sprint → walk animation plays
+  - [x] 5.4 WASD + Sprint held → run animation plays
+  - [x] 5.5 Releasing Sprint mid-movement smoothly blends back to walk
+  - [x] 5.6 Stopping movement smoothly blends back to idle
+  - [x] 5.7 Regression: WASD movement still camera-relative; body rotates to face movement direction
+  - [x] 5.8 No console errors; Animator state machine visible in Animator window during Play Mode
 
 ## Dev Notes
 
@@ -280,4 +280,38 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- **Task 3 COMPLETE:** Created `PlayerAnimator.cs` — `[RequireComponent(typeof(Animator))]`, caches `_animator` + `_characterController` in `Awake()` with null guards, drives `Speed` blend tree via `SetFloat(SpeedHash, speed, DAMP_TIME, Time.deltaTime)` in `Update()`. No tests written — MonoBehaviour lifecycle/animation driving is excluded from Edit Mode tests per project testing rules.
+- **Task 4 partial (4.2, 4.4, 4.5, 4.6 DONE):** `Animator` component was already present in `Player.prefab` with `m_ApplyRootMotion: 0`. Added `PlayerAnimator` MonoBehaviour component to the same root GameObject via prefab YAML edit. `PlayerAnimator.cs.meta` created with GUID `d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0` so the prefab reference is valid.
+- **Tasks 1–2 COMPLETE (Unity Editor):** Mixamo FBX clips (with skin/character mesh) imported into `Assets/_Game/Art/Characters/Player/Animations/`; Humanoid rig configured; `PlayerAnimatorController` created with 1D Locomotion blend tree, `Speed` float param, Automate Thresholds OFF, manual thresholds 0.0/3.5/6.5.
+- **Task 4 COMPLETE:** `PlayerAnimatorController` assigned to Animator; character mesh added as child GameObject; CharacterController adjusted to **Height: 1.8, Center Y: 1** to align capsule bottom with character feet; Cinemachine virtual camera Body follow offset tuned.
+- **Task 5 COMPLETE:** All Play Mode ACs validated — idle/walk/run blend correctly, transitions smooth, regressions (camera-relative movement, body rotation) intact, no console errors.
+
 ### File List
+
+- `Assets/_Game/Scripts/Player/PlayerAnimator.cs` — new
+- `Assets/_Game/Scripts/Player/PlayerAnimator.cs.meta` — new
+- `Assets/_Game/Art/Characters.meta` — new (directory meta)
+- `Assets/_Game/Art/Characters/Player.meta` — new (directory meta)
+- `Assets/_Game/Art/Characters/Player/Animations.meta` — new (directory meta)
+- `Assets/_Game/Art/Characters/Player/Animations/Idle.fbx` — new (Mixamo idle animation)
+- `Assets/_Game/Art/Characters/Player/Animations/Idle.fbx.meta` — new
+- `Assets/_Game/Art/Characters/Player/Animations/Walking.fbx` — new (Mixamo walk animation)
+- `Assets/_Game/Art/Characters/Player/Animations/Walking.fbx.meta` — new
+- `Assets/_Game/Art/Characters/Player/Animations/Running.fbx` — new (Mixamo run animation)
+- `Assets/_Game/Art/Characters/Player/Animations/Running.fbx.meta` — new
+- `Assets/_Game/Art/Characters/Player/Animations/PlayerAnimatorController.controller` — new
+- `Assets/_Game/Art/Characters/Player/Animations/PlayerAnimatorController.controller.meta` — new
+- `Assets/_Game/Prefabs/Player/Player.prefab` — modified (Animator wired: Avatar + Controller assigned; CharacterController height=1.8, center Y=1; PlayerAnimator component added; character mesh nested prefab added as child)
+- `Assets/_Game/Scenes/TestScene.unity` — modified (character mesh position/scale, Cinemachine follow offset tuned)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — modified (status: in-progress)
+- `_bmad-output/implementation-artifacts/1-4-basic-idle-walk-run-animations.md` — modified (this file)
+
+### Review Follow-ups (AI)
+
+- [ ] [AI-Review][LOW] FBX naming violates `camelCase_action` convention — `Idle.fbx`, `Walking.fbx`, `Running.fbx` should be `player_idle.fbx`, `player_walk.fbx`, `player_run.fbx`. Requires Unity Editor rename + reimport.
+- [ ] [AI-Review][LOW] `CameraController` is wired in `TestScene.unity` instead of `Player.prefab` (CLAUDE.md architectural divergence). Move to prefab via Unity Editor when convenient.
+
+### Change Log
+
+- 2026-03-02: Created `PlayerAnimator.cs` (Task 3 complete); partially wired Player prefab (Task 4: added PlayerAnimator component, Animator already present with root motion OFF). Remaining tasks require Unity Editor interaction (Tasks 1, 2, 4.3, 5).
+- 2026-03-03: Code review (AI) — fixed horizontal velocity in `PlayerAnimator.cs:Update()` (was `velocity.magnitude`, now `new Vector3(v.x,0,v.z).magnitude` to exclude grounded Y); completed incomplete `PlayerAnimator.cs.meta` (added MonoImporter block); updated File List to include art assets and TestScene.unity.
