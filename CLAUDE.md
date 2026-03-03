@@ -9,7 +9,7 @@
 
 - **Engine:** Unity 6000.3.10f1 (Unity 6.3 LTS)
 - **Render Pipeline:** URP 17.x (`Assets/Settings/PC_RPAsset`, `PC_Renderer`)
-- **Input:** Unity Input System — generated class `InputSystem_Actions`; legacy input disabled
+- **Input:** Unity Input System — generated class `InputSystem_Actions` at `Assets/_Game/InputSystem_Actions.cs`; legacy input disabled
 - **Platform:** PC Windows x64 → Steam distribution
 - **Game type:** 3D RPG, third-person over-the-shoulder camera
 
@@ -24,6 +24,7 @@
 | **Sprint status** | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
 | **Story files** | `_bmad-output/implementation-artifacts/*.md` |
 | **All game source code** | `Assets/_Game/` |
+| **Game assembly definition** | `Assets/_Game/Game.asmdef` (refs: `Unity.InputSystem`) |
 | **Git conventions** | `.claude/rules/git-conventions.md` |
 
 > **Never treat `_bmad/` or `_bmad-output/` as game source code.** They are BMAD
@@ -53,6 +54,31 @@
 ---
 
 ## Learned Patterns & Gotchas
+
+### Assembly Setup (As of Story 1.5)
+
+`Assets/_Game/Game.asmdef` exists with:
+- `"name": "Game"`, `"autoReferenced": true`
+- `"references": ["Unity.InputSystem"]`
+
+All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Assembly-CSharp`).
+`InputSystem_Actions.cs` was moved from `Assets/` root into `Assets/_Game/` so it compiles into `Game`.
+
+**Consequence:** Any future auto-generated file placed at `Assets/` root will be in `Assembly-CSharp` and invisible to `Game` scripts — always move such files inside `Assets/_Game/`.
+
+`Tests.EditMode.asmdef` explicitly references `"Game"` in its references array.
+
+### Core.unity Scene Stubs (Complete as of Story 1.5)
+
+All 7 manager stub GameObjects are in `Assets/_Game/Scenes/Core.unity`:
+`WorldStateManager`, `GameEventBus`, `SaveSystem`, `SceneLoader`, `DayNightController`, `AudioManager`, `UI`
+
+These are empty GameObjects only — no scripts yet. Scripts are added per-epic.
+
+### Unity MCP Tool Quirks
+
+- **`manage_scene(action="load")`** only resolves scene names at `Assets/{name}.unity`. It **cannot** load scenes in sub-folders (e.g. `Assets/_Game/Scenes/Core.unity`). Edit `.unity` files directly for sub-folder scenes, then call `refresh_unity`.
+- **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` + `refresh_unity(mode="force")`.
 
 ### Unity Input System — Action Map Layout
 
