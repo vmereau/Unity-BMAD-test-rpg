@@ -13,9 +13,12 @@ namespace Game.Player
     {
         private const string TAG = "[Player]";
         private const float DAMP_TIME = 0.1f;
+        private const float RISING_VELOCITY_THRESHOLD = 0.1f;
 
         // Hash the parameter name once at class init — never use string in hot path
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
+        private static readonly int IsRisingHash = Animator.StringToHash("IsRising");
 
         private Animator _animator;
         private CharacterController _characterController;
@@ -45,6 +48,8 @@ namespace Game.Player
                 _characterController.velocity.x, 0f, _characterController.velocity.z);
             float speed = horizontalVelocity.magnitude;
             _animator.SetFloat(SpeedHash, speed, DAMP_TIME, Time.deltaTime);
+            _animator.SetBool(IsGroundedHash, _characterController.isGrounded);
+            _animator.SetBool(IsRisingHash, _characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
         }
     }
 }

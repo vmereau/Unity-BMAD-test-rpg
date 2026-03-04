@@ -65,13 +65,23 @@ namespace Game.Player
             if (_characterController == null || _config == null)
                 return;
 
+            ApplyJump();
             ApplyGravity();
             ApplyMovement();
         }
 
+        private void ApplyJump()
+        {
+            if (_characterController.isGrounded && _input.Player.Jump.WasPressedThisFrame())
+            {
+                _verticalVelocity = _config.jumpForce;
+                GameLog.Info(TAG, $"Jump triggered. Vertical velocity set to {_verticalVelocity}");
+            }
+        }
+
         private void ApplyGravity()
         {
-            if (_characterController.isGrounded)
+            if (_characterController.isGrounded && _verticalVelocity <= 0f)
             {
                 _verticalVelocity = GROUNDED_VELOCITY;
             }

@@ -12,5 +12,8 @@ namespace Game.Player
         [SerializeField] public float walkSpeed = 3f;
         [SerializeField] public float runSpeed = 6f;
         [SerializeField] public float rotationSpeed = 10f;
+
+        [Header("Jump")]
+        [SerializeField] public float jumpForce = 5f;
     }
 }

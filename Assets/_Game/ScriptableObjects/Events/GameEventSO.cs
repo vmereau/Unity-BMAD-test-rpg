@@ -21,10 +21,8 @@ namespace Game.Core
     /// </summary>
     public abstract class GameEventSOBase : ScriptableObject { }
 
-    public class GameEventSO<T> : GameEventSOBase
+    public abstract class GameEventSO<T> : GameEventSOBase
     {
-        private const string TAG = "[Event]";
-
         private readonly List<Action<T>> _listeners = new List<Action<T>>();
 
         public void Raise(T payload)
