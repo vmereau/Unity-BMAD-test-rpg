@@ -79,6 +79,14 @@ These are empty GameObjects only — no scripts yet. Scripts are added per-epic.
 
 - **`manage_scene(action="load")`** only resolves scene names at `Assets/{name}.unity`. It **cannot** load scenes in sub-folders (e.g. `Assets/_Game/Scenes/Core.unity`). Edit `.unity` files directly for sub-folder scenes, then call `refresh_unity`.
 - **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` + `refresh_unity(mode="force")`.
+- **`manage_animation(controller_add_transition)`** sets wrong `conditionMode` for bools: uses `3` (Equals) instead of `2` (IfNot/false) or `1` (If/true). Always verify and fix via direct YAML edits.
+- **AnimatorController YAML-only transitions** may not be visible in Unity's Animator tab. When rewriting `.controller` files entirely via `Write`, transitions defined only in YAML may need to be manually re-created in the Unity Animator window. Prefer using MCP tools for individual transitions, then fix known bugs in YAML.
+
+### Animator Controller Best Practices (Story 1.6)
+
+- **Always set `WriteDefaultValues: false`** on all animator states. With `true`, states write T-pose defaults for bones they don't animate, causing pose corruption during transitions.
+- **Smooth transition durations:** Use 0.1–0.2s crossfade for most transitions. Instant (0s) transitions look snappy/jarring.
+- **IsRising detection:** Use `velocity.y > 0.1f` (not `> 0f`) to avoid float noise triggering false positives at rest.
 
 ### Unity Input System — Action Map Layout
 
@@ -187,3 +195,5 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | LOW | Magic numbers in gameplay logic (use `[SerializeField]` or config SO) |
 | LOW | Story File List missing Unity Editor-generated assets (FBX, AnimatorController, .meta files) — always audit art asset directories when story covers animation/import work |
 | HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside the asmdef folder |
+| MEDIUM | `WriteDefaultValues: true` on animator states — causes T-pose bleed; always use `false` |
+| MEDIUM | AnimatorController `.controller` file fully rewritten via `Write` tool — transitions may not be visible in Unity Animator; prefer incremental MCP edits + YAML fixes |
