@@ -141,7 +141,7 @@ The following must be decided in Steps 4–7:
 | 2 | World State Persistence | Per-entity PersistentID + WorldStateManager | N/A | 2–8 |
 | 3 | Save System | JSON + Steam Cloud sync | Steamworks.NET (latest stable) | 3, 8 |
 | 4 | Scene Loading | Additive scene loading (Core + region scenes) | N/A | 4–8 |
-| 5 | Directional Attack Input | Velocity threshold + hold window (3–5 frame buffer) | N/A | 2 |
+| 5 | Attack System | Timed combo (3-hit chain, animation windows, stamina gated) | N/A | 2 |
 | 6 | Dialogue/Quest Data | ScriptableObjects + WorldStateManager runtime state | N/A | 5–7 |
 | 7 | Asset Loading | Direct references (Addressables-ready structure) | N/A (Unity 6.3 LTS) | 1, 8 |
 
@@ -186,16 +186,22 @@ On scene load, entities query their GUID against WorldStateManager and self-deac
 
 **Rationale:** One persistent `Core` scene always loaded containing: player prefab, WorldStateManager, GameEventBus, Cinemachine camera rig, UI canvas, day/night controller, audio manager. Region content (starting town, wilderness, dungeon) lives in separate scenes loaded additively via `LoadSceneAsync(additive)`. Region transitions use a brief camera fade — no full loading screen. Satisfies the "seamless within regions" performance requirement while keeping each region's content organized in its own Unity scene.
 
-### Decision 5: Directional Attack Input Sampling
+### Decision 5: Timed Combo Attack System
 
-**Choice:** Velocity threshold + hold window (3–5 frame rolling buffer)
+**Choice:** Animation-window state machine with per-hit stamina gating
 
-**Rationale:** A rolling buffer of the last 3–5 frames of mouse delta is maintained each Update. On left-click input, the buffer is averaged. If the resultant magnitude exceeds a tunable threshold (`attackDirectionThreshold`, exposed in inspector), the dominant axis maps to a direction:
-- Left/Right delta dominant → horizontal strike (left or right)
-- Up delta dominant → overhead strike
-- Down delta dominant → thrust
+**Rationale:** Attacks chain via a 3-hit combo triggered by LMB. `PlayerCombat`
+tracks the current combo step (0–2). On LMB press, if a combo window is open and
+stamina is sufficient, the next hit fires and the animator advances to the
+corresponding state. If the window has expired or stamina is zero, the combo resets.
 
-If magnitude is below threshold (mouse idle), defaults to overhead/neutral. Threshold is a designer-tunable float to calibrate "weightiness" during playtesting (Epic 2 validation milestone).
+Combo window timing is driven by Animator state events (or a simple float timer
+set when each attack state is entered), exposing a designer-tunable `comboWindowDuration`
+in `CombatConfigSO`. This keeps timing adjustable without code changes — the developer
+tunes windows directly in the config asset during playtesting.
+
+Attack states: `Attack_1_State`, `Attack_2_State`, `Attack_3_State` (finisher).
+Each returns to Locomotion on exit time if no follow-up is registered.
 
 ### Decision 6: Dialogue & Quest Data Storage
 

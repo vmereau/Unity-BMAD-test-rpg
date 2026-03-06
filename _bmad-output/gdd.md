@@ -203,8 +203,12 @@ Combat is weighty and deliberate — not button-mashing.
 - **Stamina System:** All offensive and defensive actions consume stamina.
   At zero stamina the player cannot attack, dodge, or block. Stamina recovers
   when not performing actions.
-- **Directional Attacks:** Attack direction is determined by mouse movement
-  at the moment of input (left, right, overhead, thrust).
+- **Combo Attacks:** Attacks are chained in a timed combo sequence via LMB.
+  The first press triggers the opening strike. A timing window opens during
+  the animation — pressing LMB within that window continues the chain to a
+  second strike. A second timing window during the follow-up animation allows
+  a finishing blow. Missing a window resets the combo. All combo hits consume
+  stamina; at zero stamina, the chain cannot continue.
 - **Manual Blocking:** Hold a dedicated button to raise a block. Blocking
   costs stamina on each hit absorbed.
 - **Perfect Block:** A tight timing window at the moment of impact negates
@@ -282,7 +286,7 @@ unlock abilities, or raise crafting skill tiers.
 |---|---|
 | Move | WASD |
 | Camera / Aim direction | Mouse look |
-| Attack (directional) | Left Mouse Button + mouse direction |
+| Attack (combo) | Left Mouse Button (tap within window to chain) |
 | Block | Right Mouse Button (hold) |
 | Dodge | Space + WASD direction |
 | Interact / Talk / Loot | E |
@@ -299,8 +303,11 @@ unlock abilities, or raise crafting skill tiers.
 
 Combat inputs should feel weighty and committed — no instant cancels.
 Attacks have wind-up and recovery frames. The perfect block window is tight
-enough to reward skill without being frame-perfect. Mouse-driven directional
-attacks should feel intuitive with clear visual feedback per direction.
+enough to reward skill without being frame-perfect. Combo attacks should feel
+weighty and committed — each hit in the chain has a clear animation window.
+Timing feedback (visual or audio) communicates when the next input window is
+open. Missing the window resets the combo naturally without punishment beyond
+lost momentum.
 
 #### Accessibility Controls
 
@@ -459,7 +466,7 @@ all secrets — become genuinely overpowered. This is intentional and rewarded.
 **Pattern:** Regional exponential with Act-based spikes.
 
 - **Starting region:** Forgiving enough to learn mechanics without being trivial.
-  Early enemies teach stamina management and directional combat.
+  Early enemies teach stamina management and combo timing.
 - **Further regions:** Danger scales with distance from the starting area.
   No level gates — danger is communicated through world design and NPC warnings.
 - **Story Acts:** Each Act transition introduces tougher enemy variants,

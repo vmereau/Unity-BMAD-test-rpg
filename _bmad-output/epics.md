@@ -49,10 +49,10 @@ Implement the full stamina-based directional combat system and validate the
 combat feel.
 
 ### Scope
-**Includes:** Stamina system (pool, consumption, recovery), directional attacks
-(mouse-driven), manual blocking (hold), perfect block window (timed, no stamina
-cost, staggers attacker), dodge roll (directional, stamina cost, i-frames),
-basic enemy AI (patrol, engage, attack), hit detection, health system, death.
+**Includes:** Stamina system (pool, consumption, recovery), timed combo attacks
+(3-hit chain with animation windows), manual blocking (hold), perfect block window
+(timed, no stamina cost, staggers attacker), dodge roll (directional, stamina cost,
+i-frames), basic enemy AI (patrol, engage, attack), hit detection, health system, death.
 
 **Excludes:** Character stats/progression, specific enemy types, UI beyond
 debug overlays.
@@ -67,7 +67,7 @@ meaningful. Perfect block feels rewarding. Combat loop is validated.
 ### Stories
 - As a player, I have a stamina bar that depletes on attacks, blocks, and dodges
 - As a player, I cannot attack, block, or dodge at zero stamina
-- As a player, I attack in the direction I move my mouse
+- As a player, I can chain up to 3 attacks by pressing LMB within each combo window
 - As a player, I hold right mouse button to block incoming damage
 - As a player, I can perform a perfect block in a tight timing window that
   staggers the attacker and costs no stamina

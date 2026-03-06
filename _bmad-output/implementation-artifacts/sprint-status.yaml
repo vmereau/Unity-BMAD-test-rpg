@@ -51,8 +51,9 @@ development_status:
 
   epic-2: in-progress
   2-1-stamina-bar-system: done
-  2-2-zero-stamina-gate: backlog
-  2-3-directional-attacks: backlog
+  2-2-zero-stamina-gate: done
+  2-3-directional-attacks: superseded  # replaced by 2-3-timed-combo
+  2-3-timed-combo: review
   2-4-manual-blocking: backlog
   2-5-perfect-block: backlog
   2-6-dodge-roll: backlog

@@ -18,5 +18,5 @@ MonoBehaviour:
   dodgeStaminaCost: 25
   staminaRegenRate: 20
   staminaRegenDelay: 1.5
-  attackDirectionThreshold: 0.3
-  directionSampleFrames: 5
+  comboWindowDelay: 0.5
+  comboWindowDuration: 0.5

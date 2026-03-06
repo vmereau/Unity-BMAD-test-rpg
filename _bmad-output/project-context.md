@@ -154,7 +154,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Inventory operations (add, remove, equip)
 - `WorldStateManager` state transitions (kill registration, quest state changes, act advancement)
 - `TopicUnlockEvaluator` condition evaluation logic (quest states, NPC alive checks)
-- `DirectionalAttackSampler` direction resolution (buffer averaging, threshold logic)
+- `ComboController` window timing logic (window open/close, combo step progression, stamina gate per hit)
 - ScriptableObject data validation (quest SO completeness, item SO stat ranges)
 
 **Do NOT test:**
@@ -228,7 +228,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - NEVER omit the TAG constant — every class defines `private const string TAG = "[SystemName]";`
 
 **Novel Pattern Gotchas:**
-- `DirectionalAttackSampler` buffer must be cleared/reset between attacks — stale buffer causes wrong direction on fast re-clicks
+- `PlayerCombat` combo window must be explicitly closed when the animator exits an attack state — if the window stays open after exit time, rapid LMB presses can register a hit on the wrong combo step
 - `NPCScheduler` must subscribe to `OnDayNightChanged` in `OnEnable` — NPCs placed inactive in scene will miss the event on load; call `HandleDayNightChanged` manually in `Start` to initialize state
 - `TopicUnlockEvaluator` re-evaluates AFTER each topic consequence fires — topics that unlock mid-conversation must appear immediately without closing/reopening dialogue
 

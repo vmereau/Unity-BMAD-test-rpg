@@ -49,3 +49,7 @@ ehthumbs.db
 # Auto-generated files
 *.csproj
 *.sln
+
+# Play Mode test screenshots
+Assets/Screenshots/
+Assets/Screenshots.meta

@@ -299,6 +299,7 @@ GameObject:
   - component: {fileID: 5568649413240552905}
   - component: {fileID: 8804797609426057041}
   - component: {fileID: 6190714227048131037}
+  - component: {fileID: 2745230425342015027}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -425,6 +426,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17a3f5c3361f4a94f9488e4fb8589a94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.StaminaSystem
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+--- !u!114 &2745230425342015027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6649427767868440285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7f35123c6d5043439117f5f65f9de0a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::Game.Combat.PlayerCombat
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
 --- !u!1 &8982887748261060099
 GameObject:
