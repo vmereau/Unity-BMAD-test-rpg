@@ -1,6 +1,6 @@
 # Story 2.3: Timed Combo Attacks
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -12,33 +12,33 @@ so that combat has rhythmic depth without requiring directional precision.
 
 ## Acceptance Criteria
 
-1. `CombatConfigSO` has a new `[Header("Combo Attack")]` section with one field: `public float comboWindowDuration = 0.6f`. The removed fields `attackDirectionThreshold` and `directionSampleFrames` (and their `[Header("Directional Attack (Story 2.3)")]` block) are deleted.
+1. `CombatConfigSO` has a new `[Header("Combo Attack")]` section with two fields: `public float comboWindowDelay = 0.3f` (seconds after an attack fires before the combo window opens, ~50% of clip length) and `public float comboWindowDuration = 0.18f` (seconds the window stays open once it opens, ~30% of clip length). The removed fields `attackDirectionThreshold` and `directionSampleFrames` (and their `[Header("Directional Attack (Story 2.3)")]` block) are deleted.
 
 2. `PlayerCombat` has three precomputed static readonly trigger hashes: `Attack1Hash`, `Attack2Hash`, `Attack3Hash` (using `Animator.StringToHash`). The four directional hashes (`AttackOverheadHash`, `AttackLeftHash`, `AttackRightHash`, `AttackThrustHash`) are removed.
 
-3. `PlayerCombat` tracks combo state with three private fields: `_comboStep` (int, range 0–2), `_comboWindowOpen` (bool), `_comboWindowTimer` (float). No public API — all internal.
+3. `PlayerCombat` tracks combo state with four private fields: `_comboStep` (int, range 0–2), `_comboWindowOpen` (bool), `_comboWindowDelay` (float, counts down before the window opens after an attack fires), `_comboWindowTimer` (float, counts down while the window is open). No public API — all internal.
 
-4. `PlayerCombat.Update()` decrements `_comboWindowTimer` by `Time.deltaTime` when `_comboWindowTimer > 0f`. When the timer reaches zero or below, it sets `_comboWindowOpen = false` and `_comboStep = 0`, and logs `GameLog.Info(TAG, "Combo window expired — chain reset to step 0")`.
+4. `PlayerCombat.Update()` manages a two-phase combo window. Phase 1 (delay): while `_comboWindowDelay > 0f`, decrement by `Time.deltaTime`; when ≤ 0f, set `_comboWindowOpen = true`, `_comboWindowTimer = _config.comboWindowDuration`, log `GameLog.Info(TAG, $"Combo window opened — step {_comboStep} ready")`, and return early. Phase 2 (window): while `_comboWindowTimer > 0f`, decrement by `Time.deltaTime`; when ≤ 0f, set `_comboWindowOpen = false`, `_comboStep = 0`, log `GameLog.Info(TAG, "Combo window expired — chain reset to step 0")`.
 
 5. `PlayerCombat.TryAttack()` implements the combo logic in exact order:
    a. If `!_comboWindowOpen`: reset `_comboStep = 0` (start fresh chain).
-   b. Check `_staminaSystem.HasEnough(_config.attackStaminaCost)`. If false: log `GameLog.Warn`, reset `_comboWindowOpen = false` and `_comboStep = 0`, return.
+   b. Check `_staminaSystem.HasEnough(_config.attackStaminaCost)`. If false: log `GameLog.Warn`, reset `_comboWindowOpen = false`, `_comboWindowDelay = 0f`, `_comboStep = 0`, return.
    c. Call `_staminaSystem.Consume(_config.attackStaminaCost)`.
    d. Set `triggerHash` from `_comboStep`: 0 → `Attack1Hash`, 1 → `Attack2Hash`, 2 → `Attack3Hash`.
    e. Call `_animator.SetTrigger(triggerHash)`.
    f. Log `GameLog.Info(TAG, $"Attack combo step {_comboStep + 1}")`.
-   g. If `_comboStep < 2`: increment `_comboStep`, set `_comboWindowOpen = true`, set `_comboWindowTimer = _config.comboWindowDuration`.
-   h. If `_comboStep == 2` (finisher just fired): set `_comboStep = 0`, `_comboWindowOpen = false`, `_comboWindowTimer = 0f`.
+   g. If `_comboStep < 2`: increment `_comboStep`, set `_comboWindowOpen = false`, set `_comboWindowDelay = _config.comboWindowDelay`, set `_comboWindowTimer = 0f` (window will open after the delay elapses).
+   h. If `_comboStep == 2` (finisher just fired): set `_comboStep = 0`, `_comboWindowOpen = false`, `_comboWindowDelay = 0f`, `_comboWindowTimer = 0f`.
 
-6. `PlayerCombat.OnGUI()` (debug, `#if DEVELOPMENT_BUILD || UNITY_EDITOR`) still shows combat gate state at `Rect(10, 70, 300, 20)` and shows combo step at `Rect(10, 90, 300, 20)`: `$"Combo: step {_comboStep} | window {(_comboWindowOpen ? "OPEN" : "closed")}"`.
+6. `PlayerCombat.OnGUI()` (debug, `#if DEVELOPMENT_BUILD || UNITY_EDITOR`) shows combat gate state at `Rect(10, 70, 400, 26)` using a `GUIStyle` with `fontSize = 18`. Shows combo state at `Rect(10, 100, 400, 26)` with format `$"Combo: step {_comboStep} | {windowState}"` where `windowState` is `$"opening in {_comboWindowDelay:F2}s"` during delay phase, `$"OPEN ({_comboWindowTimer:F2}s)"` during window phase, or `"closed"`.
 
 7. `PlayerCombat` no longer has `[RequireComponent(typeof(DirectionalAttackSampler))]`. The `_sampler` field and the entire `Update()` call to `_sampler.RecordDelta(...)` are removed. `Awake()` no longer acquires `_sampler`. The null-guard on `_sampler` in the old `Update()` guard is removed.
 
 8. `PlayerAnimatorController` has exactly 3 Trigger-type parameters: `Attack_1`, `Attack_2`, `Attack_3`. The 4 old directional parameters (`Attack_Overhead`, `Attack_Left`, `Attack_Right`, `Attack_Thrust`) are removed.
 
-9. `PlayerAnimatorController` has exactly 3 new animation states: `Attack_1_State`, `Attack_2_State`, `Attack_3_State`. Each uses the `Idle.fbx` placeholder clip. Each has `WriteDefaultValues: false`. The 4 old directional states are removed.
+9. `PlayerAnimatorController` has exactly 3 new animation states: `Attack_1_State`, `Attack_2_State`, `Attack_3_State`, placed in the `Attack` layer (see AC 10). Clips: `Attack_1_State` and `Attack_3_State` use `AttackLeft.fbx`; `Attack_2_State` uses `AttackThrust.fbx` (both from `Assets/_Game/Art/Characters/Player/Animations/attacks/`). Each has `WriteDefaultValues: false`. The 4 old directional states are removed.
 
-10. Each new attack state is reachable via an Any State transition on its respective trigger (`Attack_1`, `Attack_2`, `Attack_3`). Transition settings: Has Exit Time OFF, Transition Duration 0s. Each new attack state transitions back to the Locomotion state on Exit Time 1.0, Transition Duration 0.15s, no conditions.
+10. Attack states live in a dedicated `Attack` layer (index 1) with the `UpperBodyMask` avatar mask (`Assets/_Game/Art/Characters/Player/Animations/UpperBodyMask.mask`), `DefaultWeight: 1`, Override blending. This separates upper-body combat from lower-body locomotion. Attack state transitions are **state-to-state** (not Any State): `Locomotion → Attack_1_State` on `Attack_1` trigger; `Attack_1_State → Attack_2_State` on `Attack_2` trigger; `Attack_2_State → Attack_3_State` on `Attack_3` trigger. All chain transitions: Has Exit Time OFF. Each attack state → Locomotion: Has Exit Time ON (~0.77–0.92 per clip), Transition Duration 0.25s, no conditions. The Attack layer also contains duplicated jump/fall Any State transitions for correct upper-body behaviour during airborne states.
 
 11. `DirectionalAttackSampler.cs`, `DirectionalAttackSampler.cs.meta`, `AttackDirection.cs`, `AttackDirection.cs.meta`, `DirectionalAttackSamplerTests.cs`, and `DirectionalAttackSamplerTests.cs.meta` are all deleted from the project.
 
@@ -512,13 +512,14 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
-None — implementation matched story spec exactly; no blockers encountered.
+Implementation diverged from spec in several meaningful ways — see Completion Notes.
 
 ### Completion Notes List
 
-- Rewrote `PlayerCombat.cs` with timed 3-hit combo state machine; removed all directional logic.
-- Updated `CombatConfigSO.cs`: removed `attackDirectionThreshold`/`directionSampleFrames`, added `comboWindowDuration = 0.6f`.
-- Rewrote `PlayerAnimatorController.controller` YAML: swapped 4 directional params/states for 3 combo params/states; all 3 new states use `Idle.fbx` placeholder and `WriteDefaultValues: 0`.
+- Rewrote `PlayerCombat.cs` with timed 3-hit combo state machine; removed all directional logic. Added `_comboWindowDelay` (4th combo field, not in original spec): window opens delayed after attack fires rather than immediately, giving a more realistic feel. `CombatConfigSO` has two combo fields (`comboWindowDelay = 0.3f`, `comboWindowDuration = 0.18f`) rather than the originally specified single field.
+- Updated `CombatConfigSO.cs`: removed `attackDirectionThreshold`/`directionSampleFrames`, added `comboWindowDelay = 0.3f` and `comboWindowDuration = 0.18f`.
+- Rewrote `PlayerAnimatorController.controller` YAML: added dedicated `Attack` layer with `UpperBodyMask` (separates upper/lower body); swapped 4 directional params/states for 3 combo params/states using `AttackLeft.fbx` and `AttackThrust.fbx` clips; attack transitions are state-to-state (Locomotion→A1→A2→A3), not Any State as originally specified. All 3 states use `WriteDefaultValues: 0`.
+- Imported attack FBX clips: `AttackLeft.fbx`, `AttackThrust.fbx`, `AttackOverhead.fbx` (unused) into `Assets/_Game/Art/Characters/Player/Animations/attacks/`. Created `UpperBodyMask.mask`.
 - Removed `DirectionalAttackSampler` component from `Player.prefab` root (component list + MonoBehaviour block).
 - Deleted 6 obsolete files: `DirectionalAttackSampler.cs`, `AttackDirection.cs`, `DirectionalAttackSamplerTests.cs` + their `.meta` files.
 - Created `ComboWindowTests.cs` with 5 Edit Mode tests covering all combo state machine formula paths.
@@ -535,6 +536,16 @@ None — implementation matched story spec exactly; no blockers encountered.
 
 **Created:**
 - `Assets/Tests/EditMode/ComboWindowTests.cs`
+- `Assets/Tests/EditMode/ComboWindowTests.cs.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/UpperBodyMask.mask`
+- `Assets/_Game/Art/Characters/Player/Animations/UpperBodyMask.mask.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackLeft.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackLeft.fbx.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackThrust.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackThrust.fbx.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackOverhead.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/attacks/AttackOverhead.fbx.meta`
 
 **Deleted:**
 - `Assets/_Game/Scripts/Combat/DirectionalAttackSampler.cs`
