@@ -82,8 +82,9 @@ namespace Game.Combat
         private void OnGUI()
         {
             if (_config == null) return;
+            var style = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             GUI.Label(new Rect(10, 50, 300, 20),
-                $"Stamina: {_currentStamina:F0} / {_config.baseStaminaPool:F0}");
+                $"Stamina: {_currentStamina:F0} / {_config.baseStaminaPool:F0}", style);
         }
 #endif
     }

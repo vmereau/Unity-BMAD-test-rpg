@@ -71,6 +71,9 @@ meaningful. Perfect block feels rewarding. Combat loop is validated.
 - As a player, I hold right mouse button to block incoming damage
 - As a player, I can perform a perfect block in a tight timing window that
   staggers the attacker and costs no stamina
+- As a developer, a PlayerStateManager centralizes player state (airborne,
+  blocking, attacking, dodging) so combat actions are correctly gated —
+  including preventing all combat while jumping or falling
 - As a player, I can dodge roll in any direction with i-frames
 - As a player, enemies patrol and engage me when I enter their range
 - As a player, enemies and I have health that depletes on hit

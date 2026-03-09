@@ -118,6 +118,16 @@ private void OnDisable()
 }
 ```
 
+### InputSystem_Actions.cs Embeds the Full JSON (Critical)
+
+`InputSystem_Actions.cs` is **not** just a wrapper that reads from `InputSystem_Actions.inputactions` at runtime — it **embeds the entire action map JSON as a string literal** inside the constructor. The `.inputactions` file is only used by Unity's Input Actions editor UI.
+
+**Consequence:** When adding new actions (e.g. Block), you MUST edit **both** files:
+1. `InputSystem_Actions.inputactions` — for Unity's editor and future regeneration
+2. `InputSystem_Actions.cs` embedded JSON (uses `""` double-escaped quotes) — this is what actually runs
+
+If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFound: true)` will throw `ArgumentException` because the embedded JSON doesn't have the new action.
+
 ### CharacterController.velocity Includes Y Component
 
 `CharacterController.velocity.magnitude` is **never 0 when grounded** because `PlayerController` constantly applies `GROUNDED_VELOCITY = -2f` to keep the character snapped to the ground. Effects:
