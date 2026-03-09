@@ -1,3 +1,4 @@
+using Game.Combat;
 using Game.Core;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ namespace Game.Player
         private Camera _mainCamera;
         private InputSystem_Actions _input;
         private float _verticalVelocity;
+        private PlayerStateManager _stateManager;
 
         private void Awake()
         {
@@ -43,6 +45,10 @@ namespace Game.Player
             {
                 GameLog.Warn(TAG, "Camera.main not found in Awake. Movement will use world-space axes until a camera is available.");
             }
+
+            _stateManager = GetComponent<PlayerStateManager>();
+            if (_stateManager == null)
+                GameLog.Warn(TAG, "PlayerStateManager not found on Player — dodge gating unavailable");
         }
 
         private void OnEnable()
@@ -63,6 +69,10 @@ namespace Game.Player
         private void Update()
         {
             if (_characterController == null || _config == null)
+                return;
+
+            // Yield control to DodgeController during dodge
+            if (_stateManager != null && _stateManager.IsDodging)
                 return;
 
             ApplyJump();

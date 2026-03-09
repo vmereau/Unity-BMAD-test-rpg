@@ -28,5 +28,15 @@ namespace Game.Combat
         public float comboWindowDelay = 0.3f;
         [Tooltip("Seconds the combo window stays open once it opens (~30% of clip length).")]
         public float comboWindowDuration = 0.18f;
+
+        [Header("Perfect Block")]
+        [Tooltip("Seconds after raising block during which a hit counts as a perfect block.")]
+        public float perfectBlockWindowDuration = 0.25f;
+
+        [Header("Dodge")]
+        [Tooltip("Duration in seconds of the dodge roll movement and i-frame window.")]
+        public float dodgeDuration = 0.5f;
+        [Tooltip("Horizontal speed in units/sec during the dodge roll.")]
+        public float dodgeSpeed = 8f;
     }
 }

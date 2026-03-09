@@ -54,11 +54,12 @@ development_status:
   2-2-zero-stamina-gate: done
   2-3-directional-attacks: superseded  # replaced by 2-3-timed-combo
   2-3-timed-combo: done
-  2-4-manual-blocking: backlog
-  2-5-perfect-block: backlog
-  2-6-dodge-roll: backlog
-  2-7-enemy-ai-patrol-engage: backlog
-  2-8-health-system: backlog
+  2-4-manual-blocking: done
+  2-5-perfect-block: done
+  2-6-player-state-manager: done
+  2-7-dodge-roll: in-progress
+  2-8-enemy-ai-patrol-engage: backlog
+  2-9-health-system: backlog
   epic-2-retrospective: optional
 
   epic-3: backlog
