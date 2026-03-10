@@ -82,7 +82,8 @@ namespace Game.Player
 
         private void ApplyJump()
         {
-            if (_characterController.isGrounded && _input.Player.Jump.WasPressedThisFrame())
+            bool canJump = _stateManager != null ? _stateManager.CanJump() : _characterController.isGrounded;
+            if (canJump && _input.Player.Jump.WasPressedThisFrame())
             {
                 _verticalVelocity = _config.jumpForce;
                 GameLog.Info(TAG, $"Jump triggered. Vertical velocity set to {_verticalVelocity}");

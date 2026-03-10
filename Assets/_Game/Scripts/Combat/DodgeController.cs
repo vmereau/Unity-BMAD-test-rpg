@@ -103,6 +103,7 @@ namespace Game.Combat
 
             if (_dodgeTimer <= 0f)
             {
+                _dodgeTimer = 0f;
                 _stateManager.SetDodging(false);
                 _dodgeVerticalVelocity = 0f;
                 GameLog.Info(TAG, "Dodge roll complete");
@@ -111,28 +112,25 @@ namespace Game.Combat
 
         private void OnDodgeStarted(InputAction.CallbackContext ctx)
         {
-            // Gate 1: airborne
             if (_stateManager.IsAirborne)
             {
                 GameLog.Warn(TAG, "Cannot dodge while airborne");
                 return;
             }
 
-            // Gate 2: blocking
             if (_stateManager.IsBlocking)
             {
                 GameLog.Warn(TAG, "Cannot dodge while blocking");
                 return;
             }
 
-            // Gate 3: already dodging
             if (_stateManager.IsDodging)
             {
                 GameLog.Warn(TAG, "Cannot dodge: already dodging");
                 return;
             }
 
-            // Gate 4: stamina
+            // Stamina gate
             if (!_staminaSystem.HasEnough(_config.dodgeStaminaCost))
             {
                 GameLog.Warn(TAG, "Cannot dodge: insufficient stamina");
@@ -148,6 +146,7 @@ namespace Game.Combat
 
             // Compute camera-relative dodge direction from current Move input
             Vector2 moveInput = _input.Player.Move.ReadValue<Vector2>();
+            bool isBackwardRoll = false;
             if (moveInput.magnitude >= 0.1f)
             {
                 if (_mainCamera != null)
@@ -170,6 +169,7 @@ namespace Game.Combat
                     _dodgeDirection = Vector3.back; // absolute fallback
                 else
                     _dodgeDirection.Normalize();
+                isBackwardRoll = true;
             }
 
             _dodgeTimer = _config.dodgeDuration;
@@ -182,7 +182,7 @@ namespace Game.Combat
                 GameLog.Info(TAG, "Dodge cancelled active attack");
             }
 
-            _stateManager.SetDodging(true);
+            _stateManager.SetDodging(true, isBackwardRoll);
             GameLog.Info(TAG, $"Dodge roll started: dir={_dodgeDirection}, dur={_config.dodgeDuration}s");
         }
 

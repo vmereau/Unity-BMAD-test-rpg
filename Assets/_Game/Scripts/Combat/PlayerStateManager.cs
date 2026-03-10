@@ -19,6 +19,8 @@ namespace Game.Combat
         private const string TAG = "[Combat]";
 
         private static readonly int IsBlockingHash = Animator.StringToHash("IsBlocking");
+        private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
+        private static readonly int IsDodgingBackwards = Animator.StringToHash("IsDodgingBackwards");
 
         private CharacterController _characterController;
         private Animator _animator;
@@ -69,6 +71,30 @@ namespace Game.Combat
         }
 
         /// <summary>Sets dodging state. Reserved for Story 2.7.</summary>
-        public void SetDodging(bool value) => IsDodging = value;
+        public void SetDodging(bool value, bool isBackwardRoll = false)
+        {
+            IsDodging = value;
+            if (_animator != null && value) {
+                _animator.SetTrigger(isBackwardRoll ? IsDodgingBackwards : IsDodgingHash);
+            }
+        }
+
+        // ── Can-do queries ────────────────────────────────────────────────
+
+        /// <summary>True when the player is allowed to start an attack.</summary>
+        public bool CanAttack() => !IsAirborne && !IsBlocking && !IsDodging;
+
+        /// <summary>
+        /// True when the player is allowed to raise a block.
+        /// Note: blocking is intentionally permitted during an attack combo (block-cancel mechanic).
+        /// OnBlockStarted in PlayerCombat resets combo state when a block is raised.
+        /// </summary>
+        public bool CanBlock() => !IsAirborne && !IsDodging;
+
+        /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
+        public bool CanDodge() => !IsAirborne && !IsBlocking && !IsDodging;
+
+        /// <summary>True when the player is allowed to jump (state gates only; isGrounded not checked here).</summary>
+        public bool CanJump() => !IsAirborne && !IsDodging;
     }
 }

@@ -1,6 +1,6 @@
 # Story 2.7: Dodge Roll
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -108,7 +108,11 @@ so that I can evade enemy attacks with i-frame immunity during the roll.
    }
    ```
 
-9. `PlayerStateManager.SetDodging()` stub already correctly sets `IsDodging = value;` — **no changes needed** to `PlayerStateManager.cs`.
+9. `PlayerStateManager.SetDodging()` is updated to accept an `isBackwardRoll` parameter and fire the appropriate animator trigger:
+   - `SetDodging(bool value, bool isBackwardRoll = false)`
+   - On `value = true`: fires `IsDodging` trigger (forward roll) or `IsDodgingBackwards` trigger (backward roll)
+   - `DodgeController` passes `isBackwardRoll: true` when no directional input was held
+   - `CanAttack()` and `CanBlock()` now also gate on `!IsDodging` (cannot attack or block during a roll)
 
 10. `DodgeController` debug overlay (`OnGUI()` inside `#if DEVELOPMENT_BUILD || UNITY_EDITOR`) at y=190:
     ```csharp
@@ -125,11 +129,12 @@ so that I can evade enemy attacks with i-frame immunity during the roll.
 
 12. Edit Mode tests: `DodgeGateTests.cs` at `Assets/Tests/EditMode/DodgeGateTests.cs` with ≥ 6 tests:
     - `CanDodge_ReturnsFalse_WhenAirborne()`
-    - `CanDodge_ReturnsFalse_WhenAttacking()`
+    - `CanDodge_ReturnsTrue_WhenAttacking()` — attacking is **not** a gate; dodge cancels attacks (attack-cancel mechanic)
     - `CanDodge_ReturnsFalse_WhenBlocking()`
     - `CanDodge_ReturnsFalse_WhenAlreadyDodging()`
     - `CanDodge_ReturnsFalse_WhenInsufficientStamina()`
-    - `CanDodge_ReturnsTrue_WhenGroundedNotAttackingNotBlockingNotDodgingHasStamina()`
+    - `CanDodge_ReturnsTrue_WhenAllConditionsMet()`
+    - Test helper signature: `bool CanDodge(bool isAirborne, bool isBlocking, bool isDodging, float stamina, float dodgeCost)` — no `isAttacking` param since attacking is not a gate
 
 13. No compile errors. All existing 35 Edit Mode tests pass. New total: ≥ 41.
 
@@ -552,14 +557,26 @@ public class DodgeGateTests
 [y=190]  Dodge: ready | CanDodge:True                                  ← DodgeController (NEW)
 ```
 
-### PlayerStateManager.SetDodging() — No Changes Needed
+### PlayerStateManager.SetDodging() — Updated Signature
 
-The stub from Story 2.6 already correctly sets `IsDodging = value`. Confirmed:
+`SetDodging` was extended to fire the appropriate animator trigger on roll start:
+
 ```csharp
-/// <summary>Sets dodging state. Reserved for Story 2.7.</summary>
-public void SetDodging(bool value) => IsDodging = value;
+private static readonly int IsDodgingHash       = Animator.StringToHash("IsDodging");
+private static readonly int IsDodgingBackwards   = Animator.StringToHash("IsDodgingBackwards");
+
+/// <summary>Sets dodging state. Fires the forward or backward roll animator trigger on entry.</summary>
+public void SetDodging(bool value, bool isBackwardRoll = false)
+{
+    IsDodging = value;
+    if (_animator != null && value)
+        _animator.SetTrigger(isBackwardRoll ? IsDodgingBackwards : IsDodgingHash);
+}
 ```
-No changes to `PlayerStateManager.cs` are needed.
+
+`DodgeController.OnDodgeStarted()` tracks whether input was absent (backward roll) via a local `isBackwardRoll` bool set in the direction-computation block, then passes it to `SetDodging(true, isBackwardRoll)`.
+
+**CanAttack / CanBlock also updated:** Both now gate on `!IsDodging` — attacking or blocking is impossible during the roll window.
 
 ### Architecture Compliance
 
@@ -579,7 +596,7 @@ No changes to `PlayerStateManager.cs` are needed.
 | Cross-system read: PlayerController → PlayerStateManager | ⚠️ Documented pragmatic exception; PlayerController reads IsDodging state (read-only, no circular dependency) |
 | InputSystem dual-edit | ✅ Story explicitly requires editing both .inputactions AND embedded .cs JSON |
 | WriteDefaultValues: false | N/A — no new animator states in this story |
-| No animation for dodge roll | ⚠️ Animation deferred to Epic 8 (requires art assets); positional movement is functional |
+| Dodge animation triggers | ✅ `IsDodging` / `IsDodgingBackwards` triggers fire via `SetDodging()`; animation clips deferred to Epic 8 |
 
 ### Project Structure Notes
 
@@ -623,9 +640,13 @@ Player (root)
 └── DodgeController          ← NEW Story 2.7
 ```
 
+### Block-Cancel Mechanic (Intentional Design)
+
+`PlayerStateManager.CanBlock()` gates on `!IsAirborne && !IsDodging` only — it does **not** gate on `!IsAttacking`. This means a player can raise a block while mid-combo, which cancels the current attack chain. This is a deliberate block-cancel mechanic mirroring the attack-cancel dodge design. `PlayerCombat.OnBlockStarted()` handles the combo reset when block is raised during an active attack.
+
 ### Known Limitations (Prototype Acceptable)
 
-1. **No dodge animation:** Roll is a timed positional displacement only. A roll animation requires an asset (planned Epic 8 content polish). The animator controller does NOT need to be modified in this story.
+1. **Dodge animation triggers wired, clips pending:** `PlayerStateManager.SetDodging()` fires `IsDodging` (forward) or `IsDodgingBackwards` (backward) animator triggers. The AnimatorController requires matching states and transition rules for these triggers; the actual animation clips require art assets planned for Epic 8. Until clips are imported the character will snap to T-pose during the roll.
 2. **No dodge dust/VFX:** Epic 8 scope.
 3. **Gravity discontinuity:** DodgeController initializes `_dodgeVerticalVelocity = GROUNDED_VELOCITY` (-2f). If the player was mid-jump when dodge triggers (gated by `IsAirborne` → cannot happen). If the player was grounded, velocity starts at -2f which matches the grounded snap — correct.
 4. **Cross-system PlayerController → PlayerStateManager:** Documented above; flag for future PlayerStateManager relocation.
@@ -675,7 +696,15 @@ No issues encountered during implementation.
 
 **Created:**
 - `Assets/_Game/Scripts/Combat/DodgeController.cs`
+- `Assets/_Game/Scripts/Combat/DodgeController.cs.meta`
 - `Assets/Tests/EditMode/DodgeGateTests.cs`
+- `Assets/Tests/EditMode/DodgeGateTests.cs.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/Dodge back.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/Dodge back.fbx.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/dodge roll.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/dodge roll.fbx.meta`
+- `Assets/_Game/Art/Characters/Player/Animations/Block Idle.fbx`
+- `Assets/_Game/Art/Characters/Player/Animations/Block Idle.fbx.meta`
 
 **Modified:**
 - `Assets/_Game/InputSystem_Actions.inputactions`
@@ -683,8 +712,12 @@ No issues encountered during implementation.
 - `Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs`
 - `Assets/_Game/Scripts/Player/PlayerController.cs`
 - `Assets/_Game/Scripts/Combat/PlayerCombat.cs`
+- `Assets/_Game/Scripts/Combat/PlayerStateManager.cs`
 - `Assets/_Game/Prefabs/Player/Player.prefab`
 
 ## Change Log
 
 - 2026-03-10: Story 2.7 implemented — dodge roll with i-frames, stamina cost, camera-relative direction, gate system; 6 new Edit Mode tests added (total: 41).
+- 2026-03-10: Refactor — state gate checks moved to `PlayerStateManager.CanAttack/CanBlock/CanDodge/CanJump()`; attacking is not a gate for dodge (attack-cancel mechanic).
+- 2026-03-10: Animation triggers added — `PlayerStateManager.SetDodging()` fires `IsDodging` / `IsDodgingBackwards` animator triggers; `DodgeController` passes `isBackwardRoll` flag; `CanAttack()` and `CanBlock()` now also gate on `!IsDodging`.
+- 2026-03-10: Code review fixes — deleted duplicate auto-generated `Assets/InputSystem_Actions.cs` at root; per-gate log messages restored in `DodgeController.OnDodgeStarted()`; `_dodgeTimer` reset to 0f on dodge end; `CanBlock()` block-cancel mechanic documented; FBX animation assets added to File List; AC 12 updated to reflect attack-cancel test names; Status set to `review`.

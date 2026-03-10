@@ -140,8 +140,7 @@ namespace Game.Combat
 
         private void OnBlockStarted(InputAction.CallbackContext ctx)
         {
-            // Airborne gate — highest priority
-            if (_stateManager.IsAirborne)
+            if (!_stateManager.CanBlock())
             {
                 GameLog.Warn(TAG, "Cannot block while airborne");
                 return;
@@ -181,17 +180,9 @@ namespace Game.Combat
 
         private void TryAttack()
         {
-            // Airborne gate — highest priority; airborne cancels everything
-            if (_stateManager.IsAirborne)
+            if (!_stateManager.CanAttack())
             {
-                GameLog.Warn(TAG, "Cannot attack while airborne");
-                return;
-            }
-
-            // Cannot attack while blocking
-            if (_stateManager.IsBlocking)
-            {
-                GameLog.Warn(TAG, "Cannot attack while blocking");
+                GameLog.Warn(TAG, "Cannot attack — airborne or blocking");
                 return;
             }
 
