@@ -58,8 +58,8 @@ development_status:
   2-5-perfect-block: done
   2-6-player-state-manager: done
   2-7-dodge-roll: done
-  2-8-enemy-ai-patrol-engage: backlog
-  2-9-health-system: backlog
+  2-8-enemy-ai-patrol-engage: done
+  2-9-health-system: ready-for-dev
   epic-2-retrospective: optional
 
   epic-3: backlog
