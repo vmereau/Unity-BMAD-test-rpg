@@ -37,6 +37,17 @@ namespace Game.AI
         }
 
         /// <summary>
+        /// Called by Unity when the GameObject is re-enabled (e.g. by EnemyRespawner).
+        /// Resets health and dead flag so the enemy is fully combat-ready again.
+        /// </summary>
+        private void OnEnable()
+        {
+            if (_config == null) return;
+            CurrentHealth = _config.baseHealth;
+            IsDead = false;
+        }
+
+        /// <summary>
         /// Applies damage to this enemy. Triggers death when health reaches zero.
         /// Calls are ignored if the enemy is already dead.
         /// </summary>

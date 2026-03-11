@@ -68,6 +68,23 @@ All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Ass
 
 `Tests.EditMode.asmdef` explicitly references `"Game"` in its references array.
 
+### Enemy Prefab Structure (Enemy_Grunt)
+
+```
+Enemy_Grunt.prefab  (Assets/_Game/Prefabs/Enemies/)
+├── NavMeshAgent, EnemyBrain, PersistentID, EnemyHealth   ← all on ROOT
+└── Visual  (child)
+    └── MeshFilter, CapsuleCollider, MeshRenderer         ← collider is on CHILD
+```
+
+**Consequence for hit detection:** `Physics.OverlapSphereNonAlloc` returns the `CapsuleCollider` on `Visual`. Use `GetComponentInParent<EnemyHealth>()` — NOT `TryGetComponent` — to walk up to the root. `TryGetComponent` only looks at the collider's own GameObject and will always miss.
+
+### Test Scaffolding — EnemyRespawner (Story 3.1)
+
+`Assets/_Game/Scripts/Debug/EnemyRespawner.cs` (namespace `Game.DevTools`) is attached to `ProgressionSystem` in TestScene. It re-enables dead enemies after a configurable delay (default 5s). `EnemyHealth.OnEnable()` resets `IsDead` and `CurrentHealth` on reactivation. **This is test scaffolding — superseded by Story 4-5 (no-enemy-respawn design).**
+
+`Game.DevTools` is the correct namespace for test/debug utilities. `Game.Debug` is **banned** — it shadows `UnityEngine.Debug` globally and breaks `Debug.Log`, `Debug.DrawLine`, etc. across the entire codebase.
+
 ### Core.unity Scene Stubs (Complete as of Story 1.5)
 
 All 7 manager stub GameObjects are in `Assets/_Game/Scenes/Core.unity`:
@@ -207,3 +224,5 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside the asmdef folder |
 | MEDIUM | `WriteDefaultValues: true` on animator states — causes T-pose bleed; always use `false` |
 | MEDIUM | AnimatorController `.controller` file fully rewritten via `Write` tool — transitions may not be visible in Unity Animator; prefer incremental MCP edits + YAML fixes |
+| HIGH | `TryGetComponent<EnemyHealth>()` on a hit collider — `Enemy_Grunt` has `CapsuleCollider` on the `Visual` child but `EnemyHealth` on the root; always use `GetComponentInParent<EnemyHealth>()` in hit detection |
+| HIGH | Namespace `Game.Debug` conflicts with `UnityEngine.Debug` — any file resolves bare `Debug` to `Game.Debug` instead of the Unity class; use `Game.DevTools` for test/debug utilities |

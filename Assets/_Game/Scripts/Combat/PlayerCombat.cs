@@ -270,8 +270,9 @@ namespace Game.Combat
             int damaged = 0;
             for (int i = 0; i < hitCount; i++)
             {
-                // EnemyHealth is always on the enemy root prefab — TryGetComponent is safe
-                if (_hitBuffer[i].TryGetComponent<EnemyHealth>(out var health) && !health.IsDead)
+                // EnemyHealth is on the root; collider may be on a child — walk up with GetComponentInParent
+                var health = _hitBuffer[i].GetComponentInParent<EnemyHealth>();
+                if (health != null && !health.IsDead)
                 {
                     health.TakeDamage(_config.attackDamage);
                     damaged++;
@@ -328,6 +329,8 @@ namespace Game.Combat
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private GUIStyle _guiStyle;
+
         private void DrawAttackRangeDebug()
         {
             if (_config == null) return;
@@ -348,7 +351,8 @@ namespace Game.Combat
         private void OnGUI()
         {
             if (_config == null || _staminaSystem == null || _stateManager == null) return;
-            var style = new GUIStyle(GUI.skin.label) { fontSize = 18 };
+            if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
+            var style = _guiStyle;
             bool canAttack = _staminaSystem.HasEnough(_config.attackStaminaCost);
             string state = canAttack ? "Ready" : "STAMINA EMPTY";
             GUI.Label(new Rect(10, 70, 400, 26), $"Combat: [{state}]", style);
