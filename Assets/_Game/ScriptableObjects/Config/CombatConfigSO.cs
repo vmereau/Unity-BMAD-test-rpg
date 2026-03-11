@@ -38,5 +38,14 @@ namespace Game.Combat
         public float dodgeDuration = 0.5f;
         [Tooltip("Horizontal speed in units/sec during the dodge roll.")]
         public float dodgeSpeed = 8f;
+
+        [Header("Player Health")]
+        public float baseHealth = 100f;
+
+        [Header("Attack Damage")]
+        [Tooltip("Damage dealt to enemies per player attack hit.")]
+        public float attackDamage = 25f;
+        [Tooltip("Radius of the sphere overlap used for player attack hit detection.")]
+        public float attackHitRange = 2f;
     }
 }

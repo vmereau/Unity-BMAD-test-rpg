@@ -1,3 +1,4 @@
+using Game.AI;
 using Game.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,6 +16,7 @@ namespace Game.Combat
     /// Story 2.5: Perfect block timing window and TryReceiveHit API.
     /// Story 2.6: PlayerStateManager integration; airborne gates; attacking state tracking.
     /// Story 2.6 (refactor): Direct Animator calls removed — all animation driven via PlayerStateManager setters.
+    /// Story 2.9: ExecuteHitDetection() added — sphere overlap on attack to apply damage to EnemyHealth components.
     /// Attach to the Player prefab root alongside StaminaSystem and PlayerStateManager.
     /// </summary>
     [RequireComponent(typeof(StaminaSystem))]
@@ -43,6 +45,9 @@ namespace Game.Combat
         // Perfect block timing state (owned by PlayerCombat, not PlayerStateManager)
         private bool _isPerfectBlockWindowOpen = false;
         private float _perfectBlockWindowTimer = 0f;
+
+        // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
+        private readonly Collider[] _hitBuffer = new Collider[10];
 
         private void Awake()
         {
@@ -95,6 +100,9 @@ namespace Game.Combat
 
         private void Update()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            DrawAttackRangeDebug();
+#endif
             // Phase 3: Perfect block window countdown — independent of combo state, runs every frame
             if (_isPerfectBlockWindowOpen && _perfectBlockWindowTimer > 0f)
             {
@@ -228,6 +236,9 @@ namespace Game.Combat
             _stateManager.SetAttacking(true, triggerHash);
             GameLog.Info(TAG, $"Attack combo step {_comboStep + 1}");
 
+            // Detect hits on enemies within attack range
+            ExecuteHitDetection();
+
             if (_comboStep < 2)
             {
                 _comboStep++;
@@ -244,6 +255,31 @@ namespace Game.Combat
                 _comboWindowTimer = 0f;
                 _stateManager.SetAttacking(false);
             }
+        }
+
+        /// <summary>
+        /// Performs a sphere overlap around the player and applies damage to all EnemyHealth components found.
+        /// Uses a pre-allocated buffer to avoid per-attack heap allocations.
+        /// Note (prototype): hit fires on input frame, not on animation active frames.
+        /// </summary>
+        private void ExecuteHitDetection()
+        {
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                transform.position, _config.attackHitRange, _hitBuffer);
+
+            int damaged = 0;
+            for (int i = 0; i < hitCount; i++)
+            {
+                // EnemyHealth is always on the enemy root prefab — TryGetComponent is safe
+                if (_hitBuffer[i].TryGetComponent<EnemyHealth>(out var health) && !health.IsDead)
+                {
+                    health.TakeDamage(_config.attackDamage);
+                    damaged++;
+                }
+            }
+
+            if (damaged > 0)
+                GameLog.Info(TAG, $"Attack hit {damaged} target(s)");
         }
 
         /// <summary>
@@ -292,6 +328,23 @@ namespace Game.Combat
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private void DrawAttackRangeDebug()
+        {
+            if (_config == null) return;
+            const int segments = 32;
+            float r = _config.attackHitRange;
+            Vector3 center = transform.position;
+            for (int i = 0; i < segments; i++)
+            {
+                float a1 = i * Mathf.PI * 2f / segments;
+                float a2 = (i + 1) * Mathf.PI * 2f / segments;
+                Debug.DrawLine(
+                    center + new Vector3(Mathf.Cos(a1) * r, 0f, Mathf.Sin(a1) * r),
+                    center + new Vector3(Mathf.Cos(a2) * r, 0f, Mathf.Sin(a2) * r),
+                    Color.yellow);
+            }
+        }
+
         private void OnGUI()
         {
             if (_config == null || _staminaSystem == null || _stateManager == null) return;

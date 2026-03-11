@@ -302,6 +302,7 @@ GameObject:
   - component: {fileID: 2745230425342015027}
   - component: {fileID: 7419823056781234567}
   - component: {fileID: 3652435266112702100}
+  - component: {fileID: 3991126842119126772}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -467,6 +468,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.DodgeController
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+--- !u!114 &3991126842119126772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6649427767868440285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a72011c8a20ba4690b6dc5ee0f36fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Player.PlayerHealth
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
 --- !u!1 &8982887748261060099
 GameObject:
   m_ObjectHideFlags: 0

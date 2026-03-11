@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3652633830230614110}
   - component: {fileID: 5808059310469012931}
   - component: {fileID: 1619970584647283368}
+  - component: {fileID: 8986748236730603770}
   m_Layer: 0
   m_Name: Enemy_Grunt
   m_TagString: Untagged
@@ -81,10 +82,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b025cb941d9d6f945aefe898b54cbc7b, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Game::Game.World.PersistentID
-  _guid: 
-  _onEntityKilled: {fileID: 0}
+  _guid: a3f7e291-84b2-4c6d-9e15-3d8f2a1b0c5e
+  _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
+--- !u!114 &8986748236730603770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2274068817681346147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b36a704d740b30743b795abd01b055d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EnemyHealth
+  _config: {fileID: 11400000, guid: 684a26a400be2fb44bf88f0c7c923ffd, type: 2}
+  _persistentID: {fileID: 1619970584647283368}
 --- !u!1 &7933876943593609934
 GameObject:
   m_ObjectHideFlags: 0

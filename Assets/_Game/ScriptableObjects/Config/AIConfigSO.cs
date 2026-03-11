@@ -24,5 +24,15 @@ namespace Game.AI
         [Header("Patrol")]
         public float waypointArrivalThreshold = 0.5f;
         public float patrolWaitTime = 2f;
+
+        [Header("Health")]
+        public float baseHealth = 50f;
+
+        [Header("Attack")]
+        public float attackRange = 1.8f;
+        public float attackCooldown = 2f;
+        public float attackDamage = 10f;
+        [Tooltip("Duration in seconds of the white flash visual when the enemy attacks.")]
+        public float attackFlashDuration = 0.15f;
     }
 }
