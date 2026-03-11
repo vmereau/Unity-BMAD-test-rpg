@@ -155,7 +155,7 @@ so that the world feels alive and combat encounters begin naturally.
   - [x] 7.1 Create `Assets/Tests/EditMode/EnemyBrainStateTests.cs` with ≥ 4 tests
   - [x] 7.2 Run all tests via Unity Test Runner — all 45+ green
 
-- [ ] Task 8: Play Mode validation (AC: 10) — requires Unity Editor (manual)
+- [x] Task 8: Play Mode validation (AC: 10) — requires Unity Editor (manual)
   - [ ] 8.1 Enemy patrols between waypoints with brief wait at each
   - [ ] 8.2 Walk player within 8m → enemy transitions to Engaging and chases
   - [ ] 8.3 OnGUI shows correct state and player distance

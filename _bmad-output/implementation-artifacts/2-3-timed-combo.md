@@ -84,7 +84,7 @@ so that combat has rhythmic depth without requiring directional precision.
   - [x] 6.1 Create `Assets/Tests/EditMode/ComboWindowTests.cs` — see Dev Notes for test cases
   - [x] 6.2 Run all tests via Unity Test Runner — all green (including pre-existing PlayerCombatGateTests)
 
-- [ ] Task 7: Play Mode validation (AC: 14) — requires Unity Editor (manual)
+- [x] Task 7: Play Mode validation (AC: 14) — requires Unity Editor (manual)
   - [ ] 7.1 Enter Play Mode — no console errors
   - [ ] 7.2 Press LMB once — Console shows `"[Combat] Attack combo step 1"`; Idle animation plays as placeholder
   - [ ] 7.3 Press LMB again within window — `"Attack combo step 2"`

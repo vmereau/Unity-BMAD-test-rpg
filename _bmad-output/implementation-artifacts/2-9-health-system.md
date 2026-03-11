@@ -1,6 +1,6 @@
 # Story 2.9: Health System
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -138,55 +138,59 @@ so that combat has meaningful consequences and the full loop (attack → damage 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Expand config SOs (AC: 1, 2)
-  - [ ] 1.1 Edit `AIConfigSO.cs` — add `baseHealth`, `attackRange`, `attackCooldown`, `attackDamage` fields
-  - [ ] 1.2 Edit `CombatConfigSO.cs` — add `baseHealth`, `attackDamage`, `attackHitRange` fields
-  - [ ] 1.3 Verify `AIConfig.asset` and `CombatConfig.asset` show new fields in Inspector with correct defaults
+- [x] Task 1: Expand config SOs (AC: 1, 2)
+  - [x] 1.1 Edit `AIConfigSO.cs` — add `baseHealth`, `attackRange`, `attackCooldown`, `attackDamage` fields
+  - [x] 1.2 Edit `CombatConfigSO.cs` — add `baseHealth`, `attackDamage`, `attackHitRange` fields
+  - [x] 1.3 Verify `AIConfig.asset` and `CombatConfig.asset` show new fields in Inspector with correct defaults
 
-- [ ] Task 2: Create `EnemyHealth.cs` (AC: 3)
-  - [ ] 2.1 Create `Assets/_Game/Scripts/AI/EnemyHealth.cs`
-  - [ ] 2.2 Implement `TakeDamage()` and `Die()` with NavMeshAgent stop + PersistentID death + SetActive(false)
-  - [ ] 2.3 Add `OnGUI` debug overlay at y=270
+- [x] Task 2: Create `EnemyHealth.cs` (AC: 3)
+  - [x] 2.1 Create `Assets/_Game/Scripts/AI/EnemyHealth.cs`
+  - [x] 2.2 Implement `TakeDamage()` and `Die()` with NavMeshAgent stop + PersistentID death + SetActive(false)
+  - [x] 2.3 Add `OnGUI` debug overlay at y=270
 
-- [ ] Task 3: Create `PlayerHealth.cs` (AC: 4)
-  - [ ] 3.1 Create `Assets/_Game/Scripts/Player/PlayerHealth.cs`
-  - [ ] 3.2 Implement `TakeDamage()` and `Die()` with event raise + SetActive(false)
-  - [ ] 3.3 Add `OnGUI` debug overlay at y=250
+- [x] Task 3: Create `PlayerHealth.cs` (AC: 4)
+  - [x] 3.1 Create `Assets/_Game/Scripts/Player/PlayerHealth.cs`
+  - [x] 3.2 Implement `TakeDamage()` and `Die()` with event raise + SetActive(false)
+  - [x] 3.3 Add `OnGUI` debug overlay at y=250
 
-- [ ] Task 4: Expand `EnemyBrain.cs` — Attacking + Dead states (AC: 5)
-  - [ ] 4.1 Add `Attacking`, `Dead` to enum; add new private fields (`_enemyHealth`, `_playerCombat`, `_playerHealth`, `_attackCooldownTimer`)
-  - [ ] 4.2 Update `Awake()` to cache `EnemyHealth`, `PlayerCombat`, `PlayerHealth`
-  - [ ] 4.3 Add dead-check at top of `Update()`
-  - [ ] 4.4 Update `HandleEngage()` to trigger attack transition when within `attackRange`
-  - [ ] 4.5 Implement `HandleAttack()` with cooldown, `TryReceiveHit()`, and `TakeDamage()` calls
-  - [ ] 4.6 Implement `TransitionToAttacking()`, `TransitionToDead()`, `HandleDead()`
-  - [ ] 4.7 Update `OnGUI` label at y=220 to include attack cooldown display
+- [x] Task 4: Expand `EnemyBrain.cs` — Attacking + Dead states (AC: 5)
+  - [x] 4.1 Add `Attacking`, `Dead` to enum; add new private fields (`_enemyHealth`, `_playerCombat`, `_playerHealth`, `_attackCooldownTimer`)
+  - [x] 4.2 Update `Awake()` to cache `EnemyHealth`, `PlayerCombat`, `PlayerHealth`
+  - [x] 4.3 Add dead-check at top of `Update()`
+  - [x] 4.4 Update `HandleEngage()` to trigger attack transition when within `attackRange`
+  - [x] 4.5 Implement `HandleAttack()` with cooldown, `TryReceiveHit()`, and `TakeDamage()` calls
+  - [x] 4.6 Implement `TransitionToAttacking()`, `TransitionToDead()`, `HandleDead()`
+  - [x] 4.7 Update `OnGUI` label at y=220 to include attack cooldown display
 
-- [ ] Task 5: Update `PlayerCombat.cs` — add hit detection (AC: 6)
-  - [ ] 5.1 Add `_hitBuffer` pre-allocated collider array field
-  - [ ] 5.2 Implement `ExecuteHitDetection()` using `Physics.OverlapSphereNonAlloc`
-  - [ ] 5.3 Call `ExecuteHitDetection()` from `TryAttack()` after stamina is consumed
+- [x] Task 5: Update `PlayerCombat.cs` — add hit detection (AC: 6)
+  - [x] 5.1 Add `_hitBuffer` pre-allocated collider array field
+  - [x] 5.2 Implement `ExecuteHitDetection()` using `Physics.OverlapSphereNonAlloc`
+  - [x] 5.3 Call `ExecuteHitDetection()` from `TryAttack()` after stamina is consumed
 
-- [ ] Task 6: Create event assets and wire them (AC: 7, 8)
-  - [ ] 6.1 Create `Assets/_Game/Data/Events/OnEntityKilled.asset` (GameEventSO_String via right-click → Game/Events/String Event)
-  - [ ] 6.2 Assign `OnEntityKilled.asset` to `PersistentID._onEntityKilled` on `Enemy_Grunt.prefab`
-  - [ ] 6.3 Create `Assets/_Game/Data/Events/OnPlayerDied.asset` (GameEventSO_Void via right-click → Game/Events/Void Event)
+- [x] Task 6: Create event assets and wire them (AC: 7, 8)
+  - [x] 6.1 Create `Assets/_Game/Data/Events/OnEntityKilled.asset` (GameEventSO_String)
+  - [x] 6.2 Assign `OnEntityKilled.asset` to `PersistentID._onEntityKilled` on `Enemy_Grunt.prefab`
+  - [x] 6.3 Create `Assets/_Game/Data/Events/OnPlayerDied.asset` (GameEventSO_Void)
 
-- [ ] Task 7: Update prefabs (AC: 9, 10)
-  - [ ] 7.1 Add `EnemyHealth` component to `Enemy_Grunt.prefab`; assign `_config = AIConfig.asset`; wire `_persistentID`
-  - [ ] 7.2 Add `PlayerHealth` component to `Player.prefab`; assign `_config = CombatConfig.asset`; assign `_onPlayerDied = OnPlayerDied.asset`
+- [x] Task 7: Update prefabs (AC: 9, 10)
+  - [x] 7.1 Add `EnemyHealth` component to `Enemy_Grunt.prefab`; assign `_config = AIConfig.asset`; wire `_persistentID`
+  - [x] 7.2 Add `PlayerHealth` component to `Player.prefab`; assign `_config = CombatConfig.asset`; assign `_onPlayerDied = OnPlayerDied.asset`
 
-- [ ] Task 8: Edit Mode tests (AC: 11)
-  - [ ] 8.1 Create `Assets/Tests/EditMode/HealthSystemTests.cs` with ≥ 6 tests
-  - [ ] 8.2 Run all tests via Unity Test Runner — all 53+ green
+- [x] Task 8: Edit Mode tests (AC: 11)
+  - [x] 8.1 Create `Assets/Tests/EditMode/HealthSystemTests.cs` with 10 tests (≥ 6 required)
+  - [x] 8.2 Run all tests via Unity Test Runner — 57/57 green (47 prior + 10 new)
 
-- [ ] Task 9: Play Mode validation (AC: 13) — requires Unity Editor
-  - [ ] 9.1 Enemy attacks player at close range — player HP decreases in OnGUI overlay
-  - [ ] 9.2 Player attacks enemy (LMB) — enemy HP decreases; verify sphere overlap range feels correct
-  - [ ] 9.3 Block/dodge prevents damage (verify per HitResult)
-  - [ ] 9.4 Kill enemy (3-4 hits) — enemy disappears; reload scene → enemy stays gone (PersistentID)
-  - [ ] 9.5 Player health reaches 0 → player disappears; "Player has died" in console
-  - [ ] 9.6 No NullReferenceExceptions in console
+- [x] Task 9: Play Mode validation (AC: 13) — requires Unity Editor (manual)
+  - [x] 9.1 Enemy attacks player at close range — player HP decreases in OnGUI overlay
+  - [x] 9.2 Player attacks enemy (LMB) — enemy HP decreases; verify sphere overlap range feels correct
+  - [x] 9.3 Block/dodge prevents damage (verify per HitResult)
+  - [x] 9.4 Kill enemy (3-4 hits) — enemy disappears; reload scene → enemy stays gone (PersistentID)
+  - [x] 9.5 Player health reaches 0 → player disappears; "Player has died" in console
+  - [x] 9.6 No NullReferenceExceptions in console
+
+- [ ] Task 10: Refactor cross-system player references in `EnemyBrain` (Deferred — Epic 3/4)
+  - [ ] 10.1 Create `PlayerRegistry` SO or event-based hit-notification channel to replace direct `EnemyBrain → PlayerCombat/PlayerHealth` references
+  - [ ] 10.2 Update all enemy types to use the registry instead of `GetComponent` on Player tag
 
 ## Dev Notes
 
@@ -430,3 +434,29 @@ claude-sonnet-4-6
 ### Completion Notes List
 
 ### File List
+
+**Created:**
+- `Assets/_Game/Scripts/AI/EnemyHealth.cs`
+- `Assets/_Game/Scripts/AI/EnemyHealth.cs.meta`
+- `Assets/_Game/Scripts/Player/PlayerHealth.cs`
+- `Assets/_Game/Scripts/Player/PlayerHealth.cs.meta`
+- `Assets/_Game/Data/Events/OnEntityKilled.asset`
+- `Assets/_Game/Data/Events/OnEntityKilled.asset.meta`
+- `Assets/_Game/Data/Events/OnPlayerDied.asset`
+- `Assets/_Game/Data/Events/OnPlayerDied.asset.meta`
+- `Assets/Tests/EditMode/HealthSystemTests.cs`
+- `Assets/Tests/EditMode/HealthSystemTests.cs.meta`
+
+**Modified:**
+- `Assets/_Game/ScriptableObjects/Config/AIConfigSO.cs` — Added `[Header("Health")] baseHealth`, `[Header("Attack")] attackRange/Cooldown/Damage/FlashDuration`
+- `Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs` — Added `[Header("Player Health")] baseHealth`, `[Header("Attack Damage")] attackDamage/HitRange`
+- `Assets/_Game/Scripts/AI/EnemyBrain.cs` — Added `Attacking`/`Dead` states, `ExecuteAttack()`, `HandleAttack()`, `TransitionToAttacking()`, `TransitionToDead()`; added `_renderer`/`_propBlock`/`_attackFlashTimer` visual feedback system (`UpdateAttackVisuals()`)
+- `Assets/_Game/Scripts/Combat/PlayerCombat.cs` — Added `_hitBuffer` field and `ExecuteHitDetection()` using `Physics.OverlapSphereNonAlloc`
+- `Assets/_Game/Prefabs/Enemies/Enemy_Grunt.prefab` — Added `EnemyHealth` component; wired `_config`, `_persistentID`, `OnEntityKilled` event
+- `Assets/_Game/Prefabs/Player/Player.prefab` — Added `PlayerHealth` component; wired `_config`, `_onPlayerDied` event
+- `Assets/_Game/Art/Characters/Player/Animations/PlayerAnimatorController.controller` — Fixed `m_WriteDefaultValues: 1 → 0` on 4 animator states (T-pose bleed fix; all 16 states now correct)
+
+### Change Log
+
+- 2026-03-11: Story 2.9 implemented — health system, hit detection, enemy attack state. 57/57 Edit Mode tests passing.
+- 2026-03-11: Code review fixes — `attackFlashDuration` moved to `AIConfigSO` (magic number); `GetComponentInParent` → `TryGetComponent` in `ExecuteHitDetection`; `GUIStyle` heap allocation removed (cached per-component); `amount <= 0f` silent guard removed from `TakeDamage` (spec compliance: log every hit); `PlayerAnimatorController.controller` and `EnemyBrain` visual feedback system documented in File List; architecture refactor task added (Task 10).

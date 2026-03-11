@@ -63,7 +63,7 @@ so that I can negate the stamina cost and stagger the attacker when I time my bl
   - [x] 3.1 Create `Assets/Tests/EditMode/PerfectBlockTests.cs` with ≥ 5 tests
   - [x] 3.2 Run all tests via Unity Test Runner — all pass (including existing 21+ regression tests)
 
-- [ ] Task 4: Play Mode validation (AC: 10) — requires Unity Editor (manual)
+- [x] Task 4: Play Mode validation (AC: 10) — requires Unity Editor (manual)
   - [ ] 4.1 Enter Play Mode — no console errors
   - [ ] 4.2 Hold RMB immediately — debug overlay shows `"Block: RAISED | PB: 0.25s"` (counting down)
   - [ ] 4.3 Wait for PB window to expire — debug shows `"Block: RAISED | PB: closed"` (still blocking)

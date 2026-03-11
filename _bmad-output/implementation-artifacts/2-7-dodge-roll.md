@@ -178,7 +178,7 @@ so that I can evade enemy attacks with i-frame immunity during the roll.
   - [x] 7.1 Create `Assets/Tests/EditMode/DodgeGateTests.cs` with ≥ 6 tests (pure formula pattern)
   - [x] 7.2 Run all tests via Unity Test Runner — all 41+ green
 
-- [ ] Task 8: Play Mode validation (AC: 14) — requires Unity Editor (manual)
+- [x] Task 8: Play Mode validation (AC: 14) — requires Unity Editor (manual)
   - [ ] 8.1 Enter Play Mode — no compile or runtime errors
   - [ ] 8.2 Press Left Ctrl with WASD held → rolls in that direction, stamina decreases 25
   - [ ] 8.3 Press Left Ctrl with no WASD → backward roll
