@@ -40,7 +40,6 @@ namespace Game.AI
         // Visual feedback
         private MeshRenderer _renderer;
         private MaterialPropertyBlock _propBlock;
-        private float _attackFlashTimer;
 
         private void Awake()
         {
@@ -119,7 +118,14 @@ namespace Game.AI
                 case EnemyState.Dead:       HandleDead();     break;
             }
 
+            HandleCooldowns();
             UpdateAttackVisuals();
+        }
+
+        private void HandleCooldowns()
+        {
+            if (_attackCooldownTimer > 0f)
+                _attackCooldownTimer = Mathf.Max(0f, _attackCooldownTimer - Time.deltaTime);
         }
 
         private void HandleIdle()
@@ -207,8 +213,6 @@ namespace Game.AI
                 return;
             }
 
-            // Count down attack cooldown
-            _attackCooldownTimer -= Time.deltaTime;
             if (_attackCooldownTimer > 0f) return;
 
             // Execute attack
@@ -223,7 +227,6 @@ namespace Game.AI
         private void ExecuteAttack()
         {
             _attackCooldownTimer = _config.attackCooldown;
-            _attackFlashTimer = _config.attackFlashDuration;
             GameLog.Info(TAG, $"{gameObject.name} attacks player");
 
             HitResult result = HitResult.NotBlocked;
@@ -279,7 +282,6 @@ namespace Game.AI
         {
             _state = EnemyState.Attacking;
             _agent.isStopped = true;
-            _attackCooldownTimer = 0f; // First attack fires on the very next frame
             GameLog.Info(TAG, $"{gameObject.name} entering attack range — switching to Attacking");
         }
 
@@ -315,23 +317,17 @@ namespace Game.AI
                 return;
             }
 
-            if (_state != EnemyState.Attacking)
+            // If attack is on cooldown
+            if(_attackCooldownTimer > 0f) 
             {
-                SetRendererColor(Color.white);
+                // Yellow (just attacked / cooldown high) → Red (about to attack / cooldown low)
+                float t = _config.attackCooldown > 0f ? _attackCooldownTimer / _config.attackCooldown : 0f;
+                SetRendererColor(Color.Lerp(Color.red, Color.yellow, t));
                 return;
             }
 
-            // Brief white flash when attack fires
-            if (_attackFlashTimer > 0f)
-            {
-                _attackFlashTimer -= Time.deltaTime;
-                SetRendererColor(Color.white);
-                return;
-            }
-
-            // Yellow (just attacked / cooldown high) → Red (about to attack / cooldown low)
-            float t = _config.attackCooldown > 0f ? _attackCooldownTimer / _config.attackCooldown : 0f;
-            SetRendererColor(Color.Lerp(Color.red, Color.yellow, t));
+            // Cooldown expired — red if ready to attack, white otherwise
+            SetRendererColor(_state == EnemyState.Attacking ? Color.red : Color.white);
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
