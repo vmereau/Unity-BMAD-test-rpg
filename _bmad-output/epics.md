@@ -5,11 +5,12 @@
 | 1 | Foundation & Movement | None |
 | 2 | Combat System | Epic 1 |
 | 3 | Progression & Stats | Epic 2 |
-| 4 | World & Exploration | Epic 1 |
-| 5 | Quest & Dialogue | Epic 4 |
-| 6 | Inventory & Economy | Epic 3, 5 |
-| 7 | Crafting & Stealth | Epic 6 |
-| 8 | Content & Polish | All |
+| 4 | Inventory, Items & Interaction | Epic 3 |
+| 5 | World & Exploration | Epic 1 |
+| 6 | Quest & Dialogue | Epic 5 |
+| 7 | Equipment & Economy | Epic 4, 6 |
+| 8 | Crafting & Stealth | Epic 7 |
+| 9 | Content & Polish | All |
 
 ---
 
@@ -110,7 +111,52 @@ meaningful improvement in combat capability.
 
 ---
 
-## Epic 4: World & Exploration
+## Epic 4: Inventory, Items & Interaction
+
+### Goal
+Establish the item system, inventory, and look-at interaction model that all
+future systems (economy, crafting, quests with item rewards) depend on.
+
+### Scope
+**Includes:** Look-at interaction system (camera-center raycast with visual cue),
+world item system (pickable/interactable GameObjects with Rigidbody physics),
+basic inventory (pick up, drop, move items), simple inventory UI panel,
+item data ScriptableObject, refactor TomePowerStrike as a world item activated
+via look-at, refactor Trainer_Master NPC interaction to look-at model.
+
+**Excludes:** Equipment slots and stat effects (Epic 7), shop NPCs and gold
+economy (Epic 7), crafting items (Epic 8), quest item rewards (Epic 6).
+
+### Dependencies
+Epic 3 (progression system — tomes and trainers already implemented there,
+need refactoring; item pickup could award XP in future).
+
+### Deliverable
+Player can look at world objects (items, NPCs) and see a crosshair interaction
+cue. Pressing interact picks up items into a simple inventory panel. Dropping
+an item spawns it in the world with physics. Tome and trainer interaction now
+use the unified look-at model.
+
+### Stories
+- As a player, I see a crosshair/reticle at the center of the screen that
+  highlights when I am looking at an interactable object, so I always know
+  what I can interact with
+- As a player, I can press Interact (E) while looking at a world item to pick
+  it up into my inventory, so items enter my possession naturally
+- As a player, I can open an inventory panel (I key) showing all held items,
+  and drag/move them within it
+- As a player, I can drop an item from my inventory and it falls to the floor
+  with physics, so items feel like real objects in the world
+- As a developer, items are defined by an ItemSO ScriptableObject (name, icon,
+  description, isStackable) and any world item has an Item component + Rigidbody
+- As a player, the TomePowerStrike is now a world item I look at and interact
+  with to trigger skill learning, replacing the old proximity trigger
+- As a player, the Trainer_Master NPC is activated by looking at them and
+  pressing Interact, replacing the old proximity/trigger zone model
+
+---
+
+## Epic 5: World & Exploration
 
 ### Goal
 Build the starting region and first dungeon with a living world feel.
@@ -140,7 +186,7 @@ alive with NPC routines and day/night cycle. Monsters don't respawn once killed.
 
 ---
 
-## Epic 5: Quest & Dialogue
+## Epic 6: Quest & Dialogue
 
 ### Goal
 Implement the Gothic-style quest and dialogue system.
@@ -154,7 +200,7 @@ quest outcomes.
 **Excludes:** Shop system (Epic 6), voice acting.
 
 ### Dependencies
-Epic 4 (NPCs and world must exist).
+Epic 5 (NPCs and world must exist).
 
 ### Deliverable
 Player can talk to NPCs via topic menu, accept quests, complete them with
@@ -172,28 +218,28 @@ multiple outcomes, and see the world react to permanent failures.
 
 ---
 
-## Epic 6: Inventory & Economy
+## Epic 7: Equipment & Economy
 
 ### Goal
-Implement the inventory, equipment, and gold economy systems.
+Extend the item system with equipment slots, stat effects, and gold economy —
+building on the foundational item/inventory layer from Epic 4.
 
 ### Scope
-**Includes:** Unlimited inventory system, equipment slots (weapon, armor set,
-2 rings, necklace), stat-based item system (no rarity), shop NPCs (fixed
-inventory, gold prices), looting enemies and containers, gold as currency,
-selling items, gated content (gold bribes).
+**Includes:** Equipment slots (weapon, armor set, 2 rings, necklace),
+stat-based item system (no rarity), shop NPCs (fixed inventory, gold prices),
+looting enemies and containers, gold as currency, selling items, gated
+content (gold bribes).
 
-**Excludes:** Crafting (Epic 7).
+**Excludes:** Crafting (Epic 8). Basic inventory already delivered in Epic 4.
 
 ### Dependencies
-Epic 3 (stats), Epic 5 (NPC interaction framework).
+Epic 4 (item system and inventory), Epic 6 (NPC interaction framework).
 
 ### Deliverable
 Player can loot the world, buy and sell at shops, equip items that affect
 stats, and spend gold to access gated content.
 
 ### Stories
-- As a player, I have an inventory that holds all items I collect
 - As a player, I can equip weapons, armor pieces, rings, and a necklace
 - As a player, equipped items modify my character stats
 - As a player, I can buy and sell items at dedicated shop NPCs
@@ -202,7 +248,7 @@ stats, and spend gold to access gated content.
 
 ---
 
-## Epic 7: Crafting & Stealth
+## Epic 8: Crafting & Stealth
 
 ### Goal
 Implement the crafting and stealth systems as layered gameplay options.
@@ -217,7 +263,7 @@ stealing, caught = NPC hostile.
 **Excludes:** Full recipe content library (prototype subset only).
 
 ### Dependencies
-Epic 6 (inventory and items must exist), Epic 3 (learning point tiers).
+Epic 7 (inventory and items must exist), Epic 3 (learning point tiers).
 
 ### Deliverable
 Player can sneak past or steal from NPCs, gather resources, learn recipes,
@@ -235,7 +281,7 @@ and craft items at crafting stations.
 
 ---
 
-## Epic 8: Content & Polish
+## Epic 9: Content & Polish
 
 ### Goal
 Integrate assets, audio, and polish systems. Prepare for prototype review.

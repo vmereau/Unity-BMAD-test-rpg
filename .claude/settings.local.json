@@ -23,7 +23,11 @@
       "mcp__UnityMCP__validate_script",
       "mcp__UnityMCP__manage_script",
       "mcp__UnityMCP__manage_gameobject",
-      "mcp__UnityMCP__manage_components"
+      "mcp__UnityMCP__manage_components",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//d/github/perso/Unity-BMAD-test-rpg/**)",
+      "Bash(done)"
     ]
   }
 }

@@ -67,55 +67,64 @@ development_status:
   3-2-level-up-system: done
   3-3-learning-points: done
   3-4-trainer-stat-upgrade: done
-  3-5-tome-skill-learning: backlog
-  3-6-stat-combat-effects: backlog
+  3-5-tome-skill-learning: done
+  3-6-stat-combat-effects: done
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-starting-town-exploration: backlog
-  4-2-wilderness-region: backlog
-  4-3-dungeon-exploration: backlog
-  4-4-npc-daily-routines: backlog
-  4-5-no-enemy-respawn: backlog
-  4-6-day-night-cycle: backlog
+  epic-4: in-progress
+  4-1-look-at-interaction-system: done
+  4-2-item-pickup: backlog
+  4-3-inventory-panel: backlog
+  4-4-item-drop-physics: backlog
+  4-5-item-scriptable-object: backlog
+  4-6-tome-as-world-item: backlog
+  4-7-trainer-look-at-interaction: backlog
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-npc-topic-dialogue: backlog
-  5-2-quest-acquisition: backlog
-  5-3-quest-log: backlog
-  5-4-quest-multiple-outcomes: backlog
-  5-5-permanent-quest-failure: backlog
-  5-6-quest-rewards: backlog
-  5-7-story-quest-world-changes: backlog
+  5-1-starting-town-exploration: backlog
+  5-2-wilderness-region: backlog
+  5-3-dungeon-exploration: backlog
+  5-4-npc-daily-routines: backlog
+  5-5-no-enemy-respawn: backlog
+  5-6-day-night-cycle: backlog
   epic-5-retrospective: optional
 
   epic-6: backlog
-  6-1-inventory-system: backlog
-  6-2-equipment-slots: backlog
-  6-3-equipped-item-stat-effects: backlog
-  6-4-shop-npc-trading: backlog
-  6-5-looting-system: backlog
-  6-6-gold-bribe-system: backlog
+  6-1-npc-topic-dialogue: backlog
+  6-2-quest-acquisition: backlog
+  6-3-quest-log: backlog
+  6-4-quest-multiple-outcomes: backlog
+  6-5-permanent-quest-failure: backlog
+  6-6-quest-rewards: backlog
+  6-7-story-quest-world-changes: backlog
   epic-6-retrospective: optional
 
   epic-7: backlog
-  7-1-crouch-stealth: backlog
-  7-2-npc-visibility-cone: backlog
-  7-3-stealing-system: backlog
-  7-4-caught-stealing-hostile: backlog
-  7-5-resource-gathering: backlog
-  7-6-recipe-learning: backlog
-  7-7-crafting-system: backlog
+  7-1-equipment-slots: backlog
+  7-2-equipped-item-stat-effects: backlog
+  7-3-shop-npc-trading: backlog
+  7-4-looting-system: backlog
+  7-5-gold-bribe-system: backlog
   epic-7-retrospective: optional
 
   epic-8: backlog
-  8-1-free-asset-integration: backlog
-  8-2-ambient-audio-sfx: backlog
-  8-3-dynamic-background-music: backlog
-  8-4-functional-hud: backlog
-  8-5-save-load-system: backlog
-  8-6-key-rebinding: backlog
-  8-7-steam-achievements: backlog
-  8-8-performance-optimization: backlog
+  8-1-crouch-stealth: backlog
+  8-2-npc-visibility-cone: backlog
+  8-3-stealing-system: backlog
+  8-4-caught-stealing-hostile: backlog
+  8-5-resource-gathering: backlog
+  8-6-recipe-learning: backlog
+  8-7-crafting-system: backlog
   epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-free-asset-integration: backlog
+  9-2-ambient-audio-sfx: backlog
+  9-3-dynamic-background-music: backlog
+  9-4-functional-hud: backlog
+  9-5-save-load-system: backlog
+  9-6-key-rebinding: backlog
+  9-7-steam-achievements: backlog
+  9-8-performance-optimization: backlog
+  epic-9-retrospective: optional
