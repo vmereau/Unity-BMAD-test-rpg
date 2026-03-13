@@ -27,5 +27,13 @@ namespace Game.Progression
         public int baseDexterity = 5;
         public int baseEndurance = 5;
         public int baseMana = 5;
+
+        [Header("Stat Combat Multipliers — Story 3.6")]
+        [Tooltip("Flat damage added per Strength point above base.")]
+        public float damagePerStrength = 2f;
+        [Tooltip("Flat stamina pool added per Endurance point above base.")]
+        public float staminaPerEndurance = 5f;
+        [Tooltip("Flat damage bonus applied when 'power_strike' skill is learned.")]
+        public float powerStrikeDamageBonus = 10f;
     }
 }

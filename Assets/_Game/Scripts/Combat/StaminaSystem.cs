@@ -1,4 +1,6 @@
 using Game.Core;
+using Game.Player;
+using Game.Progression;
 using UnityEngine;
 
 namespace Game.Combat
@@ -14,14 +16,29 @@ namespace Game.Combat
 
         [SerializeField] private CombatConfigSO _config;
 
+        // TODO(Epic4-tech-debt): Cross-system direct refs (Game.Combat → Game.Player/Progression).
+        // Prototype exception per Story 3.6 dev notes. Replace with a StatBonusProvider event channel.
+        [SerializeField] private PlayerStats _playerStats;
+        [SerializeField] private ProgressionConfigSO _progressionConfig;
+
         private float _currentStamina;
         private float _regenCooldown;
 
         /// <summary>Current stamina value in range [0, MaxStamina].</summary>
         public float CurrentStamina => _currentStamina;
 
-        /// <summary>Maximum stamina pool from config.</summary>
-        public float MaxStamina => _config != null ? _config.baseStaminaPool : 0f;
+        /// <summary>Maximum stamina pool — base from config plus Endurance bonus (Story 3.6).</summary>
+        public float MaxStamina
+        {
+            get
+            {
+                // Clamp bonus to 0 — negative Endurance delta (future debuff/penalty system) must not reduce MaxStamina below base.
+                float bonus = (_playerStats != null && _progressionConfig != null)
+                    ? Mathf.Max(0f, (_playerStats.Endurance - _progressionConfig.baseEndurance) * _progressionConfig.staminaPerEndurance)
+                    : 0f;
+                return _config.baseStaminaPool + bonus;
+            }
+        }
 
         private void Awake()
         {
@@ -31,7 +48,12 @@ namespace Game.Combat
                 enabled = false;
                 return;
             }
-            _currentStamina = _config.baseStaminaPool;
+            if (_playerStats == null)
+                GameLog.Warn(TAG, "PlayerStats not assigned — Endurance stamina bonus inactive");
+            if (_progressionConfig == null)
+                GameLog.Warn(TAG, "ProgressionConfigSO not assigned — Endurance stamina bonus inactive");
+
+            _currentStamina = MaxStamina;  // Use dynamic MaxStamina so save/load with upgraded stats initializes correctly.
             GameLog.Info(TAG, $"StaminaSystem initialized. Pool: {_config.baseStaminaPool}");
         }
 
@@ -45,11 +67,12 @@ namespace Game.Combat
                 return;
             }
 
-            if (_currentStamina < _config.baseStaminaPool)
+            float max = MaxStamina;
+            if (_currentStamina < max)
             {
                 _currentStamina = Mathf.Min(
                     _currentStamina + _config.staminaRegenRate * Time.deltaTime,
-                    _config.baseStaminaPool);
+                    max);
             }
         }
 
@@ -79,12 +102,14 @@ namespace Game.Combat
         public bool HasEnough(float amount) => _currentStamina >= amount;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private GUIStyle _guiStyle;
+
         private void OnGUI()
         {
             if (_config == null) return;
-            var style = new GUIStyle(GUI.skin.label) { fontSize = 18 };
+            if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             GUI.Label(new Rect(10, 50, 300, 20),
-                $"Stamina: {_currentStamina:F0} / {_config.baseStaminaPool:F0}", style);
+                $"Stamina: {_currentStamina:F0} / {MaxStamina:F0}", _guiStyle);
         }
 #endif
     }

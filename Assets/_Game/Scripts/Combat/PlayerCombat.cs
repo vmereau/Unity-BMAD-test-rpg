@@ -1,5 +1,7 @@
 using Game.AI;
 using Game.Core;
+using Game.Player;
+using Game.Progression;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -17,6 +19,7 @@ namespace Game.Combat
     /// Story 2.6: PlayerStateManager integration; airborne gates; attacking state tracking.
     /// Story 2.6 (refactor): Direct Animator calls removed — all animation driven via PlayerStateManager setters.
     /// Story 2.9: ExecuteHitDetection() added — sphere overlap on attack to apply damage to EnemyHealth components.
+    /// Story 3.6: ComputeEffectiveDamage() — Strength bonus and Power Strike skill effect applied to damage.
     /// Attach to the Player prefab root alongside StaminaSystem and PlayerStateManager.
     /// </summary>
     [RequireComponent(typeof(StaminaSystem))]
@@ -31,6 +34,12 @@ namespace Game.Combat
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
 
         [SerializeField] private CombatConfigSO _config;
+
+        // TODO(Epic4-tech-debt): Cross-system direct refs (Game.Combat → Game.Player/Game.Progression).
+        // Prototype exception per Story 3.6 dev notes. Replace with a StatBonusProvider/SkillEffectRegistry event channel.
+        [SerializeField] private PlayerStats _playerStats;
+        [SerializeField] private ProgressionConfigSO _progressionConfig;
+        [SerializeField] private PlayerSkills _playerSkills;
 
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
@@ -73,6 +82,13 @@ namespace Game.Combat
                 enabled = false;
                 return;
             }
+
+            if (_playerStats == null)
+                GameLog.Warn(TAG, "PlayerStats not assigned — Strength damage bonus inactive");
+            if (_progressionConfig == null)
+                GameLog.Warn(TAG, "ProgressionConfigSO not assigned — all stat bonuses inactive");
+            if (_playerSkills == null)
+                GameLog.Warn(TAG, "PlayerSkills not assigned — Power Strike bonus inactive");
 
             _input = new InputSystem_Actions();
         }
@@ -258,6 +274,25 @@ namespace Game.Combat
         }
 
         /// <summary>
+        /// Computes effective attack damage: base damage + Strength bonus + Power Strike skill bonus.
+        /// Called each time damage is applied or displayed. Lightweight — no allocations, safe to call per-frame.
+        /// </summary>
+        private float ComputeEffectiveDamage()
+        {
+            float damage = _config.attackDamage;
+            if (_playerStats != null && _progressionConfig != null)
+                // Clamp to 0 — negative Strength delta (future debuff/penalty system) must not reduce damage below base.
+                damage += Mathf.Max(0f, (_playerStats.Strength - _progressionConfig.baseStrength)
+                          * _progressionConfig.damagePerStrength);
+            // Prototype: hardcoded skill ID "power_strike" defined in SkillSO (Story 3.5).
+            // Full system would query skill effects generically via a SkillEffectRegistry.
+            if (_playerSkills != null && _progressionConfig != null
+                && _playerSkills.HasSkill("power_strike"))
+                damage += _progressionConfig.powerStrikeDamageBonus;
+            return damage;
+        }
+
+        /// <summary>
         /// Performs a sphere overlap around the player and applies damage to all EnemyHealth components found.
         /// Uses a pre-allocated buffer to avoid per-attack heap allocations.
         /// Note (prototype): hit fires on input frame, not on animation active frames.
@@ -274,7 +309,7 @@ namespace Game.Combat
                 var health = _hitBuffer[i].GetComponentInParent<EnemyHealth>();
                 if (health != null && !health.IsDead)
                 {
-                    health.TakeDamage(_config.attackDamage);
+                    health.TakeDamage(ComputeEffectiveDamage());
                     damaged++;
                 }
             }
@@ -365,6 +400,7 @@ namespace Game.Combat
             GUI.Label(new Rect(10, 160, 500, 26),
                 $"State: Airborne:{_stateManager.IsAirborne} | Blocking:{_stateManager.IsBlocking} | Attacking:{_stateManager.IsAttacking}",
                 style);
+            GUI.Label(new Rect(10, 410, 300, 26), $"DMG: {ComputeEffectiveDamage():F1}", style);
         }
 #endif
     }
