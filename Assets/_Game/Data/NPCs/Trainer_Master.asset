@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e6d866c882a97349bab0e1545425a70, type: 3}
+  m_Name: Trainer_Master
+  m_EditorClassIdentifier: Game::Game.NPC.TrainerSO
+  trainerName: Master Trainer
+  upgrades:
+  - stat: 0
+    label: Strength +1
+    lpCost: 1
+    goldCost: 100
+    maxLevel: 5
+  - stat: 1
+    label: Dexterity +1
+    lpCost: 1
+    goldCost: 100
+    maxLevel: 5
+  - stat: 2
+    label: Endurance +1
+    lpCost: 1
+    goldCost: 100
+    maxLevel: 5
+  - stat: 3
+    label: Mana +1
+    lpCost: 1
+    goldCost: 100
+    maxLevel: 5

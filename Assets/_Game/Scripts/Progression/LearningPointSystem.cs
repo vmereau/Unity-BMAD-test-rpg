@@ -47,6 +47,18 @@ namespace Game.Progression
             _onLevelUp.RemoveListener(HandleLevelUp);
         }
 
+        /// <summary>
+        /// Attempts to spend LP. Returns false if insufficient. Called by TrainerNPC (Story 3.4).
+        /// </summary>
+        public bool TrySpendLP(int cost)
+        {
+            if (cost <= 0 || CurrentLP < cost) return false;
+            CurrentLP -= cost;
+            GameLog.Info(TAG, $"Spent {cost} LP. Remaining: {CurrentLP}");
+            _onLPChanged?.Raise(CurrentLP);
+            return true;
+        }
+
         private void HandleLevelUp(int newLevel)
         {
             CurrentLP += _config.learningPointsPerLevel;

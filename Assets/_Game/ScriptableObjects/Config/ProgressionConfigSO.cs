@@ -20,5 +20,12 @@ namespace Game.Progression
         [Header("Learning Points — Story 3.3")]
         [Tooltip("Learning points awarded each time the player levels up.")]
         public int learningPointsPerLevel = 3;
+
+        [Header("Base Stats — Story 3.4")]
+        [Tooltip("Starting value for each base stat.")]
+        public int baseStrength = 5;
+        public int baseDexterity = 5;
+        public int baseEndurance = 5;
+        public int baseMana = 5;
     }
 }
