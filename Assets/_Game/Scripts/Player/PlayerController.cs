@@ -103,9 +103,11 @@ namespace Game.Player
 
         private void ApplyMovement()
         {
-            if(_stateManager != null && !_stateManager.CanMove()) return;
-            
             Vector2 moveInput = _input.Player.Move.ReadValue<Vector2>();
+
+            if(_stateManager != null && !_stateManager.CanMove()) {
+                moveInput = new Vector2(0f, 0f);
+            }
 
             Vector3 moveDir;
             if (_mainCamera != null)
