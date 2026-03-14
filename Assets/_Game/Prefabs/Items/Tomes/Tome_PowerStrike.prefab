@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 3417286104210558820}
   - component: {fileID: 7832613078836193864}
   - component: {fileID: 1648881494291638466}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Tome_PowerStrike
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -82,8 +82,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.TomePickup
   _skill: {fileID: 11400000, guid: f8133657d31dc3640b9ba49d0cdbb5fb, type: 2}
   _playerSkills: {fileID: 0}
-  _playerTransform: {fileID: 0}
-  _interactionRadius: 2
 --- !u!114 &3417286104210558820
 MonoBehaviour:
   m_ObjectHideFlags: 0

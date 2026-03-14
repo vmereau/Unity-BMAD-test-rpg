@@ -5171,6 +5171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tome_PowerStrike
       objectReference: {fileID: 0}
+    - target: {fileID: 8772004600541926251, guid: 005698d04f7f6cc42b227fc415495700, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1648881494291638466, guid: 005698d04f7f6cc42b227fc415495700, type: 3}
     m_RemovedGameObjects: []

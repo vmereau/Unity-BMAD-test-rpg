@@ -78,7 +78,7 @@ development_status:
   4-4-item-drop-physics: done
   4-5-item-scriptable-object: done  # ItemSO fully implemented during story 4.4 (itemName, description, icon, isStackable, worldItemPrefab)
   4-8-inventory-context-menu-and-detail-panel: done
-  4-6-tome-as-world-item: backlog
+  4-6-tome-as-world-item: done
   4-7-trainer-look-at-interaction: backlog
   epic-4-retrospective: optional
 
