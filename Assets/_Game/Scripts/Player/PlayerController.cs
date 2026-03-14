@@ -1,4 +1,3 @@
-using Game.Combat;
 using Game.Core;
 using UnityEngine;
 
@@ -104,6 +103,8 @@ namespace Game.Player
 
         private void ApplyMovement()
         {
+            if(_stateManager != null && !_stateManager.CanMove()) return;
+            
             Vector2 moveInput = _input.Player.Move.ReadValue<Vector2>();
 
             Vector3 moveDir;

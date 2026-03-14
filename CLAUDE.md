@@ -193,6 +193,10 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── Animator             (Apply Root Motion: OFF; Controller: PlayerAnimatorController)
 ├── PlayerController.cs
 ├── PlayerAnimator.cs
+├── PlayerStateManager.cs
+├── PlayerCombat.cs
+├── DodgeController.cs
+├── StaminaSystem.cs
 ├── CameraTarget         (child, local Y = 1.6 — pure Transform pivot, no components)
 └── Character            (child — nested Mixamo FBX prefab, Humanoid rig)
 ```
@@ -201,7 +205,36 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 - Cinemachine `Follow` and `LookAt` → both point to `CameraTarget`
 - No Rigidbody on player — `CharacterController` only
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
-- `PlayerAnimator` reads `CharacterController.velocity` passively — never writes to movement state
+- `PlayerAnimator` reads `CharacterController.velocity` passively for movement — never writes to movement state
+
+### Player Action Gating — PlayerStateManager (Single Gate Pattern)
+
+`Assets/_Game/Scripts/Player/PlayerStateManager.cs` is the **single source of truth** for all player action permissions. Before performing any player action, always call the corresponding `Can*` query:
+
+| Action | Gate method | Written by |
+|--------|-------------|------------|
+| Attack | `CanAttack()` | `PlayerCombat.SetAttacking()` |
+| Block | `CanBlock()` | `PlayerCombat.SetBlocking()` |
+| Dodge | `CanDodge()` | `DodgeController.SetDodging()` |
+| Jump | `CanJump()` | — (read-only gate) |
+| Move | `CanMove()` | — (read-only gate) |
+
+**Rules:**
+- Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
+- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`.
+- `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
+
+### PlayerAnimator — Combat Animation API
+
+`PlayerAnimator` owns **all** Animator calls (movement and combat). `PlayerStateManager` delegates animation side-effects to it — no other class should call the Animator directly for player animations.
+
+| Method | Animator effect |
+|--------|----------------|
+| `SetBlocking(bool)` | Sets `IsBlocking` bool |
+| `PlayAttack(int triggerHash)` | Fires the given attack trigger |
+| `PlayDodge(bool isBackward)` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
+
+**Consequence:** When adding new player animations, add a public method to `PlayerAnimator` and call it from `PlayerStateManager` — never add `Animator.SetTrigger/SetBool` calls elsewhere.
 
 ---
 
@@ -223,7 +256,10 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | LOW | Magic numbers in gameplay logic (use `[SerializeField]` or config SO) |
 | LOW | Story File List missing Unity Editor-generated assets (FBX, AnimatorController, .meta files) — always audit art asset directories when story covers animation/import work |
 | HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside the asmdef folder |
+| HIGH | `Cursor.lockState`, `Cursor.visible`, or `CursorLockMode` used directly outside `CursorManager.cs` — all cursor state changes must go through `CursorManager.Lock()` / `CursorManager.Unlock()` / `CursorManager.IsLocked` (`Assets/_Game/Scripts/Core/CursorManager.cs`) |
 | MEDIUM | `WriteDefaultValues: true` on animator states — causes T-pose bleed; always use `false` |
 | MEDIUM | AnimatorController `.controller` file fully rewritten via `Write` tool — transitions may not be visible in Unity Animator; prefer incremental MCP edits + YAML fixes |
 | HIGH | `TryGetComponent<EnemyHealth>()` on a hit collider — `Enemy_Grunt` has `CapsuleCollider` on the `Visual` child but `EnemyHealth` on the root; always use `GetComponentInParent<EnemyHealth>()` in hit detection |
 | HIGH | Namespace `Game.Debug` conflicts with `UnityEngine.Debug` — any file resolves bare `Debug` to `Game.Debug` instead of the Unity class; use `Game.DevTools` for test/debug utilities |
+| HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
+| HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()` |

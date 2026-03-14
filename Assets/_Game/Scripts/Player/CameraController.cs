@@ -1,5 +1,6 @@
 using Game.Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game.Player
@@ -31,8 +32,7 @@ namespace Game.Player
                 return;
             }
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            CursorManager.Lock();
 
             // Initialize yaw/pitch from current target rotation to avoid snap on first frame.
             // Use DeltaAngle to convert eulerAngles [0, 360] → signed [-180, 180] for pitch,
@@ -58,29 +58,11 @@ namespace Game.Player
 
         private void Update()
         {
-            HandleCursorLock();
-
             // Only rotate camera when cursor is locked
-            if (Cursor.lockState != CursorLockMode.Locked)
+            if (!CursorManager.IsLocked)
                 return;
 
             RotateCamera();
-        }
-
-        private void HandleCursorLock()
-        {
-            if (_input.UI.Cancel.WasPressedThisFrame())
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-
-            if (_input.UI.Click.WasPressedThisFrame()
-                && Cursor.lockState == CursorLockMode.None)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
         }
 
         private void RotateCamera()
