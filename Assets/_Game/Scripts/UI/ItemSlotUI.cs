@@ -10,6 +10,9 @@ namespace Game.UI
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TMP_Text _nameText;
+        [SerializeField] private Image _backgroundImage;
+        [SerializeField] private Color _normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        [SerializeField] private Color _selectedColor = new Color(0.4f, 0.6f, 1f, 0.9f);
 
         public int SlotIndex { get; set; }
         public ItemSO Item { get; private set; }
@@ -20,6 +23,7 @@ namespace Game.UI
         {
             Item = item;
             SlotIndex = index;
+            SetSelected(false);
 
             _nameText.gameObject.SetActive(false);
 
@@ -43,6 +47,12 @@ namespace Game.UI
                 _iconImage.color = Color.gray;
                 _nameText.text = string.Empty;
             }
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (_backgroundImage != null)
+                _backgroundImage.color = selected ? _selectedColor : _normalColor;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -94,13 +104,22 @@ namespace Game.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (eventData.button != PointerEventData.InputButton.Right || Item == null) return;
             var inventoryUI = GetComponentInParent<InventoryUI>();
             if (inventoryUI == null) return;
-            inventoryUI.DropItem(SlotIndex);
+
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                if (Item == null) return;
+                inventoryUI.ShowContextMenu(SlotIndex, eventData.position);
+            }
+            else if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                inventoryUI.SelectSlot(SlotIndex);
+            }
         }
 
-        public void RemoveGhostImage() {
+        public void RemoveGhostImage()
+        {
             if (_ghostImage != null)
             {
                 Destroy(_ghostImage);

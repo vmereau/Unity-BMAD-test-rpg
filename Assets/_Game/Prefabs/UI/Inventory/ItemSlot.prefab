@@ -167,6 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.UI.ItemSlotUI
   _iconImage: {fileID: 3429857176632600654}
   _nameText: {fileID: 4532647090927678732}
+  _backgroundImage: {fileID: 4098734291305939011}
 --- !u!1 &7125164166546134588
 GameObject:
   m_ObjectHideFlags: 0
