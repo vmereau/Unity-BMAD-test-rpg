@@ -4,7 +4,7 @@ user_name: 'Valentin'
 date: '2026-03-01'
 sections_completed: ['technology_stack', 'engine_specific_rules', 'performance_rules', 'code_organization_rules', 'testing_rules', 'platform_build_rules', 'critical_rules']
 status: 'complete'
-rule_count: 52
+rule_count: 57
 optimized_for_llm: true
 architecture_version: '1.0'
 ---
@@ -227,6 +227,19 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - NEVER call `Debug.Log`, `Debug.LogWarning`, or `Debug.LogError` directly — always use `GameLog`
 - NEVER omit the TAG constant — every class defines `private const string TAG = "[SystemName]";`
 
+**Inventory System Patterns (Epic 4):**
+- `InventorySystem` is a **MonoBehaviour on the Player prefab** — NOT a singleton; access via direct `[SerializeField]` reference or `FindFirstObjectByType<InventorySystem>()` in Awake only
+- `ItemSO` class lives in `Assets/_Game/ScriptableObjects/Items/ItemSO.cs`, namespace `Game.Inventory` — assets created via `Assets/Items/Item` menu
+- `ItemSO.worldItemPrefab` must be a prefab with a **Rigidbody** — `InventoryUI.DropItem()` calls `AddForce` immediately after `Instantiate`; missing Rigidbody causes NullReferenceException
+- World item prefabs (used as `worldItemPrefab`) must also have **Layer 8 (Interactable)** and `ItemPickup.cs` pre-wired so dropped items are pickable again
+- `InputSystem_Actions` Player map includes **InventoryToggle** action (added in Story 4.3)
+
+**Interaction System Patterns (Epic 4):**
+- `IInteractable` interface (in `Game.World`) — implement for any world object the player can interact with
+- `InteractionSystem` raycasts from center-screen with `ViewportPointToRay(0.5, 0.5, 0)` against **Layer 8 only**
+- Hit detection uses `GetComponentInParent<IInteractable>()` — collider may be on a child GameObject
+- Interaction prompt (`InteractPrompt` property) displayed via `OnGUI` under `#if DEVELOPMENT_BUILD || UNITY_EDITOR` — this is the one permitted `OnGUI` exception (dev-only overlay, not gameplay UI)
+
 **Novel Pattern Gotchas:**
 - `PlayerCombat` combo window must be explicitly closed when the animator exits an attack state — if the window stays open after exit time, rapid LMB presses can register a hit on the wrong combo step
 - `NPCScheduler` must subscribe to `OnDayNightChanged` in `OnEnable` — NPCs placed inactive in scene will miss the event on load; call `HandleDayNightChanged` manually in `Start` to initialize state
@@ -253,5 +266,5 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Update when technology stack or architectural decisions change
 - Remove rules that become obvious over time
 
-_Last Updated: 2026-03-01_
+_Last Updated: 2026-03-14_
 _Architecture Version: 1.0 (generated from game-architecture.md)_

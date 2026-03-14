@@ -19,7 +19,7 @@
 
 | What | Path |
 |------|------|
-| **Authoritative coding rules (52 rules)** | `_bmad-output/project-context.md` |
+| **Authoritative coding rules (57 rules)** | `_bmad-output/project-context.md` |
 | **Game architecture doc** | `_bmad-output/planning-artifacts/` |
 | **Sprint status** | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
 | **Story files** | `_bmad-output/implementation-artifacts/*.md` |
@@ -34,9 +34,31 @@
 
 ## Before Writing Any Game Code
 
-1. Read `_bmad-output/project-context.md` — all 52 rules are mandatory
+1. Read `_bmad-output/project-context.md` — all 57 rules are mandatory
 2. Check `_bmad-output/implementation-artifacts/sprint-status.yaml` for current state
 3. If a story file exists for the task, read it fully before implementing
+
+---
+
+## During a Session — Watch for CLAUDE.md Updates
+
+Throughout any session, actively watch for new patterns, gotchas, or rules worth preserving.
+**When you spot one, immediately tell the user** before moving on. Format:
+
+```
+> [CLAUDE.md candidate] <root | Assets/_Game/... folder>
+> Pattern: <one-line description>
+> Suggested addition: <brief content or note>
+```
+
+Triggers to watch for:
+
+- A Unity MCP tool behaves unexpectedly or requires a workaround
+- A Unity lifecycle, serialization, or rendering edge case causes a bug or forces a code pattern
+- A naming convention, namespace rule, or layer/prefab constraint is clarified or discovered
+- A folder-specific CLAUDE.md is missing a rule that was applied during the session
+- A code review surfaces a recurring issue not yet in the checklist
+- A new system (script, prefab, SO, scene) is introduced that other agents need to know about
 
 ---
 
@@ -55,68 +77,22 @@
 
 ## Learned Patterns & Gotchas
 
-### Assembly Setup (As of Story 1.5)
+### Assembly, Input & Scene Rules
 
-`Assets/_Game/Game.asmdef` exists with:
-- `"name": "Game"`, `"autoReferenced": true`
-- `"references": ["Unity.InputSystem"]`
-
-All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Assembly-CSharp`).
-`InputSystem_Actions.cs` was moved from `Assets/` root into `Assets/_Game/` so it compiles into `Game`.
-
-**Consequence:** Any future auto-generated file placed at `Assets/` root will be in `Assembly-CSharp` and invisible to `Game` scripts — always move such files inside `Assets/_Game/`.
-
-`Tests.EditMode.asmdef` explicitly references `"Game"` in its references array.
-
-### Enemy Prefab Structure (Enemy_Grunt)
-
-```
-Enemy_Grunt.prefab  (Assets/_Game/Prefabs/Enemies/)
-├── NavMeshAgent, EnemyBrain, PersistentID, EnemyHealth   ← all on ROOT
-└── Visual  (child)
-    └── MeshFilter, CapsuleCollider, MeshRenderer         ← collider is on CHILD
-```
-
-**Consequence for hit detection:** `Physics.OverlapSphereNonAlloc` returns the `CapsuleCollider` on `Visual`. Use `GetComponentInParent<EnemyHealth>()` — NOT `TryGetComponent` — to walk up to the root. `TryGetComponent` only looks at the collider's own GameObject and will always miss.
-
-### Test Scaffolding — EnemyRespawner (Story 3.1)
-
-`Assets/_Game/Scripts/Debug/EnemyRespawner.cs` (namespace `Game.DevTools`) is attached to `ProgressionSystem` in TestScene. It re-enables dead enemies after a configurable delay (default 5s). `EnemyHealth.OnEnable()` resets `IsDead` and `CurrentHealth` on reactivation. **This is test scaffolding — superseded by Story 4-5 (no-enemy-respawn design).**
-
-`Game.DevTools` is the correct namespace for test/debug utilities. `Game.Debug` is **banned** — it shadows `UnityEngine.Debug` globally and breaks `Debug.Log`, `Debug.DrawLine`, etc. across the entire codebase.
-
-### Core.unity Scene Stubs (Complete as of Story 1.5)
-
-All 7 manager stub GameObjects are in `Assets/_Game/Scenes/Core.unity`:
-`WorldStateManager`, `GameEventBus`, `SaveSystem`, `SceneLoader`, `DayNightController`, `AudioManager`, `UI`
-
-These are empty GameObjects only — no scripts yet. Scripts are added per-epic.
+> - Assembly setup + `InputSystem_Actions` dual-file contract → `Assets/_Game/CLAUDE.md`
+> - Scene stubs + MCP scene-load quirk → `Assets/_Game/Scenes/CLAUDE.md`
+> - Debug namespace rules + EnemyRespawner scaffolding → `Assets/_Game/Scripts/Debug/CLAUDE.md`
 
 ### Unity MCP Tool Quirks
 
-- **`manage_scene(action="load")`** only resolves scene names at `Assets/{name}.unity`. It **cannot** load scenes in sub-folders (e.g. `Assets/_Game/Scenes/Core.unity`). Edit `.unity` files directly for sub-folder scenes, then call `refresh_unity`.
 - **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` + `refresh_unity(mode="force")`.
-- **`manage_animation(controller_add_transition)`** sets wrong `conditionMode` for bools: uses `3` (Equals) instead of `2` (IfNot/false) or `1` (If/true). Always verify and fix via direct YAML edits.
 - **`manage_gameobject(create)` ignores `component_properties` for Canvas `renderMode`** — Canvas always defaults to `renderMode = 2` (World Space). After creating a Canvas GO, always follow up with `manage_components set_property renderMode 0` to set Screen Space Overlay.
-- **AnimatorController YAML-only transitions** may not be visible in Unity's Animator tab. When rewriting `.controller` files entirely via `Write`, transitions defined only in YAML may need to be manually re-created in the Unity Animator window. Prefer using MCP tools for individual transitions, then fix known bugs in YAML.
+- Animation and scene-specific MCP quirks → `Assets/_Game/Art/Characters/Player/Animations/CLAUDE.md` and `Assets/_Game/Scenes/CLAUDE.md`.
 
-### Animator Controller Best Practices (Story 1.6)
+### Animator, Camera & Player Script Rules
 
-- **Always set `WriteDefaultValues: false`** on all animator states. With `true`, states write T-pose defaults for bones they don't animate, causing pose corruption during transitions.
-- **Smooth transition durations:** Use 0.1–0.2s crossfade for most transitions. Instant (0s) transitions look snappy/jarring.
-- **IsRising detection:** Use `velocity.y > 0.1f` (not `> 0f`) to avoid float noise triggering false positives at rest.
-
-### Unity Input System — Action Map Layout
-
-The project's `InputSystem_Actions` action maps:
-
-- **Player map:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint — **no Cancel action**
-- **UI map:** Navigate, Submit, **Cancel** (Escape), **Click** (left mouse), Point, RightClick, MiddleClick, ScrollWheel
-
-Consequences for cursor lock handling in `CameraController`:
-- Escape unlock → `_input.UI.Cancel.WasPressedThisFrame()`
-- Left-click re-lock → `_input.UI.Click.WasPressedThisFrame()`
-- Must call `_input.UI.Enable()` / `_input.UI.Disable()` alongside the Player map
+> - Animator Controller best practices + MCP animation quirks → `Assets/_Game/Art/Characters/Player/Animations/CLAUDE.md`
+> - Cinemachine OTS setup, float/euler quirks, Input System action map, CharacterController velocity Y, PlayerStateManager gate pattern, PlayerAnimator API → `Assets/_Game/Scripts/Player/CLAUDE.md`
 
 ### Unity Lifecycle Gotcha: OnDisable Before OnEnable
 
@@ -136,105 +112,9 @@ private void OnDisable()
 }
 ```
 
-### InputSystem_Actions.cs Embeds the Full JSON (Critical)
+### Prefab Structure & Layer Rules
 
-`InputSystem_Actions.cs` is **not** just a wrapper that reads from `InputSystem_Actions.inputactions` at runtime — it **embeds the entire action map JSON as a string literal** inside the constructor. The `.inputactions` file is only used by Unity's Input Actions editor UI.
-
-**Consequence:** When adding new actions (e.g. Block), you MUST edit **both** files:
-1. `InputSystem_Actions.inputactions` — for Unity's editor and future regeneration
-2. `InputSystem_Actions.cs` embedded JSON (uses `""` double-escaped quotes) — this is what actually runs
-
-If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFound: true)` will throw `ArgumentException` because the embedded JSON doesn't have the new action.
-
-### CharacterController.velocity Includes Y Component
-
-`CharacterController.velocity.magnitude` is **never 0 when grounded** because `PlayerController` constantly applies `GROUNDED_VELOCITY = -2f` to keep the character snapped to the ground. Effects:
-- At rest: magnitude ≈ 2.0f (not 0) — blend tree never fully reaches idle threshold
-- At `walkSpeed=3f`: magnitude ≈ 3.6f (not 3f) — blend starts crossing walk→run threshold early
-- At `runSpeed=6f`: magnitude ≈ 6.3f — may never reach the run threshold if set above 6.3f
-
-**Always use horizontal speed for animation blend trees:**
-
-```csharp
-// In PlayerAnimator.Update() — correct pattern
-Vector3 horizontalVelocity = new Vector3(
-    _characterController.velocity.x, 0f, _characterController.velocity.z);
-float speed = horizontalVelocity.magnitude;
-```
-
-### Float Accumulation & Euler Angle Quirks
-
-- **Unbounded yaw:** accumulated `_yaw` must be normalized: `_yaw %= 360f;` — without this,
-  float precision degrades after extended play (thousands of degrees → sub-degree jitter).
-- **Pitch from `eulerAngles`:** Unity returns `eulerAngles.x` in [0, 360]. A −10° pitch is
-  stored as 350°. Use `Mathf.DeltaAngle(0f, eulerAngles.x)` to get a proper signed value
-  before clamping, or the pitch will snap to `_pitchMax` on the first frame.
-
-### Cinemachine 3.x — Over-the-Shoulder Setup (Story 1.2)
-
-The project ships with **Cinemachine 3.x** (`CinemachineCamera` component, not `CinemachineVirtualCamera`).
-
-Working OTS configuration:
-- **Body:** `CinemachineFollow` with offset `(0.5, 0.3, −3.5)`
-- **Aim:** `CinemachineSameAsFollowTarget` — inherits `CameraTarget` world rotation directly
-- **Do NOT use** `CinemachineRotationComposer` for OTS — it aim-corrects toward a world point
-  and cancels the vertical pitch driven by `CameraController`
-- **Do NOT add** `CinemachineInputAxisController` or `CinemachinePanTilt` — dual input causes
-  rotation fighting with `CameraController`
-
-`CameraController.cs` owns all mouse input and writes to `CameraTarget.rotation`.
-Cinemachine reads `CameraTarget` passively — it never takes direct input.
-
-### Player Prefab Structure
-
-```
-Player.prefab  (Assets/_Game/Prefabs/Player/)
-├── CharacterController  (Height: 1.8, Center Y: 1.0)
-├── Animator             (Apply Root Motion: OFF; Controller: PlayerAnimatorController)
-├── PlayerController.cs
-├── PlayerAnimator.cs
-├── PlayerStateManager.cs
-├── PlayerCombat.cs
-├── DodgeController.cs
-├── StaminaSystem.cs
-├── CameraTarget         (child, local Y = 1.6 — pure Transform pivot, no components)
-└── Character            (child — nested Mixamo FBX prefab, Humanoid rig)
-```
-
-- `CameraController` is wired **in `TestScene.unity`** as a scene component — **not** in the prefab (known drift from intended architecture; action item exists to move it)
-- Cinemachine `Follow` and `LookAt` → both point to `CameraTarget`
-- No Rigidbody on player — `CharacterController` only
-- Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
-- `PlayerAnimator` reads `CharacterController.velocity` passively for movement — never writes to movement state
-
-### Player Action Gating — PlayerStateManager (Single Gate Pattern)
-
-`Assets/_Game/Scripts/Player/PlayerStateManager.cs` is the **single source of truth** for all player action permissions. Before performing any player action, always call the corresponding `Can*` query:
-
-| Action | Gate method | Written by |
-|--------|-------------|------------|
-| Attack | `CanAttack()` | `PlayerCombat.SetAttacking()` |
-| Block | `CanBlock()` | `PlayerCombat.SetBlocking()` |
-| Dodge | `CanDodge()` | `DodgeController.SetDodging()` |
-| Jump | `CanJump()` | — (read-only gate) |
-| Move | `CanMove()` | — (read-only gate) |
-
-**Rules:**
-- Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
-- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`.
-- `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
-
-### PlayerAnimator — Combat Animation API
-
-`PlayerAnimator` owns **all** Animator calls (movement and combat). `PlayerStateManager` delegates animation side-effects to it — no other class should call the Animator directly for player animations.
-
-| Method | Animator effect |
-|--------|----------------|
-| `SetBlocking(bool)` | Sets `IsBlocking` bool |
-| `PlayAttack(int triggerHash)` | Fires the given attack trigger |
-| `PlayDodge(bool isBackward)` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
-
-**Consequence:** When adding new player animations, add a public method to `PlayerAnimator` and call it from `PlayerStateManager` — never add `Animator.SetTrigger/SetBool` calls elsewhere.
+> See `Assets/_Game/Prefabs/CLAUDE.md` for full prefab hierarchies (Player, Enemy_Grunt) and layer requirements.
 
 ---
 
@@ -246,21 +126,12 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 |----------|---------|
 | HIGH | `OnDisable` calls fields initialized in `OnEnable` without null guard |
 | HIGH | `enabled = false` set in `Awake` without OnDisable null guard |
-| MEDIUM | `Keyboard.current` / `Mouse.current` used instead of `InputSystem_Actions` action map |
-| MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |
-| MEDIUM | `eulerAngles` used as signed source without `Mathf.DeltaAngle` conversion |
 | MEDIUM | `GetComponent` or `Camera.main` called in `Update` instead of cached in `Awake` |
-| MEDIUM | `CharacterController.velocity.magnitude` used for animation speed (Y component inflates value; use `new Vector3(v.x,0,v.z).magnitude`) |
 | MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |
 | LOW | `Debug.Log` / `Debug.LogWarning` / `Debug.LogError` used directly (use `GameLog`) |
 | LOW | Magic numbers in gameplay logic (use `[SerializeField]` or config SO) |
 | LOW | Story File List missing Unity Editor-generated assets (FBX, AnimatorController, .meta files) — always audit art asset directories when story covers animation/import work |
-| HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside the asmdef folder |
 | HIGH | `Cursor.lockState`, `Cursor.visible`, or `CursorLockMode` used directly outside `CursorManager.cs` — all cursor state changes must go through `CursorManager.Lock()` / `CursorManager.Unlock()` / `CursorManager.IsLocked` (`Assets/_Game/Scripts/Core/CursorManager.cs`) |
-| MEDIUM | `WriteDefaultValues: true` on animator states — causes T-pose bleed; always use `false` |
-| MEDIUM | AnimatorController `.controller` file fully rewritten via `Write` tool — transitions may not be visible in Unity Animator; prefer incremental MCP edits + YAML fixes |
-| HIGH | `TryGetComponent<EnemyHealth>()` on a hit collider — `Enemy_Grunt` has `CapsuleCollider` on the `Visual` child but `EnemyHealth` on the root; always use `GetComponentInParent<EnemyHealth>()` in hit detection |
-| HIGH | Namespace `Game.Debug` conflicts with `UnityEngine.Debug` — any file resolves bare `Debug` to `Game.Debug` instead of the Unity class; use `Game.DevTools` for test/debug utilities |
-| HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
-| HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()` |
-| HIGH | Interactable prefab (pickup, NPC, etc.) created without setting layer to **Interactable (Layer 8)** — `InteractionSystem` raycasts only against Layer 8; prefab will be invisible to interaction without it |
+| HIGH | Namespace `Game.Debug` — use `Game.DevTools`; see `Assets/_Game/Scripts/Debug/CLAUDE.md` |
+| HIGH | Prefab structure or layer misconfigured — see `Assets/_Game/Prefabs/CLAUDE.md` |
+| HIGH | Assembly / InputSystem / Player / Animator rules — see folder-specific CLAUDE.md files |

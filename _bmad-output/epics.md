@@ -153,6 +153,10 @@ use the unified look-at model.
   with to trigger skill learning, replacing the old proximity trigger
 - As a player, the Trainer_Master NPC is activated by looking at them and
   pressing Interact, replacing the old proximity/trigger zone model
+- As a player, I can right-click an inventory slot to open a context menu with
+  actions (starting with "Drop Item"), and left-click a slot to select it and
+  see its name, description, and icon in a detail panel on the right side of
+  the inventory, so item management feels intentional and informative
 
 ---
 
