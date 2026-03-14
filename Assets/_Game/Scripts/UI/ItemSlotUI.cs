@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class ItemSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+    public class ItemSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TMP_Text _nameText;
@@ -20,6 +20,8 @@ namespace Game.UI
         {
             Item = item;
             SlotIndex = index;
+
+            _nameText.gameObject.SetActive(false);
 
             if (item != null)
             {
@@ -41,6 +43,17 @@ namespace Game.UI
                 _iconImage.color = Color.gray;
                 _nameText.text = string.Empty;
             }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (Item != null)
+                _nameText.gameObject.SetActive(true);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            _nameText.gameObject.SetActive(false);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -68,18 +81,23 @@ namespace Game.UI
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            if (_ghostImage != null)
-            {
-                Destroy(_ghostImage);
-                _ghostImage = null;
-            }
+            RemoveGhostImage();
         }
 
         public void OnDrop(PointerEventData eventData)
         {
             var source = eventData.pointerDrag?.GetComponent<ItemSlotUI>();
             if (source == null || source == this) return;
+            source.RemoveGhostImage();
             GetComponentInParent<InventoryUI>().SwapSlots(source.SlotIndex, SlotIndex);
+        }
+
+        public void RemoveGhostImage() {
+            if (_ghostImage != null)
+            {
+                Destroy(_ghostImage);
+                _ghostImage = null;
+            }
         }
     }
 }

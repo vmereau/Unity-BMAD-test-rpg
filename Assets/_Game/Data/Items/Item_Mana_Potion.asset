@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
   m_Name: Item_Mana_Potion
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
-  itemName: 
-  description: 
+  itemName: Mana Potion
+  description: Restore a small amount of mana
   icon: {fileID: 0}
-  isStackable: 0
+  isStackable: 1

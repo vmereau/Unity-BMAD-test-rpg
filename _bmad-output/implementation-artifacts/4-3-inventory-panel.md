@@ -22,12 +22,14 @@ so that I can manage what I'm carrying in an intuitive way.
    - Swaps `_items[fromIndex]` and `_items[toIndex]` in-place
 
 3. **`ItemSlotUI.cs`** created at `Assets/_Game/Scripts/UI/ItemSlotUI.cs` (namespace `Game.UI`):
-   - Implements `IBeginDragHandler`, `IDragHandler`, `IEndDragHandler`, `IDropHandler`
+   - Implements `IBeginDragHandler`, `IDragHandler`, `IEndDragHandler`, `IDropHandler`, `IPointerEnterHandler`, `IPointerExitHandler`
    - `[SerializeField] private Image _iconImage` — item icon (gray placeholder if `icon == null`)
-   - `[SerializeField] private TMP_Text _nameText` — item name label
+   - `[SerializeField] private TMP_Text _nameText` — item name tooltip (hidden by default, shown on hover)
    - `public int SlotIndex { get; set; }` — set by `InventoryUI` when populating
    - `public ItemSO Item { get; private set; }`
-   - `public void Bind(ItemSO item, int index)` — assigns icon sprite or gray color + name
+   - `public void Bind(ItemSO item, int index)` — assigns icon sprite or gray color + name; always calls `_nameText.gameObject.SetActive(false)`
+   - `OnPointerEnter`: `_nameText.gameObject.SetActive(true)` if `Item != null`
+   - `OnPointerExit`: `_nameText.gameObject.SetActive(false)`
    - `OnBeginDrag`: create drag ghost image (duplicate icon) on Canvas root; store self as drag source
    - `OnDrag`: move ghost image to cursor position (`Input.mousePosition`)
    - `OnEndDrag`: destroy ghost image
@@ -59,9 +61,10 @@ so that I can manage what I'm carrying in an intuitive way.
    - Create `InventoryPanel` child: semi-transparent dark `Image`, centered (width 600, height 500)
    - Create `ContentRoot`: a vertical `LayoutGroup` inside the panel for slot layout
    - Create `ItemSlot` prefab at `Assets/_Game/Prefabs/UI/ItemSlot.prefab`:
-     - Background `Image` + `ItemSlotUI` component
-     - `Icon` child: `Image` (128×128)
-     - `Name` child: `TMP_Text`
+     - Background `Image` + `ItemSlotUI` component; root size **80×80** (square icon slot)
+     - `Icon` child: `Image` stretch-anchored to fill parent (4px padding each side)
+     - `Name` child: `TMP_Text` — **inactive by default**; anchor top-center, pivot bottom-center, positioned 6px above slot; fontSize 16, size 180×40; acts as hover tooltip
+   - `ContentRoot` uses **`GridLayoutGroup`** (cell size 80×80) to lay out icon slots in a grid
    - Wire `InventoryUI` fields in Inspector: `_inventorySystem` → Player GO, `_panelRoot` → InventoryPanel, `_contentRoot` → ContentRoot, `_itemSlotPrefab` → ItemSlot.prefab, `_canvas` → Canvas GO
    - Panel starts hidden (`_panelRoot.SetActive(false)` by default)
 
@@ -93,9 +96,10 @@ so that I can manage what I'm carrying in an intuitive way.
 
 - [x] Task 3: Create `ItemSlotUI.cs` (AC: 3)
   - [x] 3.1 Create `Assets/_Game/Scripts/UI/ItemSlotUI.cs` implementing drag handlers
-  - [x] 3.2 Implement `Bind(ItemSO item, int index)` — set icon sprite (or gray if null), name text, slot index
+  - [x] 3.2 Implement `Bind(ItemSO item, int index)` — set icon sprite (or gray if null), name text, slot index; hide `_nameText` by default
   - [x] 3.3 Implement `OnBeginDrag` / `OnDrag` / `OnEndDrag` with ghost image
   - [x] 3.4 Implement `OnDrop` — call `InventoryUI.SwapSlots(source.SlotIndex, SlotIndex)` if source is ItemSlotUI
+  - [x] 3.5 Implement `OnPointerEnter` / `OnPointerExit` — show/hide `_nameText` as hover tooltip
 
 - [x] Task 4: Create `InventoryUI.cs` (AC: 4)
   - [x] 4.1 Create `Assets/_Game/Scripts/UI/InventoryUI.cs` with panel show/hide logic
@@ -464,9 +468,9 @@ claude-sonnet-4-6
 
 - **Task 1**: Added `InventoryToggle` Button action to both `InputSystem_Actions.inputactions` (Unity editor definition) and `InputSystem_Actions.cs` embedded JSON (double-escaped). Also added `m_Player_InventoryToggle` field, `FindAction` call, and `@InventoryToggle` property to `PlayerActions` struct. Added `Unity.TextMeshPro` reference to `Game.asmdef`.
 - **Task 2**: Added `MoveItem(int fromIndex, int toIndex)` to `InventorySystem` with bounds validation using `GameLog.Warn` and C# tuple swap.
-- **Task 3**: Created `ItemSlotUI.cs` (namespace `Game.UI`) implementing all drag handlers. Ghost image uses `GetComponentInParent<Canvas>()`, `img.raycastTarget = false`. `OnDrop` uses `GetComponentInParent<InventoryUI>()` to call `SwapSlots`.
+- **Task 3**: Created `ItemSlotUI.cs` (namespace `Game.UI`) implementing all drag handlers. Ghost image uses `GetComponentInParent<Canvas>()`, `img.raycastTarget = false`. `OnDrop` uses `GetComponentInParent<InventoryUI>()` to call `SwapSlots`. Also implements `IPointerEnterHandler`/`IPointerExitHandler` — `Bind()` hides `_nameText` by default; hover shows it as a tooltip above the slot.
 - **Task 4**: Created `InventoryUI.cs` (namespace `Game.UI`) with full Input System integration, OnEnable/OnDisable null guard, Open/Close/RefreshSlots/SwapSlots. `OnDestroy` disposes input.
-- **Task 5**: Created `ItemSlot.prefab` at `Assets/_Game/Prefabs/UI/ItemSlot.prefab` with `Image + ItemSlotUI + Icon(Image) + Name(TextMeshProUGUI)`, wired `_iconImage` and `_nameText` via YAML edit. Added `UICanvas` (Screen Space Overlay, CanvasScaler 1920×1080), `EventSystem` (InputSystemUIInputModule), `InventoryPanel` (600×500, semi-transparent dark), `ContentRoot` (VerticalLayoutGroup, stretch). `InventoryUI` component wired on UICanvas. `InventoryPanel` starts inactive.
+- **Task 5**: Created `ItemSlot.prefab` at `Assets/_Game/Prefabs/UI/ItemSlot.prefab` with `Image + ItemSlotUI + Icon(Image) + Name(TextMeshProUGUI)`, wired `_iconImage` and `_nameText` via YAML edit. Added `UICanvas` (Screen Space Overlay, CanvasScaler 1920×1080), `EventSystem` (InputSystemUIInputModule), `InventoryPanel` (600×500, semi-transparent dark), `ContentRoot` (GridLayoutGroup, cell 80×80). `InventoryUI` component wired on UICanvas. `InventoryPanel` starts inactive. **Post-story UX refinement:** ItemSlot resized to 80×80 square icon-only layout; Icon stretch-fills parent; Name repositioned above slot as hover tooltip (anchor top-center, 180×40, fontSize 16); Name starts inactive in prefab.
 - **Task 6**: Added 4 MoveItem tests — all 4 pass. Total 128 tests, 127 pass (1 pre-existing ItemPickup failure).
 - **Task 7**: Play mode entered with no NullReferenceExceptions; startup logs show correct initialization.
 
@@ -492,3 +496,4 @@ claude-sonnet-4-6
 ## Change Log
 
 - 2026-03-14: Implemented story 4.3 — Inventory panel UI with I-key toggle, drag-and-drop slot reordering, `MoveItem` on `InventorySystem`, `ItemSlotUI`/`InventoryUI` scripts, `ItemSlot.prefab`, TestScene Canvas wiring, and 4 new Edit Mode tests. (claude-sonnet-4-6)
+- 2026-03-14: Post-story UX refinement — reworked `ItemSlot.prefab` to icon-only square grid layout (80×80); item name now shown as hover tooltip above slot via `IPointerEnterHandler`/`IPointerExitHandler`; `ContentRoot` switched to `GridLayoutGroup`; fixed TMP font-size/margin to make tooltip text visible. (claude-sonnet-4-6)
