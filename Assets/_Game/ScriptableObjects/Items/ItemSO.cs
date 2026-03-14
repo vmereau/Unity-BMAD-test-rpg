@@ -9,5 +9,6 @@ namespace Game.Inventory
         public string description;
         public Sprite icon;
         public bool isStackable;
+        public GameObject worldItemPrefab;
     }
 }

@@ -263,3 +263,4 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | HIGH | Namespace `Game.Debug` conflicts with `UnityEngine.Debug` — any file resolves bare `Debug` to `Game.Debug` instead of the Unity class; use `Game.DevTools` for test/debug utilities |
 | HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
 | HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()` |
+| HIGH | Interactable prefab (pickup, NPC, etc.) created without setting layer to **Interactable (Layer 8)** — `InteractionSystem` raycasts only against Layer 8; prefab will be invisible to interaction without it |

@@ -84,6 +84,22 @@ namespace Tests.EditMode
             Assert.AreEqual(item2, _inventory.Items[1]);
         }
 
+        [Test]
+        public void ItemPickup_Configure_SetsInteractPrompt()
+        {
+            var go = new GameObject("TestPickup");
+            var pickup = go.AddComponent<ItemPickup>();
+            var item = ScriptableObject.CreateInstance<ItemSO>();
+            item.itemName = "Magic Sword";
+
+            pickup.Configure(item);
+
+            Assert.AreEqual("Press E to pick up Magic Sword", pickup.InteractPrompt);
+
+            Object.DestroyImmediate(go);
+            Object.DestroyImmediate(item);
+        }
+
         // ItemPickup null-guard: disabled component must not throw when Interact() is called
         // (InteractionSystem.GetComponentInParent returns disabled components — HIGH-1 regression guard)
         [Test]
@@ -144,6 +160,47 @@ namespace Tests.EditMode
 
             Assert.DoesNotThrow(() => _inventory.MoveItem(0, 5));
             Assert.AreEqual(2, _inventory.Count);
+        }
+
+        [Test]
+        public void RemoveItem_ValidIndex_RemovesAndReturnsItem()
+        {
+            var itemA = CreateTestItem("A");
+            var itemB = CreateTestItem("B");
+            var itemC = CreateTestItem("C");
+            _inventory.AddItem(itemA);
+            _inventory.AddItem(itemB);
+            _inventory.AddItem(itemC);
+
+            var removed = _inventory.RemoveItem(1);
+
+            Assert.AreEqual(itemB, removed);
+            Assert.AreEqual(2, _inventory.Count);
+            Assert.AreEqual(itemA, _inventory.Items[0]);
+            Assert.AreEqual(itemC, _inventory.Items[1]);
+        }
+
+        [Test]
+        public void RemoveItem_OutOfBoundsIndex_ReturnsNull_NoThrow()
+        {
+            _inventory.AddItem(CreateTestItem("A"));
+            _inventory.AddItem(CreateTestItem("B"));
+
+            var result = _inventory.RemoveItem(5);
+
+            Assert.IsNull(result);
+            Assert.AreEqual(2, _inventory.Count);
+        }
+
+        [Test]
+        public void RemoveItem_NegativeIndex_ReturnsNull_NoThrow()
+        {
+            _inventory.AddItem(CreateTestItem("A"));
+
+            var result = _inventory.RemoveItem(-1);
+
+            Assert.IsNull(result);
+            Assert.AreEqual(1, _inventory.Count);
         }
     }
 }

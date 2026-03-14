@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class ItemSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+    public class ItemSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TMP_Text _nameText;
@@ -90,6 +90,14 @@ namespace Game.UI
             if (source == null || source == this) return;
             source.RemoveGhostImage();
             GetComponentInParent<InventoryUI>().SwapSlots(source.SlotIndex, SlotIndex);
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Right || Item == null) return;
+            var inventoryUI = GetComponentInParent<InventoryUI>();
+            if (inventoryUI == null) return;
+            inventoryUI.DropItem(SlotIndex);
         }
 
         public void RemoveGhostImage() {

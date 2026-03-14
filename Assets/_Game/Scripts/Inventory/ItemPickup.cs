@@ -18,6 +18,11 @@ namespace Game.Inventory
                 ? $"Press E to pick up {_item?.itemName ?? "item"}"
                 : _promptOverride;
 
+        public void Configure(ItemSO item)
+        {
+            _item = item;
+        }
+
         private void Awake()
         {
             if (_item == null)
@@ -40,7 +45,7 @@ namespace Game.Inventory
         {
             if (_inventory == null) return;
             _inventory.AddItem(_item);
-            gameObject.SetActive(false);
+            Destroy(gameObject);
         }
     }
 }

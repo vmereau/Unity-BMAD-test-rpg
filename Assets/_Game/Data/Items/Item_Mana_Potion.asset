@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
   itemName: Mana Potion
   description: Restore a small amount of mana
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7b983eb13d0aee847bb877189bc25756, type: 3}
   isStackable: 1
+  worldItemPrefab: {fileID: 7470631476087896926, guid: 4ea1bbb43de282c45a4adf60f3ff6201, type: 3}

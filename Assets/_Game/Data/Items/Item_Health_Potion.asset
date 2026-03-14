@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
   itemName: Health Potion
   description: Restores a small amount of health
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f5af8fede152fef4cad743871af5aaca, type: 3}
   isStackable: 1
+  worldItemPrefab: {fileID: 5273174817731578079, guid: 3369ecd03d9c07142ba5e2cbca261f2b, type: 3}

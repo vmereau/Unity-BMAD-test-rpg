@@ -27,6 +27,20 @@ namespace Game.Inventory
             return true;
         }
 
+        public ItemSO RemoveItem(int index)
+        {
+            if (index < 0 || index >= _items.Count)
+            {
+                GameLog.Warn(TAG, $"RemoveItem: index out of range ({index}, count={_items.Count})");
+                return null;
+            }
+
+            var item = _items[index];
+            _items.RemoveAt(index);
+            GameLog.Info(TAG, $"Removed: {item.itemName} (total: {_items.Count})");
+            return item;
+        }
+
         public void MoveItem(int fromIndex, int toIndex)
         {
             if (fromIndex < 0 || fromIndex >= _items.Count || toIndex < 0 || toIndex >= _items.Count)
