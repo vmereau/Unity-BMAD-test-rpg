@@ -18,6 +18,12 @@ namespace Game.UI
         public ItemSO Item { get; private set; }
 
         private GameObject _ghostImage;
+        private InventoryUI _inventoryUI;
+
+        private void Awake()
+        {
+            _inventoryUI = GetComponentInParent<InventoryUI>();
+        }
 
         public void Bind(ItemSO item, int index)
         {
@@ -99,22 +105,21 @@ namespace Game.UI
             var source = eventData.pointerDrag?.GetComponent<ItemSlotUI>();
             if (source == null || source == this) return;
             source.RemoveGhostImage();
-            GetComponentInParent<InventoryUI>().SwapSlots(source.SlotIndex, SlotIndex);
+            _inventoryUI.SwapSlots(source.SlotIndex, SlotIndex);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            var inventoryUI = GetComponentInParent<InventoryUI>();
-            if (inventoryUI == null) return;
+            if (_inventoryUI == null) return;
 
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 if (Item == null) return;
-                inventoryUI.ShowContextMenu(SlotIndex, eventData.position);
+                _inventoryUI.ShowContextMenu(SlotIndex, eventData.position);
             }
             else if (eventData.button == PointerEventData.InputButton.Left)
             {
-                inventoryUI.SelectSlot(SlotIndex);
+                _inventoryUI.SelectSlot(SlotIndex);
             }
         }
 

@@ -138,11 +138,14 @@ namespace Game.UI
             HideContextMenu();
             _contextMenuSlotIndex = slotIndex;
 
-            var canvas = GetComponentInParent<Canvas>();
+            // _canvas is the serialized canvas root; all context menu GOs are parented here
+            var canvas = _canvas;
 
             // Blocker — full-screen transparent overlay positioned BELOW _panelRoot so that
             // clicks on inventory slots still reach their IPointerClickHandler.
             // Any click on the blocker (i.e. outside the inventory panel) dismisses the menu.
+            // INVARIANT: _panelRoot must be a direct child of canvas.transform for the
+            // sibling-index placement to produce the correct z-order.
             _contextMenuBlocker = new GameObject("ContextMenuBlocker");
             _contextMenuBlocker.transform.SetParent(canvas.transform, false);
             var blockerImg = _contextMenuBlocker.AddComponent<Image>();
@@ -182,6 +185,7 @@ namespace Game.UI
 
         public void SelectSlot(int slotIndex)
         {
+            if (slotIndex == _selectedSlotIndex) return;
             _selectedSlotUI?.SetSelected(false);
             var newSlot = _contentRoot.GetChild(slotIndex).GetComponent<ItemSlotUI>();
             newSlot.SetSelected(true);
@@ -242,7 +246,7 @@ namespace Game.UI
     /// <summary>Catches any pointer button click and forwards it to a callback.</summary>
     internal class AnyButtonClickListener : MonoBehaviour, IPointerClickHandler
     {
-        public System.Action<PointerEventData.InputButton> callback;
+        [System.NonSerialized] public System.Action<PointerEventData.InputButton> callback;
         public void OnPointerClick(PointerEventData eventData) => callback?.Invoke(eventData.button);
     }
 }

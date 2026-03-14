@@ -1,6 +1,6 @@
 # Story 4.8: Inventory Context Menu & Item Detail Panel
 
-Status: review
+Status: done
 
 ## Story
 
@@ -214,52 +214,47 @@ private void RefreshSlots()
 
 ### Context Menu Click-Outside Blocker Pattern
 
-Instantiate a full-screen transparent `Button` behind the context menu panel.
-Its `onClick` calls `HideContextMenu`. The menu panel must be instantiated after
-the blocker and set as last sibling so it renders on top:
+The blocker is a full-screen transparent overlay parented to the canvas root, positioned
+**below `_panelRoot`** (using `SetSiblingIndex`) so that clicks on inventory slots still
+reach their `IPointerClickHandler`. Any click outside the inventory panel hits the blocker
+and closes the menu. Clicks on the panel background (not a slot) are handled by an
+`AnyButtonClickListener` added to `_panelRoot` in `Awake`.
+
+**CRITICAL INVARIANT:** `_panelRoot` must be a **direct child** of the canvas root for
+the sibling-index placement to produce correct z-order (blocker below panel, menu on top).
+
+`AnyButtonClickListener` (inner class in `InventoryUI.cs`) catches any pointer button (left,
+right, middle) and fires a delegate — replacing the old left-only `Button.onClick` approach.
 
 ```csharp
 public void ShowContextMenu(int slotIndex, Vector2 screenPos)
 {
+    if (_activeContextMenu != null && _contextMenuSlotIndex == slotIndex) return;
     HideContextMenu();
     _contextMenuSlotIndex = slotIndex;
 
-    var canvas = GetComponentInParent<Canvas>();
+    var canvas = _canvas; // serialized reference, NOT GetComponentInParent
 
-    // Blocker (behind menu)
+    // Blocker below _panelRoot — slots above blocker still receive click events
     _contextMenuBlocker = new GameObject("ContextMenuBlocker");
     _contextMenuBlocker.transform.SetParent(canvas.transform, false);
-    var blockerImg = _contextMenuBlocker.AddComponent<Image>();
-    blockerImg.color = Color.clear;
-    blockerImg.raycastTarget = true;
-    var blockerRect = _contextMenuBlocker.GetComponent<RectTransform>();
-    blockerRect.anchorMin = Vector2.zero;
-    blockerRect.anchorMax = Vector2.one;
-    blockerRect.sizeDelta = Vector2.zero;
-    _contextMenuBlocker.AddComponent<Button>().onClick.AddListener(HideContextMenu);
+    // ... stretch to full canvas ...
+    _contextMenuBlocker.transform.SetSiblingIndex(_panelRoot.transform.GetSiblingIndex());
+    var blockerListener = _contextMenuBlocker.AddComponent<AnyButtonClickListener>();
+    blockerListener.callback = (_) => HideContextMenu();
 
-    // Menu panel (on top)
+    // Menu panel (topmost)
     _activeContextMenu = Instantiate(_contextMenuPrefab, canvas.transform);
     _activeContextMenu.transform.SetAsLastSibling();
-
-    // Position + clamp
-    var rt = _activeContextMenu.GetComponent<RectTransform>();
-    rt.position = screenPos;
-    var pos = rt.position;
-    pos.x = Mathf.Clamp(pos.x, 0, Screen.width - rt.rect.width);
-    pos.y = Mathf.Clamp(pos.y, rt.rect.height, Screen.height);
-    rt.position = pos;
-
-    // Wire button
+    // ... position + clamp ...
     var btn = _activeContextMenu.GetComponentInChildren<Button>();
     btn.onClick.AddListener(() => { DropItem(_contextMenuSlotIndex); HideContextMenu(); });
 }
 
-public void HideContextMenu()
+internal class AnyButtonClickListener : MonoBehaviour, IPointerClickHandler
 {
-    if (_activeContextMenu != null) { Destroy(_activeContextMenu); _activeContextMenu = null; }
-    if (_contextMenuBlocker != null) { Destroy(_contextMenuBlocker); _contextMenuBlocker = null; }
-    _contextMenuSlotIndex = -1;
+    [System.NonSerialized] public System.Action<PointerEventData.InputButton> callback;
+    public void OnPointerClick(PointerEventData eventData) => callback?.Invoke(eventData.button);
 }
 ```
 
@@ -369,10 +364,23 @@ claude-sonnet-4-6
 
 Assets/_Game/Scripts/UI/ItemSlotUI.cs
 Assets/_Game/Scripts/UI/InventoryUI.cs
-Assets/_Game/Prefabs/UI/InventoryContextMenu.prefab
-Assets/_Game/Prefabs/UI/InventoryContextMenu.prefab.meta
-Assets/_Game/Prefabs/UI/ItemSlot.prefab
+Assets/_Game/Prefabs/UI/Inventory/InventoryContextMenu.prefab
+Assets/_Game/Prefabs/UI/Inventory/InventoryContextMenu.prefab.meta
+Assets/_Game/Prefabs/UI/Inventory/ItemSlot.prefab
+Assets/_Game/Prefabs/UI/Inventory/ItemSlot.prefab.meta
+Assets/_Game/Prefabs/UI/Inventory/InventoryPanel.prefab
+Assets/_Game/Prefabs/UI/Inventory/InventoryPanel.prefab.meta
+Assets/_Game/Prefabs/UI/Inventory/ItemDetailPanel.prefab
+Assets/_Game/Prefabs/UI/Inventory/ItemDetailPanel.prefab.meta
+Assets/_Game/Prefabs/UI/Inventory.meta
+Assets/_Game/Prefabs/UI/UICanvas.prefab
+Assets/_Game/Prefabs/UI/UICanvas.prefab.meta
+Assets/_Game/Prefabs/UI/InteractionUI.prefab
+Assets/_Game/Prefabs/UI/InteractionUI.prefab.meta
 Assets/_Game/Scenes/TestScene.unity
+Assets/_Game/Scenes/TestScene.meta
+Assets/_Game/Scenes/TestScene/NavMesh-Floor.asset
+Assets/_Game/Scenes/TestScene/NavMesh-Floor.asset.meta
 _bmad-output/implementation-artifacts/sprint-status.yaml
 _bmad-output/implementation-artifacts/4-8-inventory-context-menu-and-detail-panel.md
 
@@ -389,3 +397,10 @@ _bmad-output/implementation-artifacts/4-8-inventory-context-menu-and-detail-pane
   to right of cursor (pivot (0,1)), same-slot re-click is a no-op, right/left click anywhere
   outside the menu (panel background or outside panel) closes it. ItemDetailPanel scaled up
   (300×560, icon 96×96, ItemName 20pt, Description 15pt). (claude-sonnet-4-6)
+- 2026-03-14: Code review (adversarial). Fixed: deleted stale Assets/InputSystem_Actions.cs
+  duplicate at root (H1); replaced GetComponentInParent<Canvas>() in ShowContextMenu with
+  cached _canvas field (H2); added SelectSlot same-slot early-return (L1); cached
+  GetComponentInParent<InventoryUI>() in ItemSlotUI.Awake, used in OnPointerClick and
+  OnDrop (L2); added [System.NonSerialized] to AnyButtonClickListener.callback (L3).
+  File List corrected to Inventory/ subfolder paths; Dev Notes updated with actual
+  AnyButtonClickListener blocker pattern. Story → done. (claude-sonnet-4-6)
