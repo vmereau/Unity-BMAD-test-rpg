@@ -43,8 +43,8 @@ GameObject:
   - component: {fileID: 6277720294958121680}
   - component: {fileID: 7982206072164718361}
   - component: {fileID: 3417286104210558820}
-  - component: {fileID: 7832613078836193864}
   - component: {fileID: 1648881494291638466}
+  - component: {fileID: 9181049141736141227}
   m_Layer: 8
   m_Name: Tome_PowerStrike
   m_TagString: Untagged
@@ -96,27 +96,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.PersistentID
   _guid: f0a7f62282e7402baf2cd9ed09fa8d80
   _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
---- !u!135 &7832613078836193864
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8772004600541926251}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &1648881494291638466
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -144,6 +123,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!65 &9181049141736141227
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8772004600541926251}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23173618, y: 0.047907352, z: 0.3171425}
+  m_Center: {x: -0.00093889236, y: 0.018635154, z: 0.00003528595}
 --- !u!1001 &7792246340065368555
 PrefabInstance:
   m_ObjectHideFlags: 0

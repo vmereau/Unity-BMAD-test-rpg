@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4821226202807413653}
   - component: {fileID: 4150002716807862630}
-  - component: {fileID: 4118951144253851661}
   - component: {fileID: 2254942655197603523}
+  - component: {fileID: 2282626030321765673}
   m_Layer: 8
   m_Name: TestItem_Health_Potion
   m_TagString: Untagged
@@ -49,27 +49,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.ItemPickup
   _item: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
   _promptOverride: 
---- !u!135 &4118951144253851661
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5273174817731578079}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.3
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &2254942655197603523
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -97,6 +76,29 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!136 &2282626030321765673
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5273174817731578079}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.11039773
+  m_Height: 0.356556
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.17235103, z: 0}
 --- !u!1001 &4307979526878577790
 PrefabInstance:
   m_ObjectHideFlags: 0
