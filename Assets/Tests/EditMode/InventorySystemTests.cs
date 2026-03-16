@@ -101,14 +101,17 @@ namespace Tests.EditMode
         }
 
         // ItemPickup null-guard: disabled component must not throw when Interact() is called
-        // (InteractionSystem.GetComponentInParent returns disabled components — HIGH-1 regression guard)
+        // (InteractionSystem.GetComponentInParent returns disabled MonoBehaviours — HIGH-1 regression guard)
+        // Note: Edit Mode tests do not run Awake() automatically, so we manually simulate the disabled state.
         [Test]
         public void ItemPickup_Interact_WhenDisabledDueToNullItem_DoesNotThrow()
         {
             var go = new GameObject("TestPickup");
             var pickup = go.AddComponent<ItemPickup>();
-            // Awake ran: _item == null → enabled = false, _inventory == null
-            Assert.IsFalse(pickup.enabled, "ItemPickup should be disabled when _item is null");
+            // Manually disable to simulate Awake() disabling the component when _item is null.
+            // In Edit Mode tests, Awake() lifecycle is not triggered by AddComponent.
+            pickup.enabled = false;
+            // _inventory is null (no InventorySystem in test scene) — Interact() must null-guard and not throw
             Assert.DoesNotThrow(() => pickup.Interact());
             Object.DestroyImmediate(go);
         }

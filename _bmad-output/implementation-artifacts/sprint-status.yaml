@@ -79,7 +79,7 @@ development_status:
   4-5-item-scriptable-object: done  # ItemSO fully implemented during story 4.4 (itemName, description, icon, isStackable, worldItemPrefab)
   4-8-inventory-context-menu-and-detail-panel: done
   4-6-tome-as-world-item: done
-  4-7-trainer-look-at-interaction: backlog
+  4-7-trainer-look-at-interaction: done
   epic-4-retrospective: optional
 
   epic-5: backlog

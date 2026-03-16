@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Game.AI;
 using Game.World;
 using UnityEngine;
 
@@ -139,6 +140,24 @@ namespace Tests.EditMode
         {
             var stub = new StubInteractable();
             Assert.DoesNotThrow(() => stub.Interact());
+        }
+
+        // ── IInteractable disabled-component null guard (regression) ──────────
+        // InteractionSystem.GetComponentInParent<IInteractable>() returns disabled MonoBehaviours.
+        // Every IInteractable MonoBehaviour must null-guard Interact() for the case where
+        // Awake() disabled the component due to missing references.
+
+        [Test]
+        public void TrainerNPC_Interact_WhenDisabledDueToNullReferences_DoesNotThrow()
+        {
+            var go = new GameObject("TestTrainer");
+            var trainer = go.AddComponent<TrainerNPC>();
+            // Manually disable to simulate Awake() disabling due to null references.
+            // Edit Mode tests do not trigger Awake() via AddComponent.
+            trainer.enabled = false;
+            // All serialized refs are null — Interact() must null-guard and not throw
+            Assert.DoesNotThrow(() => trainer.Interact());
+            Object.DestroyImmediate(go);
         }
     }
 }

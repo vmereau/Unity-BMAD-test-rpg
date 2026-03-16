@@ -3,30 +3,29 @@ using Game.Economy;
 using Game.NPC;
 using Game.Player;
 using Game.Progression;
+using Game.World;
 using UnityEngine;
 
 namespace Game.AI
 {
     /// <summary>
-    /// Prototype trainer NPC. Proximity + E-key opens a stat upgrade menu (OnGUI).
+    /// Prototype trainer NPC. Look-at + E-key (via InteractionSystem) opens a stat upgrade menu (OnGUI).
     /// Direct cross-system references are an intentional prototype pragmatism (see Dev Notes).
     /// Will be superseded by Epic 5 Dialogue system.
     /// Story 3.4: Initial implementation.
+    /// Story 4.7: Refactored to IInteractable — proximity+InputSystem replaced by InteractionSystem raycast.
     /// </summary>
-    public class TrainerNPC : MonoBehaviour
+    public class TrainerNPC : MonoBehaviour, IInteractable
     {
         private const string TAG = "[NPC]";
 
         [SerializeField] private TrainerSO _trainerData;
-        [SerializeField] private float _interactionRadius = 3f;
 
-        // Prototype cross-system direct refs (inspector-assigned)
+        // Prototype cross-system direct refs (inspector-assigned, see Dev Notes Story 3.4)
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private GoldSystem _goldSystem;
         [SerializeField] private PlayerStats _playerStats;
-        [SerializeField] private Transform _playerTransform;
 
-        private InputSystem_Actions _input;
         private bool _menuOpen;
         private int[] _purchaseCounts;
 
@@ -37,47 +36,28 @@ namespace Game.AI
         private GUIStyle _promptStyle;
 #endif
 
+        public string InteractPrompt => $"Press E to train: {_trainerData?.trainerName ?? "Trainer"}";
+
         private void Awake()
         {
-            if (_trainerData == null || _lpSystem == null || _goldSystem == null
-                || _playerStats == null || _playerTransform == null)
+            if (_trainerData == null || _lpSystem == null || _goldSystem == null || _playerStats == null)
             {
                 GameLog.Error(TAG, "TrainerNPC: required reference(s) not assigned — component disabled");
                 enabled = false;
                 return;
             }
 
-            _purchaseCounts = new int[_trainerData.upgrades.Length];
-            _input = new InputSystem_Actions();
-        }
-
-        private void OnEnable()
-        {
-            if (_input == null) return; // Guard: Awake may disable before OnEnable runs
-            _input.Player.Enable();
-        }
-
-        private void OnDisable()
-        {
-            if (_input == null) return; // Guard: Awake may disable before OnEnable runs
-            _input.Player.Disable();
-            _input.Dispose();
-            _input = null; // Guard: prevent re-enable from calling Enable() on disposed instance
-        }
-
-        private void Update()
-        {
-            float dist = Vector3.Distance(transform.position, _playerTransform.position);
-            bool inRange = dist <= _interactionRadius;
-
-            if (!inRange && _menuOpen)
+            if (_trainerData.upgrades.Length == 0)
             {
-                _menuOpen = false;
-                return;
+                GameLog.Warn(TAG, "TrainerNPC: TrainerSO has no upgrades configured");
             }
+            _purchaseCounts = new int[_trainerData.upgrades.Length];
+        }
 
-            if (inRange && _input.Player.Interact.WasPressedThisFrame())
-                _menuOpen = !_menuOpen;
+        public void Interact()
+        {
+            if (_trainerData == null || _lpSystem == null || _goldSystem == null || _playerStats == null) return;
+            _menuOpen = !_menuOpen;
         }
 
         private void TryPurchaseUpgrade(int index)
@@ -125,20 +105,8 @@ namespace Game.AI
                 _promptStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, alignment = TextAnchor.MiddleCenter };
             }
 
-            float dist = _playerTransform != null
-                ? Vector3.Distance(transform.position, _playerTransform.position)
-                : float.MaxValue;
-
-            bool inRange = dist <= _interactionRadius;
-
-            if (!inRange) return;
-
-            if (!_menuOpen)
-            {
-                GUI.Label(new Rect(Screen.width / 2f - 150, Screen.height - 80, 300, 30),
-                    "Press E to train", _promptStyle);
-                return;
-            }
+            // No proximity check — InteractionSystem handles detection
+            if (!_menuOpen) return;
 
             // Centered menu
             float menuWidth  = 400f;
@@ -171,14 +139,25 @@ namespace Game.AI
 
             GUI.Label(new Rect(x, y, menuWidth, 26), "[E] to close", _promptStyle);
 
-            // Number key input
+            // Number key + E key input
             Event e = Event.current;
             if (e.type == EventType.KeyDown)
             {
-                if      (e.keyCode == KeyCode.Alpha1) TryPurchaseUpgrade(0);
-                else if (e.keyCode == KeyCode.Alpha2) TryPurchaseUpgrade(1);
-                else if (e.keyCode == KeyCode.Alpha3) TryPurchaseUpgrade(2);
-                else if (e.keyCode == KeyCode.Alpha4) TryPurchaseUpgrade(3);
+                if (e.keyCode == KeyCode.E)
+                {
+                    _menuOpen = false; // close via E when not looking at trainer
+                }
+                else
+                {
+                    for (int i = 0; i < _trainerData.upgrades.Length; i++)
+                    {
+                        if (e.keyCode == KeyCode.Alpha1 + i)
+                        {
+                            TryPurchaseUpgrade(i);
+                            break;
+                        }
+                    }
+                }
             }
         }
 #endif
