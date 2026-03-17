@@ -28,7 +28,9 @@
       "Bash(do echo:*)",
       "Read(//d/github/perso/Unity-BMAD-test-rpg/**)",
       "Bash(done)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }
