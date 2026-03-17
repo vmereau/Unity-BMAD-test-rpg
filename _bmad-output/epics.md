@@ -78,6 +78,12 @@ meaningful. Perfect block feels rewarding. Combat loop is validated.
 - As a player, I can dodge roll in any direction with i-frames (forward and backward roll animations triggered; clips sourced in Epic 8)
 - As a player, enemies patrol and engage me when I enter their range
 - As a player, enemies and I have health that depletes on hit
+- As a player, I can press Middle Mouse Button to lock on to the nearest enemy
+  in front of me, so the camera always faces the locked target and I can fight
+  with precision without manually adjusting the camera
+- As a player, when locked on, my movement is target-relative: forward/backward
+  moves toward/away from the target, and left/right strafes in a circle around
+  the target, while my character always faces the locked enemy
 
 ---
 

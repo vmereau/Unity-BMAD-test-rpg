@@ -50,6 +50,7 @@ This architecture document is being created through the BMGD Architecture Workfl
 |---|---|---|
 | Third-person controller & camera | Low | 1 |
 | Stamina-based directional combat | High | 2 |
+| Lock-on targeting & camera tracking | Low-Medium | 2 |
 | Enemy AI (patrol, engage, attack) | Medium | 2 |
 | XP / Level / Learning Point progression | Medium | 3 |
 | Permanent world state management | High | 2–8 |

@@ -1,3 +1,4 @@
+using Game.Combat;
 using Game.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,6 +19,8 @@ namespace Game.Player
         [SerializeField] private float _mouseSensitivity = 1f;
         [SerializeField] private float _pitchMin = -70f;
         [SerializeField] private float _pitchMax = 70f;
+        [SerializeField] private LockOnSystem _lockOnSystem;
+        [SerializeField] private CombatConfigSO _combatConfig;
 
         private InputSystem_Actions _input;
         private float _yaw;
@@ -31,6 +34,11 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+
+            if (_lockOnSystem == null)
+                GameLog.Warn(TAG, "CameraController: _lockOnSystem not assigned — lock-on tracking unavailable (free-look still works)");
+            if (_combatConfig == null)
+                GameLog.Warn(TAG, "CameraController: _combatConfig not assigned — lockOnLerpSpeed will use fallback value");
 
             CursorManager.Lock();
 
@@ -56,13 +64,16 @@ namespace Game.Player
             _input.Dispose();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             // Only rotate camera when cursor is locked
             if (!CursorManager.IsLocked)
                 return;
 
-            RotateCamera();
+            if (_lockOnSystem != null && _lockOnSystem.IsLockedOn)
+                TrackLockedTarget();
+            else
+                RotateCamera();
         }
 
         private void RotateCamera()
@@ -73,6 +84,26 @@ namespace Game.Player
             _yaw   %= 360f; // Prevent float precision loss over extended play sessions
             _pitch -= lookDelta.y * _mouseSensitivity; // inverted: mouse up = look up
             _pitch  = Mathf.Clamp(_pitch, _pitchMin, _pitchMax);
+
+            _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+        }
+
+        private void TrackLockedTarget()
+        {
+            float heightOffset = _combatConfig != null ? _combatConfig.lockOnTargetHeightOffset : 1.0f;
+            Vector3 dir = (_lockOnSystem.LockedTarget.position + Vector3.up * heightOffset) - _cameraTarget.position;
+            if (dir.sqrMagnitude < 0.0001f) return; // Avoid NaN when coincident
+
+            dir.Normalize();
+
+            float desiredYaw   = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+            float desiredPitch = -Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+            desiredPitch = Mathf.Clamp(desiredPitch, _pitchMin, _pitchMax);
+
+            float lerpSpeed = _combatConfig != null ? _combatConfig.lockOnLerpSpeed : 5f;
+
+            _yaw   = Mathf.LerpAngle(_yaw,   desiredYaw,   lerpSpeed * Time.deltaTime);
+            _pitch = Mathf.Lerp(_pitch,       desiredPitch, lerpSpeed * Time.deltaTime);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
         }

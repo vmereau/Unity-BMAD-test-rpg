@@ -27,6 +27,7 @@ GameObject:
   - component: {fileID: 1472871286454628577}
   - component: {fileID: 7805096736339071647}
   - component: {fileID: 8568453877098799715}
+  - component: {fileID: 8613668570026627261}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -141,6 +142,8 @@ MonoBehaviour:
   _mouseSensitivity: 1
   _pitchMin: -70
   _pitchMax: 70
+  _lockOnSystem: {fileID: 8613668570026627261}
+  _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
 --- !u!114 &8924309687103124940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -330,6 +333,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Economy.GoldSystem
   _startingGold: 500
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
+--- !u!114 &8613668570026627261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec37bebf84b143e4ab395897de02d33c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Player.LockOnSystem
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _lockOnLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &5180643267766110463
 GameObject:
   m_ObjectHideFlags: 0

@@ -47,5 +47,17 @@ namespace Game.Combat
         public float attackDamage = 25f;
         [Tooltip("Radius of the sphere overlap used for player attack hit detection.")]
         public float attackHitRange = 2f;
+
+        [Header("Lock-On")]
+        [Tooltip("Max acquisition distance in metres.")]
+        public float lockOnRange = 15f;
+        [Tooltip("Half-angle of detection cone in degrees (120° total cone).")]
+        public float lockOnFOV = 60f;
+        [Tooltip("Camera yaw/pitch lerp factor toward locked target per second.")]
+        public float lockOnLerpSpeed = 5f;
+        [Tooltip("Auto-unlock threshold if target exceeds this distance.")]
+        public float lockOnBreakDistance = 20f;
+        [Tooltip("Vertical offset applied to the locked target position for camera tracking (e.g. ~half enemy height).")]
+        public float lockOnTargetHeightOffset = 1.0f;
     }
 }
