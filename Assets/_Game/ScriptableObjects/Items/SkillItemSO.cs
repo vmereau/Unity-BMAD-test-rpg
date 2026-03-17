@@ -11,6 +11,8 @@ namespace Game.Inventory
 
         [SerializeField] private SkillSO _skill;
 
+        public SkillSO Skill => _skill;
+
         public override bool OnUse(GameObject user)
         {
             if (_skill == null)

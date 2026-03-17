@@ -1,6 +1,5 @@
 using Game.Core;
 using Game.Inventory;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -21,10 +20,7 @@ namespace Game.UI
 
         [SerializeField] private GameObject _contextMenuPrefab;
 
-        [SerializeField] private GameObject _detailPanel;
-        [SerializeField] private Image _detailIcon;
-        [SerializeField] private TMP_Text _detailName;
-        [SerializeField] private TMP_Text _detailDescription;
+        [SerializeField] private ItemDetailPanelUI _detailPanelUI;
 
         private bool _isOpen = false;
         private InputSystem_Actions _input;
@@ -229,16 +225,13 @@ namespace Game.UI
             newSlot.SetSelected(true);
             _selectedSlotIndex = slotIndex;
             _selectedSlotUI = newSlot;
-            UpdateDetailPanel(_inventorySystem.Items[slotIndex]);
+            UpdateDetailPanel(_inventorySystem.Items[slotIndex], slotIndex);
         }
 
-        private void UpdateDetailPanel(ItemSO item)
+        private void UpdateDetailPanel(ItemSO item, int slotIndex)
         {
-            _detailIcon.sprite = item.icon;
-            _detailIcon.color = item.icon != null ? Color.white : Color.gray;
-            _detailName.text = item.itemName;
-            _detailDescription.text = item.description;
-            _detailPanel.SetActive(true);
+            System.Action onUse = item is UsableItemSO ? () => UseItem(slotIndex) : (System.Action)null;
+            _detailPanelUI.Show(item, () => DropItem(slotIndex), onUse);
         }
 
         private void ClearSelection()
@@ -246,7 +239,7 @@ namespace Game.UI
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotIndex = -1;
             _selectedSlotUI = null;
-            _detailPanel?.SetActive(false);
+            _detailPanelUI?.Hide();
         }
 
         private void RefreshSlots()
@@ -271,12 +264,12 @@ namespace Game.UI
                 var slot = _contentRoot.GetChild(_selectedSlotIndex).GetComponent<ItemSlotUI>();
                 _selectedSlotUI = slot;
                 slot.SetSelected(true);
-                UpdateDetailPanel(items[_selectedSlotIndex]);
+                UpdateDetailPanel(items[_selectedSlotIndex], _selectedSlotIndex);
             }
             else
             {
                 _selectedSlotIndex = -1;
-                _detailPanel?.SetActive(false);
+                _detailPanelUI?.Hide();
             }
         }
     }
