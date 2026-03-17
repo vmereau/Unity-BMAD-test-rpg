@@ -102,8 +102,8 @@ MonoBehaviour:
   _skillNameText: {fileID: 634918292923147014}
   _skillLpCostText: {fileID: 533779782463652288}
   _skillDescriptionText: {fileID: 3241189929341986250}
-  _dropButton: {fileID: 633599494896915517}
-  _useButton: {fileID: 6921027782671231276}
+  _dropButton: {fileID: 0}
+  _useButton: {fileID: 0}
 --- !u!1 &1985824633725728047
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,8 +335,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -941,8 +941,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Progression.SkillSO
   _skillId: power_strike
   _displayName: Power Strike
-  _description: A powerful melee technique. Increases melee damage output. (Effect
-    implemented in Story 3.6)
+  _description: A powerful melee technique. Increases melee damage output by 10.
   _lpCost: 2
