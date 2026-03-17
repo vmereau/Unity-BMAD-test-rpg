@@ -5,7 +5,7 @@ namespace Game.Player
 {
     /// <summary>
     /// Drives the Player Animator from CharacterController velocity and combat state.
-    /// Owns all animator calls: movement blend tree (Speed, IsGrounded, IsRising)
+    /// Owns all animator calls: 2D locomotion blend tree (VelocityX, VelocityZ, IsGrounded, IsRising),
     /// and combat animation triggers/bools (Attack, Block, Dodge).
     /// PlayerStateManager calls the public combat methods — never touches the Animator directly.
     /// </summary>
@@ -16,15 +16,18 @@ namespace Game.Player
         private const float DAMP_TIME = 0.1f;
         private const float RISING_VELOCITY_THRESHOLD = 0.1f;
 
-        // Movement parameters
-        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        // Locomotion parameters
         private static readonly int IsGroundedHash = Animator.StringToHash("IsGrounded");
         private static readonly int IsRisingHash = Animator.StringToHash("IsRising");
+        private static readonly int VelocityXHash = Animator.StringToHash("VelocityX");
+        private static readonly int VelocityZHash = Animator.StringToHash("VelocityZ");
 
         // Combat parameters
         private static readonly int IsBlockingHash = Animator.StringToHash("IsBlocking");
         private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
         private static readonly int IsDodgingBackwardsHash = Animator.StringToHash("IsDodgingBackwards");
+
+        [SerializeField] private PlayerConfigSO _config;
 
         private Animator _animator;
         private CharacterController _characterController;
@@ -46,14 +49,34 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+            if (_config == null)
+            {
+                GameLog.Error(TAG, "PlayerConfigSO not assigned — PlayerAnimator disabled.");
+                enabled = false;
+                return;
+            }
+            if (_config.runSpeed <= 0f)
+            {
+                GameLog.Error(TAG, "PlayerConfigSO.runSpeed must be > 0 — PlayerAnimator disabled.");
+                enabled = false;
+                return;
+            }
         }
 
         private void Update()
         {
-            Vector3 horizontalVelocity = new Vector3(
+            // Always drive 2D blend tree with local-space velocity.
+            // When not locked on, the character faces the movement direction so
+            // localVelocity.z ≈ speed and localVelocity.x ≈ 0 — the forward clips play correctly.
+            // When locked on, the character faces the target so strafing produces non-zero x.
+            Vector3 worldHoriz = new Vector3(
                 _characterController.velocity.x, 0f, _characterController.velocity.z);
-            float speed = horizontalVelocity.magnitude;
-            _animator.SetFloat(SpeedHash, speed, DAMP_TIME, Time.deltaTime);
+            Vector3 localVelocity = transform.InverseTransformDirection(worldHoriz);
+            float normX = Mathf.Clamp(localVelocity.x / _config.runSpeed, -1f, 1f);
+            float normZ = Mathf.Clamp(localVelocity.z / _config.runSpeed, -1f, 1f);
+            _animator.SetFloat(VelocityXHash, normX, DAMP_TIME, Time.deltaTime);
+            _animator.SetFloat(VelocityZHash, normZ, DAMP_TIME, Time.deltaTime);
+
             _animator.SetBool(IsGroundedHash, _characterController.isGrounded);
             _animator.SetBool(IsRisingHash, _characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
         }
