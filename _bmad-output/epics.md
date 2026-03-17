@@ -157,6 +157,9 @@ use the unified look-at model.
   actions (starting with "Drop Item"), and left-click a slot to select it and
   see its name, description, and icon in a detail panel on the right side of
   the inventory, so item management feels intentional and informative
+- As a player, I can right-click a usable item (e.g. a tome) in my inventory
+  and select "Use" to trigger its effect; non-usable items show "Use" grayed out
+- As a player, using a consumable item removes it from my inventory after use
 
 ---
 

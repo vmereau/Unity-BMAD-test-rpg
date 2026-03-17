@@ -16,6 +16,15 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── PlayerCombat.cs
 ├── DodgeController.cs
 ├── StaminaSystem.cs
+├── PlayerHealth.cs
+├── PlayerStats.cs
+├── PlayerSkills.cs      (_lpSystem → LearningPointSystem on same GO)
+├── InteractionSystem.cs
+├── InventorySystem.cs
+├── XPSystem.cs          (_onEntityKilled, _onXPGained → SO events)
+├── LevelSystem.cs       (_xpSystem → XPSystem on same GO; _onXPGained, _onLevelUp → SO events)
+├── LearningPointSystem.cs (_onLevelUp → SO event)
+├── GoldSystem.cs        (_startingGold: 500; _onGoldChanged → SO event)
 ├── CameraTarget         (child, local Y = 1.6 — pure Transform pivot, no components)
 └── Character            (child — nested Mixamo FBX prefab, Humanoid rig)
 ```

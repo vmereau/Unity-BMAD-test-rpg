@@ -123,6 +123,30 @@ namespace Game.UI
             GameLog.Info(TAG, $"Dropped: {item.itemName}");
         }
 
+        public void UseItem(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _inventorySystem.Count)
+            {
+                GameLog.Warn(TAG, $"Use skipped: slot {slotIndex} out of range");
+                return;
+            }
+            var item = _inventorySystem.Items[slotIndex];
+            if (item is not UsableItemSO usable)
+            {
+                GameLog.Warn(TAG, $"Use skipped: {item.itemName} is not UsableItemSO");
+                return;
+            }
+
+            bool used = usable.OnUse(_playerTransform.gameObject);
+
+            if (used && usable.consumable)
+            {
+                _inventorySystem.RemoveItem(slotIndex);
+                RefreshSlots();
+                GameLog.Info(TAG, $"Consumed: {item.itemName}");
+            }
+        }
+
         public void SwapSlots(int a, int b)
         {
             _inventorySystem.MoveItem(a, b);
@@ -171,9 +195,23 @@ namespace Game.UI
             pos.y = Mathf.Clamp(pos.y, rt.rect.height, Screen.height);
             rt.position = pos;
 
-            // Wire drop item button at runtime
-            var btn = _activeContextMenu.GetComponentInChildren<Button>();
-            btn.onClick.AddListener(() => { DropItem(_contextMenuSlotIndex); HideContextMenu(); });
+            var item = _inventorySystem.Items[slotIndex];
+
+            // Wire drop button by name
+            var dropBtn = _activeContextMenu.transform.Find("DropButton").GetComponent<Button>();
+            dropBtn.onClick.AddListener(() => { DropItem(_contextMenuSlotIndex); HideContextMenu(); });
+
+            // Use button — always present; enabled only for UsableItemSO
+            var useBtn = _activeContextMenu.transform.Find("UseButton").GetComponent<Button>();
+            if (item is UsableItemSO usable)
+            {
+                useBtn.interactable = true;
+                useBtn.onClick.AddListener(() => { UseItem(_contextMenuSlotIndex); HideContextMenu(); });
+            }
+            else
+            {
+                useBtn.interactable = false;
+            }
         }
 
         public void HideContextMenu()

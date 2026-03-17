@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using Game.Inventory;
+using Game.UI;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -204,6 +206,85 @@ namespace Tests.EditMode
 
             Assert.IsNull(result);
             Assert.AreEqual(1, _inventory.Count);
+        }
+
+        // SkillItemSO null guard: OnUse with no _skill assigned logs warning and does not throw
+        [Test]
+        public void SkillItemSO_OnUse_NullSkill_DoesNotThrow()
+        {
+            var skillItem = ScriptableObject.CreateInstance<SkillItemSO>();
+            var go = new GameObject("Player");
+
+            Assert.DoesNotThrow(() => skillItem.OnUse(go));
+
+            Object.DestroyImmediate(skillItem);
+            Object.DestroyImmediate(go);
+        }
+
+        // SkillItemSO null guard: OnUse on a GO without PlayerSkills component logs warning and does not throw
+        [Test]
+        public void SkillItemSO_OnUse_NoPlayerSkillsComponent_DoesNotThrow()
+        {
+            var skillItem = ScriptableObject.CreateInstance<SkillItemSO>();
+            // Assign a non-null SkillSO via reflection so we reach the PlayerSkills null check
+            var skill = ScriptableObject.CreateInstance<Game.Progression.SkillSO>();
+            typeof(SkillItemSO)
+                .GetField("_skill", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(skillItem, skill);
+
+            var go = new GameObject("PlayerWithoutSkills"); // no PlayerSkills component
+
+            Assert.DoesNotThrow(() => skillItem.OnUse(go));
+
+            Object.DestroyImmediate(skillItem);
+            Object.DestroyImmediate(skill);
+            Object.DestroyImmediate(go);
+        }
+
+        // InventoryUI.UseItem null guard: out-of-range slot index logs warning and does not throw
+        // Note: AddComponent in Edit Mode does not call Awake, so _input stays null.
+        // UseItem does not touch _input, so this is safe. _inventorySystem is wired via reflection.
+        [Test]
+        public void InventoryUI_UseItem_OutOfRangeSlot_DoesNotThrow()
+        {
+            var uiGo = new GameObject("TestInventoryUI");
+            var ui = uiGo.AddComponent<InventoryUI>();
+
+            var invGo = new GameObject("TestInventory");
+            var inv = invGo.AddComponent<InventorySystem>();
+            typeof(InventoryUI)
+                .GetField("_inventorySystem", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(ui, inv);
+
+            Assert.DoesNotThrow(() => ui.UseItem(5));
+
+            Object.DestroyImmediate(uiGo);
+            Object.DestroyImmediate(invGo);
+        }
+
+        // InventoryUI.UseItem null guard: non-usable item logs warning and does not remove it
+        [Test]
+        public void InventoryUI_UseItem_NonUsableItem_DoesNotRemoveItem()
+        {
+            var uiGo = new GameObject("TestInventoryUI");
+            var ui = uiGo.AddComponent<InventoryUI>();
+
+            var invGo = new GameObject("TestInventory");
+            var inv = invGo.AddComponent<InventorySystem>();
+            typeof(InventoryUI)
+                .GetField("_inventorySystem", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(ui, inv);
+
+            var item = ScriptableObject.CreateInstance<ItemSO>();
+            item.itemName = "Not Usable";
+            inv.AddItem(item);
+
+            Assert.DoesNotThrow(() => ui.UseItem(0));
+            Assert.AreEqual(1, inv.Count); // item not consumed
+
+            Object.DestroyImmediate(uiGo);
+            Object.DestroyImmediate(invGo);
+            Object.DestroyImmediate(item);
         }
     }
 }
