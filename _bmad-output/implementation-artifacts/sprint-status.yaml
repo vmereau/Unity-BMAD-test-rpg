@@ -60,8 +60,9 @@ development_status:
   2-7-dodge-roll: done
   2-8-enemy-ai-patrol-engage: done
   2-9-health-system: done
-  2-10-lock-on-targeting: review
-  2-11-lock-on-movement: backlog
+  2-10-lock-on-targeting: done
+  2-11-lock-on-movement: done
+  2-12-directional-locomotion-animations: ready-for-dev
   epic-2-retrospective: done
 
   epic-3: in-progress

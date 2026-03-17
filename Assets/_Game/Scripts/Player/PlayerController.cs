@@ -18,6 +18,8 @@ namespace Game.Player
 
         [SerializeField] private PlayerConfigSO _config;
 
+        [SerializeField] private LockOnSystem _lockOnSystem;
+
         private CharacterController _characterController;
         private Camera _mainCamera;
         private InputSystem_Actions _input;
@@ -48,6 +50,10 @@ namespace Game.Player
             _stateManager = GetComponent<PlayerStateManager>();
             if (_stateManager == null)
                 GameLog.Warn(TAG, "PlayerStateManager not found on Player — dodge gating unavailable");
+
+            if (_lockOnSystem == null) _lockOnSystem = GetComponent<LockOnSystem>();
+            if (_lockOnSystem == null)
+                GameLog.Warn(TAG, "LockOnSystem not found on Player — lock-on movement unavailable");
         }
 
         private void OnEnable()
@@ -109,25 +115,50 @@ namespace Game.Player
                 moveInput = new Vector2(0f, 0f);
             }
 
-            Vector3 moveDir;
-            if (_mainCamera != null)
+            Vector3 moveDir = Vector3.zero;
+
+            // --- Lock-on movement branch ---
+            if (_lockOnSystem != null && _lockOnSystem.IsLockedOn)
             {
-                Vector3 camForward = Vector3.Scale(_mainCamera.transform.forward, new Vector3(1f, 0f, 1f)).normalized;
-                Vector3 camRight   = Vector3.Scale(_mainCamera.transform.right,   new Vector3(1f, 0f, 1f)).normalized;
-                moveDir = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+                Vector3 toTarget = _lockOnSystem.LockedTarget.position - transform.position;
+                toTarget.y = 0f;
+
+                if (toTarget.sqrMagnitude > 0.0001f)
+                {
+                    Vector3 lockForward = toTarget.normalized;
+                    Vector3 lockRight   = Vector3.Cross(Vector3.up, lockForward).normalized;
+                    moveDir = lockForward * moveInput.y + lockRight * moveInput.x;
+                    if (moveDir.sqrMagnitude > 0.01f) moveDir = moveDir.normalized;
+
+                    // Always face the target (even when stationary)
+                    Quaternion targetRot = Quaternion.LookRotation(lockForward);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
+                        _config.rotationSpeed * Time.deltaTime);
+                }
+                // else: coincident with target — keep moveDir = zero, skip rotation to avoid NaN
             }
+            // --- Free movement branch ---
             else
             {
-                // Fallback: world-space axes when no camera is present
-                moveDir = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-            }
+                if (_mainCamera != null)
+                {
+                    Vector3 camForward = Vector3.Scale(_mainCamera.transform.forward, new Vector3(1f, 0f, 1f)).normalized;
+                    Vector3 camRight   = Vector3.Scale(_mainCamera.transform.right,   new Vector3(1f, 0f, 1f)).normalized;
+                    moveDir = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+                }
+                else
+                {
+                    // Fallback: world-space axes when no camera is present
+                    moveDir = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+                }
 
-            // Rotate body to face movement direction
-            if (moveDir.sqrMagnitude > 0.01f)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(moveDir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
-                    _config.rotationSpeed * Time.deltaTime);
+                // Rotate body to face movement direction
+                if (moveDir.sqrMagnitude > 0.01f)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(moveDir);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
+                        _config.rotationSpeed * Time.deltaTime);
+                }
             }
 
             bool isSprinting = _input.Player.Sprint.IsPressed();

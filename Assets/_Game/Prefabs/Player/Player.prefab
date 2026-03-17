@@ -114,6 +114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerController
   _config: {fileID: 11400000, guid: b187ee82d09378f4888b6823b0af5d07, type: 2}
+  _lockOnSystem: {fileID: 0}
 --- !u!114 &6674985875769025117
 MonoBehaviour:
   m_ObjectHideFlags: 0
