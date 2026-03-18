@@ -49,6 +49,9 @@ namespace Game.UI
                     ShowUsableSection(skillItem);
                     ShowSkillSection(skillItem.Skill);
                     break;
+                case PotionItemSO potionItem:
+                    ShowUsableSection(potionItem);
+                    break;
             }
 
             BindButtons(onDrop, onUse);

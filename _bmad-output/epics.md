@@ -166,6 +166,9 @@ use the unified look-at model.
 - As a player, I can right-click a usable item (e.g. a tome) in my inventory
   and select "Use" to trigger its effect; non-usable items show "Use" grayed out
 - As a player, using a consumable item removes it from my inventory after use
+- As a player, I can pick up health potions that stack in my inventory, use them
+  to restore health (showing a stack count badge when I have more than one), and
+  drop them one at a time
 
 ---
 

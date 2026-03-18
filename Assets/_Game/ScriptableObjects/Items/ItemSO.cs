@@ -8,7 +8,8 @@ namespace Game.Inventory
         public string itemName;
         public string description;
         public Sprite icon;
-        public bool isStackable;
+        public int maxStacks = 1;
+        public bool IsStackable => maxStacks > 1;
         public GameObject worldItemPrefab;
     }
 }

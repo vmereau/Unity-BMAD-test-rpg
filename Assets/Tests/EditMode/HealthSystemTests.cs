@@ -6,6 +6,7 @@ using UnityEngine;
 /// Pure formula simulation — no MonoBehaviour lifecycle, no scene required.
 /// Pattern mirrors EnemyBrainStateTests, DodgeGateTests, BlockGateTests.
 /// Story 2.9: Initial implementation.
+/// Story 4.10: Added Heal formula tests.
 /// </summary>
 public class HealthSystemTests
 {
@@ -16,6 +17,13 @@ public class HealthSystemTests
 
     private bool IsDead(float currentHealth)
         => currentHealth <= 0f;
+
+    private float ApplyHeal(float currentHealth, float healAmount, float maxHealth)
+        => Mathf.Min(currentHealth + healAmount, maxHealth);
+
+    // Mirrors PlayerHealth.Heal() dead guard: if dead, return health unchanged
+    private float ApplyHeal_WithDeadGuard(bool isDead, float currentHealth, float healAmount, float maxHealth)
+        => isDead ? currentHealth : Mathf.Min(currentHealth + healAmount, maxHealth);
 
     // ── ApplyDamage tests ──────────────────────────────────────────────────
 
@@ -89,5 +97,60 @@ public class HealthSystemTests
         }
         hp = ApplyDamage(hp, 10f);
         Assert.That(IsDead(hp), Is.True, "Should be dead after 10th hit");
+    }
+
+    // ── ApplyHeal tests (Story 4.10) ───────────────────────────────────────
+
+    [Test]
+    public void ApplyHeal_RestoresHealth_ByAmount()
+    {
+        float result = ApplyHeal(50f, 30f, 100f);
+        Assert.That(result, Is.EqualTo(80f));
+    }
+
+    [Test]
+    public void ApplyHeal_ClampsToMaxHealth_WhenHealExceedsMax()
+    {
+        float result = ApplyHeal(80f, 30f, 100f);
+        Assert.That(result, Is.EqualTo(100f), "Heal should not exceed maxHealth");
+    }
+
+    [Test]
+    public void ApplyHeal_AtFullHealth_RemainsAtMax()
+    {
+        float result = ApplyHeal(100f, 30f, 100f);
+        Assert.That(result, Is.EqualTo(100f), "Healing at full health should not overheal");
+    }
+
+    [Test]
+    public void ApplyHeal_ExactlyFillsRemainingHealth()
+    {
+        float result = ApplyHeal(70f, 30f, 100f);
+        Assert.That(result, Is.EqualTo(100f));
+    }
+
+    [Test]
+    public void ApplyHeal_SmallHeal_PartialRecovery()
+    {
+        float result = ApplyHeal(10f, 5f, 100f);
+        Assert.That(result, Is.EqualTo(15f));
+    }
+
+    [Test]
+    public void ApplyHeal_DeadPlayer_HealthUnchanged()
+    {
+        float result = ApplyHeal_WithDeadGuard(isDead: true, 50f, 30f, 100f);
+        Assert.That(result, Is.EqualTo(50f), "Dead player should not be healed");
+    }
+
+    [Test]
+    public void HealAndDamage_Sequence_CorrectHealth()
+    {
+        float hp = 100f;
+        hp = ApplyDamage(hp, 60f); // 40 HP
+        hp = ApplyHeal(hp, 30f, 100f); // 70 HP
+        hp = ApplyDamage(hp, 25f); // 45 HP
+        Assert.That(hp, Is.EqualTo(45f));
+        Assert.That(IsDead(hp), Is.False);
     }
 }

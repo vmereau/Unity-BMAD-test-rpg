@@ -102,14 +102,16 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"Drop skipped: slot {slotIndex} out of range");
                 return;
             }
-            var item = _inventorySystem.Items[slotIndex];
+            // Capture slot BEFORE decrement — index may become invalid after removal
+            var slot = _inventorySystem.Items[slotIndex];
+            var item = slot.Item;
             if (item.worldItemPrefab == null)
             {
                 GameLog.Warn(TAG, $"Drop skipped: {item.itemName} has no worldItemPrefab");
                 return;
             }
 
-            _inventorySystem.RemoveItem(slotIndex);
+            _inventorySystem.DecrementStack(slotIndex);
 
             // Item prefabs are active with _item pre-baked; Instantiate triggers Awake immediately
             var dropPos = _playerTransform.position + _playerTransform.forward * 1.5f + Vector3.up * 0.5f;
@@ -126,7 +128,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"Use skipped: slot {slotIndex} out of range");
                 return;
             }
-            var item = _inventorySystem.Items[slotIndex];
+            var slot = _inventorySystem.Items[slotIndex];
+            var item = slot.Item;
             if (item is not UsableItemSO usable)
             {
                 GameLog.Warn(TAG, $"Use skipped: {item.itemName} is not UsableItemSO");
@@ -137,7 +140,7 @@ namespace Game.UI
 
             if (used && usable.consumable)
             {
-                _inventorySystem.RemoveItem(slotIndex);
+                _inventorySystem.DecrementStack(slotIndex);
                 RefreshSlots();
                 GameLog.Info(TAG, $"Consumed: {item.itemName}");
             }
@@ -191,7 +194,7 @@ namespace Game.UI
             pos.y = Mathf.Clamp(pos.y, rt.rect.height, Screen.height);
             rt.position = pos;
 
-            var item = _inventorySystem.Items[slotIndex];
+            var item = _inventorySystem.Items[slotIndex].Item;
 
             // Wire drop button by name
             var dropBtn = _activeContextMenu.transform.Find("DropButton").GetComponent<Button>();
@@ -225,7 +228,7 @@ namespace Game.UI
             newSlot.SetSelected(true);
             _selectedSlotIndex = slotIndex;
             _selectedSlotUI = newSlot;
-            UpdateDetailPanel(_inventorySystem.Items[slotIndex], slotIndex);
+            UpdateDetailPanel(_inventorySystem.Items[slotIndex].Item, slotIndex);
         }
 
         private void UpdateDetailPanel(ItemSO item, int slotIndex)
@@ -254,8 +257,8 @@ namespace Game.UI
             for (int i = 0; i < items.Count; i++)
             {
                 var go = Instantiate(_itemSlotPrefab, _contentRoot);
-                var slot = go.GetComponent<ItemSlotUI>();
-                slot.Bind(items[i], i);
+                var slotUI = go.GetComponent<ItemSlotUI>();
+                slotUI.Bind(items[i].Item, i, items[i].Count);
             }
 
             // Restore selection if selected slot index is still valid after refresh
@@ -264,7 +267,7 @@ namespace Game.UI
                 var slot = _contentRoot.GetChild(_selectedSlotIndex).GetComponent<ItemSlotUI>();
                 _selectedSlotUI = slot;
                 slot.SetSelected(true);
-                UpdateDetailPanel(items[_selectedSlotIndex], _selectedSlotIndex);
+                UpdateDetailPanel(items[_selectedSlotIndex].Item, _selectedSlotIndex);
             }
             else
             {

@@ -9,7 +9,8 @@
 ```
 ItemSO                          (base — any item in the inventory)
 └── UsableItemSO  (abstract)   (items that can be "used" from the context menu)
-    └── SkillItemSO             (teaches a SkillSO to the player on use)
+    ├── SkillItemSO             (teaches a SkillSO to the player on use)
+    └── PotionItemSO            (restores player health when used; stackable)
 ```
 
 All types live in namespace `Game.Inventory`.
@@ -25,7 +26,8 @@ All types live in namespace `Game.Inventory`.
 | `itemName` | `string` | Display name in UI |
 | `description` | `string` | Shown in detail panel |
 | `icon` | `Sprite` | Inventory slot + detail panel icon |
-| `isStackable` | `bool` | Reserved — not yet enforced by InventorySystem |
+| `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
+| `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
 
 Create via **Assets → Create → Items → Item**.
@@ -50,6 +52,23 @@ public abstract bool OnUse(GameObject user);
 ```
 
 The `user` parameter is the **player GameObject** — use `GetComponent<T>()` on it to access player systems.
+
+---
+
+## PotionItemSO (concrete)
+
+`Assets/_Game/ScriptableObjects/Items/PotionItemSO.cs`
+
+Adds to `UsableItemSO`:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `_healAmount` | `float` | HP restored on use (default 30) |
+| `HealAmount` (property) | `float` | Public read accessor |
+
+`OnUse` calls `PlayerHealth.Heal(_healAmount)`. Returns false (and keeps the item) if `PlayerHealth` is missing or the player is dead.
+
+Create via **Assets → Create → Items → Potion Item**.
 
 ---
 
@@ -86,7 +105,7 @@ Create via **Assets → Create → Items → Skill Item**.
 
 | System | File | Role |
 |---|---|---|
-| `InventorySystem` | `Scripts/Inventory/InventorySystem.cs` | Holds `List<ItemSO>` at runtime; `AddItem`, `RemoveItem`, `MoveItem` |
+| `InventorySystem` | `Scripts/Inventory/InventorySystem.cs` | Holds `List<InventorySlot>` at runtime; `AddItem` (stacks stackable items), `RemoveItem` (removes whole slot), `DecrementStack` (removes one unit), `MoveItem` |
 | `ItemPickup` | `Scripts/Inventory/ItemPickup.cs` | World interactable; calls `InventorySystem.AddItem(_item)` and destroys itself |
 | `InventoryUI` | `Scripts/UI/InventoryUI.cs` | Reads `InventorySystem.Items`; calls `UseItem` / `DropItem` |
 | `ItemDetailPanelUI` | `Scripts/UI/ItemDetailPanelUI.cs` | Receives an `ItemSO`, dispatches display per type via `switch` pattern match |
@@ -107,4 +126,4 @@ Create via **Assets → Create → Items → Skill Item**.
 | HIGH | `worldItemPrefab` left unassigned on a droppable item — drop silently no-ops |
 | MEDIUM | New item type added without a corresponding `case` in `ItemDetailPanelUI.Show()` — detail panel shows only base info |
 | MEDIUM | `OnUse` calls `GetComponent` on `user` without a null guard — logs no error if component is missing |
-| LOW | `isStackable` field set on an item — has no runtime effect yet; document in the story if stacking logic is being implemented |
+| MEDIUM | New stackable item type (`maxStacks > 1`) without verifying `worldItemPrefab` has `ItemPickup` + `Rigidbody` — dropped items must be re-pickable |

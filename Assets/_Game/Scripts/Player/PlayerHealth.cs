@@ -52,6 +52,17 @@ namespace Game.Player
                 Die();
         }
 
+        /// <summary>
+        /// Restores health by the given amount, capped at baseHealth. Ignored if dead.
+        /// Story 4.10: Added to support PotionItemSO.OnUse.
+        /// </summary>
+        public void Heal(float amount)
+        {
+            if (IsDead) return;
+            CurrentHealth = Mathf.Min(CurrentHealth + amount, _config.baseHealth);
+            GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+        }
+
         private void Die()
         {
             IsDead = true;

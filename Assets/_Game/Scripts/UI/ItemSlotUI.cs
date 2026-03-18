@@ -13,6 +13,7 @@ namespace Game.UI
         [SerializeField] private Image _backgroundImage;
         [SerializeField] private Color _normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
         [SerializeField] private Color _selectedColor = new Color(0.4f, 0.6f, 1f, 0.9f);
+        [SerializeField] private TMP_Text _stackCountText;
 
         public int SlotIndex { get; set; }
         public ItemSO Item { get; private set; }
@@ -25,7 +26,7 @@ namespace Game.UI
             _inventoryUI = GetComponentInParent<InventoryUI>();
         }
 
-        public void Bind(ItemSO item, int index)
+        public void Bind(ItemSO item, int index, int stackCount = 1)
         {
             Item = item;
             SlotIndex = index;
@@ -52,6 +53,12 @@ namespace Game.UI
                 _iconImage.sprite = null;
                 _iconImage.color = Color.gray;
                 _nameText.text = string.Empty;
+            }
+
+            if (_stackCountText != null)
+            {
+                _stackCountText.text = stackCount.ToString();
+                _stackCountText.gameObject.SetActive(stackCount > 1);
             }
         }
 
