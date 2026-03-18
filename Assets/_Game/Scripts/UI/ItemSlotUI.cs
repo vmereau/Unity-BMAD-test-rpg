@@ -109,6 +109,17 @@ namespace Game.UI
 
         public void OnDrop(PointerEventData eventData)
         {
+            // action bar → inventory: clear action bar slot, item stays in inventory
+            var abSource = eventData.pointerDrag?.GetComponent<ActionBarSlotUI>();
+            if (abSource != null)
+            {
+                abSource.NotifyDropHandled();
+                abSource.RemoveGhostImage();
+                var actionBarUI = abSource.GetComponentInParent<ActionBarUI>();
+                actionBarUI?.OnActionBarSlotClearedByDragToInventory(abSource.SlotIndex);
+                return;
+            }
+
             var source = eventData.pointerDrag?.GetComponent<ItemSlotUI>();
             if (source == null || source == this) return;
             source.RemoveGhostImage();

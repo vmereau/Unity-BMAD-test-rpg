@@ -128,7 +128,9 @@ future systems (economy, crafting, quests with item rewards) depend on.
 world item system (pickable/interactable GameObjects with Rigidbody physics),
 basic inventory (pick up, drop, move items), simple inventory UI panel,
 item data ScriptableObject, refactor TomePowerStrike as a world item activated
-via look-at, refactor Trainer_Master NPC interaction to look-at model.
+via look-at, refactor Trainer_Master NPC interaction to look-at model,
+quick action bar (6 persistent HUD slots, keyboard 1–6, drag-assign UsableItems
+from inventory).
 
 **Excludes:** Equipment slots and stat effects (Epic 7), shop NPCs and gold
 economy (Epic 7), crafting items (Epic 8), quest item rewards (Epic 6).
@@ -169,6 +171,9 @@ use the unified look-at model.
 - As a player, I can pick up health potions that stack in my inventory, use them
   to restore health (showing a stack count badge when I have more than one), and
   drop them one at a time
+- As a player, I have a quick action bar with 6 slots at the bottom of the screen
+  where I can assign UsableItems from my inventory, trigger them with keys 1–6,
+  and manage assignments via drag-and-drop
 
 ---
 
@@ -322,7 +327,8 @@ for personal playtesting and BMAD workflow validation.
 - As a player, the world uses consistent free assets for characters and environments
 - As a player, I hear ambient environmental audio and dynamic combat sounds
 - As a player, background music adapts to context (exploration, combat, town)
-- As a player, I have a functional HUD (stamina bar, health bar, gold)
+- As a player, I have a functional HUD (stamina bar, health bar, gold) — note:
+  quick action bar HUD element delivered in Epic 4 (story 4-11)
 - As a player, I can save and load my game
 - As a player, I can rebind keys in the options menu
 - As a developer, basic Steam achievements trigger at key milestones

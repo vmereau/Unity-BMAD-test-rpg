@@ -57,6 +57,7 @@ This architecture document is being created through the BMGD Architecture Workfl
 | Day/Night cycle + NPC schedules | Medium | 4 |
 | Gothic topic-based dialogue + quest system | Medium | 5 |
 | Inventory & equipment | Low | 6 |
+| Quick action bar (hotkey usables) | Low | 4 |
 | Economy (gold, shops) | Low | 6 |
 | Crafting (recipe + tier gated) | Low-Medium | 7 |
 | Visibility-cone stealth + pickpocket | Low-Medium | 7 |
@@ -293,6 +294,7 @@ public bool SaveGame(SaveData data)
 | Stealth | `[Stealth]` |
 | Crafting | `[Crafting]` |
 | Audio | `[Audio]` |
+| Inventory | `[Inventory]` |
 
 **Example:**
 ```csharp
@@ -443,6 +445,7 @@ Assets/
 │   │   │   └── StatSystem.cs
 │   │   ├── Inventory/
 │   │   │   ├── InventorySystem.cs
+│   │   │   ├── ActionBarSystem.cs
 │   │   │   ├── EquipmentSystem.cs
 │   │   │   └── ItemPickup.cs
 │   │   ├── Economy/
@@ -468,6 +471,8 @@ Assets/
 │   │   ├── UI/
 │   │   │   ├── HUDController.cs
 │   │   │   ├── InventoryUI.cs
+│   │   │   ├── ActionBarUI.cs
+│   │   │   ├── ActionBarSlotUI.cs
 │   │   │   ├── QuestLogUI.cs
 │   │   │   ├── StatScreenUI.cs
 │   │   │   ├── DialogueUI.cs
@@ -551,6 +556,7 @@ Assets/
 | World/persistence | `Scripts/World/` | — | — |
 | Progression | `Scripts/Progression/` | `ScriptableObjects/Config/ProgressionConfigSO.cs` | `Data/Config/ProgressionConfig.asset` |
 | Inventory | `Scripts/Inventory/` | `ScriptableObjects/Items/ItemSO.cs` | `Data/Items/` |
+| Action bar | `Scripts/Inventory/` + `Scripts/UI/` | — | — |
 | Economy | `Scripts/Economy/` | — | — |
 | Quest | `Scripts/Quest/` | `ScriptableObjects/Quest/QuestSO.cs` | `Data/Quests/` |
 | Dialogue | `Scripts/Dialogue/` | `ScriptableObjects/Quest/DialogueTopicSO.cs` | `Data/Quests/` |
@@ -994,3 +1000,52 @@ private void Update()
 | State machines | Enum + switch pattern | No external state machine libraries |
 | PersistentID | Every world entity has GUID assigned in editor | Editor validator tool on scene save |
 | Config values | All tunable values in config SO — never hardcoded | No magic numbers in game logic scripts |
+
+---
+
+### ActionBar System Pattern
+
+**Purpose:** Provide 6 persistent HUD hotkey slots that reference UsableItems in
+the player's inventory — enabling quick item use during gameplay without opening
+the inventory panel.
+
+**Components:**
+- `ActionBarSystem` — owns 6 nullable `(int inventoryIndex, ItemSO item)` slot
+  references; validates references against `InventorySystem` on inventory change;
+  executes `UsableItemSO.OnUse()` on hotkey press
+- `ActionBarUI` — persistent HUD element (always visible); renders 6
+  `ActionBarSlotUI` components; handles drag-and-drop assignment from
+  `InventoryUI` and internal slot swaps
+- `ActionBarSlotUI` — single slot view; reuses `ItemSlotUI.Bind()` badge pattern
+  for stack count display; acts as both drag source and drop target
+
+**Key Design Rules:**
+- Action bar slots are **references**, not copies — the item lives in `InventorySystem`
+- When a referenced inventory slot is consumed to zero, `ActionBarSystem` clears
+  that action bar slot automatically
+- Hotkeys 1–6 map to `Player` action map in `InputSystem_Actions.inputactions`
+  (6 new `<Button>` bindings)
+- Drag from inventory → action bar: assigns slot reference (item stays in inventory)
+- Drag within action bar: swaps two slot references
+- Drag from action bar → inventory: clears the action bar slot reference
+
+**Data Flow:**
+```
+Player presses key 1
+  → InputSystem_Actions.Player.ActionBar1.performed
+  → ActionBarSystem.OnHotkeyPressed(0)
+  → slot[0].item is UsableItemSO usable ?
+      yes → usable.OnUse(playerGO)
+            if used && usable.consumable → InventorySystem.DecrementStack(slot[0].inventoryIndex)
+            ActionBarSystem.ValidateSlots() → clear any slot whose inventoryIndex is now empty
+      no  → GameLog.Warn("[Inventory]", "Action bar slot 0 is empty or not usable")
+
+Player drags InventorySlotUI onto ActionBarSlotUI[2]
+  → ActionBarUI.OnInventorySlotDropped(inventoryIndex, item)
+  → ActionBarSystem.Assign(slotIndex: 2, inventoryIndex, item)
+  → ActionBarUI.Refresh()
+
+Player drags ActionBarSlotUI[2] back onto InventoryUI
+  → ActionBarSystem.ClearSlot(slotIndex: 2)
+  → ActionBarUI.Refresh()
+```

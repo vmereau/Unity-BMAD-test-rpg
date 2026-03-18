@@ -208,6 +208,60 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar1"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab01ab01-ab01-ab01-ab01-ab01ab01ab01"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar2"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab02ab02-ab02-ab02-ab02-ab02ab02ab02"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar3"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab03ab03-ab03-ab03-ab03-ab03ab03ab03"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar4"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab04ab04-ab04-ab04-ab04-ab04ab04ab04"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar5"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab05ab05-ab05-ab05-ab05-ab05ab05ab05"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ActionBar6"",
+                    ""type"": ""Button"",
+                    ""id"": ""ab06ab06-ab06-ab06-ab06-ab06ab06ab06"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -444,17 +498,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""cbac6039-9c09-46a1-b5f2-4e5124ccb5ed"",
-                    ""path"": ""<Keyboard>/2"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""Next"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""e15ca19d-e649-4852-97d5-7fe8ccc44e94"",
                     ""path"": ""<Gamepad>/dpad/right"",
                     ""interactions"": """",
@@ -527,17 +570,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""XR"",
                     ""action"": ""Jump"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""1534dc16-a6aa-499d-9c3a-22b47347b52a"",
-                    ""path"": ""<Keyboard>/1"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard&Mouse"",
-                    ""action"": ""Previous"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -637,6 +669,72 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""LockOn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab11ab11-ab11-ab11-ab11-ab11ab11ab11"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab22ab22-ab22-ab22-ab22-ab22ab22ab22"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab33ab33-ab33-ab33-ab33-ab33ab33ab33"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab44ab44-ab44-ab44-ab44-ab44ab44ab44"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab55ab55-ab55-ab55-ab55-ab55ab55ab55"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab66ab66-ab66-ab66-ab66-ab66ab66ab66"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ActionBar6"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1237,6 +1335,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Dodge = m_Player.FindAction("Dodge", throwIfNotFound: true);
         m_Player_InventoryToggle = m_Player.FindAction("InventoryToggle", throwIfNotFound: true);
         m_Player_LockOn = m_Player.FindAction("LockOn", throwIfNotFound: true);
+        m_Player_ActionBar1 = m_Player.FindAction("ActionBar1", throwIfNotFound: true);
+        m_Player_ActionBar2 = m_Player.FindAction("ActionBar2", throwIfNotFound: true);
+        m_Player_ActionBar3 = m_Player.FindAction("ActionBar3", throwIfNotFound: true);
+        m_Player_ActionBar4 = m_Player.FindAction("ActionBar4", throwIfNotFound: true);
+        m_Player_ActionBar5 = m_Player.FindAction("ActionBar5", throwIfNotFound: true);
+        m_Player_ActionBar6 = m_Player.FindAction("ActionBar6", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1343,6 +1447,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Dodge;
     private readonly InputAction m_Player_InventoryToggle;
     private readonly InputAction m_Player_LockOn;
+    private readonly InputAction m_Player_ActionBar1;
+    private readonly InputAction m_Player_ActionBar2;
+    private readonly InputAction m_Player_ActionBar3;
+    private readonly InputAction m_Player_ActionBar4;
+    private readonly InputAction m_Player_ActionBar5;
+    private readonly InputAction m_Player_ActionBar6;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1398,6 +1508,18 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @InventoryToggle => m_Wrapper.m_Player_InventoryToggle;
         /// <summary>Provides access to the underlying input action "Player/LockOn".</summary>
         public InputAction @LockOn => m_Wrapper.m_Player_LockOn;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar1".</summary>
+        public InputAction @ActionBar1 => m_Wrapper.m_Player_ActionBar1;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar2".</summary>
+        public InputAction @ActionBar2 => m_Wrapper.m_Player_ActionBar2;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar3".</summary>
+        public InputAction @ActionBar3 => m_Wrapper.m_Player_ActionBar3;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar4".</summary>
+        public InputAction @ActionBar4 => m_Wrapper.m_Player_ActionBar4;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar5".</summary>
+        public InputAction @ActionBar5 => m_Wrapper.m_Player_ActionBar5;
+        /// <summary>Provides access to the underlying input action "Player/ActionBar6".</summary>
+        public InputAction @ActionBar6 => m_Wrapper.m_Player_ActionBar6;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>

@@ -21,6 +21,8 @@ namespace Game.UI
         [SerializeField] private GameObject _contextMenuPrefab;
 
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
+        [SerializeField] private ActionBarUI _actionBarUI;
+        [SerializeField] private ActionBarSystem _actionBarSystem;
 
         private bool _isOpen = false;
         private InputSystem_Actions _input;
@@ -80,12 +82,16 @@ namespace Game.UI
             RefreshSlots();
             _panelRoot.SetActive(true);
             _isOpen = true;
+            if (_actionBarSystem != null)
+                _actionBarSystem.OnActionBarUsed += HandleActionBarUsed;
             CursorManager.Unlock();
             GameLog.Info(TAG, "Inventory opened");
         }
 
         private void Close()
         {
+            if (_actionBarSystem != null)
+                _actionBarSystem.OnActionBarUsed -= HandleActionBarUsed;
             HideContextMenu();
             ClearSelection();
             _panelRoot.SetActive(false);
@@ -93,6 +99,8 @@ namespace Game.UI
             CursorManager.Lock();
             GameLog.Info(TAG, "Inventory closed");
         }
+
+        private void HandleActionBarUsed(int _) => RefreshSlots(false);
 
         public void DropItem(int slotIndex)
         {
@@ -245,7 +253,7 @@ namespace Game.UI
             _detailPanelUI?.Hide();
         }
 
-        private void RefreshSlots()
+        private void RefreshSlots(bool refreshActionBar = true)
         {
             // Null out stale UI reference before destroying slot GameObjects
             _selectedSlotUI = null;
@@ -274,6 +282,10 @@ namespace Game.UI
                 _selectedSlotIndex = -1;
                 _detailPanelUI?.Hide();
             }
+
+            // refresh action bar if any item was binded to it.
+            if (!refreshActionBar) return;
+            _actionBarUI?.Refresh();
         }
     }
 

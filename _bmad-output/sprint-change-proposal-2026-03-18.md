@@ -1,8 +1,6 @@
-# Sprint Change Proposal — 2026-03-18
-
-**Project:** Unity-BMAD-test-rpg
+# Sprint Change Proposal — Quick Action Bar
 **Date:** 2026-03-18
-**Scope Classification:** Minor — direct implementation by development team
+**Workflow:** Correct Course
 **Status:** Approved
 
 ---
@@ -11,26 +9,22 @@
 
 ### Problem Statement
 
-After completing story 4.9 (Usable Item System), two closely related features are needed to continue the inventory system:
+Players can use items via the right-click context menu in the inventory panel, but there is no quick-access hotkey system to trigger UsableItems during gameplay without interrupting the action to open the inventory. A Quick Action Bar with 6 persistent HUD slots and keyboard shortcuts 1–6 is needed to close this gap.
 
-1. **Health Potion** — a consumable item that restores player HP. `PlayerHealth` currently has no `Heal()` method and no `UsableItemSO` subtype exists for stat-affecting consumables.
-2. **Stacking System** — `ItemSO.isStackable` is a plain `bool` field that has never been enforced by `InventorySystem` (noted as "Reserved" in CLAUDE.md). The intent was always to implement real stacking; this change delivers it:
-   - `isStackable` bool replaced by `maxStacks: int` with `IsStackable` as a computed property
-   - `InventorySystem` tracks stack counts (multiple potions occupy one slot)
-   - `ItemSlotUI` displays a stack count badge when count > 1
-   - `UseItem` and `DropItem` consume/drop one unit at a time for stackable items
+### Context
 
-### Discovery Context
+This requirement was identified by the developer after completing the usable item and stacking system (stories 4.9 and 4.10). The foundation required to build this feature — `UsableItemSO.OnUse()`, `InventorySlot` with count data, `ItemSlotUI` with badge rendering, and the drag-and-drop pattern from `InventoryUI` — is now fully in place. This is a new stakeholder requirement, not a correction to a technical failure.
 
-Identified as a natural follow-on after story 4.9 was completed on 2026-03-17. No bug — this is an incoming feature request to extend the item/inventory system before starting Epic 5.
+### Feature Description
 
-### Evidence
-
-- `ItemSO.cs` line 11: `public bool isStackable;` — no computed logic, no runtime enforcement
-- `InventorySystem.cs` line 11: `private readonly List<ItemSO> _items` — flat list, no count tracking
-- `PlayerHealth.cs` — only `TakeDamage()` exists; no `Heal()` method
-- `UsableItemSO.cs` — abstract base exists; `PotionItemSO` is a natural second subtype alongside `SkillItemSO`
-- `Assets/_Game/ScriptableObjects/Items/CLAUDE.md`: `isStackable | bool | Reserved — not yet enforced by InventorySystem`
+- A persistent HUD bar with 6 slots visible at the bottom of the screen
+- Keyboard keys 1–6 trigger the UsableItem assigned to each slot
+- When the inventory panel is open, items can be dragged from inventory to action bar slots to assign them
+- Action bar slots hold **references** to inventory items — they do not represent additional inventory slots
+- Stack count badge displayed on action bar slots (matching inventory badge behaviour)
+- Items can be dragged within the action bar to reassign or swap slots
+- Dragging an item from the action bar back to the inventory panel de-assigns it from the slot
+- When a referenced item is fully consumed (stack reaches zero), the action bar slot clears automatically
 
 ---
 
@@ -40,346 +34,325 @@ Identified as a natural follow-on after story 4.9 was completed on 2026-03-17. N
 
 | Epic | Impact |
 |------|--------|
-| **Epic 4** (Inventory, Items & Interaction) — `in-progress` | Add story **4.10**. All other stories remain `done`. Retrospective still `optional`. |
-| **Epic 7** (Equipment & Economy) — `backlog` | `InventorySystem.Items` type changes from `IReadOnlyList<ItemSO>` to `IReadOnlyList<InventorySlot>`. Stories 7.3 (shop) and 7.4 (looting) must account for this when implemented. No immediate changes needed. |
-| **Epic 8** (Crafting) — `backlog` | Craftable consumables will naturally use the stack system. No changes now. |
-| All others | No impact. |
+| **Epic 4** (Inventory, Items & Interaction) | **In-scope addition.** New story `4-11-quick-action-bar` added. Epic scope statement updated by one line. Epic remains `in-progress` until story 4-11 is complete. |
+| **Epic 9** (Content & Polish) | Minor note added to story 9-4 ("functional HUD") clarifying the action bar is delivered in Epic 4 — prevents duplication. |
+| All other epics | No impact. |
 
 ### Story Impact
 
 | Story | Impact |
 |-------|--------|
-| 4.9 — Usable Item System | Completed; no changes. `UseItem()` logic extended for stacking but existing `SkillItemSO` path is unaffected (tomes are non-stackable). |
-| **4.10 — Potion & Stacking System** | **NEW story** (see Section 4). |
-| Future 7.x shop/loot stories | Must use `InventorySlot` API — document in those story files. |
+| **4-11-quick-action-bar** | **NEW** — created as next story in Epic 4 |
+| 4-9, 4-10 | No changes — their implementations (`UsableItemSO`, `InventorySlot`, `ItemSlotUI.Bind()`) are reused as-is |
+| 9-4 (functional HUD) | Scope note added — action bar excluded from that story's deliverables |
 
 ### Artifact Conflicts
 
-| Artifact | Change Required |
-|----------|----------------|
-| `ItemSO.cs` | `isStackable: bool` removed; `maxStacks: int` + `IsStackable` computed property added |
-| `InventorySystem.cs` | `InventorySlot` struct introduced; `List<ItemSO>` → `List<InventorySlot>`; `DecrementStack()` added |
-| `InventoryUI.cs` | `DropItem`, `UseItem`, `RefreshSlots`, `ShowContextMenu`, `SelectSlot` updated for new slot type |
-| `ItemSlotUI.cs` | `Bind()` gains `stackCount` parameter; stack badge logic added |
-| `ItemSlotUI.prefab` | New `StackCountText` TMP child (upper-left, hidden when count ≤ 1) |
-| `ItemDetailPanelUI.cs` | `case PotionItemSO` added to `switch` block |
-| `PlayerHealth.cs` | `Heal(float amount)` public method added |
-| `PotionItemSO.cs` | **NEW** concrete `UsableItemSO` subclass |
-| `Item_HealthPotion.asset` | **NEW** data asset |
-| `HealthPotion.prefab` | **NEW** world item prefab |
-| CLAUDE.md — `Items/` folder | Hierarchy, `isStackable → maxStacks` migration note |
-| CLAUDE.md — `Scripts/UI/` folder | Stack badge pattern note |
-| `epics.md` | Story 4.10 added to Epic 4 |
-| `sprint-status.yaml` | Story 4.10 added |
+| Artifact | Change |
+|----------|--------|
+| `_bmad-output/epics.md` | Epic 4 scope +1 line; Epic 4 stories list +1 bullet; Epic 9 story 9-4 note added |
+| `_bmad-output/game-architecture.md` | Core Systems table row added; directory listings updated; System Location Mapping row added; `[Inventory]` log tag formalised; new ActionBar System Pattern section added |
+| `_bmad-output/implementation-artifacts/sprint-status.yaml` | `4-11-quick-action-bar: backlog` added |
 
 ### Technical Impact
 
-- **`InventorySystem.Items` API type change** — only one consumer (`InventoryUI.cs`); contained.
-- **`isStackable` field removed from `ItemSO`** — existing assets (`Item_Tome_PowerStrike.asset`) have `isStackable` in YAML; Unity silently ignores removed fields on next load. New `maxStacks` defaults to `0` in YAML → `IsStackable = false` ✅. No manual asset migration needed.
-- **No breaking change to `SkillItemSO`** or any non-stackable item behavior.
-- **No changes to test infrastructure** — new tests extend existing `InventorySystemTests.cs` and `HealthSystemTests.cs`.
+**New files to create:**
+- `Assets/_Game/Scripts/Inventory/ActionBarSystem.cs` — manages 6 slot references, hotkey dispatch, stale-slot invalidation
+- `Assets/_Game/Scripts/UI/ActionBarUI.cs` — persistent HUD panel, drag/drop orchestration
+- `Assets/_Game/Scripts/UI/ActionBarSlotUI.cs` — per-slot view with badge support
+- `Assets/_Game/Prefabs/UI/ActionBar/ActionBar.prefab`
+- `Assets/_Game/Prefabs/UI/ActionBar/ActionBarSlot.prefab`
+
+**Files to modify:**
+- `Assets/_Game/InputSystem_Actions.inputactions` — 6 new `<Button>` bindings (keys 1–6) in the `Player` action map
+- `Assets/_Game/InputSystem_Actions.cs` — regenerated by Unity after input asset change
+- `Assets/_Game/Scripts/UI/InventoryUI.cs` — extend drag system to allow drops onto action bar targets and accepts drags from action bar
+
+**No rollback of existing work required.**
 
 ---
 
 ## Section 3: Recommended Approach
 
-**Option 1 — Direct Adjustment** (selected)
+**Selected:** Option 1 — Direct Adjustment
 
-Add a single new story (4.10) to Epic 4. All changes are additive or internally scoped to the inventory subsystem. No rollbacks needed. No MVP reduction needed.
-
-| Dimension | Assessment |
-|-----------|-----------|
-| Effort | **Medium** — ~8 files touched, all well-understood from prior stories |
-| Risk | **Low** — additive changes; `InventoryUI` is the only cross-system ripple point |
-| Timeline | No impact on Epic 5 start; story 4.10 can be implemented before or after 5.1 |
-| Maintainability | `InventorySlot` struct is the correct long-term data model; deferring it would create more debt for Epic 7 |
-
-**Rationale for not deferring:** `maxStacks` and `InventorySlot` are foundational to Epic 7 (shop sells stackable items, looting produces stacks of arrows/potions). Implementing now, while the inventory system is actively being extended, costs less than retrofitting later across multiple Epic 7 stories.
+**Rationale:**
+- All prerequisite infrastructure is delivered and stable: `UsableItemSO.OnUse()` (story 4.9), `InventorySlot` struct (story 4.10), `ItemSlotUI.Bind(item, index, stackCount)` badge pattern (story 4.10)
+- Story 4-11 is fully self-contained — no completed story needs modification
+- Low risk: the new system reads from `InventorySystem` and calls `UsableItemSO.OnUse()` — both are well-tested public APIs
+- Effort is Medium (new system + UI + input + drag extension + tests)
+- Delivers high player value: hotkey consumables during combat is a core RPG quality-of-life feature
+- No timeline disruption — Epic 4 simply gains one more story before its retrospective
 
 ---
 
 ## Section 4: Detailed Change Proposals
 
-### A — `ItemSO.cs` — replace `isStackable` with `maxStacks`
+### 4.1 — `epics.md`: Epic 4 Scope
 
-**File:** `Assets/_Game/ScriptableObjects/Items/ItemSO.cs`
+**File:** `_bmad-output/epics.md`
+**Section:** Epic 4 — Scope — Includes line
 
 ```
 OLD:
-public bool isStackable;
+**Includes:** Look-at interaction system (camera-center raycast with visual cue),
+world item system (pickable/interactable GameObjects with Rigidbody physics),
+basic inventory (pick up, drop, move items), simple inventory UI panel,
+item data ScriptableObject, refactor TomePowerStrike as a world item activated
+via look-at, refactor Trainer_Master NPC interaction to look-at model.
 
 NEW:
-public int maxStacks = 1;
-public bool IsStackable => maxStacks > 1;
+**Includes:** Look-at interaction system (camera-center raycast with visual cue),
+world item system (pickable/interactable GameObjects with Rigidbody physics),
+basic inventory (pick up, drop, move items), simple inventory UI panel,
+item data ScriptableObject, refactor TomePowerStrike as a world item activated
+via look-at, refactor Trainer_Master NPC interaction to look-at model,
+quick action bar (6 persistent HUD slots, keyboard 1–6, drag-assign UsableItems
+from inventory).
 ```
 
-Rationale: `maxStacks` replaces the unenforced placeholder bool. `IsStackable` is computed — both `0` and `1` mean non-stackable, so existing assets with unset `maxStacks` (defaults to `0` in serialization) are correctly non-stackable without any asset migration.
+**Rationale:** Keeps the epic scope statement accurate after adding story 4-11.
 
 ---
 
-### B — `InventorySystem.cs` — `InventorySlot` struct + stacking logic
+### 4.2 — `epics.md`: Epic 4 Stories List
 
-**File:** `Assets/_Game/Scripts/Inventory/InventorySystem.cs`
+**File:** `_bmad-output/epics.md`
+**Section:** Epic 4 — Stories
 
 ```
 OLD:
-  private readonly List<ItemSO> _items = new List<ItemSO>();
-  public IReadOnlyList<ItemSO> Items => _items;
-  AddItem(ItemSO item)         → always appends new entry
-  RemoveItem(int index)        → removes entire slot
+- As a player, I can pick up health potions that stack in my inventory, use them
+  to restore health (showing a stack count badge when I have more than one), and
+  drop them one at a time
 
 NEW:
-  // New struct (inside namespace Game.Inventory):
-  public readonly struct InventorySlot
-  {
-      public readonly ItemSO Item;
-      public readonly int Count;
-      public InventorySlot(ItemSO item, int count) { Item = item; Count = count; }
-  }
-
-  private readonly List<InventorySlot> _slots = new List<InventorySlot>();
-  public IReadOnlyList<InventorySlot> Items => _slots;
-
-  AddItem(ItemSO item)
-    → if item.IsStackable: find existing slot for same item with Count < item.maxStacks
-       → increment that slot's count; else append InventorySlot(item, 1)
-    → if not stackable: always append InventorySlot(item, 1)
-
-  RemoveItem(int index)        → unchanged: removes entire slot
-
-  DecrementStack(int index)    → NEW
-    → if Count > 1: replace slot with Count-1
-    → if Count == 1: remove slot entirely
-    → returns ItemSO that was decremented
+- As a player, I can pick up health potions that stack in my inventory, use them
+  to restore health (showing a stack count badge when I have more than one), and
+  drop them one at a time
+- As a player, I have a quick action bar with 6 slots at the bottom of the screen
+  where I can assign UsableItems from my inventory, trigger them with keys 1–6,
+  and manage assignments via drag-and-drop
 ```
 
-Rationale: `InventorySlot` is the correct long-term model. `DecrementStack` gives "one at a time" semantics for UseItem and DropItem on stackable items. `RemoveItem` retains "clear entire slot" semantics for future use (Epic 7 sell-all, loot entire stack).
+**Rationale:** Story 4-11 user story registered in the epics file.
 
 ---
 
-### C — `PlayerHealth.cs` — add `Heal()`
+### 4.3 — `epics.md`: Epic 9 Story 9-4 Note
 
-**File:** `Assets/_Game/Scripts/Player/PlayerHealth.cs`
+**File:** `_bmad-output/epics.md`
+**Section:** Epic 9 — Stories
 
 ```
 OLD:
-  public void TakeDamage(float amount)  ← only way to change health
+- As a player, I have a functional HUD (stamina bar, health bar, gold)
 
-NEW (add after TakeDamage):
-  public void Heal(float amount)
-  {
-      if (IsDead) return;
-      CurrentHealth = Mathf.Min(CurrentHealth + amount, _config.baseHealth);
-      GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
-  }
+NEW:
+- As a player, I have a functional HUD (stamina bar, health bar, gold) — note:
+  quick action bar HUD element delivered in Epic 4 (story 4-11)
 ```
 
-Rationale: Symmetric to `TakeDamage`. Capped at `_config.baseHealth` (no overhealing). Dead guard is consistent with `TakeDamage`. No event raised for heals (prototype scope).
+**Rationale:** Prevents a future `create-story` agent from rescoping the action bar into story 9-4.
 
 ---
 
-### D — `PotionItemSO.cs` — new concrete type (NEW FILE)
+### 4.4 — `sprint-status.yaml`: New Story Entry
 
-**File:** `Assets/_Game/ScriptableObjects/Items/PotionItemSO.cs`
+**File:** `_bmad-output/implementation-artifacts/sprint-status.yaml`
 
-```csharp
-[CreateAssetMenu(menuName = "Items/Potion Item", fileName = "Item_")]
-public class PotionItemSO : UsableItemSO
-{
-    [SerializeField] private float _healAmount = 30f;
-    public float HealAmount => _healAmount;
+```yaml
+OLD:
+  4-10-potion-stacking-system: done
+  epic-4-retrospective: optional
 
-    public override bool OnUse(GameObject user)
-    {
-        var health = user.GetComponent<PlayerHealth>();
-        if (health == null) { GameLog.Warn(...); return false; }
-        if (health.IsDead) return false;
-        health.Heal(_healAmount);
-        return true;
-    }
-}
+NEW:
+  4-10-potion-stacking-system: done
+  4-11-quick-action-bar: backlog
+  epic-4-retrospective: optional
 ```
 
-Updated hierarchy:
-```
-ItemSO
-└── UsableItemSO
-    ├── SkillItemSO    (teaches a skill)
-    └── PotionItemSO   (restores health)  ← NEW
-```
+**Rationale:** Registers story 4-11 so sprint tooling can track and transition it.
 
 ---
 
-### E — `InventoryUI.cs` — stacking-aware UseItem, DropItem, RefreshSlots
+### 4.5 — `game-architecture.md`: Core Systems Table
 
-**File:** `Assets/_Game/Scripts/UI/InventoryUI.cs`
+**File:** `_bmad-output/game-architecture.md`
+**Section:** Core Systems table
 
 ```
-DropItem(int slotIndex):
-  OLD: var item = _inventorySystem.Items[slotIndex];  (ItemSO)
-       _inventorySystem.RemoveItem(slotIndex);
-  NEW: var slot = _inventorySystem.Items[slotIndex];  (InventorySlot)
-       var item = slot.Item;
-       _inventorySystem.DecrementStack(slotIndex);    // drops 1 unit
+OLD:
+| Inventory & equipment | Low | 6 |
 
-UseItem(int slotIndex):
-  OLD: var item = _inventorySystem.Items[slotIndex];  (ItemSO)
-       if (used && usable.consumable)
-           _inventorySystem.RemoveItem(slotIndex);
-  NEW: var slot = _inventorySystem.Items[slotIndex];  (InventorySlot)
-       var item = slot.Item;
-       if (used && usable.consumable)
-           _inventorySystem.DecrementStack(slotIndex); // consumes 1 unit
-
-RefreshSlots():
-  OLD: slot.Bind(items[i], i);              (ItemSO, index)
-  NEW: slotUI.Bind(items[i].Item, i, items[i].Count);  (Item, index, stackCount)
-
-ShowContextMenu / SelectSlot / UpdateDetailPanel:
-  OLD: _inventorySystem.Items[slotIndex]           → returns ItemSO directly
-  NEW: _inventorySystem.Items[slotIndex].Item      → access .Item on InventorySlot
+NEW:
+| Inventory & equipment | Low | 6 |
+| Quick action bar (hotkey usables) | Low | 4 |
 ```
 
 ---
 
-### F — `ItemSlotUI.cs` + prefab — stack count badge
+### 4.6 — `game-architecture.md`: Directory Listings
 
-**File:** `Assets/_Game/Scripts/UI/ItemSlotUI.cs`
+**File:** `_bmad-output/game-architecture.md`
+**Section:** Directory Structure
 
+Scripts/Inventory/ — add `ActionBarSystem.cs`:
 ```
-OLD: public void Bind(ItemSO item, int index)
-NEW: [SerializeField] private TMP_Text _stackCountText;
+OLD:
+│   │   ├── Inventory/
+│   │   │   ├── InventorySystem.cs
+│   │   │   ├── EquipmentSystem.cs
+│   │   │   └── ItemPickup.cs
 
-     public void Bind(ItemSO item, int index, int stackCount = 1)
-     {
-         // ...existing icon + name logic unchanged...
-         if (_stackCountText != null)
-         {
-             _stackCountText.text = stackCount.ToString();
-             _stackCountText.gameObject.SetActive(stackCount > 1);
-         }
-     }
+NEW:
+│   │   ├── Inventory/
+│   │   │   ├── InventorySystem.cs
+│   │   │   ├── ActionBarSystem.cs
+│   │   │   ├── EquipmentSystem.cs
+│   │   │   └── ItemPickup.cs
 ```
 
-**Prefab — `Assets/_Game/Prefabs/UI/Inventory/ItemSlotUI.prefab`:**
-- Add child `"StackCountText"` (TMP_Text, font size 12, white, upper-left anchor)
-- `SetActive(false)` by default
-- Wire `_stackCountText` serialized reference
+Scripts/UI/ — add `ActionBarUI.cs` and `ActionBarSlotUI.cs`:
+```
+OLD:
+│   │   ├── UI/
+│   │   │   ├── HUDController.cs
+│   │   │   ├── InventoryUI.cs
+│   │   │   ├── QuestLogUI.cs
+│   │   │   ├── StatScreenUI.cs
+│   │   │   ├── DialogueUI.cs
+│   │   │   └── PauseMenuUI.cs
+
+NEW:
+│   │   ├── UI/
+│   │   │   ├── HUDController.cs
+│   │   │   ├── InventoryUI.cs
+│   │   │   ├── ActionBarUI.cs
+│   │   │   ├── ActionBarSlotUI.cs
+│   │   │   ├── QuestLogUI.cs
+│   │   │   ├── StatScreenUI.cs
+│   │   │   ├── DialogueUI.cs
+│   │   │   └── PauseMenuUI.cs
+```
 
 ---
 
-### G — `ItemDetailPanelUI.cs` — add PotionItemSO case
+### 4.7 — `game-architecture.md`: System Location Mapping
 
-**File:** `Assets/_Game/Scripts/UI/ItemDetailPanelUI.cs`
+**File:** `_bmad-output/game-architecture.md`
+**Section:** System Location Mapping table
 
 ```
-OLD switch:
-  case SkillItemSO skillItem:
-      ShowUsableSection(skillItem);
-      ShowSkillSection(skillItem.Skill);
-      break;
+OLD:
+| Inventory | `Scripts/Inventory/` | `ScriptableObjects/Items/ItemSO.cs` | `Data/Items/` |
 
-NEW switch (add case):
-  case SkillItemSO skillItem:
-      ShowUsableSection(skillItem);
-      ShowSkillSection(skillItem.Skill);
-      break;
-  case PotionItemSO potionItem:
-      ShowUsableSection(potionItem);
-      break;
+NEW:
+| Inventory | `Scripts/Inventory/` | `ScriptableObjects/Items/ItemSO.cs` | `Data/Items/` |
+| Action bar | `Scripts/Inventory/` + `Scripts/UI/` | — | — |
 ```
-
-Rationale: Shows "Consumable" label via existing `_usableSection`. Heal amount shown via `description` field on the asset ("Restores 30 HP") — no new UI section needed.
 
 ---
 
-### H — Data assets
+### 4.8 — `game-architecture.md`: Logging Tags + ActionBar Pattern Section
 
-**`Assets/_Game/Data/Items/Item_HealthPotion.asset`** (NEW)
-- Type: `PotionItemSO`
-- `itemName`: `"Health Potion"`
-- `description`: `"Restores 30 HP when consumed."`
-- `consumable`: `true`
-- `maxStacks`: `10`
-- `_healAmount`: `30`
-- `worldItemPrefab`: `HealthPotion.prefab`
+**File:** `_bmad-output/game-architecture.md`
+**Section:** Logging — System tags table (add formalised Inventory tag)
 
-**`Assets/_Game/Prefabs/Items/Potions/HealthPotion.prefab`** (NEW)
-- Root with `ItemPickup` component (`_item` → `Item_HealthPotion.asset`)
-- `Rigidbody` + `SphereCollider`
-- Placeholder mesh (Unity primitive sphere, red tint) until art asset available
+```
+OLD:
+| Audio | `[Audio]` |
+
+NEW:
+| Audio | `[Audio]` |
+| Inventory | `[Inventory]` |
+```
+
+**Section:** Implementation Patterns (append new pattern at end)
+
+````markdown
+### ActionBar System Pattern
+
+**Purpose:** Provide 6 persistent HUD hotkey slots that reference UsableItems in
+the player's inventory — enabling quick item use during gameplay without opening
+the inventory panel.
+
+**Components:**
+- `ActionBarSystem` — owns 6 nullable `(int inventoryIndex, ItemSO item)` slot
+  references; validates references against `InventorySystem` on inventory change;
+  executes `UsableItemSO.OnUse()` on hotkey press
+- `ActionBarUI` — persistent HUD element (always visible); renders 6
+  `ActionBarSlotUI` components; handles drag-and-drop assignment from
+  `InventoryUI` and internal slot swaps
+- `ActionBarSlotUI` — single slot view; reuses `ItemSlotUI.Bind()` badge pattern
+  for stack count display; acts as both drag source and drop target
+
+**Key Design Rules:**
+- Action bar slots are **references**, not copies — the item lives in `InventorySystem`
+- When a referenced inventory slot is consumed to zero, `ActionBarSystem` clears
+  that action bar slot automatically
+- Hotkeys 1–6 map to `Player` action map in `InputSystem_Actions.inputactions`
+  (6 new `<Button>` bindings)
+- Drag from inventory → action bar: assigns slot reference (item stays in inventory)
+- Drag within action bar: swaps two slot references
+- Drag from action bar → inventory: clears the action bar slot reference
+
+**Data Flow:**
+```
+Player presses key 1
+  → InputSystem_Actions.Player.ActionBar1.performed
+  → ActionBarSystem.OnHotkeyPressed(0)
+  → slot[0].item is UsableItemSO usable ?
+      yes → usable.OnUse(playerGO)
+            if used && usable.consumable → InventorySystem.DecrementStack(slot[0].inventoryIndex)
+            ActionBarSystem.ValidateSlots() → clear any slot whose inventoryIndex is now empty
+      no  → GameLog.Warn("[Inventory]", "Action bar slot 0 is empty or not usable")
+
+Player drags InventorySlotUI onto ActionBarSlotUI[2]
+  → ActionBarUI.OnInventorySlotDropped(inventoryIndex, item)
+  → ActionBarSystem.Assign(slotIndex: 2, inventoryIndex, item)
+  → ActionBarUI.Refresh()
+
+Player drags ActionBarSlotUI[2] back onto InventoryUI
+  → ActionBarSystem.ClearSlot(slotIndex: 2)
+  → ActionBarUI.Refresh()
+```
+````
 
 ---
 
 ## Section 5: Implementation Handoff
 
-### Scope Classification: **Minor**
+### Change Scope Classification: **Minor**
 
-All changes are contained within the inventory subsystem and its direct consumers. No new epics, no backlog reorganization, no architectural pivot.
+All changes are additive. No existing story needs modification. No architectural pivot required. Implementation can proceed directly by the development team.
 
-### New Story to Create
+### Handoff: Development Team
 
-**Story 4.10 — Potion & Stacking System**
+**Immediate next steps:**
 
-Suggested story statement:
-> As a player, I can pick up health potions that stack in my inventory, use them to restore health (showing a stack count badge when I have more than one), and drop them one at a time.
+1. **Apply document edits** (developer):
+   - `_bmad-output/epics.md` — changes 4.1, 4.2, 4.3
+   - `_bmad-output/game-architecture.md` — changes 4.5, 4.6, 4.7, 4.8
+   - `_bmad-output/implementation-artifacts/sprint-status.yaml` — change 4.4
 
-**Story file location:** `_bmad-output/implementation-artifacts/4-10-potion-stacking-system.md`
+2. **Create story file** (Scrum Master via `/bmad:bmgd:workflows:create-story`):
+   - Story ID: `4-11-quick-action-bar`
+   - Epic: Epic 4
+   - Source story: "As a player, I have a quick action bar with 6 slots at the bottom of the screen where I can assign UsableItems from my inventory, trigger them with keys 1–6, and manage assignments via drag-and-drop"
 
-### Files to CREATE
-
-```
-Assets/_Game/ScriptableObjects/Items/PotionItemSO.cs
-Assets/_Game/Data/Items/Item_HealthPotion.asset
-Assets/_Game/Prefabs/Items/Potions/HealthPotion.prefab
-_bmad-output/implementation-artifacts/4-10-potion-stacking-system.md
-```
-
-### Files to MODIFY
-
-```
-Assets/_Game/ScriptableObjects/Items/ItemSO.cs              ← isStackable→maxStacks+IsStackable
-Assets/_Game/Scripts/Inventory/InventorySystem.cs            ← InventorySlot struct + DecrementStack
-Assets/_Game/Scripts/Player/PlayerHealth.cs                  ← Heal() method
-Assets/_Game/Scripts/UI/InventoryUI.cs                       ← stacking-aware UseItem/DropItem/Refresh
-Assets/_Game/Scripts/UI/ItemSlotUI.cs                        ← Bind() + _stackCountText
-Assets/_Game/Scripts/UI/ItemDetailPanelUI.cs                 ← PotionItemSO case
-Assets/_Game/Prefabs/UI/Inventory/ItemSlotUI.prefab          ← StackCountText child
-Assets/Tests/EditMode/InventorySystemTests.cs                ← stacking tests
-Assets/Tests/EditMode/HealthSystemTests.cs                   ← Heal() tests
-Assets/_Game/ScriptableObjects/Items/CLAUDE.md               ← hierarchy + maxStacks note
-_bmad-output/epics.md                                        ← story 4.10 added
-_bmad-output/implementation-artifacts/sprint-status.yaml     ← 4-10 added
-```
-
-### Files NOT to Modify
-
-```
-Assets/_Game/ScriptableObjects/Items/UsableItemSO.cs         ← abstract base unchanged
-Assets/_Game/ScriptableObjects/Items/SkillItemSO.cs          ← no changes needed
-Assets/_Game/Data/Items/Item_Tome_PowerStrike.asset          ← isStackable field ignored by Unity
-Assets/_Game/Prefabs/UI/Inventory/InventoryContextMenu.prefab← no changes
-```
-
-### Handoff Recipients
-
-| Role | Responsibility |
-|------|---------------|
-| **Scrum Master** | Create story file `4-10-potion-stacking-system.md` using `/bmad:bmgd:workflows:create-story`, update `epics.md` and `sprint-status.yaml` |
-| **Dev Agent** | Implement story 4.10 following this proposal |
-| **Dev Agent (post-impl)** | Run `/bmad:bmgd:workflows:code-review` on story 4.10 |
+3. **Implement story 4-11** (Developer via `/bmad:bmgd:workflows:dev-story`)
 
 ### Success Criteria
 
-- [ ] `PotionItemSO` can be created via `Assets → Create → Items → Potion Item`
-- [ ] Picking up 3 health potions creates 1 slot showing "3" badge (not 3 slots)
-- [ ] Using a potion with 3 stacked: count becomes 2, player health increases by 30 HP
-- [ ] Using the last potion (count = 1): slot is removed from inventory
-- [ ] Dropping a stacked potion drops 1 unit and spawns a world item; slot count decrements
-- [ ] Non-stackable items (tomes) behave exactly as before — no badge, no stacking
-- [ ] `PlayerHealth.Heal()` does not overheal beyond `baseHealth`
-- [ ] All existing Edit Mode tests pass (no regressions)
-- [ ] New Edit Mode tests added for: `PotionItemSO.OnUse`, `PlayerHealth.Heal`, stacking in `InventorySystem.AddItem`, `DecrementStack`
+- [ ] Action bar visible at bottom of screen with 6 slots (always rendered, not toggled)
+- [ ] Keys 1–6 trigger the UsableItem in their respective slot
+- [ ] Dragging an inventory item onto an action bar slot assigns it (item remains in inventory)
+- [ ] Stack count badge displayed on action bar slots matching inventory badge behaviour
+- [ ] Dragging within the action bar swaps slot assignments
+- [ ] Dragging from action bar back to inventory de-assigns the slot
+- [ ] Consuming the last stack of an assigned item clears the action bar slot automatically
+- [ ] All Edit Mode tests pass (no regressions to stories 4.9 / 4.10)
 
 ---
 
