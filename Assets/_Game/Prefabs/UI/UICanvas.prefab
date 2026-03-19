@@ -126,6 +126,7 @@ MonoBehaviour:
   _contextMenuPrefab: {fileID: 7581732013569071410, guid: 53786f3ce59f6954d9f45749b5407671, type: 3}
   _detailPanelUI: {fileID: 1075394518943725287}
   _actionBarUI: {fileID: 5567084254982027825}
+  _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
 --- !u!1001 &1879756492290975518
 PrefabInstance:
   m_ObjectHideFlags: 0

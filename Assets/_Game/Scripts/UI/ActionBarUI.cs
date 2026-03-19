@@ -11,17 +11,20 @@ namespace Game.UI
         [SerializeField] private ActionBarSystem _actionBarSystem;
         [SerializeField] private ActionBarSlotUI[] _slotUIs;
         [SerializeField] private InventorySystem _inventorySystem;
+        [SerializeField] private GameEventSO_Int _onActionBarUsed;
 
         private void Awake()
         {
             if (_actionBarSystem == null)
             {
                 GameLog.Error(TAG, "ActionBarUI: _actionBarSystem is not assigned.");
+                enabled = false;
                 return;
             }
             if (_slotUIs == null || _slotUIs.Length != 6)
             {
                 GameLog.Error(TAG, "ActionBarUI: _slotUIs must have exactly 6 elements.");
+                enabled = false;
                 return;
             }
 
@@ -34,14 +37,12 @@ namespace Game.UI
 
         private void OnEnable()
         {
-            if (_actionBarSystem != null)
-                _actionBarSystem.OnActionBarUsed += HandleActionBarUsed;
+            _onActionBarUsed?.AddListener(HandleActionBarUsed);
         }
 
         private void OnDisable()
         {
-            if (_actionBarSystem != null)
-                _actionBarSystem.OnActionBarUsed -= HandleActionBarUsed;
+            _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
         }
 
         private void HandleActionBarUsed(int _)

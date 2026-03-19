@@ -1,6 +1,6 @@
 # Story 4.11: Quick Action Bar
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -517,14 +517,21 @@ claude-sonnet-4-6
 - All code tasks (1–7 + 5b + 5c) implemented. 175/175 Edit Mode tests pass. Task 8 (play mode validation) is a manual in-editor checklist.
 - InputSystem_Actions dual-file contract updated: 6 ActionBar1–6 actions added, Keyboard 1/2 removed from Previous/Next bindings in BOTH `.inputactions` and embedded `.cs` JSON.
 - ActionBarSystem uses stored delegate array pattern (not new lambda per subscribe/unsubscribe) per Dev Notes critical warning about C# lambda reference equality.
-- ActionBarUI subscribes to ActionBarSystem.OnActionBarUsed C# event in OnEnable/OnDisable (project rule compliance).
+- ActionBarUI subscribes to OnActionBarUsed C# event in OnEnable/OnDisable (project rule compliance).
 - Ghost image has `raycastTarget = false` per CLAUDE.md drag-drop rule.
 - Empty slot drag cancelled via `eventData.pointerDrag = null` per Dev Notes critical note.
 - ActionBarSlotData changed from `internal` to `public` struct (required: public GetSlot() return type must be at least as accessible as the method).
-- Prefabs created via editor script (CreateActionBarPrefabs.cs). ActionBarSystem added to Player prefab via SetupActionBarSystem.cs. References wired via WireActionBarUI.cs. Editor scripts can be deleted after verification.
+- Prefabs created via editor script (CreateActionBarPrefabs.cs). ActionBarSystem added to Player prefab via SetupActionBarSystem.cs. References wired via WireActionBarUI.cs. Editor scripts deleted after verification.
 - ValidateSlots() fixed: now searches by item reference instead of stored index, preventing false clears when a prior stack is removed and indices shift.
 - QOL: dragging an action bar slot to any UI area (not just an inventory slot) now clears the slot, via `_dropHandled` flag pattern in ActionBarSlotUI.
-- InventoryUI now refreshes when items are consumed via hotkey (subscribes to OnActionBarUsed while open) and action bar refreshes when items are consumed via inventory UI (UseItem calls _actionBarUI?.Refresh()). InventoryUI requires _actionBarUI and _actionBarSystem wired in scene Inspector.
+- InventoryUI refreshes when items are consumed via hotkey (subscribes to OnActionBarUsed GameEventSO_Int via OnEnable/OnDisable) and action bar refreshes when items are consumed via inventory UI (UseItem calls _actionBarUI?.Refresh()). InventoryUI requires _actionBarUI and _onActionBarUsed wired in scene Inspector.
+- [Code Review] Architecture fix: replaced C# event OnActionBarUsed with GameEventSO_Int at Assets/_Game/Data/Events/OnActionBarUsed.asset per project cross-system communication rule. ActionBarSystem raises via Raise(), ActionBarUI and InventoryUI subscribe via AddListener/RemoveListener in OnEnable/OnDisable.
+- [Code Review] GetSlot() bounds check added — out-of-range returns null with Warn log.
+- [Code Review] ActionBarUI.Awake() now sets enabled = false on misconfiguration, preventing Refresh() NullReferenceException.
+- [Code Review] ItemSlotUI caches Canvas in Awake instead of calling GetComponentInParent per drag.
+- [Code Review] ValidateSlots() double-call removed — HandleHotkeyPressed no longer calls it directly; Refresh() handles it.
+- [Code Review] ActionBarSlotUI.BindEmpty() resets _dropHandled = false to prevent stale flag on re-bind.
+- [Code Review] Deleted 3 one-shot editor scripts (CreateActionBarPrefabs, SetupActionBarSystem, WireActionBarUI).
 
 ### File List
 
@@ -534,9 +541,7 @@ Assets/_Game/Scripts/Inventory/ActionBarSystem.cs
 Assets/_Game/Scripts/UI/ActionBarUI.cs
 Assets/_Game/Scripts/UI/ActionBarSlotUI.cs
 Assets/_Game/Scripts/UI/ItemSlotUI.cs
-Assets/_Game/Scripts/Editor/CreateActionBarPrefabs.cs
-Assets/_Game/Scripts/Editor/SetupActionBarSystem.cs
-Assets/_Game/Scripts/Editor/WireActionBarUI.cs
+Assets/_Game/Data/Events/OnActionBarUsed.asset
 Assets/_Game/Prefabs/UI/ActionBar/ActionBarSlot.prefab
 Assets/_Game/Prefabs/UI/ActionBar/ActionBar.prefab
 Assets/_Game/Prefabs/Player/Player.prefab

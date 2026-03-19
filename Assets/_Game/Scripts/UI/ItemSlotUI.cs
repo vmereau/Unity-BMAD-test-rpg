@@ -20,10 +20,12 @@ namespace Game.UI
 
         private GameObject _ghostImage;
         private InventoryUI _inventoryUI;
+        private Canvas _canvas;
 
         private void Awake()
         {
             _inventoryUI = GetComponentInParent<InventoryUI>();
+            _canvas = GetComponentInParent<Canvas>();
         }
 
         public void Bind(ItemSO item, int index, int stackCount = 1)
@@ -81,9 +83,8 @@ namespace Game.UI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            var canvas = GetComponentInParent<Canvas>();
             _ghostImage = new GameObject("DragGhost");
-            _ghostImage.transform.SetParent(canvas.transform, false);
+            _ghostImage.transform.SetParent(_canvas.transform, false);
             _ghostImage.transform.SetAsLastSibling();
 
             var img = _ghostImage.AddComponent<Image>();

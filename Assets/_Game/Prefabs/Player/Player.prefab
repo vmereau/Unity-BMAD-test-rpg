@@ -274,7 +274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5633cb4b7d677c4bb2daefb335a338c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Progression.PlayerSkills
-  _lpSystem: {fileID: 7805096736339071647}
+  _lpSystem: {fileID: 0}
   _onSkillLearned: {fileID: 11400000, guid: deb4c5d880e9797439db19d954092ba8, type: 2}
 --- !u!114 &867121166079641131
 MonoBehaviour:
@@ -321,7 +321,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Progression.LearningPointSystem
   _config: {fileID: 11400000, guid: a563ac841fe0eba4299dd3728d472f34, type: 2}
   _onLevelUp: {fileID: 11400000, guid: a4c30ecc3cf57304e8adb0bf2cab1630, type: 2}
-  _onLPChanged: {fileID: 0}
+  _onLPChanged: {fileID: 11400000, guid: 22a0cb2d7c9cf11468ec189caca939b5, type: 2}
 --- !u!114 &8568453877098799715
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,7 +351,7 @@ MonoBehaviour:
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _lockOnLayerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
 --- !u!114 &2598684479475945976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,6 +364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2fd1d915b61a0e40b48053dee8e7d54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Inventory.ActionBarSystem
+  _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
   _inventorySystem: {fileID: 1994668802294238475}
   _playerTransform: {fileID: 5905369542039962551}
 --- !u!1 &5180643267766110463

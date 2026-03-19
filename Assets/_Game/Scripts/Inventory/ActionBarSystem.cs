@@ -8,6 +8,8 @@ namespace Game.Inventory
     {
         private const string TAG = "[Inventory]";
 
+        [SerializeField] private GameEventSO_Int _onActionBarUsed;
+
         public struct ActionBarSlotData
         {
             public int InventoryIndex;
@@ -99,6 +101,11 @@ namespace Game.Inventory
 
         public ActionBarSlotData? GetSlot(int slotIndex)
         {
+            if (slotIndex < 0 || slotIndex >= 6)
+            {
+                GameLog.Warn(TAG, $"GetSlot: slotIndex {slotIndex} is out of range [0,5].");
+                return null;
+            }
             return _slots[slotIndex];
         }
 
@@ -151,16 +158,9 @@ namespace Game.Inventory
             if (used && usable.consumable)
             {
                 _inventorySystem.DecrementStack(_slots[slotIndex].Value.InventoryIndex);
-                ValidateSlots();
             }
 
-            OnActionBarUsed?.Invoke(slotIndex);
+            _onActionBarUsed?.Raise(slotIndex);
         }
-
-        /// <summary>
-        /// Raised after every hotkey press (successful or not) so ActionBarUI can Refresh().
-        /// Payload is the slot index (0-based).
-        /// </summary>
-        public event System.Action<int> OnActionBarUsed;
     }
 }

@@ -105,6 +105,7 @@ MonoBehaviour:
   - {fileID: 9001882716431794512}
   - {fileID: 2113198771824651805}
   _inventorySystem: {fileID: 0}
+  _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
 --- !u!1001 &1759626996876885873
 PrefabInstance:
   m_ObjectHideFlags: 0

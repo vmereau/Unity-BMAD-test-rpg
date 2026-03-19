@@ -65,6 +65,7 @@ namespace Game.UI
             SlotIndex = slotIndex;
             Item = null;
             InventoryIndex = -1;
+            _dropHandled = false;
 
             if (_iconImage != null)
             {

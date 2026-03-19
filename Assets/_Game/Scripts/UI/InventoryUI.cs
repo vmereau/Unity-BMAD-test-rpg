@@ -22,7 +22,7 @@ namespace Game.UI
 
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ActionBarUI _actionBarUI;
-        [SerializeField] private ActionBarSystem _actionBarSystem;
+        [SerializeField] private GameEventSO_Int _onActionBarUsed;
 
         private bool _isOpen = false;
         private InputSystem_Actions _input;
@@ -49,6 +49,7 @@ namespace Game.UI
         {
             _input.Player.InventoryToggle.performed += HandleToggle;
             _input.UI.Cancel.performed += HandleClose;
+            _onActionBarUsed?.AddListener(HandleActionBarUsed);
         }
 
         private void OnDisable()
@@ -56,6 +57,7 @@ namespace Game.UI
             if (_input == null) return;
             _input.Player.InventoryToggle.performed -= HandleToggle;
             _input.UI.Cancel.performed -= HandleClose;
+            _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
         }
 
         private void OnDestroy()
@@ -82,16 +84,12 @@ namespace Game.UI
             RefreshSlots();
             _panelRoot.SetActive(true);
             _isOpen = true;
-            if (_actionBarSystem != null)
-                _actionBarSystem.OnActionBarUsed += HandleActionBarUsed;
             CursorManager.Unlock();
             GameLog.Info(TAG, "Inventory opened");
         }
 
         private void Close()
         {
-            if (_actionBarSystem != null)
-                _actionBarSystem.OnActionBarUsed -= HandleActionBarUsed;
             HideContextMenu();
             ClearSelection();
             _panelRoot.SetActive(false);
