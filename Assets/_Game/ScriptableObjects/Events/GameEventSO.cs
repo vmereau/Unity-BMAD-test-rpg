@@ -17,7 +17,7 @@ namespace Game.Core
     ///   private void HandleEntityKilled(string id) { ... }
     ///
     /// To create a concrete event asset: right-click in Project → Create → Game/Events → [EventName]
-    /// Each event type needs its own CreateAssetMenu subclass (see GameEventSO_String example below).
+    /// Concrete types are in their own files: GameEventSO_String, GameEventSO_Int, GameEventSO_Bool, GameEventSO_Void.
     /// </summary>
     public abstract class GameEventSOBase : ScriptableObject { }
 
@@ -45,22 +45,4 @@ namespace Game.Core
             _listeners.Remove(listener);
         }
     }
-
-    // --- Concrete event types (add one per payload type needed) ---
-
-    /// <summary>String event channel — used for OnEntityKilled, OnNPCDied, etc.</summary>
-    [CreateAssetMenu(menuName = "Game/Events/String Event", fileName = "NewStringEvent")]
-    public class GameEventSO_String : GameEventSO<string> { }
-
-    /// <summary>Int event channel — used for OnLevelUp, OnActAdvanced, etc.</summary>
-    [CreateAssetMenu(menuName = "Game/Events/Int Event", fileName = "NewIntEvent")]
-    public class GameEventSO_Int : GameEventSO<int> { }
-
-    /// <summary>Bool event channel — used for OnDayNightChanged, etc.</summary>
-    [CreateAssetMenu(menuName = "Game/Events/Bool Event", fileName = "NewBoolEvent")]
-    public class GameEventSO_Bool : GameEventSO<bool> { }
-
-    /// <summary>Void/signal event channel — used for OnPlayerDied, etc.</summary>
-    [CreateAssetMenu(menuName = "Game/Events/Void Event", fileName = "NewVoidEvent")]
-    public class GameEventSO_Void : GameEventSO<bool> { }
 }
