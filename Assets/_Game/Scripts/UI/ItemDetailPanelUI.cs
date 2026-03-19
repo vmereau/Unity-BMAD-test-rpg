@@ -22,6 +22,9 @@ namespace Game.UI
         [SerializeField] private GameObject _usableSection;
         [SerializeField] private TMP_Text _consumableLabel;
 
+        [Header("Equipment Type Label (optional)")]
+        [SerializeField] private TMP_Text _equipmentTypeLabelText;
+
         [Header("Skill Item Section (optional)")]
         [SerializeField] private GameObject _skillSection;
         [SerializeField] private TMP_Text _skillNameText;
@@ -45,6 +48,12 @@ namespace Game.UI
 
             switch (item)
             {
+                case WeaponSO:
+                    ShowEquipmentTypeLabel("Weapon");
+                    break;
+                case ArmorSO armor:
+                    ShowEquipmentTypeLabel(ArmorSlotDisplayName(armor.slot));
+                    break;
                 case SkillItemSO skillItem:
                     ShowUsableSection(skillItem);
                     ShowSkillSection(skillItem.Skill);
@@ -84,7 +93,25 @@ namespace Game.UI
         {
             _usableSection?.SetActive(false);
             _skillSection?.SetActive(false);
+            if (_equipmentTypeLabelText != null) _equipmentTypeLabelText.gameObject.SetActive(false);
         }
+
+        private void ShowEquipmentTypeLabel(string label)
+        {
+            if (_equipmentTypeLabelText == null) return;
+            _equipmentTypeLabelText.text = label;
+            _equipmentTypeLabelText.gameObject.SetActive(true);
+        }
+
+        private static string ArmorSlotDisplayName(Game.Inventory.EquipmentSlot slot) => slot switch
+        {
+            Game.Inventory.EquipmentSlot.Helmet   => "Helmet",
+            Game.Inventory.EquipmentSlot.Armor    => "Armor Set",
+            Game.Inventory.EquipmentSlot.Ring1    => "Ring",
+            Game.Inventory.EquipmentSlot.Ring2    => "Ring",
+            Game.Inventory.EquipmentSlot.Necklace => "Necklace",
+            _                                     => slot.ToString()
+        };
 
         private void ShowUsableSection(UsableItemSO usable)
         {

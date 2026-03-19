@@ -107,12 +107,14 @@ development_status:
   6-7-story-quest-world-changes: backlog
   epic-6-retrospective: optional
 
-  epic-7: backlog
-  7-1-equipment-slots: backlog
-  7-2-equipped-item-stat-effects: backlog
-  7-3-shop-npc-trading: backlog
-  7-4-looting-system: backlog
-  7-5-gold-bribe-system: backlog
+  epic-7: in-progress
+  7-1-equipment-slots: review
+  7-2-double-click-primary-action: ready-for-dev
+  7-3-equipped-item-stat-effects: backlog
+  7-4-equipment-visual-update: backlog
+  7-5-shop-npc-trading: backlog       # was 7-3
+  7-6-looting-system: backlog          # was 7-4
+  7-7-gold-bribe-system: backlog       # was 7-5
   epic-7-retrospective: optional
 
   epic-8: backlog

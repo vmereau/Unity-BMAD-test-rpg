@@ -23,6 +23,8 @@ namespace Game.UI
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ActionBarUI _actionBarUI;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
+        [SerializeField] private EquipmentSystem _equipmentSystem;
+        [SerializeField] private EquipmentUI _equipmentUI;
 
         private bool _isOpen = false;
         private InputSystem_Actions _input;
@@ -82,6 +84,7 @@ namespace Game.UI
         private void Open()
         {
             RefreshSlots();
+            _equipmentUI?.Refresh();
             _panelRoot.SetActive(true);
             _isOpen = true;
             CursorManager.Unlock();
@@ -216,6 +219,42 @@ namespace Game.UI
             else
             {
                 useBtn.interactable = false;
+            }
+
+            // Equip button — visible only when item is equippable and not yet equipped
+            var equipBtnTransform = _activeContextMenu.transform.Find("EquipButton");
+            if (equipBtnTransform != null && _equipmentSystem != null)
+            {
+                var equipBtn = equipBtnTransform.GetComponent<Button>();
+                bool canEquip = _equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item);
+                bool canUnequip = _equipmentSystem.IsEquipped(item);
+                equipBtnTransform.gameObject.SetActive(canEquip);
+                if (canEquip)
+                    equipBtn.onClick.AddListener(() => { _equipmentSystem.Equip(_contextMenuSlotIndex); RefreshSlots(); HideContextMenu(); });
+
+                var unequipBtnTransform = _activeContextMenu.transform.Find("UnequipButton");
+                if (unequipBtnTransform != null)
+                {
+                    unequipBtnTransform.gameObject.SetActive(canUnequip);
+                    if (canUnequip)
+                    {
+                        var unequipBtn = unequipBtnTransform.GetComponent<Button>();
+                        // Find which slot this item is in (scan all slots via EquipmentSystem)
+                        unequipBtn.onClick.AddListener(() =>
+                        {
+                            foreach (EquipmentSlot s in System.Enum.GetValues(typeof(EquipmentSlot)))
+                            {
+                                if (_equipmentSystem.GetEquipped(s) == item)
+                                {
+                                    _equipmentSystem.Unequip(s);
+                                    break;
+                                }
+                            }
+                            RefreshSlots();
+                            HideContextMenu();
+                        });
+                    }
+                }
             }
         }
 

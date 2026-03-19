@@ -98,6 +98,7 @@ MonoBehaviour:
   _descriptionText: {fileID: 910591286977977269}
   _usableSection: {fileID: 1985824633725728047}
   _consumableLabel: {fileID: 0}
+  _equipmentTypeLabelText: {fileID: 0}
   _skillSection: {fileID: 5333060085201076258}
   _skillNameText: {fileID: 634918292923147014}
   _skillLpCostText: {fileID: 533779782463652288}

@@ -29,6 +29,7 @@ GameObject:
   - component: {fileID: 8568453877098799715}
   - component: {fileID: 8613668570026627261}
   - component: {fileID: 2598684479475945976}
+  - component: {fileID: 1345817325320934682}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -367,6 +368,20 @@ MonoBehaviour:
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
   _inventorySystem: {fileID: 1994668802294238475}
   _playerTransform: {fileID: 5905369542039962551}
+--- !u!114 &1345817325320934682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8990bc815d87a44081e784aacd478a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.EquipmentSystem
+  _inventorySystem: {fileID: 1994668802294238475}
+  _onEquipmentChanged: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}
 --- !u!1 &5180643267766110463
 GameObject:
   m_ObjectHideFlags: 0
