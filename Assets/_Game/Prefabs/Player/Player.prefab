@@ -275,7 +275,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5633cb4b7d677c4bb2daefb335a338c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Progression.PlayerSkills
-  _lpSystem: {fileID: 0}
+  _lpSystem: {fileID: 7805096736339071647}
   _onSkillLearned: {fileID: 11400000, guid: deb4c5d880e9797439db19d954092ba8, type: 2}
 --- !u!114 &867121166079641131
 MonoBehaviour:

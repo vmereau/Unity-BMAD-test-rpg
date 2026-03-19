@@ -86,6 +86,7 @@ namespace Game.UI
             RefreshSlots();
             _equipmentUI?.Refresh();
             _panelRoot.SetActive(true);
+            _equipmentUI?.gameObject.SetActive(true);
             _isOpen = true;
             CursorManager.Unlock();
             GameLog.Info(TAG, "Inventory opened");
@@ -96,6 +97,7 @@ namespace Game.UI
             HideContextMenu();
             ClearSelection();
             _panelRoot.SetActive(false);
+            _equipmentUI?.gameObject.SetActive(false);
             _isOpen = false;
             CursorManager.Lock();
             GameLog.Info(TAG, "Inventory closed");

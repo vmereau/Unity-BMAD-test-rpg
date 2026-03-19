@@ -122,21 +122,25 @@ public enum EquipmentSlot { Weapon, Helmet, Armor, Ring1, Ring2, Necklace }
 
 ---
 
-### AC 5 — Equipment Panel Tab in Inventory Screen
+### AC 5 — Equipment Panel in Inventory Screen
 
-The inventory screen gains a two-panel layout: an **Equipment panel** on the left and the existing **Inventory grid** on the right.
+The inventory screen is organized under a parent wrapper **`InventoryUI`** (empty GameObject, child of UICanvas) that groups all three inventory-related panels. Each panel is a direct child of `InventoryUI`, arranged left-to-right.
 
 - `InventoryUI.cs` extended with `[SerializeField] private EquipmentUI _equipmentUI;`
 - `Open()` calls `_equipmentUI?.Refresh()` alongside the existing inventory refresh
-- The equipment panel is **always visible** when the inventory screen is open — it is not a toggled tab, but a persistent left-panel. No tab buttons needed for MVP.
-- The `EquipmentPanel` GameObject is a sibling of the existing `InventoryGrid` container inside `UICanvas/InventoryPanel`
+- The equipment panel is **always visible** when the inventory screen is open — not a toggled tab. No tab buttons needed for MVP.
+- `EquipmentPanel` is a **sibling** of `InventoryPanel` and `ItemDetailPanel` inside `InventoryUI`, NOT a child of `InventoryPanel`
 
-Layout (inside `InventoryPanel`):
+Layout (inside `UICanvas`):
 ```
-InventoryPanel (HorizontalLayoutGroup)
-├── EquipmentPanel   ← new, left side (~200px wide)
-│   └── [6 EquipmentSlotUI prefabs]
-└── InventoryGrid    ← existing, right side (unchanged)
+UICanvas
+├── ActionBar                        ← unchanged, stays at root
+└── InventoryUI                      ← new empty wrapper GO (no MonoBehaviour)
+    ├── EquipmentPanel               ← LEFT (~200px wide), direct child of InventoryUI
+    │   └── [6 EquipmentSlotUI prefabs]
+    ├── InventoryPanel               ← CENTER, internal grid unchanged
+    │   └── InventoryGrid
+    └── ItemDetailPanel              ← RIGHT, moved from UICanvas root into InventoryUI
 ```
 
 ---
@@ -219,7 +223,7 @@ Create 3 placeholder `ScriptableObject` assets for testing:
 - [x] Task 4: Add Equipment Panel to Inventory screen (AC: 5)
   - [x] 4.1 Create `EquipmentPanel` prefab at `Assets/_Game/Prefabs/UI/Equipment/EquipmentPanel.prefab`
   - [x] 4.2 Create `EquipmentSlot.prefab` at `Assets/_Game/Prefabs/UI/Equipment/EquipmentSlot.prefab` — 64×64 background Image, Icon 52×52, SlotLabel TMP, Button component
-  - [x] 4.3 Reparent existing `InventoryPanel` contents into a HorizontalLayoutGroup; add `EquipmentPanel` as left child
+  - [x] 4.3 Create `InventoryUI` empty wrapper GO in UICanvas; reparent `InventoryPanel` and `ItemDetailPanel` under it; extract `EquipmentPanel` from inside `InventoryPanel` and place it as first child of `InventoryUI` (left side, before `InventoryPanel`). Revert `InventoryPanel` — remove `HorizontalLayoutGroup`; `InventoryGrid` is its only child again.
   - [x] 4.4 Wire `EquipmentUI` serialized references in Inspector (6 slot UIs, EquipmentSystem, OnEquipmentChanged)
   - [x] 4.5 Add `[SerializeField] private EquipmentUI _equipmentUI` to `InventoryUI`; call `_equipmentUI?.Refresh()` in `Open()`
 
@@ -259,6 +263,25 @@ When `Equip()` is called for a Ring1-slotted item:
 3. Both full → bump Ring1 back to inventory, occupy Ring1 with new ring
 
 Ring2 is only reachable via overflow — it is never directly targeted by `ArmorSO.slot`. This keeps the SO authoring simple (all rings authored as Ring1) while still supporting two ring slots.
+
+---
+
+### UICanvas / InventoryUI Structure
+
+The inventory-related panels live under an **`InventoryUI`** empty wrapper GO (child of UICanvas).
+This is a pure organizational GameObject — it carries no MonoBehaviour script.
+
+```
+UICanvas
+├── ActionBar
+└── InventoryUI         ← empty GO, groups all inventory-screen panels
+    ├── EquipmentPanel  ← LEFT, has EquipmentUI.cs
+    ├── InventoryPanel  ← CENTER, has InventoryUI.cs
+    └── ItemDetailPanel ← RIGHT, has ItemDetailPanelUI.cs
+```
+
+`InventoryPanel` internally contains only `InventoryGrid` — the `HorizontalLayoutGroup` that previously wrapped `EquipmentPanel` is removed.
+Future screens (CraftingUI, ShopUI) get their own wrapper GOs at the same level as `InventoryUI`.
 
 ---
 
@@ -356,7 +379,10 @@ claude-sonnet-4-6
 - Implemented `EquipmentSystem` with full ring-bump logic (Ring1→Ring2→bump-Ring1), null-guards, and `GameEventSO_Void` broadcast
 - Created `OnEquipmentChanged.asset` via Unity MCP — follows same pattern as `OnStatsChanged.asset`
 - Implemented `EquipmentSlotUI` and `EquipmentUI` — event subscription in OnEnable/OnDisable, Initialize/Bind pattern
-- Modified `InventoryPanel.prefab` to add `HorizontalLayoutGroup` + embedded `EquipmentPanel` as first child (YAML-edited to guarantee correct sibling order)
+- Restructured `UICanvas.prefab`: added empty `InventoryUI` wrapper GO; `EquipmentPanel`, `InventoryPanel`, `ItemDetailPanel` are now siblings under `InventoryUI`; `EquipmentPanel` placed first (left side)
+- Reverted `InventoryPanel.prefab`: removed `HorizontalLayoutGroup` and nested `EquipmentPanel`; only `ContentRoot` (InventoryGrid) remains as child
+- `InventoryUI.cs` `Open()`/`Close()` updated to `SetActive` on `_equipmentUI.gameObject` since it is now a sibling (no longer auto-shown when `InventoryPanel` activates)
+- Cleaned `TestScene.unity`: removed stale scene-added `EquipmentPanel` (was incorrectly added inside `InventoryPanel` at scene level); updated wiring to match new prefab structure
 - Modified `InventoryUI.cs` to add `_equipmentSystem`, `_equipmentUI` fields; context menu shows EquipButton/UnequipButton conditionally; `Open()` calls `_equipmentUI?.Refresh()`
 - Modified `ItemDetailPanelUI.cs` to handle `WeaponSO` and `ArmorSO` cases with equipment type label
 - Added `EquipmentSystem` component to `Player.prefab`; wired `_inventorySystem` (same GO fileID) and `_onEquipmentChanged` (SO GUID) directly in YAML
@@ -384,5 +410,6 @@ claude-sonnet-4-6
 - `Assets/_Game/Scripts/UI/InventoryUI.cs`
 - `Assets/_Game/Scripts/UI/ItemDetailPanelUI.cs`
 - `Assets/_Game/Prefabs/UI/Inventory/InventoryPanel.prefab`
+- `Assets/_Game/Prefabs/UI/UICanvas.prefab`
 - `Assets/_Game/Prefabs/Player/Player.prefab`
 - `Assets/_Game/Scenes/TestScene.unity`
