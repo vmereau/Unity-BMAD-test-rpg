@@ -16,5 +16,5 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   maxStacks: 1
-  worldItemPrefab: {fileID: 0}
+  worldItemPrefab: {fileID: 7470631476087896926, guid: 3ffaef23b6cac824bb27f07060573b65, type: 3}
   slot: 1

@@ -7,13 +7,18 @@
 ## Class Hierarchy
 
 ```
-ItemSO                          (base — any item in the inventory)
-└── UsableItemSO  (abstract)   (items that can be "used" from the context menu)
-    ├── SkillItemSO             (teaches a SkillSO to the player on use)
-    └── PotionItemSO            (restores player health when used; stackable)
+ItemSO                              (base — any item in the inventory)
+├── UsableItemSO  (abstract)        (items that can be "used" from the context menu)
+│   ├── SkillItemSO                 (teaches a SkillSO to the player on use)
+│   └── PotionItemSO                (restores player health when used; stackable)
+└── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
+    ├── WeaponSO                    (occupies the Weapon slot)
+    └── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
 ```
 
 All types live in namespace `Game.Inventory`.
+
+`EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.
 
 ---
 
@@ -91,13 +96,31 @@ Create via **Assets → Create → Items → Skill Item**.
 
 ## Adding a New Item Type
 
-1. Create a new class extending `ItemSO` (or `UsableItemSO` for usable items).
-2. Add a `[CreateAssetMenu]` attribute.
-3. If it has data the UI should display:
-   - Add a public property/accessor for that data.
-   - Add a new `case` in `ItemDetailPanelUI.Show()` (`Assets/_Game/Scripts/UI/ItemDetailPanelUI.cs`).
-   - Add the optional section fields in the Inspector on the `_detailPanel` GameObject.
-4. If it is usable, the context menu **Use** button in `InventoryUI` enables automatically (it checks `item is UsableItemSO`).
+### Usable item (context menu "Use")
+1. Extend `UsableItemSO` (abstract), override `OnUse(GameObject user)`.
+2. Add `[CreateAssetMenu]`.
+3. Add a new `case` in `ItemDetailPanelUI.ShowSections()` → call `ShowUsableSection()` + any new section helper.
+4. The context menu **Use** button enables automatically (checks `item is UsableItemSO`).
+
+### Equippable item (wearable gear)
+1. Extend `EquipableItemSO` (abstract), override `CanEquip() => true`.
+2. Add `[CreateAssetMenu]`.
+3. Define which `EquipmentSlot` the item targets (either hardcoded like `WeaponSO`, or via a `slot` field like `ArmorSO`).
+4. Add a new `case` in `EquipmentSystem.Equip()` for slot resolution, plus an `else` warn for unknown types.
+5. Add a `ShowXxxSection(XxxSO item)` helper in `ItemDetailPanelUI` and call it from `ShowSections()`.
+6. Add section GameObjects in the `ItemDetailPanel` prefab/scene and wire them to the new `[SerializeField]` fields.
+7. The **Equip/Unequip** button in `ItemDetailPanelUI` is handled automatically by `ManageEquipButton()` for any `EquipableItemSO`.
+8. The context menu **Equip** button in `InventoryUI.ShowContextMenu()` also appears automatically — it checks `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click on the equipment slot or the Equip/Unequip button in `ItemDetailPanelUI`.
+
+### ItemDetailPanelUI section structure
+`ItemDetailPanelUI` uses **section GameObjects** shown/hidden per item type — not text labels:
+- `_equipableSection` — parent wrapper shown for all equippable items
+  - `_weaponSection` — shown only for `WeaponSO`
+  - `_armorSection` — shown only for `ArmorSO` (also sets `_armorTypeText`)
+- `_usableSection` — shown for `UsableItemSO` subtypes
+- `_skillSection` — shown additionally for `SkillItemSO`
+
+Button visibility is managed by dedicated helpers (`ManageEquipButton`, `ManageDropButton`, `ManageUseButton`) — each shows/hides and rewires its button per call to `Show()`.
 
 ---
 

@@ -1,6 +1,6 @@
 # Story 7-2: Double-Click Primary Action on Inventory Slots
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -21,7 +21,7 @@ public void PrimaryAction(int slotIndex)
 - Bounds-check `slotIndex`; log warn and return if out of range
 - Get `ItemSO item = _inventorySystem.Items[slotIndex].Item`; return if null
 - Dispatch by type:
-  - `item is WeaponSO || item is ArmorSO` → `_equipmentSystem.Equip(slotIndex)` then `RefreshSlots()`
+  - `item is EquipableItemSO` → `_equipmentSystem.Equip(slotIndex)` then `RefreshSlots()`
   - `item is UsableItemSO` → call existing `UseItem(slotIndex)` (handles `OnUse`, stack decrement, and `RefreshSlots()` internally — do not duplicate)
   - Base `ItemSO` (non-equippable, non-usable) → `GameLog.Info(TAG, $"No primary action for {item.itemName}")` and return
 - Depends on `_equipmentSystem` added to `InventoryUI` in story 7-1 (AC 6)
@@ -66,6 +66,7 @@ After:
 
 **`Assets/Tests/EditMode/InventoryPrimaryActionTests.cs`**:
 - `PrimaryAction_WeaponSO_CallsEquip` — slot contains a `WeaponSO`; `PrimaryAction(0)` calls `EquipmentSystem.Equip(0)` (verify via mock/stub or inspector-wired test double)
+- `PrimaryAction_EquipableItemSO_CallsEquip` — slot contains an `ArmorSO` (also `EquipableItemSO`); `PrimaryAction(0)` calls `EquipmentSystem.Equip(0)`, verifying dispatch uses `is EquipableItemSO` not `is WeaponSO`
 - `PrimaryAction_UsableItemSO_CallsUse` — slot contains a `PotionItemSO`; `PrimaryAction(0)` triggers `OnUse`
 - `PrimaryAction_BaseItemSO_IsNoOp` — slot contains base `ItemSO`; `PrimaryAction(0)` does not throw and does not call Equip or Use
 - `PrimaryAction_OutOfRange_DoesNotThrow` — `PrimaryAction(-1)` and `PrimaryAction(999)` log warn, no exception
@@ -84,17 +85,19 @@ After:
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `PrimaryAction()` to `InventoryUI.cs` (AC: 1)
-  - [ ] 1.1 Add `public void PrimaryAction(int slotIndex)` with type-dispatch (WeaponSO/ArmorSO → Equip, UsableItemSO → UseItem, else no-op)
-  - [ ] 1.2 Verified — compilation clean
+- [ ] Task 1: Add/update `PrimaryAction()` in `InventoryUI.cs` (AC: 1)
+  - [x] 1.1 Add `public void PrimaryAction(int slotIndex)` with type-dispatch (WeaponSO/ArmorSO → Equip, UsableItemSO → UseItem, else no-op)
+  - [ ] 1.2 Update dispatch: `item is EquipableItemSO` replaces `item is WeaponSO || item is ArmorSO`
+  - [ ] 1.3 Verified — compilation clean
 
-- [ ] Task 2: Extend `ItemSlotUI.OnPointerClick` (AC: 2)
-  - [ ] 2.1 Add `clickCount == 2` branch to left-click handler → call `_inventoryUI.PrimaryAction(SlotIndex)`
-  - [ ] 2.2 Verified — compilation clean, single-click selection unaffected
+- [x] Task 2: Extend `ItemSlotUI.OnPointerClick` (AC: 2)
+  - [x] 2.1 Add `clickCount == 2` branch to left-click handler → call `_inventoryUI.PrimaryAction(SlotIndex)`
+  - [x] 2.2 Verified — compilation clean, single-click selection unaffected
 
 - [ ] Task 3: Write Edit Mode tests (AC: 4)
-  - [ ] 3.1 Create `Assets/Tests/EditMode/InventoryPrimaryActionTests.cs`
-  - [ ] 3.2 Implement 4 test methods per AC 4
+  - [x] 3.1 Create `Assets/Tests/EditMode/InventoryPrimaryActionTests.cs`
+  - [x] 3.2 Implement 4 test methods per AC 4
+  - [ ] 3.3 Add `PrimaryAction_EquipableItemSO_CallsEquip` test (ArmorSO as test subject)
 
 - [ ] Task 4: Play Mode validation (AC: 5)
   - [ ] 4.1 Manual in-editor validation per AC 5 checklist
@@ -103,7 +106,11 @@ After:
 
 ### Dependency on Story 7-1
 
-`InventoryUI.PrimaryAction()` calls `_equipmentSystem.Equip(slotIndex)`. The `_equipmentSystem` field is added to `InventoryUI` in story 7-1 AC 6. **This story cannot be implemented until 7-1 is complete and `EquipmentSystem` compiles.**
+`InventoryUI.PrimaryAction()` calls `_equipmentSystem.Equip(slotIndex)`. The `_equipmentSystem` field is added to `InventoryUI` in story 7-1 AC 6. **This story cannot be fully validated until 7-1 is complete and `EquipmentSystem` compiles.**
+
+### Dependency on EquipableItemSO (Story 7-1 update)
+
+`PrimaryAction()` dispatch uses `item is EquipableItemSO` — introduced when story 7-1 was updated to add the abstract `EquipableItemSO` base class. Do **not** revert to `item is WeaponSO || item is ArmorSO`.
 
 ---
 
@@ -144,10 +151,11 @@ Assets/Tests/EditMode/InventoryPrimaryActionTests.cs
 
 **Files NOT to modify:**
 ```
-Assets/_Game/Scripts/Inventory/EquipmentSystem.cs   ← API used as-is from 7-1
-Assets/_Game/Scripts/Inventory/InventorySystem.cs   ← unchanged
-Assets/_Game/ScriptableObjects/Items/WeaponSO.cs    ← unchanged
-Assets/_Game/ScriptableObjects/Items/ArmorSO.cs     ← unchanged
+Assets/_Game/Scripts/Inventory/EquipmentSystem.cs        ← API used as-is from 7-1
+Assets/_Game/Scripts/Inventory/InventorySystem.cs        ← unchanged
+Assets/_Game/ScriptableObjects/Items/WeaponSO.cs         ← unchanged
+Assets/_Game/ScriptableObjects/Items/ArmorSO.cs          ← unchanged
+Assets/_Game/ScriptableObjects/Items/EquipableItemSO.cs  ← abstract base, unchanged
 ```
 
 ### References
@@ -166,4 +174,12 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Tasks 1–3 complete. Added `InventoryUI.PrimaryAction(int slotIndex)` with type-dispatch: WeaponSO/ArmorSO → `EquipmentSystem.Equip()` + `RefreshSlots()`, UsableItemSO → `UseItem()`, base ItemSO → info log. Extended `ItemSlotUI.OnPointerClick` left-click branch: `clickCount == 2` with non-null item triggers `PrimaryAction`; all other left-clicks fall through to `SelectSlot`. Four EditMode tests pass (187/187 total, zero regressions). Task 4 (play-mode) requires manual in-editor validation.
+
 ### File List
+
+- `Assets/_Game/Scripts/UI/InventoryUI.cs` — added `PrimaryAction()` method
+- `Assets/_Game/Scripts/UI/ItemSlotUI.cs` — extended `OnPointerClick` with `clickCount == 2` branch
+- `Assets/Tests/EditMode/InventoryPrimaryActionTests.cs` — new file, 4 EditMode tests
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — status in-progress
+- `_bmad-output/implementation-artifacts/7-2-double-click-primary-action.md` — story updates

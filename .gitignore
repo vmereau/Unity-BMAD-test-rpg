@@ -53,3 +53,5 @@ ehthumbs.db
 # Play Mode test screenshots
 Assets/Screenshots/
 Assets/Screenshots.meta
+/Assets/Hivemind
+Assets/Hivemind.meta

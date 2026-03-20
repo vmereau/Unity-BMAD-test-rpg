@@ -135,3 +135,8 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | HIGH | Namespace `Game.Debug` — use `Game.DevTools`; see `Assets/_Game/Scripts/Debug/CLAUDE.md` |
 | HIGH | Prefab structure or layer misconfigured — see `Assets/_Game/Prefabs/CLAUDE.md` |
 | HIGH | Assembly / InputSystem / Player / Animator rules — see folder-specific CLAUDE.md files |
+| MEDIUM | Public method on MonoBehaviour dereferences a `[SerializeField]` dependency without a null guard — `Awake` setting `enabled = false` does NOT block external callers from reaching public methods; add `if (_dep == null) return;` at the top of every public method that uses a serialized dependency |
+| LOW | `private const string TAG` declared in a class that has no `GameLog.*` calls — dead code, remove it |
+| LOW | `[SerializeField]` field declared but never read or written in code — remove unless a future story explicitly needs it |
+| LOW | `System.Enum.GetValues(typeof(T))` inside a button-click or event handler — allocates a new array on every call; cache as `static readonly T[]` at class level |
+| LOW | `Transform.Find("ChildName")` for context menu button lookup with no warn/error when null — fails silently if prefab child is renamed; log a warning when the result is null and the feature is expected |

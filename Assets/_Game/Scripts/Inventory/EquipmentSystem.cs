@@ -36,6 +36,13 @@ namespace Game.Inventory
             }
 
             var item = _inventorySystem.Items[inventoryIndex].Item;
+
+            if (item is not EquipableItemSO)
+            {
+                GameLog.Warn(TAG, "Item is not equippable");
+                return;
+            }
+
             EquipmentSlot targetSlot;
 
             if (item is WeaponSO)
@@ -60,7 +67,7 @@ namespace Game.Inventory
             }
             else
             {
-                GameLog.Warn(TAG, $"Equip: {item.itemName} is not equippable");
+                GameLog.Warn(TAG, "Unknown equippable slot type");
                 return;
             }
 
@@ -98,12 +105,14 @@ namespace Game.Inventory
         public ItemSO GetEquipped(EquipmentSlot slot)
             => _equipped.TryGetValue(slot, out var item) ? item : null;
 
-        /// <summary>Returns true if the item can be equipped (WeaponSO or ArmorSO).</summary>
-        public bool IsEquippable(ItemSO item) => item is WeaponSO || item is ArmorSO;
+        /// <summary>Returns true if the item can be equipped.</summary>
+        public bool IsEquippable(ItemSO item) => item is EquipableItemSO;
 
         /// <summary>Returns true if the item is currently equipped in any slot.</summary>
         public bool IsEquipped(ItemSO item)
         {
+            if(!IsEquippable(item)) return false;
+            
             foreach (var equipped in _equipped.Values)
             {
                 if (equipped == item) return true;

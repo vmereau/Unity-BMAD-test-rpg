@@ -1,3 +1,4 @@
+using Game.Core;
 using Game.Inventory;
 using Game.Progression;
 using TMPro;
@@ -13,6 +14,7 @@ namespace Game.UI
     /// </summary>
     public class ItemDetailPanelUI : MonoBehaviour
     {
+        private const string TAG = "[Inventory]";
         [Header("Common")]
         [SerializeField] private Image _icon;
         [SerializeField] private TMP_Text _nameText;
@@ -23,7 +25,10 @@ namespace Game.UI
         [SerializeField] private TMP_Text _consumableLabel;
 
         [Header("Equipment Type Label (optional)")]
-        [SerializeField] private TMP_Text _equipmentTypeLabelText;
+        [SerializeField] private GameObject _equipableSection;
+        [SerializeField] private GameObject _weaponSection;
+        [SerializeField] private GameObject _armorSection;
+        [SerializeField] private TMP_Text _armorTypeText;
 
         [Header("Skill Item Section (optional)")]
         [SerializeField] private GameObject _skillSection;
@@ -34,25 +39,155 @@ namespace Game.UI
         [Header("Actions")]
         [SerializeField] private Button _dropButton;
         [SerializeField] private Button _useButton;
+        [SerializeField] private Button _equipButton;
+        
+        [SerializeField] private EquipmentSystem _equipmentSystem;
+        [SerializeField] private InventorySystem _inventorySystem;
+
+        private static readonly EquipmentSlot[] AllSlots = (EquipmentSlot[])System.Enum.GetValues(typeof(EquipmentSlot));
 
         /// <param name="onDrop">Called when Drop is clicked. Always provided.</param>
         /// <param name="onUse">Called when Use is clicked. Pass null to disable the Use button.</param>
         public void Show(ItemSO item, System.Action onDrop, System.Action onUse)
         {
+            ShowBaseItemDetails(item);
+            ShowSections(item);
+
+            ManageDropButton(onDrop, item);
+            ManageUseButton(onUse, item);
+            ManageEquipButton(item);
+            
+            gameObject.SetActive(true);
+        }
+
+        /// <summary>Shows item details with an equip button (no drop/use). Used by the equipment panel single-click.</summary>
+        public void Show(ItemSO item)
+        {
+            ShowBaseItemDetails(item);
+            ShowSections(item);
+
+            ManageDropButton(null, item);
+            ManageUseButton(null, item);
+            ManageEquipButton(item);
+
+            gameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+        }
+
+        private void OnEquipClicked(ItemSO item)
+        {
+            if (_inventorySystem == null || _equipmentSystem == null) return;
+            for (int i = 0; i < _inventorySystem.Items.Count; i++)
+            {
+                if (_inventorySystem.Items[i].Item == item)
+                {
+                    _equipmentSystem.Equip(i);
+                    return;
+                }
+            }
+            GameLog.Warn(TAG, "Item not found in inventory for equip");
+        }
+
+        private void OnUnequipClicked(ItemSO item)
+        {
+            if (_equipmentSystem == null) return;
+            foreach (var slot in AllSlots)
+            {
+                if (_equipmentSystem.GetEquipped(slot) == item)
+                {
+                    _equipmentSystem.Unequip(slot);
+                    return;
+                }
+            }
+        }
+
+        private void ManageUseButton(System.Action onUse, ItemSO item)
+        {
+            if (_useButton == null) return;
+            _useButton.onClick.RemoveAllListeners();
+            
+            if (item is not UsableItemSO)
+            {
+                _useButton.gameObject.SetActive(false);
+                return;
+            }
+            
+            _useButton.gameObject.SetActive(true);
+            _useButton.onClick.AddListener(() => onUse?.Invoke());
+        }
+
+        private void ManageDropButton(System.Action onDrop, ItemSO item)
+        {
+            if (_dropButton == null) return;
+            _dropButton.onClick.RemoveAllListeners();
+            
+            bool isEquipped = _equipmentSystem != null && _equipmentSystem.IsEquipped(item);
+
+            if (isEquipped)
+            {
+                _dropButton.gameObject.SetActive(false);
+                return;
+            }
+            
+            _dropButton.gameObject.SetActive(true);
+            _dropButton.onClick.AddListener(() => onDrop?.Invoke());
+        }
+
+        private void ManageEquipButton(ItemSO item)
+        {
+            if (_equipButton == null) return;
+            _equipButton.onClick.RemoveAllListeners();
+
+            if (item is not EquipableItemSO)
+            {
+                _equipButton.gameObject.SetActive(false);
+                return;
+            }
+            
+            _equipButton.gameObject.SetActive(true);
+            bool isEquipped = _equipmentSystem != null && _equipmentSystem.IsEquipped(item);
+            
+            var labelText = _equipButton.GetComponentInChildren<TMP_Text>();
+            if (labelText != null) labelText.text = isEquipped ? "Unequip" : "Equip";
+            
+            if (isEquipped)
+                _equipButton.onClick.AddListener(() => OnUnequipClicked(item));
+            else
+                _equipButton.onClick.AddListener(() => OnEquipClicked(item));
+        }
+
+        private void HideTypeSections()
+        {
+            _usableSection?.SetActive(false);
+            _skillSection?.SetActive(false);
+            _armorSection?.SetActive(false);
+            _weaponSection?.SetActive(false);
+            _equipableSection?.SetActive(false);
+        }
+
+        private void ShowBaseItemDetails(ItemSO item)
+        {
             _icon.sprite = item.icon;
             _icon.color = item.icon != null ? Color.white : Color.gray;
             _nameText.text = item.itemName;
             _descriptionText.text = item.description;
+        }
 
+        private void ShowSections(ItemSO item)
+        {
             HideTypeSections();
-
+            
             switch (item)
             {
-                case WeaponSO:
-                    ShowEquipmentTypeLabel("Weapon");
+                case WeaponSO weapon:
+                    ShowWeaponSection(weapon);
                     break;
                 case ArmorSO armor:
-                    ShowEquipmentTypeLabel(ArmorSlotDisplayName(armor.slot));
+                    ShowArmorSection(armor);
                     break;
                 case SkillItemSO skillItem:
                     ShowUsableSection(skillItem);
@@ -62,54 +197,33 @@ namespace Game.UI
                     ShowUsableSection(potionItem);
                     break;
             }
-
-            BindButtons(onDrop, onUse);
-            gameObject.SetActive(true);
         }
 
-        public void Hide()
+        private void ShowWeaponSection(WeaponSO item)
         {
-            gameObject.SetActive(false);
+            if (_equipableSection == null) return;
+            _equipableSection.SetActive(true);
+            if(_weaponSection == null) return;
+            _weaponSection.SetActive(true);
         }
 
-        private void BindButtons(System.Action onDrop, System.Action onUse)
+        private void ShowArmorSection(ArmorSO item)
         {
-            if (_dropButton != null)
-            {
-                _dropButton.onClick.RemoveAllListeners();
-                _dropButton.onClick.AddListener(() => onDrop?.Invoke());
-            }
+            if (_equipableSection == null) return;
+            _equipableSection.SetActive(true);
+            if(_armorSection == null) return;
+            _armorSection.SetActive(true);
 
-            if (_useButton != null)
-            {
-                _useButton.onClick.RemoveAllListeners();
-                _useButton.interactable = onUse != null;
-                if (onUse != null)
-                    _useButton.onClick.AddListener(() => onUse.Invoke());
-            }
+            if (_armorTypeText != null) _armorTypeText.text = ArmorSlotDisplayName(item.slot);
         }
 
-        private void HideTypeSections()
+        private static string ArmorSlotDisplayName(EquipmentSlot slot) => slot switch
         {
-            _usableSection?.SetActive(false);
-            _skillSection?.SetActive(false);
-            if (_equipmentTypeLabelText != null) _equipmentTypeLabelText.gameObject.SetActive(false);
-        }
-
-        private void ShowEquipmentTypeLabel(string label)
-        {
-            if (_equipmentTypeLabelText == null) return;
-            _equipmentTypeLabelText.text = label;
-            _equipmentTypeLabelText.gameObject.SetActive(true);
-        }
-
-        private static string ArmorSlotDisplayName(Game.Inventory.EquipmentSlot slot) => slot switch
-        {
-            Game.Inventory.EquipmentSlot.Helmet   => "Helmet",
-            Game.Inventory.EquipmentSlot.Armor    => "Armor Set",
-            Game.Inventory.EquipmentSlot.Ring1    => "Ring",
-            Game.Inventory.EquipmentSlot.Ring2    => "Ring",
-            Game.Inventory.EquipmentSlot.Necklace => "Necklace",
+            EquipmentSlot.Helmet   => "Helmet",
+            EquipmentSlot.Armor    => "Armor Set",
+            EquipmentSlot.Ring1    => "Ring",
+            EquipmentSlot.Ring2    => "Ring",
+            EquipmentSlot.Necklace => "Necklace",
             _                                     => slot.ToString()
         };
 

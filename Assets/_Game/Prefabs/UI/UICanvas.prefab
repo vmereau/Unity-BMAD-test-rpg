@@ -166,6 +166,7 @@ MonoBehaviour:
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
   _equipmentSystem: {fileID: 0}
   _equipmentUI: {fileID: 8114868801220912305}
+  _onEquipmentChanged: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}
 --- !u!1001 &1879756492290975518
 PrefabInstance:
   m_ObjectHideFlags: 0

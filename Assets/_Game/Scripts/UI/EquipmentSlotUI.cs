@@ -7,15 +7,15 @@ namespace Game.UI
 {
     public class EquipmentSlotUI : MonoBehaviour
     {
-        private const string TAG = "[Inventory]";
-
         [SerializeField] private Image _iconImage;
-        [SerializeField] private Image _backgroundImage;
         [SerializeField] private TMP_Text _slotLabelText;
         [SerializeField] private Button _button;
 
         public EquipmentSlot Slot { get; private set; }
         private EquipmentUI _equipmentUI;
+        private float _lastClickTime;
+        private const float DoubleClickThreshold = 0.3f;
+        private ItemSO _currentItem;
 
         public void Initialize(EquipmentSlot slot, EquipmentUI equipmentUI)
         {
@@ -26,11 +26,21 @@ namespace Game.UI
                 _slotLabelText.text = SlotDisplayName(slot);
 
             if (_button != null)
-                _button.onClick.AddListener(() => _equipmentUI.OnSlotClicked(Slot));
+                _button.onClick.AddListener(OnButtonClicked);
+        }
+
+        private void OnButtonClicked()
+        {
+            if (Time.unscaledTime - _lastClickTime <= DoubleClickThreshold)
+                _equipmentUI.OnSlotDoubleClicked(Slot);
+            else if (_currentItem != null)
+                _equipmentUI.OnSlotClicked(Slot, _currentItem);
+            _lastClickTime = Time.unscaledTime;
         }
 
         public void Bind(ItemSO item)
         {
+            _currentItem = item;
             if (item != null)
             {
                 if (_iconImage != null)

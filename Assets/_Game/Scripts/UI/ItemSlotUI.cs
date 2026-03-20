@@ -138,7 +138,15 @@ namespace Game.UI
             }
             else if (eventData.button == PointerEventData.InputButton.Left)
             {
-                _inventoryUI.SelectSlot(SlotIndex);
+                if (eventData.clickCount == 2)
+                {
+                    if (Item != null)
+                        _inventoryUI.PrimaryAction(SlotIndex);
+                }
+                else
+                {
+                    _inventoryUI.SelectSlot(SlotIndex);
+                }
             }
         }
 

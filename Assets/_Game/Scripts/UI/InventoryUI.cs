@@ -23,8 +23,12 @@ namespace Game.UI
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ActionBarUI _actionBarUI;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
+        
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private EquipmentUI _equipmentUI;
+        [SerializeField] private GameEventSO_Void _onEquipmentChanged;
+
+        private static readonly EquipmentSlot[] AllEquipmentSlots = (EquipmentSlot[])System.Enum.GetValues(typeof(EquipmentSlot));
 
         private bool _isOpen = false;
         private InputSystem_Actions _input;
@@ -52,6 +56,7 @@ namespace Game.UI
             _input.Player.InventoryToggle.performed += HandleToggle;
             _input.UI.Cancel.performed += HandleClose;
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
+            _onEquipmentChanged?.AddListener(HandleEquipmentSlotsChange);
         }
 
         private void OnDisable()
@@ -60,6 +65,7 @@ namespace Game.UI
             _input.Player.InventoryToggle.performed -= HandleToggle;
             _input.UI.Cancel.performed -= HandleClose;
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
+            _onEquipmentChanged?.RemoveListener(HandleEquipmentSlotsChange);
         }
 
         private void OnDestroy()
@@ -104,6 +110,7 @@ namespace Game.UI
         }
 
         private void HandleActionBarUsed(int _) => RefreshSlots(false);
+        private void HandleEquipmentSlotsChange(bool _) => RefreshSlots();
 
         public void DropItem(int slotIndex)
         {
@@ -154,6 +161,31 @@ namespace Game.UI
                 _inventorySystem.DecrementStack(slotIndex);
                 RefreshSlots();
                 GameLog.Info(TAG, $"Consumed: {item.itemName}");
+            }
+        }
+
+        public void PrimaryAction(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _inventorySystem.Count)
+            {
+                GameLog.Warn(TAG, $"PrimaryAction: slot {slotIndex} out of range");
+                return;
+            }
+            var item = _inventorySystem.Items[slotIndex].Item;
+            if (item == null) return;
+
+            if (item is EquipableItemSO)
+            {
+                _equipmentSystem.Equip(slotIndex);
+                RefreshSlots();
+            }
+            else if (item is UsableItemSO)
+            {
+                UseItem(slotIndex);
+            }
+            else
+            {
+                GameLog.Info(TAG, $"No primary action for {item.itemName}");
             }
         }
 
@@ -215,47 +247,30 @@ namespace Game.UI
             var useBtn = _activeContextMenu.transform.Find("UseButton").GetComponent<Button>();
             if (item is UsableItemSO usable)
             {
+                useBtn.gameObject.SetActive(true);
                 useBtn.interactable = true;
                 useBtn.onClick.AddListener(() => { UseItem(_contextMenuSlotIndex); HideContextMenu(); });
             }
             else
             {
-                useBtn.interactable = false;
+                useBtn.gameObject.SetActive(false);
             }
 
             // Equip button — visible only when item is equippable and not yet equipped
             var equipBtnTransform = _activeContextMenu.transform.Find("EquipButton");
-            if (equipBtnTransform != null && _equipmentSystem != null)
+            if (_equipmentSystem != null)
             {
-                var equipBtn = equipBtnTransform.GetComponent<Button>();
-                bool canEquip = _equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item);
-                bool canUnequip = _equipmentSystem.IsEquipped(item);
-                equipBtnTransform.gameObject.SetActive(canEquip);
-                if (canEquip)
-                    equipBtn.onClick.AddListener(() => { _equipmentSystem.Equip(_contextMenuSlotIndex); RefreshSlots(); HideContextMenu(); });
-
-                var unequipBtnTransform = _activeContextMenu.transform.Find("UnequipButton");
-                if (unequipBtnTransform != null)
+                if (equipBtnTransform == null)
                 {
-                    unequipBtnTransform.gameObject.SetActive(canUnequip);
-                    if (canUnequip)
-                    {
-                        var unequipBtn = unequipBtnTransform.GetComponent<Button>();
-                        // Find which slot this item is in (scan all slots via EquipmentSystem)
-                        unequipBtn.onClick.AddListener(() =>
-                        {
-                            foreach (EquipmentSlot s in System.Enum.GetValues(typeof(EquipmentSlot)))
-                            {
-                                if (_equipmentSystem.GetEquipped(s) == item)
-                                {
-                                    _equipmentSystem.Unequip(s);
-                                    break;
-                                }
-                            }
-                            RefreshSlots();
-                            HideContextMenu();
-                        });
-                    }
+                    GameLog.Warn(TAG, "ShowContextMenu: 'EquipButton' not found in context menu prefab");
+                }
+                else
+                {
+                    var equipBtn = equipBtnTransform.GetComponent<Button>();
+                    bool canEquip = _equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item);
+                    equipBtnTransform.gameObject.SetActive(canEquip);
+                    if (canEquip)
+                        equipBtn.onClick.AddListener(() => { _equipmentSystem.Equip(_contextMenuSlotIndex); RefreshSlots(); HideContextMenu(); });
                 }
             }
         }
