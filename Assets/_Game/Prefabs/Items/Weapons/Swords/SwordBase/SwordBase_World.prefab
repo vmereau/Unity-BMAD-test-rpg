@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 290358418446712808}
   - component: {fileID: 4788758735672090356}
   m_Layer: 8
-  m_Name: Sword base
+  m_Name: SwordBase_World
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

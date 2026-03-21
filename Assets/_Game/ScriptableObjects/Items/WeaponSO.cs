@@ -8,6 +8,9 @@ namespace Game.Inventory
         [Header("Combat")]
         public float damageBonus;
 
+        [Header("Animation")]
+        public AnimatorOverrideController animatorOverrideController; // Optional. Applied to player Animator on equip. Null = keep default controller.
+
         public override bool CanEquip() => true;
     }
 }

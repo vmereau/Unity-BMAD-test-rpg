@@ -31,6 +31,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── LearningPointSystem.cs
 ├── GoldSystem.cs        (_startingGold: 500)
 ├── LockOnSystem.cs
+├── EquipmentVisuals.cs  (story 7-4; wire via Game/Dev/Wire EquipmentVisuals on Player Prefab)
 ├── UICanvas             (child — nested prefab: Assets/_Game/Prefabs/UI/UICanvas.prefab)
 │   ├── Canvas + CanvasScaler + GraphicRaycaster + InventoryUI
 │   ├── Crosshair        (Image)
@@ -79,6 +80,33 @@ Enemy_Grunt.prefab  (Assets/_Game/Prefabs/Enemies/)
 | Interactable (pickup, NPC, etc.) | **Interactable (Layer 8)** | `InteractionSystem` raycasts only against Layer 8 — prefab is invisible to interaction without it |
 
 Always set the layer on the **root** GameObject of the prefab, not just a child.
+
+---
+
+## Weapon Prefab Convention (Assets/_Game/Prefabs/Items/Weapons/)
+
+Each weapon lives in its own folder and ships as **two prefabs**:
+
+```
+Swords/SwordBase/
+├── SwordBase_World.prefab   ← dropped item (Rigidbody, ItemPickup, solid BoxCollider, Layer: Interactable)
+└── SwordBase_Visual.prefab  ← equipped visual (no Rigidbody, no ItemPickup, Layer: Default)
+    └── SM_WeaponMesh        ← nested mesh prefab; grip offset baked into localPosition/localRotation
+                                BoxCollider isTrigger=true added as component override on this GO
+                                Story 7-9 adds WeaponHitbox.cs to this same GO
+```
+
+**SO wiring:**
+- `ItemSO.worldItemPrefab` → `_World` prefab
+- `EquipableItemSO.equipVisualPrefab` → `_Visual` prefab
+
+**Why two prefabs:** `_World` needs physics + interaction; `_Visual` needs neither. Assigning `_World` to `equipVisualPrefab` causes the sword to fall to the floor and be re-pickable by the player when equipped.
+
+**Grip alignment:** The `_Visual` root is the grip point (placed at `WeaponSocket` with `localPosition = Vector3.zero`). Offset the nested mesh child's `localPosition`/`localRotation` in the prefab Inspector to align the blade correctly in the hand. Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
+
+**Trigger collider placement:** BoxCollider (isTrigger=true) goes on the **mesh child GO** as a component override (not on the visual root, not in a separate HitboxRoot child — nested prefab children can't be reparented under a stripped transform via YAML). `GetComponentInChildren<WeaponHitbox>()` from `ActiveWeaponGO` finds it regardless of depth.
+
+**GUID of `SwordBase_Visual.prefab.meta` is manually crafted** (`d5e6f7a8b9c0d1e2f3a4b5c6d7e8f901`) — set intentionally so the GUID could be typed directly into `Weapon_TestSword.asset` YAML. It matches and resolves correctly. **Never delete this `.meta` file** — Unity would regenerate a random GUID and silently break the `equipVisualPrefab` reference (weapon shows placeholder cube with no error). Future weapons should let Unity auto-generate their `.meta` GUID and then copy it into the `.asset` YAML.
 
 ---
 
