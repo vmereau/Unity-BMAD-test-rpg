@@ -3,12 +3,16 @@ using System.Reflection;
 using NUnit.Framework;
 using Game.Inventory;
 using Game.UI;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Tests.EditMode
 {
     public class InventoryPrimaryActionTests
     {
+        private static readonly EquipmentSlot[] AllEquipmentSlots = (EquipmentSlot[])System.Enum.GetValues(typeof(EquipmentSlot));
+
         // Test double — records whether OnUse was invoked without needing player systems
         private class TrackingUsableItem : UsableItemSO
         {
@@ -20,6 +24,7 @@ namespace Tests.EditMode
         private GameObject _panelRootGO;
         private GameObject _contentRootGO;
         private GameObject _playerGO;
+        private GameObject _slotPrefab;
         private InventorySystem _inventory;
         private EquipmentSystem _equipment;
         private InventoryUI _inventoryUI;
@@ -46,12 +51,26 @@ namespace Tests.EditMode
             // Wire EquipmentSystem
             SetField(_equipment, "_inventorySystem", _inventory);
 
+            // Minimal slot prefab — required for RefreshSlots to not crash when inventory is non-empty
+            _slotPrefab = new GameObject("SlotPrefab");
+            _slotPrefab.SetActive(false); // defer Awake until Instantiate in the scene hierarchy
+            var slotUI = _slotPrefab.AddComponent<ItemSlotUI>();
+            var iconGO = new GameObject("Icon");
+            iconGO.transform.SetParent(_slotPrefab.transform);
+            var iconImage = iconGO.AddComponent<Image>();
+            var nameGO = new GameObject("NameText");
+            nameGO.transform.SetParent(_slotPrefab.transform);
+            var nameText = nameGO.AddComponent<TextMeshProUGUI>();
+            SetField(slotUI, "_iconImage", iconImage);
+            SetField(slotUI, "_nameText", nameText);
+
             // Wire InventoryUI
             SetField(_inventoryUI, "_panelRoot",        _panelRootGO);
             SetField(_inventoryUI, "_contentRoot",      _contentRootGO.transform);
             SetField(_inventoryUI, "_inventorySystem",  _inventory);
             SetField(_inventoryUI, "_equipmentSystem",  _equipment);
             SetField(_inventoryUI, "_playerTransform",  _playerGO.transform);
+            SetField(_inventoryUI, "_itemSlotPrefab",   _slotPrefab);
 
             // Activate — all Awakes fire now with dependencies set
             _testRoot.SetActive(true);
@@ -62,6 +81,7 @@ namespace Tests.EditMode
         {
             Object.DestroyImmediate(_testRoot);
             Object.DestroyImmediate(_playerGO);
+            Object.DestroyImmediate(_slotPrefab);
             foreach (var asset in _createdAssets)
                 Object.DestroyImmediate(asset);
             _createdAssets.Clear();
@@ -78,6 +98,15 @@ namespace Tests.EditMode
         {
             var item = ScriptableObject.CreateInstance<WeaponSO>();
             item.itemName = name;
+            _createdAssets.Add(item);
+            return item;
+        }
+
+        private ArmorSO CreateArmor(EquipmentSlot slot = EquipmentSlot.Helmet, string name = "Test Helmet")
+        {
+            var item = ScriptableObject.CreateInstance<ArmorSO>();
+            item.itemName = name;
+            item.slot = slot;
             _createdAssets.Add(item);
             return item;
         }
@@ -99,6 +128,20 @@ namespace Tests.EditMode
         }
 
         // ── AC 4 Tests ───────────────────────────────────────────────────────
+
+        [Test]
+        public void PrimaryAction_EquipableItemSO_CallsEquip()
+        {
+            var helmet = CreateArmor(EquipmentSlot.Helmet);
+            _inventory.AddItem(helmet);
+
+            _inventoryUI.PrimaryAction(0);
+
+            Assert.AreEqual(helmet, _equipment.GetEquipped(EquipmentSlot.Helmet),
+                "ArmorSO (EquipableItemSO) should be equipped in Helmet slot after PrimaryAction");
+            Assert.AreEqual(0, _inventory.Count,
+                "Armor should be removed from inventory after equip");
+        }
 
         [Test]
         public void PrimaryAction_WeaponSO_CallsEquip()
@@ -138,7 +181,7 @@ namespace Tests.EditMode
             // Item stays in inventory — no equip or use occurred
             Assert.AreEqual(1, _inventory.Count,
                 "Base item should remain in inventory (no action taken)");
-            foreach (EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentSlot)))
+            foreach (EquipmentSlot slot in AllEquipmentSlots)
                 Assert.IsNull(_equipment.GetEquipped(slot),
                     $"No equipment slot should be filled for a base item (checked {slot})");
         }

@@ -28,8 +28,6 @@ namespace Game.UI
         [SerializeField] private EquipmentUI _equipmentUI;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
 
-        private static readonly EquipmentSlot[] AllEquipmentSlots = (EquipmentSlot[])System.Enum.GetValues(typeof(EquipmentSlot));
-
         private bool _isOpen = false;
         private InputSystem_Actions _input;
 
@@ -176,6 +174,11 @@ namespace Game.UI
 
             if (item is EquipableItemSO)
             {
+                if (_equipmentSystem == null)
+                {
+                    GameLog.Warn(TAG, "PrimaryAction: _equipmentSystem is not assigned");
+                    return;
+                }
                 _equipmentSystem.Equip(slotIndex);
                 RefreshSlots();
             }
