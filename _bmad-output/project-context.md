@@ -119,6 +119,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - `Core.unity` is ALWAYS loaded — contains: `WorldStateManager`, `SaveSystem`, `GameEventBus`, Cinemachine rig, UI canvas, `DayNightController`, `AudioManager`
 - Region scenes (`StartingTown`, `Wilderness`, `Dungeon`) loaded additively via `LoadSceneAsync(additive)` — never standalone
 - Never put global managers in region scenes — they belong in `Core.unity` only
+- `SceneLoader` (stub GO in `Core.unity`, script `Assets/_Game/Scripts/Core/SceneLoader.cs`) auto-loads the startup region on `Start()` via `[SerializeField] private string _startupScene = "StartingTown"` — change the Inspector value to switch the boot region; do NOT hardcode the scene name string
 
 **Naming Conventions:**
 - Classes: `PascalCase` (e.g. `PlayerCombat`, `WorldStateManager`)
@@ -236,6 +237,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 **Interaction System Patterns (Epic 4):**
 - `IInteractable` interface (in `Game.World`) — implement for any world object the player can interact with
+- `IInteractable` exact signature: `string InteractPrompt { get; }` and `void Interact()` — **no parameters on `Interact()`**; story templates sometimes show `Interact(GameObject interactor)` which is wrong and will not compile
 - `InteractionSystem` raycasts from center-screen with `ViewportPointToRay(0.5, 0.5, 0)` against **Layer 8 only**
 - Hit detection uses `GetComponentInParent<IInteractable>()` — collider may be on a child GameObject
 - Interaction prompt (`InteractPrompt` property) displayed via `OnGUI` under `#if DEVELOPMENT_BUILD || UNITY_EDITOR` — this is the one permitted `OnGUI` exception (dev-only overlay, not gameplay UI)

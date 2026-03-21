@@ -140,3 +140,4 @@ High-signal issues to always check in Unity MonoBehaviour reviews:
 | LOW | `[SerializeField]` field declared but never read or written in code — remove unless a future story explicitly needs it |
 | LOW | `System.Enum.GetValues(typeof(T))` inside a button-click or event handler — allocates a new array on every call; cache as `static readonly T[]` at class level |
 | LOW | `Transform.Find("ChildName")` for context menu button lookup with no warn/error when null — fails silently if prefab child is renamed; log a warning when the result is null and the feature is expected |
+| LOW | Story File List missing Unity-generated `{SceneName}Settings.lighting` asset — auto-created at `Assets/` root when any scene's lighting settings are modified in the Editor (no bake required); always check `Assets/*.lighting` after scene work |
