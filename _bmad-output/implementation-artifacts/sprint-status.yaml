@@ -110,7 +110,7 @@ development_status:
   epic-7: in-progress
   7-1-equipment-slots: done
   7-2-double-click-primary-action: done
-  7-3-equipped-item-stat-effects: ready-for-dev
+  7-3-equipped-item-stat-effects: done
   7-4-equipment-visual-update: backlog
   7-5-shop-npc-trading: backlog       # was 7-3
   7-6-looting-system: backlog          # was 7-4

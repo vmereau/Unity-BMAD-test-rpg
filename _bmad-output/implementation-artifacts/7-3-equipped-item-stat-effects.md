@@ -1,6 +1,6 @@
 # Story 7.3: Equipped Item Stat Effects
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -400,64 +400,64 @@ GetWeaponDamageBonus_NoWeaponEquipped_ReturnsZero
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add stat/defense bonus fields to `EquipableItemSO` and `damageBonus` to `WeaponSO` (AC: 1, 2)
-  - [ ] 1.1 Add `strengthBonus`, `dexterityBonus`, `enduranceBonus`, `manaBonus`, `defenseBonus` (int, default 0) to `EquipableItemSO.cs`
-  - [ ] 1.2 Add `damageBonus` (float, default 0f) to `WeaponSO.cs`
-  - [ ] 1.3 Verify compilation clean; all 187 existing EditMode tests still pass
+- [x] Task 1: Add stat/defense bonus fields to `EquipableItemSO` and `damageBonus` to `WeaponSO` (AC: 1, 2)
+  - [x] 1.1 Add `strengthBonus`, `dexterityBonus`, `enduranceBonus`, `manaBonus`, `defenseBonus` (int, default 0) to `EquipableItemSO.cs`
+  - [x] 1.2 Add `damageBonus` (float, default 0f) to `WeaponSO.cs`
+  - [x] 1.3 Verify compilation clean; all 187 existing EditMode tests still pass
 
-- [ ] Task 2: Refactor `PlayerStats` for split base/equipment storage (AC: 3)
-  - [ ] 2.1 Replace auto-property backing with `_base*` private fields
-  - [ ] 2.2 Add `_equip*Bonus` private fields; make `Strength/Dexterity/Endurance/Mana` computed properties (`_base* + _equip*Bonus`)
-  - [ ] 2.3 Add `Defense` computed property (`_equipDefBonus`)
-  - [ ] 2.4 Add `Defense` to `StatType` enum; update `GetStat()` switch
-  - [ ] 2.5 Update `Awake()` to initialize `_base*` fields
-  - [ ] 2.6 Update `UpgradeStat()` to increment `_base*` fields
-  - [ ] 2.7 Add `ApplyEquipmentBonuses(int str, int dex, int end, int mna, int def)` method
-  - [ ] 2.8 Extend `OnGUI` debug label with `DEF:{Defense}`
-  - [ ] 2.9 Verify compilation clean; `TrainerNPC`, `PlayerCombat`, `StaminaSystem` require zero modifications
+- [x] Task 2: Refactor `PlayerStats` for split base/equipment storage (AC: 3)
+  - [x] 2.1 Replace auto-property backing with `_base*` private fields
+  - [x] 2.2 Add `_equip*Bonus` private fields; make `Strength/Dexterity/Endurance/Mana` computed properties (`_base* + _equip*Bonus`)
+  - [x] 2.3 Add `Defense` computed property (`_equipDefBonus`)
+  - [x] 2.4 Add `Defense` to `StatType` enum; update `GetStat()` switch
+  - [x] 2.5 Update `Awake()` to initialize `_base*` fields
+  - [x] 2.6 Update `UpgradeStat()` to increment `_base*` fields
+  - [x] 2.7 Add `ApplyEquipmentBonuses(int str, int dex, int end, int mna, int def)` method
+  - [x] 2.8 Extend `OnGUI` debug label with `DEF:{Defense}`
+  - [x] 2.9 Verify compilation clean; `TrainerNPC`, `PlayerCombat`, `StaminaSystem` require zero modifications
 
-- [ ] Task 3: Extend `EquipmentSystem` — bonus recompute + `_playerStats` ref + `GetWeaponDamageBonus` (AC: 4)
-  - [ ] 3.1 Add `[SerializeField] private PlayerStats _playerStats;` with TODO comment; add `using Game.Player;`
-  - [ ] 3.2 Add `Awake()` warn-only null-guard for `_playerStats`
-  - [ ] 3.3 Implement `RecomputeAndApplyBonuses()` iterating `EquipableItemSO` base type
-  - [ ] 3.4 Call `RecomputeAndApplyBonuses()` at end of `Equip()` and `Unequip()` (after existing `_onEquipmentChanged?.Raise`)
-  - [ ] 3.5 Add public `GetWeaponDamageBonus()` method
-  - [ ] 3.6 Wire `_playerStats` on `Player.prefab` `EquipmentSystem` component
-  - [ ] 3.7 Verify compilation clean
+- [x] Task 3: Extend `EquipmentSystem` — bonus recompute + `_playerStats` ref + `GetWeaponDamageBonus` (AC: 4)
+  - [x] 3.1 Add `[SerializeField] private PlayerStats _playerStats;` with TODO comment; add `using Game.Player;`
+  - [x] 3.2 Add `Awake()` warn-only null-guard for `_playerStats`
+  - [x] 3.3 Implement `RecomputeAndApplyBonuses()` iterating `EquipableItemSO` base type
+  - [x] 3.4 Call `RecomputeAndApplyBonuses()` at end of `Equip()` and `Unequip()` (after existing `_onEquipmentChanged?.Raise`)
+  - [x] 3.5 Add public `GetWeaponDamageBonus()` method
+  - [x] 3.6 Wire `_playerStats` on `Player.prefab` `EquipmentSystem` component
+  - [x] 3.7 Verify compilation clean
 
-- [ ] Task 4: Extend `PlayerCombat` — weapon damage bonus (AC: 5)
-  - [ ] 4.1 Add `[SerializeField] private EquipmentSystem _equipmentSystem;` with TODO comment; add `using Game.Inventory;`
-  - [ ] 4.2 Add `Awake()` warn-only null-guard for `_equipmentSystem`
-  - [ ] 4.3 Update `ComputeEffectiveDamage()` to add `_equipmentSystem?.GetWeaponDamageBonus() ?? 0f`
-  - [ ] 4.4 Wire `_equipmentSystem` on `Player.prefab` `PlayerCombat` component
-  - [ ] 4.5 Verify compilation clean
+- [x] Task 4: Extend `PlayerCombat` — weapon damage bonus (AC: 5)
+  - [x] 4.1 Add `[SerializeField] private EquipmentSystem _equipmentSystem;` with TODO comment; add `using Game.Inventory;`
+  - [x] 4.2 Add `Awake()` warn-only null-guard for `_equipmentSystem`
+  - [x] 4.3 Update `ComputeEffectiveDamage()` to add `_equipmentSystem?.GetWeaponDamageBonus() ?? 0f`
+  - [x] 4.4 Wire `_equipmentSystem` on `Player.prefab` `PlayerCombat` component
+  - [x] 4.5 Verify compilation clean
 
-- [ ] Task 5: Extend `PlayerHealth` — defense mitigation (AC: 6)
-  - [ ] 5.1 Add `[SerializeField] private PlayerStats _playerStats;` (same-system, no violation)
-  - [ ] 5.2 Add `Awake()` warn-only null-guard
-  - [ ] 5.3 Update `TakeDamage()` with `effective = Mathf.Max(1f, amount - defense)` formula
-  - [ ] 5.4 Wire `_playerStats` on `Player.prefab` `PlayerHealth` component
-  - [ ] 5.5 Verify compilation clean
+- [x] Task 5: Extend `PlayerHealth` — defense mitigation (AC: 6)
+  - [x] 5.1 Add `[SerializeField] private PlayerStats _playerStats;` (same-system, no violation)
+  - [x] 5.2 Add `Awake()` warn-only null-guard
+  - [x] 5.3 Update `TakeDamage()` with `effective = Mathf.Max(1f, amount - defense)` formula
+  - [x] 5.4 Wire `_playerStats` on `Player.prefab` `PlayerHealth` component
+  - [x] 5.5 Verify compilation clean
 
-- [ ] Task 6: Update `ItemDetailPanelUI` for stat bonus display (AC: 7)
-  - [ ] 6.1 Add `_weaponDamageBonusText` and `_equipableStatBonusText` optional TMP_Text fields
-  - [ ] 6.2 Update `ShowWeaponSection()` to show damage bonus + call `ShowEquipableStatBonuses()`
-  - [ ] 6.3 Update `ShowArmorSection()` to call `ShowEquipableStatBonuses()`
-  - [ ] 6.4 Implement `ShowEquipableStatBonuses(EquipableItemSO)` with `System.Text.StringBuilder`
-  - [ ] 6.5 Add `WeaponDamageBonusText` TMP GO as child of `WeaponSection` in scene
-  - [ ] 6.6 Add `EquipableStatBonusText` TMP GO as child of `EquipableSection` in scene
-  - [ ] 6.7 Wire both in `ItemDetailPanelUI` Inspector
-  - [ ] 6.8 Verify compilation clean
+- [x] Task 6: Update `ItemDetailPanelUI` for stat bonus display (AC: 7)
+  - [x] 6.1 Add `_weaponDamageBonusText` and `_equipableStatBonusText` optional TMP_Text fields
+  - [x] 6.2 Update `ShowWeaponSection()` to show damage bonus + call `ShowEquipableStatBonuses()`
+  - [x] 6.3 Update `ShowArmorSection()` to call `ShowEquipableStatBonuses()`
+  - [x] 6.4 Implement `ShowEquipableStatBonuses(EquipableItemSO)` with `System.Text.StringBuilder`
+  - [x] 6.5 Add `WeaponDamageBonusText` TMP GO as child of `WeaponSection` in `ItemDetailPanel.prefab`
+  - [x] 6.6 Add `EquipableStatBonusText` TMP GO as child of `EquipableSection` in `ItemDetailPanel.prefab`
+  - [x] 6.7 Wire both in `ItemDetailPanelUI` Inspector
+  - [x] 6.8 Verify compilation clean
 
-- [ ] Task 7: Update test data assets (AC: 8)
-  - [ ] 7.1 Set `Weapon_TestSword.asset`: `damageBonus = 5`, `strengthBonus = 3`
-  - [ ] 7.2 Set `Armor_TestHelmet.asset`: `defenseBonus = 2`
-  - [ ] 7.3 Set `Armor_TestArmor.asset`: `defenseBonus = 5`, `enduranceBonus = 1`
+- [x] Task 7: Update test data assets (AC: 8)
+  - [x] 7.1 Set `Weapon_TestSword.asset`: `damageBonus = 5`, `strengthBonus = 3`
+  - [x] 7.2 Set `Armor_TestHelmet.asset`: `defenseBonus = 2`
+  - [x] 7.3 Set `Armor_TestArmor.asset`: `defenseBonus = 5`, `enduranceBonus = 1`
 
-- [ ] Task 8: Write Edit Mode tests (AC: 9)
-  - [ ] 8.1 Create `Assets/Tests/EditMode/EquipmentStatEffectsTests.cs`
-  - [ ] 8.2 Implement 10 test methods per AC 9
-  - [ ] 8.3 Verify all new + existing tests pass (187 + 10 = 197 target)
+- [x] Task 8: Write Edit Mode tests (AC: 9)
+  - [x] 8.1 Create `Assets/Tests/EditMode/EquipmentStatEffectsTests.cs`
+  - [x] 8.2 Implement 10 test methods per AC 9
+  - [x] 8.3 Verify all new + existing tests pass (198/198 passed)
 
 - [ ] Task 9: Play Mode validation (AC: 10)
   - [ ] 9.1 Manual in-editor validation per AC 10 checklist
@@ -585,4 +585,36 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Implemented zero-breaking-change `PlayerStats` refactor: split `_base*` / `_equip*Bonus` storage; all callers (`PlayerCombat`, `StaminaSystem`, `TrainerNPC`) receive effective values automatically with no modifications.
+- `EquipmentSystem.RecomputeAndApplyBonuses()` iterates over `EquipableItemSO` base type — future item types automatically contribute bonuses.
+- `PlayerHealth.TakeDamage()` applies `max(1, raw - Defense)` formula; minimum 1 damage prevents invincibility.
+- `ItemDetailPanelUI` gets two optional TMP text GOs wired in `ItemDetailPanel.prefab`; null guards ensure graceful degradation if unassigned.
+- All 10 new Edit Mode tests pass; full suite 198/198 green with no regressions.
+- `EditMode Awake()` fires immediately on `AddComponent` in Unity's test runner — used reflection re-invoke pattern to initialize state after field assignment.
+- Task 9 (play mode) is a manual validation step — left unchecked for human tester.
+
 ### File List
+
+**Modified:**
+- `Assets/_Game/ScriptableObjects/Items/EquipableItemSO.cs`
+- `Assets/_Game/ScriptableObjects/Items/WeaponSO.cs`
+- `Assets/_Game/Scripts/Player/PlayerStats.cs`
+- `Assets/_Game/Scripts/Inventory/EquipmentSystem.cs`
+- `Assets/_Game/Scripts/Combat/PlayerCombat.cs`
+- `Assets/_Game/Scripts/Player/PlayerHealth.cs`
+- `Assets/_Game/Scripts/UI/ItemDetailPanelUI.cs`
+- `Assets/_Game/Prefabs/Player/Player.prefab`
+- `Assets/_Game/Prefabs/UI/Inventory/ItemDetailPanel.prefab`
+- `Assets/_Game/Data/Items/Weapon_TestSword.asset`
+- `Assets/_Game/Data/Items/Armor_TestHelmet.asset`
+- `Assets/_Game/Data/Items/Armor_TestArmor.asset`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+**Created:**
+- `Assets/Tests/EditMode/EquipmentStatEffectsTests.cs`
+- `Assets/Tests/EditMode/EquipmentStatEffectsTests.cs.meta`
+
+### Change Log
+
+- 2026-03-21: Story 7.3 implemented — equipped item stat effects; 10 new Edit Mode tests; all 198 tests pass
+- 2026-03-21: Code review fixes — `UpgradeStat()` default case guard added; `Unequip_RemovesBonusesFromPlayerStats` test added (11th test); .meta file documented in File List

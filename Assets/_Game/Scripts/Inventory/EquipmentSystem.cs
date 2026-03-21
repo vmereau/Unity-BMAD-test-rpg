@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Core;
+using Game.Player;
 using UnityEngine;
 
 namespace Game.Inventory
@@ -10,6 +11,10 @@ namespace Game.Inventory
 
         [SerializeField] private InventorySystem _inventorySystem;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
+
+        // TODO(Epic7-tech-debt): Cross-system direct refs (Game.Inventory → Game.Player).
+        // Prototype exception. Replace with a StatBonusProvider event channel.
+        [SerializeField] private PlayerStats _playerStats;
 
         private readonly Dictionary<EquipmentSlot, ItemSO> _equipped = new();
 
@@ -24,6 +29,9 @@ namespace Game.Inventory
 
             if (_onEquipmentChanged == null)
                 GameLog.Warn(TAG, "EquipmentSystem: _onEquipmentChanged is not assigned — equipment changes will not broadcast");
+
+            if (_playerStats == null)
+                GameLog.Warn(TAG, "PlayerStats not assigned — equipment stat bonuses inactive");
         }
 
         /// <summary>Equips the item at the given inventory index.</summary>
@@ -84,6 +92,7 @@ namespace Game.Inventory
             _equipped[targetSlot] = item;
             GameLog.Info(TAG, $"Equipped {item.itemName} to {targetSlot}");
             _onEquipmentChanged?.Raise(true);
+            RecomputeAndApplyBonuses();
         }
 
         /// <summary>Unequips the item in the given slot, returning it to the inventory.</summary>
@@ -99,6 +108,7 @@ namespace Game.Inventory
             _equipped.Remove(slot);
             GameLog.Info(TAG, $"Unequipped {item.itemName} from {slot}");
             _onEquipmentChanged?.Raise(true);
+            RecomputeAndApplyBonuses();
         }
 
         /// <summary>Returns the item equipped in the given slot, or null if empty.</summary>
@@ -112,12 +122,32 @@ namespace Game.Inventory
         public bool IsEquipped(ItemSO item)
         {
             if(!IsEquippable(item)) return false;
-            
+
             foreach (var equipped in _equipped.Values)
             {
                 if (equipped == item) return true;
             }
             return false;
+        }
+
+        /// <summary>Flat damage bonus from the currently equipped weapon (0 if no weapon or damageBonus is 0).</summary>
+        public float GetWeaponDamageBonus()
+            => GetEquipped(EquipmentSlot.Weapon) is WeaponSO w ? w.damageBonus : 0f;
+
+        private void RecomputeAndApplyBonuses()
+        {
+            if (_playerStats == null) return;
+            int str = 0, dex = 0, end = 0, mna = 0, def = 0;
+            foreach (var item in _equipped.Values)
+            {
+                if (item is not EquipableItemSO eq) continue;
+                str += eq.strengthBonus;
+                dex += eq.dexterityBonus;
+                end += eq.enduranceBonus;
+                mna += eq.manaBonus;
+                def += eq.defenseBonus;
+            }
+            _playerStats.ApplyEquipmentBonuses(str, dex, end, mna, def);
         }
     }
 }

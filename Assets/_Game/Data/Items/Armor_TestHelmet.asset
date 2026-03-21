@@ -13,8 +13,13 @@ MonoBehaviour:
   m_Name: Armor_TestHelmet
   m_EditorClassIdentifier: Game::Game.Inventory.ArmorSO
   itemName: Test Helmet
-  description: 
+  description:
   icon: {fileID: 0}
   maxStacks: 1
   worldItemPrefab: {fileID: 7470631476087896926, guid: 3ffaef23b6cac824bb27f07060573b65, type: 3}
+  strengthBonus: 0
+  dexterityBonus: 0
+  enduranceBonus: 0
+  manaBonus: 0
+  defenseBonus: 2
   slot: 1

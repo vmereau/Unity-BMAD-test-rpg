@@ -180,6 +180,7 @@ MonoBehaviour:
   _playerStats: {fileID: 5748466653404673820}
   _progressionConfig: {fileID: 11400000, guid: a563ac841fe0eba4299dd3728d472f34, type: 2}
   _playerSkills: {fileID: 660869248586365014}
+  _equipmentSystem: {fileID: 1345817325320934682}
 --- !u!114 &4959302933258015613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,6 +208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Player.PlayerHealth
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
+  _playerStats: {fileID: 5748466653404673820}
 --- !u!114 &212298241250081144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383,6 +385,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.EquipmentSystem
   _inventorySystem: {fileID: 1994668802294238475}
   _onEquipmentChanged: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}
+  _playerStats: {fileID: 5748466653404673820}
 --- !u!1 &5180643267766110463
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 using Game.AI;
 using Game.Core;
+using Game.Inventory;
 using Game.Player;
 using Game.Progression;
 using UnityEngine;
@@ -40,6 +41,10 @@ namespace Game.Combat
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private ProgressionConfigSO _progressionConfig;
         [SerializeField] private PlayerSkills _playerSkills;
+
+        // TODO(Epic7-tech-debt): Cross-system direct ref (Game.Combat → Game.Inventory).
+        // Prototype exception per Story 7.3 dev notes. Same pattern as existing _playerStats ref.
+        [SerializeField] private EquipmentSystem _equipmentSystem;
 
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
@@ -89,6 +94,8 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "ProgressionConfigSO not assigned — all stat bonuses inactive");
             if (_playerSkills == null)
                 GameLog.Warn(TAG, "PlayerSkills not assigned — Power Strike bonus inactive");
+            if (_equipmentSystem == null)
+                GameLog.Warn(TAG, "EquipmentSystem not assigned — weapon damage bonus inactive");
 
             _input = new InputSystem_Actions();
         }
@@ -289,6 +296,8 @@ namespace Game.Combat
             if (_playerSkills != null && _progressionConfig != null
                 && _playerSkills.HasSkill("power_strike"))
                 damage += _progressionConfig.powerStrikeDamageBonus;
+            // Story 7.3: direct weapon damage bonus (flat, unscaled by stats).
+            damage += _equipmentSystem?.GetWeaponDamageBonus() ?? 0f;
             return damage;
         }
 

@@ -29,6 +29,8 @@ namespace Game.UI
         [SerializeField] private GameObject _weaponSection;
         [SerializeField] private GameObject _armorSection;
         [SerializeField] private TMP_Text _armorTypeText;
+        [SerializeField] private TMP_Text _weaponDamageBonusText;  // child of WeaponSection
+        [SerializeField] private TMP_Text _equipableStatBonusText; // child of EquipableSection
 
         [Header("Skill Item Section (optional)")]
         [SerializeField] private GameObject _skillSection;
@@ -203,19 +205,46 @@ namespace Game.UI
         {
             if (_equipableSection == null) return;
             _equipableSection.SetActive(true);
-            if(_weaponSection == null) return;
+            if (_weaponSection == null) return;
             _weaponSection.SetActive(true);
+
+            if (_weaponDamageBonusText != null)
+            {
+                bool hasDmgBonus = item.damageBonus > 0f;
+                _weaponDamageBonusText.gameObject.SetActive(hasDmgBonus);
+                if (hasDmgBonus) _weaponDamageBonusText.text = $"DMG: +{item.damageBonus:F0}";
+            }
+            ShowEquipableStatBonuses(item);
         }
 
         private void ShowArmorSection(ArmorSO item)
         {
             if (_equipableSection == null) return;
             _equipableSection.SetActive(true);
-            if(_armorSection == null) return;
+            if (_armorSection == null) return;
             _armorSection.SetActive(true);
-
             if (_armorTypeText != null) _armorTypeText.text = ArmorSlotDisplayName(item.slot);
+            ShowEquipableStatBonuses(item);
         }
+
+        private void ShowEquipableStatBonuses(EquipableItemSO item)
+        {
+            if (_equipableStatBonusText == null) return;
+
+            var sb = new System.Text.StringBuilder();
+            if (item.strengthBonus  != 0) sb.AppendLine(FormatBonus("STR", item.strengthBonus));
+            if (item.dexterityBonus != 0) sb.AppendLine(FormatBonus("DEX", item.dexterityBonus));
+            if (item.enduranceBonus != 0) sb.AppendLine(FormatBonus("END", item.enduranceBonus));
+            if (item.manaBonus      != 0) sb.AppendLine(FormatBonus("MNA", item.manaBonus));
+            if (item.defenseBonus   != 0) sb.AppendLine(FormatBonus("DEF", item.defenseBonus));
+
+            bool hasAny = sb.Length > 0;
+            _equipableStatBonusText.gameObject.SetActive(hasAny);
+            if (hasAny) _equipableStatBonusText.text = sb.ToString().TrimEnd();
+        }
+
+        private static string FormatBonus(string label, int value)
+            => value > 0 ? $"{label}: +{value}" : $"{label}: {value}";
 
         private static string ArmorSlotDisplayName(EquipmentSlot slot) => slot switch
         {

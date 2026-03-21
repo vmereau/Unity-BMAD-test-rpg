@@ -10,6 +10,7 @@ namespace Game.Player
     /// Respawn/checkpoint logic deferred to Epic 8.
     /// Attach to the Player prefab root.
     /// Story 2.9: Initial implementation.
+    /// Story 7.3: Added Defense reduction via PlayerStats.Defense.
     /// </summary>
     public class PlayerHealth : MonoBehaviour
     {
@@ -18,7 +19,11 @@ namespace Game.Player
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Void _onPlayerDied;
 
+        // Same-system reference — PlayerHealth and PlayerStats both in Scripts/Player/. No architecture violation.
+        [SerializeField] private PlayerStats _playerStats;
+
         public float CurrentHealth { get; private set; }
+        public float MaxHealth => _config != null ? _config.baseHealth : 0f;
         public bool IsDead { get; private set; }
 
         private void Awake()
@@ -33,23 +38,25 @@ namespace Game.Player
             if (_onPlayerDied == null)
                 GameLog.Warn(TAG, "OnPlayerDied event not assigned — death will not be broadcast");
 
+            if (_playerStats == null)
+                GameLog.Warn(TAG, "PlayerStats not assigned — damage will not be reduced by Defense");
+
             CurrentHealth = _config.baseHealth;
         }
 
         /// <summary>
-        /// Applies damage to the player. Triggers death when health reaches zero.
-        /// Calls are ignored if the player is already dead.
+        /// Applies damage to the player, reduced by Defense. Minimum 1 damage always gets through.
+        /// Triggers death when health reaches zero. Calls are ignored if the player is already dead.
         /// </summary>
         public void TakeDamage(float amount)
         {
             if (IsDead) return;
-
-            CurrentHealth -= amount;
+            float defense = _playerStats != null ? _playerStats.Defense : 0f;
+            float effective = Mathf.Max(1f, amount - defense);
+            CurrentHealth -= effective;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
-            GameLog.Info(TAG, $"Player took {amount} damage — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
-
-            if (CurrentHealth <= 0f)
-                Die();
+            GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+            if (CurrentHealth <= 0f) Die();
         }
 
         /// <summary>
