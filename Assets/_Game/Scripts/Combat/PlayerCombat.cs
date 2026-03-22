@@ -46,6 +46,10 @@ namespace Game.Combat
         // Prototype exception per Story 7.3 dev notes. Same pattern as existing _playerStats ref.
         [SerializeField] private EquipmentSystem _equipmentSystem;
 
+        // Story 7.9: Weapon hitbox binding — direct ref acceptable (prototype exception, same boundary as _equipmentSystem)
+        [SerializeField] private EquipmentVisuals _equipmentVisuals;
+        [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
+
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
         private InputSystem_Actions _input;
@@ -62,6 +66,9 @@ namespace Game.Combat
 
         // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
         private readonly Collider[] _hitBuffer = new Collider[10];
+
+        // Story 7.9: active weapon hitbox; null when unarmed or weapon has no WeaponHitbox component
+        private WeaponHitbox _activeHitbox;
 
         private void Awake()
         {
@@ -108,10 +115,16 @@ namespace Game.Combat
             _input.Player.Attack.started += OnAttackStarted;
             _input.Player.Block.started += OnBlockStarted;
             _input.Player.Block.canceled += OnBlockCanceled;
+            // Story 7.9: subscribe to OnVisualsRefreshed SO — raised at the END of
+            // EquipmentVisuals.Refresh(), so ActiveWeaponGO is valid when HandleVisualsRefreshed runs.
+            _onVisualsRefreshed?.AddListener(HandleVisualsRefreshed);
         }
 
         private void OnDisable()
         {
+            // Story 7.9: clean up hitbox binding before input
+            _onVisualsRefreshed?.RemoveListener(HandleVisualsRefreshed);
+            UnbindWeaponHitbox();
             if (_input == null) return; // Guard: Awake may disable before OnEnable runs
             _input.Player.Attack.started -= OnAttackStarted;
             _input.Player.Block.started -= OnBlockStarted;
@@ -159,6 +172,7 @@ namespace Game.Combat
                     _comboWindowOpen = false;
                     _comboStep = 0;
                     _stateManager.SetAttacking(false);
+                    _activeHitbox?.Disable();
                     GameLog.Info(TAG, "Combo window expired — chain reset to step 0");
                 }
             }
@@ -196,6 +210,7 @@ namespace Game.Combat
             _comboWindowTimer = 0f;
             _comboStep = 0;
             _stateManager.SetAttacking(false);
+            _activeHitbox?.Disable();
 
             GameLog.Info(TAG, "Block raised");
         }
@@ -233,10 +248,7 @@ namespace Game.Combat
             if (!_staminaSystem.HasEnough(_config.attackStaminaCost))
             {
                 GameLog.Warn(TAG, $"Cannot attack: insufficient stamina (combo step {_comboStep})");
-                _comboWindowOpen = false;
-                _comboWindowDelay = 0f;
-                _comboStep = 0;
-                _stateManager.SetAttacking(false);
+                ResetAttackCombo();
                 return;
             }
 
@@ -245,6 +257,7 @@ namespace Game.Combat
             {
                 GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
                 _stateManager.SetAttacking(false);
+                _activeHitbox?.Disable();
                 return;
             }
 
@@ -259,26 +272,73 @@ namespace Game.Combat
             _stateManager.SetAttacking(true, triggerHash);
             GameLog.Info(TAG, $"Attack combo step {_comboStep + 1}");
 
-            // Detect hits on enemies within attack range
-            ExecuteHitDetection();
+            // Story 7.9: route hit detection through weapon hitbox if available; else sphere fallback
+            if (_activeHitbox != null)
+                _activeHitbox.Enable();
+            else
+                ExecuteHitDetection(); // Unarmed sphere fallback
 
             if (_comboStep < 2)
             {
-                _comboStep++;
-                _comboWindowOpen = false;  // window not open yet — delay starts
-                _comboWindowDelay = _config.comboWindowDelay;
-                _comboWindowTimer = 0f;
+                IncreaseAttackCombo();
             }
             else
             {
                 // Finisher fired — reset combo
-                _comboStep = 0;
-                _comboWindowOpen = false;
-                _comboWindowDelay = 0f;
-                _comboWindowTimer = 0f;
-                _stateManager.SetAttacking(false);
+                ResetAttackCombo();
             }
         }
+
+        private void IncreaseAttackCombo()
+        {
+            _comboStep++;
+            _comboWindowOpen = false;  // window not open yet — delay starts
+            _comboWindowDelay = _config.comboWindowDelay;
+            _comboWindowTimer = 0f;
+        }
+
+        private void ResetAttackCombo()
+        {
+            _comboStep = 0;
+            _comboWindowOpen = false;
+            _comboWindowDelay = 0f;
+            _comboWindowTimer = 0f;
+            _stateManager.SetAttacking(false);
+            _activeHitbox?.Disable();
+        }
+
+        // Story 7.9: weapon hitbox helpers -------------------------------------------
+
+        // Called by OnVisualsRefreshed GameEventSO — raised at the END of EquipmentVisuals.Refresh(),
+        // guaranteeing ActiveWeaponGO is already set before we try to bind.
+        private void HandleVisualsRefreshed(bool _)
+        {
+            UnbindWeaponHitbox();
+            if (_equipmentVisuals == null) return;
+            var weaponGO = _equipmentVisuals.ActiveWeaponGO;
+            if (weaponGO == null) return; // Unarmed — no hitbox to bind
+            _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>();
+            if (_activeHitbox != null)
+                _activeHitbox.OnEnemyHit += OnWeaponHit;
+            else
+                GameLog.Warn(TAG, $"WeaponHitbox not found on {weaponGO.name} — using sphere fallback");
+        }
+
+        private void UnbindWeaponHitbox()
+        {
+            if (_activeHitbox == null) return;
+            _activeHitbox.Disable();
+            _activeHitbox.OnEnemyHit -= OnWeaponHit;
+            _activeHitbox = null;
+        }
+
+        private void OnWeaponHit(EnemyHealth health)
+        {
+            health.TakeDamage(ComputeEffectiveDamage());
+            GameLog.Info(TAG, $"Weapon hit: {health.gameObject.name}");
+        }
+
+        // ----------------------------------------------------------------------------
 
         /// <summary>
         /// Computes effective attack damage: base damage + Strength bonus + Power Strike skill bonus.

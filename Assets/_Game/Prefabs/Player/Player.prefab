@@ -213,6 +213,8 @@ MonoBehaviour:
   _progressionConfig: {fileID: 11400000, guid: a563ac841fe0eba4299dd3728d472f34, type: 2}
   _playerSkills: {fileID: 660869248586365014}
   _equipmentSystem: {fileID: 1345817325320934682}
+  _equipmentVisuals: {fileID: 3975145126963483010}
+  _onVisualsRefreshed: {fileID: 11400000, guid: 2360a371ed2298b42981d2b6ed275384, type: 2}
 --- !u!114 &4959302933258015613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,6 +440,7 @@ MonoBehaviour:
   _armorPlaceholderMaterial: {fileID: 2100000, guid: 8da08946dd97a2d429c6f2c5197eabb4, type: 2}
   _animator: {fileID: 0}
   _defaultAnimatorController: {fileID: 0}
+  _onVisualsRefreshed: {fileID: 11400000, guid: 2360a371ed2298b42981d2b6ed275384, type: 2}
 --- !u!1 &5180643267766110463
 GameObject:
   m_ObjectHideFlags: 0

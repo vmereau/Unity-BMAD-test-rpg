@@ -15,6 +15,8 @@ namespace Game.Inventory
         [SerializeField] private Material _armorPlaceholderMaterial;
         [SerializeField] private Animator _animator;
         [SerializeField] private RuntimeAnimatorController _defaultAnimatorController;
+        // Story 7.9: raised at the end of Refresh() so listeners see a valid ActiveWeaponGO
+        [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
         private GameObject _weaponVisual;
         private GameObject _helmetVisual;
@@ -63,6 +65,7 @@ namespace Game.Inventory
             RefreshWeapon();
             RefreshHelmet();
             RefreshBody();
+            _onVisualsRefreshed?.Raise(false);
         }
 
         private void RefreshWeapon()
@@ -77,7 +80,7 @@ namespace Game.Inventory
 
             if (weapon.equipVisualPrefab != null)
             {
-                _weaponVisual = Object.Instantiate(weapon.equipVisualPrefab, _weaponSocket);
+                _weaponVisual = Instantiate(weapon.equipVisualPrefab, _weaponSocket);
                 _weaponVisual.transform.localPosition = Vector3.zero;
                 _weaponVisual.transform.localRotation = Quaternion.identity;
                 GameLog.Info(TAG, $"Weapon visual attached (prefab: {weapon.equipVisualPrefab.name})");

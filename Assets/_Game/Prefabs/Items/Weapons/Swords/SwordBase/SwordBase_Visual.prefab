@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 100000001}
+  - component: {fileID: 6641488423535677307}
   m_Layer: 0
   m_Name: SwordBase_Visual
   m_TagString: Untagged
@@ -32,6 +33,33 @@ Transform:
   - {fileID: 3203631359837229457}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &6641488423535677307
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000000}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &200000000
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91,6 +119,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2595516706622967940, guid: 3ae97afcc1f5422408827ff9b3697715, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3568602740324233289}
+    - targetCorrespondingSourceObject: {fileID: 2595516706622967940, guid: 3ae97afcc1f5422408827ff9b3697715, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5403484958582787869}
   m_SourcePrefab: {fileID: 100100000, guid: 3ae97afcc1f5422408827ff9b3697715, type: 3}
 --- !u!1 &2595516706460881540 stripped
 GameObject:
@@ -118,6 +149,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.14553645, y: 0.8450634, z: 0.02894749}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5403484958582787869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2595516706460881540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3698d187bb02ff4f9d9218ca603f3fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Combat.WeaponHitbox
 --- !u!4 &3203631359837229457 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3203631359688807313, guid: 3ae97afcc1f5422408827ff9b3697715, type: 3}
