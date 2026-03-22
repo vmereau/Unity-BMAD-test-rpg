@@ -114,6 +114,8 @@ development_status:
   7-4-equipment-visual-update: done
   7-8-equipment-visual-prefab-support: done
   7-9-weapon-collider-hit-detection: done
+  7-10-weapon-so-combo-steps-animation-events: done
+  7-11-weapon-so-hitbox-animation-events: review
   7-5-shop-npc-trading: backlog       # was 7-3
   7-6-looting-system: backlog          # was 7-4
   7-7-gold-bribe-system: backlog       # was 7-5

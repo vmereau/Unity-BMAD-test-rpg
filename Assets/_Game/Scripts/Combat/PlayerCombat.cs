@@ -57,8 +57,9 @@ namespace Game.Combat
         // Combo state
         private int _comboStep = 0;            // 0 = ready, 1 = after hit 1, 2 = after hit 2
         private bool _comboWindowOpen = false;
-        private float _comboWindowDelay = 0f;  // counts down before window opens
-        private float _comboWindowTimer = 0f;  // counts down while window is open
+
+        // Story 7.10: cached weapon SO — set when visuals refresh, cleared on unequip
+        private WeaponSO _currentWeaponSO;
 
         // Perfect block timing state (owned by PlayerCombat, not PlayerStateManager)
         private bool _isPerfectBlockWindowOpen = false;
@@ -139,7 +140,7 @@ namespace Game.Combat
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             DrawAttackRangeDebug();
 #endif
-            // Phase 3: Perfect block window countdown — independent of combo state, runs every frame
+            // Perfect block window countdown — independent of combo state, runs every frame
             if (_isPerfectBlockWindowOpen && _perfectBlockWindowTimer > 0f)
             {
                 _perfectBlockWindowTimer -= Time.deltaTime;
@@ -149,33 +150,9 @@ namespace Game.Combat
                     GameLog.Info(TAG, "Perfect block window closed — regular block mode");
                 }
             }
-
-            // Phase 1: delay before combo window opens
-            if (_comboWindowDelay > 0f)
-            {
-                _comboWindowDelay -= Time.deltaTime;
-                if (_comboWindowDelay <= 0f)
-                {
-                    _comboWindowOpen = true;
-                    _comboWindowTimer = _config.comboWindowDuration;
-                    GameLog.Info(TAG, $"Combo window opened — step {_comboStep} ready");
-                }
-                return;
-            }
-
-            // Phase 2: window is open, count down
-            if (_comboWindowTimer > 0f)
-            {
-                _comboWindowTimer -= Time.deltaTime;
-                if (_comboWindowTimer <= 0f)
-                {
-                    _comboWindowOpen = false;
-                    _comboStep = 0;
-                    _stateManager.SetAttacking(false);
-                    _activeHitbox?.Disable();
-                    GameLog.Info(TAG, "Combo window expired — chain reset to step 0");
-                }
-            }
+            // Story 7.10: Combo window open/close is now driven by Animation Events via
+            // AnimationEventReceiver → OnComboWindowOpen() / OnComboWindowClose().
+            // No timer phases needed here.
         }
 
         private void OnAttackStarted(InputAction.CallbackContext ctx)
@@ -205,12 +182,7 @@ namespace Game.Combat
             GameLog.Info(TAG, $"Perfect block window opened ({_config.perfectBlockWindowDuration:F2}s)");
 
             // Reset any in-progress combo — cannot combo mid-block
-            _comboWindowOpen = false;
-            _comboWindowDelay = 0f;
-            _comboWindowTimer = 0f;
-            _comboStep = 0;
-            _stateManager.SetAttacking(false);
-            _activeHitbox?.Disable();
+            ResetAttackCombo();
 
             GameLog.Info(TAG, "Block raised");
         }
@@ -232,14 +204,16 @@ namespace Game.Combat
                 return;
             }
 
-            // Ignore input while combo window is warming up (prevents double-click re-triggering Attack_1)
-            if (_comboWindowDelay > 0f)
+            // Story 7.10: If we're attacking but the window has not opened yet (AnimationEvent
+            // ComboWindowOpen hasn't fired), ignore new input to prevent re-triggering Attack_1.
+            // IsAttacking is true from SetAttacking(true) until SetAttacking(false) or animation exit.
+            if (_stateManager.IsAttacking && !_comboWindowOpen)
             {
-                GameLog.Info(TAG, "Attack input ignored — combo window not yet open");
+                GameLog.Info(TAG, "Attack input ignored — waiting for combo window (animation event)");
                 return;
             }
 
-            // If window is not open (and no delay pending), start the chain fresh
+            // If window is not open, start the chain fresh
             if (!_comboWindowOpen)
             {
                 _comboStep = 0;
@@ -261,24 +235,34 @@ namespace Game.Combat
                 return;
             }
 
+            ExecuteAttack();
+            ManageComboStep();
+        }
+
+        private void ExecuteAttack()
+        {
             int triggerHash = _comboStep switch
             {
                 0 => Attack1Hash,
                 1 => Attack2Hash,
                 _ => Attack3Hash,
             };
-
+            
             // SetAttacking(true, triggerHash) sets state and fires the animator trigger atomically
             _stateManager.SetAttacking(true, triggerHash);
             GameLog.Info(TAG, $"Attack combo step {_comboStep + 1}");
 
-            // Story 7.9: route hit detection through weapon hitbox if available; else sphere fallback
-            if (_activeHitbox != null)
-                _activeHitbox.Enable();
-            else
-                ExecuteHitDetection(); // Unarmed sphere fallback
+            // Story 7.11: hitbox enabled/disabled by HitboxEnable/HitboxDisable animation events.
+            // Unarmed fallback (no hitbox): sphere overlap fires immediately on input frame.
+            if (_activeHitbox == null)
+                ExecuteHitDetection();
+        }
 
-            if (_comboStep < 2)
+        private void ManageComboStep()
+        {
+            // Story 7.10: query comboSteps from equipped weapon SO; unarmed defaults to 3
+            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.comboSteps : 3;
+            if (_comboStep < maxSteps - 1)
             {
                 IncreaseAttackCombo();
             }
@@ -292,17 +276,14 @@ namespace Game.Combat
         private void IncreaseAttackCombo()
         {
             _comboStep++;
-            _comboWindowOpen = false;  // window not open yet — delay starts
-            _comboWindowDelay = _config.comboWindowDelay;
-            _comboWindowTimer = 0f;
+            _comboWindowOpen = false;
+            // Story 7.10: window timing is now driven by ComboWindowOpen animation event
         }
 
         private void ResetAttackCombo()
         {
             _comboStep = 0;
             _comboWindowOpen = false;
-            _comboWindowDelay = 0f;
-            _comboWindowTimer = 0f;
             _stateManager.SetAttacking(false);
             _activeHitbox?.Disable();
         }
@@ -314,6 +295,8 @@ namespace Game.Combat
         private void HandleVisualsRefreshed(bool _)
         {
             UnbindWeaponHitbox();
+            // Story 7.10: cache weapon SO for comboSteps query
+            _currentWeaponSO = _equipmentSystem?.GetEquipped(EquipmentSlot.Weapon) as WeaponSO;
             if (_equipmentVisuals == null) return;
             var weaponGO = _equipmentVisuals.ActiveWeaponGO;
             if (weaponGO == null) return; // Unarmed — no hitbox to bind
@@ -326,6 +309,7 @@ namespace Game.Combat
 
         private void UnbindWeaponHitbox()
         {
+            _currentWeaponSO = null; // Story 7.10: clear cached weapon SO on unbind
             if (_activeHitbox == null) return;
             _activeHitbox.Disable();
             _activeHitbox.OnEnemyHit -= OnWeaponHit;
@@ -337,6 +321,29 @@ namespace Game.Combat
             health.TakeDamage(ComputeEffectiveDamage());
             GameLog.Info(TAG, $"Weapon hit: {health.gameObject.name}");
         }
+
+        // Story 7.10: public methods called by AnimationEventReceiver ----------------
+
+        public void OnComboWindowOpen()
+        {
+            // Guard: finisher calls ResetAttackCombo() (SetAttacking(false)) before the animation
+            // completes. The stale ComboWindowOpen event at ~50% of the finisher clip must be
+            // ignored, otherwise _comboWindowOpen becomes true while IsAttacking is false,
+            // allowing TryAttack() to start a new chain mid-finisher animation.
+            if (!_stateManager.IsAttacking) return;
+            _comboWindowOpen = true;
+            GameLog.Info(TAG, $"Combo window opened — step {_comboStep} ready");
+        }
+
+        public void OnComboWindowClose()
+        {
+            if (!_comboWindowOpen) return; // guard against stale events after manual reset
+            ResetAttackCombo();
+            GameLog.Info(TAG, "Combo window closed — chain reset");
+        }
+
+        public void OnHitboxEnable()  => _activeHitbox?.Enable();   // Story 7.11
+        public void OnHitboxDisable() => _activeHitbox?.Disable();  // Story 7.11
 
         // ----------------------------------------------------------------------------
 
@@ -460,9 +467,7 @@ namespace Game.Combat
             bool canAttack = _staminaSystem.HasEnough(_config.attackStaminaCost);
             string state = canAttack ? "Ready" : "STAMINA EMPTY";
             GUI.Label(new Rect(10, 70, 400, 26), $"Combat: [{state}]", style);
-            string windowState = _comboWindowDelay > 0f
-                ? $"opening in {_comboWindowDelay:F2}s"
-                : _comboWindowOpen ? $"OPEN ({_comboWindowTimer:F2}s)" : "closed";
+            string windowState = _comboWindowOpen ? "OPEN (animation-event)" : "closed";
             GUI.Label(new Rect(10, 100, 400, 26), $"Combo: step {_comboStep} | {windowState}", style);
             string pbWindow = _isPerfectBlockWindowOpen ? $"PB: {_perfectBlockWindowTimer:F2}s" : "PB: closed";
             GUI.Label(new Rect(10, 130, 400, 26), $"Block: {(_stateManager.IsBlocking ? "RAISED" : "lowered")} | {pbWindow}", style);
