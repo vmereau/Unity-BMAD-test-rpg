@@ -30,7 +30,8 @@
       "Bash(done)",
       "Bash(cat:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__UnityMCP__manage_material"
     ]
   }
 }

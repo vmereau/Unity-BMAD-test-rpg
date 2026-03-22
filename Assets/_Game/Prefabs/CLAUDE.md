@@ -60,16 +60,9 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 
 ---
 
-## Enemy Prefab Structure (Enemy_Grunt)
+## Enemy Prefab Structure
 
-```
-Enemy_Grunt.prefab  (Assets/_Game/Prefabs/Enemies/)
-├── NavMeshAgent, EnemyBrain, PersistentID, EnemyHealth   ← all on ROOT
-└── Visual  (child)
-    └── MeshFilter, CapsuleCollider, MeshRenderer         ← collider is on CHILD
-```
-
-**Consequence for hit detection:** `Physics.OverlapSphereNonAlloc` returns the `CapsuleCollider` on `Visual`. Use `GetComponentInParent<EnemyHealth>()` — NOT `TryGetComponent` — to walk up to the root. `TryGetComponent` only looks at the collider's own GameObject and will always miss.
+> See `Assets/_Game/Prefabs/Enemies/CLAUDE.md` for full enemy prefab hierarchy, physics hit detection requirements, and checklist for adding new enemy types.
 
 ---
 
@@ -90,11 +83,13 @@ Each weapon lives in its own folder and ships as **two prefabs**:
 ```
 Swords/SwordBase/
 ├── SwordBase_World.prefab   ← dropped item (Rigidbody, ItemPickup, solid BoxCollider, Layer: Interactable)
-└── SwordBase_Visual.prefab  ← equipped visual (no Rigidbody, no ItemPickup, Layer: Default)
+└── SwordBase_Visual.prefab  ← equipped visual (kinematic Rigidbody on root, no ItemPickup, Layer: Default)
     └── SM_WeaponMesh        ← nested mesh prefab; grip offset baked into localPosition/localRotation
                                 BoxCollider isTrigger=true added as component override on this GO
-                                Story 7-9 adds WeaponHitbox.cs to this same GO
+                                WeaponHitbox.cs added to this same GO (story 7-9)
 ```
+
+**Kinematic Rigidbody on Visual root (story 7-9):** Required for `WeaponHitbox.OnTriggerEnter` to fire. Unity's physics engine does not generate trigger events between two static colliders (no Rigidbody). The weapon trigger on a `CharacterController` child is treated as static; `Enemy_Grunt/Visual`'s CapsuleCollider is also static. Adding `isKinematic=true, useGravity=false` Rigidbody to the `_Visual` root satisfies the requirement without affecting movement. Every weapon visual prefab that uses `WeaponHitbox` must follow this pattern.
 
 **SO wiring:**
 - `ItemSO.worldItemPrefab` → `_World` prefab
