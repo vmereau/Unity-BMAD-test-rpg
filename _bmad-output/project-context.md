@@ -228,6 +228,14 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - NEVER call `Debug.Log`, `Debug.LogWarning`, or `Debug.LogError` directly — always use `GameLog`
 - NEVER omit the TAG constant — every class defines `private const string TAG = "[SystemName]";`
 
+**Equipment System Patterns (Epic 7):**
+- `WeaponSO` is **abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` returns null; always use a concrete subclass (e.g. `SwordSO`)
+- Concrete weapon classes live in `Assets/_Game/ScriptableObjects/Items/Weapons/` — each has `[CreateAssetMenu]` only; no additional fields needed unless the weapon type requires them
+- Adding a new weapon category = new `XxxSO : WeaponSO` file in `Weapons/` + SO asset — zero code changes in `EquipmentSystem`, `ItemDetailPanelUI`, or `PlayerCombat`
+- Combo window timing is **Animation Event–driven** (Story 7.10) — `AnimationEventReceiver` on Player root receives `ComboWindowOpen`/`ComboWindowClose` events from attack clips and routes them to `PlayerCombat.OnComboWindowOpen()` / `OnComboWindowClose()`
+- `comboSteps` on `WeaponSO` is the only design-level combo field — no timer floats; all timing lives in the animation clip events
+- Unarmed fallback: `_currentWeaponSO == null` → `maxSteps = 3` (3-hit sphere combo)
+
 **Inventory System Patterns (Epic 4):**
 - `InventorySystem` is a **MonoBehaviour on the Player prefab** — NOT a singleton; access via direct `[SerializeField]` reference or `FindFirstObjectByType<InventorySystem>()` in Awake only
 - `ItemSO` class lives in `Assets/_Game/ScriptableObjects/Items/ItemSO.cs`, namespace `Game.Inventory` — assets created via `Assets/Items/Item` menu

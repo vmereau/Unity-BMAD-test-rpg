@@ -23,12 +23,6 @@ namespace Game.Combat
         [Tooltip("Seconds after last Consume() call before regen begins.")]
         public float staminaRegenDelay = 1.5f;
 
-        [Header("Combo Attack")]
-        [Tooltip("Seconds after an attack fires before the combo window opens (~50% of clip length).")]
-        public float comboWindowDelay = 0.3f;
-        [Tooltip("Seconds the combo window stays open once it opens (~30% of clip length).")]
-        public float comboWindowDuration = 0.18f;
-
         [Header("Perfect Block")]
         [Tooltip("Seconds after raising block during which a hit counts as a perfect block.")]
         public float perfectBlockWindowDuration = 0.25f;

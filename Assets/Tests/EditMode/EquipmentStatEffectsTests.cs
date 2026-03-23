@@ -105,7 +105,7 @@ namespace Tests.EditMode
 
         private WeaponSO CreateWeapon(int strBonus = 0, float damageBonus = 0f)
         {
-            var w = CreateSO<WeaponSO>();
+            var w = CreateSO<SwordSO>();
             w.strengthBonus = strBonus;
             w.damageBonus   = damageBonus;
             return w;

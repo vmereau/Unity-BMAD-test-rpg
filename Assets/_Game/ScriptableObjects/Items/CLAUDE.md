@@ -12,11 +12,14 @@ ItemSO                              (base — any item in the inventory)
 │   ├── SkillItemSO                 (teaches a SkillSO to the player on use)
 │   └── PotionItemSO                (restores player health when used; stackable)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
-    ├── WeaponSO                    (occupies the Weapon slot)
+    ├── WeaponSO  (abstract)        (occupies the Weapon slot; concrete types in Weapons/ subfolder)
+    │   └── SwordSO                 (Assets/_Game/ScriptableObjects/Items/Weapons/SwordSO.cs)
     └── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
 ```
 
 All types live in namespace `Game.Inventory`.
+
+**`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`). New weapon categories get their own concrete class under `Assets/_Game/ScriptableObjects/Items/Weapons/`. Adding a new weapon type requires: a new `XxxSO : WeaponSO` file in `Weapons/` + a new SO asset — no code changes in the rest of the system.
 
 `EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.
 

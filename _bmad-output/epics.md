@@ -266,6 +266,12 @@ stats, and spend gold to access gated content.
 - As a player, I can buy and sell items at dedicated shop NPCs
 - As a player, I can loot gold and items from defeated enemies and containers
 - As a player, I can pay gold bribes to access gated areas or services
+- As a developer, each weapon category defines its own combo step count and
+  window timing via a WeaponSO subclass, so adding new weapon types requires
+  no code changes (Story 7.10)
+- As a developer, each weapon defines its hitbox activation delay and active
+  duration via WeaponSO, and WeaponHitbox enforces that timing automatically,
+  so hit windows are tunable per weapon type without touching combat code (Story 7.11)
 
 ---
 

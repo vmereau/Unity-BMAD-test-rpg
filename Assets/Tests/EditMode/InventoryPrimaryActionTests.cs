@@ -96,7 +96,7 @@ namespace Tests.EditMode
 
         private WeaponSO CreateWeapon(string name = "Test Sword")
         {
-            var item = ScriptableObject.CreateInstance<WeaponSO>();
+            var item = ScriptableObject.CreateInstance<SwordSO>();
             item.itemName = name;
             _createdAssets.Add(item);
             return item;
