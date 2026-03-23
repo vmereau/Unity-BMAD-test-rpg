@@ -31,7 +31,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: AttackOverhead
+      name: SwordAttackOverhead
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
@@ -57,29 +57,29 @@ ModelImporter:
       events:
       - time: 0.25
         functionName: HitboxEnable
-        data:
-        objectReferenceParameter: {fileID: 0}
+        data: 
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.5
         functionName: HitboxDisable
-        data:
-        objectReferenceParameter: {fileID: 0}
+        data: 
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.5
         functionName: ComboWindowOpen
-        data:
-        objectReferenceParameter: {fileID: 0}
+        data: 
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.9
         functionName: ComboWindowClose
-        data:
-        objectReferenceParameter: {fileID: 0}
+        data: 
+        objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
