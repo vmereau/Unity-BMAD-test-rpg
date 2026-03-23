@@ -5,7 +5,7 @@ namespace Game.Player
 {
     /// <summary>
     /// Single source of truth for player action gating and state.
-    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy.
+    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat.
     /// All Can-do queries (CanAttack, CanBlock, CanDodge, CanJump, CanMove) live here.
     /// Animation side-effects are delegated to PlayerAnimator — this class never touches the Animator directly.
     /// State is written by PlayerCombat and DodgeController; state is read by any system needing action gates.
@@ -29,10 +29,11 @@ namespace Game.Player
         /// <summary>True when the player cannot perform any action (cursor unlocked).</summary>
         public bool IsBusy => !CursorManager.IsLocked;
 
-        // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging
+        // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging / SetInCombat
         public bool IsBlocking { get; private set; }
         public bool IsAttacking { get; private set; }
         public bool IsDodging { get; private set; }
+        public bool IsInCombat { get; private set; }
 
         private void Awake()
         {
@@ -81,17 +82,25 @@ namespace Game.Player
                 _playerAnimator.PlayDodge(isBackwardRoll);
         }
 
+        /// <summary>Sets the InCombat state and drives the IsInCombat animator bool via PlayerAnimator.</summary>
+        public void SetInCombat(bool value)
+        {
+            IsInCombat = value;
+            _playerAnimator.SetInCombat(value);
+            GameLog.Info(TAG, $"Combat stance: {(value ? "DRAWN" : "sheathed")}");
+        }
+
         // ── Can-do queries ────────────────────────────────────────────────────
 
         /// <summary>True when the player is allowed to start an attack.</summary>
-        public bool CanAttack() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
+        public bool CanAttack() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && IsInCombat;
 
         /// <summary>
         /// True when the player is allowed to raise a block.
         /// Note: blocking is intentionally permitted during an attack combo (block-cancel mechanic).
         /// OnBlockStarted in PlayerCombat resets combo state when a block is raised.
         /// </summary>
-        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging;
+        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && IsInCombat;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
         public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;

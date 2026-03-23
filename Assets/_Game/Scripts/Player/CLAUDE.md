@@ -15,11 +15,14 @@
 | Dodge  | `CanDodge()`  | `DodgeController.SetDodging()` |
 | Jump   | `CanJump()`   | — (read-only gate) |
 | Move   | `CanMove()`   | — (read-only gate) |
+| InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
-- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`.
+- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
 - `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
+- `CanAttack()` and `CanBlock()` both require `IsInCombat == true` (Story 7.12) — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
+- `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
 ---
 
@@ -50,6 +53,7 @@ normZ = Mathf.Clamp(localVelocity.z / runSpeed, -1f, 1f);
 | `SetBlocking(bool)` | Sets `IsBlocking` bool |
 | `PlayAttack(int triggerHash)` | Fires the given attack trigger |
 | `PlayDodge(bool isBackward)` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
+| `SetInCombat(bool)` | Sets `IsInCombat` bool (parameter exists from 7.12; layer weight added in 7.13) |
 
 **Consequence:** When adding new player animations, add a public method to `PlayerAnimator` and call it from `PlayerStateManager` — never add `Animator.SetTrigger/SetBool` calls elsewhere.
 
@@ -99,7 +103,7 @@ Cinemachine reads `CameraTarget` passively — it never takes direct input.
 
 The project's `InputSystem_Actions` action maps:
 
-- **Player map:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, **InventoryToggle** — **no Cancel action**
+- **Player map:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, **InventoryToggle**, **LockOn**, ActionBar1–6, **DrawWeapon** (R key) — **no Cancel action**
 - **UI map:** Navigate, Submit, **Cancel** (Escape), **Click** (left mouse), Point, RightClick, MiddleClick, ScrollWheel
 
 Consequences for cursor lock handling in `CameraController`:
@@ -114,7 +118,8 @@ Consequences for cursor lock handling in `CameraController`:
 | Severity | Pattern |
 |----------|---------|
 | HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
-| HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()` |
+| HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()`, `SetInCombat()` |
+| HIGH | `CanAttack()` or `CanBlock()` returns true when weapon is sheathed — both gates require `IsInCombat == true` since Story 7.12; test scenarios must press R before attacking |
 | HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `PlayerAnimatorController`; locomotion uses `VelocityX`/`VelocityZ` only |
 | MEDIUM | `CharacterController.velocity.magnitude` used for animation — Y component inflates value; strip Y before normalizing |
 | MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |

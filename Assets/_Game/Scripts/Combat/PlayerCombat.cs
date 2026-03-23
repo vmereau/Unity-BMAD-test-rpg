@@ -104,6 +104,8 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "PlayerSkills not assigned — Power Strike bonus inactive");
             if (_equipmentSystem == null)
                 GameLog.Warn(TAG, "EquipmentSystem not assigned — weapon damage bonus inactive");
+            if (_equipmentVisuals == null)
+                GameLog.Warn(TAG, "EquipmentVisuals not assigned — draw/sheathe will have no visual effect");
 
             _input = new InputSystem_Actions();
         }
@@ -116,6 +118,7 @@ namespace Game.Combat
             _input.Player.Attack.started += OnAttackStarted;
             _input.Player.Block.started += OnBlockStarted;
             _input.Player.Block.canceled += OnBlockCanceled;
+            _input.Player.DrawWeapon.started += OnDrawWeaponStarted;
             // Story 7.9: subscribe to OnVisualsRefreshed SO — raised at the END of
             // EquipmentVisuals.Refresh(), so ActiveWeaponGO is valid when HandleVisualsRefreshed runs.
             _onVisualsRefreshed?.AddListener(HandleVisualsRefreshed);
@@ -130,6 +133,7 @@ namespace Game.Combat
             _input.Player.Attack.started -= OnAttackStarted;
             _input.Player.Block.started -= OnBlockStarted;
             _input.Player.Block.canceled -= OnBlockCanceled;
+            _input.Player.DrawWeapon.started -= OnDrawWeaponStarted;
             _input.Player.Disable();
             _input.Dispose();
             _input = null;
@@ -160,11 +164,20 @@ namespace Game.Combat
             TryAttack();
         }
 
+        private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
+        {
+            if (_stateManager.IsBusy) return;
+            if (_stateManager.IsAttacking) return;
+            bool entering = !_stateManager.IsInCombat;
+            _stateManager.SetInCombat(entering);
+            _equipmentVisuals?.SetCombatState(entering);
+        }
+
         private void OnBlockStarted(InputAction.CallbackContext ctx)
         {
             if (!_stateManager.CanBlock())
             {
-                GameLog.Warn(TAG, "Cannot block while airborne");
+                GameLog.Warn(TAG, "Cannot block — airborne, dodging, or weapon sheathed");
                 return;
             }
 
@@ -300,7 +313,8 @@ namespace Game.Combat
             if (_equipmentVisuals == null) return;
             var weaponGO = _equipmentVisuals.ActiveWeaponGO;
             if (weaponGO == null) return; // Unarmed — no hitbox to bind
-            _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>();
+            // includeInactive: true — Drawn child may be inactive when weapon is equipped while sheathed
+            _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>(true);
             if (_activeHitbox != null)
                 _activeHitbox.OnEnemyHit += OnWeaponHit;
             else
@@ -472,7 +486,7 @@ namespace Game.Combat
             string pbWindow = _isPerfectBlockWindowOpen ? $"PB: {_perfectBlockWindowTimer:F2}s" : "PB: closed";
             GUI.Label(new Rect(10, 130, 400, 26), $"Block: {(_stateManager.IsBlocking ? "RAISED" : "lowered")} | {pbWindow}", style);
             GUI.Label(new Rect(10, 160, 500, 26),
-                $"State: Airborne:{_stateManager.IsAirborne} | Blocking:{_stateManager.IsBlocking} | Attacking:{_stateManager.IsAttacking}",
+                $"State: Airborne:{_stateManager.IsAirborne} | Blocking:{_stateManager.IsBlocking} | Attacking:{_stateManager.IsAttacking} | InCombat:{_stateManager.IsInCombat}",
                 style);
             GUI.Label(new Rect(10, 410, 300, 26), $"DMG: {ComputeEffectiveDamage():F1}", style);
         }

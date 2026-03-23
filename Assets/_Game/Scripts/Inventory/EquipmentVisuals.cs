@@ -10,6 +10,7 @@ namespace Game.Inventory
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
         [SerializeField] private Transform _weaponSocket;
+        [SerializeField] private Transform _undrawnWeaponSocket;
         [SerializeField] private Transform _helmetSocket;
         [SerializeField] private Renderer _bodyRenderer;
         [SerializeField] private Material _armorPlaceholderMaterial;
@@ -21,6 +22,7 @@ namespace Game.Inventory
         private GameObject _weaponVisual;
         private GameObject _helmetVisual;
         private Material _originalBodyMaterial;
+        private bool _isInCombat = false;
 
         /// <summary>The currently instantiated weapon visual GO. Exposed for PlayerCombat (story 7-9) to locate WeaponHitbox.</summary>
         public GameObject ActiveWeaponGO => _weaponVisual;
@@ -59,6 +61,23 @@ namespace Game.Inventory
 
         private void HandleEquipmentChanged(bool _) => Refresh();
 
+        public void SetCombatState(bool isInCombat)
+        {
+            _isInCombat = isInCombat;
+            if (_weaponVisual == null) return;
+            var targetSocket = isInCombat ? _weaponSocket : _undrawnWeaponSocket;
+            if (targetSocket == null)
+            {
+                GameLog.Warn(TAG, $"SetCombatState({isInCombat}): target socket is null — weapon visual not moved. Check _undrawnWeaponSocket assignment on EquipmentVisuals.");
+                return;
+            }
+            _weaponVisual.transform.SetParent(targetSocket, worldPositionStays: false);
+            _weaponVisual.transform.localPosition = Vector3.zero;
+            _weaponVisual.transform.localRotation = Quaternion.identity;
+            ApplyCombatVisibility(_weaponVisual, isInCombat);
+            GameLog.Info(TAG, $"Weapon visual moved to {targetSocket.name}");
+        }
+
         public void Refresh()
         {
             if (_equipmentSystem == null) return;
@@ -78,16 +97,18 @@ namespace Game.Inventory
             var weapon = _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as EquipableItemSO;
             if (weapon == null || _weaponSocket == null) return;
 
+            var targetSocket = (_isInCombat || _undrawnWeaponSocket == null) ? _weaponSocket : _undrawnWeaponSocket;
             if (weapon.equipVisualPrefab != null)
             {
-                _weaponVisual = Instantiate(weapon.equipVisualPrefab, _weaponSocket);
+                _weaponVisual = Instantiate(weapon.equipVisualPrefab, targetSocket);
                 _weaponVisual.transform.localPosition = Vector3.zero;
                 _weaponVisual.transform.localRotation = Quaternion.identity;
+                ApplyCombatVisibility(_weaponVisual, _isInCombat);
                 GameLog.Info(TAG, $"Weapon visual attached (prefab: {weapon.equipVisualPrefab.name})");
             }
             else
             {
-                _weaponVisual = CreatePlaceholder(PrimitiveType.Cube, _weaponSocket, new Vector3(0.07f, 0.07f, 0.5f), Color.yellow);
+                _weaponVisual = CreatePlaceholder(PrimitiveType.Cube, targetSocket, new Vector3(0.07f, 0.07f, 0.5f), Color.yellow);
                 GameLog.Info(TAG, "Weapon visual attached (placeholder)");
             }
             ApplyAnimatorOverride((weapon as WeaponSO)?.animatorOverrideController);
@@ -133,6 +154,19 @@ namespace Game.Inventory
             _animator.runtimeAnimatorController = overrideController != null
                 ? overrideController
                 : _defaultAnimatorController;
+        }
+
+        /// <summary>
+        /// Shows the "Drawn" child and hides "Sheathed" (or vice versa) on weapon visual prefabs
+        /// that use the Drawn/Sheathed child convention. No-ops silently if children are absent
+        /// (e.g. placeholder cube, or weapons that haven't adopted the convention yet).
+        /// </summary>
+        private static void ApplyCombatVisibility(GameObject weaponVisual, bool isInCombat)
+        {
+            var drawn   = weaponVisual.transform.Find("Drawn");
+            var sheathed = weaponVisual.transform.Find("Sheathed");
+            if (drawn   != null) drawn.gameObject.SetActive(isInCombat);
+            if (sheathed != null) sheathed.gameObject.SetActive(!isInCombat);
         }
 
         private static GameObject CreatePlaceholder(PrimitiveType type, Transform socket, Vector3 scale, Color color)

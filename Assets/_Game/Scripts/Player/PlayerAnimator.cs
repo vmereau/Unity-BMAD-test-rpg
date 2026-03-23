@@ -26,11 +26,14 @@ namespace Game.Player
         private static readonly int IsBlockingHash = Animator.StringToHash("IsBlocking");
         private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
         private static readonly int IsDodgingBackwardsHash = Animator.StringToHash("IsDodgingBackwards");
+        private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
 
         [SerializeField] private PlayerConfigSO _config;
 
         private Animator _animator;
         private CharacterController _characterController;
+        // Cached: IsInCombat parameter not present until Story 7.13 adds it to the controller
+        private bool _hasIsInCombatParam;
 
         private void Awake()
         {
@@ -61,6 +64,9 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+
+            foreach (var p in _animator.parameters)
+                if (p.nameHash == IsInCombatHash) { _hasIsInCombatParam = true; break; }
         }
 
         private void Update()
@@ -104,6 +110,12 @@ namespace Game.Player
         {
             if (_animator != null)
                 _animator.SetTrigger(isBackwardRoll ? IsDodgingBackwardsHash : IsDodgingHash);
+        }
+
+        /// <summary>Drives the IsInCombat animator bool. Layer weight set in Story 7.13.</summary>
+        public void SetInCombat(bool value)
+        {
+            if (_animator != null && _hasIsInCombatParam) _animator.SetBool(IsInCombatHash, value);
         }
     }
 }

@@ -272,6 +272,13 @@ stats, and spend gold to access gated content.
 - As a developer, each weapon defines its hitbox activation delay and active
   duration via WeaponSO, and WeaponHitbox enforces that timing automatically,
   so hit windows are tunable per weapon type without touching combat code (Story 7.11)
+- As a player, I can press R to draw my weapon and enter combat stance, and R again
+  to sheathe it; attacking and blocking are only possible with the weapon drawn,
+  while dodging remains available at all times (Story 7.12)
+- As a player, when I draw my weapon the upper body animations match my combat stance —
+  a sword idle or unarmed idle depending on what I have equipped — and my attack
+  animations are weapon-specific clip sets driven by the existing AnimatorOverrideController
+  mechanism (Story 7.13)
 
 ---
 

@@ -141,6 +141,32 @@ When `_activeHitbox == null` (no weapon equipped, or weapon prefab has no Weapon
 
 ---
 
+## DrawWeapon / Combat State Toggle (Story 7.12)
+
+`PlayerCombat.OnDrawWeaponStarted` handles the R key to draw/sheathe the weapon:
+
+```csharp
+private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
+{
+    if (_stateManager.IsBusy) return;
+    if (_stateManager.IsAttacking) return;  // guard added in 7.12 review — prevent mid-swing socket jump
+    bool entering = !_stateManager.IsInCombat;
+    _stateManager.SetInCombat(entering);       // updates IsInCombat + drives animator bool
+    _equipmentVisuals?.SetCombatState(entering); // reparents weapon visual to correct socket
+}
+```
+
+**Key rules:**
+- `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — attacking/blocking while sheathed is blocked at `PlayerStateManager` level, not in `PlayerCombat`
+- `CanDodge()` is **unchanged** — dodge always works regardless of combat state
+- R is ignored while `IsBusy` (cursor unlocked) **or** while `IsAttacking` — drawing mid-combo would jump the weapon visual to the hip socket while the `Drawn` child is deactivated, silencing the hit window for that swing
+- `_equipmentVisuals` ref is reused from Story 7.9 — `SetCombatState()` was added to `EquipmentVisuals` in 7.12
+- `DrawWeapon.started` subscription follows the same OnEnable/OnDisable pattern as Attack/Block; the unsubscribe must be inside the `if (_input == null) return;` guarded block
+- `EquipmentVisuals._undrawnWeaponSocket` = `UndrawnWeaponSocket` GO under `mixamorig:Hips` in Player prefab (position left at `(0,0,0)` for manual tuning)
+- On initial weapon equip (`EquipmentVisuals.RefreshWeapon()`), socket is chosen by `_isInCombat` — weapon always appears on hip by default
+
+---
+
 ## Code Review Checklist — Combat Scripts
 
 | Severity | Pattern |
@@ -151,5 +177,7 @@ When `_activeHitbox == null` (no weapon equipped, or weapon prefab has no Weapon
 | MEDIUM | `WeaponHitbox` placed on the weapon prefab root instead of the mesh child — root has the kinematic Rigidbody; collider must be on a child so `OnTriggerEnter` resolves the correct GameObject |
 | HIGH | Weapon visual prefab missing a kinematic `Rigidbody` on its root — static trigger + static collider = `OnTriggerEnter` never fires (see Prefabs/Enemies/CLAUDE.md) |
 | HIGH | `AnimationEventReceiver` function name mismatch — Unity finds receiver methods by exact string match on the same GO as the Animator; typo = silent no-op, not a compile error |
+| HIGH | `GetComponentInChildren<WeaponHitbox>()` without `includeInactive: true` — `Drawn` child is inactive when weapon is equipped while sheathed; hitbox will not be found and attacks silently fall back to sphere overlap |
 | HIGH | `ScriptableObject.CreateInstance<WeaponSO>()` in new code or tests — `WeaponSO` is abstract (Story 7.10); use a concrete subclass like `SwordSO` |
 | MEDIUM | New weapon SO added without a concrete subclass (e.g. inheriting `WeaponSO` directly via `[CreateAssetMenu]`) — `WeaponSO` is abstract and has no `[CreateAssetMenu]`; all new weapon types need a concrete class in `ScriptableObjects/Items/Weapons/` |
+| MEDIUM | `OnDrawWeaponStarted` missing `IsAttacking` guard — draw/sheathe during active combo deactivates `Drawn` child mid-swing, silencing the animation-event hit window; always check `if (_stateManager.IsAttacking) return;` before toggling combat state |

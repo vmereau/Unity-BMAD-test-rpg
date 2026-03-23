@@ -262,6 +262,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DrawWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""7c12dc01-7c12-4c12-ac12-7c12dc017c12"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -735,6 +744,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""ActionBar6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7c12dc02-7c12-4c12-ac12-7c12dc027c12"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DrawWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1341,6 +1361,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_ActionBar4 = m_Player.FindAction("ActionBar4", throwIfNotFound: true);
         m_Player_ActionBar5 = m_Player.FindAction("ActionBar5", throwIfNotFound: true);
         m_Player_ActionBar6 = m_Player.FindAction("ActionBar6", throwIfNotFound: true);
+        m_Player_DrawWeapon = m_Player.FindAction("DrawWeapon", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1453,6 +1474,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ActionBar4;
     private readonly InputAction m_Player_ActionBar5;
     private readonly InputAction m_Player_ActionBar6;
+    private readonly InputAction m_Player_DrawWeapon;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1520,6 +1542,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @ActionBar5 => m_Wrapper.m_Player_ActionBar5;
         /// <summary>Provides access to the underlying input action "Player/ActionBar6".</summary>
         public InputAction @ActionBar6 => m_Wrapper.m_Player_ActionBar6;
+        /// <summary>Provides access to the underlying input action "Player/DrawWeapon".</summary>
+        public InputAction @DrawWeapon => m_Wrapper.m_Player_DrawWeapon;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
