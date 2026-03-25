@@ -32,5 +32,12 @@ namespace Game.Combat
 
         // Called from attack animation clips at the frame the hit window closes (Story 7.11)
         public void HitboxDisable() => _combat?.OnHitboxDisable();
+
+        // Called by SMB_AttackState.OnStateEnter — animator confirmed this attack state started
+        public void NotifyAttackEntered(int attackIndex) => _combat?.OnAttackStateEntered(attackIndex);
+
+        // Called by SMB_AttackState.OnStateExit — animator confirmed this attack state exited
+        // (only when NOT transitioning to another attack state)
+        public void NotifyAttackExited() => _combat?.OnAttackStateExited();
     }
 }

@@ -100,13 +100,13 @@ namespace Game.Player
         /// Note: blocking is intentionally permitted during an attack combo (block-cancel mechanic).
         /// OnBlockStarted in PlayerCombat resets combo state when a block is raised.
         /// </summary>
-        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && IsInCombat;
+        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && !IsAttacking && IsInCombat;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
         public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
 
         /// <summary>True when the player is allowed to jump (state gates only; isGrounded not checked here).</summary>
-        public bool CanJump() => !IsBusy && !IsAirborne && !IsDodging && !IsBlocking;
+        public bool CanJump() => !IsBusy && !IsAirborne && !IsDodging && !IsBlocking && !IsAttacking;
 
         /// <summary>True when the player is allowed to move.</summary>
         public bool CanMove() => !IsBusy;

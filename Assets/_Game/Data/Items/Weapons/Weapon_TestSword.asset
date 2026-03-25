@@ -25,4 +25,4 @@ MonoBehaviour:
   defenseBonus: 0
   comboSteps: 2
   damageBonus: 5
-  animatorOverrideController: {fileID: 0}
+  animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}

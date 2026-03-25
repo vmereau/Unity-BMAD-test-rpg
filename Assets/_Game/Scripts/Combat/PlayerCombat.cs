@@ -50,6 +50,8 @@ namespace Game.Combat
         [SerializeField] private EquipmentVisuals _equipmentVisuals;
         [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
+        [SerializeField] private GameObject _unarmedHitbox;
+
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
         private InputSystem_Actions _input;
@@ -57,6 +59,7 @@ namespace Game.Combat
         // Combo state
         private int _comboStep = 0;            // 0 = ready, 1 = after hit 1, 2 = after hit 2
         private bool _comboWindowOpen = false;
+        private bool _IsComboAttacking = false; // true from ExecuteAttack until SMB OnStateEnter — combo chain guard
 
         // Story 7.10: cached weapon SO — set when visuals refresh, cleared on unequip
         private WeaponSO _currentWeaponSO;
@@ -68,7 +71,6 @@ namespace Game.Combat
         // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
         private readonly Collider[] _hitBuffer = new Collider[10];
 
-        // Story 7.9: active weapon hitbox; null when unarmed or weapon has no WeaponHitbox component
         private WeaponHitbox _activeHitbox;
 
         private void Awake()
@@ -122,6 +124,7 @@ namespace Game.Combat
             // Story 7.9: subscribe to OnVisualsRefreshed SO — raised at the END of
             // EquipmentVisuals.Refresh(), so ActiveWeaponGO is valid when HandleVisualsRefreshed runs.
             _onVisualsRefreshed?.AddListener(HandleVisualsRefreshed);
+            BindUnarmedHitbox();
         }
 
         private void OnDisable()
@@ -217,6 +220,12 @@ namespace Game.Combat
                 return;
             }
 
+            if (IsMaxCombo())
+            {
+                GameLog.Info(TAG, "Attack input ignored — Max combo");
+                return;
+            }
+
             // Story 7.10: If we're attacking but the window has not opened yet (AnimationEvent
             // ComboWindowOpen hasn't fired), ignore new input to prevent re-triggering Attack_1.
             // IsAttacking is true from SetAttacking(true) until SetAttacking(false) or animation exit.
@@ -224,12 +233,6 @@ namespace Game.Combat
             {
                 GameLog.Info(TAG, "Attack input ignored — waiting for combo window (animation event)");
                 return;
-            }
-
-            // If window is not open, start the chain fresh
-            if (!_comboWindowOpen)
-            {
-                _comboStep = 0;
             }
 
             if (!_staminaSystem.HasEnough(_config.attackStaminaCost))
@@ -243,8 +246,7 @@ namespace Game.Combat
             if (!consumed)
             {
                 GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
-                _stateManager.SetAttacking(false);
-                _activeHitbox?.Disable();
+                ExitAttack();
                 return;
             }
 
@@ -263,26 +265,31 @@ namespace Game.Combat
             
             // SetAttacking(true, triggerHash) sets state and fires the animator trigger atomically
             _stateManager.SetAttacking(true, triggerHash);
-            GameLog.Info(TAG, $"Attack combo step {_comboStep + 1}");
 
             // Story 7.11: hitbox enabled/disabled by HitboxEnable/HitboxDisable animation events.
             // Unarmed fallback (no hitbox): sphere overlap fires immediately on input frame.
             if (_activeHitbox == null)
-                ExecuteHitDetection();
+                GameLog.Warn(TAG, $"Warning: No active hitbox");
+        }
+
+        private bool IsMaxCombo()
+        {
+            // Story 7.10: query comboSteps from equipped weapon SO; unarmed defaults to 2
+            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.comboSteps : 2;
+            return _comboStep == maxSteps;
         }
 
         private void ManageComboStep()
         {
-            // Story 7.10: query comboSteps from equipped weapon SO; unarmed defaults to 3
-            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.comboSteps : 3;
-            if (_comboStep < maxSteps - 1)
+            if (IsMaxCombo())
             {
-                IncreaseAttackCombo();
+                return;
             }
-            else
+            
+            IncreaseAttackCombo();
+            if (_comboStep > 1)
             {
-                // Finisher fired — reset combo
-                ResetAttackCombo();
+                _IsComboAttacking = true;
             }
         }
 
@@ -297,6 +304,10 @@ namespace Game.Combat
         {
             _comboStep = 0;
             _comboWindowOpen = false;
+        }
+
+        private void ExitAttack()
+        {
             _stateManager.SetAttacking(false);
             _activeHitbox?.Disable();
         }
@@ -309,21 +320,39 @@ namespace Game.Combat
         {
             UnbindWeaponHitbox();
             // Story 7.10: cache weapon SO for comboSteps query
+            BindWeaponHitbox();
+        }
+
+        private void BindWeaponHitbox()
+        {
             _currentWeaponSO = _equipmentSystem?.GetEquipped(EquipmentSlot.Weapon) as WeaponSO;
             if (_equipmentVisuals == null) return;
             var weaponGO = _equipmentVisuals.ActiveWeaponGO;
-            if (weaponGO == null) return; // Unarmed — no hitbox to bind
+            if (weaponGO == null)
+            {
+                BindUnarmedHitbox(); // Unarmed — no weapon visual, bind unarmed hitbox
+                return;
+            }
             // includeInactive: true — Drawn child may be inactive when weapon is equipped while sheathed
             _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>(true);
             if (_activeHitbox != null)
                 _activeHitbox.OnEnemyHit += OnWeaponHit;
             else
-                GameLog.Warn(TAG, $"WeaponHitbox not found on {weaponGO.name} — using sphere fallback");
+                BindUnarmedHitbox(); // Weapon visual exists but has no WeaponHitbox — fallback
+        }
+
+        private void BindUnarmedHitbox()
+        {
+            _unarmedHitbox.SetActive(true);
+            _activeHitbox = _unarmedHitbox.GetComponent<WeaponHitbox>();
+            if (_activeHitbox != null)
+                _activeHitbox.OnEnemyHit += OnWeaponHit;
         }
 
         private void UnbindWeaponHitbox()
         {
             _currentWeaponSO = null; // Story 7.10: clear cached weapon SO on unbind
+            _unarmedHitbox?.SetActive(false);
             if (_activeHitbox == null) return;
             _activeHitbox.Disable();
             _activeHitbox.OnEnemyHit -= OnWeaponHit;
@@ -351,13 +380,46 @@ namespace Game.Combat
 
         public void OnComboWindowClose()
         {
-            if (!_comboWindowOpen) return; // guard against stale events after manual reset
             ResetAttackCombo();
-            GameLog.Info(TAG, "Combo window closed — chain reset");
+            GameLog.Info(TAG, "Combo window closed");
         }
 
-        public void OnHitboxEnable()  => _activeHitbox?.Enable();   // Story 7.11
+        public void OnHitboxEnable()
+        {
+            _activeHitbox?.Enable();
+        }
         public void OnHitboxDisable() => _activeHitbox?.Disable();  // Story 7.11
+
+        /// <summary>
+        /// Called by SMB_AttackState.OnStateEnter — animator confirmed this attack state started.
+        /// Guarantees hitbox is disabled at state entry (safety net for back-to-back attacks
+        /// where the exit cleanup was skipped because we transitioned directly to this state).
+        /// Does NOT set IsAttacking — that is owned by input (ExecuteAttack) and the
+        /// finisher path intentionally clears it via ResetAttackCombo before the clip ends.
+        /// </summary>
+        public void OnAttackStateEntered(int attackIndex)
+        {
+            // this attack state started — safe to allow exit cleanup again
+            _activeHitbox?.Disable();
+            _comboWindowOpen = false;
+        }
+
+        /// <summary>
+        /// Called by SMB_AttackState.OnStateExit when NOT transitioning to another attack state.
+        /// Guarantees hitbox off and combo state reset for interrupt cases (dodge/stagger/death)
+        /// where ComboWindowClose animation event never fired.
+        /// </summary>
+        public void OnAttackStateExited()
+        {
+            if (_IsComboAttacking)
+            {
+                _IsComboAttacking = false;
+                return;
+            }
+
+            ResetAttackCombo();
+            ExitAttack();
+        }
 
         // ----------------------------------------------------------------------------
 
@@ -380,32 +442,6 @@ namespace Game.Combat
             // Story 7.3: direct weapon damage bonus (flat, unscaled by stats).
             damage += _equipmentSystem?.GetWeaponDamageBonus() ?? 0f;
             return damage;
-        }
-
-        /// <summary>
-        /// Performs a sphere overlap around the player and applies damage to all EnemyHealth components found.
-        /// Uses a pre-allocated buffer to avoid per-attack heap allocations.
-        /// Note (prototype): hit fires on input frame, not on animation active frames.
-        /// </summary>
-        private void ExecuteHitDetection()
-        {
-            int hitCount = Physics.OverlapSphereNonAlloc(
-                transform.position, _config.attackHitRange, _hitBuffer);
-
-            int damaged = 0;
-            for (int i = 0; i < hitCount; i++)
-            {
-                // EnemyHealth is on the root; collider may be on a child — walk up with GetComponentInParent
-                var health = _hitBuffer[i].GetComponentInParent<EnemyHealth>();
-                if (health != null && !health.IsDead)
-                {
-                    health.TakeDamage(ComputeEffectiveDamage());
-                    damaged++;
-                }
-            }
-
-            if (damaged > 0)
-                GameLog.Info(TAG, $"Attack hit {damaged} target(s)");
         }
 
         /// <summary>
