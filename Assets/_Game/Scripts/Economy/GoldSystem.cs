@@ -17,7 +17,7 @@ namespace Game.Economy
 
         public int Gold { get; private set; }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -61,7 +61,7 @@ namespace Game.Economy
             _onGoldChanged?.Raise(Gold);
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

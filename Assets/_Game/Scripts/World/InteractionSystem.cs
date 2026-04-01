@@ -21,7 +21,7 @@ namespace Game.World
 
         public IInteractable CurrentInteractable { get; private set; }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _promptStyle;
 #endif
 
@@ -93,7 +93,7 @@ namespace Game.World
                 CurrentInteractable.Interact();
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (CurrentInteractable == null) return;

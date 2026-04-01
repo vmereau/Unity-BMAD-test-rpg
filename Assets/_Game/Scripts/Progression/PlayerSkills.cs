@@ -18,7 +18,7 @@ namespace Game.Progression
 
         private readonly HashSet<string> _learnedSkills = new HashSet<string>();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -64,7 +64,7 @@ namespace Game.Progression
             return true;
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

@@ -101,7 +101,7 @@ namespace Game.Combat
         /// <summary>Returns true if the player has at least <paramref name="amount"/> stamina.</summary>
         public bool HasEnough(float amount) => _currentStamina >= amount;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 
         private void OnGUI()

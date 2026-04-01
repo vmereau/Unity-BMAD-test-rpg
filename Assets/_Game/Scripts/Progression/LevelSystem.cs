@@ -19,7 +19,7 @@ namespace Game.Progression
         public int CurrentLevel { get; private set; } = 1;
         public int MaxLevel => _config != null ? _config.xpPerLevel.Length + 1 : 1;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -78,7 +78,7 @@ namespace Game.Progression
             }
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

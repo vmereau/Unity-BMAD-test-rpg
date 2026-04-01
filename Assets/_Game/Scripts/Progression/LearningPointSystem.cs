@@ -17,7 +17,7 @@ namespace Game.Progression
 
         public int CurrentLP { get; private set; } = 0;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -66,7 +66,7 @@ namespace Game.Progression
             _onLPChanged?.Raise(CurrentLP);
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

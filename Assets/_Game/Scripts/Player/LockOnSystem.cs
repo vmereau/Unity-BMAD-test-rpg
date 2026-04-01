@@ -138,7 +138,7 @@ namespace Game.Player
             GameLog.Info(TAG, "Lock-on cleared");
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             GUI.Label(new Rect(10, 290, 400, 30),

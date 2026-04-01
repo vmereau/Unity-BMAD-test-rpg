@@ -34,7 +34,7 @@ namespace Game.Player
         // New — no base defense; purely equipment-derived
         public int Defense => _equipDefBonus;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -111,7 +111,7 @@ namespace Game.Player
             _onStatsChanged?.Raise(true);
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

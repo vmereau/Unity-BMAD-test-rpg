@@ -310,7 +310,7 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 
         private void OnGUI()

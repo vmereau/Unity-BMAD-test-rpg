@@ -82,7 +82,7 @@ namespace Game.AI
             // If EnemyAnimator is absent (e.g. Enemy_Grunt), this is a no-op and body stays active indefinitely.
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 
         private void OnGUI()

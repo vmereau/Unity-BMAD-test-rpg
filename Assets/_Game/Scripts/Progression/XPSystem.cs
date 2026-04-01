@@ -18,7 +18,7 @@ namespace Game.Progression
         public int CurrentXP { get; private set; }
         public int TotalKills { get; private set; }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 #endif
 
@@ -60,7 +60,7 @@ namespace Game.Progression
             _onXPGained?.Raise(xpGained);
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };

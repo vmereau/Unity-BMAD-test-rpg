@@ -29,7 +29,7 @@ namespace Game.AI
         private bool _menuOpen;
         private int[] _purchaseCounts;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _titleStyle;
         private GUIStyle _labelStyle;
         private GUIStyle _grayedStyle;
@@ -93,7 +93,7 @@ namespace Game.AI
             GameLog.Info(TAG, $"Trainer purchased: {entry.label}. {entry.stat} now {_playerStats.GetStat(entry.stat)}.");
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             // Initialize cached styles on first use

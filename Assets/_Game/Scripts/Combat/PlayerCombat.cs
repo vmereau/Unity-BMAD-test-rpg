@@ -144,7 +144,7 @@ namespace Game.Combat
 
         private void Update()
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
             DrawAttackRangeDebug();
 #endif
             // Perfect block window countdown — independent of combo state, runs every frame
@@ -489,7 +489,7 @@ namespace Game.Combat
             return HitResult.Blocked;
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 
         private void DrawAttackRangeDebug()

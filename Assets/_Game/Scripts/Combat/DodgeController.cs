@@ -187,7 +187,7 @@ namespace Game.Combat
             GameLog.Info(TAG, $"Dodge roll started: dir={_dodgeDirection}, dur={_config.dodgeDuration}s");
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (_config == null || _staminaSystem == null || _stateManager == null) return;
