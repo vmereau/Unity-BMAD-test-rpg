@@ -11,10 +11,11 @@ namespace Game.AI
     /// Patrol: cycles between waypoints, waits at each.
     /// Engage: chases player via NavMesh when within detectionRange; disengages if > disengageRange.
     /// Attack: stops moving, strikes player on cooldown when within attackRange.
-    /// Dead: no-op state (entity SetActive(false) by EnemyHealth.Die() almost immediately).
-    /// Requires NavMeshAgent and EnemyHealth on same GameObject. AIConfigSO drives all tunable values.
+    /// Dead: no-op state (EnemyHealth.Die() triggers death animation via EnemyAnimator).
+    /// Requires NavMeshAgent and EnemyHealth on same GameObject. EnemyTypeSO drives all tunable values.
     /// Story 2.8: Initial implementation (patrol + engage only).
     /// Story 2.9: Added Attacking and Dead states; EnemyHealth, PlayerCombat, PlayerHealth integration.
+    /// Enemy Creature System: Migrated to EnemyTypeSO; added EnemyAnimator calls; removed renderer visual.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBrain : MonoBehaviour
@@ -23,8 +24,9 @@ namespace Game.AI
 
         private enum EnemyState { Idle, Patrolling, Engaging, Attacking, Dead }
 
-        [SerializeField] private AIConfigSO _config;
+        [SerializeField] private EnemyTypeSO _type;
         [SerializeField] private Transform[] _waypoints;
+        [SerializeField] private EnemyAnimator _enemyAnimator;
 
         private NavMeshAgent _agent;
         private Transform _player;
@@ -36,10 +38,9 @@ namespace Game.AI
         private int _currentWaypoint;
         private float _waitTimer;
         private float _attackCooldownTimer;
+        private float _smoothedAnimSpeed;
 
-        // Visual feedback
-        private MeshRenderer _renderer;
-        private MaterialPropertyBlock _propBlock;
+        // Visual debug removed — see EnemyAnimator for future debug overlay
 
         private void Awake()
         {
@@ -51,9 +52,9 @@ namespace Game.AI
                 return;
             }
 
-            if (_config == null)
+            if (_type == null)
             {
-                GameLog.Error(TAG, "AIConfigSO not assigned — EnemyBrain disabled");
+                GameLog.Error(TAG, "EnemyTypeSO not assigned — EnemyBrain disabled");
                 enabled = false;
                 return;
             }
@@ -65,9 +66,6 @@ namespace Game.AI
                 enabled = false;
                 return;
             }
-
-            _renderer = GetComponentInChildren<MeshRenderer>();
-            if (_renderer != null) _propBlock = new MaterialPropertyBlock();
 
             var playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj == null)
@@ -102,7 +100,7 @@ namespace Game.AI
 
         private void Update()
         {
-            // Transition to Dead state if health depleted (EnemyHealth.Die() will follow SetActive(false))
+            // Transition to Dead state if health depleted (EnemyHealth.Die() triggers death animation)
             if (_enemyHealth.IsDead && _state != EnemyState.Dead)
             {
                 TransitionToDead();
@@ -119,7 +117,14 @@ namespace Game.AI
             }
 
             HandleCooldowns();
-            UpdateAttackVisuals();
+            HandleMovementAnimation();
+        }
+
+        private void HandleMovementAnimation()
+        {
+            float target = _agent.velocity.magnitude;
+            _smoothedAnimSpeed = Mathf.Lerp(_smoothedAnimSpeed, target, Time.deltaTime * 10f);
+            _enemyAnimator?.SetMoveSpeed(_smoothedAnimSpeed);
         }
 
         private void HandleCooldowns()
@@ -130,13 +135,13 @@ namespace Game.AI
 
         private void HandleIdle()
         {
-            // Nothing to do — enemy stays put.
+            
         }
 
         private void HandlePatrol()
         {
             // Check for player detection
-            if (_player != null && Vector3.Distance(transform.position, _player.position) <= _config.detectionRange)
+            if (_player != null && Vector3.Distance(transform.position, _player.position) <= _type.DetectionRange)
             {
                 TransitionToEngaging();
                 return;
@@ -146,7 +151,7 @@ namespace Game.AI
             if (_agent.pathPending) return;
 
             // Check arrival at waypoint
-            if (_agent.remainingDistance <= _config.waypointArrivalThreshold)
+            if (_agent.remainingDistance <= _type.WaypointArrivalThreshold)
             {
                 _waitTimer -= Time.deltaTime;
                 if (_waitTimer <= 0f)
@@ -155,9 +160,14 @@ namespace Game.AI
                 }
                 else
                 {
-                    _agent.isStopped = true;
+                    PatrolWaitAtWaypoint();
                 }
             }
+        }
+
+        private void PatrolWaitAtWaypoint()
+        {
+            _agent.isStopped = true;
         }
 
         private void HandleEngage()
@@ -171,7 +181,7 @@ namespace Game.AI
 
             float distToPlayer = Vector3.Distance(transform.position, _player.position);
 
-            if (distToPlayer > _config.disengageRange)
+            if (distToPlayer > _type.DisengageRange)
             {
                 GameLog.Info(TAG, "Disengaged — player out of range");
                 TransitionToPatrol();
@@ -179,7 +189,7 @@ namespace Game.AI
             }
 
             // Within attack range → switch to attacking
-            if (distToPlayer <= _config.attackRange)
+            if (distToPlayer <= _type.AttackRange)
             {
                 TransitionToAttacking();
                 return;
@@ -199,7 +209,7 @@ namespace Game.AI
             float distToPlayer = Vector3.Distance(transform.position, _player.position);
 
             // Player moved beyond disengage range
-            if (distToPlayer > _config.disengageRange)
+            if (distToPlayer > _type.DisengageRange)
             {
                 GameLog.Info(TAG, "Disengaged from attack — player out of range");
                 TransitionToPatrol();
@@ -207,7 +217,7 @@ namespace Game.AI
             }
 
             // Player moved out of attack range — resume chase
-            if (distToPlayer > _config.attackRange)
+            if (distToPlayer > _type.AttackRange)
             {
                 TransitionToEngaging();
                 return;
@@ -221,12 +231,13 @@ namespace Game.AI
 
         private void HandleDead()
         {
-            // No-op: EnemyHealth.Die() calls SetActive(false) which stops Update.
+            // No-op: death animation and ragdoll handled by EnemyAnimator.
         }
 
         private void ExecuteAttack()
         {
-            _attackCooldownTimer = _config.attackCooldown;
+            _enemyAnimator?.TriggerAttack();
+            _attackCooldownTimer = _type.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks player");
 
             HitResult result = HitResult.NotBlocked;
@@ -251,7 +262,7 @@ namespace Game.AI
 
                 case HitResult.NotBlocked:
                     if (_playerHealth != null)
-                        _playerHealth.TakeDamage(_config.attackDamage);
+                        _playerHealth.TakeDamage(_type.AttackDamage);
                     break;
             }
         }
@@ -263,17 +274,17 @@ namespace Game.AI
             _currentWaypoint = (_currentWaypoint + 1) % _waypoints.Length;
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
-            _agent.speed = _config.patrolSpeed;
+            _agent.speed = _type.PatrolSpeed;
             _agent.SetDestination(_waypoints[_currentWaypoint].position);
-            _waitTimer = _config.patrolWaitTime;
+            _waitTimer = _type.PatrolWaitTime;
         }
 
         private void TransitionToEngaging()
         {
             _state = EnemyState.Engaging;
             _agent.isStopped = false;
-            _agent.stoppingDistance = _config.engageStoppingDistance;
-            _agent.speed = _config.engageSpeed;
+            _agent.stoppingDistance = _type.EngageStoppingDistance;
+            _agent.speed = _type.EngageSpeed;
             _agent.SetDestination(_player.position);
             GameLog.Info(TAG, $"{gameObject.name} engaged player");
         }
@@ -299,49 +310,18 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }
 
-        private void SetRendererColor(Color color)
-        {
-            if (_renderer == null) return;
-            _renderer.GetPropertyBlock(_propBlock);
-            _propBlock.SetColor("_BaseColor", color);
-            _renderer.SetPropertyBlock(_propBlock);
-        }
-
-        private void UpdateAttackVisuals()
-        {
-            if (_renderer == null) return;
-
-            if (_state == EnemyState.Dead)
-            {
-                SetRendererColor(Color.gray);
-                return;
-            }
-
-            // If attack is on cooldown
-            if(_attackCooldownTimer > 0f) 
-            {
-                // Yellow (just attacked / cooldown high) → Red (about to attack / cooldown low)
-                float t = _config.attackCooldown > 0f ? _attackCooldownTimer / _config.attackCooldown : 0f;
-                SetRendererColor(Color.Lerp(Color.red, Color.yellow, t));
-                return;
-            }
-
-            // Cooldown expired — red if ready to attack, white otherwise
-            SetRendererColor(_state == EnemyState.Attacking ? Color.red : Color.white);
-        }
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         private GUIStyle _guiStyle;
 
         private void OnGUI()
         {
-            if (_config == null) return;
+            if (_type == null) return;
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             string distStr = _player != null
                 ? $"{Vector3.Distance(transform.position, _player.position):F1}m"
                 : "?";
             GUI.Label(new Rect(10, 220, 600, 26),
-                $"Enemy: {_state} | PlayerDist:{distStr} | DetectRange:{_config.detectionRange}m | AtkCD:{_attackCooldownTimer:F1}s",
+                $"Enemy: {_state} | PlayerDist:{distStr} | DetectRange:{_type.DetectionRange}m | AtkCD:{_attackCooldownTimer:F1}s",
                 _guiStyle);
         }
 #endif

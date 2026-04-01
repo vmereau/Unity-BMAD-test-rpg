@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0642b44ce47cb5f488f22608b96ea366, type: 3}
+  m_Name: EnemyType_DarknessSpider
+  m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
+  baseHealth: 50
+  attackDamage: 10
+  patrolSpeed: 2
+  engageSpeed: 4
+  detectionRange: 9
+  disengageRange: 14
+  engageStoppingDistance: 1.8
+  waypointArrivalThreshold: 0.5
+  patrolWaitTime: 2
+  attackRange: 2.2
+  attackCooldown: 2
+  animatorOverride: {fileID: 22100000, guid: 2cf8d3be8f56f324a8f6e4207b60bd35, type: 2}

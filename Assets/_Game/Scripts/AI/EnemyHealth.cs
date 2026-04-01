@@ -7,25 +7,28 @@ namespace Game.AI
 {
     /// <summary>
     /// Manages enemy health. Handles damage and death.
-    /// On death: stops NavMeshAgent, calls PersistentID.RegisterDeath(), deactivates GameObject.
+    /// On death: stops NavMeshAgent, calls PersistentID.RegisterDeath(), triggers death animation.
+    /// Body remains in scene permanently after ragdoll activates (no SetActive(false)).
     /// Attach to the Enemy prefab root alongside EnemyBrain.
     /// Story 2.9: Initial implementation.
+    /// Enemy Creature System: Migrated to EnemyTypeSO; death triggers EnemyAnimator instead of SetActive(false).
     /// </summary>
     public class EnemyHealth : MonoBehaviour
     {
         private const string TAG = "[Combat]";
 
-        [SerializeField] private AIConfigSO _config;
+        [SerializeField] private EnemyTypeSO _type;
         [SerializeField] private PersistentID _persistentID;
+        [SerializeField] private EnemyAnimator _enemyAnimator;
 
         public float CurrentHealth { get; private set; }
         public bool IsDead { get; private set; }
 
         private void Awake()
         {
-            if (_config == null)
+            if (_type == null)
             {
-                GameLog.Error(TAG, $"AIConfigSO not assigned on {gameObject.name} — EnemyHealth disabled");
+                GameLog.Error(TAG, $"EnemyTypeSO not assigned on {gameObject.name} — EnemyHealth disabled");
                 enabled = false;
                 return;
             }
@@ -33,7 +36,7 @@ namespace Game.AI
             if (_persistentID == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: PersistentID not assigned — kill will not be registered");
 
-            CurrentHealth = _config.baseHealth;
+            CurrentHealth = _type.BaseHealth;
         }
 
         /// <summary>
@@ -42,8 +45,8 @@ namespace Game.AI
         /// </summary>
         private void OnEnable()
         {
-            if (_config == null) return;
-            CurrentHealth = _config.baseHealth;
+            if (_type == null) return;
+            CurrentHealth = _type.BaseHealth;
             IsDead = false;
         }
 
@@ -57,10 +60,10 @@ namespace Game.AI
 
             CurrentHealth -= amount;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
-            GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+            GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_type.BaseHealth:F0}");
 
-            if (CurrentHealth <= 0f)
-                Die();
+            if (CurrentHealth <= 0f) { Die(); return; }  // death path — no GetHit
+            _enemyAnimator?.TriggerGetHit();              // hit reaction only if still alive
         }
 
         private void Die()
@@ -68,13 +71,15 @@ namespace Game.AI
             IsDead = true;
             GameLog.Info(TAG, $"{gameObject.name} died — registering kill");
 
-            // Stop NavMeshAgent so it doesn't thrash during deactivation
+            // Stop NavMeshAgent so it doesn't thrash during death animation
             if (TryGetComponent<NavMeshAgent>(out var agent))
                 agent.isStopped = true;
 
             _persistentID?.RegisterDeath();
 
-            gameObject.SetActive(false);
+            _enemyAnimator?.TriggerDeath();
+            // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via EnemyAnimator.EnableRagdoll()
+            // If EnemyAnimator is absent (e.g. Enemy_Grunt), this is a no-op and body stays active indefinitely.
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -82,10 +87,10 @@ namespace Game.AI
 
         private void OnGUI()
         {
-            if (_config == null) return;
+            if (_type == null) return;
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             GUI.Label(new Rect(10, 270, 400, 26),
-                $"EnemyHP: {CurrentHealth:F0}/{_config.baseHealth:F0} | Dead:{IsDead}",
+                $"EnemyHP: {CurrentHealth:F0}/{_type.BaseHealth:F0} | Dead:{IsDead}",
                 _guiStyle);
         }
 #endif
