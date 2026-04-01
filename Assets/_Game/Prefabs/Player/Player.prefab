@@ -325,6 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Player.PlayerHealth
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
+  _onPlayerHealthChanged: {fileID: 11400000, guid: d93b6981e4214bd488ec8a72b03d8c60, type: 2}
   _playerStats: {fileID: 5748466653404673820}
 --- !u!114 &212298241250081144
 MonoBehaviour:

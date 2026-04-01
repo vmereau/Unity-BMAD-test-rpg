@@ -18,6 +18,7 @@ namespace Game.Player
 
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [SerializeField] private GameEventSO_Float _onPlayerHealthChanged;
 
         // Same-system reference — PlayerHealth and PlayerStats both in Scripts/Player/. No architecture violation.
         [SerializeField] private PlayerStats _playerStats;
@@ -44,6 +45,12 @@ namespace Game.Player
             CurrentHealth = _config.baseHealth;
         }
 
+        private void Start()
+        {
+            // Raise after all OnEnable calls have run so subscribers (e.g. HealthBarUI) are already listening.
+            _onPlayerHealthChanged?.Raise(CurrentHealth);
+        }
+
         /// <summary>
         /// Applies damage to the player, reduced by Defense. Minimum 1 damage always gets through.
         /// Triggers death when health reaches zero. Calls are ignored if the player is already dead.
@@ -56,6 +63,7 @@ namespace Game.Player
             CurrentHealth -= effective;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+            _onPlayerHealthChanged?.Raise(CurrentHealth);
             if (CurrentHealth <= 0f) Die();
         }
 
@@ -67,6 +75,7 @@ namespace Game.Player
         {
             if (IsDead) return;
             CurrentHealth = Mathf.Min(CurrentHealth + amount, _config.baseHealth);
+            _onPlayerHealthChanged?.Raise(CurrentHealth);
             GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
         }
 
@@ -82,7 +91,7 @@ namespace Game.Player
             gameObject.SetActive(false);
         }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _guiStyle;
 
         private void OnGUI()
