@@ -20,6 +20,7 @@ namespace Game.Combat
         // Prototype exception per Story 3.6 dev notes. Replace with a StatBonusProvider event channel.
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private ProgressionConfigSO _progressionConfig;
+        [SerializeField] private GameEventSO_Float _onPlayerStaminaChanged;
 
         private float _currentStamina;
         private float _regenCooldown;
@@ -70,9 +71,12 @@ namespace Game.Combat
             float max = MaxStamina;
             if (_currentStamina < max)
             {
+                float prev = _currentStamina;
                 _currentStamina = Mathf.Min(
                     _currentStamina + _config.staminaRegenRate * Time.deltaTime,
                     max);
+                if (!Mathf.Approximately(_currentStamina, prev))
+                    RaiseStaminaChanged();
             }
         }
 
@@ -95,7 +99,15 @@ namespace Game.Combat
             _currentStamina = Mathf.Max(_currentStamina, 0f);  // safety clamp
             _regenCooldown = _config.staminaRegenDelay;
             GameLog.Info(TAG, $"Stamina consumed: -{amount}. Remaining: {_currentStamina:F1}");
+            RaiseStaminaChanged();
             return true;
+        }
+
+        private void RaiseStaminaChanged()
+        {
+            float max = MaxStamina;
+            float ratio = max > 0f ? _currentStamina / max : 0f;
+            _onPlayerStaminaChanged?.Raise(ratio);
         }
 
         /// <summary>Returns true if the player has at least <paramref name="amount"/> stamina.</summary>
