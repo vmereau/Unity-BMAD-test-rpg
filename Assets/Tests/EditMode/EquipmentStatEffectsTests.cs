@@ -38,13 +38,13 @@ namespace Tests.EditMode
         }
 
         private ProgressionConfigSO CreateProgConfig(int baseStr = 5, int baseDex = 5,
-            int baseEnd = 5, int baseMna = 5)
+            int baseEnd = 5, int baseInt = 5)
         {
             var cfg = CreateSO<ProgressionConfigSO>();
-            cfg.baseStrength  = baseStr;
-            cfg.baseDexterity = baseDex;
-            cfg.baseEndurance = baseEnd;
-            cfg.baseMana      = baseMna;
+            cfg.baseStrength     = baseStr;
+            cfg.baseDexterity    = baseDex;
+            cfg.baseEndurance    = baseEnd;
+            cfg.baseIntelligence = baseInt;
             return cfg;
         }
 
@@ -141,7 +141,7 @@ namespace Tests.EditMode
         {
             var ps = CreatePlayerStats(CreateProgConfig(baseStr: 5));
 
-            ps.ApplyEquipmentBonuses(str: 2, dex: 0, end: 0, mna: 0, def: 0);
+            ps.ApplyEquipmentBonuses(str: 2, dex: 0, end: 0, intl: 0, def: 0);
 
             Assert.AreEqual(5 + 2, ps.Strength, "Effective Strength should be base + equipment bonus");
         }
@@ -151,7 +151,7 @@ namespace Tests.EditMode
         {
             var ps = CreatePlayerStats();
 
-            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, mna: 0, def: 5);
+            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, intl: 0, def: 5);
 
             Assert.AreEqual(5, ps.Defense, "Defense should equal the equipment bonus");
         }
@@ -161,7 +161,7 @@ namespace Tests.EditMode
         {
             var config = CreateProgConfig(baseStr: 5);
             var ps = CreatePlayerStats(config);
-            ps.ApplyEquipmentBonuses(str: 2, dex: 0, end: 0, mna: 0, def: 0);
+            ps.ApplyEquipmentBonuses(str: 2, dex: 0, end: 0, intl: 0, def: 0);
 
             ps.UpgradeStat(StatType.Strength, 3);
 
@@ -187,7 +187,7 @@ namespace Tests.EditMode
         public void TakeDamage_ReducedByDefense()
         {
             var ps = CreatePlayerStats();
-            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, mna: 0, def: 4);
+            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, intl: 0, def: 4);
             var config = CreateCombatConfig(baseHealth: 100f);
             var ph = CreatePlayerHealth(config, ps);
 
@@ -201,7 +201,7 @@ namespace Tests.EditMode
         public void TakeDamage_MinimumOneDamage()
         {
             var ps = CreatePlayerStats();
-            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, mna: 0, def: 10);
+            ps.ApplyEquipmentBonuses(str: 0, dex: 0, end: 0, intl: 0, def: 10);
             var config = CreateCombatConfig(baseHealth: 100f);
             var ph = CreatePlayerHealth(config, ps);
 

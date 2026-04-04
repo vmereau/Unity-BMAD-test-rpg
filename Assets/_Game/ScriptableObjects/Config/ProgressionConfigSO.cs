@@ -26,7 +26,7 @@ namespace Game.Progression
         public int baseStrength = 5;
         public int baseDexterity = 5;
         public int baseEndurance = 5;
-        public int baseMana = 5;
+        public int baseIntelligence = 5;
 
         [Header("Stat Combat Multipliers — Story 3.6")]
         [Tooltip("Flat damage added per Strength point above base.")]

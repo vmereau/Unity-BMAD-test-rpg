@@ -235,7 +235,7 @@ namespace Game.UI
             if (item.strengthBonus  != 0) sb.AppendLine(FormatBonus("STR", item.strengthBonus));
             if (item.dexterityBonus != 0) sb.AppendLine(FormatBonus("DEX", item.dexterityBonus));
             if (item.enduranceBonus != 0) sb.AppendLine(FormatBonus("END", item.enduranceBonus));
-            if (item.manaBonus      != 0) sb.AppendLine(FormatBonus("MNA", item.manaBonus));
+            if (item.intelligenceBonus != 0) sb.AppendLine(FormatBonus("INT", item.intelligenceBonus));
             if (item.defenseBonus   != 0) sb.AppendLine(FormatBonus("DEF", item.defenseBonus));
 
             bool hasAny = sb.Length > 0;

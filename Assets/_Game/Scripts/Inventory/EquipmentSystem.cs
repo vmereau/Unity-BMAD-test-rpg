@@ -137,17 +137,17 @@ namespace Game.Inventory
         private void RecomputeAndApplyBonuses()
         {
             if (_playerStats == null) return;
-            int str = 0, dex = 0, end = 0, mna = 0, def = 0;
+            int str = 0, dex = 0, end = 0, intl = 0, def = 0;
             foreach (var item in _equipped.Values)
             {
                 if (item is not EquipableItemSO eq) continue;
                 str += eq.strengthBonus;
                 dex += eq.dexterityBonus;
                 end += eq.enduranceBonus;
-                mna += eq.manaBonus;
+                intl += eq.intelligenceBonus;
                 def += eq.defenseBonus;
             }
-            _playerStats.ApplyEquipmentBonuses(str, dex, end, mna, def);
+            _playerStats.ApplyEquipmentBonuses(str, dex, end, intl, def);
         }
     }
 }

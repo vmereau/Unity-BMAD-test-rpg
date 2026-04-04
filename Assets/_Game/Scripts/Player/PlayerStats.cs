@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.Player
 {
-    public enum StatType { Strength, Dexterity, Endurance, Mana, Defense }
+    public enum StatType { Strength, Dexterity, Endurance, Intelligence, Defense }
 
     /// <summary>
     /// Holds the player's base stats. Stats are initialized from ProgressionConfigSO
@@ -20,16 +20,16 @@ namespace Game.Player
         [SerializeField] private GameEventSO_Void _onStatsChanged;
 
         // Base values — initialized from config, permanently incremented by UpgradeStat()
-        private int _baseStrength, _baseDexterity, _baseEndurance, _baseMana;
+        private int _baseStrength, _baseDexterity, _baseEndurance, _baseIntelligence;
 
         // Equipment bonuses — replaced wholesale by ApplyEquipmentBonuses()
-        private int _equipStrBonus, _equipDexBonus, _equipEndBonus, _equipMnaBonus, _equipDefBonus;
+        private int _equipStrBonus, _equipDexBonus, _equipEndBonus, _equipIntBonus, _equipDefBonus;
 
         // Effective values — computed properties; all callers receive base + equipment total automatically
         public int Strength  => _baseStrength  + _equipStrBonus;
         public int Dexterity => _baseDexterity + _equipDexBonus;
         public int Endurance => _baseEndurance + _equipEndBonus;
-        public int Mana      => _baseMana      + _equipMnaBonus;
+        public int Intelligence => _baseIntelligence + _equipIntBonus;
 
         // New — no base defense; purely equipment-derived
         public int Defense => _equipDefBonus;
@@ -50,7 +50,7 @@ namespace Game.Player
             _baseStrength  = _config.baseStrength;
             _baseDexterity = _config.baseDexterity;
             _baseEndurance = _config.baseEndurance;
-            _baseMana      = _config.baseMana;
+            _baseIntelligence = _config.baseIntelligence;
         }
 
         /// <summary>
@@ -70,12 +70,12 @@ namespace Game.Player
                 case StatType.Strength:  _baseStrength  += points; break;
                 case StatType.Dexterity: _baseDexterity += points; break;
                 case StatType.Endurance: _baseEndurance += points; break;
-                case StatType.Mana:      _baseMana      += points; break;
+                case StatType.Intelligence: _baseIntelligence += points; break;
                 default:
                     GameLog.Warn(TAG, $"UpgradeStat: {stat} has no base field — upgrade ignored");
                     return;
             }
-            GameLog.Info(TAG, $"Stat upgraded: {stat} +{points}. STR:{Strength} DEX:{Dexterity} END:{Endurance} MNA:{Mana}");
+            GameLog.Info(TAG, $"Stat upgraded: {stat} +{points}. STR:{Strength} DEX:{Dexterity} END:{Endurance} INT:{Intelligence}");
             _onStatsChanged?.Raise(true);
         }
 
@@ -89,7 +89,7 @@ namespace Game.Player
                 StatType.Strength  => Strength,
                 StatType.Dexterity => Dexterity,
                 StatType.Endurance => Endurance,
-                StatType.Mana      => Mana,
+                StatType.Intelligence => Intelligence,
                 StatType.Defense   => Defense,
                 _                  => 0
             };
@@ -100,14 +100,14 @@ namespace Game.Player
         /// Called by EquipmentSystem whenever the equipped loadout changes.
         /// Raises _onStatsChanged so UI and systems refresh immediately.
         /// </summary>
-        public void ApplyEquipmentBonuses(int str, int dex, int end, int mna, int def)
+        public void ApplyEquipmentBonuses(int str, int dex, int end, int intl, int def)
         {
             _equipStrBonus = str;
             _equipDexBonus = dex;
             _equipEndBonus = end;
-            _equipMnaBonus = mna;
+            _equipIntBonus = intl;
             _equipDefBonus = def;
-            GameLog.Info(TAG, $"Equipment bonuses applied — STR+{str} DEX+{dex} END+{end} MNA+{mna} DEF+{def}");
+            GameLog.Info(TAG, $"Equipment bonuses applied — STR+{str} DEX+{dex} END+{end} INT+{intl} DEF+{def}");
             _onStatsChanged?.Raise(true);
         }
 
@@ -116,7 +116,7 @@ namespace Game.Player
         {
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             GUI.Label(new Rect(10, 350, 500, 26),
-                $"STR:{Strength} DEX:{Dexterity} END:{Endurance} MNA:{Mana} DEF:{Defense}",
+                $"STR:{Strength} DEX:{Dexterity} END:{Endurance} INT:{Intelligence} DEF:{Defense}",
                 _guiStyle);
         }
 #endif

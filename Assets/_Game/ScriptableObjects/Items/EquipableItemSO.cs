@@ -11,7 +11,7 @@ namespace Game.Inventory
         public int strengthBonus;
         public int dexterityBonus;
         public int enduranceBonus;
-        public int manaBonus;
+        public int intelligenceBonus;
         public int defenseBonus;
 
         public abstract bool CanEquip();
