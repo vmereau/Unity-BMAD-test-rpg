@@ -137,14 +137,5 @@ namespace Game.Player
             LockedTarget = null;
             GameLog.Info(TAG, "Lock-on cleared");
         }
-
-#if false // DISABLED: debug OnGUI — to be reworked
-        private void OnGUI()
-        {
-            GUI.Label(new Rect(10, 290, 400, 30),
-                $"<size=18>LockOn: {(IsLockedOn ? LockedTarget.name : "none")}</size>",
-                new GUIStyle { richText = true, normal = { textColor = Color.white } });
-        }
-#endif
     }
 }

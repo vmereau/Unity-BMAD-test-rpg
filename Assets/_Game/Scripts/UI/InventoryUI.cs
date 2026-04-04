@@ -2,12 +2,11 @@ using Game.Core;
 using Game.Inventory;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class InventoryUI : MonoBehaviour
+    public class InventoryUI : MonoBehaviour, IScreenPanel
     {
         private const string TAG = "[InventoryUI]";
 
@@ -23,13 +22,10 @@ namespace Game.UI
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ActionBarUI _actionBarUI;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
-        
+
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private EquipmentUI _equipmentUI;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
-
-        private bool _isOpen = false;
-        private InputSystem_Actions _input;
 
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
@@ -40,10 +36,6 @@ namespace Game.UI
 
         private void Awake()
         {
-            _input = new InputSystem_Actions();
-            _input.Player.Enable();
-            _input.UI.Enable();
-
             // Close context menu on any click over the panel background (not a slot)
             var panelClickHandler = _panelRoot.AddComponent<AnyButtonClickListener>();
             panelClickHandler.callback = (_) => HideContextMenu();
@@ -51,59 +43,29 @@ namespace Game.UI
 
         private void OnEnable()
         {
-            _input.Player.InventoryToggle.performed += HandleToggle;
-            _input.UI.Cancel.performed += HandleClose;
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
             _onEquipmentChanged?.AddListener(HandleEquipmentSlotsChange);
         }
 
         private void OnDisable()
         {
-            if (_input == null) return;
-            _input.Player.InventoryToggle.performed -= HandleToggle;
-            _input.UI.Cancel.performed -= HandleClose;
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
             _onEquipmentChanged?.RemoveListener(HandleEquipmentSlotsChange);
         }
 
-        private void OnDestroy()
-        {
-            _input?.Dispose();
-        }
-
-        private void HandleToggle(InputAction.CallbackContext ctx)
-        {
-            if (_isOpen)
-                Close();
-            else
-                Open();
-        }
-
-        private void HandleClose(InputAction.CallbackContext ctx)
-        {
-            if (_isOpen)
-                Close();
-        }
-
-        private void Open()
+        public void OnScreenOpen()
         {
             RefreshSlots();
             _equipmentUI?.Refresh();
-            _panelRoot.SetActive(true);
             _equipmentUI?.gameObject.SetActive(true);
-            _isOpen = true;
-            CursorManager.Unlock();
             GameLog.Info(TAG, "Inventory opened");
         }
 
-        private void Close()
+        public void OnScreenClose()
         {
             HideContextMenu();
             ClearSelection();
-            _panelRoot.SetActive(false);
             _equipmentUI?.gameObject.SetActive(false);
-            _isOpen = false;
-            CursorManager.Lock();
             GameLog.Info(TAG, "Inventory closed");
         }
 

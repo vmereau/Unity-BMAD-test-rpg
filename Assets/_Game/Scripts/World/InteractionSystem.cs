@@ -21,9 +21,8 @@ namespace Game.World
 
         public IInteractable CurrentInteractable { get; private set; }
 
-#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _promptStyle;
-#endif
+
 
         private void OnEnable()
         {
@@ -93,7 +92,6 @@ namespace Game.World
                 CurrentInteractable.Interact();
         }
 
-#if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {
             if (CurrentInteractable == null) return;
@@ -104,6 +102,5 @@ namespace Game.World
             GUI.Label(new Rect(Screen.width / 2f - 200, Screen.height * 0.55f, 400, 30),
                 CurrentInteractable.InteractPrompt, _promptStyle);
         }
-#endif
     }
 }

@@ -29,12 +29,11 @@ namespace Game.AI
         private bool _menuOpen;
         private int[] _purchaseCounts;
 
-#if false // DISABLED: debug OnGUI — to be reworked
         private GUIStyle _titleStyle;
         private GUIStyle _labelStyle;
         private GUIStyle _grayedStyle;
         private GUIStyle _promptStyle;
-#endif
+
 
         public string InteractPrompt => $"Press E to train: {_trainerData?.trainerName ?? "Trainer"}";
 
@@ -93,7 +92,7 @@ namespace Game.AI
             GameLog.Info(TAG, $"Trainer purchased: {entry.label}. {entry.stat} now {_playerStats.GetStat(entry.stat)}.");
         }
 
-#if false // DISABLED: debug OnGUI — to be reworked
+
         private void OnGUI()
         {
             // Initialize cached styles on first use
@@ -160,6 +159,5 @@ namespace Game.AI
                 }
             }
         }
-#endif
     }
 }

@@ -16,7 +16,6 @@ namespace Game.UI
         private const string TAG = "[UI]";
 
         [SerializeField] private Image _fillImage;
-        [SerializeField] private TMP_Text _label;
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Float _onPlayerHealthChanged;
 
@@ -54,8 +53,6 @@ namespace Game.UI
             float max = _config.baseHealth;
             float ratio = max > 0f ? currentHealth / max : 0f;
             _fillImage.transform.localScale = new Vector3(ratio, 1f, 1f);
-            if (_label != null)
-                _label.text = $"HP: {currentHealth:F0}/{max:F0}";
         }
     }
 }
