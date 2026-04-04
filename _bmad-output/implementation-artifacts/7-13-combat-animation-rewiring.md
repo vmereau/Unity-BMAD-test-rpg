@@ -1,6 +1,6 @@
 # Story 7.13: Combat Animation Rewiring
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
