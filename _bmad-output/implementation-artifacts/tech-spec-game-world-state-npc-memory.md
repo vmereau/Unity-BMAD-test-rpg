@@ -2,8 +2,8 @@
 title: 'GameWorldState + NPC Memory System'
 slug: 'game-world-state-npc-memory'
 created: '2026-04-03'
-status: 'ready-for-dev'
-stepsCompleted: [1, 2, 3, 4]
+status: 'completed'
+stepsCompleted: [1, 2, 3, 4, 5]
 tech_stack: ['Unity 6000.3.10f1', 'C#', 'ScriptableObjects', 'GameEventSO<T>']
 files_to_modify:
   - Assets/_Game/Scripts/Core/WorldStateManager.cs

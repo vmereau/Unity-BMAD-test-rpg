@@ -2,9 +2,10 @@ namespace Game.NPC
 {
     public enum NPCState
     {
-        Working,
-        Sleeping,
-        Patrolling,
-        AtTavern
+        None = 0,
+        Working = 1,
+        Sleeping = 2,
+        Patrolling = 3,
+        AtTavern = 4
     }
 }
