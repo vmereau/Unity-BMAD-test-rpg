@@ -97,14 +97,16 @@ development_status:
   5-6-day-night-cycle: backlog
   epic-5-retrospective: optional
 
-  epic-6: backlog
-  6-1-npc-topic-dialogue: backlog
-  6-2-quest-acquisition: backlog
-  6-3-quest-log: backlog
-  6-4-quest-multiple-outcomes: backlog
-  6-5-permanent-quest-failure: backlog
-  6-6-quest-rewards: backlog
-  6-7-story-quest-world-changes: backlog
+  epic-6: in-progress
+  6-1-npc-topic-dialogue: review
+  6-2-conditional-dialogue-topics: backlog   # memory-gated topics via NPCMemoryComponent.GetActiveMemories()
+  6-3-dialogue-actions: backlog              # per-topic actions: SetFact / SetQuestStep via WorldStateManager
+  6-4-quest-acquisition: backlog
+  6-5-quest-log: backlog
+  6-6-quest-multiple-outcomes: backlog
+  6-7-permanent-quest-failure: backlog
+  6-8-quest-rewards: backlog
+  6-9-story-quest-world-changes: backlog
   epic-6-retrospective: optional
 
   epic-7: in-progress

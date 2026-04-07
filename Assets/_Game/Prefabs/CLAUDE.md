@@ -32,16 +32,20 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── GoldSystem.cs        (_startingGold: 500)
 ├── LockOnSystem.cs
 ├── EquipmentVisuals.cs  (story 7-4; wire via Game/Dev/Wire EquipmentVisuals on Player Prefab)
+├── DialogueSystem.cs    (story 6-1; _dialogueUI → DialogueUI inside UICanvas.prefab/DialoguePanel)
 ├── UICanvas             (child — nested prefab: Assets/_Game/Prefabs/UI/UICanvas.prefab)
-│   ├── Canvas + CanvasScaler + GraphicRaycaster + InventoryUI
+│   ├── Canvas + GraphicRaycaster + UIScreenManager  (no CanvasScaler — removed story 6-1)
+│   ├── EventSystem      (child of UICanvas with plain Transform — EventSystem + InputSystemUIInputModule)
 │   ├── Crosshair        (Image)
 │   ├── ActionBar        (ActionBarUI — nested within UICanvas.prefab)
 │   │   └── 6x ActionBarSlot  (ActionBarSlotUI, Icon, StackCountText, KeyLabel)
-│   └── InventoryUI      (container GO, no components)
-│       ├── EquipmentPanel    (inactive by default; EquipmentUI — nested within UICanvas.prefab)
-│       │   └── SlotWeapon/Helmet/Armor/Ring1/Ring2/Necklace  (EquipmentSlotUI)
-│       ├── InventoryPanel    (inactive by default; GridLayoutGroup — nested within UICanvas.prefab)
-│       └── ItemDetailPanel   (inactive by default; ItemDetailPanelUI — nested within UICanvas.prefab)
+│   ├── DialoguePanel    (nested prefab: Assets/_Game/Prefabs/UI/Dialogue/DialoguePanel.prefab)
+│   └── Menus            (container GO — tab-based screen panels)
+│       ├── TabBar            (TabBarUI — nested within UICanvas.prefab)
+│       ├── InventoryUI       (inactive by default)
+│       ├── QuestLogUI        (inactive by default)
+│       ├── CharacterStatsUI  (inactive by default)
+│       └── OptionsUI         (inactive by default)
 ├── CameraTarget         (child — pure Transform pivot, local Y = 1.6; Cinemachine Follow/LookAt target)
 ├── Virtual Camera       (child — CinemachineVirtualCamera; Follow/LookAt → CameraTarget)
 │   └── cm               (CinemachinePipeline, CinemachineTransposer, CinemachineSameAsFollowTarget)
@@ -54,6 +58,9 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 - `Camera` child owns the `CinemachineBrain` and `AudioListener` — do NOT add a second Camera or AudioListener to any scene that uses this prefab
 - Cinemachine `Follow` and `LookAt` on `Virtual Camera` both point to `CameraTarget` (local Y = 1.6)
 - `UICanvas` is a **nested prefab** (`UICanvas.prefab`) — edit `UICanvas.prefab` directly for layout changes; overrides live on the Player prefab
+- `UICanvas.prefab` has `EventSystem` as a **child of UICanvas** (plain `Transform`, not `RectTransform` — non-UI GO parented to a Canvas). Prefab assets must have a single root; adding EventSystem as a second root breaks Prefab Mode. The EventSystem is required for all button pointer events; it lives here so it's always present with the Player
+- `DialoguePanel.prefab` is nested inside `UICanvas.prefab` as a `PrefabInstance`; `DialogueUI._dialogueSystem` and `DialogueSystem._dialogueUI` are cross-wired via Player.prefab nested-prefab overrides — do NOT try to wire them inside UICanvas.prefab alone
+- `DialogueSystem` is on the **Player root** (not UICanvas, not a separate scene GO)
 - No Rigidbody on player — `CharacterController` only
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
 - `PlayerAnimator` reads `CharacterController.velocity` passively for movement — never writes to movement state

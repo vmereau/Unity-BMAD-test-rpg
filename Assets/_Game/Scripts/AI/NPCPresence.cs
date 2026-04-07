@@ -10,6 +10,7 @@ namespace Game.AI
         private const string TAG = "[NPC]";
 
         [SerializeField] private NPCDataSO _data;
+        [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
         public string InteractPrompt => _data != null ? _data.npcName : "NPC";
 
@@ -25,7 +26,17 @@ namespace Game.AI
         public void Interact()
         {
             if (_data == null) return;
-            GameLog.Info(TAG, $"{_data.npcName} is busy."); // Placeholder — Epic 6 adds dialogue
+            if (_onDialogueRequested == null)
+            {
+                GameLog.Warn(TAG, $"No dialogue event assigned on {gameObject.name} — cannot open dialogue");
+                return;
+            }
+            var memComponent = GetComponent<NPCMemoryComponent>(); // may be null — handled by DialogueSystem
+            _onDialogueRequested.Raise(new NPCDialogueRequestData
+            {
+                npcName = _data.npcName,
+                memories = memComponent
+            });
         }
     }
 }

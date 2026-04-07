@@ -131,6 +131,10 @@ PrefabInstance:
       propertyPath: _data
       value: 
       objectReference: {fileID: 11400000, guid: 555f185113a4121449d9ad8548f57170, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
     - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Merchant
@@ -145,7 +149,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.39
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.z
@@ -308,6 +312,10 @@ PrefabInstance:
       propertyPath: _data
       value: 
       objectReference: {fileID: 11400000, guid: 021b6cc87a072854e9915f26c271643c, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
     - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Blacksmith
@@ -322,11 +330,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.08
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6
+      value: 3.18
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalRotation.w
@@ -373,6 +381,10 @@ PrefabInstance:
       propertyPath: _data
       value: 
       objectReference: {fileID: 11400000, guid: 2191187fcd115c04bb6cee49fee2e344, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
     - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Elder
@@ -387,7 +399,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.43
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.z
@@ -790,6 +802,10 @@ PrefabInstance:
       propertyPath: _data
       value: 
       objectReference: {fileID: 11400000, guid: 9c9976d7afe11694db020ca1804bc82e, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
     - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Guard
@@ -804,7 +820,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.25
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.z
@@ -843,6 +859,91 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+--- !u!1001 &1206658721
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _data
+      value: 
+      objectReference: {fileID: 11400000, guid: b354dcb1cf7c3584589f417dad6e1f95, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
+    - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_Name
+      value: StartingTown_NPC_Villager
+      objectReference: {fileID: 0}
+    - target: {fileID: 4557390827564258202, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _guid
+      value: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.33
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7020049103750179888, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _memories.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7020049103750179888, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: '_memories.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: ea7f28c08c866aa49a5796b42bbe4983, type: 2}
+    - target: {fileID: 7020049103750179888, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: '_memories.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: b783c91f2d581624e92f54d864ad9e9b, type: 2}
+    - target: {fileID: 7020049103750179888, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: '_memories.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 09f5e89cfd1e63e4e8f89be0511b05a7, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
 --- !u!1001 &1302471772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -855,6 +956,10 @@ PrefabInstance:
       propertyPath: _data
       value: 
       objectReference: {fileID: 11400000, guid: e2e8bdfae6b16de438bf2988dad1f97b, type: 2}
+    - target: {fileID: 4326175617101170397, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _onDialogueRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
     - target: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Innkeeper
@@ -869,11 +974,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.81
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6
+      value: 3.71
       objectReference: {fileID: 0}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1350,3 +1455,4 @@ SceneRoots:
   - {fileID: 1098839781}
   - {fileID: 678347119}
   - {fileID: 3285381338490741133}
+  - {fileID: 1206658721}

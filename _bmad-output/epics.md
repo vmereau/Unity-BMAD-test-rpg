@@ -210,28 +210,43 @@ alive with NPC routines and day/night cycle. Monsters don't respawn once killed.
 ## Epic 6: Quest & Dialogue
 
 ### Goal
-Implement the Gothic-style quest and dialogue system.
+Implement the Gothic-style quest and dialogue system, built on top of the
+NPC Memory and WorldState infrastructure already in place.
 
 ### Scope
-**Includes:** Topic-based NPC dialogue system, quest log (title, description,
-past dialogue), main quest chain (3-5 quests), 2-3 side quests, quest rewards
-(XP, gold, items), permanent quest failure (NPC death = quest closed), multiple
-quest outcomes.
+**Includes:** Topic-based NPC dialogue system, memory-gated conditional
+topics (filtered by NPCMemoryComponent), dialogue actions (set world facts,
+start/advance quests), quest log (title, description, past dialogue), main
+quest chain (3-5 quests), 2-3 side quests, quest rewards (XP, gold, items),
+permanent quest failure (NPC death = quest closed), multiple quest outcomes.
 
-**Excludes:** Shop system (Epic 6), voice acting.
+**Excludes:** Shop system (Epic 7), voice acting.
+
+**Foundation already implemented (Epic 6 integrates these):**
+- `WorldStateManager` — flat world fact store + `OnWorldFactChanged` event channel
+- `NPCMemoryEntrySO` — SO defining unlock/invalidation conditions and effect slots (`dialogueLines`, `questDialogueKey`)
+- `NPCMemoryComponent` — MonoBehaviour on NPC prefabs; `GetActiveMemories()` returns currently active memories
+- `TopicUnlockEvaluator` — pure static evaluator (`AllTrue` / `AnyTrue`) for world fact conditions
+
+See `_bmad-output/implementation-artifacts/tech-spec-game-world-state-npc-memory.md` for full API.
 
 ### Dependencies
-Epic 5 (NPCs and world must exist).
+- Epic 5 (NPCs and world must exist)
+- GameWorldState + NPC Memory system (already implemented — `WorldStateManager`, `NPCMemoryComponent`, `NPCMemoryEntrySO`)
 
 ### Deliverable
-Player can talk to NPCs via topic menu, accept quests, complete them with
-multiple outcomes, and see the world react to permanent failures.
+Player can talk to NPCs and select from a topic menu. Topics are conditionally
+visible based on the NPC's active memories (`NPCMemoryComponent.GetActiveMemories()`).
+Selecting a topic can trigger an action — setting a world fact or starting/advancing
+a quest via `WorldStateManager`. Quests have multiple outcomes, fail permanently
+on NPC death, and reward XP, gold, or items.
 
 ### Stories
-- As a player, I can talk to NPCs and select from a list of topics
+- As a player, I can talk to NPCs and see a topic menu
+- As a player, dialogue topics are conditionally visible based on the NPC's active memories
+- As a player, selecting a dialogue topic can trigger an action (set a world fact, start or advance a quest)
 - As a player, I receive quests through NPC dialogue
-- As a player, I have a quest log that stores quest titles, descriptions,
-  and past dialogue
+- As a player, I have a quest log that stores quest titles, descriptions, and past dialogue
 - As a player, quests have multiple possible outcomes based on my actions
 - As a player, if a quest NPC dies, that quest is permanently closed
 - As a player, completing quests rewards me with XP, gold, or items

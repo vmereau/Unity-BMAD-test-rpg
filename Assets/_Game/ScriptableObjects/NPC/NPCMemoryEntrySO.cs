@@ -63,6 +63,8 @@ namespace Game.NPC
         /// <summary>Convenience: unlocked AND not invalidated.</summary>
         public bool IsActive() => IsUnlocked() && !IsInvalidated();
 
+        public bool HasDialogue() => effects.dialogueLines != null && effects.dialogueLines.Length > 0;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {

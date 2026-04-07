@@ -10,6 +10,7 @@ namespace Game.World
 
         [SerializeField] private InteractionConfigSO _config;
         [SerializeField] private Image _crosshairImage;
+        [SerializeField] private DialogueSystem _dialogueSystem;
         [SerializeField] private Color _defaultColor = Color.white;
         [SerializeField] private Color _highlightColor = Color.yellow;
 
@@ -88,6 +89,7 @@ namespace Game.World
 
         private void LateUpdate()
         {
+            if (_dialogueSystem != null && _dialogueSystem.IsOpen) return;
             if (CurrentInteractable != null && _input.Player.Interact.WasPressedThisFrame())
                 CurrentInteractable.Interact();
         }

@@ -50,6 +50,17 @@ namespace Game.AI
             return result.ToArray();
         }
 
+        public NPCMemoryEntrySO[] GetActiveDialogueMemories()
+        {
+            NPCMemoryEntrySO[] active = GetActiveMemories();
+            var result = new List<NPCMemoryEntrySO>(active.Length);
+            foreach (var memory in active)
+            {
+                if (memory.HasDialogue()) result.Add(memory);
+            }
+            return result.ToArray();
+        }
+
         private void HandleWorldFactChanged(WorldFactData data)
         {
             // No-op: GetActiveMemories() evaluates on demand so no action needed here.
