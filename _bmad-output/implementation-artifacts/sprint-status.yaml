@@ -99,8 +99,10 @@ development_status:
 
   epic-6: in-progress
   6-1-npc-topic-dialogue: review
-  6-2-conditional-dialogue-topics: backlog   # memory-gated topics via NPCMemoryComponent.GetActiveMemories()
-  6-3-dialogue-actions: backlog              # per-topic actions: SetFact / SetQuestStep via WorldStateManager
+  6-2-dialogue-graph-so-foundation: ready-for-dev  # new: DialogueNode abstract SO + StartDialogueNode/TextDialogueNode/ChoiceDialogueNode + NPCDialogueGraphComponent — see tech-spec-wip.md
+  6-3-dialogue-graph-integration: ready-for-dev    # new: wire graph into DialogueSystem/DialogueUI/NPCPresence; depends on 6-2 — see tech-spec-wip.md
+  # superseded: 6-2-conditional-dialogue-topics (replaced by dialogue-graph-so-foundation)
+  # superseded: 6-3-dialogue-actions (replaced by dialogue-graph-integration)
   6-4-quest-acquisition: backlog
   6-5-quest-log: backlog
   6-6-quest-multiple-outcomes: backlog
