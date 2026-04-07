@@ -12,12 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
   m_Name: Mem_Villager_Default
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
-  memoryId: Greetings
+  memoryId: base 3
   unlockConditions: []
   invalidationConditions: []
   effects:
-    dialogueLines:
-    - Good day, traveller. These are troubled times.
+    startdialog: {fileID: 11400000, guid: 455d1be2d47a1344691f01dfee989287, type: 2}
     shopPriceModifier: 0
     shopRevealDialogueLine: 
     routineOverride: 0

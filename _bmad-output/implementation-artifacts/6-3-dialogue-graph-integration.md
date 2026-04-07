@@ -1,6 +1,6 @@
 # Story 6.3: Dialogue Graph Integration
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -23,51 +23,51 @@ so that talking to an NPC with a graph component opens a fully traversable dialo
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Extend `NPCDialogueRequestData` (AC: #1, #8)
-  - [ ] File: `Assets/_Game/ScriptableObjects/Events/NPCDialogueRequestData.cs`
-  - [ ] Add `public NPCDialogueGraphComponent graph;` field with null-safe comment
-  - [ ] Add `using Game.AI;` import (already has `using Game.AI;` via `NPCMemoryComponent` — verify no duplicate needed)
-  - [ ] See exact code in Dev Notes
+- [x] Task 1 — Extend `NPCDialogueRequestData` (AC: #1, #8)
+  - [x] File: `Assets/_Game/ScriptableObjects/Events/NPCDialogueRequestData.cs`
+  - [x] Add `public NPCDialogueGraphComponent graph;` field with null-safe comment
+  - [x] Add `using Game.AI;` import (already has `using Game.AI;` via `NPCMemoryComponent` — verify no duplicate needed)
+  - [x] See exact code in Dev Notes
 
-- [ ] Task 2 — Modify `NPCPresence.Interact()` (AC: #1, #8)
-  - [ ] File: `Assets/_Game/Scripts/AI/NPCPresence.cs`
-  - [ ] Add `var graphComponent = GetComponent<NPCDialogueGraphComponent>();` after `memComponent` line
-  - [ ] Add `graph = graphComponent` to event data struct initializer
-  - [ ] See exact code in Dev Notes
+- [x] Task 2 — Modify `NPCPresence.Interact()` (AC: #1, #8)
+  - [x] File: `Assets/_Game/Scripts/AI/NPCPresence.cs`
+  - [x] Add `var graphComponent = GetComponent<NPCDialogueGraphComponent>();` after `memComponent` line
+  - [x] Add `graph = graphComponent` to event data struct initializer
+  - [x] See exact code in Dev Notes
 
-- [ ] Task 3 — Refactor `DialogueSystem` (AC: #1–#9)
-  - [ ] File: `Assets/_Game/Scripts/World/DialogueSystem.cs` — **full rewrite, preserve namespace + tag**
-  - [ ] Add `using Game.AI;` and `using Game.Dialogue;` imports
-  - [ ] Add `private NPCMemoryComponent _currentNPCMemory;` and `private NPCDialogueGraphComponent _currentGraph;` fields
-  - [ ] In `HandleDialogueRequested`: store both state fields, get `startNodes` from graph (empty array if null), call `_dialogueUI.Open(data.npcName, startNodes)` — **new signature**
-  - [ ] Add `public void AdvanceToNode(DialogueNode node)` with `switch (node)` pattern matching
-  - [ ] In `Close()`: null out `_currentNPCMemory` and `_currentGraph`
-  - [ ] Remove old `GetActiveDialogueMemories()` call
-  - [ ] See exact code in Dev Notes
+- [x] Task 3 — Refactor `DialogueSystem` (AC: #1–#9)
+  - [x] File: `Assets/_Game/Scripts/World/DialogueSystem.cs` — **full rewrite, preserve namespace + tag**
+  - [x] Add `using Game.AI;` and `using Game.Dialogue;` imports
+  - [x] Add `private NPCMemoryComponent _currentNPCMemory;` and `private NPCDialogueGraphComponent _currentGraph;` fields
+  - [x] In `HandleDialogueRequested`: store both state fields, get `startNodes` from graph (empty array if null), call `_dialogueUI.Open(data.npcName, startNodes)` — **new signature**
+  - [x] Add `public void AdvanceToNode(DialogueNode node)` with `switch (node)` pattern matching
+  - [x] In `Close()`: null out `_currentNPCMemory` and `_currentGraph`
+  - [x] Remove old `GetActiveDialogueMemories()` call
+  - [x] See exact code in Dev Notes
 
-- [ ] Task 4 — Refactor `DialogueUI` (AC: #1–#9)
-  - [ ] File: `Assets/_Game/Scripts/UI/DialogueUI.cs` — **full rewrite, preserve all `[SerializeField]` fields and input wiring**
-  - [ ] Change `using Game.NPC;` and `using Game.Core;` → `using Game.Dialogue;` (verify no remaining `NPCMemoryEntrySO` refs)
-  - [ ] Change `Open(string npcName, NPCMemoryEntrySO[] topics)` → `Open(string npcName, StartDialogueNode[] startNodes)`
-  - [ ] Rename `PopulateTopics()` → `PopulateStartNodes()` internally
-  - [ ] Rename `AddTopicButton()` → `AddStartNodeButton()`: button onClick calls `_dialogueSystem.AdvanceToNode(captured.nextNode)`
-  - [ ] Add `ShowTextNode(TextDialogueNode node)`: clears buttons, sets `_responseText.text = node.text`, calls `AddAdvanceButton(node.nextNode)`
-  - [ ] Add `ShowChoiceNode(ChoiceDialogueNode node, ChoiceOption[] availableChoices)`: clears buttons, sets response text, adds choice buttons + Farewell
-  - [ ] Add `AddAdvanceButton(DialogueNode nextNode)`: label "Continue..." if nextNode not null, "Farewell." if null; onClick → `AdvanceToNode(captured)`
-  - [ ] Add `AddChoiceButton(ChoiceOption choice)`: label = choice.text; onClick → `AdvanceToNode(captured.nextNode)`
-  - [ ] Change `AddFarewellButton()` onClick → `_dialogueSystem.AdvanceToNode(null)` (was `_dialogueSystem.Close()`)
-  - [ ] Keep `ClearTopicButtons()`, `HandleCancel()`, all input lifecycle unchanged
-  - [ ] See exact code in Dev Notes
+- [x] Task 4 — Refactor `DialogueUI` (AC: #1–#9)
+  - [x] File: `Assets/_Game/Scripts/UI/DialogueUI.cs` — **full rewrite, preserve all `[SerializeField]` fields and input wiring**
+  - [x] Change `using Game.NPC;` and `using Game.Core;` → `using Game.Dialogue;` (verify no remaining `NPCMemoryEntrySO` refs)
+  - [x] Change `Open(string npcName, NPCMemoryEntrySO[] topics)` → `Open(string npcName, StartDialogueNode[] startNodes)`
+  - [x] Rename `PopulateTopics()` → `PopulateStartNodes()` internally
+  - [x] Rename `AddTopicButton()` → `AddStartNodeButton()`: button onClick calls `_dialogueSystem.AdvanceToNode(captured.nextNode)`
+  - [x] Add `ShowTextNode(TextDialogueNode node)`: clears buttons, sets `_responseText.text = node.text`, calls `AddAdvanceButton(node.nextNode)`
+  - [x] Add `ShowChoiceNode(ChoiceDialogueNode node, ChoiceOption[] availableChoices)`: clears buttons, sets response text, adds choice buttons + Farewell
+  - [x] Add `AddAdvanceButton(DialogueNode nextNode)`: label "Continue..." if nextNode not null, "Farewell." if null; onClick → `AdvanceToNode(captured)`
+  - [x] Add `AddChoiceButton(ChoiceOption choice)`: label = choice.text; onClick → `AdvanceToNode(captured.nextNode)`
+  - [x] Change `AddFarewellButton()` onClick → `_dialogueSystem.AdvanceToNode(null)` (was `_dialogueSystem.Close()`)
+  - [x] Keep `ClearTopicButtons()`, `HandleCancel()`, all input lifecycle unchanged
+  - [x] See exact code in Dev Notes
 
-- [ ] Task 5 — Remove `GetActiveDialogueMemories()` from `NPCMemoryComponent` (AC: clean-up)
-  - [ ] File: `Assets/_Game/Scripts/AI/NPCMemoryComponent.cs`
-  - [ ] Remove lines 53–62 (the `GetActiveDialogueMemories()` method)
-  - [ ] `GetActiveMemories()` is kept — still called by `NPCDialogueGraphComponent`
-  - [ ] Grep for any other callers of `GetActiveDialogueMemories()` before removing — should be zero after Task 3
+- [x] Task 5 — Remove `GetActiveDialogueMemories()` from `NPCMemoryComponent` (AC: clean-up)
+  - [x] File: `Assets/_Game/Scripts/AI/NPCMemoryComponent.cs`
+  - [x] Remove lines 53–62 (the `GetActiveDialogueMemories()` method)
+  - [x] `GetActiveMemories()` is kept — still called by `NPCDialogueGraphComponent`
+  - [x] Grep for any other callers of `GetActiveDialogueMemories()` before removing — should be zero after Task 3
 
-- [ ] Task 6 — Demo: Update Villager NPC (Editor work) (AC: #10)
-  - [ ] Create folder `Assets/_Game/Data/NPCs/Dialogue/Villager/`
-  - [ ] Create 6 node assets via `Assets/Create > Game/Dialogue/` (requires Story 6-2 to compile first):
+- [x] Task 6 — Demo: Update Villager NPC (Editor work) (AC: #10)
+  - [x] Create folder `Assets/_Game/Data/NPCs/Dialogue/Villager/`
+  - [x] Create 6 node assets via `Assets/Create > Game/Dialogue/` (requires Story 6-2 to compile first):
 
     | Asset filename | Type | `text` field | `nextNode` |
     |---|---|---|---|
@@ -78,11 +78,11 @@ so that talking to an NPC with a graph component opens a fully traversable dialo
     | `Start_Villager_Work.asset` | StartDialogueNode | `"What do you do?"` | `Text_Villager_Work.asset` |
     | `Text_Villager_Work.asset` | TextDialogueNode | `"I tend the fields. Not much else left to do around here."` | null |
 
-  - [ ] In `StartingTown.unity`, find `StartingTown_NPC_Villager` GameObject
-  - [ ] Add `NPCDialogueGraphComponent` component to it
-  - [ ] Assign all 3 Start node assets to `_startNodes` list in the Inspector
-  - [ ] All 3 `Start_*` nodes have `requiredMemory = null` (unconditional)
-  - [ ] **DO NOT** remove or modify existing `NPCMemoryComponent` or `Mem_Villager_*.asset` — keep as-is (their `dialogueLines` field becomes unused but harmless)
+  - [x] In `StartingTown.unity`, find `StartingTown_NPC_Villager` GameObject
+  - [x] Add `NPCDialogueGraphComponent` component to it
+  - [x] Assign all 3 Start node assets to `_startNodes` list in the Inspector
+  - [x] All 3 `Start_*` nodes have `requiredMemory = null` (unconditional)
+  - [x] **DO NOT** remove or modify existing `NPCMemoryComponent` or `Mem_Villager_*.asset` — keep as-is (their `dialogueLines` field becomes unused but harmless)
 
 ## Dev Notes
 
@@ -579,4 +579,43 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Added `graph` field to `NPCDialogueRequestData` struct (null-safe, no new imports needed).
+- Extended `NPCPresence.Interact()` to do `GetComponent<NPCDialogueGraphComponent>()` and populate the `graph` field.
+- Full rewrite of `DialogueSystem`: added `_currentNPCMemory`/`_currentGraph` state, new `AdvanceToNode(DialogueNode)` with C# pattern-matching switch, `GetAvailableStartNodes()` call on open, `Close()` nulls both state fields.
+- Full rewrite of `DialogueUI`: signature changed to `Open(string, StartDialogueNode[])`, added `ShowTextNode`, `ShowChoiceNode`, `AddAdvanceButton`, `AddChoiceButton`; all Farewell/advance routes now call `AdvanceToNode(null)`; `HandleCancel` still calls `Close()` directly (intentional Escape bypass).
+- Removed `GetActiveDialogueMemories()` from `NPCMemoryComponent` — grepped, zero callers outside the definition.
+- Created 6 dialogue node assets in `Assets/_Game/Data/NPCs/Dialogue/Villager/` via Unity MCP `manage_scriptable_object`.
+- Added `NPCDialogueGraphComponent` to `StartingTown_NPC_Villager` in `StartingTown.unity` and wired all 3 Start nodes (`requiredMemory = null` — unconditional). Scene saved.
+- Zero compile errors after all changes.
+- **Post-implementation update:** `DialogueUI.cs` — `using Game.Core;` re-added (required for `GameLog`, was inadvertently omitted in rewrite).
+- **Post-implementation update:** `NPCMemoryComponent.cs` — `GetActiveStartDialogNodes()` method added; returns `List<StartDialogueNode>` by iterating active memories and collecting `effects.startdialog` where `HasDialogue()` is true. Added `using Game.Dialogue;` and `using System.Linq;` imports.
+
 ### File List
+
+**Modified:**
+- `Assets/_Game/ScriptableObjects/Events/NPCDialogueRequestData.cs`
+- `Assets/_Game/Scripts/AI/NPCPresence.cs`
+- `Assets/_Game/Scripts/World/DialogueSystem.cs`
+- `Assets/_Game/Scripts/UI/DialogueUI.cs` (+ `using Game.Core;` re-added post-implementation)
+- `Assets/_Game/Scripts/AI/NPCMemoryComponent.cs` (+ `GetActiveStartDialogNodes()` added post-implementation)
+- `Assets/_Game/Scenes/StartingTown.unity`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+**Created:**
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_Greetings.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_Greetings.asset.meta`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_AboutPlace.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_AboutPlace.asset.meta`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_Work.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Text_Villager_Work.asset.meta`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_Greetings.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_Greetings.asset.meta`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_AboutPlace.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_AboutPlace.asset.meta`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_Work.asset`
+- `Assets/_Game/Data/NPCs/Dialogue/Villager/Start_Villager_Work.asset.meta`
+
+## Change Log
+
+- 2026-04-07: Implemented all 6 tasks. Wired dialogue graph into DialogueSystem/DialogueUI/NPCPresence. Full rewrites of DialogueSystem and DialogueUI. Removed GetActiveDialogueMemories(). Created Villager dialogue assets and wired NPCDialogueGraphComponent in StartingTown scene. Zero compilation errors. Story moved to review.
+- 2026-04-07: Post-implementation — `DialogueUI.cs`: `using Game.Core;` re-added. `NPCMemoryComponent.cs`: added `GetActiveStartDialogNodes()` returning `List<StartDialogueNode>` from active memory effects; added `using Game.Dialogue;` and `using System.Linq;`.

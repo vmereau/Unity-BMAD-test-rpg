@@ -32,10 +32,12 @@ namespace Game.AI
                 return;
             }
             var memComponent = GetComponent<NPCMemoryComponent>(); // may be null — handled by DialogueSystem
+            var graphComponent = GetComponent<NPCDialogueGraphComponent>(); // may be null — handled by DialogueSystem
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
                 npcName = _data.npcName,
-                memories = memComponent
+                memories = memComponent,
+                graph = graphComponent
             });
         }
     }

@@ -1,25 +1,32 @@
 using Game.Core;
-using Game.NPC;
+using Game.Dialogue;
 using Game.World;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class DialogueUI : MonoBehaviour
+    public class DialogueUI : MonoBehaviour, IPointerClickHandler
     {
         private const string TAG = "[DialogueUI]";
 
         [SerializeField] private GameObject _panel;
         [SerializeField] private TMP_Text _npcNameText;
         [SerializeField] private TMP_Text _responseText;
+        [SerializeField] private GameObject _topicsScrollView;
         [SerializeField] private Transform _topicsContainer;
         [SerializeField] private GameObject _topicButtonPrefab;
         [SerializeField] private DialogueSystem _dialogueSystem;
 
         private InputSystem_Actions _input;
+
+        private enum DisplayState { Topics, Text, Choices }
+        private DisplayState _state = DisplayState.Topics;
+        private DialogueNode _pendingNextNode;
+        private StartDialogueNode[] _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
 
         private void Awake()
         {
@@ -47,7 +54,10 @@ namespace Game.UI
             _input?.Dispose();
         }
 
-        public void Open(string npcName, NPCMemoryEntrySO[] topics)
+        // ── Public API ──────────────────────────────────────────────────────────
+
+        /// <summary>Opens the dialogue panel showing a list of StartDialogueNode topics.</summary>
+        public void Open(string npcName, StartDialogueNode[] startNodes)
         {
             if (_panel == null)
             {
@@ -55,16 +65,42 @@ namespace Game.UI
                 return;
             }
 
+            _cachedStartNodes = startNodes;
+
             _panel.SetActive(true);
 
             if (_npcNameText != null)
                 _npcNameText.text = npcName;
 
-            if (_responseText != null)
-                _responseText.text = string.Empty;
+            RestoreTopics();
+            GameLog.Info(TAG, $"DialogueUI opened with {startNodes.Length} topic(s)");
+        }
 
-            PopulateTopics(topics);
-            GameLog.Info(TAG, $"DialogueUI opened for {npcName} with {topics.Length} topics");
+        /// <summary>Displays a TextDialogueNode: shows text and waits for click-anywhere to advance.</summary>
+        public void ShowTextNode(TextDialogueNode node)
+        {
+            _pendingNextNode = node.nextNode;
+            if (_responseText != null)
+                _responseText.text = node.text;
+            ClearTopicButtons();
+            SetState(DisplayState.Text);
+        }
+
+        /// <summary>Displays a ChoiceDialogueNode: shows NPC text and the provided (pre-filtered) choices.</summary>
+        public void ShowChoiceNode(ChoiceDialogueNode node, ChoiceOption[] availableChoices)
+        {
+            if (_responseText != null)
+                _responseText.text = node.text;
+
+            ClearTopicButtons();
+
+            foreach (var choice in availableChoices)
+            {
+                if (choice == null) continue;
+                AddChoiceButton(choice);
+            }
+
+            SetState(DisplayState.Choices);
         }
 
         public void Close()
@@ -77,10 +113,49 @@ namespace Game.UI
             if (_responseText != null)
                 _responseText.text = string.Empty;
 
+            _pendingNextNode = null;
+            _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
+            SetState(DisplayState.Topics);
+
             GameLog.Info(TAG, "DialogueUI closed");
         }
 
-        private void PopulateTopics(NPCMemoryEntrySO[] topics)
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (_state != DisplayState.Text) return;
+            if (_dialogueSystem == null) return;
+
+            if (_pendingNextNode != null)
+                _dialogueSystem.AdvanceToNode(_pendingNextNode);
+            else
+                RestoreTopics();
+        }
+
+        // ── Private Helpers ─────────────────────────────────────────────────────
+
+        private void SetState(DisplayState state)
+        {
+            _state = state;
+            bool showResponse = state == DisplayState.Text || state == DisplayState.Choices;
+            bool showTopics   = state == DisplayState.Topics || state == DisplayState.Choices;
+            if (_responseText != null)
+                _responseText.gameObject.SetActive(showResponse);
+            if (_topicsScrollView != null)
+                _topicsScrollView.SetActive(showTopics);
+        }
+
+        private void RestoreTopics()
+        {
+            if (_responseText != null)
+                _responseText.text = string.Empty;
+            if (_cachedStartNodes != null && _cachedStartNodes.Length > 0)
+                PopulateStartNodes(_cachedStartNodes);
+            else
+                ClearTopicButtons();
+            SetState(DisplayState.Topics);
+        }
+
+        private void PopulateStartNodes(StartDialogueNode[] startNodes)
         {
             ClearTopicButtons();
 
@@ -90,52 +165,51 @@ namespace Game.UI
                 return;
             }
 
-            foreach (var memory in topics)
+            foreach (var node in startNodes)
             {
-                if (memory == null) continue;
-                AddTopicButton(memory);
+                if (node == null) continue;
+                AddStartNodeButton(node);
             }
-
-            AddFarewellButton();
         }
 
-        private void AddTopicButton(NPCMemoryEntrySO memory)
+        private void AddStartNodeButton(StartDialogueNode node)
         {
             var btnGO = Instantiate(_topicButtonPrefab, _topicsContainer);
             var label = btnGO.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-                label.text = memory.memoryId;
+            if (label != null) label.text = node.text;
 
             var btn = btnGO.GetComponent<Button>();
             if (btn != null)
             {
-                var captured = memory;
-                btn.onClick.AddListener(() => ShowResponse(captured));
+                var captured = node;
+                btn.onClick.AddListener(() =>
+                {
+                    if (captured.nextNode != null)
+                        _dialogueSystem.AdvanceToNode(captured.nextNode);
+                    else
+                        GameLog.Warn(TAG, $"StartDialogueNode '{captured.text}' has no nextNode — ignoring click");
+                });
             }
         }
 
-        private void AddFarewellButton()
+        private void AddChoiceButton(ChoiceOption choice)
         {
             var btnGO = Instantiate(_topicButtonPrefab, _topicsContainer);
             var label = btnGO.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-                label.text = "Farewell.";
+            if (label != null) label.text = choice.text;
 
             var btn = btnGO.GetComponent<Button>();
             if (btn != null)
-                btn.onClick.AddListener(OnFarewell);
-        }
-
-        private void ShowResponse(NPCMemoryEntrySO memory)
-        {
-            if (_responseText == null) return;
-            _responseText.text = memory.HasDialogue() ? memory.effects.dialogueLines[0] : "...";
-        }
-
-        private void OnFarewell()
-        {
-            if (_dialogueSystem != null)
-                _dialogueSystem.Close();
+            {
+                var captured = choice;
+                btn.onClick.AddListener(() =>
+                {
+                    if (captured.nextNode != null)
+                        _dialogueSystem.AdvanceToNode(captured.nextNode);
+                    else
+                        RestoreTopics();
+                });
+            }
         }
 
         private void ClearTopicButtons()
