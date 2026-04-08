@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Core;
+using Game.Dialogue;
 using Game.NPC;
 using UnityEngine;
 
@@ -50,15 +52,20 @@ namespace Game.AI
             return result.ToArray();
         }
 
-        public NPCMemoryEntrySO[] GetActiveDialogueMemories()
+        public List<StartDialogueNode> GetActiveStartDialogNodes()
         {
-            NPCMemoryEntrySO[] active = GetActiveMemories();
-            var result = new List<NPCMemoryEntrySO>(active.Length);
-            foreach (var memory in active)
+            NPCMemoryEntrySO[] activeMemories = GetActiveMemories();
+            
+            List<StartDialogueNode> result = new List<StartDialogueNode>(activeMemories.Length);
+            foreach (NPCMemoryEntrySO npcMemoryEntrySo in activeMemories)
             {
-                if (memory.HasDialogue()) result.Add(memory);
+                if (npcMemoryEntrySo.HasDialogue())
+                {
+                    result.Add(npcMemoryEntrySo.effects.startdialog);
+                }
             }
-            return result.ToArray();
+            
+            return result;
         }
 
         private void HandleWorldFactChanged(WorldFactData data)

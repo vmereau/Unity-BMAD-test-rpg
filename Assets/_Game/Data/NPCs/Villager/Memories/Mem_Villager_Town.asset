@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
-  m_Name: Mem_Villager_Work
+  m_Name: Mem_Villager_Town
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
-  memoryId: What do you do?
+  memoryId: base 2
   unlockConditions: []
   invalidationConditions: []
   effects:
-    dialogueLines:
-    - I tend the fields. Not much else left to do around here.
+    startdialog: {fileID: 11400000, guid: f3efdf084f29cdb4498a09a295515b60, type: 2}
     shopPriceModifier: 0
     shopRevealDialogueLine: 
     routineOverride: 0

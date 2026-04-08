@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
-  m_Name: Mem_Villager_Town
+  m_Name: Mem_Villager_Work
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
-  memoryId: About this place
+  memoryId: base 1
   unlockConditions: []
   invalidationConditions: []
   effects:
-    dialogueLines:
-    - "This is Alderath, a quiet town \u2014 or it was, before the troubles began."
+    startdialog: {fileID: 11400000, guid: f083e168525ea8a40abc34677c3f2adc, type: 2}
     shopPriceModifier: 0
     shopRevealDialogueLine: 
     routineOverride: 0

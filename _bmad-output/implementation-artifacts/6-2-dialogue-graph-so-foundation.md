@@ -1,6 +1,6 @@
 # Story 6.2: Dialogue Graph Node SO Foundation
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -23,56 +23,56 @@ so that NPC dialogue can be authored as branching chains and integrated in Story
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Create folder `Assets/_Game/ScriptableObjects/Dialogue/` (AC: #10)
-  - [ ] Create it by placing the first `.cs` file in it (no separate gitkeep needed; Unity registers folders on file creation)
+- [x] Task 1 — Create folder `Assets/_Game/ScriptableObjects/Dialogue/` (AC: #10)
+  - [x] Create it by placing the first `.cs` file in it (no separate gitkeep needed; Unity registers folders on file creation)
 
-- [ ] Task 2 — Create `DialogueNode.cs` abstract base (AC: #6, #7, #10)
-  - [ ] File: `Assets/_Game/ScriptableObjects/Dialogue/DialogueNode.cs`
-  - [ ] Namespace: `Game.Dialogue`
-  - [ ] `public abstract class DialogueNode : ScriptableObject` — NO `[CreateAssetMenu]`
-  - [ ] `public string text` with `[Tooltip]`
-  - [ ] `public DialogueNode nextNode` with `[Tooltip]`
-  - [ ] `public virtual bool IsEndNode() => nextNode == null`
+- [x] Task 2 — Create `DialogueNode.cs` abstract base (AC: #6, #7, #10)
+  - [x] File: `Assets/_Game/ScriptableObjects/Dialogue/DialogueNode.cs`
+  - [x] Namespace: `Game.Dialogue`
+  - [x] `public abstract class DialogueNode : ScriptableObject` — NO `[CreateAssetMenu]`
+  - [x] `public string text` with `[Tooltip]`
+  - [x] `public DialogueNode nextNode` with `[Tooltip]`
+  - [x] `public virtual bool IsEndNode() => nextNode == null`
 
-- [ ] Task 3 — Create `StartDialogueNode.cs` (AC: #1, #2, #3, #10)
-  - [ ] File: `Assets/_Game/ScriptableObjects/Dialogue/StartDialogueNode.cs`
-  - [ ] Namespace: `Game.Dialogue`
-  - [ ] `[CreateAssetMenu(menuName = "Game/Dialogue/Start Node", fileName = "Start_")]`
-  - [ ] `public NPCMemoryEntrySO requiredMemory` — null = always shown
-  - [ ] using `Game.NPC` for `NPCMemoryEntrySO`
+- [x] Task 3 — Create `StartDialogueNode.cs` (AC: #1, #2, #3, #10)
+  - [x] File: `Assets/_Game/ScriptableObjects/Dialogue/StartDialogueNode.cs`
+  - [x] Namespace: `Game.Dialogue`
+  - [x] `[CreateAssetMenu(menuName = "Game/Dialogue/Start Node", fileName = "Start_")]`
+  - [x] `public NPCMemoryEntrySO requiredMemory` — null = always shown
+  - [x] using `Game.NPC` for `NPCMemoryEntrySO`
 
-- [ ] Task 4 — Create `TextDialogueNode.cs` (AC: #6, #10)
-  - [ ] File: `Assets/_Game/ScriptableObjects/Dialogue/TextDialogueNode.cs`
-  - [ ] Namespace: `Game.Dialogue`
-  - [ ] `[CreateAssetMenu(menuName = "Game/Dialogue/Text Node", fileName = "Text_")]`
-  - [ ] No additional fields — inherits `text`, `nextNode`, `IsEndNode()` from base
+- [x] Task 4 — Create `TextDialogueNode.cs` (AC: #6, #10)
+  - [x] File: `Assets/_Game/ScriptableObjects/Dialogue/TextDialogueNode.cs`
+  - [x] Namespace: `Game.Dialogue`
+  - [x] `[CreateAssetMenu(menuName = "Game/Dialogue/Text Node", fileName = "Text_")]`
+  - [x] No additional fields — inherits `text`, `nextNode`, `IsEndNode()` from base
 
-- [ ] Task 5 — Create `ChoiceDialogueNode.cs` + `ChoiceOption` (AC: #4, #5, #7, #10)
-  - [ ] File: `Assets/_Game/ScriptableObjects/Dialogue/ChoiceDialogueNode.cs`
-  - [ ] Namespace: `Game.Dialogue`
-  - [ ] `[Serializable] public class ChoiceOption` IN SAME FILE (not a SO — no GUID concern)
-    - [ ] `public string text`
-    - [ ] `public NPCMemoryEntrySO requiredMemory`
-    - [ ] `public DialogueNode nextNode`
-  - [ ] `[CreateAssetMenu(menuName = "Game/Dialogue/Choice Node", fileName = "Choice_")]`
-  - [ ] `public ChoiceOption[] choices`
-  - [ ] `public override bool IsEndNode() => false`
+- [x] Task 5 — Create `ChoiceDialogueNode.cs` + `ChoiceOption` (AC: #4, #5, #7, #10)
+  - [x] File: `Assets/_Game/ScriptableObjects/Dialogue/ChoiceDialogueNode.cs`
+  - [x] Namespace: `Game.Dialogue`
+  - [x] `[Serializable] public class ChoiceOption` IN SAME FILE (not a SO — no GUID concern)
+    - [x] `public string text`
+    - [x] `public NPCMemoryEntrySO requiredMemory`
+    - [x] `public DialogueNode nextNode`
+  - [x] `[CreateAssetMenu(menuName = "Game/Dialogue/Choice Node", fileName = "Choice_")]`
+  - [x] `public ChoiceOption[] choices`
+  - [x] `public override bool IsEndNode() => false`
 
-- [ ] Task 6 — Create `NPCDialogueGraphComponent.cs` (AC: #1–#9)
-  - [ ] File: `Assets/_Game/Scripts/AI/NPCDialogueGraphComponent.cs`
-  - [ ] Namespace: `Game.AI`
-  - [ ] `[SerializeField] private List<StartDialogueNode> _startNodes`
-  - [ ] `public StartDialogueNode[] GetAvailableStartNodes(NPCMemoryComponent memoryComponent)`
-    - [ ] Guard: return empty array if `_startNodes == null || _startNodes.Count == 0`
-    - [ ] Get `activeMemories`: if `memoryComponent != null` call `GetActiveMemories()`, else empty array
-    - [ ] Filter: include node if `node.requiredMemory == null || Array.IndexOf(activeMemories, node.requiredMemory) >= 0`
-    - [ ] Skip null nodes
-    - [ ] `GameLog.Info(TAG, $"GetAvailableStartNodes: {result.Count}/{_startNodes.Count} available")`
-  - [ ] `public ChoiceOption[] GetAvailableChoices(ChoiceDialogueNode choiceNode, NPCMemoryComponent memoryComponent)`
-    - [ ] Guard: return empty array if `choiceNode == null || choices == null || choices.Length == 0`
-    - [ ] Same memory filtering pattern as above
-    - [ ] Skip null choices
-  - [ ] `private const string TAG = "[DialogueGraph]"`
+- [x] Task 6 — Create `NPCDialogueGraphComponent.cs` (AC: #1–#9)
+  - [x] File: `Assets/_Game/Scripts/AI/NPCDialogueGraphComponent.cs`
+  - [x] Namespace: `Game.AI`
+  - [x] `[SerializeField] private List<StartDialogueNode> _startNodes`
+  - [x] `public StartDialogueNode[] GetAvailableStartNodes(NPCMemoryComponent memoryComponent)`
+    - [x] Guard: return empty array if `_startNodes == null || _startNodes.Count == 0`
+    - [x] Get `activeMemories`: if `memoryComponent != null` call `GetActiveMemories()`, else empty array
+    - [x] Filter: include node if `node.requiredMemory == null || Array.IndexOf(activeMemories, node.requiredMemory) >= 0`
+    - [x] Skip null nodes
+    - [x] `GameLog.Info(TAG, $"GetAvailableStartNodes: {result.Count}/{_startNodes.Count} available")`
+  - [x] `public ChoiceOption[] GetAvailableChoices(ChoiceDialogueNode choiceNode, NPCMemoryComponent memoryComponent)`
+    - [x] Guard: return empty array if `choiceNode == null || choices == null || choices.Length == 0`
+    - [x] Same memory filtering pattern as above
+    - [x] Skip null choices
+  - [x] `private const string TAG = "[DialogueGraph]"`
 
 ## Dev Notes
 
@@ -298,6 +298,34 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+- Initial compile failed: `GameLog` not found — missing `using Game.Core;` in `NPCDialogueGraphComponent.cs`. Fixed and recompiled successfully (0 errors).
+
 ### Completion Notes List
 
+- Created `Assets/_Game/ScriptableObjects/Dialogue/` folder with 4 new SO script files (DialogueNode, StartDialogueNode, TextDialogueNode, ChoiceDialogueNode).
+- Created `NPCDialogueGraphComponent` MonoBehaviour in `Assets/_Game/Scripts/AI/` with `GetAvailableStartNodes` and `GetAvailableChoices` using memory-gating via `Array.IndexOf` (no LINQ). 
+- Added `using Game.Core;` (required for `GameLog`) — not explicit in tech spec but mandatory per project rules.
+- All 10 ACs covered: null-safe guards, memory filtering, `IsEndNode()` overrides, CreateAssetMenu on concrete types only.
+- Testing: manual only per story spec — verify `Assets/Create > Game/Dialogue/` menu in Unity Editor shows 3 items.
+- **Post-implementation update:** `NPCMemoryEntrySO.cs` was updated to replace `effects.dialogueLines` (string[]) with `effects.startdialog` (StartDialogueNode) and `effects.choicesDialogues` (ChoiceDialogueNode[]). `HasDialogue()` now checks `effects.startdialog != null`. This links memories directly to graph nodes instead of raw strings. File also received `using Game.Dialogue;`.
+
 ### File List
+
+- `Assets/_Game/ScriptableObjects/Dialogue/DialogueNode.cs` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/DialogueNode.cs.meta` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/StartDialogueNode.cs` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/StartDialogueNode.cs.meta` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/TextDialogueNode.cs` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/TextDialogueNode.cs.meta` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/ChoiceDialogueNode.cs` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue/ChoiceDialogueNode.cs.meta` (new)
+- `Assets/_Game/ScriptableObjects/Dialogue.meta` (new)
+- `Assets/_Game/Scripts/AI/NPCDialogueGraphComponent.cs` (new)
+- `Assets/_Game/Scripts/AI/NPCDialogueGraphComponent.cs.meta` (new)
+- `Assets/_Game/ScriptableObjects/NPC/NPCMemoryEntrySO.cs` (modified — `effects.dialogueLines` replaced by `effects.startdialog` + `effects.choicesDialogues`; `HasDialogue()` updated; added `using Game.Dialogue;`)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (modified — 6-2 → review)
+
+## Change Log
+
+- 2026-04-07: Implemented all 6 tasks. Created Dialogue SO hierarchy (abstract base + 3 concrete types) and NPCDialogueGraphComponent MonoBehaviour. Zero compilation errors. Story moved to review.
+- 2026-04-07: Post-implementation — `NPCMemoryEntrySO.effects` updated: replaced `dialogueLines` (string[]) with `startdialog` (StartDialogueNode) and `choicesDialogues` (ChoiceDialogueNode[]); `HasDialogue()` checks `startdialog != null`.

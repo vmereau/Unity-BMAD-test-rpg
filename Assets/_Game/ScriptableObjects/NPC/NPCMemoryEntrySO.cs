@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Dialogue;
 using Game.World;
 using UnityEngine;
 
@@ -8,8 +9,10 @@ namespace Game.NPC
     public class NPCMemoryEffects
     {
         [Header("Dialogue")]
-        [Tooltip("Dialogue lines available while this memory is active. Consumed by DialogueSystem (future).")]
-        public string[] dialogueLines;
+        [Tooltip("Start Dialogue lines available while this memory is active. Consumed by DialogueSystem")]
+        public StartDialogueNode startdialog;
+        [Tooltip("Choices Dialogue affected while this memory is active. Consumed by DialogueSystem")]
+        public ChoiceDialogueNode[] choicesDialogues;
 
         [Header("Shop")]
         [Range(-1f, 1f)]
@@ -40,10 +43,6 @@ namespace Game.NPC
     {
         private const string TAG = "[NPCMemory]";
 
-        [Header("Identity")]
-        [Tooltip("Unique ID for this memory — used in logs and save data.")]
-        public string memoryId;
-
         [Header("Conditions")]
         [Tooltip("ALL of these world fact keys must be true for this memory to be active.")]
         public string[] unlockConditions;
@@ -63,14 +62,6 @@ namespace Game.NPC
         /// <summary>Convenience: unlocked AND not invalidated.</summary>
         public bool IsActive() => IsUnlocked() && !IsInvalidated();
 
-        public bool HasDialogue() => effects.dialogueLines != null && effects.dialogueLines.Length > 0;
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (string.IsNullOrEmpty(memoryId))
-                GameLog.Warn(TAG, $"NPCMemoryEntrySO '{name}' has no memoryId set");
-        }
-#endif
+        public bool HasDialogue() => effects.startdialog != null;
     }
 }
