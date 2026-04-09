@@ -4,7 +4,7 @@ project: 'Echoes of the Fallen (placeholder)'
 date: '2026-04-07'
 author: 'Valentin'
 version: '1.0'
-stepsCompleted: [1, 2, 3, 4, 5]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7]
 status: 'in-progress'
 narrativeComplexity: 'Heavy'
 gdd: '_bmad-output/gdd.md'
@@ -19,7 +19,7 @@ gdd: '_bmad-output/gdd.md'
 This narrative document is being created through the GDS Narrative Workflow.
 
 **Narrative Complexity:** Heavy
-**Steps Completed:** 5 of 11 (World Building)
+**Steps Completed:** 7 of 11 (Environmental Storytelling)
 
 ---
 
@@ -710,3 +710,223 @@ the most significant sites.
 
 *Additional locations (rebel camp hubs, exile settlements, creature territories,
 specific points of interest) to be defined as world design develops.*
+
+---
+
+## Dialogue Framework
+
+### Dialogue Style
+
+**Overall Voice:** Grounded and direct. Modern conversational flow with medieval terminology woven in naturally. No restrictions on profanity or dark humor — both earn their place in a bleak world. Tone is set by character and context, not universal rules.
+
+**Style Elements:**
+
+- **Formality:** Character-dependent (Camp Manager formal/authoritarian, Sleazy Thief casual, Arena Fighter blunt)
+- **Period:** Modern conversational structure with medieval vocabulary (terms for labor, hierarchy, trades, and the setting)
+- **Verbosity:** Character-dependent (Old Worker measured and thoughtful, Arena Fighter direct and minimal)
+- **Humor:** Dark humor present where it fits; not forced
+- **Profanity:** No restrictions — used where appropriate to character and tone
+
+**Character Voice Distinctions:**
+
+- **Old Worker:** Measured, pragmatic, quietly warm. Speaks in complete thoughts. Offers guidance without condescension.
+- **Camp Manager:** Rude, authoritarian, dismissive. Speaks down to workers. Uses language as a tool of control and humiliation.
+- **Sleazy Thief:** Suspicious, transactional, slippery. Presents opportunities with self-interest always visible beneath the surface.
+- **Arena Fighter:** Rude, direct, cold. No wasted words. Tone shifts from hostile to respectful as relationship develops, but directness remains.
+
+---
+
+### Key Conversations
+
+#### First Night with the Old Worker
+
+**Participants:** Protagonist, Old Worker
+**When:** First night in the camp, shared sleeping space
+**Topic:** The reality of the camp — who to avoid, who might help, how to survive
+**Purpose:** World-building and tone-setting. Establishes the protagonist's situation while offering a thread of hope. Introduces the camp's social structure through a trusted voice.
+**Tone:** Bleak but not hopeless. Pragmatic. The Old Worker has seen this before and knows the way forward isn't easy, but it exists.
+
+#### Camp Manager Confrontation
+
+**Participants:** Protagonist, Camp Manager
+**When:** Early encounters, recurring through Act 1
+**Topic:** Work assignments, performance, obedience
+**Purpose:** Establishes the Company's cruelty through a single hostile face. Creates motivation for the player to resist, escape, or rise above.
+**Tone:** Hostile, demeaning, authoritarian. The Camp Manager never trusts the protagonist and never softens.
+
+#### Sleazy Thief Proposition
+
+**Participants:** Protagonist, Sleazy Thief
+**When:** Early in Act 1, when the Thief identifies the protagonist as useful
+**Topic:** A collaboration — risky work that benefits both (mostly the Thief)
+**Purpose:** Introduces moral ambiguity and transactional relationships. Opens the thievery skill path and the Thief's character arc.
+**Tone:** Suspicious, opportunistic, self-interested. A collaboration built on mutual benefit, not trust — yet.
+
+#### Arena Fighter Encounters
+
+**Participants:** Protagonist, Arena Fighter
+**When:** First encounter in the arena (hostile), later encounters after respect is earned
+**Topic:** Combat, survival, the Fighter's trapped situation
+**Purpose:** Subverts first impressions. Establishes respect-based relationships. Opens the Arena Fighter's personal quest and companion arc.
+**Tone:** First encounter — rude, cold, direct. Later encounters — still direct, but respectful. Warmth earned through action, not words.
+
+#### (Additional Key Conversations TBD)
+
+Future key conversations — The Fork (path selection), The Dark Secret reveal, faction-specific political dialogues, companion personal quests, endgame choices — will be designed as story and systems development progresses.
+
+---
+
+### Branching Dialogue System
+
+**System Type:** Choice-driven branching with conditional gating
+
+**Branch Triggers:**
+
+- **Player dialogue choices:** Explicit prompts offering 2-4 response options
+- **Game state conditions:** Reputation levels, faction alignment, completed quests, relationship thresholds, story flags, skill levels, items held
+- **Prior dialogue choices:** Earlier decisions can open or close future dialogue branches
+
+**Branch Scope:**
+
+- **Complexity:** Moderate to high. Individual conversations branch based on immediate choices. Dialogue availability is gated by world state.
+- **Convergence:** Mixed. Some branches reconverge to key story beats; others remain divergent and reflect permanent consequences.
+- **Unique content:** Variable per conversation. Key story moments have substantial unique dialogue per path. Minor conversations may share more content across branches.
+
+**Consequence System:**
+
+Dialogue choices impact:
+
+- **Reputation:** Faction standing, NPC relationships
+- **Quests:** Unlock or close quest lines, alter quest outcomes
+- **World state:** Trigger story flags, change NPC behavior, affect future dialogue availability
+- **Character progression:** Relationship depth with companions, mentor availability, faction paths
+
+**Technical Notes:**
+
+Dialogue is text-based with player choice prompts. The system must support:
+
+- Conditional dialogue node visibility based on arbitrary game events
+- Persistent flags set by dialogue choices
+- Integration with reputation, quest, and relationship systems
+
+---
+
+## Environmental Storytelling
+
+### Visual Storytelling
+
+**Layered History Approach:**
+
+The territory's visual identity is built on the principle of **temporal layering** — the ancient civilization's ruins form the foundation, with faction identities imposed on top. This creates a world where history is always visible, never erased.
+
+**Set Dressing:**
+
+- **Ancient Foundations:** Stone structures, archways, and partial buildings from the vanished civilization serve as the physical infrastructure for current settlements. The Company camp, for instance, houses its personnel in repurposed ancient stone structures.
+- **Faction Overlays:** Each faction marks territory with its own visual identity layered over the ancient base — Company banners draped over stone ruins, rebel graffiti on ancient walls, Kingdom military standards at strategic points.
+- **Props and Details:** Worker possessions in the camp (sparse, practical), Company records and equipment (authoritarian, functional), ruins' untouched interiors (ancient, mysterious).
+
+**Visual Symbolism:**
+
+Each faction and era has a distinct visual language for instant player recognition:
+
+- **Ancient Civilization:** Design patterns featuring spirals, circles, and geometric motifs (TBD in detail). Stone construction, weathered surfaces, integrated into the landscape.
+- **The Company:** Banners, signage, uniforms. Marks of control and commerce. Clean, authoritarian, imposed over the old.
+- **Rebels/Workers:** Makeshift, practical, scrappy. Reclaimed spaces, improvised symbols.
+- **The Kingdom:** Military standards, heraldry, formal insignia.
+
+**Character Design Details:**
+
+NPCs are visually distinct to aid player recognition and convey status:
+
+- **Camp Manager:** Company attire elevated above the rest — more armored, decorated, authoritarian. Visual authority.
+- **Arena Fighter:** Scarred, weathered by combat. Physical history written on the body.
+- **Workers:** Worn, practical clothing. Diversity in condition reflects time served and status.
+- **Guards:** Uniformed, armed, visually separate from workers.
+
+Each key NPC has unique visual aspects — clothing details, accessories, physical traits — for quick identification.
+
+**Color and Lighting:**
+
+- **Tone:** Dark fantasy RPG aesthetic. Grounded, weathered, not oversaturated or artificially color-graded.
+- **Regional Variation:** Color palette and lighting shift by region and time of day, but always within the established dark fantasy tone.
+- **Natural Lighting:** No heavy correction. The world feels real and lived-in.
+
+---
+
+### Audio Storytelling
+
+**Ambient Design:**
+
+Heavy use of ambient soundscapes for immersion. Each location has its own audio identity:
+
+- **The Camp:** Worker activity, guard patrols, distant conversations, tools, fires, footsteps on dirt and stone.
+- **Wilderness:** Wind, creatures, rustling vegetation, water, distant threats.
+- **Ruins:** Echoes, silence punctuated by drips or settling stone, unnatural quiet, faint magical hum (TBD).
+- **Towns/Settlements:** Commerce, crowds, faction-specific activity.
+
+Ambient sound reinforces location, faction presence, and time of day.
+
+**Music Integration:**
+
+Music approach heavily inspired by **Kai Rosenkranz's Gothic 3 soundtrack** — atmospheric, regional, emotionally grounded.
+
+- **Regional Themes:** Each major region has its own musical identity. Music shifts as the player moves through the territory.
+- **Emotional Cues:** Music reflects tone and mood — tension in dangerous areas, melancholy in bleak locations, rare moments of warmth where earned.
+- **Dynamic Integration:** Music responds to context (exploration vs. danger vs. rest) without being intrusive.
+
+**Voice Elements:**
+
+Voice acting used for dialogue and environmental presence:
+
+- **NPC Barks:** Short reactive lines from NPCs in the world (guards calling out, workers complaining, background chatter).
+- **Ambient Dialogue:** Overheard conversations that provide world-building and context without direct interaction.
+
+**Sound Design Narrative:**
+
+Sounds carry meaning and reinforce story:
+
+- **Ancient Ruins:** Distinct audio signature — echoes, magical resonance, unnatural acoustics. Sounds different from surface-world locations.
+- **Company Presence:** Metallic sounds, structured activity, authoritarian commands, the organized noise of exploitation.
+- **Wilderness:** Organic, alive, dangerous. Creature calls and environmental cues warn and inform.
+
+Audio design to be developed in detail later.
+
+---
+
+### Found Documents
+
+**Document Types:**
+
+Echoes of the Fallen features a comprehensive found document system in various forms:
+
+- **Worker Journals** - Personal accounts, survival notes, hidden thoughts
+- **Company Orders** - Directives, schedules, internal communications
+- **Ancient Inscriptions** - Ruins' writings, carved stone, fragments of lost knowledge
+- **Maps** - Hand-drawn routes, territorial markings, hidden paths
+- **Letters** - Personal correspondence, faction communications
+- **Contracts** - The lies that brought workers here, debt records
+- **Research Notes** - Scholar observations, magical experiments, discoveries
+
+**Quantity:** Extensive. The world is rich with readable documents — dozens at minimum, potentially over a hundred across the full game.
+
+**Content Focus:**
+
+Documents serve dual narrative and mechanical functions:
+
+- **Quest Information:** Clues, objectives, instructions. Some documents must be read to progress quests or unlock secrets.
+- **World-Building:** Backstory, faction history, the ancient civilization's lore, the territory's past.
+- **Character Development:** NPC backstories, personal histories, motivations revealed through writing.
+- **Active Knowledge:** Reading a document adds information to the player's quest log or knowledge base. The act of reading is mechanically significant.
+
+**Discovery:**
+
+- **Required:** Some documents are essential for quest progression, unlocking secrets, or accessing gated content. Players must find and read them.
+- **Optional:** Many documents are discoverable lore — enriching the world for players who seek them, but not blocking progression.
+
+**Rewards:**
+
+- **Mechanical:** Quest progression, information added to quest log, secrets unlocked, maps revealed.
+- **Narrative:** Deeper understanding of the world, character motivations, and the ancient civilization's fate.
+- **Completionist:** Potential achievements or recognition for thorough exploration and reading.
+
+Documents are integrated into the world — found on bodies, in ruins, handed over by NPCs, discovered in hidden locations, or given as quest rewards. They are a core pillar of how story is delivered.
