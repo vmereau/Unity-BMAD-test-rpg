@@ -15,7 +15,7 @@ MonoBehaviour:
   text: 
   nextNode: {fileID: 0}
   choices:
-  - text: '+1 Strength (LP: 1, Gold: 50)'
+  - text: +1 Strength
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: 39cf917287e497d43b62022063c4ed0d, type: 2}
     goldCost: 50
@@ -23,7 +23,7 @@ MonoBehaviour:
     skill: {fileID: 0}
     statToUpgrade: 0
     statPoints: 1
-  - text: 'Power Strike (LP: 2, Gold: 100)'
+  - text: Power Strike
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: edda3546339b74e4e9b472583884d966, type: 2}
     goldCost: 100
