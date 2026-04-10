@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.NPC
@@ -9,5 +10,8 @@ namespace Game.NPC
         public NPCState dayState = NPCState.Working;
         public NPCState nightState = NPCState.Sleeping;
         public float walkSpeed = 2f;
+        public GameObject prefab;
+
+        public List<NPCMemoryEntrySO>  memories;
     }
 }

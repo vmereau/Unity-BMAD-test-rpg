@@ -77,6 +77,11 @@ namespace Game.UI
             return items[invIndex].Count;
         }
 
+        public void OnSlotClicked(int slotIndex)
+        {
+            _actionBarSystem.TryUseSlot(slotIndex);
+        }
+
         public void OnInventorySlotDroppedOnActionBar(int inventorySlotIndex, Game.Inventory.ItemSO item, int actionBarSlotIndex)
         {
             _actionBarSystem.Assign(actionBarSlotIndex, inventorySlotIndex, item);

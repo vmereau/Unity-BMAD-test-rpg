@@ -84,6 +84,28 @@ namespace Game.Core
             SetFact($"{WorldFactPrefix.World}.{eventKey}", value);
         }
 
+        /// <summary>Formats <c>Dialogue.Played.{nodeId}</c> and marks the dialogue as played.</summary>
+        public void SetDialoguePlayed(string nodeId)
+        {
+            if (string.IsNullOrEmpty(nodeId))
+            {
+                GameLog.Warn(TAG, "SetDialoguePlayed called with null or empty nodeId");
+                return;
+            }
+            SetFact($"{WorldFactPrefix.Dialogue}.Played.{nodeId}", true);
+        }
+
+        /// <summary>Returns true if the dialogue node with <paramref name="nodeId"/> has been played.</summary>
+        public bool IsDialoguePlayed(string nodeId)
+        {
+            if (string.IsNullOrEmpty(nodeId))
+            {
+                GameLog.Warn(TAG, "IsDialoguePlayed called with null or empty nodeId");
+                return false;
+            }
+            return GetFact($"{WorldFactPrefix.Dialogue}.Played.{nodeId}");
+        }
+
         // ── Save data (Epic 8) ────────────────────────────────────────────────
 
         /// <summary>Returns a snapshot of world state for Epic 8 save integration (not yet wired).</summary>

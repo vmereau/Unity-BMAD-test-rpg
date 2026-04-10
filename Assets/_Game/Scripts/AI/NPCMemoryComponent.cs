@@ -15,7 +15,7 @@ namespace Game.AI
     {
         private const string TAG = "[NPCMemory]";
 
-        [SerializeField] private List<NPCMemoryEntrySO> _memories;
+        [SerializeField] private NPCDataSO _data;
         [SerializeField] private GameEventSO_WorldFact _onWorldFactChanged;
 
         private void OnEnable()
@@ -41,10 +41,10 @@ namespace Game.AI
         /// </summary>
         public NPCMemoryEntrySO[] GetActiveMemories()
         {
-            if (_memories == null || _memories.Count == 0) return System.Array.Empty<NPCMemoryEntrySO>();
+            if (_data.memories == null || _data.memories.Count == 0) return System.Array.Empty<NPCMemoryEntrySO>();
 
-            var result = new List<NPCMemoryEntrySO>(_memories.Count);
-            foreach (var memory in _memories)
+            var result = new List<NPCMemoryEntrySO>(_data.memories.Count);
+            foreach (var memory in _data.memories)
             {
                 if (memory == null) continue;
                 if (memory.IsActive()) result.Add(memory);
@@ -55,16 +55,21 @@ namespace Game.AI
         public List<StartDialogueNode> GetActiveStartDialogNodes()
         {
             NPCMemoryEntrySO[] activeMemories = GetActiveMemories();
-            
+
             List<StartDialogueNode> result = new List<StartDialogueNode>(activeMemories.Length);
             foreach (NPCMemoryEntrySO npcMemoryEntrySo in activeMemories)
             {
-                if (npcMemoryEntrySo.HasDialogue())
-                {
-                    result.Add(npcMemoryEntrySo.effects.startdialog);
-                }
+                if (!npcMemoryEntrySo.HasDialogue()) continue;
+
+                StartDialogueNode node = npcMemoryEntrySo.effects.startdialog;
+                if (!node.isRepeatable
+                    && WorldStateManager.Instance != null
+                    && WorldStateManager.Instance.IsDialoguePlayed(node.name))
+                    continue;
+
+                result.Add(node);
             }
-            
+
             return result;
         }
 

@@ -35,6 +35,9 @@ namespace Game.Player
         public bool IsDodging { get; private set; }
         public bool IsInCombat { get; private set; }
 
+        /// <summary>True while the player is in an active dialogue conversation.</summary>
+        public bool IsInDialogue { get; private set; }
+
         private void Awake()
         {
             _characterController = GetComponent<CharacterController>();
@@ -88,6 +91,13 @@ namespace Game.Player
             IsInCombat = value;
             _playerAnimator.SetInCombat(value);
             GameLog.Info(TAG, $"Combat stance: {(value ? "DRAWN" : "sheathed")}");
+        }
+
+        /// <summary>Sets the IsInDialogue state. Called by DialogueSystem on open/close.</summary>
+        public void SetInDialogue(bool value)
+        {
+            IsInDialogue = value;
+            GameLog.Info(TAG, $"IsInDialogue: {value}");
         }
 
         // ── Can-do queries ────────────────────────────────────────────────────

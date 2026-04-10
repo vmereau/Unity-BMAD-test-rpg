@@ -2,8 +2,8 @@
 title: 'Dialogue Played Tracking — One-shot vs Repeatable Topics'
 slug: 'dialogue-played-tracking'
 created: '2026-04-07'
-status: 'ready-for-development'
-stepsCompleted: [1, 2, 3, 4]
+status: 'completed'
+stepsCompleted: [1, 2, 3, 4, 5, 6]
 tech_stack: ['Unity 6', 'C#', 'ScriptableObjects']
 files_to_modify:
   - Assets/_Game/Scripts/Core/WorldFactPrefix.cs
@@ -376,6 +376,15 @@ Manual playtest steps (no automated test framework yet):
 4. Repeat steps 2–3 with `isRepeatable = true` → topic is **present** after replay.
 5. Open a one-shot topic, press ESC before the last node → reopen → topic still **present**.
 6. Inspect `WorldStateManager` in Play Mode via the Inspector — `_worldFacts` should show `Dialogue.Played.{yourNodeName} = true` after step 2.
+
+## Review Notes
+
+- Adversarial review completed: 8 findings (3 High, 3 Medium, 2 Low)
+- Findings fixed: 7 (F-01 through F-03, F-05 through F-08)
+- Findings skipped: 1 (F-04 — `node.name` as key is a documented design constraint)
+- Resolution approach: auto-fix
+
+---
 
 ### Notes
 

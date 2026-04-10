@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
+  m_Name: NPC_Blacksmith
+  m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  npcName: Blacksmith
+  dayState: 0
+  nightState: 1
+  walkSpeed: 2
+  prefab: {fileID: 2297545385651019628, guid: c2fb5bd3088e331408ebf1a8dbed53d7, type: 3}
+  memories:
+  - {fileID: 11400000, guid: 9391a4d8662e3d748b2b8aa3213924b8, type: 2}
+  - {fileID: 11400000, guid: 306b3392974b5f048b6d40b2fe3753b8, type: 2}
+  - {fileID: 11400000, guid: 56c510f13c32e7b4285ee65ec9ed01b3, type: 2}

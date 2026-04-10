@@ -8,7 +8,8 @@ namespace Game.UI
 {
     public class ActionBarSlotUI : MonoBehaviour,
         IBeginDragHandler, IDragHandler, IEndDragHandler,
-        IDropHandler, IPointerEnterHandler, IPointerExitHandler
+        IDropHandler, IPointerEnterHandler, IPointerExitHandler,
+        IPointerClickHandler
     {
         private const string TAG = "[Inventory]";
 
@@ -92,6 +93,13 @@ namespace Game.UI
         public void NotifyDropHandled()
         {
             _dropHandled = true;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            if (Item == null) return;
+            _actionBarUI.OnSlotClicked(SlotIndex);
         }
 
         public void OnBeginDrag(PointerEventData eventData)

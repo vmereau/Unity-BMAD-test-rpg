@@ -9,6 +9,7 @@ namespace Game.Core
     {
         Killed,
         Quest,
-        World
+        World,
+        Dialogue
     }
 }

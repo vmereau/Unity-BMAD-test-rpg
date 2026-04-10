@@ -189,5 +189,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4430adc5d2d42d742aea4893508bf045, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.NPCMemoryComponent
-  _memories: []
+  _data: {fileID: 0}
   _onWorldFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}

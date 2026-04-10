@@ -478,6 +478,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Inventory.ActionBarSystem
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
+  _playerStateManager: {fileID: 212298241250081144}
   _inventorySystem: {fileID: 1994668802294238475}
   _playerTransform: {fileID: 5905369542039962551}
 --- !u!114 &3660959576836429512
@@ -507,6 +508,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.DialogueSystem
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
   _dialogueUI: {fileID: 3658265487728695763}
+  _playerStateManager: {fileID: 212298241250081144}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1088,6 +1090,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 784549950727652734, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerStateManager
+      value: 
+      objectReference: {fileID: 212298241250081144}
     - target: {fileID: 795130374964282055, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

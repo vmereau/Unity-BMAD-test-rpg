@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ namespace Game.UI
         [SerializeField] private GameObject _tabBar;
         [SerializeField] private GameObject[] _tabPanelRoots; // indexed by ScreenTab
         [SerializeField] private Button[] _tabButtons;        // indexed by ScreenTab
+        [SerializeField] private PlayerStateManager _playerStateManager;
 
         private InputSystem_Actions _input;
         private ScreenTab? _activeTab = null;
@@ -68,6 +70,7 @@ namespace Game.UI
 
         public void OpenTab(ScreenTab tab)
         {
+            if (_playerStateManager != null && _playerStateManager.IsInDialogue) return;
             if (_activeTab == tab) return;
 
             // Close current tab content if switching

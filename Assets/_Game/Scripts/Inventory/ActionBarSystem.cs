@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Game.Core;
+using Game.Player;
 
 namespace Game.Inventory
 {
@@ -9,6 +10,7 @@ namespace Game.Inventory
         private const string TAG = "[Inventory]";
 
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
+        [SerializeField] private PlayerStateManager _playerStateManager;
 
         public struct ActionBarSlotData
         {
@@ -44,7 +46,7 @@ namespace Game.Inventory
             for (int i = 0; i < 6; i++)
             {
                 int captured = i;
-                _hotkeyHandlers[i] = _ => HandleHotkeyPressed(captured);
+                _hotkeyHandlers[i] = _ => TryUseSlot(captured);
             }
         }
 
@@ -137,6 +139,17 @@ namespace Game.Inventory
                     _slots[i] = new ActionBarSlotData { InventoryIndex = foundIndex, Item = slot.Item };
                 }
             }
+        }
+
+        /// <summary>
+        /// Attempts to use the item in the given action bar slot.
+        /// Blocked while the player is in dialogue.
+        /// Called by both hotkey handlers and the UI click path.
+        /// </summary>
+        public void TryUseSlot(int slotIndex)
+        {
+            if (_playerStateManager != null && _playerStateManager.IsInDialogue) return;
+            HandleHotkeyPressed(slotIndex);
         }
 
         private void HandleHotkeyPressed(int slotIndex)

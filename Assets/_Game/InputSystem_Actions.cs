@@ -873,6 +873,96 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption1"",
+                    ""type"": ""Button"",
+                    ""id"": ""d1a10001-d1a1-d1a1-d1a1-d1a1d1a1d1a1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption2"",
+                    ""type"": ""Button"",
+                    ""id"": ""d2a20002-d2a2-d2a2-d2a2-d2a2d2a2d2a2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption3"",
+                    ""type"": ""Button"",
+                    ""id"": ""d3a30003-d3a3-d3a3-d3a3-d3a3d3a3d3a3"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption4"",
+                    ""type"": ""Button"",
+                    ""id"": ""d4a40004-d4a4-d4a4-d4a4-d4a4d4a4d4a4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption5"",
+                    ""type"": ""Button"",
+                    ""id"": ""d5a50005-d5a5-d5a5-d5a5-d5a5d5a5d5a5"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption6"",
+                    ""type"": ""Button"",
+                    ""id"": ""d6a60006-d6a6-d6a6-d6a6-d6a6d6a6d6a6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption7"",
+                    ""type"": ""Button"",
+                    ""id"": ""d7a70007-d7a7-d7a7-d7a7-d7a7d7a7d7a7"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption8"",
+                    ""type"": ""Button"",
+                    ""id"": ""d8a80008-d8a8-d8a8-d8a8-d8a8d8a8d8a8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption9"",
+                    ""type"": ""Button"",
+                    ""id"": ""d9a90009-d9a9-d9a9-d9a9-d9a9d9a9d9a9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueOption0"",
+                    ""type"": ""Button"",
+                    ""id"": ""d0a00000-d0a0-d0a0-d0a0-d0a0d0a0d0a0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1293,6 +1383,116 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""TrackedDeviceOrientation"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d1b10001-d1b1-d1b1-d1b1-d1b1d1b1d1b1"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d2b20002-d2b2-d2b2-d2b2-d2b2d2b2d2b2"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3b30003-d3b3-d3b3-d3b3-d3b3d3b3d3b3"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d4b40004-d4b4-d4b4-d4b4-d4b4d4b4d4b4"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d5b50005-d5b5-d5b5-d5b5-d5b5d5b5d5b5"",
+                    ""path"": ""<Keyboard>/5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption5"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d6b60006-d6b6-d6b6-d6b6-d6b6d6b6d6b6"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption6"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d7b70007-d7b7-d7b7-d7b7-d7b7d7b7d7b7"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption7"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d8b80008-d8b8-d8b8-d8b8-d8b8d8b8d8b8"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption8"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d9b90009-d9b9-d9b9-d9b9-d9b9d9b9d9b9"",
+                    ""path"": ""<Keyboard>/9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption9"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0b00000-d0b0-d0b0-d0b0-d0b0d0b0d0b0"",
+                    ""path"": ""<Keyboard>/0"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueOption0"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1395,6 +1595,16 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
         m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
         m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
+        m_UI_DialogueOption1 = m_UI.FindAction("DialogueOption1", throwIfNotFound: true);
+        m_UI_DialogueOption2 = m_UI.FindAction("DialogueOption2", throwIfNotFound: true);
+        m_UI_DialogueOption3 = m_UI.FindAction("DialogueOption3", throwIfNotFound: true);
+        m_UI_DialogueOption4 = m_UI.FindAction("DialogueOption4", throwIfNotFound: true);
+        m_UI_DialogueOption5 = m_UI.FindAction("DialogueOption5", throwIfNotFound: true);
+        m_UI_DialogueOption6 = m_UI.FindAction("DialogueOption6", throwIfNotFound: true);
+        m_UI_DialogueOption7 = m_UI.FindAction("DialogueOption7", throwIfNotFound: true);
+        m_UI_DialogueOption8 = m_UI.FindAction("DialogueOption8", throwIfNotFound: true);
+        m_UI_DialogueOption9 = m_UI.FindAction("DialogueOption9", throwIfNotFound: true);
+        m_UI_DialogueOption0 = m_UI.FindAction("DialogueOption0", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -1706,6 +1916,16 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_ScrollWheel;
     private readonly InputAction m_UI_TrackedDevicePosition;
     private readonly InputAction m_UI_TrackedDeviceOrientation;
+    private readonly InputAction m_UI_DialogueOption1;
+    private readonly InputAction m_UI_DialogueOption2;
+    private readonly InputAction m_UI_DialogueOption3;
+    private readonly InputAction m_UI_DialogueOption4;
+    private readonly InputAction m_UI_DialogueOption5;
+    private readonly InputAction m_UI_DialogueOption6;
+    private readonly InputAction m_UI_DialogueOption7;
+    private readonly InputAction m_UI_DialogueOption8;
+    private readonly InputAction m_UI_DialogueOption9;
+    private readonly InputAction m_UI_DialogueOption0;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -1757,6 +1977,16 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "UI/TrackedDeviceOrientation".
         /// </summary>
         public InputAction @TrackedDeviceOrientation => m_Wrapper.m_UI_TrackedDeviceOrientation;
+        public InputAction @DialogueOption1 => m_Wrapper.m_UI_DialogueOption1;
+        public InputAction @DialogueOption2 => m_Wrapper.m_UI_DialogueOption2;
+        public InputAction @DialogueOption3 => m_Wrapper.m_UI_DialogueOption3;
+        public InputAction @DialogueOption4 => m_Wrapper.m_UI_DialogueOption4;
+        public InputAction @DialogueOption5 => m_Wrapper.m_UI_DialogueOption5;
+        public InputAction @DialogueOption6 => m_Wrapper.m_UI_DialogueOption6;
+        public InputAction @DialogueOption7 => m_Wrapper.m_UI_DialogueOption7;
+        public InputAction @DialogueOption8 => m_Wrapper.m_UI_DialogueOption8;
+        public InputAction @DialogueOption9 => m_Wrapper.m_UI_DialogueOption9;
+        public InputAction @DialogueOption0 => m_Wrapper.m_UI_DialogueOption0;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1813,6 +2043,36 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @TrackedDeviceOrientation.started += instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.performed += instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.canceled += instance.OnTrackedDeviceOrientation;
+            @DialogueOption1.started += instance.OnDialogueOption1;
+            @DialogueOption1.performed += instance.OnDialogueOption1;
+            @DialogueOption1.canceled += instance.OnDialogueOption1;
+            @DialogueOption2.started += instance.OnDialogueOption2;
+            @DialogueOption2.performed += instance.OnDialogueOption2;
+            @DialogueOption2.canceled += instance.OnDialogueOption2;
+            @DialogueOption3.started += instance.OnDialogueOption3;
+            @DialogueOption3.performed += instance.OnDialogueOption3;
+            @DialogueOption3.canceled += instance.OnDialogueOption3;
+            @DialogueOption4.started += instance.OnDialogueOption4;
+            @DialogueOption4.performed += instance.OnDialogueOption4;
+            @DialogueOption4.canceled += instance.OnDialogueOption4;
+            @DialogueOption5.started += instance.OnDialogueOption5;
+            @DialogueOption5.performed += instance.OnDialogueOption5;
+            @DialogueOption5.canceled += instance.OnDialogueOption5;
+            @DialogueOption6.started += instance.OnDialogueOption6;
+            @DialogueOption6.performed += instance.OnDialogueOption6;
+            @DialogueOption6.canceled += instance.OnDialogueOption6;
+            @DialogueOption7.started += instance.OnDialogueOption7;
+            @DialogueOption7.performed += instance.OnDialogueOption7;
+            @DialogueOption7.canceled += instance.OnDialogueOption7;
+            @DialogueOption8.started += instance.OnDialogueOption8;
+            @DialogueOption8.performed += instance.OnDialogueOption8;
+            @DialogueOption8.canceled += instance.OnDialogueOption8;
+            @DialogueOption9.started += instance.OnDialogueOption9;
+            @DialogueOption9.performed += instance.OnDialogueOption9;
+            @DialogueOption9.canceled += instance.OnDialogueOption9;
+            @DialogueOption0.started += instance.OnDialogueOption0;
+            @DialogueOption0.performed += instance.OnDialogueOption0;
+            @DialogueOption0.canceled += instance.OnDialogueOption0;
         }
 
         /// <summary>
@@ -1854,6 +2114,36 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @TrackedDeviceOrientation.started -= instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.performed -= instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.canceled -= instance.OnTrackedDeviceOrientation;
+            @DialogueOption1.started -= instance.OnDialogueOption1;
+            @DialogueOption1.performed -= instance.OnDialogueOption1;
+            @DialogueOption1.canceled -= instance.OnDialogueOption1;
+            @DialogueOption2.started -= instance.OnDialogueOption2;
+            @DialogueOption2.performed -= instance.OnDialogueOption2;
+            @DialogueOption2.canceled -= instance.OnDialogueOption2;
+            @DialogueOption3.started -= instance.OnDialogueOption3;
+            @DialogueOption3.performed -= instance.OnDialogueOption3;
+            @DialogueOption3.canceled -= instance.OnDialogueOption3;
+            @DialogueOption4.started -= instance.OnDialogueOption4;
+            @DialogueOption4.performed -= instance.OnDialogueOption4;
+            @DialogueOption4.canceled -= instance.OnDialogueOption4;
+            @DialogueOption5.started -= instance.OnDialogueOption5;
+            @DialogueOption5.performed -= instance.OnDialogueOption5;
+            @DialogueOption5.canceled -= instance.OnDialogueOption5;
+            @DialogueOption6.started -= instance.OnDialogueOption6;
+            @DialogueOption6.performed -= instance.OnDialogueOption6;
+            @DialogueOption6.canceled -= instance.OnDialogueOption6;
+            @DialogueOption7.started -= instance.OnDialogueOption7;
+            @DialogueOption7.performed -= instance.OnDialogueOption7;
+            @DialogueOption7.canceled -= instance.OnDialogueOption7;
+            @DialogueOption8.started -= instance.OnDialogueOption8;
+            @DialogueOption8.performed -= instance.OnDialogueOption8;
+            @DialogueOption8.canceled -= instance.OnDialogueOption8;
+            @DialogueOption9.started -= instance.OnDialogueOption9;
+            @DialogueOption9.performed -= instance.OnDialogueOption9;
+            @DialogueOption9.canceled -= instance.OnDialogueOption9;
+            @DialogueOption0.started -= instance.OnDialogueOption0;
+            @DialogueOption0.performed -= instance.OnDialogueOption0;
+            @DialogueOption0.canceled -= instance.OnDialogueOption0;
         }
 
         /// <summary>
@@ -2100,5 +2390,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTrackedDeviceOrientation(InputAction.CallbackContext context);
+        void OnDialogueOption1(InputAction.CallbackContext context);
+        void OnDialogueOption2(InputAction.CallbackContext context);
+        void OnDialogueOption3(InputAction.CallbackContext context);
+        void OnDialogueOption4(InputAction.CallbackContext context);
+        void OnDialogueOption5(InputAction.CallbackContext context);
+        void OnDialogueOption6(InputAction.CallbackContext context);
+        void OnDialogueOption7(InputAction.CallbackContext context);
+        void OnDialogueOption8(InputAction.CallbackContext context);
+        void OnDialogueOption9(InputAction.CallbackContext context);
+        void OnDialogueOption0(InputAction.CallbackContext context);
     }
 }

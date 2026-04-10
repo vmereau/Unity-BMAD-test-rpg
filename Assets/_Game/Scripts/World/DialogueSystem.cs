@@ -2,6 +2,7 @@ using Game.AI;
 using Game.Core;
 using Game.Dialogue;
 using Game.NPC;
+using Game.Player;
 using Game.UI;
 using UnityEngine;
 
@@ -13,11 +14,13 @@ namespace Game.World
 
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
         [SerializeField] private DialogueUI _dialogueUI;
+        [SerializeField] private PlayerStateManager _playerStateManager;
 
         public bool IsOpen { get; private set; }
 
         private NPCMemoryComponent _currentNPCMemory;
         private NPCDialogueGraphComponent _currentGraph;
+        private StartDialogueNode _currentStartNode;
 
         private void OnEnable()
         {
@@ -52,6 +55,8 @@ namespace Game.World
 
             _dialogueUI.Open(data.npcName, startNodes);
             IsOpen = true;
+            if (_playerStateManager != null)
+                _playerStateManager.SetInDialogue(true);
             CursorManager.Unlock();
             GameLog.Info(TAG, $"Opened dialogue with {data.npcName} — {startNodes.Length} topic(s) available");
         }
@@ -94,13 +99,65 @@ namespace Game.World
             }
         }
 
+        /// <summary>
+        /// Called by DialogueUI when the player selects a topic.
+        /// Tracks the active start node for played-state recording, then advances.
+        /// </summary>
+        public void StartTopic(StartDialogueNode startNode)
+        {
+            _currentStartNode = startNode;
+            if (startNode.nextNode == null)
+            {
+                GameLog.Warn(TAG, $"StartDialogueNode '{startNode.name}' has no nextNode — cannot start topic");
+                return;
+            }
+            AdvanceToNode(startNode.nextNode);
+        }
+
+        /// <summary>
+        /// Called by DialogueUI when a dialogue chain reaches its end node (nextNode == null).
+        /// If the active topic is non-repeatable, records it as played in WorldStateManager.
+        /// Always clears the active start node reference.
+        /// </summary>
+        public void NotifyTopicCompleted()
+        {
+            if (_currentStartNode == null)
+            {
+                GameLog.Warn(TAG, "NotifyTopicCompleted called but no active start node — played state not recorded");
+                return;
+            }
+            if (!_currentStartNode.isRepeatable)
+            {
+                if (WorldStateManager.Instance != null)
+                    WorldStateManager.Instance.SetDialoguePlayed(_currentStartNode.name);
+                else
+                    GameLog.Warn(TAG, $"WorldStateManager unavailable — dialogue topic '{_currentStartNode.name}' played state not recorded");
+                GameLog.Info(TAG, $"Dialogue topic '{_currentStartNode.name}' marked as played");
+            }
+            _currentStartNode = null;
+        }
+
+        /// <summary>
+        /// Returns available start nodes for the current NPC, re-evaluated to pick up
+        /// played-state changes that occurred during this session.
+        /// Called by DialogueUI when restoring the topic list after a chain completes.
+        /// </summary>
+        public StartDialogueNode[] GetCurrentStartNodes()
+        {
+            if (_currentGraph == null) return System.Array.Empty<StartDialogueNode>();
+            return _currentGraph.GetAvailableStartNodes(_currentNPCMemory);
+        }
+
         public void Close()
         {
             if (_dialogueUI == null) return;
             _dialogueUI.Close();
             IsOpen = false;
+            if (_playerStateManager != null)
+                _playerStateManager.SetInDialogue(false);
             _currentNPCMemory = null;
             _currentGraph = null;
+            _currentStartNode = null;
             CursorManager.Lock();
             GameLog.Info(TAG, "Closed dialogue");
         }
