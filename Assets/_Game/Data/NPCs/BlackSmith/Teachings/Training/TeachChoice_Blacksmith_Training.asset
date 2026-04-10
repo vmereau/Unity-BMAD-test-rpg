@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9fbbcd3ec0d509408d512213611c995, type: 3}
+  m_Name: TeachChoice_Blacksmith_Training
+  m_EditorClassIdentifier: Game::Game.Dialogue.TeachChoiceDialogueNode
+  text: 
+  nextNode: {fileID: 0}
+  choices:
+  - text: '+1 Strength (LP: 1, Gold: 50)'
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 39cf917287e497d43b62022063c4ed0d, type: 2}
+    goldCost: 50
+    lpCost: 1
+    skill: {fileID: 0}
+    statToUpgrade: 0
+    statPoints: 1
+  - text: 'Power Strike (LP: 2, Gold: 100)'
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: edda3546339b74e4e9b472583884d966, type: 2}
+    goldCost: 100
+    lpCost: 1
+    skill: {fileID: 11400000, guid: f8133657d31dc3640b9ba49d0cdbb5fb, type: 2}
+    statToUpgrade: 0
+    statPoints: 1

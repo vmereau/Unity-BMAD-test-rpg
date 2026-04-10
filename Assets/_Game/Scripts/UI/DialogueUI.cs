@@ -161,6 +161,25 @@ namespace Game.UI
             SetState(DisplayState.Choices);
         }
 
+        /// <summary>Displays a TeachChoiceDialogueNode: NPC text above teaching choices with cost labels, followed by an Exit button.</summary>
+        public void ShowTeachChoiceNode(TeachChoiceDialogueNode node, TeachChoiceOption[] availableChoices)
+        {
+            if (_responseText != null)
+                _responseText.text = node.text;
+
+            ClearTopicButtons();
+
+            int slot = 1;
+            foreach (var choice in availableChoices)
+            {
+                if (choice == null) continue;
+                AddTeachChoiceButton(choice, slot++);
+            }
+            AddTeachExitButton(node.nextNode, slot);
+
+            SetState(DisplayState.Choices);
+        }
+
         public void Close()
         {
             if (_panel != null)
@@ -299,6 +318,87 @@ namespace Game.UI
 
             if (slot <= 10)
                 _slotCallbacks[slot] = action;
+        }
+
+        private void AddTeachChoiceButton(TeachChoiceOption choice, int slot)
+        {
+            var btnGO = Instantiate(_topicButtonPrefab, _topicsContainer);
+            var label = btnGO.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+                label.text = $"{SlotLabel(slot)}. {choice.text}{BuildCostLabel(choice)}";
+
+            bool canAfford = _dialogueSystem != null && _dialogueSystem.CanAffordTeachChoice(choice);
+
+            var btn = btnGO.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.interactable = canAfford;
+                if (canAfford)
+                {
+                    var captured = choice;
+                    btn.onClick.AddListener(() =>
+                    {
+                        if (_dialogueSystem != null)
+                            _dialogueSystem.ApplyTeachChoice(captured);
+                    });
+                }
+            }
+
+            // Only register a slot callback for affordable choices (pressing key on disabled choice does nothing)
+            if (slot <= 10 && canAfford)
+            {
+                var captured = choice;
+                _slotCallbacks[slot] = () =>
+                {
+                    if (_dialogueSystem != null)
+                        _dialogueSystem.ApplyTeachChoice(captured);
+                };
+            }
+        }
+
+        private void AddTeachExitButton(DialogueNode exitNode, int slot)
+        {
+            if (_topicsContainer == null || _topicButtonPrefab == null) return;
+            if (slot > 10) return;
+
+            var btnGO = Instantiate(_topicButtonPrefab, _topicsContainer);
+            var label = btnGO.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = $"{SlotLabel(slot)}. [Leave]";
+
+            var capturedExit = exitNode;
+            System.Action action = () =>
+            {
+                _dialogueSystem.NotifyTopicCompleted();
+                RestoreTopics();
+            };
+
+            var btn = btnGO.GetComponent<Button>();
+            if (btn != null)
+                btn.onClick.AddListener(() => action());
+
+            _slotCallbacks[slot] = action;
+        }
+
+        private static string BuildCostLabel(TeachChoiceOption choice)
+        {
+            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.lpCost;
+            int gold = choice.goldCost;
+            if (effectiveLpCost <= 0 && gold <= 0) return string.Empty;
+
+            var sb = new System.Text.StringBuilder(" (");
+            bool first = true;
+            if (effectiveLpCost > 0)
+            {
+                sb.Append($"{effectiveLpCost} LP");
+                first = false;
+            }
+            if (gold > 0)
+            {
+                if (!first) sb.Append(", ");
+                sb.Append($"{gold}g");
+            }
+            sb.Append(')');
+            return sb.ToString();
         }
 
         private void ClearTopicButtons()

@@ -47,7 +47,14 @@ namespace Tests.EditMode
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
-        private NPCMemoryEntrySO CreateMemory(string[] unlock, string[] invalidate)
+        private T MakeFact<T>(System.Func<T> factory) where T : Object
+        {
+            var f = factory();
+            _cleanup.Add(f);
+            return f;
+        }
+
+        private NPCMemoryEntrySO CreateMemory(Fact[] unlock, Fact[] invalidate)
         {
             var so = ScriptableObject.CreateInstance<NPCMemoryEntrySO>();
             so.unlockConditions = unlock;
@@ -61,25 +68,33 @@ namespace Tests.EditMode
         [Test]
         public void AllTrue_EmptyArray_ReturnsTrue()
         {
-            Assert.That(TopicUnlockEvaluator.AllTrue(new string[0]), Is.True);
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[0]), Is.True);
         }
 
         [Test]
         public void AllTrue_AllFactsTrue_ReturnsTrue()
         {
-            _wsm.SetQuestStep("Mill", "a", true);
-            _wsm.SetWorldEvent("b", true);
+            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")), true);
+            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b")), true);
 
-            Assert.That(TopicUnlockEvaluator.AllTrue(new[] { "Quest.Mill.a", "World.b" }), Is.True);
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[]
+            {
+                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")),
+                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b"))
+            }), Is.True);
         }
 
         [Test]
         public void AllTrue_OneFactFalse_ReturnsFalse()
         {
-            _wsm.SetQuestStep("Mill", "a", true);
-            // "World.b" not set — defaults to false
+            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")), true);
+            // WorldFact "b" not set — defaults to false
 
-            Assert.That(TopicUnlockEvaluator.AllTrue(new[] { "Quest.Mill.a", "World.b" }), Is.False);
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[]
+            {
+                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")),
+                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b"))
+            }), Is.False);
         }
 
         // ── AnyTrue ───────────────────────────────────────────────────────────
@@ -87,21 +102,28 @@ namespace Tests.EditMode
         [Test]
         public void AnyTrue_EmptyArray_ReturnsFalse()
         {
-            Assert.That(TopicUnlockEvaluator.AnyTrue(new string[0]), Is.False);
+            Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[0]), Is.False);
         }
 
         [Test]
         public void AnyTrue_OneFact_ReturnsTrue()
         {
-            _wsm.SetWorldEvent("mill_burned", true);
+            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("mill_burned")), true);
 
-            Assert.That(TopicUnlockEvaluator.AnyTrue(new[] { "World.mill_burned" }), Is.True);
+            Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[]
+            {
+                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("mill_burned"))
+            }), Is.True);
         }
 
         [Test]
         public void AnyTrue_NoFactsTrue_ReturnsFalse()
         {
-            Assert.That(TopicUnlockEvaluator.AnyTrue(new[] { "World.mill_burned", "Quest.Mill.x" }), Is.False);
+            Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[]
+            {
+                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("mill_burned")),
+                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "x"))
+            }), Is.False);
         }
 
         // ── IsActive (via NPCMemoryEntrySO) ───────────────────────────────────
@@ -109,11 +131,11 @@ namespace Tests.EditMode
         [Test]
         public void IsActive_UnlockedNotInvalidated_ReturnsTrue()
         {
-            _wsm.SetQuestStep("Mill", "monster_killed", true);
+            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
 
             var memory = CreateMemory(
-                unlock: new[] { "Quest.Mill.monster_killed" },
-                invalidate: new[] { "World.quest_failed" }
+                unlock: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")) },
+                invalidate: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")) }
             );
 
             Assert.That(memory.IsActive(), Is.True);
@@ -122,12 +144,12 @@ namespace Tests.EditMode
         [Test]
         public void IsActive_Invalidated_ReturnsFalse()
         {
-            _wsm.SetQuestStep("Mill", "monster_killed", true);
-            _wsm.SetWorldEvent("quest_failed", true);
+            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
+            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")), true);
 
             var memory = CreateMemory(
-                unlock: new[] { "Quest.Mill.monster_killed" },
-                invalidate: new[] { "World.quest_failed" }
+                unlock: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")) },
+                invalidate: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")) }
             );
 
             // Invalidation supersedes unlock

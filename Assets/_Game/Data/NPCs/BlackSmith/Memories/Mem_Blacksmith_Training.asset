@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
-  m_Name: Mem_Villager_Default
+  m_Name: Mem_Blacksmith_Training
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions: []
   invalidationConditions: []
   effects:
-    startdialog: {fileID: 11400000, guid: 455d1be2d47a1344691f01dfee989287, type: 2}
+    startdialog: {fileID: 11400000, guid: 2086907fdf7a8b04db3d5296daad71a3, type: 2}
     choicesDialogues: []
     shopPriceModifier: 0
     shopRevealDialogueLine: 

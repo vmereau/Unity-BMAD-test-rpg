@@ -509,6 +509,10 @@ MonoBehaviour:
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
   _dialogueUI: {fileID: 3658265487728695763}
   _playerStateManager: {fileID: 212298241250081144}
+  _playerStats: {fileID: 5748466653404673820}
+  _goldSystem: {fileID: 8568453877098799715}
+  _lpSystem: {fileID: 7805096736339071647}
+  _playerSkills: {fileID: 660869248586365014}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

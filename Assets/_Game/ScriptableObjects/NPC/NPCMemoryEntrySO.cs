@@ -44,11 +44,11 @@ namespace Game.NPC
         private const string TAG = "[NPCMemory]";
 
         [Header("Conditions")]
-        [Tooltip("ALL of these world fact keys must be true for this memory to be active.")]
-        public string[] unlockConditions;
+        [Tooltip("ALL of these facts must be true for this memory to be active.")]
+        public Fact[] unlockConditions;
 
-        [Tooltip("If ANY of these world fact keys is true, this memory is permanently closed.")]
-        public string[] invalidationConditions;
+        [Tooltip("If ANY of these facts is true, this memory is permanently closed.")]
+        public Fact[] invalidationConditions;
 
         [Header("Effects")]
         public NPCMemoryEffects effects = new NPCMemoryEffects();

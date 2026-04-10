@@ -7,21 +7,23 @@ namespace Game.World
     /// Marks a world entity as permanently tracked by WorldStateManager.
     /// On Awake: checks if this entity was previously killed and deactivates silently if so.
     /// Call RegisterDeath() when the entity is killed — before playing death effects.
-    /// Every world enemy, NPC, and container MUST have this component with a unique GUID.
+    /// Every world enemy, NPC, and container MUST have this component with a KilledFact assigned.
     /// Story 2.8: Initial implementation.
+    /// MIGRATION NOTE: The previous _guid string field has been replaced by _killedFact.
+    /// Existing PersistentID instances will need a KilledFact asset created and assigned.
     /// </summary>
     public class PersistentID : MonoBehaviour
     {
         private const string TAG = "[WorldState]";
 
-        [SerializeField] private string _guid;
+        [SerializeField] private KilledFact _killedFact;
         [SerializeField] private GameEventSO_String _onEntityKilled;
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(_guid))
+            if (_killedFact == null)
             {
-                GameLog.Error(TAG, $"PersistentID on {gameObject.name} has no GUID — entity will not be tracked");
+                GameLog.Error(TAG, $"PersistentID on {gameObject.name} has no KilledFact assigned — entity will not be tracked");
                 return;
             }
 
@@ -31,10 +33,8 @@ namespace Game.World
                 return;
             }
 
-            if (WorldStateManager.Instance.IsKilled(_guid))
-            {
-                gameObject.SetActive(false); // Silent — no events, no logging
-            }
+            if (WorldStateManager.Instance.IsKilled(_killedFact))
+                gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -43,21 +43,12 @@ namespace Game.World
         /// </summary>
         public void RegisterDeath()
         {
-            WorldStateManager.Instance?.RegisterKill(_guid);
+            WorldStateManager.Instance?.RegisterKill(_killedFact);
 
             if (_onEntityKilled != null)
-                _onEntityKilled.Raise(_guid);
+                _onEntityKilled.Raise(_killedFact.EntityGuid);
             else
                 GameLog.Warn(TAG, $"OnEntityKilled event not assigned on {gameObject.name} — kill not broadcast");
         }
-
-#if UNITY_EDITOR
-        [ContextMenu("Generate GUID")]
-        private void GenerateGUID()
-        {
-            _guid = System.Guid.NewGuid().ToString();
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
-#endif
     }
 }

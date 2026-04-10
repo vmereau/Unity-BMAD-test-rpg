@@ -10,15 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
-  m_Name: Mem_Villager_Default
+  m_Name: Mem_Blacksmith_FrogsInsisted
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
-  unlockConditions: []
-  invalidationConditions: []
+  unlockConditions:
+  - {fileID: 11400000, guid: 146dc7cb2bfea4d4fb1daa52c01c6465, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: cf9c4565dd2c48da94bd3b0fd1b8f583, type: 2}
   effects:
-    startdialog: {fileID: 11400000, guid: 455d1be2d47a1344691f01dfee989287, type: 2}
+    startdialog: {fileID: 11400000, guid: bbfd482bc273467ca5a288ae9e2604d6, type: 2}
     choicesDialogues: []
     shopPriceModifier: 0
-    shopRevealDialogueLine: 
+    shopRevealDialogueLine:
     routineOverride: 0
     overrideRoutine: 0
-    questDialogueKey: 
+    questDialogueKey:

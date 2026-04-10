@@ -46,35 +46,46 @@ namespace Tests.EditMode
             _cleanup.Clear();
         }
 
+        // Helper — creates a typed Fact, registers it for cleanup, and returns it.
+        private T MakeFact<T>(System.Func<T> factory) where T : Object
+        {
+            var f = factory();
+            _cleanup.Add(f);
+            return f;
+        }
+
         // ── SetWorldEvent / GetFact ───────────────────────────────────────────
 
         [Test]
         public void SetWorldEvent_StoresBoolValue()
         {
-            _wsm.SetWorldEvent("test", true);
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"));
+            _wsm.SetWorldEvent(fact, true);
 
-            Assert.That(_wsm.GetFact("World.test"), Is.True);
+            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"))), Is.True);
         }
 
         [Test]
         public void GetFact_MissingKey_ReturnsFalse()
         {
-            Assert.That(_wsm.GetFact("World.nonexistent"), Is.False);
+            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("nonexistent"))), Is.False);
         }
 
         [Test]
-        public void GetFact_NullKey_ReturnsFalse()
+        public void GetFact_NullFact_ReturnsFalse()
         {
-            Assert.That(_wsm.GetFact(null), Is.False);
+            Assert.That(_wsm.GetFact((Fact)null), Is.False);
         }
 
         [Test]
         public void SetWorldEvent_Overwrite_UpdatesValue()
         {
-            _wsm.SetWorldEvent("test", true);
-            _wsm.SetWorldEvent("test", false);
+            var factA = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"));
+            var factB = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"));
+            _wsm.SetWorldEvent(factA, true);
+            _wsm.SetWorldEvent(factB, false);
 
-            Assert.That(_wsm.GetFact("World.test"), Is.False);
+            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"))), Is.False);
         }
 
         // ── SetQuestStep ──────────────────────────────────────────────────────
@@ -82,9 +93,9 @@ namespace Tests.EditMode
         [Test]
         public void SetQuestStep_FormatsKey()
         {
-            _wsm.SetQuestStep("Mill", "monster_killed", true);
+            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
 
-            Assert.That(_wsm.GetFact("Quest.Mill.monster_killed"), Is.True);
+            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed"))), Is.True);
         }
 
         // ── RegisterKill auto-fact ────────────────────────────────────────────
@@ -92,10 +103,10 @@ namespace Tests.EditMode
         [Test]
         public void RegisterKill_AutoSetsKilledFact()
         {
-            _wsm.RegisterKill("StartingTown_NPC_Guard");
+            _wsm.RegisterKill(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard")));
 
-            Assert.That(_wsm.IsKilled("StartingTown_NPC_Guard"), Is.True);
-            Assert.That(_wsm.GetFact("Killed.StartingTown_NPC_Guard"), Is.True);
+            Assert.That(_wsm.IsKilled(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
+            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
         }
 
         // ── Event broadcast ───────────────────────────────────────────────────
@@ -114,7 +125,7 @@ namespace Tests.EditMode
             bool fired = false;
             eventSO.AddListener(data => { received = data; fired = true; });
 
-            _wsm.SetWorldEvent("mill_cleared", true);
+            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("mill_cleared")), true);
 
             Assert.That(fired, Is.True);
             Assert.That(received.key, Is.EqualTo("World.mill_cleared"));

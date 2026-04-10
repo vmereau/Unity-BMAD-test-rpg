@@ -1,8 +1,10 @@
 using Game.AI;
 using Game.Core;
 using Game.Dialogue;
+using Game.Economy;
 using Game.NPC;
 using Game.Player;
+using Game.Progression;
 using Game.UI;
 using UnityEngine;
 
@@ -15,6 +17,10 @@ namespace Game.World
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
         [SerializeField] private DialogueUI _dialogueUI;
         [SerializeField] private PlayerStateManager _playerStateManager;
+        [SerializeField] private PlayerStats _playerStats;
+        [SerializeField] private GoldSystem _goldSystem;
+        [SerializeField] private LearningPointSystem _lpSystem;
+        [SerializeField] private PlayerSkills _playerSkills;
 
         public bool IsOpen { get; private set; }
 
@@ -86,6 +92,13 @@ namespace Game.World
                     _dialogueUI.ShowChoiceNode(choiceNode, availableChoices);
                     break;
 
+                case TeachChoiceDialogueNode teachNode:
+                    TeachChoiceOption[] availableTeachChoices = _currentGraph != null
+                        ? _currentGraph.GetAvailableTeachChoices(teachNode, _currentNPCMemory)
+                        : teachNode.choices ?? System.Array.Empty<TeachChoiceOption>();
+                    _dialogueUI.ShowTeachChoiceNode(teachNode, availableTeachChoices);
+                    break;
+
                 case StartDialogueNode _:
                     // Author error: StartDialogueNode should not appear mid-chain
                     GameLog.Warn(TAG, $"StartDialogueNode '{node.name}' referenced mid-chain — closing dialogue");
@@ -126,14 +139,17 @@ namespace Game.World
                 GameLog.Warn(TAG, "NotifyTopicCompleted called but no active start node — played state not recorded");
                 return;
             }
-            if (!_currentStartNode.isRepeatable)
+            
+            if (_currentStartNode.dialogueFact && WorldStateManager.Instance != null)
             {
-                if (WorldStateManager.Instance != null)
-                    WorldStateManager.Instance.SetDialoguePlayed(_currentStartNode.name);
-                else
-                    GameLog.Warn(TAG, $"WorldStateManager unavailable — dialogue topic '{_currentStartNode.name}' played state not recorded");
+                WorldStateManager.Instance.SetDialoguePlayed(_currentStartNode.dialogueFact);
                 GameLog.Info(TAG, $"Dialogue topic '{_currentStartNode.name}' marked as played");
             }
+            else
+            {
+                GameLog.Warn(TAG, $"WorldStateManager unavailable — dialogue topic '{_currentStartNode.name}' played state not recorded");
+            }
+            
             _currentStartNode = null;
         }
 
@@ -146,6 +162,102 @@ namespace Game.World
         {
             if (_currentGraph == null) return System.Array.Empty<StartDialogueNode>();
             return _currentGraph.GetAvailableStartNodes(_currentNPCMemory);
+        }
+
+        /// <summary>
+        /// Returns true if the player currently meets the gold and LP requirements for the choice.
+        /// Called by DialogueUI to set button interactable state.
+        /// Does NOT check whether a skill is already learned — use requiredMemory authoring for that.
+        /// </summary>
+        public bool CanAffordTeachChoice(TeachChoiceOption choice)
+        {
+            if (choice == null) return false;
+
+            if (choice.goldCost > 0 && (_goldSystem == null || _goldSystem.Gold < choice.goldCost))
+                return false;
+
+            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.lpCost;
+            if (effectiveLpCost > 0 && (_lpSystem == null || _lpSystem.CurrentLP < effectiveLpCost))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Deducts gold cost, then delegates to LearnSkill() (skill path) or TrySpendLP+UpgradeStat (stat path).
+        /// Must only be called after CanAffordTeachChoice() returned true.
+        /// Advances to choice.nextNode on success (null = close dialogue).
+        /// </summary>
+        public void ApplyTeachChoice(TeachChoiceOption choice)
+        {
+            if (choice == null) return;
+
+            // ── Skill path ───────────────────────────────────────────────────────────
+            if (choice.skill != null)
+            {
+                if (_playerSkills == null)
+                {
+                    GameLog.Warn(TAG, "ApplyTeachChoice: PlayerSkills not assigned — skill not granted");
+                    AdvanceToNode(choice.nextNode);
+                    return;
+                }
+
+                // Guard: skill already learned (author omitted requiredMemory gate).
+                // Check BEFORE spending gold so no currency is lost.
+                if (_playerSkills.HasSkill(choice.skill.skillId))
+                {
+                    GameLog.Warn(TAG, $"ApplyTeachChoice: skill '{choice.skill.displayName}' already learned — requiredMemory gate missing on this TeachChoiceOption");
+                    AdvanceToNode(choice.nextNode);
+                    return;
+                }
+
+                // Spend gold first, then let LearnSkill() handle LP deduction.
+                if (choice.goldCost > 0)
+                {
+                    if (_goldSystem == null)
+                        GameLog.Warn(TAG, "ApplyTeachChoice: GoldSystem not assigned — gold cost skipped");
+                    else if (!_goldSystem.TrySpend(choice.goldCost))
+                    {
+                        GameLog.Error(TAG, $"ApplyTeachChoice: TrySpend({choice.goldCost}) failed — insufficient funds at apply time");
+                        return;
+                    }
+                }
+
+                if (!_playerSkills.LearnSkill(choice.skill))
+                    GameLog.Error(TAG, $"ApplyTeachChoice: LearnSkill({choice.skill.displayName}) failed unexpectedly");
+            }
+            // ── Stat path ────────────────────────────────────────────────────────────
+            else
+            {
+                if (choice.goldCost > 0)
+                {
+                    if (_goldSystem == null)
+                        GameLog.Warn(TAG, "ApplyTeachChoice: GoldSystem not assigned — gold cost skipped");
+                    else if (!_goldSystem.TrySpend(choice.goldCost))
+                    {
+                        GameLog.Error(TAG, $"ApplyTeachChoice: TrySpend({choice.goldCost}) failed — insufficient funds at apply time");
+                        return;
+                    }
+                }
+
+                if (choice.lpCost > 0)
+                {
+                    if (_lpSystem == null)
+                        GameLog.Warn(TAG, "ApplyTeachChoice: LearningPointSystem not assigned — LP cost skipped");
+                    else if (!_lpSystem.TrySpendLP(choice.lpCost))
+                    {
+                        GameLog.Error(TAG, $"ApplyTeachChoice: TrySpendLP({choice.lpCost}) failed — insufficient LP at apply time");
+                        return;
+                    }
+                }
+
+                if (_playerStats == null)
+                    GameLog.Warn(TAG, "ApplyTeachChoice: PlayerStats not assigned — stat not upgraded");
+                else
+                    _playerStats.UpgradeStat(choice.statToUpgrade, choice.statPoints);
+            }
+
+            AdvanceToNode(choice.nextNode);
         }
 
         public void Close()

@@ -1,3 +1,4 @@
+using Game.Core;
 using Game.NPC;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace Game.Dialogue
     [CreateAssetMenu(menuName = "Game/Dialogue/Start Node", fileName = "Start_")]
     public class StartDialogueNode : DialogueNode
     {
-        [Tooltip("If false, this topic is hidden after it has been played once (chain reached an end node). Default true.")]
-        public bool isRepeatable = true;
+        [Tooltip("Fact asset used to track and check played state in WorldStateManager")]
+        public DialogueFact dialogueFact;
     }
 }

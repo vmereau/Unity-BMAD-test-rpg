@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Mem_Blacksmith_Frogs
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions: []
-  invalidationConditions: []
+  invalidationConditions:
+  - {fileID: 11400000, guid: cf9c4565dd2c48da94bd3b0fd1b8f583, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: aa65ff0ad6feed541b1e2ee6e45f900c, type: 2}
     choicesDialogues: []

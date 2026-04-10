@@ -62,9 +62,9 @@ namespace Game.AI
                 if (!npcMemoryEntrySo.HasDialogue()) continue;
 
                 StartDialogueNode node = npcMemoryEntrySo.effects.startdialog;
-                if (!node.isRepeatable
+                if (node.dialogueFact != null
                     && WorldStateManager.Instance != null
-                    && WorldStateManager.Instance.IsDialoguePlayed(node.name))
+                    && WorldStateManager.Instance.IsDialoguePlayed(node.dialogueFact))
                     continue;
 
                 result.Add(node);

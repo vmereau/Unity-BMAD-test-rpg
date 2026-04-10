@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
-  m_Name: Start_Blacksmith_Frogs
+  m_Name: Start_Blacksmith_Training
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: Have you seen any frogs around here?
-  nextNode: {fileID: 11400000, guid: 1dc0669e893ad8b439e9beb07a4259a2, type: 2}
-  isRepeatable: 0
-  dialogueFact: {fileID: 11400000, guid: 146dc7cb2bfea4d4fb1daa52c01c6465, type: 2}
+  text: What can you teach me?
+  nextNode: {fileID: 11400000, guid: c5d7436fd3f14b94fbdce2aeab788cb3, type: 2}
+  isRepeatable: 1
+  dialogueFact: {fileID: 0}

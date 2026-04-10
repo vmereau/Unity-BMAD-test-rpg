@@ -18,6 +18,11 @@ Assets/_Game/Data/NPCs/
         Start_<NPC>_<Topic>.asset
         Text_<NPC>_<Topic>.asset
         ...
+    Teachings/                 ← chains using TeachChoiceDialogueNode (create if missing)
+      <TopicName>/
+        Start_<NPC>_<Topic>.asset
+        TeachChoice_<NPC>_<Topic>.asset
+        ...
     Memories/
       Mem_<NPC>_<Topic>.asset
       ...
@@ -67,6 +72,17 @@ Read **`DIALOGUE.md`** in this folder. It describes:
 - `StartDialogueNode`, `TextDialogueNode`, `ChoiceDialogueNode` usage
 - Text length limits and chaining rules
 - Naming conventions and folder layout
+
+---
+
+## Before Working on Teaching Dialogue Chains
+
+If the dialogue chain contains (or will contain) a **`TeachChoiceDialogueNode`**, read
+**`TEACHING.md`** in this folder **instead of — or in addition to — `DIALOGUE.md`**. It describes:
+- `TeachChoiceDialogueNode` and `TeachChoiceOption` fields
+- The `Teachings/` subfolder rule (teaching chains must **not** live in `Dialogues/`)
+- Choice button label format: `<SkillName>` / `+N <StatName>` — no costs in the text (game UI renders those)
+- Full authoring checklist for teaching chains
 
 ---
 
