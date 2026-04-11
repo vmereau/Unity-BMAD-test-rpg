@@ -307,7 +307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.EnemyHealth
   _type: {fileID: 11400000, guid: fab1ecf3c813f3c4db6d26afa7f7bf82, type: 2}
-  _persistentID: {fileID: 0}
+  _persistentID: {fileID: 3741312093024570092}
   _enemyAnimator: {fileID: 5420547024551189300}
 --- !u!114 &5420547024551189300
 MonoBehaviour:
@@ -335,8 +335,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b025cb941d9d6f945aefe898b54cbc7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.PersistentID
-  _guid: 
-  _onEntityKilled: {fileID: 0}
+  _killedFact: {fileID: 0}
+  _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
 --- !u!1 &5628224908527476927
 GameObject:
   m_ObjectHideFlags: 0

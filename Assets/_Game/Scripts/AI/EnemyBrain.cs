@@ -8,14 +8,16 @@ namespace Game.AI
 {
     /// <summary>
     /// Enemy state machine: Idle → Patrolling → Engaging → Attacking.
-    /// Patrol: cycles between waypoints, waits at each.
-    /// Engage: chases player via NavMesh when within detectionRange; disengages if > disengageRange.
-    /// Attack: stops moving, strikes player on cooldown when within attackRange.
+    /// Idle: saves spawn origin, wanders randomly within IdleWanderRadius; detects player → Engaging.
+    /// Patrolling: cycles between waypoints, waits at each; detects player → Engaging.
+    /// Engaging: chases player via NavMesh when within DetectionRange; disengages if > DisengageRange.
+    /// Attacking: stops moving, strikes player on cooldown when within AttackRange.
     /// Dead: no-op state (EnemyHealth.Die() triggers death animation via EnemyAnimator).
     /// Requires NavMeshAgent and EnemyHealth on same GameObject. EnemyTypeSO drives all tunable values.
     /// Story 2.8: Initial implementation (patrol + engage only).
     /// Story 2.9: Added Attacking and Dead states; EnemyHealth, PlayerCombat, PlayerHealth integration.
     /// Enemy Creature System: Migrated to EnemyTypeSO; added EnemyAnimator calls; removed renderer visual.
+    /// tech-spec-idle-wander-behavior: Added Idle wander, shared detection helper, disengage state tracking; renamed PatrolSpeed → BaseSpeed.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBrain : MonoBehaviour
@@ -39,6 +41,9 @@ namespace Game.AI
         private float _waitTimer;
         private float _attackCooldownTimer;
         private float _smoothedAnimSpeed;
+
+        private Vector3 _idleOrigin;
+        private EnemyState _disengageState = EnemyState.Patrolling;
 
         // Visual debug removed — see EnemyAnimator for future debug overlay
 
@@ -88,8 +93,8 @@ namespace Game.AI
         {
             if (_waypoints == null || _waypoints.Length == 0)
             {
-                GameLog.Warn(TAG, $"{gameObject.name}: No waypoints assigned — remaining Idle");
-                _state = EnemyState.Idle;
+                GameLog.Info(TAG, $"{gameObject.name}: No waypoints assigned — entering Idle wander");
+                TransitionToIdle(transform.position);
                 return;
             }
             // Initialize to last index so the first AdvanceToNextWaypoint() lands at index 0.
@@ -133,15 +138,40 @@ namespace Game.AI
                 _attackCooldownTimer = Mathf.Max(0f, _attackCooldownTimer - Time.deltaTime);
         }
 
+        // --- Shared detection helper ---
+
+        private bool IsPlayerInDetectionRange() =>
+            _player != null && Vector3.Distance(transform.position, _player.position) <= _type.DetectionRange;
+
+        // --- State handlers ---
+
         private void HandleIdle()
         {
-            
+            if (IsPlayerInDetectionRange())
+            {
+                TransitionToEngaging();
+                return;
+            }
+
+            if (_agent.pathPending) return;
+
+            if (_agent.remainingDistance <= _type.WaypointArrivalThreshold)
+            {
+                _waitTimer -= Time.deltaTime;
+                if (_waitTimer <= 0f)
+                {
+                    PickIdleWanderTarget();
+                }
+                else
+                {
+                    _agent.isStopped = true;
+                }
+            }
         }
 
         private void HandlePatrol()
         {
-            // Check for player detection
-            if (_player != null && Vector3.Distance(transform.position, _player.position) <= _type.DetectionRange)
+            if (IsPlayerInDetectionRange())
             {
                 TransitionToEngaging();
                 return;
@@ -174,8 +204,8 @@ namespace Game.AI
         {
             if (_player == null)
             {
-                GameLog.Warn(TAG, "Player lost — returning to patrol");
-                TransitionToPatrol();
+                GameLog.Warn(TAG, "Player lost — disengaging");
+                DisengageFromCombat();
                 return;
             }
 
@@ -183,8 +213,7 @@ namespace Game.AI
 
             if (distToPlayer > _type.DisengageRange)
             {
-                GameLog.Info(TAG, "Disengaged — player out of range");
-                TransitionToPatrol();
+                DisengageFromCombat();
                 return;
             }
 
@@ -202,7 +231,7 @@ namespace Game.AI
         {
             if (_player == null)
             {
-                TransitionToPatrol();
+                DisengageFromCombat();
                 return;
             }
 
@@ -211,8 +240,7 @@ namespace Game.AI
             // Player moved beyond disengage range
             if (distToPlayer > _type.DisengageRange)
             {
-                GameLog.Info(TAG, "Disengaged from attack — player out of range");
-                TransitionToPatrol();
+                DisengageFromCombat();
                 return;
             }
 
@@ -233,6 +261,8 @@ namespace Game.AI
         {
             // No-op: death animation and ragdoll handled by EnemyAnimator.
         }
+
+        // --- Combat ---
 
         private void ExecuteAttack()
         {
@@ -267,6 +297,23 @@ namespace Game.AI
             }
         }
 
+        // --- Movement helpers ---
+
+        private void PickIdleWanderTarget()
+        {
+            Vector3 randomOffset = Random.insideUnitSphere * _type.IdleWanderRadius;
+            randomOffset.y = 0f;
+            Vector3 candidate = _idleOrigin + randomOffset;
+
+            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, _type.IdleWanderRadius, NavMesh.AllAreas))
+            {
+                _agent.isStopped = false;
+                _agent.SetDestination(hit.position);
+                _waitTimer = _type.PatrolWaitTime;
+            }
+            // If SamplePosition fails: stay put, _waitTimer stays <= 0, retry next frame
+        }
+
         private void AdvanceToNextWaypoint()
         {
             if (_waypoints == null || _waypoints.Length == 0) return;
@@ -274,13 +321,29 @@ namespace Game.AI
             _currentWaypoint = (_currentWaypoint + 1) % _waypoints.Length;
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
-            _agent.speed = _type.PatrolSpeed;
+            _agent.speed = _type.BaseSpeed;
             _agent.SetDestination(_waypoints[_currentWaypoint].position);
             _waitTimer = _type.PatrolWaitTime;
         }
 
+        // --- State transitions ---
+
+        private void TransitionToIdle(Vector3 origin)
+        {
+            _state = EnemyState.Idle;
+            _idleOrigin = origin;
+            _waitTimer = 0f; // pick a wander target immediately on first HandleIdle tick
+            _agent.isStopped = false;
+            _agent.stoppingDistance = 0f;
+            _agent.speed = _type.BaseSpeed;
+            GameLog.Info(TAG, $"{gameObject.name} transitioned to Idle at {origin}");
+        }
+
         private void TransitionToEngaging()
         {
+            // Only capture return state from non-combat states; Attacking→Engaging must preserve the original origin state
+            if (_state == EnemyState.Idle || _state == EnemyState.Patrolling)
+                _disengageState = _state;
             _state = EnemyState.Engaging;
             _agent.isStopped = false;
             _agent.stoppingDistance = _type.EngageStoppingDistance;
@@ -308,6 +371,20 @@ namespace Game.AI
             _state = EnemyState.Dead;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
+        }
+
+        private void DisengageFromCombat()
+        {
+            if (_disengageState == EnemyState.Idle)
+            {
+                GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");
+                TransitionToIdle(_idleOrigin);
+            }
+            else
+            {
+                GameLog.Info(TAG, $"{gameObject.name} disengaged — returning to patrol");
+                TransitionToPatrol();
+            }
         }
 
 #if false // DISABLED: debug OnGUI — to be reworked

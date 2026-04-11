@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 993f385e7ab011645b6fbc2ed9523130, type: 3}
-  m_Name: KilledFact_spider_1 4
+  m_Name: KilledFact_Enemy_DarknessSpider (4)
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
-  _guid: fb856d54-b1cf-4a82-ba4a-08cfbb32e29c
+  _guid: d829d5cd-57a7-4537-bfe6-c4c441e37c83

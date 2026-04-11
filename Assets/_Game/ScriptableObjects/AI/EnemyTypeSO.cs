@@ -17,12 +17,15 @@ namespace Game.AI
         [SerializeField, FormerlySerializedAs("attackDamage")] private float _attackDamage = 10f;
 
         [Header("Movement")]
-        [SerializeField, FormerlySerializedAs("patrolSpeed")] private float _patrolSpeed = 2f;
+        [SerializeField, FormerlySerializedAs("patrolSpeed")] private float _baseSpeed   = 2f;
         [SerializeField, FormerlySerializedAs("engageSpeed")] private float _engageSpeed = 4f;
 
         [Header("Detection")]
         [SerializeField, FormerlySerializedAs("detectionRange")]  private float _detectionRange  = 8f;
         [SerializeField, FormerlySerializedAs("disengageRange")]  private float _disengageRange  = 12f;
+
+        [Header("Idle")]
+        [SerializeField] private float _idleWanderRadius = 5f;
 
         [Header("Engage")]
         [SerializeField, FormerlySerializedAs("engageStoppingDistance")] private float _engageStoppingDistance = 1.5f;
@@ -32,7 +35,7 @@ namespace Game.AI
         [SerializeField, FormerlySerializedAs("patrolWaitTime")]           private float _patrolWaitTime           = 2f;
 
         [Header("Attack")]
-        [SerializeField, FormerlySerializedAs("attackRange")]   private float _attackRange   = 1.8f;
+        [SerializeField, FormerlySerializedAs("attackRange")]    private float _attackRange    = 1.8f;
         [SerializeField, FormerlySerializedAs("attackCooldown")] private float _attackCooldown = 2f;
 
         [Header("Animation")]
@@ -40,10 +43,11 @@ namespace Game.AI
 
         public float BaseHealth               => _baseHealth;
         public float AttackDamage             => _attackDamage;
-        public float PatrolSpeed              => _patrolSpeed;
+        public float BaseSpeed                => _baseSpeed;
         public float EngageSpeed              => _engageSpeed;
         public float DetectionRange           => _detectionRange;
         public float DisengageRange           => _disengageRange;
+        public float IdleWanderRadius         => _idleWanderRadius;
         public float EngageStoppingDistance   => _engageStoppingDistance;
         public float WaypointArrivalThreshold => _waypointArrivalThreshold;
         public float PatrolWaitTime           => _patrolWaitTime;
