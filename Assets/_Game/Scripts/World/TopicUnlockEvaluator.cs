@@ -26,7 +26,13 @@ namespace Game.World
             foreach (var fact in facts)
             {
                 if (fact == null) continue;
-                if (!wsm.GetFact(fact)) return false;
+                bool result = fact switch
+                {
+                    SkillFact sf  => wsm.PlayerHasSkill(sf),
+                    StatFact  stf => wsm.PlayerStatCheck(stf),
+                    _             => wsm.GetFact(fact)
+                };
+                if (!result) return false;
             }
             return true;
         }
@@ -47,7 +53,13 @@ namespace Game.World
             foreach (var fact in facts)
             {
                 if (fact == null) continue;
-                if (wsm.GetFact(fact)) return true;
+                bool result = fact switch
+                {
+                    SkillFact sf  => wsm.PlayerHasSkill(sf),
+                    StatFact  stf => wsm.PlayerStatCheck(stf),
+                    _             => wsm.GetFact(fact)
+                };
+                if (result) return true;
             }
             return false;
         }

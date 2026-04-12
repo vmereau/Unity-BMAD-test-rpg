@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: "It's not about swinging harder. Learn to drive the hammer proper, put your
     weight behind it \u2014 that's what makes a strike hurt, Aye."
-  nextNode: {fileID: 0}
+  nextNode: {fileID: 11400000, guid: fb58cda07a50d9d449aeaa9901b501ff, type: 2}

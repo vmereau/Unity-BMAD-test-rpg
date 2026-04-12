@@ -303,13 +303,9 @@ namespace Game.UI
             var captured = choice;
             System.Action action = () =>
             {
-                if (captured.nextNode != null)
-                    _dialogueSystem.AdvanceToNode(captured.nextNode);
-                else
-                {
-                    _dialogueSystem.NotifyTopicCompleted();
+                _dialogueSystem.SelectChoice(captured);
+                if (captured.nextNode == null)
                     RestoreTopics();
-                }
             };
 
             var btn = btnGO.GetComponent<Button>();
@@ -381,9 +377,11 @@ namespace Game.UI
 
         private static string BuildCostLabel(TeachChoiceOption choice)
         {
-            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.lpCost;
+            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.statPoints;
             int gold = choice.goldCost;
-            if (effectiveLpCost <= 0 && gold <= 0) return string.Empty;
+            bool hasStatReqs = choice.skill != null && choice.skill.statsRequirements.Count > 0;
+
+            if (effectiveLpCost <= 0 && gold <= 0 && !hasStatReqs) return string.Empty;
 
             var sb = new System.Text.StringBuilder(" (");
             bool first = true;
@@ -396,6 +394,16 @@ namespace Game.UI
             {
                 if (!first) sb.Append(", ");
                 sb.Append($"{gold}g");
+                first = false;
+            }
+            if (hasStatReqs)
+            {
+                foreach (var req in choice.skill.statsRequirements)
+                {
+                    if (!first) sb.Append(", ");
+                    sb.Append($"{req.statType}: {req.value}");
+                    first = false;
+                }
             }
             sb.Append(')');
             return sb.ToString();

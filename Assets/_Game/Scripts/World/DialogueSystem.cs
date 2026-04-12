@@ -96,6 +96,7 @@ namespace Game.World
                     TeachChoiceOption[] availableTeachChoices = _currentGraph != null
                         ? _currentGraph.GetAvailableTeachChoices(teachNode, _currentNPCMemory)
                         : teachNode.choices ?? System.Array.Empty<TeachChoiceOption>();
+                    availableTeachChoices = FilterLearnedSkillChoices(availableTeachChoices);
                     _dialogueUI.ShowTeachChoiceNode(teachNode, availableTeachChoices);
                     break;
 
@@ -154,6 +155,26 @@ namespace Game.World
         }
 
         /// <summary>
+        /// Called by DialogueUI when the player selects a regular choice option.
+        /// Records the choice's dialogueFact as played (if assigned), then advances the chain.
+        /// </summary>
+        public void SelectChoice(ChoiceOption choice)
+        {
+            if (choice == null) return;
+
+            if (choice.dialogueFact && WorldStateManager.Instance != null)
+            {
+                WorldStateManager.Instance.SetDialoguePlayed(choice.dialogueFact);
+                GameLog.Info(TAG, $"Choice '{choice.text}' marked as played via fact '{choice.dialogueFact}'");
+            }
+
+            if (choice.nextNode != null)
+                AdvanceToNode(choice.nextNode);
+            else
+                NotifyTopicCompleted();
+        }
+
+        /// <summary>
         /// Returns available start nodes for the current NPC, re-evaluated to pick up
         /// played-state changes that occurred during this session.
         /// Called by DialogueUI when restoring the topic list after a chain completes.
@@ -165,7 +186,7 @@ namespace Game.World
         }
 
         /// <summary>
-        /// Returns true if the player currently meets the gold and LP requirements for the choice.
+        /// Returns true if the player currently meets the gold, LP, and stat requirements for the choice.
         /// Called by DialogueUI to set button interactable state.
         /// Does NOT check whether a skill is already learned — use requiredMemory authoring for that.
         /// </summary>
@@ -176,9 +197,16 @@ namespace Game.World
             if (choice.goldCost > 0 && (_goldSystem == null || _goldSystem.Gold < choice.goldCost))
                 return false;
 
-            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.lpCost;
+            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.statPoints;
             if (effectiveLpCost > 0 && (_lpSystem == null || _lpSystem.CurrentLP < effectiveLpCost))
                 return false;
+
+            // Stat requirements only apply to skill choices (stat path has no prerequisites).
+            if (choice.skill != null && choice.skill.statsRequirements.Count > 0)
+            {
+                if (_playerStats == null || !_playerStats.ValidateStats(choice.skill.statsRequirements))
+                    return false;
+            }
 
             return true;
         }
@@ -186,7 +214,7 @@ namespace Game.World
         /// <summary>
         /// Deducts gold cost, then delegates to LearnSkill() (skill path) or TrySpendLP+UpgradeStat (stat path).
         /// Must only be called after CanAffordTeachChoice() returned true.
-        /// Advances to choice.nextNode on success (null = close dialogue).
+        /// Advances to choice.confirmNextNode on success (null = close dialogue), or denyNextNode when stat is at cap.
         /// </summary>
         public void ApplyTeachChoice(TeachChoiceOption choice)
         {
@@ -198,7 +226,7 @@ namespace Game.World
                 if (_playerSkills == null)
                 {
                     GameLog.Warn(TAG, "ApplyTeachChoice: PlayerSkills not assigned — skill not granted");
-                    AdvanceToNode(choice.nextNode);
+                    AdvanceToNode(choice.confirmNextNode);
                     return;
                 }
 
@@ -207,7 +235,7 @@ namespace Game.World
                 if (_playerSkills.HasSkill(choice.skill.skillId))
                 {
                     GameLog.Warn(TAG, $"ApplyTeachChoice: skill '{choice.skill.displayName}' already learned — requiredMemory gate missing on this TeachChoiceOption");
-                    AdvanceToNode(choice.nextNode);
+                    AdvanceToNode(choice.confirmNextNode);
                     return;
                 }
 
@@ -229,6 +257,28 @@ namespace Game.World
             // ── Stat path ────────────────────────────────────────────────────────────
             else
             {
+                // Stat cap check — no resources consumed if at or above limit
+                if (choice.limitStat > 0)
+                {
+                    if (_playerStats == null)
+                    {
+                        GameLog.Warn(TAG, "ApplyTeachChoice: PlayerStats not assigned — cannot evaluate limitStat; proceeding without cap check");
+                    }
+                    else
+                    {
+                        int baseStat = _playerStats.GetBaseStat(choice.statToUpgrade);
+                        if (baseStat >= choice.limitStat)
+                        {
+                            if (choice.denyNextNode == null)
+                                GameLog.Warn(TAG, $"ApplyTeachChoice: {choice.statToUpgrade} at cap ({baseStat}/{choice.limitStat}) but denyNextNode is null — closing dialogue");
+                            else
+                                GameLog.Info(TAG, $"ApplyTeachChoice: {choice.statToUpgrade} at cap ({baseStat}/{choice.limitStat}) — routing to denyNextNode");
+                            AdvanceToNode(choice.denyNextNode);
+                            return;
+                        }
+                    }
+                }
+
                 if (choice.goldCost > 0)
                 {
                     if (_goldSystem == null)
@@ -240,15 +290,10 @@ namespace Game.World
                     }
                 }
 
-                if (choice.lpCost > 0)
+                if (!_lpSystem.TrySpendLP(choice.statPoints))
                 {
-                    if (_lpSystem == null)
-                        GameLog.Warn(TAG, "ApplyTeachChoice: LearningPointSystem not assigned — LP cost skipped");
-                    else if (!_lpSystem.TrySpendLP(choice.lpCost))
-                    {
-                        GameLog.Error(TAG, $"ApplyTeachChoice: TrySpendLP({choice.lpCost}) failed — insufficient LP at apply time");
-                        return;
-                    }
+                    GameLog.Error(TAG, $"ApplyTeachChoice: TrySpendLP({choice.statPoints}) failed — insufficient LP at apply time");
+                    return;
                 }
 
                 if (_playerStats == null)
@@ -257,7 +302,21 @@ namespace Game.World
                     _playerStats.UpgradeStat(choice.statToUpgrade, choice.statPoints);
             }
 
-            AdvanceToNode(choice.nextNode);
+            AdvanceToNode(choice.confirmNextNode);
+        }
+
+        private TeachChoiceOption[] FilterLearnedSkillChoices(TeachChoiceOption[] choices)
+        {
+            if (_playerSkills == null || choices.Length == 0) return choices;
+            var result = new System.Collections.Generic.List<TeachChoiceOption>(choices.Length);
+            foreach (var choice in choices)
+            {
+                if (choice == null) continue;
+                if (choice.teachingType == TeachingType.SkillBased && choice.skill != null && _playerSkills.HasSkill(choice.skill.skillId))
+                    continue;
+                result.Add(choice);
+            }
+            return result.Count == choices.Length ? choices : result.ToArray();
         }
 
         public void Close()

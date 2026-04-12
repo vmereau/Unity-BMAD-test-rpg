@@ -174,7 +174,7 @@ PrefabInstance:
     - target: {fileID: 9036542893466918066, guid: 86cc67faf62af5240b806678e97bfb54, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: 4b616caaffde2da4dab9acfcfd7cbce7, type: 2}
+      objectReference: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -204,6 +204,10 @@ PrefabInstance:
       propertyPath: _guid
       value: StartingTown_NPC_Merchant
       objectReference: {fileID: 0}
+    - target: {fileID: 4557390827564258202, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: 254bd4e18e2c81b42968b1f2b236e2ac, type: 2}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6
@@ -385,6 +389,10 @@ PrefabInstance:
       propertyPath: _guid
       value: StartingTown_NPC_Elder
       objectReference: {fileID: 0}
+    - target: {fileID: 4557390827564258202, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: 2c7811c3167bff942a818bd880291da3, type: 2}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -485,7 +493,7 @@ PrefabInstance:
     - target: {fileID: 9036542893466918066, guid: 86cc67faf62af5240b806678e97bfb54, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: df953e1f4ca5a654a8956be5b77e8a4c, type: 2}
+      objectReference: {fileID: 11400000, guid: dec50ed6d58098f419cef4fbcf8f13a7, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -900,6 +908,10 @@ PrefabInstance:
       propertyPath: _guid
       value: StartingTown_NPC_Guard
       objectReference: {fileID: 0}
+    - target: {fileID: 4557390827564258202, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: 7a556034d2fe12d4f8605b7a0b3fd483, type: 2}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6
@@ -1000,7 +1012,7 @@ PrefabInstance:
     - target: {fileID: 9036542893466918066, guid: 86cc67faf62af5240b806678e97bfb54, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: e62adde9871cdec41a71f8261232250d, type: 2}
+      objectReference: {fileID: 11400000, guid: 3e04c31e03f20a649bd89db54a28ecfe, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1030,6 +1042,10 @@ PrefabInstance:
       propertyPath: _guid
       value: StartingTown_NPC_Innkeeper
       objectReference: {fileID: 0}
+    - target: {fileID: 4557390827564258202, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: 7c4ba610850e6514394d03bc9b14ae99, type: 2}
     - target: {fileID: 4836904559853001384, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
       propertyPath: m_LocalPosition.x
       value: -10
@@ -1130,7 +1146,7 @@ PrefabInstance:
     - target: {fileID: 9036542893466918066, guid: 86cc67faf62af5240b806678e97bfb54, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: 263746fc05178ea46afd977f4189fb1a, type: 2}
+      objectReference: {fileID: 11400000, guid: 6e8e8d3bb86019348b558720654f3053, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1305,7 +1321,7 @@ PrefabInstance:
     - target: {fileID: 9036542893466918066, guid: 86cc67faf62af5240b806678e97bfb54, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: 47ad7d90151054d41ad4ad33e2a62609, type: 2}
+      objectReference: {fileID: 11400000, guid: 8b47cea6607305b429403b2882ebc222, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1800,6 +1816,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2153670667871115730, guid: c2fb5bd3088e331408ebf1a8dbed53d7, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: be5d11428997660469b3e1864986ce65, type: 2}
     - target: {fileID: 2297545385651019628, guid: c2fb5bd3088e331408ebf1a8dbed53d7, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Blacksmith
@@ -1954,6 +1974,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7855329121005598778, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
+      propertyPath: _killedFact
+      value: 
+      objectReference: {fileID: 11400000, guid: e08a223c8d0f46f4490ef16f7b4057de, type: 2}
     - target: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
       propertyPath: m_Name
       value: StartingTown_NPC_Villager

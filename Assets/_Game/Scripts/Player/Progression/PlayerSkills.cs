@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Core;
+using Game.Player;
 using UnityEngine;
 
 namespace Game.Progression
@@ -14,6 +15,7 @@ namespace Game.Progression
         private const string TAG = "[Progression]";
 
         [SerializeField] private LearningPointSystem _lpSystem;
+        [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private GameEventSO_String _onSkillLearned;
 
         private readonly HashSet<string> _learnedSkills = new HashSet<string>();
@@ -35,20 +37,45 @@ namespace Game.Progression
         /// <summary>Returns true if the skill with the given id has been learned.</summary>
         public bool HasSkill(string skillId) => _learnedSkills.Contains(skillId);
 
-        /// <summary>
-        /// Attempts to learn a skill by spending LP. Returns true on success.
-        /// </summary>
-        public bool LearnSkill(SkillSO skill)
+        public bool CanLearnSkill(SkillSO skill)
         {
             if (skill == null)
             {
-                GameLog.Error(TAG, "LearnSkill called with null skill");
+                GameLog.Error(TAG, "CanLearnSkill called with null skill");
                 return false;
             }
 
             if (HasSkill(skill.skillId))
             {
                 GameLog.Warn(TAG, $"Skill already learned: {skill.displayName}");
+                return false;
+            }
+
+            // Stat check runs BEFORE LP spend so no LP is lost on a failed stat gate.
+            if (skill.statsRequirements.Count > 0)
+            {
+                if (_playerStats == null)
+                {
+                    GameLog.Warn(TAG, $"PlayerStats not assigned — cannot validate stat requirements for {skill.displayName}");
+                    return false;
+                }
+                if (!_playerStats.ValidateStats(skill.statsRequirements))
+                {
+                    GameLog.Warn(TAG, $"Stat requirements not met for {skill.displayName}");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to learn a skill by spending LP. Returns true on success.
+        /// </summary>
+        public bool LearnSkill(SkillSO skill)
+        {
+            if (!CanLearnSkill(skill))
+            {
                 return false;
             }
 

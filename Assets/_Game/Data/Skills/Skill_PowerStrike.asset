@@ -16,3 +16,8 @@ MonoBehaviour:
   _displayName: Power Strike
   _description: A powerful melee technique. Increases melee damage output by 10.
   _lpCost: 2
+  _statsRequirements:
+  - statType: 0
+    value: 8
+  - statType: 2
+    value: 5

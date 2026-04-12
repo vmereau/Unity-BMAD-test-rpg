@@ -16,18 +16,24 @@ MonoBehaviour:
   nextNode: {fileID: 0}
   choices:
   - text: +1 Strength
-    requiredMemory: {fileID: 0}
-    nextNode: {fileID: 11400000, guid: 39cf917287e497d43b62022063c4ed0d, type: 2}
+    requiredMemory: {fileID: 11400000, guid: 31a2e43bf0b5e3842bd487004b52a4aa, type: 2}
+    nextNode: {fileID: 0}
+    teachingType: 1
     goldCost: 50
-    lpCost: 1
     skill: {fileID: 0}
     statToUpgrade: 0
     statPoints: 1
+    limitStat: 8
+    confirmNextNode: {fileID: 11400000, guid: 39cf917287e497d43b62022063c4ed0d, type: 2}
+    denyNextNode: {fileID: 11400000, guid: 5f9018e3a5fda4c4e818d2bbb0522e4c, type: 2}
   - text: Power Strike
     requiredMemory: {fileID: 0}
-    nextNode: {fileID: 11400000, guid: edda3546339b74e4e9b472583884d966, type: 2}
+    nextNode: {fileID: 0}
+    teachingType: 0
     goldCost: 100
-    lpCost: 1
     skill: {fileID: 11400000, guid: f8133657d31dc3640b9ba49d0cdbb5fb, type: 2}
     statToUpgrade: 0
     statPoints: 1
+    limitStat: 0
+    confirmNextNode: {fileID: 11400000, guid: edda3546339b74e4e9b472583884d966, type: 2}
+    denyNextNode: {fileID: 0}

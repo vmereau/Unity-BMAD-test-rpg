@@ -1,3 +1,4 @@
+using Game.Core;
 using Game.NPC;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace Game.Dialogue
         public NPCMemoryEntrySO requiredMemory;
         [Tooltip("Node to advance to when this choice is selected. Null = close dialogue.")]
         public DialogueNode nextNode;
+        [Tooltip("Fact asset used to track and check played state in WorldStateManager. Null = not tracked.")]
+        public DialogueFact dialogueFact;
     }
 
     [CreateAssetMenu(menuName = "Game/Dialogue/Choice Node", fileName = "Choice_")]

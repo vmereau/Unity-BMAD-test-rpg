@@ -4,6 +4,8 @@ using NUnit.Framework;
 using UnityEngine;
 using Game.Core;
 using Game.NPC;
+using Game.Player;
+using Game.Progression;
 using Game.World;
 
 namespace Tests.EditMode
@@ -61,6 +63,50 @@ namespace Tests.EditMode
             so.invalidationConditions = invalidate;
             _cleanup.Add(so);
             return so;
+        }
+
+        private SkillSO CreateSkillSO(string skillId)
+        {
+            var so = ScriptableObject.CreateInstance<SkillSO>();
+            typeof(SkillSO)
+                .GetField("_skillId", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(so, skillId);
+            _cleanup.Add(so);
+            return so;
+        }
+
+        private PlayerSkills CreatePlayerSkillsWithSkill(string skillId)
+        {
+            var go = new GameObject("PlayerSkills_Test");
+            _cleanup.Add(go);
+            var ps = go.AddComponent<PlayerSkills>();
+            var learnedSkills = (System.Collections.Generic.HashSet<string>)
+                typeof(PlayerSkills)
+                    .GetField("_learnedSkills", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(ps);
+            learnedSkills.Add(skillId);
+            return ps;
+        }
+
+        private PlayerStats CreatePlayerStats(int strength = 0, int dexterity = 0,
+                                              int endurance = 0, int intelligence = 0)
+        {
+            var go = new GameObject("PlayerStats_Test");
+            _cleanup.Add(go);
+            var ps = go.AddComponent<PlayerStats>();
+            var t = typeof(PlayerStats);
+            t.GetField("_baseStrength",     BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ps, strength);
+            t.GetField("_baseDexterity",    BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ps, dexterity);
+            t.GetField("_baseEndurance",    BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ps, endurance);
+            t.GetField("_baseIntelligence", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(ps, intelligence);
+            return ps;
+        }
+
+        private void InjectWsmField(string fieldName, object value)
+        {
+            typeof(WorldStateManager)
+                .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(_wsm, value);
         }
 
         // ── AllTrue ───────────────────────────────────────────────────────────
@@ -154,6 +200,113 @@ namespace Tests.EditMode
 
             // Invalidation supersedes unlock
             Assert.That(memory.IsActive(), Is.False);
+        }
+
+        // ── SkillFact ─────────────────────────────────────────────────────────
+
+        [Test]
+        public void AllTrue_SkillFact_PlayerHasSkill_ReturnsTrue()
+        {
+            var skill = CreateSkillSO("power_strike");
+            var playerSkills = CreatePlayerSkillsWithSkill("power_strike");
+            InjectWsmField("_playerSkills", playerSkills);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<SkillFact>().Init(skill));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.True);
+        }
+
+        [Test]
+        public void AllTrue_SkillFact_PlayerMissingSkill_ReturnsFalse()
+        {
+            var skill = CreateSkillSO("power_strike");
+            var playerSkills = CreatePlayerSkillsWithSkill("other_skill");
+            InjectWsmField("_playerSkills", playerSkills);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<SkillFact>().Init(skill));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.False);
+        }
+
+        [Test]
+        public void AllTrue_SkillFact_PlayerSkillsNotAssigned_ReturnsFalse()
+        {
+            var skill = CreateSkillSO("power_strike");
+            // _playerSkills intentionally not injected
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<SkillFact>().Init(skill));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.False);
+        }
+
+        [Test]
+        public void AnyTrue_SkillFact_PlayerHasSkill_ReturnsTrue()
+        {
+            var skill = CreateSkillSO("power_strike");
+            var playerSkills = CreatePlayerSkillsWithSkill("power_strike");
+            InjectWsmField("_playerSkills", playerSkills);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<SkillFact>().Init(skill));
+            Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[] { fact }), Is.True);
+        }
+
+        // ── StatFact ──────────────────────────────────────────────────────────
+
+        [Test]
+        public void AllTrue_StatFact_AllStatsMet_ReturnsTrue()
+        {
+            var playerStats = CreatePlayerStats(strength: 10, endurance: 6);
+            InjectWsmField("_playerStats", playerStats);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<StatFact>().Init(
+                new StatRequirement { statType = StatType.Strength, value = 8 },
+                new StatRequirement { statType = StatType.Endurance, value = 5 }
+            ));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.True);
+        }
+
+        [Test]
+        public void AllTrue_StatFact_ExactThreshold_ReturnsTrue()
+        {
+            var playerStats = CreatePlayerStats(strength: 8, endurance: 5);
+            InjectWsmField("_playerStats", playerStats);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<StatFact>().Init(
+                new StatRequirement { statType = StatType.Strength, value = 8 },
+                new StatRequirement { statType = StatType.Endurance, value = 5 }
+            ));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.True);
+        }
+
+        [Test]
+        public void AllTrue_StatFact_OneStatFails_ReturnsFalse()
+        {
+            var playerStats = CreatePlayerStats(strength: 10, endurance: 3);
+            InjectWsmField("_playerStats", playerStats);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<StatFact>().Init(
+                new StatRequirement { statType = StatType.Strength, value = 8 },
+                new StatRequirement { statType = StatType.Endurance, value = 5 }
+            ));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.False);
+        }
+
+        [Test]
+        public void AllTrue_StatFact_PlayerStatsNotAssigned_ReturnsFalse()
+        {
+            // _playerStats intentionally not injected
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<StatFact>().Init(
+                new StatRequirement { statType = StatType.Strength, value = 5 }
+            ));
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { fact }), Is.False);
+        }
+
+        [Test]
+        public void AnyTrue_StatFact_AllStatsMet_ReturnsTrue()
+        {
+            var playerStats = CreatePlayerStats(strength: 10);
+            InjectWsmField("_playerStats", playerStats);
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<StatFact>().Init(
+                new StatRequirement { statType = StatType.Strength, value = 8 }
+            ));
+            Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[] { fact }), Is.True);
         }
     }
 }

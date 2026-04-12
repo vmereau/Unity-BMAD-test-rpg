@@ -18,9 +18,16 @@ MonoBehaviour:
   - text: What about a sword ?
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: 744bdd092cd6cea4e80610f4ac7bcabb, type: 2}
+    dialogueFact: {fileID: 0}
   - text: A Hammer ?
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: 666955f8baf80a342ab3c2c6b1b2e976, type: 2}
+    dialogueFact: {fileID: 0}
   - text: A chopping axe you mean ?
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: a1b05a86777bd7e4d994398c2a2eed65, type: 2}
+    dialogueFact: {fileID: 0}
+  - text: What weapon is best for killing frogs ?
+    requiredMemory: {fileID: 11400000, guid: fb6aecfc1770a0f4abed930295f06a29, type: 2}
+    nextNode: {fileID: 11400000, guid: 8c40ab63aa9c45f46bafe75b1fbb41d6, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 3e6a6f77d328ee641a5ad45cee8d75a3, type: 2}

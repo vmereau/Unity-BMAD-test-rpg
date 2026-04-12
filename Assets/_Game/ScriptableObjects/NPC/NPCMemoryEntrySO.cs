@@ -11,8 +11,6 @@ namespace Game.NPC
         [Header("Dialogue")]
         [Tooltip("Start Dialogue lines available while this memory is active. Consumed by DialogueSystem")]
         public StartDialogueNode startdialog;
-        [Tooltip("Choices Dialogue affected while this memory is active. Consumed by DialogueSystem")]
-        public ChoiceDialogueNode[] choicesDialogues;
 
         [Header("Shop")]
         [Range(-1f, 1f)]

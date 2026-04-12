@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Core;
 using Game.Progression;
 using UnityEngine;
@@ -80,7 +81,7 @@ namespace Game.Player
         }
 
         /// <summary>
-        /// Returns the current value of a stat. Used by TrainerNPC for purchase logging.
+        /// Returns the current value of a stat.
         /// </summary>
         public int GetStat(StatType stat)
         {
@@ -93,6 +94,31 @@ namespace Game.Player
                 StatType.Defense   => Defense,
                 _                  => 0
             };
+        }
+
+        /// <summary>
+        /// Returns the current value of a stat ( without bonus modifiers ).
+        /// </summary>
+        public int GetBaseStat(StatType stat)
+        {
+            return stat switch
+            {
+                StatType.Strength  => _baseStrength,
+                StatType.Dexterity => _baseDexterity,
+                StatType.Endurance => _baseEndurance,
+                StatType.Intelligence => _baseIntelligence,
+                StatType.Defense   => Defense,
+                _                  => 0
+            };
+        }
+
+        public bool ValidateStats(IReadOnlyList<StatRequirement> requirements)
+        {
+            foreach (var req in requirements)
+            {
+                if (GetStat(req.statType) < req.value) return false;
+            }
+            return true;
         }
 
         /// <summary>

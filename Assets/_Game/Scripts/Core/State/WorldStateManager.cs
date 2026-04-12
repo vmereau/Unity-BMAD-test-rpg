@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Player;
+using Game.Progression;
 using UnityEngine;
 
 namespace Game.Core
@@ -17,6 +19,8 @@ namespace Game.Core
         public static WorldStateManager Instance { get; private set; }
 
         [SerializeField] private GameEventSO_WorldFact _onWorldFactChanged;
+        [SerializeField] private PlayerSkills _playerSkills;
+        [SerializeField] private PlayerStats _playerStats;
 
         private readonly Dictionary<string, bool> _worldFacts = new Dictionary<string, bool>();
 
@@ -77,6 +81,28 @@ namespace Game.Core
         {
             if (fact == null) { GameLog.Warn(TAG, "IsDialoguePlayed called with null fact"); return false; }
             return GetFact(fact);
+        }
+
+        // ── Player checks ─────────────────────────────────────────────────────
+
+        /// <summary>Returns true if the player has learned the skill referenced by this fact.
+        /// Delegates to PlayerSkills.HasSkill() — WorldStateManager is the intermediary only.</summary>
+        public bool PlayerHasSkill(SkillFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "PlayerHasSkill called with null fact"); return false; }
+            if (_playerSkills == null) { GameLog.Warn(TAG, "PlayerSkills not assigned on WorldStateManager — skill check returns false"); return false; }
+            if (fact.Skill == null) { GameLog.Warn(TAG, "SkillFact.Skill is null — assign a SkillSO in the Inspector"); return false; }
+            return _playerSkills.HasSkill(fact.Skill.skillId);
+        }
+
+        /// <summary>Returns true if the player meets ALL stat thresholds in the fact (>= per requirement).
+        /// Delegates to PlayerStats.GetStat() — WorldStateManager is the intermediary only.</summary>
+        public bool PlayerStatCheck(StatFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "PlayerStatCheck called with null fact"); return false; }
+            if (_playerStats == null) { GameLog.Warn(TAG, "PlayerStats not assigned on WorldStateManager — stat check returns false"); return false; }
+
+            return _playerStats.ValidateStats(fact.Requirements);
         }
 
         // ── Save data (Epic 8) ────────────────────────────────────────────────
