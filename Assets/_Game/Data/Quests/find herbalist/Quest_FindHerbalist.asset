@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_FindHerbalist
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: FindHerbalist
+  title: Find the Herbalist
+  description: The village herbalist Mira has gone missing. Search the forest east
+    of town and bring her back safely.
+  startFact: {fileID: 11400000, guid: 3cae1ad96013b4c4eb5abecb330ab271, type: 2}
+  completedFacts: []
+  failedFacts: []

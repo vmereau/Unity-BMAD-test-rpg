@@ -5,6 +5,7 @@ using Game.Economy;
 using Game.NPC;
 using Game.Player;
 using Game.Progression;
+using Game.Quest;
 using Game.UI;
 using UnityEngine;
 

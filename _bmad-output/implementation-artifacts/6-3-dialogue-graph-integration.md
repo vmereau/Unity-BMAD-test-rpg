@@ -1,6 +1,6 @@
 # Story 6.3: Dialogue Graph Integration
 
-Status: review
+Status: done
 
 ## Story
 

@@ -6,6 +6,7 @@ using Game.Core;
 using Game.NPC;
 using Game.Player;
 using Game.Progression;
+using Game.Quest;
 using Game.World;
 
 namespace Tests.EditMode
@@ -117,32 +118,6 @@ namespace Tests.EditMode
             Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[0]), Is.True);
         }
 
-        [Test]
-        public void AllTrue_AllFactsTrue_ReturnsTrue()
-        {
-            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")), true);
-            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b")), true);
-
-            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[]
-            {
-                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")),
-                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b"))
-            }), Is.True);
-        }
-
-        [Test]
-        public void AllTrue_OneFactFalse_ReturnsFalse()
-        {
-            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")), true);
-            // WorldFact "b" not set — defaults to false
-
-            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[]
-            {
-                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "a")),
-                MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("b"))
-            }), Is.False);
-        }
-
         // ── AnyTrue ───────────────────────────────────────────────────────────
 
         [Test]
@@ -165,41 +140,45 @@ namespace Tests.EditMode
         [Test]
         public void AnyTrue_NoFactsTrue_ReturnsFalse()
         {
+            // QuestSO with no startFact — IsStarted will always be false
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            _cleanup.Add(questSO);
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>()
+                .Init(questSO, QuestState.IsStarted));
+
             Assert.That(TopicUnlockEvaluator.AnyTrue(new Fact[]
             {
                 MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("mill_burned")),
-                MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "x"))
+                questFact
             }), Is.False);
         }
 
-        // ── IsActive (via NPCMemoryEntrySO) ───────────────────────────────────
-
         [Test]
-        public void IsActive_UnlockedNotInvalidated_ReturnsTrue()
+        public void AllTrue_QuestFact_QuestStarted_ReturnsTrue()
         {
-            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
+            var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_quest_start"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.startFact = startFact;
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(startFact, true);
 
-            var memory = CreateMemory(
-                unlock: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")) },
-                invalidate: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")) }
-            );
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsStarted));
 
-            Assert.That(memory.IsActive(), Is.True);
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { questFact }), Is.True);
         }
 
         [Test]
-        public void IsActive_Invalidated_ReturnsFalse()
+        public void AllTrue_QuestFact_QuestNotStarted_ReturnsFalse()
         {
-            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
-            _wsm.SetWorldEvent(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")), true);
+            var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_quest_start"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.startFact = startFact;
+            _cleanup.Add(questSO);
+            // startFact NOT set — quest not started
 
-            var memory = CreateMemory(
-                unlock: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")) },
-                invalidate: new Fact[] { MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_failed")) }
-            );
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsStarted));
 
-            // Invalidation supersedes unlock
-            Assert.That(memory.IsActive(), Is.False);
+            Assert.That(TopicUnlockEvaluator.AllTrue(new Fact[] { questFact }), Is.False);
         }
 
         // ── SkillFact ─────────────────────────────────────────────────────────

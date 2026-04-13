@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Player;
 using Game.Progression;
+using Game.Quest;
 using UnityEngine;
 
 namespace Game.Core
@@ -67,8 +68,6 @@ namespace Game.Core
         }
 
         // ── Typed convenience methods ──────────────────────────────────────────
-
-        public void SetQuestStep(QuestFact fact, bool value) => SetFact(fact, value);
         public void SetWorldEvent(WorldFact fact, bool value) => SetFact(fact, value);
 
         public void SetDialoguePlayed(DialogueFact fact)
@@ -103,6 +102,21 @@ namespace Game.Core
             if (_playerStats == null) { GameLog.Warn(TAG, "PlayerStats not assigned on WorldStateManager — stat check returns false"); return false; }
 
             return _playerStats.ValidateStats(fact.Requirements);
+        }
+
+        /// <summary>Evaluates a QuestFact by delegating to the referenced QuestSO's computed properties.
+        /// QuestFacts are NOT stored in _worldFacts — always evaluate via this method.</summary>
+        public bool IsQuestFactTrue(QuestFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "IsQuestFactTrue called with null fact"); return false; }
+            if (fact.Quest == null) { GameLog.Warn(TAG, "QuestFact.Quest is null — assign a QuestSO in the Inspector"); return false; }
+            return fact.QuestState switch
+            {
+                QuestState.IsStarted   => fact.Quest.IsStarted,
+                QuestState.IsCompleted => fact.Quest.IsCompleted,
+                QuestState.IsFailed    => fact.Quest.IsFailed,
+                _                      => false
+            };
         }
 
         // ── Save data (Epic 8) ────────────────────────────────────────────────

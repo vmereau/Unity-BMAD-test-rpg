@@ -1,6 +1,6 @@
 # Story 6.1: NPC Topic Dialogue
 
-Status: review
+Status: done
 
 ## Story
 

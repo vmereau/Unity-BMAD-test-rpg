@@ -30,6 +30,7 @@ namespace Game.World
                 {
                     SkillFact sf  => wsm.PlayerHasSkill(sf),
                     StatFact  stf => wsm.PlayerStatCheck(stf),
+                    QuestFact qf  => wsm.IsQuestFactTrue(qf),
                     _             => wsm.GetFact(fact)
                 };
                 if (!result) return false;
@@ -57,6 +58,7 @@ namespace Game.World
                 {
                     SkillFact sf  => wsm.PlayerHasSkill(sf),
                     StatFact  stf => wsm.PlayerStatCheck(stf),
+                    QuestFact qf  => wsm.IsQuestFactTrue(qf),
                     _             => wsm.GetFact(fact)
                 };
                 if (result) return true;

@@ -3,6 +3,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using Game.Core;
+using Game.Quest;
 
 namespace Tests.EditMode
 {
@@ -88,16 +89,6 @@ namespace Tests.EditMode
             Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("test"))), Is.False);
         }
 
-        // ── SetQuestStep ──────────────────────────────────────────────────────
-
-        [Test]
-        public void SetQuestStep_FormatsKey()
-        {
-            _wsm.SetQuestStep(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed")), true);
-
-            Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init("Mill", "monster_killed"))), Is.True);
-        }
-
         // ── RegisterKill auto-fact ────────────────────────────────────────────
 
         [Test]
@@ -107,6 +98,87 @@ namespace Tests.EditMode
 
             Assert.That(_wsm.IsKilled(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
             Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
+        }
+
+        // ── IsQuestFactTrue ───────────────────────────────────────────────────
+
+        [Test]
+        public void IsQuestFactTrue_Started_WhenStartFactSet_ReturnsTrue()
+        {
+            var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_start"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.startFact = startFact;
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(startFact, true);
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsStarted));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.True);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_Started_WhenStartFactNotSet_ReturnsFalse()
+        {
+            var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_start"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.startFact = startFact;
+            _cleanup.Add(questSO);
+            // NOT setting startFact
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsStarted));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_Completed_AllFactsTrue_ReturnsTrue()
+        {
+            var f1 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herb_delivered"));
+            var f2 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("elder_thanked"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.completedFacts.Add(f1);
+            questSO.completedFacts.Add(f2);
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(f1, true);
+            _wsm.SetWorldEvent(f2, true);
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsCompleted));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.True);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_Completed_EmptyFacts_ReturnsFalse()
+        {
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            _cleanup.Add(questSO);
+            // completedFacts is empty
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsCompleted));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_Failed_AnyFactTrue_ReturnsTrue()
+        {
+            var failFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_dead"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.failedFacts.Add(failFact);
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(failFact, true);
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsFailed));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.True);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_NullFact_ReturnsFalse()
+        {
+            Assert.That(_wsm.IsQuestFactTrue(null), Is.False);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_NullQuest_ReturnsFalse()
+        {
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(null, QuestState.IsStarted));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
         }
 
         // ── Event broadcast ───────────────────────────────────────────────────

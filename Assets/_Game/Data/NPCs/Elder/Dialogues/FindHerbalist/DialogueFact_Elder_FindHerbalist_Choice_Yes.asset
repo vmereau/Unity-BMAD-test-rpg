@@ -9,10 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
-  m_Name: NPC_Elder
-  m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
-  npcName: Elder
-  dayState: 0
-  nightState: 1
-  walkSpeed: 2
+  m_Script: {fileID: 11500000, guid: 7107517d6789ec54ba4a1ee1be1a1096, type: 3}
+  m_Name: DialogueFact_Elder_FindHerbalist_Choice_Yes
+  m_EditorClassIdentifier: Game::Game.Core.DialogueFact
+  _nodeId: elder_dialogue_find_herbalist_yes
