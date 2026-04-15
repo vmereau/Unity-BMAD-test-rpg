@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d672bb4fef4efb64794cbc1e76d40741, type: 3}
+  m_Name: WorldFact_herbalist_forest_camp_found
+  m_EditorClassIdentifier: Game::Game.Core.WorldFact
+  _eventKey: Find_herbalist_forsest_camp_found

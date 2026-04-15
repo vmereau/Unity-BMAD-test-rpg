@@ -15,6 +15,20 @@ namespace Game.Quest
         public string entry;
     }
 
+    [System.Serializable]
+    public struct QuestStep
+    {
+        [Tooltip("Short name shown in inspector dropdown and quest log.")]
+        public string title;
+
+        [Tooltip("Longer description of this step's objective.")]
+        [TextArea(1, 3)]
+        public string description;
+
+        [Tooltip("All parts must be true for this step to be considered completed.")]
+        public List<QuestPart> parts;
+    }
+
     [CreateAssetMenu(menuName = "Game/Quest/Quest", fileName = "Quest_")]
     public class QuestSO : ScriptableObject
     {
@@ -37,6 +51,10 @@ namespace Game.Quest
 
         [Tooltip("When ANY part's fact is true, the quest is considered failed. Empty = never failed.")]
         public List<QuestPart> failedParts = new List<QuestPart>();
+
+        [Header("Quest Steps")]
+        [Tooltip("Optional sub-goals. Each step is completed when all its parts' facts are true.")]
+        public List<QuestStep> steps = new List<QuestStep>();
 
         /// <summary>True if startPart.fact is set to true in WorldStateManager.</summary>
         public bool IsStarted
@@ -71,6 +89,18 @@ namespace Game.Quest
                     if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) return true;
                 return false;
             }
+        }
+
+        /// <summary>True if all parts in the step at <paramref name="stepIndex"/> are true. Returns false if index is out of range, parts list is empty, or WSM is unavailable.</summary>
+        public bool IsStepCompleted(int stepIndex)
+        {
+            if (stepIndex < 0 || steps == null || stepIndex >= steps.Count) return false;
+            if (WorldStateManager.Instance == null) return false;
+            var step = steps[stepIndex];
+            if (step.parts == null || step.parts.Count == 0) return false;
+            foreach (var p in step.parts)
+                if (p.fact == null || !WorldStateManager.Instance.GetFact(p.fact)) return false;
+            return true;
         }
     }
 }

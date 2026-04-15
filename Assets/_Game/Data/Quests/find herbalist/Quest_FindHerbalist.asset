@@ -18,6 +18,12 @@ MonoBehaviour:
     of town and bring her back safely.
   startPart:
     fact: {fileID: 11400000, guid: 3cae1ad96013b4c4eb5abecb330ab271, type: 2}
-    entry: 
+    entry: I accepted to look for the village's herbalist
   completedParts: []
   failedParts: []
+  steps:
+  - title: Forest camp
+    description: There is a strange camp in the woods.
+    parts:
+    - fact: {fileID: 11400000, guid: c621b43721fa8e14f9db36111ac07cb8, type: 2}
+      entry: I have found the herbalist's forest camp

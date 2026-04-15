@@ -20,6 +20,7 @@ namespace Game.Quest
         [SerializeField] private GameEventSO_Quest _onQuestStarted;
         [SerializeField] private GameEventSO_Quest _onQuestCompleted;
         [SerializeField] private GameEventSO_Quest _onQuestFailed;
+        [SerializeField] private GameEventSO_QuestStep _onQuestStepCompleted;
 
         private readonly Dictionary<QuestSO, QuestStateSnapshot> _lastState
             = new Dictionary<QuestSO, QuestStateSnapshot>();
@@ -29,6 +30,7 @@ namespace Game.Quest
             public bool started;
             public bool completed;
             public bool failed;
+            public bool[] stepCompleted; // indexed by quest.steps index
         }
 
         private void Start()
@@ -39,11 +41,22 @@ namespace Game.Quest
                 if (quest == null) continue;
                 _lastState[quest] = new QuestStateSnapshot
                 {
-                    started   = quest.IsStarted,
-                    completed = quest.IsCompleted,
-                    failed    = quest.IsFailed
+                    started       = quest.IsStarted,
+                    completed     = quest.IsCompleted,
+                    failed        = quest.IsFailed,
+                    stepCompleted = BuildStepSnapshot(quest, null)
                 };
             }
+        }
+
+        private static bool[] BuildStepSnapshot(QuestSO quest, bool[] existing = null)
+        {
+            int count = quest.steps?.Count ?? 0;
+            if (count == 0) return System.Array.Empty<bool>();
+            var arr = (existing != null && existing.Length == count) ? existing : new bool[count];
+            for (int i = 0; i < arr.Length; i++)
+                arr[i] = quest.IsStepCompleted(i);
+            return arr;
         }
 
         private void OnEnable()
@@ -78,7 +91,17 @@ namespace Game.Quest
             bool isFailed    = quest.IsFailed;
 
             if (!_lastState.TryGetValue(quest, out var prev))
-                prev = default;
+            {
+                // Quest not yet tracked — seed snapshot without firing events.
+                _lastState[quest] = new QuestStateSnapshot
+                {
+                    started       = isStarted,
+                    completed     = isCompleted,
+                    failed        = isFailed,
+                    stepCompleted = BuildStepSnapshot(quest)
+                };
+                return;
+            }
 
             if (!prev.started && isStarted)
             {
@@ -96,11 +119,25 @@ namespace Game.Quest
                 _onQuestFailed?.Raise(quest);
             }
 
+            // Step completion — fires after base-state events in this call
+            var prevSteps = prev.stepCompleted ?? System.Array.Empty<bool>();
+            for (int i = 0; i < quest.steps.Count; i++)
+            {
+                bool nowDone = quest.IsStepCompleted(i);
+                bool wasDone = i < prevSteps.Length && prevSteps[i];
+                if (!wasDone && nowDone)
+                {
+                    GameLog.Info(TAG, $"Quest step completed: '{quest.title}' step [{i}] '{quest.steps[i].title}'");
+                    _onQuestStepCompleted?.Raise(new QuestStepData { quest = quest, stepIndex = i });
+                }
+            }
+
             _lastState[quest] = new QuestStateSnapshot
             {
-                started   = isStarted,
-                completed = isCompleted,
-                failed    = isFailed
+                started       = isStarted,
+                completed     = isCompleted,
+                failed        = isFailed,
+                stepCompleted = BuildStepSnapshot(quest, prev.stepCompleted)
             };
         }
     }

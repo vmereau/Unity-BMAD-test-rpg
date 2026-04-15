@@ -181,6 +181,64 @@ namespace Tests.EditMode
             Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
         }
 
+        // ── IsQuestFactTrue — Step states ───────────────────────────────────────
+
+        [Test]
+        public void IsQuestFactTrue_StepState_AllPartsFulfilled_ReturnsTrue()
+        {
+            var f1 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("step0_done"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.steps.Add(new QuestStep
+            {
+                title = "Step A",
+                parts = new List<QuestPart> { new QuestPart { fact = f1 } }
+            });
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(f1, true);
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().InitStep(questSO, 0));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.True);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_StepState_PartNotFulfilled_ReturnsFalse()
+        {
+            var f1 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("step0_done"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.steps.Add(new QuestStep
+            {
+                title = "Step A",
+                parts = new List<QuestPart> { new QuestPart { fact = f1 } }
+            });
+            _cleanup.Add(questSO);
+            // f1 NOT set
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().InitStep(questSO, 0));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_StepState_EmptyParts_ReturnsFalse()
+        {
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.steps.Add(new QuestStep { title = "Empty Step", parts = new List<QuestPart>() });
+            _cleanup.Add(questSO);
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().InitStep(questSO, 0));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
+        }
+
+        [Test]
+        public void IsQuestFactTrue_StepState_OutOfRangeIndex_ReturnsFalse()
+        {
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            _cleanup.Add(questSO);
+            // steps list is empty
+
+            var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().InitStep(questSO, 99));
+            Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
+        }
+
         // ── Event broadcast ───────────────────────────────────────────────────
 
         [Test]

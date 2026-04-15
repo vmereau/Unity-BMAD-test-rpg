@@ -2,8 +2,8 @@
 title: 'Quest Step System'
 slug: 'quest-step-system'
 created: '2026-04-15'
-status: 'in-progress'
-stepsCompleted: [1, 2, 3]
+status: 'completed'
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7]
 tech_stack: ['C#', 'Unity 6', 'ScriptableObjects', 'UnityEditor']
 files_to_modify:
   - Assets/_Game/ScriptableObjects/Quest/QuestSO.cs
@@ -194,6 +194,23 @@ File: `Assets/_Game/ScriptableObjects/Facts/QuestFact.cs`
    }
    ```
 
+6. Add `OnValidate()` to clamp stale `_questState` when steps are removed from the referenced quest (**F5/F13 fix**):
+   ```csharp
+   #if UNITY_EDITOR
+   private void OnValidate()
+   {
+       if (_quest == null || _quest.steps == null) return;
+       int maxIndex = 2 + _quest.steps.Count; // 2 = IsFailed (highest base-state index)
+       if (_questState > maxIndex)
+       {
+           Debug.LogWarning($"[QuestFact] '{name}': _questState {_questState} out of range for assigned quest — clamped to 0 (IsStarted)");
+           _questState = 0;
+       }
+   }
+   #endif
+   ```
+   This fires automatically in the editor whenever `QuestFact` or its referenced `QuestSO` is modified, preventing silent stale indices.
+
 ---
 
 **Task 3 — Create `GameEventSO_QuestStep.cs`**
@@ -295,8 +312,9 @@ File: `Assets/_Game/Scripts/Quest/QuestEventsManager.cs`
    ```
 
 5. Update `EvaluateQuest` to check steps after the existing started/completed/failed checks:
+   > **Event ordering (F3):** Step events fire *after* started/completed/failed events within the same `EvaluateQuest` call. Listeners to `_onQuestCompleted` should not suppress or depend on step events in the same frame.
    ```csharp
-   // Step completion
+   // Step completion — fires after base-state events in this call
    var prevSteps = prev.stepCompleted ?? System.Array.Empty<bool>();
    for (int i = 0; i < quest.steps.Count; i++)
    {
@@ -358,9 +376,14 @@ namespace Game.Editor
 
             string[] labels = BuildLabels(questSO);
             int current = _questStateProp.intValue;
-            // Clamp to valid range in case steps were removed
+            // Clamp to valid range and persist if steps were removed from the quest (**F5/F13 fix**)
             int max = labels.Length - 1;
-            if (current > max) current = 0;
+            if (current > max)
+            {
+                Debug.LogWarning($"[QuestFactEditor] '{target.name}': state index {current} is out of range — clamped to 0 (IsStarted)");
+                current = 0;
+                _questStateProp.intValue = 0; // persist immediately so the asset is not left in an invalid state
+            }
 
             using (new EditorGUI.DisabledScope(!hasQuest))
             {

@@ -110,6 +110,10 @@ namespace Game.Core
         {
             if (fact == null) { GameLog.Warn(TAG, "IsQuestFactTrue called with null fact"); return false; }
             if (fact.Quest == null) { GameLog.Warn(TAG, "QuestFact.Quest is null — assign a QuestSO in the Inspector"); return false; }
+
+            if (fact.IsStepState)
+                return fact.Quest.IsStepCompleted(fact.QuestStepIndex);
+
             return fact.QuestState switch
             {
                 QuestState.IsStarted   => fact.Quest.IsStarted,
