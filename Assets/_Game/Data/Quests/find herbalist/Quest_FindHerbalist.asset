@@ -16,6 +16,8 @@ MonoBehaviour:
   title: Find the Herbalist
   description: The village herbalist Mira has gone missing. Search the forest east
     of town and bring her back safely.
-  startFact: {fileID: 11400000, guid: 3cae1ad96013b4c4eb5abecb330ab271, type: 2}
-  completedFacts: []
-  failedFacts: []
+  startPart:
+    fact: {fileID: 11400000, guid: 3cae1ad96013b4c4eb5abecb330ab271, type: 2}
+    entry: 
+  completedParts: []
+  failedParts: []

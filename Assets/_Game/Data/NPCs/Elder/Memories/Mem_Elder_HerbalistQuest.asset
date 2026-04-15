@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Mem_Elder_HerbalistQuest
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions: []
-  invalidationConditions: []
+  invalidationConditions:
+  - {fileID: 11400000, guid: 3cae1ad96013b4c4eb5abecb330ab271, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: 74d2347f87e80584e83e028eb9eef8b7, type: 2}
     shopPriceModifier: 0

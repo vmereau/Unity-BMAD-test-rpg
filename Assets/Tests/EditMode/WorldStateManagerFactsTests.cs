@@ -107,7 +107,7 @@ namespace Tests.EditMode
         {
             var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_start"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.startFact = startFact;
+            questSO.startPart = new QuestPart { fact = startFact };
             _cleanup.Add(questSO);
             _wsm.SetWorldEvent(startFact, true);
 
@@ -120,9 +120,9 @@ namespace Tests.EditMode
         {
             var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_start"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.startFact = startFact;
+            questSO.startPart = new QuestPart { fact = startFact };
             _cleanup.Add(questSO);
-            // NOT setting startFact
+            // NOT setting startPart in WSM
 
             var questFact = MakeFact(() => ScriptableObject.CreateInstance<QuestFact>().Init(questSO, QuestState.IsStarted));
             Assert.That(_wsm.IsQuestFactTrue(questFact), Is.False);
@@ -134,8 +134,8 @@ namespace Tests.EditMode
             var f1 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herb_delivered"));
             var f2 = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("elder_thanked"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.completedFacts.Add(f1);
-            questSO.completedFacts.Add(f2);
+            questSO.completedParts.Add(new QuestPart { fact = f1 });
+            questSO.completedParts.Add(new QuestPart { fact = f2 });
             _cleanup.Add(questSO);
             _wsm.SetWorldEvent(f1, true);
             _wsm.SetWorldEvent(f2, true);
@@ -160,7 +160,7 @@ namespace Tests.EditMode
         {
             var failFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_dead"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.failedFacts.Add(failFact);
+            questSO.failedParts.Add(new QuestPart { fact = failFact });
             _cleanup.Add(questSO);
             _wsm.SetWorldEvent(failFact, true);
 

@@ -158,7 +158,7 @@ namespace Tests.EditMode
         {
             var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_quest_start"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.startFact = startFact;
+            questSO.startPart = new QuestPart { fact = startFact };
             _cleanup.Add(questSO);
             _wsm.SetWorldEvent(startFact, true);
 
@@ -172,7 +172,7 @@ namespace Tests.EditMode
         {
             var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("herbalist_quest_start"));
             var questSO = ScriptableObject.CreateInstance<QuestSO>();
-            questSO.startFact = startFact;
+            questSO.startPart = new QuestPart { fact = startFact };
             _cleanup.Add(questSO);
             // startFact NOT set — quest not started
 
