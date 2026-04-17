@@ -87,6 +87,7 @@ Triggers to watch for:
 
 - **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` + `refresh_unity(mode="force")`.
 - **`manage_gameobject(create)` ignores `component_properties` for Canvas `renderMode`** — Canvas always defaults to `renderMode = 2` (World Space). After creating a Canvas GO, always follow up with `manage_components set_property renderMode 0` to set Screen Space Overlay.
+- **`refresh_unity(mode="force")` after direct YAML edits destroys the edits** — Unity reimports from cached in-memory state, discarding disk changes. After YAML-editing a `.prefab` file directly, always use `refresh_unity(mode="if_dirty")`. Never use `force` after a raw YAML edit.
 - Animation and scene-specific MCP quirks → `Assets/_Game/Art/Characters/Player/Animations/CLAUDE.md` and `Assets/_Game/Scenes/CLAUDE.md`.
 
 ### Animator, Camera & Player Script Rules

@@ -27,6 +27,16 @@ namespace Game.Quest
 
         [Tooltip("All parts must be true for this step to be considered completed.")]
         public List<QuestPart> parts;
+
+        /// <summary>True if at least one part's fact is set to true in WorldStateManager. Used to show this step in the quest log UI.</summary>
+        public bool IsActive()
+        {
+            if (parts == null || parts.Count == 0) return false;
+            if (WorldStateManager.Instance == null) return false;
+            foreach (var p in parts)
+                if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) return true;
+            return false;
+        }
     }
 
     [CreateAssetMenu(menuName = "Game/Quest/Quest", fileName = "Quest_")]
@@ -46,7 +56,7 @@ namespace Game.Quest
         [Tooltip("When this part's fact is true, the quest is considered started.")]
         public QuestPart startPart;
 
-        [Tooltip("When ALL parts' facts are true, the quest is considered completed. Empty = never completed.")]
+        [Tooltip("When ANY parts' facts are true, the quest is considered completed. Empty = never completed.")]
         public List<QuestPart> completedParts = new List<QuestPart>();
 
         [Tooltip("When ANY part's fact is true, the quest is considered failed. Empty = never failed.")]
@@ -66,7 +76,7 @@ namespace Game.Quest
             }
         }
 
-        /// <summary>True if all completedParts' facts are true. Returns false if list is empty.</summary>
+        /// <summary>True if any completedParts' fact is true in WorldStateManager. Returns false if list is empty.</summary>
         public bool IsCompleted
         {
             get
@@ -74,8 +84,8 @@ namespace Game.Quest
                 if (completedParts == null || completedParts.Count == 0) return false;
                 if (WorldStateManager.Instance == null) return false;
                 foreach (var p in completedParts)
-                    if (p.fact == null || !WorldStateManager.Instance.GetFact(p.fact)) return false;
-                return true;
+                    if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) return true;
+                return false;
             }
         }
 
@@ -89,6 +99,21 @@ namespace Game.Quest
                     if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) return true;
                 return false;
             }
+        }
+
+        /// <summary>Returns parts from <paramref name="partsList"/> whose fact is true in WorldStateManager. Returns an empty list if WSM is unavailable.</summary>
+        public static List<QuestPart> GetActiveParts(List<QuestPart> partsList)
+        {
+            var result = new List<QuestPart>();
+            if (partsList == null) return result;
+            if (WorldStateManager.Instance == null)
+            {
+                Debug.LogWarning("[QuestSO] GetActiveParts: WorldStateManager.Instance is null — returning empty list.");
+                return result;
+            }
+            foreach (var p in partsList)
+                if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) result.Add(p);
+            return result;
         }
 
         /// <summary>True if all parts in the step at <paramref name="stepIndex"/> are true. Returns false if index is out of range, parts list is empty, or WSM is unavailable.</summary>

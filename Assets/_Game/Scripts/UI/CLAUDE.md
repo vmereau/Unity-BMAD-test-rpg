@@ -1,6 +1,19 @@
 # CLAUDE.md — Assets/_Game/Scripts/UI
 
-> Loaded when Claude accesses files in this folder. Covers Unity UI patterns, best practices, and pitfalls for this project.
+> Loaded when Claude accesses files in this folder. Covers shared Unity UI patterns for this project.
+> Sub-folder CLAUDE.md files cover each UI subsystem in detail.
+
+---
+
+## Sub-folder Index
+
+| Folder | What's inside |
+|--------|--------------|
+| `HUD/` | In-game overlay: health bar, stamina bar, action bar |
+| `Inventory/` | Inventory grid, item slots, item detail panel, equipment panel |
+| `Quest/` | Quest log screen, quest list, quest info panel, tab enum |
+| `Dialogue/` | NPC dialogue panel, topic/choice display, keyboard shortcuts |
+| `Screens/` | Screen manager, `IScreenPanel` contract, character stats, options |
 
 ---
 
@@ -19,7 +32,7 @@
 
 - **NEVER** call `Cursor.lockState`, `Cursor.visible`, or `CursorLockMode` directly in UI scripts.
 - Always use `CursorManager.Lock()` / `CursorManager.Unlock()` / `CursorManager.IsLocked`.
-- Pattern: panel `Open()` → `CursorManager.Unlock()`, panel `Close()` → `CursorManager.Lock()`.
+- Pattern: panel `OnScreenOpen()` → `CursorManager.Unlock()`, `OnScreenClose()` → `CursorManager.Lock()`.
 
 ---
 
@@ -76,7 +89,7 @@ private void OnDisable()
 
 ## Event System Integration
 
-- UI panels reacting to game state (health bar, quest tracker) must subscribe to `GameEventSO<T>` channels in `OnEnable`/`OnDisable` — never poll state in `Update`.
+- UI panels reacting to game state must subscribe to `GameEventSO<T>` channels in `OnEnable`/`OnDisable` — never poll state in `Update`.
 - Never subscribe in `Start` — use `OnEnable` so no events are missed on first activation.
 
 ---
