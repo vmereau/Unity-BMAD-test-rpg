@@ -31,6 +31,7 @@ namespace Game.UI
             _input.UI.Enable();
             _input.Player.InventoryToggle.performed += HandleInventoryToggle;
             _input.Player.CharacterStatsToggle.performed += HandleCharacterStatsToggle;
+            _input.Player.QuestLogToggle.performed += HandleQuestLogToggle;
             _input.UI.Cancel.performed += HandleCancel;
             WireTabButtons();
         }
@@ -40,6 +41,7 @@ namespace Game.UI
             if (_input == null) return;
             _input.Player.InventoryToggle.performed -= HandleInventoryToggle;
             _input.Player.CharacterStatsToggle.performed -= HandleCharacterStatsToggle;
+            _input.Player.QuestLogToggle.performed -= HandleQuestLogToggle;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.Player.Disable();
             _input.UI.Disable();
@@ -145,6 +147,14 @@ namespace Game.UI
                 CloseAll();
             else
                 OpenTab(ScreenTab.CharacterStats);
+        }
+
+        private void HandleQuestLogToggle(InputAction.CallbackContext ctx)
+        {
+            if (_activeTab == ScreenTab.QuestLog)
+                CloseAll();
+            else
+                OpenTab(ScreenTab.QuestLog);
         }
 
         private void HandleCancel(InputAction.CallbackContext ctx)

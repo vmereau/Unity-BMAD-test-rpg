@@ -280,6 +280,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""QuestLogToggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""ql01ql01-ql01-ql01-ql01-ql01ql01ql01"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -775,6 +784,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""CharacterStatsToggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ql02ql02-ql02-ql02-ql02-ql02ql02ql02"",
+                    ""path"": ""<Keyboard>/j"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""QuestLogToggle"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1583,6 +1603,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_ActionBar6 = m_Player.FindAction("ActionBar6", throwIfNotFound: true);
         m_Player_DrawWeapon = m_Player.FindAction("DrawWeapon", throwIfNotFound: true);
         m_Player_CharacterStatsToggle = m_Player.FindAction("CharacterStatsToggle", throwIfNotFound: true);
+        m_Player_QuestLogToggle = m_Player.FindAction("QuestLogToggle", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1707,6 +1728,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ActionBar6;
     private readonly InputAction m_Player_DrawWeapon;
     private readonly InputAction m_Player_CharacterStatsToggle;
+    private readonly InputAction m_Player_QuestLogToggle;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1778,6 +1800,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @DrawWeapon => m_Wrapper.m_Player_DrawWeapon;
         /// <summary>Provides access to the underlying input action "Player/CharacterStatsToggle".</summary>
         public InputAction @CharacterStatsToggle => m_Wrapper.m_Player_CharacterStatsToggle;
+        /// <summary>Provides access to the underlying input action "Player/QuestLogToggle".</summary>
+        public InputAction @QuestLogToggle => m_Wrapper.m_Player_QuestLogToggle;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
