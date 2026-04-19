@@ -1,3 +1,4 @@
+using Game.AI;
 using UnityEngine;
 
 namespace Game.Core
@@ -11,14 +12,17 @@ namespace Game.Core
     public class KilledFact : Fact
     {
         [SerializeField] private string _guid;
+        [SerializeField] private EnemyTypeSO _enemyType;
 
-        /// <summary>The entity's unique identifier — broadcast via GameEventSO_String on death.</summary>
+        /// <summary>The entity's unique identifier.</summary>
         public string EntityGuid => _guid;
+        public EnemyTypeSO EnemyType => _enemyType;
 
-        public KilledFact Init(string guid)
+        public KilledFact Init(string guid, EnemyTypeSO enemyType = null)
         {
             Prefix = WorldFactPrefix.Killed;
             _guid = guid;
+            _enemyType = enemyType;
             return this;
         }
 

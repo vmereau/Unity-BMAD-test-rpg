@@ -9,10 +9,6 @@ namespace Game.Progression
     [CreateAssetMenu(menuName = "Config/Progression", fileName = "ProgressionConfig")]
     public class ProgressionConfigSO : ScriptableObject
     {
-        [Header("XP — Story 3.1")]
-        [Tooltip("Flat XP awarded per enemy kill.")]
-        public int xpPerKill = 50;
-
         [Header("Level Thresholds — Story 3.2")]
         [Tooltip("XP required to reach level index+1. Level 1=100, Level 2=250, etc.")]
         public int[] xpPerLevel = { 100, 250, 500, 900, 1400 };

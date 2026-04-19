@@ -69,9 +69,11 @@ namespace Game.AI
             {
                 GameLog.Error(TAG, "EnemyHealth not found on same GameObject — EnemyBrain disabled");
                 enabled = false;
-                return;
             }
+        }
 
+        private void Start()
+        {
             var playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj == null)
             {
@@ -87,10 +89,7 @@ namespace Game.AI
                 if (_playerHealth == null)
                     GameLog.Warn(TAG, "PlayerHealth not found on Player — enemy attacks will deal no damage");
             }
-        }
-
-        private void Start()
-        {
+            
             if (_waypoints == null || _waypoints.Length == 0)
             {
                 GameLog.Info(TAG, $"{gameObject.name}: No waypoints assigned — entering Idle wander");

@@ -38,6 +38,9 @@ namespace Game.AI
         [SerializeField, FormerlySerializedAs("attackRange")]    private float _attackRange    = 1.8f;
         [SerializeField, FormerlySerializedAs("attackCooldown")] private float _attackCooldown = 2f;
 
+        [Header("Rewards")]
+        [SerializeField] private int _xpOnKill = 25;
+
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
 
@@ -54,5 +57,6 @@ namespace Game.AI
         public float AttackRange              => _attackRange;
         public float AttackCooldown           => _attackCooldown;
         public AnimatorOverrideController AnimatorOverride => _animatorOverride;
+        public int XpOnKill => _xpOnKill;
     }
 }

@@ -29,15 +29,18 @@ namespace Game.Inventory
             {
                 GameLog.Error(TAG, "_item not assigned — ItemPickup disabled");
                 enabled = false;
-                return;
             }
+        }
 
-            _inventory = FindFirstObjectByType<InventorySystem>();
+        private void Start()
+        {
+            if (!enabled) return;
+
+            _inventory = FindFirstObjectByType<InventorySystem>(FindObjectsInactive.Include);
             if (_inventory == null)
             {
                 GameLog.Error(TAG, "InventorySystem not found in scene — ItemPickup disabled");
                 enabled = false;
-                return;
             }
         }
 

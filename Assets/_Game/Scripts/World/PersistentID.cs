@@ -1,3 +1,4 @@
+using Game.AI;
 using Game.Core;
 using UnityEngine;
 
@@ -17,7 +18,9 @@ namespace Game.World
         private const string TAG = "[WorldState]";
 
         [SerializeField] private KilledFact _killedFact;
-        [SerializeField] private GameEventSO_String _onEntityKilled;
+        [SerializeField] private GameEventSO_KilledFact _onEntityKilled;
+        
+        [SerializeField] private EnemyTypeSO _enemyType;
 
         private void Awake()
         {
@@ -26,6 +29,11 @@ namespace Game.World
                 GameLog.Error(TAG, $"PersistentID on {gameObject.name} has no KilledFact assigned — entity will not be tracked");
                 return;
             }
+        }
+
+		private void Start()
+        {
+            if (!enabled) return;
 
             if (WorldStateManager.Instance == null)
             {
@@ -43,10 +51,16 @@ namespace Game.World
         /// </summary>
         public void RegisterDeath()
         {
+            if (_killedFact == null)
+            {
+                GameLog.Error(TAG, $"RegisterDeath called on {gameObject.name} but KilledFact is not assigned — kill ignored");
+                return;
+            }
+
             WorldStateManager.Instance?.RegisterKill(_killedFact);
 
             if (_onEntityKilled != null)
-                _onEntityKilled.Raise(_killedFact.EntityGuid);
+                _onEntityKilled.Raise(_killedFact);
             else
                 GameLog.Warn(TAG, $"OnEntityKilled event not assigned on {gameObject.name} — kill not broadcast");
         }

@@ -81,7 +81,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.PersistentID
   _guid: f0a7f62282e7402baf2cd9ed09fa8d80
-  _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
+  _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
 --- !u!54 &1648881494291638466
 Rigidbody:
   m_ObjectHideFlags: 0

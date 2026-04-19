@@ -3,7 +3,7 @@ using NUnit.Framework;
 /// <summary>
 /// Edit Mode tests for XP system logic.
 /// Pure formula simulation — no MonoBehaviour lifecycle, no scene required.
-/// Story 3.1: Initial implementation.
+/// GiveExperience(amount) routes per-enemy XP from PlayerRewards.
 /// </summary>
 public class XPSystemTests
 {
@@ -43,9 +43,25 @@ public class XPSystemTests
     }
 
     [Test]
-    public void DifferentConfig_AwardsCorrectXP()
+    public void DifferentAmount_AwardsCorrectXP()
     {
         int result = CalculateXPForKills(1, 100);
         Assert.That(result, Is.EqualTo(100));
+    }
+
+    [Test]
+    public void ZeroXpOnKill_DoesNotAccumulateXP()
+    {
+        int result = CalculateXPForKills(1, 0);
+        Assert.That(result, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void PerEnemyXP_AccumulatesCorrectly()
+    {
+        int totalXP = 0;
+        totalXP = AccumulateXP(totalXP, CalculateXPForKills(2, 30));
+        totalXP = AccumulateXP(totalXP, CalculateXPForKills(1, 50));
+        Assert.That(totalXP, Is.EqualTo(110));
     }
 }

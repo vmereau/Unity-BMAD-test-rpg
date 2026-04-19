@@ -171,7 +171,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.PersistentID
   _killedFact: {fileID: 0}
-  _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
+  _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
+  _enemyType: {fileID: 11400000, guid: f47f16e6b33c080469ebb3f208a94337, type: 2}
 --- !u!1001 &4745162870038186111
 PrefabInstance:
   m_ObjectHideFlags: 0

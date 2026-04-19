@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.PersistentID
   _guid: 
-  _onEntityKilled: {fileID: 11400000, guid: bab37ffd8a77dcc4a862284a65cbc74d, type: 2}
+  _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
 --- !u!136 &3612394756925281811
 CapsuleCollider:
   m_ObjectHideFlags: 0
