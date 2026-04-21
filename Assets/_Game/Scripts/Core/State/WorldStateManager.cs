@@ -21,7 +21,8 @@ namespace Game.Core
 
         [SerializeField] private GameEventSO_Fact _onFactChanged;
         [SerializeField] private GameEventSO_KilledFact _onEntityKilled;
-        
+        [SerializeField] private GameEventSO_DialogueFact _onDialoguePlayed;
+
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private PlayerStats _playerStats;
 
@@ -81,10 +82,12 @@ namespace Game.Core
                 case KilledFact killedFact:
                     _onEntityKilled?.Raise(killedFact);
                     break;
-                default:
-                    _onFactChanged?.Raise(new FactData(fact.ToString(), value));
+                case DialogueFact dialogueFact:
+                    _onDialoguePlayed?.Raise(dialogueFact);
                     break;
             }
+
+            _onFactChanged?.Raise(new FactData(fact.ToString(), value));
         }
 
         // ── Typed convenience methods ──────────────────────────────────────────

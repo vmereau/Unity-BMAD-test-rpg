@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e70c863737e0b043bf6b1cb755d0d10, type: 3}
+  m_Name: PlayerReward_blacksmith_frog_insisted
+  m_EditorClassIdentifier: Game::Game.Progression.PlayerRewardSO
+  _factType: 2
+  _killedFact: {fileID: 0}
+  _questFact: {fileID: 0}
+  _dialogueFact: {fileID: 11400000, guid: cf9c4565dd2c48da94bd3b0fd1b8f583, type: 2}
+  _xpReward: 50
+  _lpReward: 2
+  _goldReward: 200
+  _statRewards:
+  - statType: 0
+    points: 1

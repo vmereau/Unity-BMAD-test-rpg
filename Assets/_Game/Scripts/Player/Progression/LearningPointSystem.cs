@@ -61,8 +61,13 @@ namespace Game.Progression
 
         private void HandleLevelUp(int newLevel)
         {
-            CurrentLP += _config.learningPointsPerLevel;
+            GiveLp(_config.learningPointsPerLevel);
             GameLog.Info(TAG, $"Level {newLevel} reached — awarded {_config.learningPointsPerLevel} LP. Total: {CurrentLP}");
+        }
+
+        public void GiveLp(int amount)
+        {
+            CurrentLP += amount;
             _onLPChanged?.Raise(CurrentLP);
         }
 

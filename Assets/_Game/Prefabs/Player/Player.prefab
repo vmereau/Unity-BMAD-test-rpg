@@ -414,10 +414,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5add65b86d3274b4f848a0113a644acb, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::Game.Progression.PlayerRewards
   _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
   _xpSystem: {fileID: 867121166079641131}
+  _onDialoguePlayed: {fileID: 11400000, guid: a7162e7af5d3c39498dbe23bb751bfb2, type: 2}
+  _onQuestStarted: {fileID: 11400000, guid: 67aad4bc5c2e30b4aaed68fd09a6b30e, type: 2}
+  _onQuestCompleted: {fileID: 11400000, guid: daa28683af9d08841ace38e079c87b14, type: 2}
+  _onQuestFailed: {fileID: 11400000, guid: 156b32b9f2ddd4d42b33411f9ed4532e, type: 2}
+  _onQuestStepCompleted: {fileID: 11400000, guid: ffed572c57b0ed049b91197fb8e921bf, type: 2}
+  _lpSystem: {fileID: 7805096736339071647}
+  _playerStats: {fileID: 5748466653404673820}
+  _goldSystem: {fileID: 8568453877098799715}
+  _rewards:
+  - {fileID: 11400000, guid: b4d5d64640d9ae9478d3f8f92fdfdbf3, type: 2}
+  - {fileID: 11400000, guid: d3160e4e25d4d6d4eba7b6c84b81ec03, type: 2}
 --- !u!114 &1472871286454628577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -712,7 +723,7 @@ Transform:
   m_GameObject: {fileID: 5511403479750423775}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.1, z: -2}
+  m_LocalPosition: {x: 1328.8208, y: 2.09995, z: -69.21803}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -229,7 +229,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49b05f2b7f92e4a4db9c8797ce5ae52e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Core.WorldStateManager
-  _onWorldFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}
+  _onFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}
+  _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
+  _onDialoguePlayed: {fileID: 11400000, guid: a7162e7af5d3c39498dbe23bb751bfb2, type: 2}
   _playerSkills: {fileID: 1467251765}
   _playerStats: {fileID: 1467251766}
 --- !u!114 &114000016
@@ -625,15 +627,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2557779901242308317, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1328.8208
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2557779901242308317, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.10005
+      value: 2.1000001
       objectReference: {fileID: 0}
     - target: {fileID: 2557779901242308317, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 65.21803
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 2719960058802524000, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
       propertyPath: m_Name
@@ -1394,57 +1396,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 237f23665ab1266499e85874373d4507, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Player.PlayerStats
---- !u!1 &2045996922
-GameObject:
+--- !u!1001 &3496145756361601551
+PrefabInstance:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2045996924}
-  - component: {fileID: 2045996923}
-  m_Layer: 0
-  m_Name: QuestEventsManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2045996923
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2045996922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7329121a4baae0f4a9ce847a6d8674b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::Game.Quest.QuestEventsManager
-  _quests:
-  - {fileID: 11400000, guid: fdabd900afd73ed48bfe43373e6da5cf, type: 2}
-  _onWorldFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}
-  _onQuestStarted: {fileID: 11400000, guid: 67aad4bc5c2e30b4aaed68fd09a6b30e, type: 2}
-  _onQuestCompleted: {fileID: 11400000, guid: daa28683af9d08841ace38e079c87b14, type: 2}
-  _onQuestFailed: {fileID: 11400000, guid: 156b32b9f2ddd4d42b33411f9ed4532e, type: 2}
-  _onQuestStepCompleted: {fileID: 0}
---- !u!4 &2045996924
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2045996922}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 745404681370926834, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_Name
+      value: QuestEventsManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3018682261965611263, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5dfed0f7c1e7439409bcc0d2b6600731, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1455,5 +1463,5 @@ SceneRoots:
   - {fileID: 400000013}
   - {fileID: 400000015}
   - {fileID: 400000016}
-  - {fileID: 2045996924}
+  - {fileID: 3496145756361601551}
   - {fileID: 1467251764}
