@@ -11,25 +11,6 @@ namespace Game.NPC
         [Header("Dialogue")]
         [Tooltip("Start Dialogue lines available while this memory is active. Consumed by DialogueSystem")]
         public StartDialogueNode startdialog;
-
-        [Header("Shop")]
-        [Range(-1f, 1f)]
-        [Tooltip("Price modifier. 0 = no effect. -0.1 = 10% discount. Consumed by ShopSystem (future).")]
-        public float shopPriceModifier;
-
-        [Tooltip("One-shot line played first time shop is opened while memory is active. Set '' to skip.")]
-        public string shopRevealDialogueLine;
-
-        [Header("Routine")]
-        [Tooltip("Routine override while this memory is active. None = no change. Consumed by NPCScheduler (future).")]
-        public NPCState routineOverride = NPCState.None;
-
-        [Tooltip("If true, routineOverride is applied. If false, NPC keeps default schedule.")]
-        public bool overrideRoutine;
-
-        [Header("Quest")]
-        [Tooltip("Dialogue key that initiates or references a quest. Empty = no quest effect.")]
-        public string questDialogueKey;
     }
 
     /// <summary>
