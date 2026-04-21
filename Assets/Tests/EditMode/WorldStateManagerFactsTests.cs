@@ -244,14 +244,14 @@ namespace Tests.EditMode
         [Test]
         public void SetWorldEvent_RaisesEvent_WithCorrectPayload()
         {
-            var eventSO = ScriptableObject.CreateInstance<GameEventSO_WorldFact>();
+            var eventSO = ScriptableObject.CreateInstance<GameEventSO_Fact>();
             _cleanup.Add(eventSO);
 
             typeof(WorldStateManager)
                 .GetField("_onWorldFactChanged", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(_wsm, eventSO);
 
-            WorldFactData received = default;
+            FactData received = default;
             bool fired = false;
             eventSO.AddListener(data => { received = data; fired = true; });
 

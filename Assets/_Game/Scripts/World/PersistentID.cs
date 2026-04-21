@@ -18,7 +18,6 @@ namespace Game.World
         private const string TAG = "[WorldState]";
 
         [SerializeField] private KilledFact _killedFact;
-        [SerializeField] private GameEventSO_KilledFact _onEntityKilled;
         
         [SerializeField] private EnemyTypeSO _enemyType;
 
@@ -58,11 +57,6 @@ namespace Game.World
             }
 
             WorldStateManager.Instance?.RegisterKill(_killedFact);
-
-            if (_onEntityKilled != null)
-                _onEntityKilled.Raise(_killedFact);
-            else
-                GameLog.Warn(TAG, $"OnEntityKilled event not assigned on {gameObject.name} — kill not broadcast");
         }
     }
 }

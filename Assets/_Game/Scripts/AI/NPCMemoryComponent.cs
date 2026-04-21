@@ -16,22 +16,22 @@ namespace Game.AI
         private const string TAG = "[NPCMemory]";
 
         [SerializeField] private NPCDataSO _data;
-        [SerializeField] private GameEventSO_WorldFact _onWorldFactChanged;
+        [SerializeField] private GameEventSO_Fact onFactChanged;
 
         private void OnEnable()
         {
-            if (_onWorldFactChanged == null)
+            if (onFactChanged == null)
             {
                 GameLog.Warn(TAG, $"OnWorldFactChanged not assigned on {gameObject.name} — memories won't react to world changes");
                 return;
             }
-            _onWorldFactChanged.AddListener(HandleWorldFactChanged);
+            onFactChanged.AddListener(HandleWorldFactChanged);
         }
 
         private void OnDisable()
         {
-            if (_onWorldFactChanged == null) return;
-            _onWorldFactChanged.RemoveListener(HandleWorldFactChanged);
+            if (onFactChanged == null) return;
+            onFactChanged.RemoveListener(HandleWorldFactChanged);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Game.AI
             return result;
         }
 
-        private void HandleWorldFactChanged(WorldFactData data)
+        private void HandleWorldFactChanged(FactData data)
         {
             // No-op: GetActiveMemories() evaluates on demand so no action needed here.
             // Future: raise a local OnMemoriesChanged event for UI / dialogue pre-evaluation.

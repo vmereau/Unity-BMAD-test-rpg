@@ -19,7 +19,9 @@ namespace Game.Core
 
         public static WorldStateManager Instance { get; private set; }
 
-        [SerializeField] private GameEventSO_WorldFact _onWorldFactChanged;
+        [SerializeField] private GameEventSO_Fact _onFactChanged;
+        [SerializeField] private GameEventSO_KilledFact _onEntityKilled;
+        
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private PlayerStats _playerStats;
 
@@ -64,7 +66,25 @@ namespace Game.Core
         public void SetFact(Fact fact, bool value)
         {
             if (fact == null) { GameLog.Warn(TAG, "SetFact called with null fact"); return; }
-            SetFactInternal(fact.ToString(), value);
+            
+            string key = fact.ToString();
+            _worldFacts[key] = value;
+            GameLog.Info(TAG, $"fact set: {key} = {value}");
+            
+            RaiseFactEvent(fact, value);
+        }
+
+        private void RaiseFactEvent(Fact fact, bool value)
+        {
+            switch (fact)
+            {
+                case KilledFact killedFact:
+                    _onEntityKilled?.Raise(killedFact);
+                    break;
+                default:
+                    _onFactChanged?.Raise(new FactData(fact.ToString(), value));
+                    break;
+            }
         }
 
         // ── Typed convenience methods ──────────────────────────────────────────
@@ -132,13 +152,6 @@ namespace Game.Core
         };
 
         // ── Internal ──────────────────────────────────────────────────────────
-
-        private void SetFactInternal(string key, bool value)
-        {
-            _worldFacts[key] = value;
-            GameLog.Info(TAG, $"World fact set: {key} = {value}");
-            _onWorldFactChanged?.Raise(new WorldFactData(key, value));
-        }
 
         private void OnDestroy()
         {

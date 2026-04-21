@@ -14,7 +14,7 @@ namespace Game.Quest
         private const string TAG = "[QuestEvents]";
 
         [SerializeField] private List<QuestSO> _quests = new List<QuestSO>();
-        [SerializeField] private GameEventSO_WorldFact _onWorldFactChanged;
+        [SerializeField] private GameEventSO_Fact onFactChanged;
 
         [Header("Output Event Channels")]
         [SerializeField] private GameEventSO_Quest _onQuestStarted;
@@ -61,21 +61,21 @@ namespace Game.Quest
 
         private void OnEnable()
         {
-            if (_onWorldFactChanged == null)
+            if (onFactChanged == null)
             {
                 GameLog.Warn(TAG, "OnWorldFactChanged not assigned — QuestEventsManager will not respond to fact changes");
                 return;
             }
-            _onWorldFactChanged.AddListener(HandleWorldFactChanged);
+            onFactChanged.AddListener(HandleWorldFactChanged);
         }
 
         private void OnDisable()
         {
-            if (_onWorldFactChanged == null) return;
-            _onWorldFactChanged.RemoveListener(HandleWorldFactChanged);
+            if (onFactChanged == null) return;
+            onFactChanged.RemoveListener(HandleWorldFactChanged);
         }
 
-        private void HandleWorldFactChanged(WorldFactData _)
+        private void HandleWorldFactChanged(FactData _)
         {
             foreach (var quest in _quests)
             {
