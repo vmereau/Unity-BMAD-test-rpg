@@ -4,8 +4,8 @@ project: 'Echoes of the Fallen (placeholder)'
 date: '2026-04-07'
 author: 'Valentin'
 version: '1.0'
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7]
-status: 'in-progress'
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+status: 'complete'
 narrativeComplexity: 'Heavy'
 gdd: '_bmad-output/gdd.md'
 ---
@@ -930,3 +930,290 @@ Documents serve dual narrative and mechanical functions:
 - **Completionist:** Potential achievements or recognition for thorough exploration and reading.
 
 Documents are integrated into the world — found on bodies, in ruins, handed over by NPCs, discovered in hidden locations, or given as quest rewards. They are a core pillar of how story is delivered.
+
+---
+
+## Narrative Delivery
+
+### Cutscenes
+
+**Quantity:** Few — reserved for high-impact story moments
+**Average Length:** Short
+**Style:** Pre-rendered for the opening and ending sequences; real-time rendered for all other cutscenes
+**Skippable:** Yes — all cutscenes can be skipped
+**Interactive Elements:** None — all cutscenes are fully passive
+
+**Major Cutscene Candidates:**
+- Opening: Protagonist's arrival in the territory (pre-rendered)
+- Ending sequences: One per major ending path (pre-rendered)
+- Key story beats: The Dark Secret reveal, The Reckoning (real-time)
+
+---
+
+### In-Game Storytelling
+
+**Primary Methods:**
+- NPC conversations — the primary delivery channel for story, relationships, and world-building
+- Environmental cues — found documents, ruins, visual world design, ambient audio
+- Player actions — faction choices, combat outcomes, and relationship decisions shape the narrative
+- Journal / quest log — knowledge and quest information accumulated through exploration and reading
+
+**Show vs. Tell Balance:** Mixed. Dialogue carries explicit story beats where needed; the world communicates theme and history without stating it.
+
+**Interruption Approach:** Story does not interrupt gameplay. The player drives all narrative engagement — conversations are initiated on their terms, and exploration is self-directed.
+
+**Player Control:** Dialogue can be skipped at any point.
+
+---
+
+### Optional Content
+
+**Side Quests:**
+NPC-driven optional story missions tied to companions, factions, and locations. Scope and depth vary — some are short, personal stories; others have political or world-state consequences.
+
+**Collectible Lore:**
+Found documents across all types (worker journals, Company orders, ancient inscriptions, research notes, letters, contracts, maps). Optional discovery enriches world-building; some documents are mechanically significant for quests or secrets.
+
+**Optional Conversations:**
+Extra NPC dialogue available through relationship depth, faction standing, or world-state progression. Rewards players who invest in relationships without gating main story content.
+
+**Secret Endings:**
+Hidden conclusions accessible through specific conditions — notably "The Escapee" path (finding the hidden mountain route before the main conflict resolves). These are intentionally outside the main ending structure and do not require completing the primary narrative.
+
+---
+
+### Ending Structure
+
+**Number of Endings:** 5 primary endings, with potential secret ending variations
+
+**Ending Triggers:** Accumulated player actions over the course of the game. Choices progressively open and close endings — no single final decision determines the outcome. By the late game, the available endings reflect who the player has become.
+
+**Primary Endings:**
+- **Liberator** — Led or supported the rebellion; freed the workforce
+- **Company Asset** — Rose through the Company; became what exploited him
+- **The Ghost** — Left, let things be, survived on his own terms
+- **Doombringer** — Unlocked ancient power that spiraled beyond control
+- **The Escapee** — Found the secret mountain path and left before the ending arrived (secret / early exit)
+
+**Ending Variety:** Drastically different outcomes — divergent in world-state, relationships, and tone.
+
+**True Ending:** None. All five primary endings are presented as equally valid reflections of the player's path. The Escapee is an outlier — a valid but deliberately incomplete conclusion.
+
+**Replayability:** Different faction paths, relationship investments, and moral choices create genuinely different playthroughs. Players who want to see all endings must engage differently with the world each time.
+
+---
+
+## Gameplay Integration
+
+### Narrative-Gameplay Connection
+
+**Integration Approach:**
+Story and player choices directly shape gameplay. Faction allegiance determines available trainers, unlocks faction-specific quests and skills, and governs NPC disposition. Relationship depth with companions opens cooperative quests, unique dialogue, and companion-specific abilities. The narrative is not a layer on top of gameplay — it is the mechanism through which gameplay options are acquired and lost.
+
+**Mechanic-Theme Alignment:**
+The game's core themes — exploitation, survival, dangerous knowledge, and complicity — are reinforced by its systems. The protagonist begins powerless and resource-scarce; progression is earned through work, alliance, and risk. Magical knowledge is rare and consequential when obtained. Faction alignment carries permanent costs and benefits, not just rewards.
+
+**Story-Gameplay Balance:**
+Player-paced throughout. Story is not scheduled — it emerges through exploration, NPC engagement, and faction involvement at the player's initiative.
+
+**Ludonarrative Considerations:**
+The protagonist's powerless starting state is mechanically reflected. Rapid early power gain would undermine the premise. Story-driven power progression — through relationships, faction standing, and discovered knowledge — keeps mechanics and narrative aligned.
+
+---
+
+### Story Gating
+
+**Gating Approach:** Mixed — hard gates for main story progression, soft/skill/exploration gates for secondary content.
+
+**Story-Locked Elements:**
+Main story beats use hard gates triggered by specific player actions (completing quests, reaching relationship thresholds, making faction choices). Access to new regions and the wider territory requires clearing defined story conditions.
+
+**Cutscene Triggers:**
+Key story-beat cutscenes fire on hard-gated progression events (arrival, The Dark Secret, The Reckoning, endings). Not time-based or ambient — always triggered by player action.
+
+**Mandatory Story Beats:**
+The core Act 1 sequence (arrival, reality check, first connections) and the faction fork are required. Late-game beats (The Reckoning, endings) are reached through accumulated story choices, not free navigation.
+
+**Optional Narrative:**
+Side quests, companion arcs, collectible lore, and optional NPC conversations are soft-gated or exploration-gated. Skill gates may apply to specific faction-aligned content or locked ruins.
+
+---
+
+### Player Agency
+
+**Agency Level:** Meaningful choices with dynamic world response
+
+**Player Influence:**
+Agency operates at two scales. At the macro level: faction alignment determines the ending paths available and the world-state at the close of the game. At the micro level: individual NPC stories can be affected — companions' fates, side quest outcomes, and minor world-state changes reflect player decisions at a personal scale.
+
+**Choice System:**
+
+- **Choice types:** Faction alignment choices, dialogue response choices, action-based choices (who you help, who you betray, what you pursue)
+- **Consequence scope:** Some choices open or close quest lines and ending paths permanently; others affect NPC disposition and relationship depth
+- **Timing:** Choices are continuous throughout the game, not concentrated at a single decision point
+
+**Role-Playing Freedom:**
+The protagonist is a blank slate shaped by player choices. Specific role-playing systems (dialogue tone, moral alignment mechanics) are to be designed in a later pass.
+
+**Dynamic World:**
+The aim is maximum reactivity — NPCs remember interactions, factions respond to player behavior, and the world state reflects accumulated decisions. Implementation scope for dynamic systems to be scoped during production planning.
+
+---
+
+## Production Planning
+
+### Writing Scope
+
+**Estimated Word Count:** TBD — Heavy narrative complexity
+
+**Content Breakdown:**
+
+- Main story: TBD (mandatory beats, faction path dialogue across three alignment paths)
+- Side content: TBD (companion arcs, side quests, optional NPC conversations)
+- Environmental / lore: TBD (found documents — dozens to potentially over a hundred)
+- UI / system text: TBD
+
+**Scene Count:** TBD
+
+**Dialogue Lines:** TBD
+
+**Branching Complexity:**
+High. Five ending paths, faction-driven quest branches, and NPC-scale consequences create significant unique content per playthrough. Branching multiplies total word count substantially — scope will need to be estimated once story structure and quest design are further developed.
+
+---
+
+### Localization
+
+**Approach:** English only at launch
+
+**Future consideration:** Localization not planned for initial release. If pursued later, text expansion buffers (20–30% for European languages) and UI flexibility will need to be addressed at that stage.
+
+---
+
+### Voice Acting
+
+**Approach:** Not planned at this stage
+
+**Future consideration:** Voice acting scope — full, partial, or barks only — will be designed in a later production pass once writing scope is better defined and budget is known.
+
+---
+
+## Appendix: Character Relationships
+
+### Relationship Map
+
+```
+                          [CAMP MANAGER] ─────(controls)──── [CORRUPT GUARD]
+                                │                                    │
+                           (oppresses)                          (preys on)
+                                │                                    │
+[OLD WORKER] ──(mentors)──► [PROTAGONIST] ◄──────────────────────────
+[STRONG WORKER] ─(teaches)──►     │
+[LOCAL HUNTER] ─(mentors)───►     │
+                                  ├──(earns respect)──► [ARENA FIGHTER] ──(trapped by)──► [ARENA KINGPIN]
+                                  ├──(builds trust)───► [SLEAZY THIEF]
+                                  ├──(shared bond)────► [FELLOW ARRIVAL]
+                                  ├──(earns trust)────► [GUARD ALLY]
+                                  └──(transactional)──► [EXPERIENCED WORKER]
+
+[DEBT MANAGER] ──(debt trap)──► [PROTAGONIST]
+[HOSTILE WORKERS] ──(threaten)──► [PROTAGONIST]
+```
+
+### Relationship Key
+
+- **Camp Manager → Protagonist:** Institutional oppressor. Primary face of Company cruelty in Act 1.
+- **Corrupt Guard → Protagonist:** Personal antagonism. Theft backed by institutional impunity.
+- **Hostile Workers → Protagonist:** Environmental threat. Cruelty turned inward by the camp's conditions.
+- **Arena Kingpin → Arena Fighter:** Exploiter. Controls the Fighter's earnings, preventing his escape.
+- **Debt Manager → Protagonist:** Financial trap. Friendly surface, predatory terms.
+- **Old Worker → Protagonist:** First mentor. Pragmatic guidance, quiet warmth. Shared sleeping space from day one.
+- **Strong and Lost Worker → Protagonist:** Physical mentor. Respect earned through demonstrated commitment.
+- **Sleazy Thief → Protagonist:** Starts exploitative, evolves into genuine partnership through proven reliability.
+- **Fellow Arrival → Protagonist:** Peer. Shared victimhood creates early bond. Fate shaped by player choices.
+- **Guard Ally → Protagonist:** Cautious inside ally. Trust built slowly; provides institutional knowledge.
+- **Local Hunter → Protagonist:** Practical mentor and companion. Opens wilderness dimension of the game.
+- **Experienced Worker → Protagonist:** Transactional informant. Knows things; doesn't volunteer them.
+- **Arena Fighter → Protagonist:** Hostile first encounter; evolves to respect and companionship after protagonist proves themselves.
+
+---
+
+## Appendix: Story Timeline
+
+### Chronological Events
+
+```
+[BACKSTORY]
+│  Kingdom in decline — succession crisis building
+│  Company formed from early expeditionaries
+│  Territory opened for extraction — ancient ruins barely studied
+│  Protagonist: desperate, jobless, recruited by false promise
+│
+▼
+[ACT 1 — ARRIVAL]
+├── The Promise: Recruited with offer of fair wages and fresh start
+├── Stripped: Belongings confiscated during transit
+├── Reality Check: Camp revealed as debt-bondage operation
+├── Survive or Leave: Terms established — work or face the wilderness
+└── First Connections: Camp inhabitants met; early bonds and antagonisms form
+│
+▼
+[ACT 2A — GAINING FOOTING]
+└── The Fork: Three paths diverge
+    ├── Company Path: Side with guards, earn promotion
+    ├── Workers' Path: Align with those fomenting revolt or escape
+    └── Independent Path: Leave alone, find unaffiliated contact in the wild
+│
+▼
+[ACT 2B — INDEPENDENCE & AGENCY]
+├── Growing Power: Real agency gained; faction involvement deepens
+├── The Margins: Eccentric figures encountered (reclusive mage, beast hunters)
+├── Macro Stakes: Regional-scale quests; protagonist becomes political player
+└── The Dark Secret: Company's hidden experimentation on its own workforce uncovered
+│
+▼
+[ACT 3 — THE RECKONING]
+├── The Reckoning: Regional power structure shifts; prior choices determine outcome
+├── Ancient Power: Lost magical knowledge unlocked from deep ruins
+└── The Hidden Exit (secret branch): Secret mountain path discovered — early escape ending
+│
+▼
+[ENDINGS — determined by accumulated choices]
+├── Liberator: Led/supported rebellion; workforce freed
+├── Company Asset: Rose through Company; became the system
+├── The Ghost: Left, survived alone, let things be
+├── Doombringer: Ancient power unleashed beyond control
+└── The Escapee: Secret path taken before the ending arrived
+```
+
+### Timeline Notes
+
+- The Hidden Exit is a secret branch that can be triggered before Act 3 resolves, bypassing the main ending structure.
+- The Dark Secret reveal is the emotional turning point of Act 2b — it reframes the entire Company relationship retroactively.
+- No single timeline is "correct" — player path determines which beats are reached and in what order.
+
+---
+
+## Appendix: References and Inspirations
+
+### Primary Inspiration
+
+**The Gothic Series (Piranha Bytes)**
+The core reference for tone, world design, and player experience. Gothic's approach to player agency, faction politics, NPC reactivity, and a grounded world that doesn't hold the player's hand is the closest analogue to the experience Echoes of the Fallen aims to deliver. The feeling of being nobody in a dangerous world, earning status through action rather than narrative permission, and a world that existed before the player arrived — all of this flows from Gothic.
+
+### Secondary Influences
+
+**Medieval Dark Fantasy RPGs**
+Games and books in the medieval dark fantasy tradition — grounded worlds where magic is rare and dangerous, political structures are oppressive, and survival is never guaranteed. The tone avoids high fantasy heroism in favor of weathered realism at the edges of the fantastical.
+
+### Audio Reference
+
+**Kai Rosenkranz — Gothic 3 Soundtrack**
+The primary reference for music approach. Regional themes, emotional grounding, atmospheric depth without being intrusive. Music that makes a place feel real and lived-in rather than scored.
+
+### Thematic Touchstones
+
+- Exploitation systems and debt bondage as lived experience, not backdrop
+- Knowledge as the most dangerous resource
+- Moral consequence without moral instruction — the game does not tell the player what the right choice was
+- A world indifferent to the protagonist's survival
