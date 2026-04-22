@@ -365,6 +365,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &534132667 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+  m_PrefabInstance: {fileID: 1098839781}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &534132673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534132667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ed6c82d6e2c0cc419fc3120ba2ac967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.NPCDialogueGraphComponent
 --- !u!1001 &678347119
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1131,10 +1148,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7020049103750179888, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      propertyPath: _data
+      value: 
+      objectReference: {fileID: 11400000, guid: 9c9976d7afe11694db020ca1804bc82e, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4413245725604091172, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 534132673}
   m_SourcePrefab: {fileID: 100100000, guid: f657835c08175bd42ad259726a8c2f22, type: 3}
 --- !u!1001 &1291906917
 PrefabInstance:

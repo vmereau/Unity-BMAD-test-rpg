@@ -35,7 +35,17 @@ button label in the dialogue topic list.
 |-------|------|---------|
 | `text` | `string` | Label shown on the topic button (e.g. "Tell me about this place") |
 | `nextNode` | `DialogueNode` | First real node of the chain (must not be null) |
-| `isRepeatable` | `bool` | If `false`, the topic is hidden after it has been played once (default: `true`) |
+| `dialogueFact` | `DialogueFact` | When set, written to `WorldStateManager` when the topic completes. Use this to gate one-shot topics via memory `invalidationConditions`. Null = repeatable. |
+
+**One-shot topics (play once, then disappear):** There is no `isRepeatable` flag. To make a
+topic disappear after it is played:
+1. Set `dialogueFact` on the `StartDialogueNode` to a `DialogueFact` asset.
+2. Add that same fact to `invalidationConditions` on the `NPCMemoryEntrySO`.
+
+When the chain ends the fact is written, the memory is invalidated, and the topic is hidden.
+
+**Repeatable topics:** Leave `dialogueFact` null and omit any playback-triggered invalidation
+condition. The topic stays visible for as long as the memory `IsActive()`.
 
 **Important — memory association:**
 `StartDialogueNode` is not directly referenced by `NPCDataSO`. It is exposed to the dialogue
@@ -71,8 +81,8 @@ text reads as a normal conversation — not mid-sentence. When in doubt, prefer 
 `Text_<NPC>_<Topic>.asset`, `Text_<NPC>_<Topic>_2.asset`, etc.
 
 **End of chain:** The last `TextDialogueNode` in a topic chain must have `nextNode = null`.
-When reached, `DialogueSystem.NotifyTopicCompleted()` is called — if `isRepeatable` is `false`
-on the `StartDialogueNode`, the topic is recorded as played and hidden on the next open.
+When reached, if `StartDialogueNode.dialogueFact` is set, that fact is written to
+`WorldStateManager`, which can trigger memory invalidation and hide the topic.
 
 ---
 
@@ -94,6 +104,7 @@ choices. Each `ChoiceOption` routes to its own sub-chain.
 | `text` | `string` | Label on the choice button (player's voice) |
 | `requiredMemory` | `NPCMemoryEntrySO` | If set, choice is hidden unless this memory `IsActive()`. Null = always shown |
 | `nextNode` | `DialogueNode` | Node to advance to when selected. Null = close dialogue |
+| `dialogueFact` | `DialogueFact` | When set, written to `WorldStateManager` when this choice is selected. Use to track which branch the player took. |
 
 `ChoiceDialogueNode.IsEndNode()` always returns `false` — the chain continues via each
 choice's own `nextNode`.
@@ -110,7 +121,7 @@ response (branching). If it is just sequential NPC speech, use chained `TextDial
 ## Dialogue Chain Example
 
 ```
-Start_Blacksmith_Make         isRepeatable=true, text="What can you make?"
+Start_Blacksmith_Make         dialogueFact=null (repeatable), text="What can you make?"
   └─ nextNode → Text_Blacksmith_Make   text="I can forge swords, axes, and hammers."
                   └─ nextNode → Choice_Blacksmith_Make   text="What would you like?"
                                   ├─ choices[0]: "A sword"  → Text_Blacksmith_Make_Sword (nextNode=null)
