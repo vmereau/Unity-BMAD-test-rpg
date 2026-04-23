@@ -16,6 +16,7 @@ namespace Game.UI
         [SerializeField] private GameObject _panel;
         [SerializeField] private TMP_Text _npcNameText;
         [SerializeField] private TMP_Text _responseText;
+        [SerializeField] private TMP_Text _choiceNodeText;
         [SerializeField] private GameObject _topicsScrollView;
         [SerializeField] private Transform _topicsContainer;
         [SerializeField] private GameObject _topicButtonPrefab;
@@ -116,10 +117,12 @@ namespace Game.UI
         /// <summary>Displays a TextDialogueNode: shows text and waits for key/click to advance.</summary>
         public void ShowTextNode(TextDialogueNode node)
         {
+            ClearContents();
+            
             _pendingNextNode = node.nextNode;
             if (_responseText != null)
                 _responseText.text = node.text;
-            ClearTopicButtons();
+            
 
             // Wire NextNodeButton and slot 1 for keyboard advance
             System.Action nextAction = () =>
@@ -146,10 +149,12 @@ namespace Game.UI
         /// <summary>Displays a ChoiceDialogueNode: shows NPC text and the provided (pre-filtered) choices.</summary>
         public void ShowChoiceNode(ChoiceDialogueNode node, ChoiceOption[] availableChoices)
         {
-            if (_responseText != null)
-                _responseText.text = node.text;
-
-            ClearTopicButtons();
+            ClearContents();
+            if (_choiceNodeText != null)
+            {
+                _choiceNodeText.text = node.text;
+                _choiceNodeText.gameObject.SetActive(true);
+            }
 
             int slot = 1;
             foreach (var choice in availableChoices)
@@ -164,10 +169,9 @@ namespace Game.UI
         /// <summary>Displays a TeachChoiceDialogueNode: NPC text above teaching choices with cost labels, followed by an Exit button.</summary>
         public void ShowTeachChoiceNode(TeachChoiceDialogueNode node, TeachChoiceOption[] availableChoices)
         {
-            if (_responseText != null)
-                _responseText.text = node.text;
-
-            ClearTopicButtons();
+            ClearContents();
+            if (_choiceNodeText != null)
+                _choiceNodeText.text = node.text;
 
             int slot = 1;
             foreach (var choice in availableChoices)
@@ -185,7 +189,7 @@ namespace Game.UI
             if (_panel != null)
                 _panel.SetActive(false);
 
-            ClearTopicButtons();
+            ClearContents();
 
             if (_responseText != null)
                 _responseText.text = string.Empty;
@@ -226,15 +230,12 @@ namespace Game.UI
 
         private void RestoreTopics()
         {
-            if (_responseText != null)
-                _responseText.text = string.Empty;
+            ClearContents();
             _pendingNextNode = null;
 
             // Re-query to pick up played-state changes that occurred within this session
             if (_dialogueSystem != null)
                 _cachedStartNodes = _dialogueSystem.GetCurrentStartNodes();
-
-            ClearTopicButtons();
 
             int nextSlot = 1;
             if (_cachedStartNodes != null)
@@ -407,6 +408,18 @@ namespace Game.UI
             }
             sb.Append(')');
             return sb.ToString();
+        }
+
+        private void ClearContents()
+        {
+            ClearTopicButtons();
+            if (_responseText != null)
+                _responseText.text = string.Empty;
+            if (_choiceNodeText != null)
+            {
+                _choiceNodeText.text = string.Empty;
+                _choiceNodeText.gameObject.SetActive(false);
+            }
         }
 
         private void ClearTopicButtons()

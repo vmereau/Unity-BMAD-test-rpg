@@ -29,12 +29,17 @@ MonoBehaviour:
     description: Hunt down the five Darkness Spiders lurking near town.
     parts:
     - fact: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
-      entry: Kill the Darkness Spiders (0/5)
+      entry: 
     - fact: {fileID: 11400000, guid: 3e04c31e03f20a649bd89db54a28ecfe, type: 2}
-      entry: Kill the Darkness Spiders (1/5)
+      entry: 
     - fact: {fileID: 11400000, guid: dec50ed6d58098f419cef4fbcf8f13a7, type: 2}
-      entry: Kill the Darkness Spiders (2/5)
+      entry: 
     - fact: {fileID: 11400000, guid: 8b47cea6607305b429403b2882ebc222, type: 2}
-      entry: Kill the Darkness Spiders (3/5)
+      entry: 
     - fact: {fileID: 11400000, guid: 6e8e8d3bb86019348b558720654f3053, type: 2}
-      entry: Kill the Darkness Spiders (4/5)
+      entry: 
+  - title: The spiders have been slain
+    description: I have killed the annoying spiders. I should return to the guard.
+    parts:
+    - fact: {fileID: 11400000, guid: 79af7ad37eb33a24b98a11dffaa07873, type: 2}
+      entry: 

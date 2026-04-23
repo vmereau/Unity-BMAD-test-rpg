@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_Guard_SpiderOffer
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: Spider Problem
-  nextNode: {fileID: 11400000, guid: ec2caeecb910e7f47ab8b73aeeac5ad6, type: 2}
+  text: Do you have any problems around here ?
+  nextNode: {fileID: 11400000, guid: eee0bb3499007c0468ced7abef1160e7, type: 2}
   dialogueFact: {fileID: 0}

@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_Guard_SpiderOffer
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: "Adventurer! We've got a problem. Darkness Spiders have been spotted near
-    the edge of town \u2014 five of them. Left unchecked, they'll be a real danger.
-    Would you be willing to deal with them?"
+  text: Do you accept to kill them ?
   nextNode: {fileID: 0}
   choices:
   - text: I'll take care of it.

@@ -74,7 +74,7 @@ namespace Game.UI
                 if (quest == null) continue;
                 bool show = _activeTab switch
                 {
-                    QuestTab.Started   => quest.IsStarted,
+                    QuestTab.Started   => quest.IsStarted && !quest.IsCompleted && !quest.IsFailed,
                     QuestTab.Completed => quest.IsCompleted,
                     QuestTab.Failed    => quest.IsFailed,
                     _                  => false
