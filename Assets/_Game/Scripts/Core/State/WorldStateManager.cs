@@ -56,11 +56,18 @@ namespace Game.Core
 
         // ── Typed read/write ───────────────────────────────────────────────────
 
-        /// <summary>Typed read — calls fact.ToString() to look up the key.</summary>
+        /// <summary>Typed read — Either reads from _worldFacts or computed fact</summary>
         public bool GetFact(Fact fact)
         {
             if (fact == null) { GameLog.Warn(TAG, "GetFact called with null fact"); return false; }
-            return _worldFacts.TryGetValue(fact.ToString(), out var v) && v;
+            bool result = fact switch
+            {
+                SkillFact sf  => PlayerHasSkill(sf),
+                StatFact  stf => PlayerStatCheck(stf),
+                QuestFact qf  => IsQuestFactTrue(qf),
+                _             => _worldFacts.TryGetValue(fact.ToString(), out var v) && v
+            };
+            return result;
         }
 
         /// <summary>Typed write — calls fact.ToString() as the storage key.</summary>
