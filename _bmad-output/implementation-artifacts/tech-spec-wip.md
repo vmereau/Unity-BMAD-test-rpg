@@ -194,7 +194,7 @@ Steps:
 2. Select the `CinemachineCamera` GameObject (currently has a `CinemachineVirtualCamera` component).
 3. Remove the `CinemachineVirtualCamera` component (and its nested pipeline components if present).
 4. Add component: `CinemachineCamera`. Set **Follow** = `CameraTarget` Transform (child of Player).
-5. Add component: `CinemachineFollow`. Set **Follow Offset** = `(0.5, 0.3, −3.5)`.
+5. Add component: `CinemachineFollow`. Set **Follow Offset** = `(0.5, 0.3, −3.5)`. Set **Tracker Settings → Binding Mode** = `Lock To Target With World Up`.
 6. Add component: `CinemachineRotateWithFollowTarget` (for aim — inherits CameraTarget rotation directly).
 7. On the `CameraController` component (on the Player root): assign the new `_cinemachineFollow` field to the `CinemachineFollow` component from step 5.
 8. Verify `CinemachineBrain` is still present on the Main Camera (should be untouched).

@@ -121,10 +121,26 @@ namespace Game.Player
 
         private void UpdateCameraTargetHeight()
         {
-            float t = _pitch > 0f ? Mathf.InverseLerp(0f, _pitchMax, _pitch) : 0f;
+            float t;
+            float heightSign;
+            if (_pitch > 0f)
+            {
+                t = Mathf.InverseLerp(0f, _pitchMax, _pitch);
+                heightSign = 1f;
+            }
+            else if (_pitch < 0f)
+            {
+                t = Mathf.InverseLerp(0f, _pitchMin, _pitch);
+                heightSign = -1f;
+            }
+            else
+            {
+                t = 0f;
+                heightSign = 0f;
+            }
 
             Vector3 pos = _cameraTarget.localPosition;
-            pos.y = _defaultCameraTargetLocalY + t * _lookDownHeightRise;
+            pos.y = _defaultCameraTargetLocalY + heightSign * t * _lookDownHeightRise;
             _cameraTarget.localPosition = pos;
 
             if (_cinemachineFollow != null)

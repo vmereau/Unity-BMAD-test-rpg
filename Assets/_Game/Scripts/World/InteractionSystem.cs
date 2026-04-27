@@ -94,6 +94,19 @@ namespace Game.World
                 CurrentInteractable.Interact();
         }
 
+        private void OnDrawGizmos()
+        {
+            Camera cam = _mainCamera != null ? _mainCamera : Camera.main;
+            if (cam == null || _config == null) return;
+
+            Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            bool hit = CurrentInteractable != null;
+
+            Gizmos.color = hit ? Color.green : Color.yellow;
+            Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * _config.interactionRange);
+            Gizmos.DrawWireSphere(ray.origin + ray.direction * _config.interactionRange, 0.05f);
+        }
+
         private void OnGUI()
         {
             if (CurrentInteractable == null) return;

@@ -89,7 +89,9 @@ Assembly reference in `Game.asmdef`: `"Unity.Cinemachine"`.
 Components are sibling MonoBehaviours on the `CinemachineCamera` GameObject — not nested pipeline stages.
 
 Working OTS configuration:
-- **Body:** `CinemachineFollow` with `FollowOffset (0.5, 0.3, −3.5)` — **do NOT use `CinemachineThirdPersonFollow`**: it expects a yaw-only tracking target (character body), but `CameraTarget` carries both pitch and yaw. Using it causes the camera to rotate on itself instead of orbiting the player.
+- **Body:** `CinemachineFollow` — `FollowOffset (0.5, 0.3, −3.5)`, `TrackerSettings.BindingMode = LockToTargetWithWorldUp`
+  - **`LockToTargetWithWorldUp` is required** — only yaw is applied to the offset; pitch is handled by the aim component. Using `LockToTarget` (full rotation) causes the camera to rise steeply when pitching down, breaking the interaction raycast. Using `WorldSpace` breaks orbiting entirely.
+  - **Do NOT use `CinemachineThirdPersonFollow`** — it expects a yaw-only tracking target (character body); `CameraTarget` carries pitch+yaw, which causes the camera to spin on itself instead of orbiting.
 - **Aim:** `CinemachineRotateWithFollowTarget` — inherits `CameraTarget` world rotation directly
   (`CinemachineSameAsFollowTarget` is **deprecated** in 3.1.6 — do not use it)
 - **Do NOT use** `CinemachineRotationComposer` for OTS — it aim-corrects toward a world point
