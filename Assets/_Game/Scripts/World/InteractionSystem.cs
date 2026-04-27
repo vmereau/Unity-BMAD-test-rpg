@@ -19,6 +19,8 @@ namespace Game.World
         private Camera _mainCamera;
         private IInteractable _previousInteractable;
         private InputSystem_Actions _input;
+        private float _scanTimer;
+        private RaycastHit[] _sphereHitBuffer = new RaycastHit[16];
 
         public IInteractable CurrentInteractable { get; private set; }
 
@@ -68,23 +70,37 @@ namespace Game.World
 
         private void Update()
         {
+            _scanTimer += Time.deltaTime;
+            if (_scanTimer < _config.scanInterval) return;
+            _scanTimer = 0f;
+
             Ray ray = _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-            IInteractable found;
+            int hitCount = Physics.SphereCastNonAlloc(ray, _config.scanRadius,
+                                                      _sphereHitBuffer, _config.interactionRange,
+                                                      _raycastMask);
 
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, _config.interactionRange, _raycastMask))
+            IInteractable best = null;
+            float bestAngle = float.MaxValue;
+
+            for (int i = 0; i < hitCount; i++)
             {
-                found = hitInfo.collider.GetComponentInParent<IInteractable>();
-            }
-            else
-            {
-                found = null;
+                var candidate = _sphereHitBuffer[i].collider.GetComponentInParent<IInteractable>();
+                if (candidate == null) continue;
+
+                Vector3 toCollider = (_sphereHitBuffer[i].collider.bounds.center - ray.origin).normalized;
+                float angle = Vector3.Angle(ray.direction, toCollider);
+                if (angle < bestAngle)
+                {
+                    bestAngle = angle;
+                    best = candidate;
+                }
             }
 
-            if (found == _previousInteractable) return;
+            if (best == _previousInteractable) return;
 
-            CurrentInteractable = found;
-            _previousInteractable = found;
-            _crosshairImage.color = found != null ? _highlightColor : _defaultColor;
+            CurrentInteractable = best;
+            _previousInteractable = best;
+            _crosshairImage.color = best != null ? _highlightColor : _defaultColor;
         }
 
         private void LateUpdate()
@@ -104,7 +120,8 @@ namespace Game.World
 
             Gizmos.color = hit ? Color.green : Color.yellow;
             Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * _config.interactionRange);
-            Gizmos.DrawWireSphere(ray.origin + ray.direction * _config.interactionRange, 0.05f);
+            Gizmos.DrawWireSphere(ray.origin + ray.direction * _config.interactionRange,
+                                  _config.scanRadius);
         }
 
         private void OnGUI()
