@@ -84,11 +84,14 @@ Vector3 worldHoriz = new Vector3(
 
 ## Cinemachine 3.x — Over-the-Shoulder Setup
 
-The project ships with **Cinemachine 3.x** (`CinemachineCamera` component, not `CinemachineVirtualCamera`).
+The project uses **Cinemachine 3.1.6** (`com.unity.cinemachine`, namespace `Unity.Cinemachine`).
+Assembly reference in `Game.asmdef`: `"Unity.Cinemachine"`.
+Components are sibling MonoBehaviours on the `CinemachineCamera` GameObject — not nested pipeline stages.
 
 Working OTS configuration:
-- **Body:** `CinemachineFollow` with offset `(0.5, 0.3, −3.5)`
-- **Aim:** `CinemachineSameAsFollowTarget` — inherits `CameraTarget` world rotation directly
+- **Body:** `CinemachineFollow` with `FollowOffset (0.5, 0.3, −3.5)` — **do NOT use `CinemachineThirdPersonFollow`**: it expects a yaw-only tracking target (character body), but `CameraTarget` carries both pitch and yaw. Using it causes the camera to rotate on itself instead of orbiting the player.
+- **Aim:** `CinemachineRotateWithFollowTarget` — inherits `CameraTarget` world rotation directly
+  (`CinemachineSameAsFollowTarget` is **deprecated** in 3.1.6 — do not use it)
 - **Do NOT use** `CinemachineRotationComposer` for OTS — it aim-corrects toward a world point
   and cancels the vertical pitch driven by `CameraController`
 - **Do NOT add** `CinemachineInputAxisController` or `CinemachinePanTilt` — dual input causes

@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using Game.Combat;
 using Game.Core;
 using UnityEngine;
@@ -19,12 +20,17 @@ namespace Game.Player
         [SerializeField] private float _mouseSensitivity = 1f;
         [SerializeField] private float _pitchMin = -70f;
         [SerializeField] private float _pitchMax = 70f;
+        [SerializeField] private float _lookDownHeightRise = 0.7f;
+        [SerializeField] private float _lookDownZoomIn = 1.5f;
+        [SerializeField] private CinemachineFollow _cinemachineFollow;
         [SerializeField] private LockOnSystem _lockOnSystem;
         [SerializeField] private CombatConfigSO _combatConfig;
 
         private InputSystem_Actions _input;
         private float _yaw;
         private float _pitch;
+        private float _defaultCameraTargetLocalY;
+        private float _defaultFollowOffsetZ;
 
         private void Awake()
         {
@@ -47,6 +53,9 @@ namespace Game.Player
             // so an initial downward tilt (e.g. 350°) is read as -10° instead of clamping to +70°.
             _yaw   = _cameraTarget.eulerAngles.y;
             _pitch = Mathf.DeltaAngle(0f, _cameraTarget.eulerAngles.x);
+            _defaultCameraTargetLocalY = _cameraTarget.localPosition.y;
+            if (_cinemachineFollow != null)
+                _defaultFollowOffsetZ = _cinemachineFollow.FollowOffset.z;
         }
 
         private void OnEnable()
@@ -86,6 +95,7 @@ namespace Game.Player
             _pitch  = Mathf.Clamp(_pitch, _pitchMin, _pitchMax);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+            UpdateCameraTargetHeight();
         }
 
         private void TrackLockedTarget()
@@ -106,6 +116,23 @@ namespace Game.Player
             _pitch = Mathf.Lerp(_pitch,       desiredPitch, lerpSpeed * Time.deltaTime);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+            UpdateCameraTargetHeight();
+        }
+
+        private void UpdateCameraTargetHeight()
+        {
+            float t = _pitch > 0f ? Mathf.InverseLerp(0f, _pitchMax, _pitch) : 0f;
+
+            Vector3 pos = _cameraTarget.localPosition;
+            pos.y = _defaultCameraTargetLocalY + t * _lookDownHeightRise;
+            _cameraTarget.localPosition = pos;
+
+            if (_cinemachineFollow != null)
+            {
+                Vector3 offset = _cinemachineFollow.FollowOffset;
+                offset.z = _defaultFollowOffsetZ + t * _lookDownZoomIn;
+                _cinemachineFollow.FollowOffset = offset;
+            }
         }
     }
 }

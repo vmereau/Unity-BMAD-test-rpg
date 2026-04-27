@@ -15,6 +15,6 @@ MonoBehaviour:
   unlockConditions:
   - {fileID: 11400000, guid: 6dbfcecc138b29a42904b465db447573, type: 2}
   invalidationConditions:
-  - {fileID: 11400000, guid: d526339be257ec5469d28593abdacafa, type: 2}
+  - {fileID: 11400000, guid: 79af7ad37eb33a24b98a11dffaa07873, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: 47343125f22e3214798195fb87da8777, type: 2}

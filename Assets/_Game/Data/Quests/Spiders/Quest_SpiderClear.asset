@@ -26,7 +26,7 @@ MonoBehaviour:
   failedParts: []
   steps:
   - title: Kill the Darkness Spiders
-    description: Hunt down the five Darkness Spiders lurking near town.
+    description: I have found and slain some of the spiders
     parts:
     - fact: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
       entry: 

@@ -23,3 +23,7 @@ MonoBehaviour:
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 0}
     dialogueFact: {fileID: 0}
+  - text: I've already killed the spiders
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
