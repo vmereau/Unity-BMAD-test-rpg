@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0642b44ce47cb5f488f22608b96ea366, type: 3}
   m_Name: EnemyType_GiantViper
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
-  baseHealth: 60
-  attackDamage: 15
-  patrolSpeed: 1.5
-  engageSpeed: 4
-  detectionRange: 8
-  disengageRange: 13
-  engageStoppingDistance: 2
-  waypointArrivalThreshold: 0.5
-  patrolWaitTime: 2.5
-  attackRange: 2.5
-  attackCooldown: 2.5
-  animatorOverride: {fileID: 22100000, guid: e60a8416b3a40f1468d8420c09e7cde6, type: 2}
+  entityName: Giant Viper
+  _baseHealth: 60
+  _attackDamage: 15
+  _baseSpeed: 1.5
+  _engageSpeed: 4
+  _detectionRange: 8
+  _disengageRange: 13
+  _idleWanderRadius: 5
+  _engageStoppingDistance: 2
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2.5
+  _attackRange: 2.5
+  _attackCooldown: 2.5
+  _xpOnKill: 25
+  _animatorOverride: {fileID: 22100000, guid: e60a8416b3a40f1468d8420c09e7cde6, type: 2}

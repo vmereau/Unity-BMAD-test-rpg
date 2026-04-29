@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: KilledFact_Enemy_DarknessSpider
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
   _guid: 35bb8713-4551-4441-a327-9c35f5023d50
-  _enemyType: {fileID: 11400000, guid: b358889657b0cd546a2c43187cb37b41, type: 2}
+  monsterType: {fileID: 11400000, guid: b358889657b0cd546a2c43187cb37b41, type: 2}

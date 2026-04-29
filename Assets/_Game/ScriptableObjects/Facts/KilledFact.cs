@@ -12,17 +12,17 @@ namespace Game.Core
     public class KilledFact : Fact
     {
         [SerializeField] private string _guid;
-        [SerializeField] private EnemyTypeSO _enemyType;
+        [SerializeField] private MonsterEntity monsterType;
 
         /// <summary>The entity's unique identifier.</summary>
         public string EntityGuid => _guid;
-        public EnemyTypeSO EnemyType => _enemyType;
+        public MonsterEntity MonsterType => monsterType;
 
-        public KilledFact Init(string guid, EnemyTypeSO enemyType = null)
+        public KilledFact Init(string guid, MonsterEntity monsterType = null)
         {
             Prefix = WorldFactPrefix.Killed;
             _guid = guid;
-            _enemyType = enemyType;
+            this.monsterType = monsterType;
             return this;
         }
 

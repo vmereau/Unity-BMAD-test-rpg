@@ -73,13 +73,13 @@ namespace Game.Player
             if (camForward == Vector3.zero)
                 camForward = transform.forward;
 
-            EnemyHealth nearestHealth = null;
+            EntityHealth nearestHealth = null;
             float nearestDist = float.MaxValue;
 
             for (int i = 0; i < count; i++)
             {
                 Collider hit = _lockOnBuffer[i];
-                var health = hit.transform.GetComponentInParent<EnemyHealth>();
+                var health = hit.transform.GetComponentInParent<EntityHealth>();
                 if (health == null) continue;
                 if (health.IsDead) continue;
 
@@ -119,7 +119,7 @@ namespace Game.Player
                 return;
             }
 
-            if (LockedTarget.TryGetComponent<EnemyHealth>(out var h) && h.IsDead)
+            if (LockedTarget.TryGetComponent<EntityHealth>(out var h) && h.IsDead)
             {
                 ClearLock();
                 return;

@@ -11,6 +11,8 @@ namespace Game.World
 
         public string InteractPrompt => _promptText;
 
+        public string NameTag => "";
+
         public void Interact()
         {
             GameLog.Info(TAG, $"Interacted with {gameObject.name}");

@@ -14,9 +14,9 @@ namespace Game.Inventory
         private InventorySystem _inventory;
 
         public string InteractPrompt =>
-            string.IsNullOrEmpty(_promptOverride)
-                ? $"Press E to pick up {_item?.itemName ?? "item"}"
-                : _promptOverride;
+            string.IsNullOrEmpty(_promptOverride) ? "Pick Up" : _promptOverride;
+
+        public string NameTag => _item?.itemName ?? "item";
 
         public void Configure(ItemSO item)
         {

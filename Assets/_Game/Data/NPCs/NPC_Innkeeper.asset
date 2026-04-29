@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
   m_Name: NPC_Innkeeper
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  entityName: Innkeeper
   npcName: Innkeeper
   dayState: 0
   nightState: 3
   walkSpeed: 2
+  prefab: {fileID: 0}
+  memories: []

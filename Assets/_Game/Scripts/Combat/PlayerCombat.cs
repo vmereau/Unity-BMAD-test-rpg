@@ -19,7 +19,7 @@ namespace Game.Combat
     /// Story 2.5: Perfect block timing window and TryReceiveHit API.
     /// Story 2.6: PlayerStateManager integration; airborne gates; attacking state tracking.
     /// Story 2.6 (refactor): Direct Animator calls removed — all animation driven via PlayerStateManager setters.
-    /// Story 2.9: ExecuteHitDetection() added — sphere overlap on attack to apply damage to EnemyHealth components.
+    /// Story 2.9: ExecuteHitDetection() added — sphere overlap on attack to apply damage to EntityHealth components.
     /// Story 3.6: ComputeEffectiveDamage() — Strength bonus and Power Strike skill effect applied to damage.
     /// Attach to the Player prefab root alongside StaminaSystem and PlayerStateManager.
     /// </summary>
@@ -359,7 +359,7 @@ namespace Game.Combat
             _activeHitbox = null;
         }
 
-        private void OnWeaponHit(EnemyHealth health)
+        private void OnWeaponHit(EntityHealth health)
         {
             health.TakeDamage(ComputeEffectiveDamage());
             GameLog.Info(TAG, $"Weapon hit: {health.gameObject.name}");

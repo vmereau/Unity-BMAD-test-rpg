@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0642b44ce47cb5f488f22608b96ea366, type: 3}
   m_Name: EnemyType_GiantRat
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
-  baseHealth: 40
-  attackDamage: 8
-  patrolSpeed: 2
-  engageSpeed: 4.5
-  detectionRange: 7
-  disengageRange: 12
-  engageStoppingDistance: 1.2
-  waypointArrivalThreshold: 0.5
-  patrolWaitTime: 1.5
-  attackRange: 1.5
-  attackCooldown: 1.5
-  animatorOverride: {fileID: 22100000, guid: 4b093b0b81150854aa1237f8e24f14ad, type: 2}
+  entityName: Giant Rat
+  _baseHealth: 40
+  _attackDamage: 8
+  _baseSpeed: 2
+  _engageSpeed: 4.5
+  _detectionRange: 7
+  _disengageRange: 12
+  _idleWanderRadius: 5
+  _engageStoppingDistance: 1.2
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 1.5
+  _attackRange: 1.5
+  _attackCooldown: 1.5
+  _xpOnKill: 25
+  _animatorOverride: {fileID: 22100000, guid: 4b093b0b81150854aa1237f8e24f14ad, type: 2}

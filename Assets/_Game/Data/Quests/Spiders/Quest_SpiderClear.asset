@@ -30,13 +30,7 @@ MonoBehaviour:
     parts:
     - fact: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
       entry: 
-    - fact: {fileID: 11400000, guid: 3e04c31e03f20a649bd89db54a28ecfe, type: 2}
-      entry: 
-    - fact: {fileID: 11400000, guid: dec50ed6d58098f419cef4fbcf8f13a7, type: 2}
-      entry: 
-    - fact: {fileID: 11400000, guid: 8b47cea6607305b429403b2882ebc222, type: 2}
-      entry: 
-    - fact: {fileID: 11400000, guid: 6e8e8d3bb86019348b558720654f3053, type: 2}
+    - fact: {fileID: 11400000, guid: f65846bc5101a0d4ea9eeeeedd883f59, type: 2}
       entry: 
   - title: The spiders have been slain
     description: I have killed the annoying spiders. I should return to the guard.

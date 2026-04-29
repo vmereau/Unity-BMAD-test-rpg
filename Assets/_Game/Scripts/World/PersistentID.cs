@@ -1,3 +1,4 @@
+using _Game.ScriptableObjects.Entities;
 using Game.AI;
 using Game.Core;
 using UnityEngine;
@@ -19,7 +20,8 @@ namespace Game.World
 
         [SerializeField] private KilledFact _killedFact;
         
-        [SerializeField] private EnemyTypeSO _enemyType;
+        [SerializeField] private Entity entityType;
+        public Entity Entity => entityType;
 
         private void Awake()
         {

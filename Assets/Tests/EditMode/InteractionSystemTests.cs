@@ -23,6 +23,7 @@ namespace Tests.EditMode
             private readonly string _prompt;
             public StubInteractable(string prompt = "Test Prompt") => _prompt = prompt;
             public string InteractPrompt => _prompt;
+            public string NameTag => "";
             public void Interact() { }
         }
 

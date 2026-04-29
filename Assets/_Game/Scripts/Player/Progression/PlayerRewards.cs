@@ -77,7 +77,7 @@ namespace Game.Progression
         private void HandleEntityKilled(KilledFact fact)
         {
             // Base XP from the entity's EnemyTypeSO (always fires first)
-            int baseXp = fact?.EnemyType?.XpOnKill ?? 0;
+            int baseXp = fact?.MonsterType?.XpOnKill ?? 0;
             if (baseXp > 0)
                 _xpSystem.GiveExperience(baseXp);
 

@@ -7,6 +7,7 @@ namespace Game.World
     {
         [Header("Detection")]
         public float interactionRange = 3f;
+        public float nameRange = 8f;
         public float scanRadius = 0.5f;
         public float scanInterval = 0.2f;
     }

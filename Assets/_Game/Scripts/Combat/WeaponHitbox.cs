@@ -13,11 +13,11 @@ namespace Game.Combat
     /// </summary>
     public class WeaponHitbox : MonoBehaviour
     {
-        public event System.Action<EnemyHealth> OnEnemyHit;
+        public event System.Action<EntityHealth> OnEnemyHit;
 
         private Collider[] _colliders;
         private int _characterHitboxLayer;
-        private readonly HashSet<EnemyHealth> _hitThisSwing = new();
+        private readonly HashSet<EntityHealth> _hitThisSwing = new();
 
         private void Awake()
         {
@@ -44,7 +44,7 @@ namespace Game.Combat
         {
             if (other.gameObject.layer != _characterHitboxLayer) return;
 
-            var health = other.GetComponentInParent<EnemyHealth>();
+            var health = other.GetComponentInParent<EntityHealth>();
             if (health == null || health.IsDead) return;
             if (!_hitThisSwing.Add(health)) return; // already hit this entity this swing
             OnEnemyHit?.Invoke(health);

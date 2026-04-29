@@ -3,6 +3,7 @@ using System.Linq;
 using Game.Core;
 using Game.Dialogue;
 using Game.NPC;
+using Game.World;
 using UnityEngine;
 
 namespace Game.AI
@@ -15,7 +16,9 @@ namespace Game.AI
     {
         private const string TAG = "[NPCMemory]";
 
-        [SerializeField] private NPCDataSO _data;
+        [SerializeField] private PersistentID _persistentID;
+        private NPCEntity Data => (NPCEntity) _persistentID.Entity;
+        
         [SerializeField] private GameEventSO_Fact onFactChanged;
 
         private void OnEnable()
@@ -41,10 +44,10 @@ namespace Game.AI
         /// </summary>
         public NPCMemoryEntrySO[] GetActiveMemories()
         {
-            if (_data.memories == null || _data.memories.Count == 0) return System.Array.Empty<NPCMemoryEntrySO>();
+            if (Data.memories == null || Data.memories.Count == 0) return System.Array.Empty<NPCMemoryEntrySO>();
 
-            var result = new List<NPCMemoryEntrySO>(_data.memories.Count);
-            foreach (var memory in _data.memories)
+            var result = new List<NPCMemoryEntrySO>(Data.memories.Count);
+            foreach (var memory in Data.memories)
             {
                 if (memory == null) continue;
                 if (memory.IsActive()) result.Add(memory);

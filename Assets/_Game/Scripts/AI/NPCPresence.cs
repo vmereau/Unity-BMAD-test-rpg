@@ -9,10 +9,14 @@ namespace Game.AI
     {
         private const string TAG = "[NPC]";
 
-        [SerializeField] private NPCDataSO _data;
+        
+        [SerializeField] private PersistentID _persistentID;
+        private NPCEntity _data => (NPCEntity) _persistentID.Entity;
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
-        public string InteractPrompt => _data != null ? _data.npcName : "NPC";
+        public string InteractPrompt => "Talk";
+        
+        public string NameTag => _data.entityName;
 
         private void Awake()
         {
@@ -35,7 +39,7 @@ namespace Game.AI
             var graphComponent = GetComponent<NPCDialogueGraphComponent>(); // may be null — handled by DialogueSystem
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
-                npcName = _data.npcName,
+                npcName = _data.entityName,
                 memories = memComponent,
                 graph = graphComponent
             });

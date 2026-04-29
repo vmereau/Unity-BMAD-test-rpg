@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0642b44ce47cb5f488f22608b96ea366, type: 3}
   m_Name: EnemyType_DarknessSpider
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
-  baseHealth: 50
-  attackDamage: 10
-  patrolSpeed: 2
-  engageSpeed: 4
-  detectionRange: 9
-  disengageRange: 14
-  engageStoppingDistance: 1.8
-  waypointArrivalThreshold: 0.5
-  patrolWaitTime: 2
-  attackRange: 2.2
-  attackCooldown: 2
-  animatorOverride: {fileID: 22100000, guid: 2cf8d3be8f56f324a8f6e4207b60bd35, type: 2}
+  entityName: Darkness Spider
+  _baseHealth: 50
+  _attackDamage: 10
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _detectionRange: 9
+  _disengageRange: 14
+  _idleWanderRadius: 5
+  _engageStoppingDistance: 1.8
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 2.2
+  _attackCooldown: 2
+  _xpOnKill: 25
+  _animatorOverride: {fileID: 22100000, guid: 2cf8d3be8f56f324a8f6e4207b60bd35, type: 2}

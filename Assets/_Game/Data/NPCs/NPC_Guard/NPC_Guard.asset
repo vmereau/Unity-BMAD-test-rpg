@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
   m_Name: NPC_Guard
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  entityName: Guard
   npcName: Guard
   dayState: 2
   nightState: 2
   walkSpeed: 2
+  prefab: {fileID: 0}
   memories:
   - {fileID: 11400000, guid: 6afbb16d35948ed4493a8f7cdccdd00a, type: 2}
   - {fileID: 11400000, guid: 20cc73d53753bfa4dbd86dca14d513b6, type: 2}

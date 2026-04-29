@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
   m_Name: NPC_Elder
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  entityName: Elder Aldric
   npcName: Elder Aldric
   dayState: 1
   nightState: 2
