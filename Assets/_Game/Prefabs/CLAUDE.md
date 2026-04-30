@@ -77,9 +77,13 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 
 | Prefab type | Required layer | Why |
 |-------------|---------------|-----|
-| Interactable (pickup, NPC, etc.) | **Interactable (Layer 8)** | `InteractionSystem` raycasts only against Layer 8 — prefab is invisible to interaction without it |
+| World item pickup | **Interactable (Layer 8)** on root | Root has the collider; `InteractionSystem` raycasts only against Layer 8 |
+| NPC (Entity_base variant) | **Characters (Layer 6)** on root + **Interactable (Layer 8)** on `InteractionCollider` child | Root must be Layer 6 so `LockOnSystem._lockOnLayerMask (m_Bits:64)` can detect them; a dedicated `InteractionCollider` child GO on Layer 8 carries the trigger CapsuleCollider for `InteractionSystem`. `GetComponentInParent<IInteractable>()` traverses up from the child to find `NPCPresence` on the root. |
+| Enemy (Entity_base variant) | **Characters (Layer 6)** on root | Lock-on only; enemies are not interactable, so no Layer 8 child needed |
 
-Always set the layer on the **root** GameObject of the prefab, not just a child.
+**NPC two-collider pattern** (do NOT collapse into one):
+- `Hitbox` child (Layer 7 — CharacterHitbox): non-trigger CapsuleCollider, used by `WeaponHitbox` for combat damage detection
+- `InteractionCollider` child (Layer 8 — Interactable): trigger CapsuleCollider (Radius: 0.5, Height: 2.0, Center Y: 1.0), used by `InteractionSystem` for dialogue detection
 
 ---
 
