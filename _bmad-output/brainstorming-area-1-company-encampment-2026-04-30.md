@@ -4,7 +4,7 @@ date: '2026-04-30'
 author: 'valentin'
 version: '1.0'
 stepsCompleted: [1, 2, 3]
-status: 'in-progress'
+status: 'complete'
 ---
 
 # Game Brainstorming Session — Area 1: Company Encampment
@@ -196,15 +196,138 @@ _Novelty:_ First authority figure who speaks to the player as an equal. The cont
 
 ---
 
-### Open Threads — To Continue
+### Technique 4: Faction Crystallization + Endings
 
-- **The quarry artifact**: what was found (carved stone, strange remains, functional object, hidden passage)? What does the worker want — sell it, protect it, use it?
-- **Faction crystallization**: when and how does the player start committing to Company / Worker / Independent paths?
-- **Day/night cycle**: effects on NPC behavior, illegal activities, the light in the treeline
-- **Economy**: how does money actually flow in the camp (wages, black market, gambling)
-- **Exit conditions**: what unlocks leaving the encampment for the next region?
-- **The warden's specific tasks**: what are the lowlife jobs he assigns, and what makes them degrading?
-- **The ruins**: layout, what's inside, connection to the game's larger mystery
+**[Quest Seed #2 — Partial]: The Sealed Passage**
+_Setup:_ Quarry worker broke through to an artificial corridor while excavating. Old stonework, clearly not natural. He sealed it back, hasn't entered. Afraid — but more afraid of the Company finding it first.
+_Why he trusts the player:_ Fresh arrival, no alliances yet. Trustworthy by default — and expendable enough to send in first.
+_His motivation:_ Doesn't like the Company. Doesn't want them weaponizing whatever is inside.
+_Player's role:_ Scout the passage, report back. Worker stays at the entrance.
+_Status:_ Passage interior, deeper mystery, and civilization lore tabled — to be designed in a dedicated ruins/lore session.
+_Note:_ Worker is a possible first thread of the worker faction path — company-skeptic, long-timer, cautious but motivated.
+
+**[Faction #1]: Company Path — Seeds**
+- Reporting a rule-breaker to a guard → reward in money, items, XP
+- Reporting the quarry passage → significant Company-aligned act with major consequences for the quarry worker
+- Accepting warden's tasks compliantly without resistance
+_Design note:_ Company rewards are immediate and material. Cost is relational — burning workers who might have been allies.
+
+**[Faction #2]: Worker Path — Seeds**
+- Helping the beaten worker after the arrival scene
+- Socializing in the neutral zone (card game, conversations, presence)
+- Worker quests: risky ventures on their behalf, doing assigned work for exhausted workers, covering for someone
+_Design note:_ Worker rewards are slower — trust, information, loyalty. Cost is risk — favors put the player on the warden's radar.
+
+**[Faction #3]: Independent Path — Obtuse by Design**
+- Finding the independent hunter and starting his questline
+- Avoiding the defining quests of both Company and Workers
+- Going into the wilderness — exploring, surviving, building capability alone
+_Design note:_ Requires resisting the game's obvious hooks. The hunter is the only hand extended. The camp's fate is left to others.
+
+**[Tracking]: Visible + Invisible**
+- Some choices are clearly faction-defining (reporting someone, refusing the warden)
+- Others accumulate silently (frequency of worker socializing, whether the player paid the racket guard)
+- Players who pay attention feel the system. Players who don't are surprised by consequences.
+
+**[NPC #5]: The Worker Leader — The Hidden Hand**
+_Appearance:_ Indistinguishable from any other worker. No visible authority. That's the point.
+_Inner ring:_ Small group of trusted workers know who he is. No one outside does.
+_Guards:_ Suspect a rebel network exists but have no names or faces.
+_Personality:_ Controlled, calculating. Knows he has one shot. Doesn't waste moves. Doesn't trust easily.
+_Outside connections:_ Ties to the rebel faction beyond the camp. Smuggles equipment in through those channels.
+_Player access:_ Gated behind accomplices — the player earns their way through the network before the leader surfaces.
+
+**[Design Device]: The Test Quests**
+_Core Loop:_ Leader's early quests reach the player through accomplices and appear mundane — fetch this, move that, talk to someone. No hint of a larger agenda.
+_Reveal:_ After enough trust, an accomplice says "there's someone who wants to meet you."
+_Novelty:_ The player has been working for the rebellion without knowing it. The reveal recontextualizes everything they've done.
+
+**[NPC #2 — Updated]: The Beaten Worker**
+_Role:_ Knows a rebel group exists in the camp. Not a member. Mentions them to the player casually — "heard there's people in here who've had enough." Seeds awareness without being a gatekeeper.
+
+**[Network Design]: Multiple Entry Points**
+_Core Loop:_ No single mandatory accomplice. Several worker NPCs across the camp are low-level network members. Whichever the player encounters and trusts first becomes their entry point.
+_Progression:_ Mundane quests → trust builds → one NPC extends an offer → introduction to the leader.
+_Novelty:_ A player who talks to everyone finds the network faster. One who keeps to themselves might miss it entirely — and never trigger the worker ending.
+
+**[Ending #1]: Company Path — The Preemptive Strike**
+_Trigger:_ Player accepts the insider offer and reports the rebel network to the warden.
+_Event:_ Guards move on worker leaders before any revolt organizes. Arrests, killings, confiscations.
+_Player role:_ Active participant or informed bystander.
+_Reward:_ Warden pays — money, rank, trust, access.
+_Aftermath:_ Camp remains a Company camp — harder, colder, tighter. Player has bought a place in the hierarchy.
+
+**[Ending #2]: Worker Path — The Revolt**
+_Trigger:_ Player completes preparation quests → leader judges readiness → player chooses when to begin.
+_Preparation quests:_ Stealing weapons/armor from storage or guards, securing food reserves, recruiting able-bodied workers.
+_Event:_ Workers rise. Player fights alongside them against guards and Company-aligned NPCs.
+_Aftermath:_ Camp becomes a free workers camp — linked to the rebel faction from the narrative doc.
+
+**[Ending #3]: Independent Path — The Parallel Exit**
+_Trigger:_ Player builds enough foothold in the wilderness through the hunter's questline to simply leave.
+_Event:_ None. Camp doesn't change. Player is gone before anyone decides its fate.
+_Aftermath:_ Camp stays a Company camp by default. The independent player chose not to touch it.
+_Novelty:_ Most powerful statement of the path — the world doesn't need the player to resolve it.
+
+**[Faction Trigger]: The Warden's Offer — The Insider**
+_Timing:_ After basic/menial tasks are complete. Warden has decided the player is reliable.
+_Offer:_ Spy on the suspected rebel proxy ring. Report names, meetings, plans.
+_Leverage:_ Warden explicitly uses the player's newcomer status — "Nobody suspects a fresh arrival."
+_Reward:_ Equipment, gold — significantly better than wage work.
+_Choice weight:_ Accepting locks the Company path. Refusing signals defiance — warden notes it. Pretending to accept while feeding false information is a viable third play.
+_Novelty:_ Not asking the player to fight — asking them to betray people who may have trusted them.
+
+---
+
+### Technique 5: Day/Night Cycle + Economy
+
+**[Systems #4]: Day/Night Cycle — What Night Unlocks**
+- **Illegal fishing** — docks unguarded, certain workers slip out after dark
+- **The fight club** — runs in the hollow after dark, hidden from company sightlines
+- **The independent hunter's fire** — visible across the river at night. Incentive to cross and investigate. First contact opportunity.
+- **Black market** — trades after hours in camp. Different inventory than the official shop.
+- **Guard coverage drops** — fewer guards, some asleep. Opens windows for theft, sneaking, movement into restricted areas.
+
+**[Systems #5]: Economy — Money Flows**
+_Official (barely survivable):_
+- Wages from assigned work — insultingly small, covers food and little else
+- Warden paying for information — reliable but costs relationships
+
+_Unofficial (where real money is):_
+- Gambling — card games in the neutral zone
+- Fight club winnings
+- Smuggling goods in or out of camp
+- Doing other workers' assigned labor for pay
+- Selling stolen goods on the black market
+- Illegal fishing catches sold quietly
+
+**[Systems #6]: The Warden's Tasks — Newcomer Work**
+_Category 1 — Access tasks (hidden value):_
+- **Hauling goods to the warehouse** — opens the storage area. Restricted otherwise. Goods within reach, guard positioning visible.
+- **Delivering notices to work site managers** — forced tour reframed as a warden command. Player sees the wilderness sites, meets the managers.
+
+_Category 2 — Degrading tasks (brief, no upside):_
+- **Latrine cleaning** — short, humiliating, other workers look away
+- **Canteen cleanup** — scrubbing tables after a meal. Menial and visible.
+_Design note:_ Degrading tasks are brief. Their function is emotional — they establish what the warden thinks of the player.
+
+**[Exit Conditions]: Quest and Action Based**
+_Structure:_ No hard resource gate. Endings become available when player's actions and completed quests have pushed a path far enough.
+- Company ending → accepting and acting on the insider offer
+- Worker ending → completing preparation quests and choosing to start the revolt
+- Independent ending → building a wilderness foothold through the hunter's questline
+
+---
+
+### Open Threads — Tabled for Future Sessions
+
+- **Quarry passage interior** — what the player finds inside, connection to ancient civilization lore
+- **Ruins design** — layout, contents, the vanished civilization's identity
+- **Specific work site quests** — wood camp and hunting grounds quest details beyond seeds
+- **Black market operator** — who runs it, what they sell, their relationship to other factions
+- **Camp shop/official trader** — who runs the official economy, company employee or worker?
+- **Fight club design** — rules, opponents, reward structure, social reputation effects
+- **NPC roster completion** — names, full dialogue seeds for all designed NPCs
 
 ## Brainstorming Approach
 

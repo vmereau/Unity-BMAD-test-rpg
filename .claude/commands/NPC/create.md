@@ -96,7 +96,88 @@ Using the answers collected, generate the `CLAUDE.md` for this NPC by filling in
 
 ---
 
-## Step 5 — Confirm and summarise
+## Step 5 — Create the World Design Doc
+
+Scan `docs/World/NPCs/` for existing `npc-XXX-*.md` files to determine the next available NPC ID (e.g. if `npc-005-*.md` is the highest, use `npc-006`).
+
+Create `docs/World/NPCs/npc-<ID>-<npcname-lowercase-hyphenated>.md` using the following template, filled with answers from the identity interview:
+
+```markdown
+# NPC <ID> — <DisplayName>
+
+> id: npc-<ID>
+> type: npc
+> name: <DisplayName>
+> status: draft
+> location: (fill in — area-XXX or TBD)
+> faction: (fill in or none)
+> role: (fill in — e.g. quest-giver, informant, antagonist)
+> personality: (3 adjectives from Round B)
+> unity-asset: Assets/_Game/Data/NPCs/<NPCName>/
+> quests-given: (TBD)
+> quests-involved: (TBD)
+> events: (TBD)
+> knows-of: (TBD)
+
+---
+
+## Identity
+
+(2–4 sentences from Round D background answer.)
+
+---
+
+## Role in Area
+
+(What they do day-to-day and what function they serve for the player.)
+
+---
+
+## Personality
+
+**Tone:** (from Round C)
+**Vocabulary:** (from Round C)
+**Quirks:** (from Round C)
+**Taboo topics:** (from Round C)
+**Sample line:** "(from Round C)"
+
+---
+
+## Relationships
+
+| NPC | Relationship |
+|-----|-------------|
+| (fill as known) | |
+
+---
+
+## State Changes
+
+| Condition | Change |
+|-----------|--------|
+| (fill as known) | |
+
+---
+
+## Dialogue Topics (to be written)
+
+| Topic ID | Trigger | Summary |
+|----------|---------|---------|
+| (fill as known) | | |
+
+---
+
+## Open Threads
+
+- Dialogue scripts not yet written
+- (any fields left blank during interview)
+```
+
+Then add a row for this NPC to the `## NPCs` table in `docs/World/world-index.md`.
+
+---
+
+## Step 6 — Confirm and summarise
 
 Show the user a summary of everything created:
 
@@ -105,13 +186,15 @@ NPC scaffold complete — <DisplayName>
 
 Created:
   Assets/_Game/Data/NPCs/<NPCName>/
-  Assets/_Game/Data/NPCs/<NPCName>/CLAUDE.md       ← identity file
+  Assets/_Game/Data/NPCs/<NPCName>/CLAUDE.md            ← implementation identity
   Assets/_Game/Data/NPCs/<NPCName>/NPC_<NPCName>.asset
   Assets/_Game/Data/NPCs/<NPCName>/Dialogues/
   Assets/_Game/Data/NPCs/<NPCName>/Memories/
+  docs/World/NPCs/npc-<ID>-<npcname>.md                 ← world design doc
+  docs/World/world-index.md                             ← updated
 
 Next steps:
   - Use /NPC:dialogue to create the first dialogue topic for <DisplayName>
   - Add a prefab reference in NPC_<NPCName>.asset once the prefab exists
-  - Fill any blank fields in CLAUDE.md as the character develops
+  - Fill any blank fields in CLAUDE.md and the world design doc as the character develops
 ```
