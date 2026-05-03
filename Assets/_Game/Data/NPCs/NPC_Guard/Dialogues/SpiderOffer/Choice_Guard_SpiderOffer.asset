@@ -16,14 +16,14 @@ MonoBehaviour:
   nextNode: {fileID: 0}
   choices:
   - text: I'll take care of it.
-    requiredMemory: {fileID: 0}
+    requiredMemory: {fileID: 11400000, guid: c263f9948d5385747a1bb258857923ed, type: 2}
     nextNode: {fileID: 0}
     dialogueFact: {fileID: 11400000, guid: 6dbfcecc138b29a42904b465db447573, type: 2}
   - text: Not interested.
-    requiredMemory: {fileID: 0}
+    requiredMemory: {fileID: 11400000, guid: c263f9948d5385747a1bb258857923ed, type: 2}
     nextNode: {fileID: 0}
     dialogueFact: {fileID: 0}
   - text: I've already killed the spiders
-    requiredMemory: {fileID: 0}
+    requiredMemory: {fileID: 11400000, guid: 19bb87db18eb9f84d84da33d8bffbfc9, type: 2}
     nextNode: {fileID: 0}
     dialogueFact: {fileID: 0}
