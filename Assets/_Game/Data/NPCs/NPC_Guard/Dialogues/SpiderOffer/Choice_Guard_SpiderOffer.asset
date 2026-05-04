@@ -26,4 +26,4 @@ MonoBehaviour:
   - text: I've already killed the spiders
     requiredMemory: {fileID: 11400000, guid: 19bb87db18eb9f84d84da33d8bffbfc9, type: 2}
     nextNode: {fileID: 0}
-    dialogueFact: {fileID: 0}
+    dialogueFact: {fileID: 11400000, guid: d526339be257ec5469d28593abdacafa, type: 2}

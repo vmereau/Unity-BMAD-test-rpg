@@ -13,12 +13,25 @@ MonoBehaviour:
   m_Name: NPC_Guard
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Guard
-  npcName: Guard
+  _baseHealth: 50
+  _attackDamage: 10
+  _detectionRange: 8
+  _disengageRange: 12
+  _engageStoppingDistance: 1.5
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.8
+  _attackCooldown: 2
+  _animatorOverride: {fileID: 0}
   dayState: 2
   nightState: 2
-  walkSpeed: 2
   prefab: {fileID: 0}
   memories:
   - {fileID: 11400000, guid: 6afbb16d35948ed4493a8f7cdccdd00a, type: 2}
   - {fileID: 11400000, guid: 20cc73d53753bfa4dbd86dca14d513b6, type: 2}
   - {fileID: 11400000, guid: f3673fbad53f1004a959f8f75032499c, type: 2}
+  - {fileID: 11400000, guid: 19bb87db18eb9f84d84da33d8bffbfc9, type: 2}
+  - {fileID: 11400000, guid: c263f9948d5385747a1bb258857923ed, type: 2}
