@@ -36,10 +36,15 @@ namespace Game.Inventory
         {
             if (!enabled) return;
 
-            _inventory = FindFirstObjectByType<InventorySystem>(FindObjectsInactive.Include);
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                _inventory = player.GetComponentInChildren<InventorySystem>();
+            }
+
             if (_inventory == null)
             {
-                GameLog.Error(TAG, "InventorySystem not found in scene — ItemPickup disabled");
+                GameLog.Error(TAG, "Player InventorySystem not found — ItemPickup disabled");
                 enabled = false;
             }
         }

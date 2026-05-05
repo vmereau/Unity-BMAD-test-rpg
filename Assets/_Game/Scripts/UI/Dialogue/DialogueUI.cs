@@ -115,7 +115,7 @@ namespace Game.UI
         }
 
         /// <summary>Displays a TextDialogueNode: shows text and waits for key/click to advance.</summary>
-        public void ShowTextNode(TextDialogueNode node)
+        public void ShowTextNode(DialogueNode node)
         {
             ClearContents();
             
@@ -134,6 +134,29 @@ namespace Game.UI
                     _dialogueSystem.NotifyTopicCompleted();
                     RestoreTopics();
                 }
+            };
+
+            if (_nextNodeButton != null)
+            {
+                _nextNodeButton.onClick.RemoveAllListeners();
+                _nextNodeButton.onClick.AddListener(() => nextAction());
+            }
+            _slotCallbacks[1] = nextAction;
+
+            SetState(DisplayState.Text);
+        }
+
+        /// <summary>Displays a ShopDialogueNode: shows text and opens the trade UI on advance.</summary>
+        public void ShowShopNode(ShopDialogueNode node, System.Action onShopOpened)
+        {
+            ClearContents();
+            
+            if (_responseText != null)
+                _responseText.text = node.text;
+
+            System.Action nextAction = () =>
+            {
+                onShopOpened?.Invoke();
             };
 
             if (_nextNodeButton != null)

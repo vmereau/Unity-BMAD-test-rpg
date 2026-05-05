@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class InventoryUI : MonoBehaviour, IScreenPanel
+    public class InventoryUI : MonoBehaviour, IScreenPanel, IItemSlotContainer
     {
         private const string TAG = "[InventoryUI]";
 
@@ -124,7 +124,7 @@ namespace Game.UI
             }
         }
 
-        public void PrimaryAction(int slotIndex)
+        public void PrimaryAction(int slotIndex, IItemSlotContainer source)
         {
             if (slotIndex < 0 || slotIndex >= _inventorySystem.Count)
             {
@@ -154,13 +154,13 @@ namespace Game.UI
             }
         }
 
-        public void SwapSlots(int a, int b)
+        public void SwapSlots(int a, int b, IItemSlotContainer source)
         {
             _inventorySystem.MoveItem(a, b);
             RefreshSlots();
         }
 
-        public void ShowContextMenu(int slotIndex, Vector2 screenPos)
+        public void ShowContextMenu(int slotIndex, Vector2 screenPos, IItemSlotContainer source)
         {
             // Same slot already showing — do nothing
             if (_activeContextMenu != null && _contextMenuSlotIndex == slotIndex)
@@ -247,7 +247,7 @@ namespace Game.UI
             _contextMenuSlotIndex = -1;
         }
 
-        public void SelectSlot(int slotIndex)
+        public void SelectSlot(int slotIndex, IItemSlotContainer source)
         {
             if (slotIndex == _selectedSlotIndex) return;
             _selectedSlotUI?.SetSelected(false);
@@ -305,13 +305,6 @@ namespace Game.UI
             // refresh action bar if any item was binded to it.
             if (!refreshActionBar) return;
             _actionBarUI?.Refresh();
-        }
-    }
-
-    /// <summary>Catches any pointer button click and forwards it to a callback.</summary>
-    internal class AnyButtonClickListener : MonoBehaviour, IPointerClickHandler
-    {
-        [System.NonSerialized] public System.Action<PointerEventData.InputButton> callback;
-        public void OnPointerClick(PointerEventData eventData) => callback?.Invoke(eventData.button);
-    }
-}
+            }
+            }
+            }

@@ -13,9 +13,21 @@ MonoBehaviour:
   m_Name: NPC_Merchant
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Merchant
-  npcName: Merchant
+  _baseHealth: 50
+  _attackDamage: 10
+  _detectionRange: 8
+  _disengageRange: 12
+  _engageStoppingDistance: 1.5
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.8
+  _attackCooldown: 2
+  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
   dayState: 0
   nightState: 1
-  walkSpeed: 2
   prefab: {fileID: 0}
-  memories: []
+  memories:
+  - {fileID: 11400000, guid: cb4aa7dcd84ffd94f961ee61e8c3286f, type: 2}

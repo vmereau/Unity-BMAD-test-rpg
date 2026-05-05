@@ -135,7 +135,7 @@ namespace Tests.EditMode
             var helmet = CreateArmor(EquipmentSlot.Helmet);
             _inventory.AddItem(helmet);
 
-            _inventoryUI.PrimaryAction(0);
+            _inventoryUI.PrimaryAction(0, _inventoryUI);
 
             Assert.AreEqual(helmet, _equipment.GetEquipped(EquipmentSlot.Helmet),
                 "ArmorSO (EquipableItemSO) should be equipped in Helmet slot after PrimaryAction");
@@ -149,7 +149,7 @@ namespace Tests.EditMode
             var sword = CreateWeapon();
             _inventory.AddItem(sword);
 
-            _inventoryUI.PrimaryAction(0);
+            _inventoryUI.PrimaryAction(0, _inventoryUI);
 
             Assert.AreEqual(sword, _equipment.GetEquipped(EquipmentSlot.Weapon),
                 "Weapon should be equipped in Weapon slot after PrimaryAction");
@@ -163,7 +163,7 @@ namespace Tests.EditMode
             var potion = CreateUsable();
             _inventory.AddItem(potion);
 
-            _inventoryUI.PrimaryAction(0);
+            _inventoryUI.PrimaryAction(0, _inventoryUI);
 
             Assert.IsTrue(potion.WasCalled,
                 "OnUse should have been called for a UsableItemSO");
@@ -175,8 +175,8 @@ namespace Tests.EditMode
             var key = CreateBaseItem();
             _inventory.AddItem(key);
 
-            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(0),
-                "PrimaryAction on a base ItemSO must not throw");
+            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(0, _inventoryUI),
+"PrimaryAction on a base ItemSO must not throw");
 
             // Item stays in inventory — no equip or use occurred
             Assert.AreEqual(1, _inventory.Count,
@@ -189,10 +189,10 @@ namespace Tests.EditMode
         [Test]
         public void PrimaryAction_OutOfRange_DoesNotThrow()
         {
-            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(-1),
+            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(-1, _inventoryUI),
                 "PrimaryAction(-1) must not throw");
-            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(999),
+            Assert.DoesNotThrow(() => _inventoryUI.PrimaryAction(999, _inventoryUI),
                 "PrimaryAction(999) must not throw");
         }
-    }
+}
 }

@@ -21,15 +21,39 @@ namespace Game.Inventory
         }
     }
 
+    [System.Serializable]
+    public struct StartingItem
+    {
+        public ItemSO item;
+        public int count;
+    }
+
     public class InventorySystem : MonoBehaviour
     {
         private const string TAG = "[Inventory]";
+
+        [SerializeField] private List<StartingItem> _startingItems = new List<StartingItem>();
 
         private readonly List<InventorySlot> _slots = new List<InventorySlot>();
 
         public IReadOnlyList<InventorySlot> Items => _slots;
 
         public int Count => _slots.Count;
+
+        private void Awake()
+        {
+            foreach (var starting in _startingItems)
+            {
+                if (starting.item == null) continue;
+                
+                // Use AddItem logic to handle stacking if necessary, 
+                // but since we might want specific stack counts from the start:
+                for (int i = 0; i < starting.count; i++)
+                {
+                    AddItem(starting.item);
+                }
+            }
+        }
 
         /// <summary>
         /// Adds an item. Stackable items (maxStacks > 1) are merged into an existing slot

@@ -13,15 +13,26 @@ MonoBehaviour:
   m_Name: NPC_Blacksmith
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Blacksmith
-  npcName: Blacksmith
+  _baseHealth: 50
+  _attackDamage: 10
+  _detectionRange: 8
+  _disengageRange: 12
+  _engageStoppingDistance: 1.5
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.8
+  _attackCooldown: 2
+  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
   dayState: 0
   nightState: 1
-  walkSpeed: 2
   prefab: {fileID: 2297545385651019628, guid: c2fb5bd3088e331408ebf1a8dbed53d7, type: 3}
   memories:
-  - {fileID: 11400000, guid: 9391a4d8662e3d748b2b8aa3213924b8, type: 2}
   - {fileID: 11400000, guid: 306b3392974b5f048b6d40b2fe3753b8, type: 2}
   - {fileID: 11400000, guid: 56c510f13c32e7b4285ee65ec9ed01b3, type: 2}
-  - {fileID: 11400000, guid: e99c8accce6ee2f48b05dc57ee42e895, type: 2}
   - {fileID: 11400000, guid: 1375f445bb43424e899545f020880a06, type: 2}
   - {fileID: 11400000, guid: fb6aecfc1770a0f4abed930295f06a29, type: 2}
+  - {fileID: 11400000, guid: e99c8accce6ee2f48b05dc57ee42e895, type: 2}
+  - {fileID: 11400000, guid: 9391a4d8662e3d748b2b8aa3213924b8, type: 2}

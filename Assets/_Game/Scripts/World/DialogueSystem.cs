@@ -2,6 +2,7 @@ using Game.AI;
 using Game.Core;
 using Game.Dialogue;
 using Game.Economy;
+using Game.Inventory;
 using Game.NPC;
 using Game.Player;
 using Game.Progression;
@@ -22,11 +23,13 @@ namespace Game.World
         [SerializeField] private GoldSystem _goldSystem;
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private PlayerSkills _playerSkills;
+        [SerializeField] private NPCTradeUI _tradeUI;
 
         public bool IsOpen { get; private set; }
 
         private NPCMemoryComponent _currentNPCMemory;
         private NPCDialogueGraphComponent _currentGraph;
+        private InventorySystem _currentNPCInventory;
         private StartDialogueNode _currentStartNode;
 
         private void OnEnable()
@@ -55,6 +58,7 @@ namespace Game.World
 
             _currentNPCMemory = data.memories;
             _currentGraph = data.graph;
+            _currentNPCInventory = data.npcInventory;
 
             StartDialogueNode[] startNodes = _currentGraph != null
                 ? _currentGraph.GetAvailableStartNodes(_currentNPCMemory)
@@ -84,6 +88,23 @@ namespace Game.World
             {
                 case TextDialogueNode textNode:
                     _dialogueUI.ShowTextNode(textNode);
+                    break;
+
+                case ShopDialogueNode shopNode:
+                    if (_currentNPCInventory == null)
+                    {
+                        GameLog.Warn(TAG, "ShopDialogueNode reached but NPC has no InventorySystem — treating as regular text");
+                        _dialogueUI.ShowTextNode(shopNode);
+                    }
+                    else
+                    {
+                        _dialogueUI.ShowShopNode(shopNode, () => 
+                        {
+                            InventorySystem inv = _currentNPCInventory;
+                            Close();
+                            if (_tradeUI != null) _tradeUI.Open(inv);
+                        });
+                    }
                     break;
 
                 case ChoiceDialogueNode choiceNode:
@@ -329,6 +350,7 @@ namespace Game.World
                 _playerStateManager.SetInDialogue(false);
             _currentNPCMemory = null;
             _currentGraph = null;
+            _currentNPCInventory = null;
             _currentStartNode = null;
             CursorManager.Lock();
             GameLog.Info(TAG, "Closed dialogue");

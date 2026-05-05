@@ -11,5 +11,7 @@ namespace Game.Inventory
         public int maxStacks = 1;
         public bool IsStackable => maxStacks > 1;
         public GameObject worldItemPrefab;
+        public int buyValue = 1;
+        public int sellValue = 1;
     }
 }

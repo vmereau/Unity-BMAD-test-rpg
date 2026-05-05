@@ -19,12 +19,12 @@ namespace Game.UI
         public ItemSO Item { get; private set; }
 
         private GameObject _ghostImage;
-        private InventoryUI _inventoryUI;
+        private IItemSlotContainer _container;
         private Canvas _canvas;
 
         private void Awake()
         {
-            _inventoryUI = GetComponentInParent<InventoryUI>();
+            _container = GetComponentInParent<IItemSlotContainer>();
             _canvas = GetComponentInParent<Canvas>();
         }
 
@@ -124,28 +124,28 @@ namespace Game.UI
             var source = eventData.pointerDrag?.GetComponent<ItemSlotUI>();
             if (source == null || source == this) return;
             source.RemoveGhostImage();
-            _inventoryUI.SwapSlots(source.SlotIndex, SlotIndex);
+            _container?.SwapSlots(source.SlotIndex, SlotIndex, _container);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_inventoryUI == null) return;
+            if (_container == null) return;
 
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 if (Item == null) return;
-                _inventoryUI.ShowContextMenu(SlotIndex, eventData.position);
+                _container.ShowContextMenu(SlotIndex, eventData.position, _container);
             }
             else if (eventData.button == PointerEventData.InputButton.Left)
             {
                 if (eventData.clickCount == 2)
                 {
                     if (Item != null)
-                        _inventoryUI.PrimaryAction(SlotIndex);
+                        _container.PrimaryAction(SlotIndex, _container);
                 }
                 else
                 {
-                    _inventoryUI.SelectSlot(SlotIndex);
+                    _container.SelectSlot(SlotIndex, _container);
                 }
             }
         }

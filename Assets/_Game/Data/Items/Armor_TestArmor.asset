@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: Armor_TestArmor
   m_EditorClassIdentifier: Game::Game.Inventory.ArmorSO
   itemName: Test Armor
-  description:
+  description: 
   icon: {fileID: 0}
   maxStacks: 1
   worldItemPrefab: {fileID: 7470631476087896926, guid: 3da8f2f42c43c344c9014ffa57f2ca4f, type: 3}
+  buyValue: 50
+  sellValue: 25
+  equipVisualPrefab: {fileID: 0}
   strengthBonus: 0
   dexterityBonus: 0
   enduranceBonus: 1
-  manaBonus: 0
+  intelligenceBonus: 0
   defenseBonus: 5
   slot: 2

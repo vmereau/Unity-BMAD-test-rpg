@@ -361,6 +361,30 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+--- !u!1 &709030484 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  m_PrefabInstance: {fileID: 1265377380}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &709030485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 709030484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bb7168ca149809449a28fc126185f40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
+  _startingItems:
+  - item: {fileID: 11400000, guid: 67a927b8f3dd5fd41953e506ae9643d9, type: 2}
+    count: 1
+  - item: {fileID: 11400000, guid: 376b91fe377aeaa4d9b2128cc8805a89, type: 2}
+    count: 1
+  - item: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    count: 10
 --- !u!1 &829833269
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,7 +1032,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 709030485}
   m_SourcePrefab: {fileID: 100100000, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
 --- !u!1001 &1366022030
 PrefabInstance:

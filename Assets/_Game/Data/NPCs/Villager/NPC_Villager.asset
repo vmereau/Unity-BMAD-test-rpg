@@ -13,10 +13,21 @@ MonoBehaviour:
   m_Name: NPC_Villager
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Villager
-  npcName: Villager
+  _baseHealth: 50
+  _attackDamage: 10
+  _detectionRange: 8
+  _disengageRange: 12
+  _engageStoppingDistance: 1.5
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.8
+  _attackCooldown: 2
+  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
   dayState: 1
   nightState: 2
-  walkSpeed: 2
   prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
   memories:
   - {fileID: 11400000, guid: ea7f28c08c866aa49a5796b42bbe4983, type: 2}

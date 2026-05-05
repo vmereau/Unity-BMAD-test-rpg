@@ -46,7 +46,13 @@ namespace Game.UI
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private InventorySystem _inventorySystem;
 
+        private CanvasGroup _canvasGroup;
         private static readonly EquipmentSlot[] AllSlots = (EquipmentSlot[])System.Enum.GetValues(typeof(EquipmentSlot));
+
+        private void Awake()
+        {
+            _canvasGroup = GetComponent<CanvasGroup>();
+        }
 
         /// <param name="onDrop">Called when Drop is clicked. Always provided.</param>
         /// <param name="onUse">Called when Use is clicked. Pass null to disable the Use button.</param>
@@ -59,6 +65,11 @@ namespace Game.UI
             ManageUseButton(onUse, item);
             ManageEquipButton(item);
             
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+                _canvasGroup.blocksRaycasts = true;
+            }
             gameObject.SetActive(true);
         }
 
@@ -72,12 +83,25 @@ namespace Game.UI
             ManageUseButton(null, item);
             ManageEquipButton(item);
 
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+                _canvasGroup.blocksRaycasts = true;
+            }
             gameObject.SetActive(true);
         }
 
         public void Hide()
         {
-            gameObject.SetActive(false);
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 0f;
+                _canvasGroup.blocksRaycasts = false;
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         private void OnEquipClicked(ItemSO item)
