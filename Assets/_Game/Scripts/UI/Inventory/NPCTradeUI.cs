@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Game.Core;
 using Game.Economy;
 using Game.Inventory;
@@ -34,14 +33,12 @@ namespace Game.UI
 
         [Header("Economy")]
         [SerializeField] private GoldSystem _goldSystem;
+        [SerializeField] private GameEventSO_Int _onGoldChanged;
+        [SerializeField] private TMP_Text _goldText;
 
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
-        private TradeSide _contextMenuSide;
         private int _contextMenuSlotIndex = -1;
-
-        private TradeSide _selectedSide;
-        private int _selectedSlotIndex = -1;
 
         private InputSystem_Actions _input;
 
@@ -55,6 +52,7 @@ namespace Game.UI
             if (_input == null) return;
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
+            _onGoldChanged?.AddListener(HandleGoldChanged);
         }
 
         private void OnDisable()
@@ -62,12 +60,15 @@ namespace Game.UI
             if (_input == null) return;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
+            _onGoldChanged?.RemoveListener(HandleGoldChanged);
         }
 
         private void OnDestroy()
         {
             _input?.Dispose();
         }
+
+        private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
 
         private void HandleCancel(UnityEngine.InputSystem.InputAction.CallbackContext context)
         {
@@ -76,7 +77,7 @@ namespace Game.UI
         }
 
         /// <summary>Opens the trade UI with the given NPC inventory.</summary>
-public void Open(InventorySystem npcInventory)
+        public void Open(InventorySystem npcInventory)
         {
             _npcInventory = npcInventory;
             gameObject.SetActive(true);
@@ -98,6 +99,7 @@ public void Open(InventorySystem npcInventory)
         {
             RefreshGrids();
             _detailPanelUI?.Hide();
+            UpdateGoldDisplay();
             CursorManager.Unlock();
             GameLog.Info(TAG, "Trade UI opened");
         }
@@ -110,11 +112,14 @@ public void Open(InventorySystem npcInventory)
             GameLog.Info(TAG, "Trade UI closed");
         }
 
+        private void UpdateGoldDisplay()
+        {
+            if (_goldText != null && _goldSystem != null)
+                _goldText.text = $"Gold: {_goldSystem.Gold}g";
+        }
+
         public void OnSlotSelected(int index, TradeSide side)
         {
-            _selectedSide = side;
-            _selectedSlotIndex = index;
-            
             InventorySystem inv = (side == TradeSide.NPC) ? _npcInventory : _playerInventory;
             if (inv != null && index >= 0 && index < inv.Count)
             {
@@ -143,7 +148,6 @@ public void Open(InventorySystem npcInventory)
 
         private void ClearSelection()
         {
-            _selectedSlotIndex = -1;
             _detailPanelUI?.Hide();
         }
 
@@ -175,7 +179,6 @@ public void Open(InventorySystem npcInventory)
         {
             HideContextMenu();
             _contextMenuSlotIndex = slotIndex;
-            _contextMenuSide = side;
 
             InventorySystem inv = (side == TradeSide.NPC) ? _npcInventory : _playerInventory;
             if (inv == null || slotIndex < 0 || slotIndex >= inv.Count) return;
@@ -186,35 +189,43 @@ public void Open(InventorySystem npcInventory)
             var blockerImg = _contextMenuBlocker.AddComponent<Image>();
             blockerImg.color = Color.clear;
             blockerImg.raycastTarget = true;
+            var blockerRect = _contextMenuBlocker.GetComponent<RectTransform>();
+            blockerRect.anchorMin = Vector2.zero;
+            blockerRect.anchorMax = Vector2.one;
+            blockerRect.sizeDelta = Vector2.zero;
             _contextMenuBlocker.AddComponent<AnyButtonClickListener>().callback = (_) => HideContextMenu();
 
             _activeContextMenu = Instantiate(_contextMenuPrefab, _canvas.transform);
+            _activeContextMenu.transform.SetAsLastSibling();
             var rt = _activeContextMenu.GetComponent<RectTransform>();
             rt.position = screenPos;
 
-            // Customize Context Menu: Buy for NPC, Sell for Player
-            // UseButton -> Buy/Sell
-            var buyBtn = _activeContextMenu.transform.Find("UseButton").GetComponent<Button>();
-            var sellBtn = _activeContextMenu.transform.Find("DropButton").GetComponent<Button>();
-            var equipBtn = _activeContextMenu.transform.Find("EquipButton");
-            if (equipBtn) equipBtn.gameObject.SetActive(false);
+            var buyBtn = _activeContextMenu.transform.Find("BuyButton")?.GetComponent<Button>();
+            var sellBtn = _activeContextMenu.transform.Find("SellButton")?.GetComponent<Button>();
+
+            if (buyBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'BuyButton' not found in context menu prefab");
+            if (sellBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'SellButton' not found in context menu prefab");
 
             if (side == TradeSide.NPC)
             {
-                buyBtn.gameObject.SetActive(true);
-                buyBtn.GetComponentInChildren<TMP_Text>().text = $"Buy ({item.buyValue}g)";
-                buyBtn.onClick.AddListener(() => { BuyItem(slotIndex); HideContextMenu(); });
-                buyBtn.interactable = _goldSystem != null && _goldSystem.Gold >= item.buyValue;
-
-                sellBtn.gameObject.SetActive(false);
+                if (buyBtn != null)
+                {
+                    buyBtn.gameObject.SetActive(true);
+                    buyBtn.GetComponentInChildren<TMP_Text>().text = $"Buy ({item.buyValue}g)";
+                    buyBtn.interactable = _goldSystem != null && _goldSystem.Gold >= item.buyValue;
+                    buyBtn.onClick.AddListener(() => { BuyItem(_contextMenuSlotIndex); HideContextMenu(); });
+                }
+                sellBtn?.gameObject.SetActive(false);
             }
             else
             {
-                sellBtn.gameObject.SetActive(true);
-                sellBtn.GetComponentInChildren<TMP_Text>().text = $"Sell ({item.sellValue}g)";
-                sellBtn.onClick.AddListener(() => { SellItem(slotIndex); HideContextMenu(); });
-                
-                buyBtn.gameObject.SetActive(false);
+                if (sellBtn != null)
+                {
+                    sellBtn.gameObject.SetActive(true);
+                    sellBtn.GetComponentInChildren<TMP_Text>().text = $"Sell ({item.sellValue}g)";
+                    sellBtn.onClick.AddListener(() => { SellItem(_contextMenuSlotIndex); HideContextMenu(); });
+                }
+                buyBtn?.gameObject.SetActive(false);
             }
         }
 
@@ -234,6 +245,7 @@ public void Open(InventorySystem npcInventory)
                 _npcInventory.DecrementStack(index);
                 _playerInventory?.AddItem(item);
                 RefreshGrids();
+                UpdateGoldDisplay();
                 GameLog.Info(TAG, $"Bought {item.itemName} for {item.buyValue}g");
             }
         }
@@ -247,7 +259,8 @@ public void Open(InventorySystem npcInventory)
             if (_goldSystem != null) _goldSystem.Add(item.sellValue);
             _npcInventory?.AddItem(item);
             RefreshGrids();
+            UpdateGoldDisplay();
             GameLog.Info(TAG, $"Sold {item.itemName} for {item.sellValue}g");
-            }
-            }
-            }
+        }
+    }
+}

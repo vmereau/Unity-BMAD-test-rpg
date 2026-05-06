@@ -1836,6 +1836,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7707617055097457809, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _goldSystem
+      value: 
+      objectReference: {fileID: 8568453877098799715}
+    - target: {fileID: 7707617055097457809, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _onGoldChanged
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
+    - target: {fileID: 7707617055097457809, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: _equipmentSystem
       value: 
       objectReference: {fileID: 1345817325320934682}

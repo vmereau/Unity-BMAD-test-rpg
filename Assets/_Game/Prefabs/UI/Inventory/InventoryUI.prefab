@@ -24,7 +24,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7598839064865832887}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -52,6 +52,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.InventoryUI
   _inventorySystem: {fileID: 0}
+  _goldSystem: {fileID: 0}
+  _goldText: {fileID: 2980045066705489080}
   _panelRoot: {fileID: 72754224183975733}
   _contentRoot: {fileID: 2011752390685961099}
   _itemSlotPrefab: {fileID: 6012055389016160358, guid: 89c909c64d6ba1c44ab2c59982127454, type: 3}
@@ -60,6 +62,7 @@ MonoBehaviour:
   _contextMenuPrefab: {fileID: 7581732013569071410, guid: 53786f3ce59f6954d9f45749b5407671, type: 3}
   _detailPanelUI: {fileID: 5905112853055029648}
   _actionBarUI: {fileID: 0}
+  _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
   _equipmentSystem: {fileID: 0}
   _equipmentUI: {fileID: 3423425567139468230}
@@ -582,13 +585,73 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4545176131487461162, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4545176131487461162, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4545176131487461162, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4545176131487461162, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4545176131487461162, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8787127131852918845, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
       propertyPath: m_Name
       value: InventoryPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 8787127131852918845, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
-      propertyPath: m_IsActive
-      value: 1
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042310752003267584, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -605,6 +668,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
   m_PrefabInstance: {fileID: 8714566456080027400}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2980045066705489080 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5884906429681075120, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+  m_PrefabInstance: {fileID: 8714566456080027400}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &5391275625893083963 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3612437323586434099, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}

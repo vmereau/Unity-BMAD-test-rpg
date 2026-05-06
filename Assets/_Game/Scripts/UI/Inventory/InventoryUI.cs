@@ -1,5 +1,7 @@
 using Game.Core;
+using Game.Economy;
 using Game.Inventory;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,8 +13,10 @@ namespace Game.UI
         private const string TAG = "[InventoryUI]";
 
         [SerializeField] private InventorySystem _inventorySystem;
+        [SerializeField] private GoldSystem _goldSystem;
+        [SerializeField] private TMP_Text _goldText;
         [SerializeField] private GameObject _panelRoot;
-        [SerializeField] private Transform _contentRoot;
+[SerializeField] private Transform _contentRoot;
         [SerializeField] private GameObject _itemSlotPrefab;
         [SerializeField] private Canvas _canvas;
         [SerializeField] private Transform _playerTransform;
@@ -21,6 +25,7 @@ namespace Game.UI
 
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ActionBarUI _actionBarUI;
+        [SerializeField] private GameEventSO_Int _onGoldChanged;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
 
         [SerializeField] private EquipmentSystem _equipmentSystem;
@@ -45,19 +50,25 @@ namespace Game.UI
         {
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
             _onEquipmentChanged?.AddListener(HandleEquipmentSlotsChange);
+            _onGoldChanged?.AddListener(HandleGoldChanged);
+            UpdateGoldDisplay();
         }
 
         private void OnDisable()
         {
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
             _onEquipmentChanged?.RemoveListener(HandleEquipmentSlotsChange);
+            _onGoldChanged?.RemoveListener(HandleGoldChanged);
         }
+
+        private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
 
         public void OnScreenOpen()
         {
             RefreshSlots();
             _equipmentUI?.Refresh();
             _equipmentUI?.gameObject.SetActive(true);
+            UpdateGoldDisplay();
             GameLog.Info(TAG, "Inventory opened");
         }
 
@@ -67,6 +78,12 @@ namespace Game.UI
             ClearSelection();
             _equipmentUI?.gameObject.SetActive(false);
             GameLog.Info(TAG, "Inventory closed");
+        }
+
+        private void UpdateGoldDisplay()
+        {
+            if (_goldText != null && _goldSystem != null)
+                _goldText.text = $"{_goldSystem.Gold}g";
         }
 
         private void HandleActionBarUsed(int _) => RefreshSlots(false);
