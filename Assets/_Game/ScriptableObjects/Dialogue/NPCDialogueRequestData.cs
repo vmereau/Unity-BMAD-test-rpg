@@ -1,4 +1,5 @@
 using Game.AI;
+using Game.Economy;
 using Game.Inventory;
 
 namespace Game.Core
@@ -10,5 +11,6 @@ namespace Game.Core
         public NPCMemoryComponent memories;    // null-safe — DialogueSystem guards
         public NPCDialogueGraphComponent graph; // null-safe — null means no graph, show only Farewell
         public InventorySystem npcInventory;    // Optional: for shop/trade system
+        public GoldSystem npcGoldSystem;        // Optional: null if NPC has no economy component
     }
 }

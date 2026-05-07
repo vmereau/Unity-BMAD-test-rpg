@@ -492,6 +492,7 @@ MonoBehaviour:
   _goldSystem: {fileID: 0}
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _goldText: {fileID: 9060036903446254687}
+  _npcGoldText: {fileID: 4567890123456789012}
 --- !u!114 &6296141117780770101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1012,3 +1013,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
   m_PrefabInstance: {fileID: 4148733007731703938}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4567890123456789012 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5884906429681075120, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
+  m_PrefabInstance: {fileID: 4148733007731703938}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI

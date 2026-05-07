@@ -30,6 +30,7 @@ namespace Game.World
         private NPCMemoryComponent _currentNPCMemory;
         private NPCDialogueGraphComponent _currentGraph;
         private InventorySystem _currentNPCInventory;
+        private GoldSystem _currentNPCGoldSystem;
         private StartDialogueNode _currentStartNode;
 
         private void OnEnable()
@@ -59,6 +60,7 @@ namespace Game.World
             _currentNPCMemory = data.memories;
             _currentGraph = data.graph;
             _currentNPCInventory = data.npcInventory;
+            _currentNPCGoldSystem = data.npcGoldSystem;
 
             StartDialogueNode[] startNodes = _currentGraph != null
                 ? _currentGraph.GetAvailableStartNodes(_currentNPCMemory)
@@ -98,11 +100,12 @@ namespace Game.World
                     }
                     else
                     {
-                        _dialogueUI.ShowShopNode(shopNode, () => 
+                        _dialogueUI.ShowShopNode(shopNode, () =>
                         {
                             InventorySystem inv = _currentNPCInventory;
+                            GoldSystem npcGold = _currentNPCGoldSystem;
                             Close();
-                            if (_tradeUI != null) _tradeUI.Open(inv);
+                            if (_tradeUI != null) _tradeUI.Open(inv, npcGold);
                         });
                     }
                     break;
@@ -351,6 +354,7 @@ namespace Game.World
             _currentNPCMemory = null;
             _currentGraph = null;
             _currentNPCInventory = null;
+            _currentNPCGoldSystem = null;
             _currentStartNode = null;
             CursorManager.Lock();
             GameLog.Info(TAG, "Closed dialogue");

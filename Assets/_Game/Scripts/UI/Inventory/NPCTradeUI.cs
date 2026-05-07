@@ -35,6 +35,9 @@ namespace Game.UI
         [SerializeField] private GoldSystem _goldSystem;
         [SerializeField] private GameEventSO_Int _onGoldChanged;
         [SerializeField] private TMP_Text _goldText;
+        [SerializeField] private TMP_Text _npcGoldText;
+
+        private GoldSystem _npcGoldSystem;
 
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
@@ -76,10 +79,11 @@ namespace Game.UI
                 Close();
         }
 
-        /// <summary>Opens the trade UI with the given NPC inventory.</summary>
-        public void Open(InventorySystem npcInventory)
+        /// <summary>Opens the trade UI with the given NPC inventory and gold system.</summary>
+        public void Open(InventorySystem npcInventory, GoldSystem npcGoldSystem)
         {
             _npcInventory = npcInventory;
+            _npcGoldSystem = npcGoldSystem;
             gameObject.SetActive(true);
             OnScreenOpen();
         }
@@ -116,6 +120,8 @@ namespace Game.UI
         {
             if (_goldText != null && _goldSystem != null)
                 _goldText.text = $"Gold: {_goldSystem.Gold}g";
+            if (_npcGoldText != null && _npcGoldSystem != null)
+                _npcGoldText.text = $"Gold: {_npcGoldSystem.Gold}g";
         }
 
         public void OnSlotSelected(int index, TradeSide side)
@@ -223,6 +229,7 @@ namespace Game.UI
                 {
                     sellBtn.gameObject.SetActive(true);
                     sellBtn.GetComponentInChildren<TMP_Text>().text = $"Sell ({item.sellValue}g)";
+                    sellBtn.interactable = _npcGoldSystem != null && _npcGoldSystem.Gold >= item.sellValue;
                     sellBtn.onClick.AddListener(() => { SellItem(_contextMenuSlotIndex); HideContextMenu(); });
                 }
                 buyBtn?.gameObject.SetActive(false);
@@ -242,6 +249,7 @@ namespace Game.UI
 
             if (_goldSystem != null && _goldSystem.TrySpend(item.buyValue))
             {
+                _npcGoldSystem?.Add(item.buyValue);
                 _npcInventory.DecrementStack(index);
                 _playerInventory?.AddItem(item);
                 RefreshGrids();
@@ -255,8 +263,14 @@ namespace Game.UI
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
 
+            if (_npcGoldSystem == null || !_npcGoldSystem.TrySpend(item.sellValue))
+            {
+                GameLog.Warn(TAG, $"SellItem blocked: NPC cannot afford {item.itemName} ({item.sellValue}g)");
+                return;
+            }
+
             _playerInventory.DecrementStack(index);
-            if (_goldSystem != null) _goldSystem.Add(item.sellValue);
+            _goldSystem?.Add(item.sellValue);
             _npcInventory?.AddItem(item);
             RefreshGrids();
             UpdateGoldDisplay();

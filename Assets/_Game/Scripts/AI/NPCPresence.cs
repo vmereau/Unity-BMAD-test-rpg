@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Economy;
 using Game.Inventory;
 using Game.NPC;
 using Game.World;
@@ -39,13 +40,15 @@ namespace Game.AI
             var memComponent = GetComponent<NPCMemoryComponent>(); // may be null — handled by DialogueSystem
             var graphComponent = GetComponent<NPCDialogueGraphComponent>(); // may be null — handled by DialogueSystem
             var invComponent = GetComponent<InventorySystem>(); // may be null — handled by Shop system
-            
+            var goldComponent = GetComponent<GoldSystem>(); // may be null — handled by NPCTradeUI
+
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
                 npcName = _data.entityName,
                 memories = memComponent,
                 graph = graphComponent,
-                npcInventory = invComponent
+                npcInventory = invComponent,
+                npcGoldSystem = goldComponent
             });
         }
     }
