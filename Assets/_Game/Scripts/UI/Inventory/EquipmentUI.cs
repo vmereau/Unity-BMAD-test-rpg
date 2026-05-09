@@ -12,6 +12,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
 
         [SerializeField] private ItemDetailPanelUI _itemDetailPanel;
+        [SerializeField] private InventoryDetailActions _invActions;
 
         [SerializeField] private EquipmentSlotUI _weaponSlot;
         [SerializeField] private EquipmentSlotUI _helmetSlot;
@@ -73,6 +74,7 @@ namespace Game.UI
         public void OnSlotClicked(EquipmentSlot slot, ItemSO item)
         {
             _itemDetailPanel?.Show(item);
+            _invActions?.BindForEquipmentSlot(item, _equipmentSystem);
         }
     }
 }

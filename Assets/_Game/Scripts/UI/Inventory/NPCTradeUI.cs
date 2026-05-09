@@ -26,6 +26,7 @@ namespace Game.UI
 
         [Header("Detail Panel")]
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
+        [SerializeField] private TradeDetailActions _tradeActions;
 
         [Header("Context Menu")]
         [SerializeField] private GameObject _contextMenuPrefab;
@@ -130,7 +131,7 @@ namespace Game.UI
             if (inv != null && index >= 0 && index < inv.Count)
             {
                 ItemSO item = inv.Items[index].Item;
-                UpdateDetailPanel(item, side);
+                UpdateDetailPanel(item, index, side);
             }
         }
 
@@ -145,11 +146,11 @@ namespace Game.UI
             else SellItem(index);
         }
 
-        private void UpdateDetailPanel(ItemSO item, TradeSide side)
+        private void UpdateDetailPanel(ItemSO item, int slotIndex, TradeSide side)
         {
             if (_detailPanelUI == null) return;
-            // No Use/Drop/Equip buttons in Trade UI
-            _detailPanelUI.Show(item); 
+            _detailPanelUI.Show(item);
+            _tradeActions?.Bind(this, slotIndex, item, side, _goldSystem, _npcGoldSystem);
         }
 
         private void ClearSelection()
@@ -242,7 +243,7 @@ namespace Game.UI
             if (_contextMenuBlocker != null) { Destroy(_contextMenuBlocker); _contextMenuBlocker = null; }
         }
 
-        private void BuyItem(int index)
+        public void BuyItem(int index)
         {
             if (_npcInventory == null || index < 0 || index >= _npcInventory.Count) return;
             ItemSO item = _npcInventory.Items[index].Item;
@@ -258,7 +259,7 @@ namespace Game.UI
             }
         }
 
-        private void SellItem(int index)
+        public void SellItem(int index)
         {
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;

@@ -34,6 +34,17 @@ namespace Game.Inventory
                 GameLog.Warn(TAG, "PlayerStats not assigned — equipment stat bonuses inactive");
         }
 
+        /// <summary>Equips the item by identity — walks the inventory to find the first matching slot index.</summary>
+        public void Equip(ItemSO item)
+        {
+            if (item == null) { GameLog.Warn(TAG, "Equip(ItemSO): item is null"); return; }
+            for (int i = 0; i < _inventorySystem.Count; i++)
+            {
+                if (_inventorySystem.Items[i].Item == item) { Equip(i); return; }
+            }
+            GameLog.Warn(TAG, $"Equip(ItemSO): {item.itemName} not found in inventory");
+        }
+
         /// <summary>Equips the item at the given inventory index.</summary>
         public void Equip(int inventoryIndex)
         {

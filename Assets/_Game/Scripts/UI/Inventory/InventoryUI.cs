@@ -24,6 +24,7 @@ namespace Game.UI
         [SerializeField] private GameObject _contextMenuPrefab;
 
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
+        [SerializeField] private InventoryDetailActions _invActions;
         [SerializeField] private ActionBarUI _actionBarUI;
         [SerializeField] private GameEventSO_Int _onGoldChanged;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
@@ -277,8 +278,8 @@ namespace Game.UI
 
         private void UpdateDetailPanel(ItemSO item, int slotIndex)
         {
-            System.Action onUse = item is UsableItemSO ? () => UseItem(slotIndex) : (System.Action)null;
-            _detailPanelUI.Show(item, () => DropItem(slotIndex), onUse);
+            _detailPanelUI.Show(item);
+            _invActions?.Bind(this, slotIndex, item, _equipmentSystem);
         }
 
         private void ClearSelection()
