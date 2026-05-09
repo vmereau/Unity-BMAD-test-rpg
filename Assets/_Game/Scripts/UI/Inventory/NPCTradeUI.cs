@@ -44,6 +44,8 @@ namespace Game.UI
         private GameObject _contextMenuBlocker;
         private int _contextMenuSlotIndex = -1;
 
+        private ItemSlotUI _selectedSlotUI;
+
         private InputSystem_Actions _input;
 
         private void Awake()
@@ -128,11 +130,14 @@ namespace Game.UI
         public void OnSlotSelected(int index, TradeSide side)
         {
             InventorySystem inv = (side == TradeSide.NPC) ? _npcInventory : _playerInventory;
-            if (inv != null && index >= 0 && index < inv.Count)
-            {
-                ItemSO item = inv.Items[index].Item;
-                UpdateDetailPanel(item, index, side);
-            }
+            if (inv == null || index < 0 || index >= inv.Count) return;
+
+            Transform root = (side == TradeSide.NPC) ? _npcContentRoot : _playerContentRoot;
+            _selectedSlotUI?.SetSelected(false);
+            _selectedSlotUI = root.GetChild(index).GetComponent<ItemSlotUI>();
+            _selectedSlotUI?.SetSelected(true);
+
+            UpdateDetailPanel(inv.Items[index].Item, index, side);
         }
 
         public void OnSlotRightClicked(int index, Vector2 pos, TradeSide side)
@@ -155,11 +160,14 @@ namespace Game.UI
 
         private void ClearSelection()
         {
+            _selectedSlotUI?.SetSelected(false);
+            _selectedSlotUI = null;
             _detailPanelUI?.Hide();
         }
 
         private void RefreshGrids()
         {
+            _selectedSlotUI = null;
             RefreshGrid(_npcContentRoot, _npcInventory);
             RefreshGrid(_playerContentRoot, _playerInventory);
         }
