@@ -28,6 +28,7 @@
 | npc-008 | The False Friend | area-001 | Antagonist / betrayer | none | stub |
 | npc-009 | Quarry Worker | area-002 (quarry) | Quest giver — sealed passage | none | stub |
 | npc-010 | Lead Hunter | area-004 (hunting grounds) | Work site manager | faction-001 (loose) | stub |
+| npc-011 | Innkeeper (Aldric Sorn) | Starting Town — The Creaking Flagon | Service NPC / information broker | none (covert) | draft |
 
 ---
 

@@ -29,4 +29,7 @@ MonoBehaviour:
   dayState: 0
   nightState: 3
   prefab: {fileID: 0}
-  memories: []
+  memories:
+  - {fileID: 11400000, guid: a3d66fad7772d1544837b49b547775e6, type: 2}
+  - {fileID: 11400000, guid: 2338257acb257044bbe09e5d59a9c854, type: 2}
+  - {fileID: 11400000, guid: a5c52f98db7262343ac86071c0395df5, type: 2}

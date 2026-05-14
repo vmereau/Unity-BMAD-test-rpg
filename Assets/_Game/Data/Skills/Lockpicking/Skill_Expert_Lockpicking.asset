@@ -10,15 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f9a3ad43719f0e45a6caff71b3c83e9, type: 3}
-  m_Name: Skill_PowerStrike
+  m_Name: Skill_Expert_Lockpicking
   m_EditorClassIdentifier: Game::Game.Progression.SkillSO
-  _skillId: power_strike
-  _displayName: Power Strike
-  _description: A powerful melee technique. Increases melee damage output by 10.
-  _lpCost: 2
+  _skillId: expert_lockpicking
+  _displayName: Expert Lockpicking
+  _description: 
+  _lpCost: 5
   _statsRequirements:
-  - statType: 0
-    value: 8
-  - statType: 2
-    value: 5
-  _skillRequirements: []
+  - statType: 1
+    value: 10
+  _skillRequirements:
+  - {fileID: 11400000, guid: 8a125a0c91ecb0a4c95d294630e0ac88, type: 2}

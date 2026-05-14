@@ -66,6 +66,19 @@ namespace Game.Progression
                 }
             }
 
+            if (skill.skillRequirements.Count > 0)
+            {
+                foreach (SkillSO required in skill.skillRequirements)
+                {
+                    if (required == null) continue;
+                    if (!HasSkill(required.skillId))
+                    {
+                        GameLog.Warn(TAG, $"Skill requirement not met for {skill.displayName}: need {required.displayName}");
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 

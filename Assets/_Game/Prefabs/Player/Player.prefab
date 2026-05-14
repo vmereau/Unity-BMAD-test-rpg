@@ -558,6 +558,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.ContainerSystem
   _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
   _containerUI: {fileID: 576199237022889503}
+  _playerSkills: {fileID: 660869248586365014}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

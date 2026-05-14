@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9fbbcd3ec0d509408d512213611c995, type: 3}
+  m_Name: TeachChoice_Innkeeper_Lockpicking
+  m_EditorClassIdentifier: Game::Game.Dialogue.TeachChoiceDialogueNode
+  text: 
+  nextNode: {fileID: 0}
+  choices:
+  - text: Beginner Lockpicking
+    requiredMemory: {fileID: 11400000, guid: 2338257acb257044bbe09e5d59a9c854, type: 2}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    teachingType: 0
+    goldCost: 50
+    skill: {fileID: 11400000, guid: 8a125a0c91ecb0a4c95d294630e0ac88, type: 2}
+    statToUpgrade: 0
+    statPoints: 0
+    limitStat: 0
+    confirmNextNode: {fileID: 11400000, guid: e3afbd85b346cc5408d5cbad41c767e8, type: 2}
+    denyNextNode: {fileID: 0}
+  - text: Expert Lockpicking
+    requiredMemory: {fileID: 11400000, guid: a5c52f98db7262343ac86071c0395df5, type: 2}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    teachingType: 0
+    goldCost: 120
+    skill: {fileID: 11400000, guid: 1b56a468c41c5454c81bdaef796e52e8, type: 2}
+    statToUpgrade: 0
+    statPoints: 0
+    limitStat: 0
+    confirmNextNode: {fileID: 11400000, guid: e3afbd85b346cc5408d5cbad41c767e8, type: 2}
+    denyNextNode: {fileID: 0}

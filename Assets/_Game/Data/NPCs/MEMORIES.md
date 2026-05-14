@@ -38,18 +38,14 @@ before placing memory assets.
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `unlockConditions` | `string[]` | **ALL** must be true in `WorldStateManager` for memory to be active |
-| `invalidationConditions` | `string[]` | If **ANY** is true, memory is permanently closed (supersedes unlock) |
+| `unlockConditions` | `Fact[]` | **ALL** must evaluate true for memory to be active |
+| `invalidationConditions` | `Fact[]` | If **ANY** evaluates true, memory is permanently closed (supersedes unlock) |
 
 Leave both arrays empty for a memory that is always active (e.g. a default greeting).
 
-World fact keys follow the `WorldFactPrefix` enum format:
-- `Killed.<EnemyName>` — registered by `WorldStateManager.RegisterKill()`
-- `Quest.<QuestId>.<Step>` — registered by `WorldStateManager.SetQuestStep()`
-- `World.<EventId>` — registered by `WorldStateManager.SetWorldEvent()`
-- `Dialogue.<NodeName>` — registered automatically when a non-repeatable topic completes
+Conditions use typed `Fact` ScriptableObject assets. Create the appropriate subtype and reference it in the array — never raw strings. `WorldStateManager.GetFact(Fact)` dispatches by subtype: `SkillFact` and `StatFact` are computed live from `PlayerSkills`/`PlayerStats`; other types (`KilledFact`, `DialogueFact`, `WorldFact`) are stored as flat key/bool entries.
 
-**Never construct key strings manually** — use the typed setter methods on `WorldStateManager`.
+For gating dialogue choices by skill learned state, use `SkillFact` — see `Assets/_Game/Data/Skills/CLAUDE.md`.
 
 ### Effects (`NPCMemoryEffects`)
 

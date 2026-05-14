@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Inventory;
+using Game.Progression;
 using UnityEngine;
 
 namespace Game.World
@@ -9,12 +10,15 @@ namespace Game.World
         private const string TAG = "[ContainerInteractable]";
 
         [SerializeField] private string _interactPrompt = "Open Container";
+        [SerializeField] private string _lockedInteractPrompt = "Lockpick";
         [SerializeField] private string _nameTag = "Chest";
+        [SerializeField] private bool _isLocked = false;
+        [SerializeField] private SkillSO _requiredLockpickingSkill;
         [SerializeField] private GameEventSO_ContainerOpenRequest _onContainerOpenRequested;
 
         private InventorySystem _inventory;
 
-        public string InteractPrompt => _interactPrompt;
+        public string InteractPrompt => _isLocked ? _lockedInteractPrompt : _interactPrompt;
         public string NameTag => _nameTag;
 
         private void Awake()
@@ -36,7 +40,11 @@ namespace Game.World
             if (_onContainerOpenRequested == null || _inventory == null) return;
             _onContainerOpenRequested.Raise(new ContainerOpenRequestData
             {
-                containerInventory = _inventory
+                containerInventory = _inventory,
+                isLocked = _isLocked,
+                requiredSkillId = (_isLocked && _requiredLockpickingSkill != null)
+                    ? _requiredLockpickingSkill.skillId
+                    : null
             });
         }
     }

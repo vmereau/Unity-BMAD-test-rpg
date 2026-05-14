@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Progression;
 using Game.UI;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Game.World
 
         [SerializeField] private GameEventSO_ContainerOpenRequest _onContainerOpenRequested;
         [SerializeField] private ContainerUI _containerUI;
+        [SerializeField] private PlayerSkills _playerSkills;
 
         private void OnEnable()
         {
@@ -34,6 +36,21 @@ namespace Game.World
                 GameLog.Warn(TAG, "ContainerUI is not assigned — cannot open container");
                 return;
             }
+
+            if (data.isLocked && !string.IsNullOrEmpty(data.requiredSkillId))
+            {
+                if (_playerSkills == null)
+                {
+                    GameLog.Warn(TAG, "PlayerSkills not assigned — cannot check lockpicking skill");
+                    return;
+                }
+                if (!_playerSkills.HasSkill(data.requiredSkillId))
+                {
+                    GameLog.Info(TAG, $"Container locked — player lacks skill '{data.requiredSkillId}'");
+                    return;
+                }
+            }
+
             _containerUI.Open(data.containerInventory);
         }
     }

@@ -16,11 +16,13 @@ namespace Game.Progression
         [TextArea] [SerializeField] private string _description;
         [Min(1)] [SerializeField] private int _lpCost = 1;
         [SerializeField] private List<StatRequirement> _statsRequirements = new List<StatRequirement>();
-        
+        [SerializeField] private List<SkillSO> _skillRequirements = new List<SkillSO>();
+
         public string skillId => _skillId;
         public string displayName => _displayName;
         public string description => _description;
         public int lpCost => _lpCost;
         public IReadOnlyList<StatRequirement> statsRequirements => _statsRequirements;
+        public IReadOnlyList<SkillSO> skillRequirements => _skillRequirements;
     }
 }

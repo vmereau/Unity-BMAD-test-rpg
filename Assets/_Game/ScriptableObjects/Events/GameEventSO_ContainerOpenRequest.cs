@@ -7,6 +7,8 @@ namespace Game.Core
     public struct ContainerOpenRequestData
     {
         public InventorySystem containerInventory;
+        public bool isLocked;
+        public string requiredSkillId;
     }
 
     [CreateAssetMenu(menuName = "Game/Events/Container Open Request", fileName = "NewContainerOpenRequestEvent")]

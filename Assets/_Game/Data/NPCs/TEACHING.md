@@ -54,7 +54,7 @@ The custom **`TeachChoiceOptionDrawer`** shows only the fields relevant to the s
 | Field | Type | Purpose |
 |-------|------|---------|
 | `text` | `string` | Button label shown to the player — **see authoring rule below** |
-| `requiredMemory` | `NPCMemoryEntrySO` | If set, option is hidden unless memory `IsActive()`. Null = always shown |
+| `requiredMemory` | `NPCMemoryEntrySO` | If set, option is hidden unless the memory appears in the NPC's active memories list. Null = always shown. **The referenced memory must be in `NPCDataSO.memories`** — the check is `Array.IndexOf(activeMemories, requiredMemory)`, not a standalone `IsActive()` call. |
 | `teachingType` | `TeachingType` | `SkillBased` or `StatBased` — controls which fields are shown in the Inspector |
 | `goldCost` | `int` | Gold deducted on selection (0 = free) |
 | `confirmNextNode` | `DialogueNode` | Node to advance to when teaching succeeds — must loop back (see below) |
@@ -75,6 +75,8 @@ The custom **`TeachChoiceOptionDrawer`** shows only the fields relevant to the s
 | `denyNextNode` | `DialogueNode` | Node to advance to when the cap is reached — must loop back (see below) |
 
 **Note:** Defense upgrades log a warning and have no effect — avoid authoring them unless intentional.
+
+**Auto-filter:** `DialogueSystem` automatically hides any `SkillBased` choice whose skill is already learned (`PlayerSkills.HasSkill()`). Gate memories with `SkillFact` `invalidationConditions` provide the same behaviour via the memory system and are the recommended authoring pattern — use `SkillFact` assets in `unlockConditions`/`invalidationConditions` on a gate memory (`NPCMemoryEntrySO` with no `startdialog`). See `Assets/_Game/Data/Skills/CLAUDE.md` for `SkillFact` details.
 
 ---
 
@@ -182,8 +184,10 @@ Start_Trainer_Teach           isRepeatable=true, text="Teach me something"
 - [ ] NPC subfolder exists
 - [ ] `Teachings/` subfolder exists under NPC folder (create if missing)
 - [ ] `Teachings/<TopicName>/` subfolder created
-- [ ] `StartDialogueNode` created and linked to a memory (`effects.startdialog`)
-- [ ] Memory added to `NPCDataSO.memories` list (or existing memory updated)
+- [ ] `StartDialogueNode` created and linked to a topic memory (`effects.startdialog`)
+- [ ] Topic memory added to `NPCDataSO.memories` list (or existing memory updated)
+- [ ] Gate memories (for `requiredMemory`) also added to `NPCDataSO.memories`
+- [ ] `SkillFact` assets created in `Assets/_Game/Data/Player/` if gating by skill learned state
 - [ ] Each `TeachChoiceOption.text` is the name/description only — no LP or gold cost (the game UI generates those)
 - [ ] `teachingType` set correctly on each choice (`SkillBased` or `StatBased`)
 - [ ] Skill choices: `skill` field set, stat fields left at default

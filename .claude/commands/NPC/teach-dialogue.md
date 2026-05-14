@@ -77,7 +77,7 @@ For each **teaching option**, collect:
 | **Skill choice** | Which `SkillSO` asset? (name / path). The LP cost is read from `SkillSO.lpCost` — do not ask for it separately |
 | **Stat choice** | Which `StatType`? (`Strength`, `Dexterity`, `Endurance`, `Intelligence`, `Defense`) and how many `statPoints`? and what `lpCost`? |
 | `goldCost` | Gold deducted on selection (0 = free) |
-| `requiredMemory` | Is this option memory-gated? (Null = always shown) |
+| `requiredMemory` | Is this option memory-gated? (Null = always shown). Gate memories using `SkillFact` conditions are the standard way to show/hide options based on learned skills — see `Assets/_Game/Data/Skills/CLAUDE.md`. Gate memories must be in `NPCDataSO.memories` to function. |
 
 **Stat Defense warning:** If the user requests a Defense stat upgrade, warn them:
 > "Defense has no base value in the stat system — a Defense upgrade logs a warning and does nothing at runtime. Are you sure you want to include it?"
@@ -92,27 +92,19 @@ For **EDIT**, you need:
 
 ## Step 5 — Derive choice button labels
 
-For every `TeachChoiceOption`, derive the `text` field using the format from `TEACHING.md`:
+For every `TeachChoiceOption`, derive the `text` field. The game UI appends LP and gold costs automatically — **do not include costs in the text field**.
 
-**Skill choice:**
-```
-<SkillSO.displayName> (LP: <SkillSO.lpCost>, Gold: <goldCost>)
-```
-Example: `Sword Mastery (LP: 3, Gold: 50)`
+**Skill choice:** `<SkillSO.displayName>`  — e.g. `Sword Mastery`
 
-**Stat upgrade choice:**
-```
-+<statPoints> <StatName> (LP: <lpCost>, Gold: <goldCost>)
-```
-Example: `+2 Strength (LP: 1, Gold: 30)`
+**Stat upgrade choice:** `+<statPoints> <StatName>` — e.g. `+2 Strength`
 
-Always include both costs even when one is 0. Present the derived labels to the user for review before proceeding.
+Present the derived labels with their costs in the plan summary (for the user's review), but set only the name in the asset `text` field.
 
 ---
 
-## Step 6 — Memory association (CREATE mode — StartDialogueNode)
+## Step 6 — Memory association (CREATE mode)
 
-When creating a new `StartDialogueNode`, always ask:
+**Topic memory** — for the `StartDialogueNode`:
 
 > "Should I create a new `NPCMemoryEntrySO` (`Mem_<NPC>_<Topic>`) for this teaching topic and add
 > it to `NPC_<NPCName>.asset`'s memories list? Or link it to an existing memory entry?
@@ -123,6 +115,13 @@ When creating a new `StartDialogueNode`, always ask:
 Wait for confirmation. Then either:
 - **New memory:** Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog`, add to `NPCDataSO.memories`
 - **Existing memory:** Identify the correct `NPCMemoryEntrySO` and set `effects.startdialog` on it
+
+**Gate memories** — for `TeachChoiceOption.requiredMemory`:
+
+If any choice option needs skill-based visibility (show only if skill learned / hide once learned):
+1. Create a `SkillFact` asset in `Assets/_Game/Data/Player/` referencing the relevant `SkillSO` — see `Assets/_Game/Data/Skills/CLAUDE.md`
+2. Create a gate `NPCMemoryEntrySO` (no `effects.startdialog`) with `unlockConditions` / `invalidationConditions` set to the `SkillFact`
+3. Add the gate memory to `NPCDataSO.memories` — **required**: `requiredMemory` is checked against the NPC's active memories list at runtime; a memory not in this list is never considered active
 
 ---
 
@@ -137,8 +136,8 @@ Assets to create:
   - Start_<NPC>_<Topic>.asset       (isRepeatable: <true/false>, text: "<label>")
   - Text_<NPC>_<Topic>.asset        ("<intro text...>")   ← if intro text provided
   - TeachChoice_<NPC>_<Topic>.asset
-      choices[0]: "+2 Strength (LP: 1, Gold: 30)"         ← stat upgrade
-      choices[1]: "Sword Mastery (LP: 3, Gold: 50)"       ← skill
+      choices[0]: "+2 Strength" — StatBased, LP: 1, Gold: 30    ← text field value in quotes
+      choices[1]: "Sword Mastery" — SkillBased, LP: 3, Gold: 50
       ...
   - Text_<NPC>_<Topic>_Confirm.asset ("<confirmation...>")  ← if confirmation text provided
   - Mem_<NPC>_<Topic>.asset         ← if new memory
@@ -163,12 +162,16 @@ Once confirmed, create or modify assets using Unity MCP tools (`manage_scriptabl
 
 Work in this order:
 1. Create missing folders (`Teachings/`, `Memories/`, topic subfolder) — **never place teaching assets inside `Dialogues/`**
-2. Create confirmation `TextDialogueNode` assets (leaf nodes first, then chain `nextNode` references back up)
-3. Create `TeachChoiceDialogueNode` asset, wire each option's `nextNode` to its confirmation text (or null)
-4. Create intro `TextDialogueNode` asset (if present), set `nextNode` to the `TeachChoiceDialogueNode`
-5. Create `StartDialogueNode` asset, set `nextNode` to the first node in chain
-6. Create or update `NPCMemoryEntrySO`, set `effects.startdialog`
-7. Update `NPCDataSO.memories` list
+2. Create `SkillFact` assets in `Assets/_Game/Data/Player/` if gate memories are needed
+3. Create gate `NPCMemoryEntrySO` assets (no `effects.startdialog`) with `SkillFact` conditions
+4. Create confirmation `TextDialogueNode` assets (leaf nodes first)
+5. Create `TeachChoiceDialogueNode` asset, wire each option's `confirmNextNode` to its confirmation text; wire confirm text `nextNode` back to `TeachChoiceDialogueNode` (loop-back rule)
+6. Create intro `TextDialogueNode` asset (if present), set `nextNode` to the `TeachChoiceDialogueNode`
+7. Create `StartDialogueNode` asset, set `nextNode` to the first node in chain
+8. Create topic `NPCMemoryEntrySO`, set `effects.startdialog` to the `StartDialogueNode`
+9. Update `NPCDataSO.memories` — add **all** memories (topic + all gate memories)
+
+**MCP array patching note:** `Array.size` patches are unsupported. Set elements directly with `data[0]`, `data[1]`, etc. — Unity auto-expands the array. Works for `choices`, `unlockConditions`, `invalidationConditions`, and `memories`.
 
 For each `TeachChoiceOption`, set fields exactly as follows based on effect type:
 
