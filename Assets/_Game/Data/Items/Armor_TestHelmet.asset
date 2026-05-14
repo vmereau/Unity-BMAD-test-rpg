@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.ArmorSO
   itemName: Test Helmet
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0fe43dd8fa49ea047b7b2d7240c8bc82, type: 3}
   maxStacks: 1
   worldItemPrefab: {fileID: 7470631476087896926, guid: 3ffaef23b6cac824bb27f07060573b65, type: 3}
   buyValue: 25

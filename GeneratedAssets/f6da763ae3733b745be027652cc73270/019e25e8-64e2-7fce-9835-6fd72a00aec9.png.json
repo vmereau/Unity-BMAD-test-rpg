@@ -1,0 +1,38 @@
+{
+    "asset": "f6da763ae3733b745be027652cc73270",
+    "fileName": "019e25e8-64e2-7fce-9835-6fd72a00aec9.png",
+    "prompt": "A high-quality 3D-rendered magical tome book icon with a glowing physical strike symbol on the cover, clean edges, soft studio lighting, neutral grey background, matching the art style of the reference image.",
+    "negativePrompt": "",
+    "model": "gpt-image-1",
+    "modelName": "GPT Image 1",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelatePixelGridSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": [
+            {
+                "doodleReferenceType": 7,
+                "doodle": [],
+                "label": "Image",
+                "strength": 0.25,
+                "invertStrength": false,
+                "assetReferenceGuid": "f5af8fede152fef4cad743871af5aaca",
+                "unlabeledIndex": -1
+            }
+        ]
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}
