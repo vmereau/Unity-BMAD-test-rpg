@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7261546203523890008}
   - component: {fileID: 7862203397704636257}
   m_Layer: 0
-  m_Name: Player name
+  m_Name: Header
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Player
+  m_text: Inventory
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 3436963294424704555}
   - component: {fileID: 1207310294100190976}
   m_Layer: 0
-  m_Name: NPC Name
+  m_Name: Header
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -202,7 +202,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: NPC Name
+  m_text: Container
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -284,8 +284,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2030817974552284369}
   - component: {fileID: 8885895993517353880}
-  - component: {fileID: 3308917386797720172}
   - component: {fileID: 4421060562134752926}
+  - component: {fileID: 1495741908002053255}
   m_Layer: 0
   m_Name: PlayerSide
   m_TagString: Untagged
@@ -340,19 +340,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &3308917386797720172
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4136067160254634235}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bb58d151aeb81c4da281c74af2c9001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::Game.UI.TradeSideUI
-  _side: 1
 --- !u!114 &4421060562134752926
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -373,6 +360,19 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &1495741908002053255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4136067160254634235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcc537d5a3d538d459985624ca8fc334, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.ContainerSideUI
+  _side: 1
 --- !u!1 &4809175494967112393
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,10 +383,10 @@ GameObject:
   m_Component:
   - component: {fileID: 6895294595367346356}
   - component: {fileID: 9160230153364733397}
-  - component: {fileID: 7433156018765457573}
   - component: {fileID: 1396966369163018791}
+  - component: {fileID: 9105630564143804128}
   m_Layer: 0
-  m_Name: NpcSide
+  m_Name: ContainerSide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -439,19 +439,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &7433156018765457573
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4809175494967112393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bb58d151aeb81c4da281c74af2c9001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::Game.UI.TradeSideUI
-  _side: 0
 --- !u!114 &1396966369163018791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -472,6 +459,19 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &9105630564143804128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4809175494967112393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcc537d5a3d538d459985624ca8fc334, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.ContainerSideUI
+  _side: 0
 --- !u!1 &7092967997244485438
 GameObject:
   m_ObjectHideFlags: 0
@@ -538,15 +538,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4159099085612558903}
-  - component: {fileID: 8351964982637085957}
   - component: {fileID: 6296141117780770101}
+  - component: {fileID: 8947312444343319649}
   m_Layer: 0
-  m_Name: NPCTradeUI
+  m_Name: ContainerUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4159099085612558903
 RectTransform:
   m_ObjectHideFlags: 0
@@ -569,30 +569,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8351964982637085957
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8256153902783850566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15f38a8204470ae4ea4facad0c5705fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::Game.UI.NPCTradeUI
-  _playerInventory: {fileID: 0}
-  _npcContentRoot: {fileID: 6523517482475922433}
-  _playerContentRoot: {fileID: 5695829354506613612}
-  _itemSlotPrefab: {fileID: 6012055389016160358, guid: 89c909c64d6ba1c44ab2c59982127454, type: 3}
-  _detailPanelUI: {fileID: 8525910066641873871}
-  _tradeActions: {fileID: 4808558061966018831}
-  _contextMenuPrefab: {fileID: 1111111111111111111, guid: a1b2c3d4e5f6789012345678abcdef01, type: 3}
-  _canvas: {fileID: 0}
-  _goldSystem: {fileID: 0}
-  _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
-  _goldText: {fileID: 9060036903446254687}
-  _npcGoldText: {fileID: 7509789243758396210}
 --- !u!114 &6296141117780770101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -619,6 +595,27 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &8947312444343319649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8256153902783850566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2a5f969f42a9c44fbc437a5804bd203, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.ContainerUI
+  _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
+  _playerInventory: {fileID: 0}
+  _containerContentRoot: {fileID: 6523517482475922433}
+  _playerContentRoot: {fileID: 5695829354506613612}
+  _itemSlotPrefab: {fileID: 6012055389016160358, guid: 89c909c64d6ba1c44ab2c59982127454, type: 3}
+  _detailPanelUI: {fileID: 8525910066641873871}
+  _containerActions: {fileID: 4912593227203832945}
+  _contextMenuPrefab: {fileID: 1111111111111111111, guid: c9d8487016dc8a141b636991fa649b74, type: 3}
+  _canvas: {fileID: 0}
 --- !u!1001 &1143651390968009489
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -627,6 +624,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3038397737851977673}
     m_Modifications:
+    - target: {fileID: 1810399024070813468, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+      propertyPath: m_text
+      value: Take
+      objectReference: {fileID: 0}
     - target: {fileID: 2553592293073617717, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -683,6 +684,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3880401749153222522, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+      propertyPath: m_Name
+      value: PutButton
+      objectReference: {fileID: 0}
     - target: {fileID: 4303707970958520027, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -714,6 +719,10 @@ PrefabInstance:
     - target: {fileID: 4303707970958520027, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5402661119449835773, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+      propertyPath: m_Name
+      value: TakeButton
       objectReference: {fileID: 0}
     - target: {fileID: 6379482444307218367, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_AnchorMax.y
@@ -745,7 +754,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7119116369135820226, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_Name
-      value: TradeDetailActions
+      value: ContainerDetailActions
+      objectReference: {fileID: 0}
+    - target: {fileID: 7366828163755557019, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+      propertyPath: m_text
+      value: Put
       objectReference: {fileID: 0}
     - target: {fileID: 7556099332172475450, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -831,22 +844,56 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5576721833162758686, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7119116369135820226, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4912593227203832945}
   m_SourcePrefab: {fileID: 100100000, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
---- !u!114 &4808558061966018831 stripped
+--- !u!114 &1220387548906712151 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5576721833162758686, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2247473115127054150, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
   m_PrefabInstance: {fileID: 1143651390968009489}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a00ac71906a89d4a91c44aaaf06b3ee, type: 3}
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::Game.UI.TradeDetailActions
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!1 &7859694489882185427 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7119116369135820226, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+  m_PrefabInstance: {fileID: 1143651390968009489}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4912593227203832945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7859694489882185427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 259ea4b1bb596fe4cae35fc89688ed87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.ContainerDetailActions
+  _takeButton: {fileID: 1220387548906712151}
+  _putButton: {fileID: 8055918834712759248}
+--- !u!114 &8055918834712759248 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6922964596448385217, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
+  m_PrefabInstance: {fileID: 1143651390968009489}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &8443667212774414118 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8859423202075444279, guid: de57d1c6e6d31de45ab5b8c007619e39, type: 3}
@@ -985,7 +1032,8 @@ PrefabInstance:
       value: InventoryPanel
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9068649755368364029, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
@@ -999,17 +1047,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
   m_PrefabInstance: {fileID: 3175271624510642159}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &9060036903446254687 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5884906429681075120, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
-  m_PrefabInstance: {fileID: 3175271624510642159}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &3923394217955352957
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1348,7 +1385,8 @@ PrefabInstance:
       value: InventoryPanel
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9068649755368364029, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
@@ -1362,14 +1400,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7141427145364890755, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
   m_PrefabInstance: {fileID: 4148733007731703938}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7509789243758396210 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5884906429681075120, guid: 7d3bf91500486bc4f938e4ea4384ad92, type: 3}
-  m_PrefabInstance: {fileID: 4148733007731703938}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI

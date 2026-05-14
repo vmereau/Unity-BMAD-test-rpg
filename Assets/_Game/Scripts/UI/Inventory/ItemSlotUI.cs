@@ -124,7 +124,7 @@ namespace Game.UI
             var source = eventData.pointerDrag?.GetComponent<ItemSlotUI>();
             if (source == null || source == this) return;
             source.RemoveGhostImage();
-            _container?.SwapSlots(source.SlotIndex, SlotIndex, _container);
+            _container?.SwapSlots(source.SlotIndex, SlotIndex, source.GetComponentInParent<IItemSlotContainer>());
         }
 
         public void OnPointerClick(PointerEventData eventData)

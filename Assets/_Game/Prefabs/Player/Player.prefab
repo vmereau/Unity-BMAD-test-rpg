@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 2598684479475945976}
   - component: {fileID: 3660959576836429512}
   - component: {fileID: 1595858556485850305}
+  - component: {fileID: 6376491736541447869}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -374,7 +375,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.InteractionSystem
   _config: {fileID: 11400000, guid: 125f0bce5f6870d47b214f91abd11b89, type: 2}
   _crosshairImage: {fileID: 1651187422288820590}
-  _dialogueSystem: {fileID: 1595858556485850305}
   _defaultColor: {r: 1, g: 1, b: 1, a: 1}
   _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _raycastMask:
@@ -544,6 +544,20 @@ MonoBehaviour:
   _lpSystem: {fileID: 7805096736339071647}
   _playerSkills: {fileID: 660869248586365014}
   _tradeUI: {fileID: 32427112177887266}
+--- !u!114 &6376491736541447869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38925f9eb42b8894f8415436105c389e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.ContainerSystem
+  _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
+  _containerUI: {fileID: 576199237022889503}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1727,6 +1741,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6497418583278793278, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerInventory
+      value: 
+      objectReference: {fileID: 1994668802294238475}
     - target: {fileID: 6524494827592562137, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1903,6 +1921,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15f38a8204470ae4ea4facad0c5705fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.NPCTradeUI
+--- !u!114 &576199237022889503 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6497418583278793278, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+  m_PrefabInstance: {fileID: 6761140961654539297}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2a5f969f42a9c44fbc437a5804bd203, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.ContainerUI
 --- !u!114 &1651187422288820590 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5421867585498856783, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}

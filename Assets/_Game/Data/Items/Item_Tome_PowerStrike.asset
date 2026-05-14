@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.SkillItemSO
   itemName: Tome of Power Strike
   description: A worn tome that teaches the Power Strike technique.
-  icon: {fileID: 21300000, guid: 1fe5b819929351b4b84ac12d9d92eabe, type: 3}
+  icon: {fileID: 21300000, guid: f6da763ae3733b745be027652cc73270, type: 3}
   maxStacks: 1
   worldItemPrefab: {fileID: 8772004600541926251, guid: 005698d04f7f6cc42b227fc415495700, type: 3}
   buyValue: 1
