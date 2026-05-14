@@ -256,15 +256,9 @@ namespace Game.UI
             if (_npcInventory == null || index < 0 || index >= _npcInventory.Count) return;
             ItemSO item = _npcInventory.Items[index].Item;
 
-            if (_goldSystem != null && _goldSystem.TrySpend(item.buyValue))
-            {
-                _npcGoldSystem?.Add(item.buyValue);
-                _npcInventory.DecrementStack(index);
-                _playerInventory?.AddItem(item);
-                RefreshGrids();
-                UpdateGoldDisplay();
-                GameLog.Info(TAG, $"Bought {item.itemName} for {item.buyValue}g");
-            }
+            if (_goldSystem == null || !_goldSystem.TrySpend(item.buyValue)) return;
+            CommitTrade(_npcInventory, _playerInventory, _npcGoldSystem, item, index, item.buyValue, TradeSide.NPC,
+                        $"Bought {item.itemName} for {item.buyValue}g");
         }
 
         public void SellItem(int index)
@@ -277,13 +271,29 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"SellItem blocked: NPC cannot afford {item.itemName} ({item.sellValue}g)");
                 return;
             }
+            CommitTrade(_playerInventory, _npcInventory, _goldSystem, item, index, item.sellValue, TradeSide.Player,
+                        $"Sold {item.itemName} for {item.sellValue}g");
+        }
 
-            _playerInventory.DecrementStack(index);
-            _goldSystem?.Add(item.sellValue);
-            _npcInventory?.AddItem(item);
+        private void CommitTrade(InventorySystem fromInv, InventorySystem toInv, GoldSystem receiverGold,
+                                  ItemSO item, int index, int goldAmount, TradeSide fromSide, string logMessage)
+        {
+            receiverGold?.Add(goldAmount);
+            fromInv.DecrementStack(index);
+            toInv?.AddItem(item);
             RefreshGrids();
             UpdateGoldDisplay();
-            GameLog.Info(TAG, $"Sold {item.itemName} for {item.sellValue}g");
+            RefreshDetailPanelAfterTrade(item, index, fromSide);
+            GameLog.Info(TAG, logMessage);
+        }
+
+        private void RefreshDetailPanelAfterTrade(ItemSO item, int index, TradeSide side)
+        {
+            InventorySystem inv = (side == TradeSide.NPC) ? _npcInventory : _playerInventory;
+            if (inv != null && index < inv.Count && inv.Items[index].Item == item)
+                OnSlotSelected(index, side);
+            else
+                ClearSelection();
         }
     }
 }

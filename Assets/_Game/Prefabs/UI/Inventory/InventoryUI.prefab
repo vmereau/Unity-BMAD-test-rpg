@@ -61,7 +61,7 @@ MonoBehaviour:
   _playerTransform: {fileID: 0}
   _contextMenuPrefab: {fileID: 7581732013569071410, guid: 53786f3ce59f6954d9f45749b5407671, type: 3}
   _detailPanelUI: {fileID: 5905112853055029648}
-  _invActions: {fileID: 8877665544332211990}
+  _invActions: {fileID: 3315191502158824214}
   _actionBarUI: {fileID: 0}
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
@@ -165,14 +165,20 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7144ea4930cd2be47a2ae05ba9cdbc31, type: 3}
+--- !u!114 &3315191502158824214 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2861226386320871561, guid: 7144ea4930cd2be47a2ae05ba9cdbc31, type: 3}
+  m_PrefabInstance: {fileID: 699451188331107231}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d60b6afaaae46fc4bbc712896b7f3229, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.InventoryDetailActions
 --- !u!224 &5653296774928372128 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5170264660389446207, guid: 7144ea4930cd2be47a2ae05ba9cdbc31, type: 3}
-  m_PrefabInstance: {fileID: 699451188331107231}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &8877665544332211990 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2861226386320871561, guid: 7144ea4930cd2be47a2ae05ba9cdbc31, type: 3}
   m_PrefabInstance: {fileID: 699451188331107231}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1187006729117007799
@@ -247,6 +253,10 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
+    - target: {fileID: 4610396559980555377, guid: e1beb4882c11b004b96441fe744f886b, type: 3}
+      propertyPath: _invActions
+      value: 
+      objectReference: {fileID: 3315191502158824214}
     - target: {fileID: 4610396559980555377, guid: e1beb4882c11b004b96441fe744f886b, type: 3}
       propertyPath: _onEquipmentChanged
       value: 
@@ -391,10 +401,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4610396559980555377, guid: e1beb4882c11b004b96441fe744f886b, type: 3}
-      propertyPath: _invActions
-      value:
-      objectReference: {fileID: 8877665544332211990}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

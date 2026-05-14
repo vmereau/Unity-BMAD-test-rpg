@@ -39,9 +39,6 @@ namespace Game.UI
             if (_dropButton == null) return;
             _dropButton.onClick.RemoveAllListeners();
 
-            bool isEquipped = es != null && es.IsEquipped(item);
-            if (isEquipped) { _dropButton.gameObject.SetActive(false); return; }
-
             _dropButton.gameObject.SetActive(true);
             _dropButton.onClick.AddListener(() => owner.DropItem(slotIndex));
         }

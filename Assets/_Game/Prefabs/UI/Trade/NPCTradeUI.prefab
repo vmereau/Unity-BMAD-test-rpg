@@ -285,6 +285,7 @@ GameObject:
   - component: {fileID: 2030817974552284369}
   - component: {fileID: 8885895993517353880}
   - component: {fileID: 3308917386797720172}
+  - component: {fileID: 4421060562134752926}
   m_Layer: 0
   m_Name: PlayerSide
   m_TagString: Untagged
@@ -352,6 +353,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.TradeSideUI
   _side: 1
+--- !u!114 &4421060562134752926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4136067160254634235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 0
+  m_MinHeight: -1
+  m_PreferredWidth: 0
+  m_PreferredHeight: -1
+  m_FlexibleWidth: 1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &4809175494967112393
 GameObject:
   m_ObjectHideFlags: 0
@@ -363,6 +384,7 @@ GameObject:
   - component: {fileID: 6895294595367346356}
   - component: {fileID: 9160230153364733397}
   - component: {fileID: 7433156018765457573}
+  - component: {fileID: 1396966369163018791}
   m_Layer: 0
   m_Name: NpcSide
   m_TagString: Untagged
@@ -430,6 +452,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.TradeSideUI
   _side: 0
+--- !u!114 &1396966369163018791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4809175494967112393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 0
+  m_MinHeight: -1
+  m_PreferredWidth: 0
+  m_PreferredHeight: -1
+  m_FlexibleWidth: 1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &7092967997244485438
 GameObject:
   m_ObjectHideFlags: 0
@@ -439,6 +481,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6551849258686380710}
+  - component: {fileID: 5360621587967938428}
   m_Layer: 0
   m_Name: ItemDetailContainer
   m_TagString: Untagged
@@ -466,6 +509,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &5360621587967938428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7092967997244485438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 0
+  m_MinHeight: -1
+  m_PreferredWidth: 0
+  m_PreferredHeight: -1
+  m_FlexibleWidth: 1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &8256153902783850566
 GameObject:
   m_ObjectHideFlags: 0
