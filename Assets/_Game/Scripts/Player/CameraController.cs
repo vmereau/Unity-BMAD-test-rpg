@@ -31,6 +31,7 @@ namespace Game.Player
         private float _pitch;
         private float _defaultCameraTargetLocalY;
         private float _defaultFollowOffsetZ;
+        private float _defaultFollowOffsetY;
 
         private void Awake()
         {
@@ -54,8 +55,12 @@ namespace Game.Player
             _yaw   = _cameraTarget.eulerAngles.y;
             _pitch = Mathf.DeltaAngle(0f, _cameraTarget.eulerAngles.x);
             _defaultCameraTargetLocalY = _cameraTarget.localPosition.y;
+            
             if (_cinemachineFollow != null)
+            {
                 _defaultFollowOffsetZ = _cinemachineFollow.FollowOffset.z;
+                _defaultFollowOffsetY = _cinemachineFollow.FollowOffset.y;
+            }
         }
 
         private void OnEnable()
@@ -139,14 +144,17 @@ namespace Game.Player
                 heightSign = 0f;
             }
 
+            // Keep the raycast origin (CameraTarget) at a constant height to prevent it from entering the ceiling
             Vector3 pos = _cameraTarget.localPosition;
-            pos.y = _defaultCameraTargetLocalY + heightSign * t * _lookDownHeightRise;
+            pos.y = _defaultCameraTargetLocalY;
             _cameraTarget.localPosition = pos;
 
             if (_cinemachineFollow != null)
             {
                 Vector3 offset = _cinemachineFollow.FollowOffset;
-                offset.z = _defaultFollowOffsetZ + t * _lookDownZoomIn;
+                // Apply the height adjustment to the camera offset instead
+                offset.y = _defaultFollowOffsetY + (heightSign * t * _lookDownHeightRise);
+                offset.z = _defaultFollowOffsetZ + (t * _lookDownZoomIn);
                 _cinemachineFollow.FollowOffset = offset;
             }
         }

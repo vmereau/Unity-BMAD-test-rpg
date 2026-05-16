@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 411886402502551026}
   m_Layer: 0
-  m_Name: Village house
+  m_Name: VillageHouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -463,13 +463,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_roofFull8m_a1
       objectReference: {fileID: 0}
+    - target: {fileID: 1031004003, guid: abc00000000001134740660761960262, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1031004004, guid: abc00000000001134740660761960262, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.149
       objectReference: {fileID: 0}
     - target: {fileID: 1031004004, guid: abc00000000001134740660761960262, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.045
+      value: 1.98
       objectReference: {fileID: 0}
     - target: {fileID: 1031004004, guid: abc00000000001134740660761960262, type: 3}
       propertyPath: m_LocalPosition.z
@@ -501,6 +505,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1031004004, guid: abc00000000001134740660761960262, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031004006, guid: abc00000000001134740660761960262, type: 3}
+      propertyPath: m_Convex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031004006, guid: abc00000000001134740660761960262, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031004006, guid: abc00000000001134740660761960262, type: 3}
+      propertyPath: m_ProvidesContacts
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
