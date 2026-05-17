@@ -20,11 +20,45 @@ namespace Game.Player
     {
         private const string TAG = "[Player]";
 
+        [Tooltip("Grace window after losing isGrounded before the player is considered airborne. " +
+                 "Absorbs single-frame ungroundings on slope crests, step edges, and small ledges. " +
+                 "Also enables coyote-jump.")]
+        [SerializeField] private float _coyoteTime = 0.5f;
+
         private CharacterController _characterController;
         private PlayerAnimator _playerAnimator;
+        private float _lastGroundedTime;
 
-        // Computed from engine state — no setter needed
-        public bool IsAirborne => _characterController != null && !_characterController.isGrounded;
+        /// <summary>
+        /// True when the player is airborne after a coyote-time grace window.
+        /// Reads as false for <c>_coyoteTime</c> seconds after <see cref="CharacterController.isGrounded"/>
+        /// flips to false, so slope crests and small ledges don't trigger fall logic.
+        /// Active jumps bypass the window via <see cref="NotifyJumpStarted"/>.
+        /// </summary>
+        public bool IsAirborne
+        {
+            get
+            {
+                if (_characterController == null) return false;
+                if (_characterController.isGrounded)
+                {
+                    _lastGroundedTime = Time.time;
+                    return false;
+                }
+                return Time.time - _lastGroundedTime > _coyoteTime;
+            }
+        }
+
+        /// <summary>
+        /// Called by <c>PlayerController</c> when an active jump is initiated.
+        /// Expires the coyote window so <see cref="IsAirborne"/> becomes true on the next frame,
+        /// preventing the rising/fall animation from being delayed by the grace period.
+        /// Coyote time is only meant to absorb passive ungroundings (slopes, ledges), not real jumps.
+        /// </summary>
+        public void NotifyJumpStarted()
+        {
+            _lastGroundedTime = float.MinValue;
+        }
 
         /// <summary>True when the player cannot perform any action (cursor unlocked).</summary>
         public bool IsBusy => !CursorManager.IsLocked;
@@ -55,6 +89,8 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+
+            _lastGroundedTime = Time.time;
         }
 
         // ── State setters (called by PlayerCombat / DodgeController) ─────────

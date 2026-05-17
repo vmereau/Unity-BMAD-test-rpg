@@ -32,11 +32,13 @@ namespace Game.Player
 
         private Animator _animator;
         private CharacterController _characterController;
+        private PlayerStateManager _stateManager;
 
         private void Awake()
         {
             _animator = GetComponent<Animator>();
             _characterController = GetComponent<CharacterController>();
+            _stateManager = GetComponent<PlayerStateManager>();
 
             if (_animator == null)
             {
@@ -47,6 +49,12 @@ namespace Game.Player
             if (_characterController == null)
             {
                 GameLog.Error(TAG, "CharacterController not found — PlayerAnimator cannot read speed.");
+                enabled = false;
+                return;
+            }
+            if (_stateManager == null)
+            {
+                GameLog.Error(TAG, "PlayerStateManager not found — PlayerAnimator cannot read IsAirborne.");
                 enabled = false;
                 return;
             }
@@ -78,7 +86,7 @@ namespace Game.Player
             _animator.SetFloat(VelocityXHash, normX, DAMP_TIME, Time.deltaTime);
             _animator.SetFloat(VelocityZHash, normZ, DAMP_TIME, Time.deltaTime);
 
-            _animator.SetBool(IsGroundedHash, _characterController.isGrounded);
+            _animator.SetBool(IsGroundedHash, !_stateManager.IsAirborne);
             _animator.SetBool(IsRisingHash, _characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
         }
 

@@ -91,6 +91,7 @@ namespace Game.Player
             if (canJump && _input.Player.Jump.WasPressedThisFrame())
             {
                 _verticalVelocity = _config.jumpForce;
+                _stateManager?.NotifyJumpStarted();
                 GameLog.Info(TAG, $"Jump triggered. Vertical velocity set to {_verticalVelocity}");
             }
         }

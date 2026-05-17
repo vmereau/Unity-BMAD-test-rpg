@@ -24,6 +24,17 @@
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` (Story 7.12) — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
+### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
+
+`PlayerStateManager.IsAirborne` is **not** `!_characterController.isGrounded` — it includes a coyote-time grace window (`_coyoteTime`, `[SerializeField]`, default `0.1s`). The property returns `false` for `_coyoteTime` seconds after `isGrounded` last returned `true`, so single-frame ungroundings on slope crests, step edges, and small ledges do not flip the player into the airborne state.
+
+Consequences:
+- **`PlayerAnimator.Update()` must drive the animator `IsGrounded` bool via `!_stateManager.IsAirborne`** — never query `_characterController.isGrounded` directly for animation. Doing so reintroduces the falling-clip flicker on slopes and breaks the single-source-of-truth contract.
+- **`PlayerController.ApplyGravity()` intentionally still uses raw `_characterController.isGrounded`** — gravity must engage on the actual physical ungrounding, otherwise real falls feel floaty for ~100 ms. Only the *gameplay* airborne concept (action gating + animation) gets the grace window; physics stays raw.
+- **Active jumps must call `_stateManager.NotifyJumpStarted()`** — coyote time should only forgive *passive* ungroundings (slopes, ledges). When the player jumps on purpose, `PlayerController.ApplyJump()` calls `NotifyJumpStarted()` right after setting `_verticalVelocity = jumpForce`, which expires the coyote window so `IsAirborne` becomes true on the very next frame. Without this call, the rising/fall animation is delayed by the full `_coyoteTime` window. Any future system that programmatically launches the player upward (knockback, ability, etc.) should do the same.
+- **Coyote-jump is still enabled** — `CanJump()` is evaluated *before* `NotifyJumpStarted()` is called, so the player can still jump for `_coyoteTime` seconds after walking off a ledge. If you ever want strict no-coyote-jump, change `CanJump()` alone to query raw `isGrounded`.
+- Tuning: bump `_coyoteTime` to `0.15`–`0.3s` if flicker persists on a specific slope; lower to `0.05`–`0.08s` if mid-jump actions become possible due to the grace.
+
 ---
 
 ## PlayerAnimator — Locomotion & Combat Animation API
@@ -125,6 +136,9 @@ Consequences for cursor lock handling in `CameraController`:
 | HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
 | HIGH | `Animator.SetTrigger/SetBool` for player combat animations called outside `PlayerAnimator` — all combat animator calls must go through `PlayerAnimator.SetBlocking()`, `PlayAttack()`, `PlayDodge()`, `SetInCombat()` |
 | HIGH | `CanAttack()` or `CanBlock()` returns true when weapon is sheathed — both gates require `IsInCombat == true` since Story 7.12; test scenarios must press R before attacking |
+| HIGH | `PlayerAnimator` reads `_characterController.isGrounded` directly for the animator `IsGrounded` bool — must read `!_stateManager.IsAirborne` so the coyote-time grace applies; raw `isGrounded` causes falling-clip flicker on slopes/ledges |
+| MEDIUM | Action-gating code uses `!_characterController.isGrounded` instead of `_stateManager.IsAirborne` — bypasses the coyote window and reintroduces single-frame action cancellation on slope crests |
+| MEDIUM | Code sets `_verticalVelocity` to a positive value (jump, launcher, knockback) without calling `_stateManager.NotifyJumpStarted()` — the coyote window will swallow the upward motion and delay the rising animation by `_coyoteTime` seconds |
 | HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `PlayerAnimatorController`; locomotion uses `VelocityX`/`VelocityZ` only |
 | MEDIUM | `CharacterController.velocity.magnitude` used for animation — Y component inflates value; strip Y before normalizing |
 | MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |
