@@ -13,7 +13,8 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── CharacterController  (Height: 1.8, Center Y: 1.0)
 ├── Animator             (Apply Root Motion: OFF; Controller: PlayerAnimatorController)
 ├── PlayerController.cs
-├── PlayerAnimator.cs
+├── HumanoidAnimationBridge.cs  (Game.Animations — owns all Animator.Set* calls)
+├── PlayerAnimationDriver.cs    (reads CharacterController velocity, drives HumanoidAnimationBridge)
 ├── CameraController.cs
 ├── PlayerStateManager.cs
 ├── PlayerCombat.cs
@@ -63,7 +64,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 - `DialogueSystem` is on the **Player root** (not UICanvas, not a separate scene GO)
 - No Rigidbody on player — `CharacterController` only
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
-- `PlayerAnimator` reads `CharacterController.velocity` passively for movement — never writes to movement state
+- `PlayerAnimationDriver` reads `CharacterController.velocity` passively for movement — never writes to movement state
 
 ---
 

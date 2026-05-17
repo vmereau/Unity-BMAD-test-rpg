@@ -2,20 +2,20 @@ using Game.Core;
 using Game.World;
 using UnityEngine;
 
-namespace Game.AI
+namespace Game.Animations
 {
     /// <summary>
-    /// Generic animator bridge for any world entity (enemies, NPCs, friendlies).
-    /// Lives on the entity ROOT GameObject. The Animator lives on a child GO (e.g. CreatureVisual) —
-    /// assign via Inspector; do NOT use [RequireComponent(typeof(Animator))].
+    /// Generic animator bridge for simple world entities driven by a single Speed parameter
+    /// (monsters, ambient creatures, non-humanoid NPCs).
+    /// Handles the "Entity contract": life-cycle (Death/Ragdoll), SO-driven Animator Overrides,
+    /// and 1D Speed-based locomotion.
     ///
-    /// AnimatorOverride: wire the per-creature AnimatorOverrideController directly (e.g. from monsterTypeSO.AnimatorOverride).
-    /// ComponentsToDisableOnDeath: list any MonoBehaviours (EnemyBrain, EnemyHealth, NPCScheduler…)
-    ///   that should be stopped when EnableRagdoll() fires. Configured per-prefab in Inspector.
-    ///
-    /// EnableRagdoll() is called by SMB_DeathState.OnStateExit when the Death animation completes.
+    /// Humanoid entities (Player, humanoid NPCs) use <see cref="HumanoidAnimationBridge"/> with a
+    /// per-entity driver that owns velocity normalization. EntityAnimationBridge does NOT
+    /// forward to HumanoidAnimationBridge — its Speed value is in raw units and would saturate
+    /// the humanoid 2D blend tree.
     /// </summary>
-    public class EntityAnimator : MonoBehaviour
+    public class EntityAnimationBridge : MonoBehaviour
     {
         private const string TAG = "[AI]";
 
@@ -33,13 +33,15 @@ namespace Game.AI
 
         private void Awake()
         {
+            if (_animator == null) _animator = GetComponentInChildren<Animator>();
+
             if (_animator == null)
             {
-                GameLog.Warn(TAG, $"{gameObject.name}: No Animator assigned — EntityAnimator is a no-op");
+                GameLog.Warn(TAG, $"{gameObject.name}: No Animator assigned — EntityAnimationBridge is a no-op");
                 return;
             }
 
-            if (_persistentID.Entity.AnimatorOverride != null)
+            if (_persistentID != null && _persistentID.Entity != null && _persistentID.Entity.AnimatorOverride != null)
                 _animator.runtimeAnimatorController = _persistentID.Entity.AnimatorOverride;
 
             _ragdollBodies = _animator.GetComponentsInChildren<Rigidbody>();
@@ -49,18 +51,12 @@ namespace Game.AI
 
         public void SetMoveSpeed(float speed)
         {
-            _animator?.SetFloat(SpeedHash, speed);
+            if (_animator == null) return;
+            _animator.SetFloat(SpeedHash, speed);
         }
 
-        public void TriggerAttack()
-        {
-            _animator?.SetTrigger(AttackHash);
-        }
-
-        public void TriggerGetHit()
-        {
-            _animator?.SetTrigger(GetHitHash);
-        }
+        public void TriggerAttack() => _animator?.SetTrigger(AttackHash);
+        public void TriggerGetHit() => _animator?.SetTrigger(GetHitHash);
 
         public void TriggerDeath()
         {
@@ -68,19 +64,12 @@ namespace Game.AI
             _animator.SetTrigger(DeathHash);
         }
 
-        /// <summary>
-        /// Called by SMB_DeathState.OnStateExit when the Death animation finishes.
-        /// Disables the Animator (to freeze pose), makes all ragdoll Rigidbodies non-kinematic,
-        /// then disables every MonoBehaviour listed in _componentsToDisableOnDeath.
-        /// If no ragdoll bodies are found, components are still disabled and the body stays in scene.
-        /// </summary>
         public void EnableRagdoll()
         {
             if (_ragdollActive) return;
 
             if (_ragdollBodies == null || _ragdollBodies.Length == 0)
             {
-                GameLog.Info(TAG, $"{gameObject.name} has no ragdoll bodies — disabling components");
                 DisableDeathComponents();
                 return;
             }
@@ -90,10 +79,7 @@ namespace Game.AI
                 rb.isKinematic = false;
 
             _ragdollActive = true;
-
             DisableDeathComponents();
-
-            GameLog.Info(TAG, $"{gameObject.name} ragdoll activated");
         }
 
         private void DisableDeathComponents()

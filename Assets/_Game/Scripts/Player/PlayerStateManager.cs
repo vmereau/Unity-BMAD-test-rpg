@@ -15,7 +15,7 @@ namespace Game.Player
     /// Attach to the Player prefab root alongside PlayerCombat, DodgeController, StaminaSystem, CharacterController.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
-    [RequireComponent(typeof(PlayerAnimator))]
+    [RequireComponent(typeof(PlayerAnimationDriver))]
     public class PlayerStateManager : MonoBehaviour
     {
         private const string TAG = "[Player]";
@@ -26,7 +26,7 @@ namespace Game.Player
         [SerializeField] private float _coyoteTime = 0.5f;
 
         private CharacterController _characterController;
-        private PlayerAnimator _playerAnimator;
+        private PlayerAnimationDriver _playerAnimator;
         private float _lastGroundedTime;
 
         /// <summary>
@@ -82,10 +82,10 @@ namespace Game.Player
                 return;
             }
 
-            _playerAnimator = GetComponent<PlayerAnimator>();
+            _playerAnimator = GetComponent<PlayerAnimationDriver>();
             if (_playerAnimator == null)
             {
-                GameLog.Error(TAG, "PlayerAnimator not found on Player — PlayerStateManager disabled");
+                GameLog.Error(TAG, "PlayerAnimationDriver not found on Player — PlayerStateManager disabled");
                 enabled = false;
                 return;
             }

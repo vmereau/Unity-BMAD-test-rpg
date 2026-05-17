@@ -98,6 +98,7 @@ GameObject:
   - component: {fileID: 3660959576836429512}
   - component: {fileID: 1595858556485850305}
   - component: {fileID: 6376491736541447869}
+  - component: {fileID: 4694893551373556916}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -347,6 +348,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b15559dd3fb2be4ab8362be11d1fb5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Player.PlayerStateManager
+  _coyoteTime: 0.5
 --- !u!114 &5748466653404673820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -559,6 +561,19 @@ MonoBehaviour:
   _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
   _containerUI: {fileID: 576199237022889503}
   _playerSkills: {fileID: 660869248586365014}
+--- !u!114 &4694893551373556916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ae1ab41bd13cde4e82e4444f0d76395, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Characters.Humanoids.HumanoidAnimator
+  _animator: {fileID: 256641999253984500}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

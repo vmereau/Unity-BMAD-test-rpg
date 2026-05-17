@@ -1,27 +1,17 @@
 using _Game.ScriptableObjects.Entities;
+using Game.Animations;
 using Game.Combat;
 using Game.Core;
 using Game.Player;
 using Game.World;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 namespace Game.AI
 {
     /// <summary>
     /// Generic entity state machine: Idle → Patrolling → (Engaging → Attacking) → Dead.
-    /// Idle: delegates to Entity.ExecuteIdle() (wander, stand still, etc.); optionally detects player → Engaging.
-    /// Patrolling: cycles between waypoints; optionally detects player → Engaging.
-    /// Engaging: chases player via NavMesh within DetectionRange; disengages beyond DisengageRange.
-    /// Attacking: stops moving, strikes player on cooldown within AttackRange.
-    /// Dead: no-op state (EntityHealth handles death animation via EntityAnimator).
-    /// Engaging and Attacking are only active when _canEngagePlayer = true (hostile entities).
-    /// Patrol without waypoints falls back to Idle wander at spawn origin.
-    /// Story 2.8: Initial implementation as EnemyBrain (patrol + engage only).
-    /// Story 2.9: Added Attacking and Dead states.
-    /// Enemy Creature System: Migrated to EnemyTypeSO; added EntityAnimator calls.
-    /// Renamed EntityBrain: generic for any entity type; _canEngagePlayer toggles combat behavior;
-    ///   idle wander logic moved into monsterTypeSO.ExecuteIdle(); Entity base is stand-still.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EntityBrain : MonoBehaviour
@@ -32,7 +22,8 @@ namespace Game.AI
 
         [SerializeField] private PersistentID _persistentID;
         [SerializeField] private Transform[] _waypoints;
-        [SerializeField] private EntityAnimator _entityAnimator;
+        [FormerlySerializedAs("_entityAnimator")]
+        [SerializeField] private EntityAnimationBridge _animationBridge;
 
         [Header("Behavior")]
         [Tooltip("True for hostile entities (enemies). Enables player detection, chase, and attack states.")]
@@ -136,7 +127,7 @@ namespace Game.AI
         {
             float target = _agent.velocity.magnitude;
             _smoothedAnimSpeed = Mathf.Lerp(_smoothedAnimSpeed, target, Time.deltaTime * 10f);
-            _entityAnimator?.SetMoveSpeed(_smoothedAnimSpeed);
+            _animationBridge?.SetMoveSpeed(_smoothedAnimSpeed);
         }
 
         private void HandleCooldowns()
@@ -240,14 +231,14 @@ namespace Game.AI
 
         private void HandleDead()
         {
-            // No-op: death animation and ragdoll handled by EntityAnimator.
+            // No-op: death animation and ragdoll handled by EntityAnimationBridge.
         }
 
         // --- Combat ---
 
         private void ExecuteAttack()
         {
-            _entityAnimator?.TriggerAttack();
+            _animationBridge?.TriggerAttack();
             _attackCooldownTimer = _persistentID.Entity.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks player");
 
