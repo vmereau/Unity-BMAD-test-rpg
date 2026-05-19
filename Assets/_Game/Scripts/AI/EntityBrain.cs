@@ -22,8 +22,9 @@ namespace Game.AI
 
         [SerializeField] private PersistentID _persistentID;
         [SerializeField] private Transform[] _waypoints;
+        [FormerlySerializedAs("_animationBridge")]
         [FormerlySerializedAs("_entityAnimator")]
-        [SerializeField] private EntityAnimationBridge _animationBridge;
+        [SerializeField] private AIAnimationDriver _animationDriver;
 
         [Header("Behavior")]
         [Tooltip("True for hostile entities (enemies). Enables player detection, chase, and attack states.")]
@@ -39,7 +40,6 @@ namespace Game.AI
         private int _currentWaypoint;
         private float _waitTimer;
         private float _attackCooldownTimer;
-        private float _smoothedAnimSpeed;
 
         private Vector3 _idleOrigin;
         private EntityState _disengageState = EntityState.Patrolling;
@@ -120,14 +120,7 @@ namespace Game.AI
             }
 
             HandleCooldowns();
-            HandleMovementAnimation();
-        }
-
-        private void HandleMovementAnimation()
-        {
-            float target = _agent.velocity.magnitude;
-            _smoothedAnimSpeed = Mathf.Lerp(_smoothedAnimSpeed, target, Time.deltaTime * 10f);
-            _animationBridge?.SetMoveSpeed(_smoothedAnimSpeed);
+            if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
         }
 
         private void HandleCooldowns()
@@ -231,14 +224,14 @@ namespace Game.AI
 
         private void HandleDead()
         {
-            // No-op: death animation and ragdoll handled by EntityAnimationBridge.
+            // No-op: death animation and ragdoll handled by the AIAnimationDriver.
         }
 
         // --- Combat ---
 
         private void ExecuteAttack()
         {
-            _animationBridge?.TriggerAttack();
+            _animationDriver?.TriggerAttack();
             _attackCooldownTimer = _persistentID.Entity.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks player");
 

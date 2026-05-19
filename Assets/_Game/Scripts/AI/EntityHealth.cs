@@ -12,9 +12,9 @@ namespace Game.AI
     /// Generic health component for any world entity (enemies, NPCs, neutral).
     /// On death: stops NavMeshAgent if present, calls PersistentID.RegisterDeath(), triggers death animation.
     /// Body remains in scene permanently after ragdoll activates (no SetActive(false)).
-    /// Attach to entity root. Entity SO drives BaseHealth; EntityAnimationBridge and PersistentID are optional.
+    /// Attach to entity root. Entity SO drives BaseHealth; AIAnimationDriver and PersistentID are optional.
     /// Story 2.9: Initial implementation as EnemyHealth.
-    /// Enemy Creature System: Migrated to EnemyTypeSO; death triggers EntityAnimationBridge instead of SetActive(false).
+    /// Enemy Creature System: Migrated to EnemyTypeSO; death triggers AIAnimationDriver instead of SetActive(false).
     /// Renamed EntityHealth: generic for any entity type; NavMeshAgent stop is optional via TryGetComponent.
     /// </summary>
     public class EntityHealth : MonoBehaviour
@@ -22,8 +22,9 @@ namespace Game.AI
         private const string TAG = "[Combat]";
 
         [SerializeField] private PersistentID _persistentID;
+        [FormerlySerializedAs("_animationBridge")]
         [FormerlySerializedAs("_entityAnimator")]
-        [SerializeField] private EntityAnimationBridge _animationBridge;
+        [SerializeField] private AIAnimationDriver _animationDriver;
 
         public float CurrentHealth { get; private set; }
         public bool IsDead { get; private set; }
@@ -67,7 +68,7 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_persistentID.Entity.BaseHealth:F0}");
 
             if (CurrentHealth <= 0f) { Die(); return; }  // death path — no GetHit
-            _animationBridge?.TriggerGetHit();              // hit reaction only if still alive
+            _animationDriver?.TriggerGetHit();              // hit reaction only if still alive
         }
 
         private void Die()
@@ -81,9 +82,9 @@ namespace Game.AI
 
             _persistentID?.RegisterDeath();
 
-            _animationBridge?.TriggerDeath();
-            // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via EntityAnimationBridge.EnableRagdoll()
-            // If EntityAnimationBridge is absent (e.g. Enemy_Grunt), this is a no-op and body stays active indefinitely.
+            _animationDriver?.TriggerDeath();
+            // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via AIAnimationDriver.EnableRagdoll()
+            // If AIAnimationDriver is absent, this is a no-op and body stays active indefinitely.
         }
     }
 }

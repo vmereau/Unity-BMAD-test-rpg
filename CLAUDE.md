@@ -94,6 +94,7 @@ Triggers to watch for:
 
 > - Animator Controller best practices + MCP animation quirks → `Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md`
 > - Cinemachine OTS setup, float/euler quirks, Input System action map, CharacterController velocity Y, PlayerStateManager gate pattern, PlayerAnimationDriver / HumanoidAnimationBridge API → `Assets/_Game/Scripts/Player/CLAUDE.md`
+> - AI animation polymorphism via `AIAnimationDriver` base class (Brain/Health → Driver → Bridge contract for monster + humanoid AI) → `Assets/_Game/Scripts/Core/Animations/CLAUDE.md`
 
 ### Unity Lifecycle Gotcha: OnDisable Before OnEnable
 

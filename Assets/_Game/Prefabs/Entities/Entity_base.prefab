@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -6003750127742918704}
   - component: {fileID: 6892060459904109189}
   - component: {fileID: 3257318164010893370}
+  - component: {fileID: 7557825151662695134}
   m_Layer: 6
   m_Name: Entity_base
   m_TagString: Untagged
@@ -62,9 +63,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bc1ff05bbb035a34cb7a7f54f833aa88, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::Game.AI.EntityAnimator
+  m_EditorClassIdentifier: Game::Game.Animations.MonsterAnimationDriver
   _persistentID: {fileID: 1186952831256218892}
-  _animator: {fileID: 6461208964627829605}
+  _bridge: {fileID: 7557825151662695134}
   _componentsToDisableOnDeath:
   - {fileID: -6003750127742918704}
   - {fileID: 6892060459904109189}
@@ -81,7 +82,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.EntityHealth
   _persistentID: {fileID: 1186952831256218892}
-  _entityAnimator: {fileID: 3299999205233303053}
+  _animationDriver: {fileID: 3299999205233303053}
 --- !u!114 &6892060459904109189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,7 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.EntityBrain
   _persistentID: {fileID: 1186952831256218892}
   _waypoints: []
-  _entityAnimator: {fileID: 3299999205233303053}
+  _animationDriver: {fileID: 3299999205233303053}
   _canEngagePlayer: 0
 --- !u!195 &3257318164010893370
 NavMeshAgent:
@@ -120,6 +121,19 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &7557825151662695134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8283577674775524483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 195af215c2ffcf3458549b2f6a7b779d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Animations.MonsterAnimationBridge
+  _animator: {fileID: 6461208964627829605}
 --- !u!1 &8934368094500991404
 GameObject:
   m_ObjectHideFlags: 0
