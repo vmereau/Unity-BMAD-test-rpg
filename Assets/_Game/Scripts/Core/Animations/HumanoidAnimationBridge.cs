@@ -18,6 +18,8 @@ namespace Game.Animations
         private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
         private static readonly int IsDodgingBackwardsHash = Animator.StringToHash("IsDodgingBackwards");
         private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
+        private static readonly int GetHitHash = Animator.StringToHash("GetHit");
+        private static readonly int DeathHash = Animator.StringToHash("Death");
 
         [SerializeField] private Animator _animator;
 
@@ -48,5 +50,8 @@ namespace Game.Animations
             if (_animator != null)
                 _animator.SetTrigger(isBackwardRoll ? IsDodgingBackwardsHash : IsDodgingHash);
         }
+
+        public void TriggerGetHit() => _animator?.SetTrigger(GetHitHash);
+        public void TriggerDeath()  => _animator?.SetTrigger(DeathHash);
     }
 }
