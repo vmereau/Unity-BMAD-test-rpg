@@ -56,6 +56,7 @@ namespace Game.Animations
         public override void TriggerAttack() => _bridge?.TriggerAttack();
         public override void TriggerGetHit() => _bridge?.TriggerGetHit();
         public override void TriggerDeath()  => _bridge?.TriggerDeath();
+        public override void SetWarning(bool active) => _bridge?.SetWarning(active);
 
         public override void EnableRagdoll()
         {

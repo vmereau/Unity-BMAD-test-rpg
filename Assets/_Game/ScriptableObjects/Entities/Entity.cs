@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Game.Core;
+using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
 
@@ -7,6 +8,8 @@ namespace _Game.ScriptableObjects.Entities
     [CreateAssetMenu(fileName = "", menuName = "", order = 0)]
     public class Entity : ScriptableObject
     {
+        private const string TAG = "[Entity]";
+
         public string entityName;
 
         [Header("Stats")]
@@ -16,6 +19,13 @@ namespace _Game.ScriptableObjects.Entities
         [Header("Detection")]
         [SerializeField, FormerlySerializedAs("detectionRange")]  private float _detectionRange  = 8f;
         [SerializeField, FormerlySerializedAs("disengageRange")]  private float _disengageRange  = 12f;
+
+        [Tooltip("Inner radius. Player between WarningRange and DetectionRange triggers the warning telegraph. Must be below DetectionRange.")]
+        [SerializeField] private float _warningRange = 5f;
+        [Tooltip("Seconds the player may linger in the warning band before the entity escalates to Engaging.")]
+        [SerializeField] private float _warningEngageTime = 3f;
+        [Tooltip("Degrees/second the entity rotates to face the player while warning.")]
+        [SerializeField] private float _warningTurnSpeed = 540f;
 
         [Header("Engage")]
         [SerializeField, FormerlySerializedAs("engageStoppingDistance")] private float _engageStoppingDistance = 1.5f;
@@ -46,6 +56,9 @@ namespace _Game.ScriptableObjects.Entities
         
         public float DetectionRange           => _detectionRange;
         public float DisengageRange           => _disengageRange;
+        public float WarningRange             => _warningRange;
+        public float WarningEngageTime        => _warningEngageTime;
+        public float WarningTurnSpeed         => _warningTurnSpeed;
         public float EngageStoppingDistance   => _engageStoppingDistance;
         public float WaypointArrivalThreshold => _waypointArrivalThreshold;
         public float PatrolWaitTime           => _patrolWaitTime;
@@ -64,5 +77,17 @@ namespace _Game.ScriptableObjects.Entities
         {
             // Default: stand still.
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (_warningRange < 0f) _warningRange = 0f;
+            if (_warningRange >= _detectionRange)
+            {
+                GameLog.Warn(TAG, $"'{name}': _warningRange ({_warningRange}) must be below _detectionRange ({_detectionRange}) — clamped.");
+                _warningRange = Mathf.Max(0f, _detectionRange - 0.5f);
+            }
+        }
+#endif
     }
 }

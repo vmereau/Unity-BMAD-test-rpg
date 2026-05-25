@@ -18,7 +18,7 @@ namespace Game.AI
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Engaging, Attacking, Dead }
+        private enum EntityState { Idle, Patrolling, Warning, Engaging, Attacking, Dead }
 
         [SerializeField] private PersistentID _persistentID;
         [SerializeField] private Transform[] _waypoints;
@@ -29,6 +29,8 @@ namespace Game.AI
         [Header("Behavior")]
         [Tooltip("True for hostile entities (enemies). Enables player detection, chase, and attack states.")]
         [SerializeField] private bool _canEngagePlayer = true;
+        [Tooltip("Skip the warning telegraph and engage the instant the player is detected.")]
+        [SerializeField] private bool _engageImmediately = false;
 
         private NavMeshAgent _agent;
         private Transform _player;
@@ -40,6 +42,7 @@ namespace Game.AI
         private int _currentWaypoint;
         private float _waitTimer;
         private float _attackCooldownTimer;
+        private float _warningTimer;
 
         private Vector3 _idleOrigin;
         private EntityState _disengageState = EntityState.Patrolling;
@@ -88,6 +91,15 @@ namespace Game.AI
                     if (_playerHealth == null)
                         GameLog.Warn(TAG, "PlayerHealth not found on Player — attacks will deal no damage");
                 }
+
+                // Runtime guard: OnValidate only clamps in-editor. An un-migrated SO with
+                // WarningRange >= DetectionRange has an empty warning band, so the entity will
+                // always instant-engage and the telegraph silently never fires. Warn once.
+                if (!_engageImmediately &&
+                    _persistentID.Entity.WarningRange >= _persistentID.Entity.DetectionRange)
+                {
+                    GameLog.Warn(TAG, $"{gameObject.name}: WarningRange ({_persistentID.Entity.WarningRange}) >= DetectionRange ({_persistentID.Entity.DetectionRange}) — warning band empty; entity will instant-engage. Check the Entity SO.");
+                }
             }
 
             if (_waypoints == null || _waypoints.Length == 0)
@@ -114,6 +126,7 @@ namespace Game.AI
             {
                 case EntityState.Idle:       HandleIdle();     break;
                 case EntityState.Patrolling: HandlePatrol();   break;
+                case EntityState.Warning:    HandleWarning();  break;
                 case EntityState.Engaging:   HandleEngage();   break;
                 case EntityState.Attacking:  HandleAttack();   break;
                 case EntityState.Dead:       HandleDead();     break;
@@ -140,7 +153,7 @@ namespace Game.AI
         {
             if (_canEngagePlayer && IsPlayerInDetectionRange())
             {
-                TransitionToEngaging();
+                RespondToDetectedPlayer();
                 return;
             }
 
@@ -153,7 +166,7 @@ namespace Game.AI
         {
             if (_canEngagePlayer && IsPlayerInDetectionRange())
             {
-                TransitionToEngaging();
+                RespondToDetectedPlayer();
                 return;
             }
 
@@ -167,6 +180,38 @@ namespace Game.AI
                 else
                     _agent.isStopped = true;
             }
+        }
+
+        // Decide how to react to first contact: instant engage, cross-inner-ring engage, or warn.
+        private void RespondToDetectedPlayer()
+        {
+            if (_engageImmediately) { TransitionToEngaging(); return; }
+            float dist = Vector3.Distance(transform.position, _player.position);
+            if (dist <= _persistentID.Entity.WarningRange) TransitionToEngaging();
+            else TransitionToWarning();
+        }
+
+        private void HandleWarning()
+        {
+            if (_player == null) { CancelWarning(); return; }
+            float dist = Vector3.Distance(transform.position, _player.position);
+            if (dist > _persistentID.Entity.DetectionRange) { CancelWarning(); return; }      // player escaped
+            if (dist <= _persistentID.Entity.WarningRange) { TransitionToEngaging(); return; } // crossed inner ring
+            FacePlayer();
+            _warningTimer -= Time.deltaTime;
+            if (_warningTimer <= 0f) TransitionToEngaging();
+        }
+
+        // Y-only rotation to face the player. Manual because the agent is stopped while warning,
+        // so NavMeshAgent auto-rotation does not apply.
+        private void FacePlayer()
+        {
+            Vector3 dir = _player.position - transform.position;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.0001f) return;
+            Quaternion target = Quaternion.LookRotation(dir);
+            float maxDeg = _persistentID.Entity.WarningTurnSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, target, maxDeg);
         }
 
         private void HandleEngage()
@@ -284,9 +329,30 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Idle at {origin}");
         }
 
+        private void TransitionToWarning()
+        {
+            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
+                _disengageState = _state;
+            _state = EntityState.Warning;
+            _agent.isStopped = true;
+            _warningTimer = _persistentID.Entity.WarningEngageTime;
+            _animationDriver?.SetWarning(true);
+            GameLog.Info(TAG, $"{gameObject.name} detected player — warning");
+        }
+
+        private void CancelWarning()
+        {
+            _animationDriver?.SetWarning(false);
+            GameLog.Info(TAG, $"{gameObject.name} lost player during warning — standing down");
+            if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
+            else TransitionToPatrol();
+        }
+
         private void TransitionToEngaging()
         {
-            // Only capture return state from non-combat states; Attacking→Engaging preserves the original origin state
+            _animationDriver?.SetWarning(false);
+            // Only capture return state from non-combat states. Warning→Engaging and Attacking→Engaging
+            // both preserve the disengage state already captured on the original Idle/Patrol entry.
             if (_state == EntityState.Idle || _state == EntityState.Patrolling)
                 _disengageState = _state;
             _state = EntityState.Engaging;
@@ -313,6 +379,7 @@ namespace Game.AI
 
         private void TransitionToDead()
         {
+            _animationDriver?.SetWarning(false);
             _state = EntityState.Dead;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");

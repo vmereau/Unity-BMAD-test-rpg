@@ -57,6 +57,15 @@ Symmetric on both sides: bridge + driver.
   `TriggerDeath` / `EnableRagdoll` on `HumanoidAIAnimationDriver` warn-log and no-op. Implement
   when the humanoid AI combat story is created. Until then, `EntityHealth` damage flow to
   NPCs will warn-log without NRE.
+- **`SetWarning(bool)` is a held bool, not a trigger.** The warning telegraph must hold for the
+  multi-second warning timer and exit cleanly, so the seam method takes a bool (not a one-shot
+  trigger). `MonsterAnimationBridge.SetWarning` writes the `IsWarning` bool animator param;
+  `MonsterAnimationDriver.SetWarning` forwards to it. `HumanoidAIAnimationDriver.SetWarning`
+  warn-logs only on `active == true` (so it logs once on warning enter, silent on the `false`
+  exit) — humanoid warning animation is deferred to the humanoid AI combat epic. `EntityBrain`
+  owns the warning *logic* (stop, face, timer, escalate) identically for both; only the humanoid
+  *animation* is stubbed. `SetBool` on a controller missing the `IsWarning` param is a silent
+  no-op in Unity, so the C# is safe to ship before the controller is wired.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 
@@ -71,3 +80,4 @@ Symmetric on both sides: bridge + driver.
 | HIGH | Player code routed through `AIAnimationDriver` — Player is not AI |
 | MEDIUM | `HumanoidAIAnimationDriver._runSpeed` left at default `4f` on a variant whose `Entity.EngageSpeed > 4` |
 | MEDIUM | New monster `Trigger*` parameter added to `MonsterAnimationBridge` but not exposed via `AIAnimationDriver` virtual method — humanoid driver can't no-op-stub it |
+| MEDIUM | `IsWarning` animator param missing on a monster controller using warning detection — `SetBool` no-ops silently, so the warning telegraph never plays (no error, no clip). Verify the param name matches exactly (case-sensitive). |

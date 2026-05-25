@@ -82,6 +82,10 @@ namespace Game.AI
 
             _persistentID?.RegisterDeath();
 
+            // Guarantee the warning telegraph clears at the instant of death, independent of
+            // EntityBrain.Update() timing — avoids a stuck warning pose if the brain is disabled
+            // by the ragdoll path before its next tick runs TransitionToDead().
+            _animationDriver?.SetWarning(false);
             _animationDriver?.TriggerDeath();
             // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via AIAnimationDriver.EnableRagdoll()
             // If AIAnimationDriver is absent, this is a no-op and body stays active indefinitely.
