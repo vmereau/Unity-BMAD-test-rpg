@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104458dea31e4414593470b8351653c2, type: 3}
+  m_Name: Faction_Monsters
+  m_EditorClassIdentifier: Game::Game.Factions.FactionSO
+  factionName: Monsters
+  _hostileFactions:
+  - {fileID: 11400000, guid: 503e951b4df9b64489bbddc766d68580, type: 2}
+  - {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
+  - {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
+  _alliedFactions: []

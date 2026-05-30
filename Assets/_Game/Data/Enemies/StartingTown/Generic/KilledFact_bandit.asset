@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 993f385e7ab011645b6fbc2ed9523130, type: 3}
+  m_Name: KilledFact_bandit
+  m_EditorClassIdentifier: Game::Game.Core.KilledFact
+  _guid: 44916c76-c975-4289-9495-3f4c722973a5
+  monsterType: {fileID: 0}

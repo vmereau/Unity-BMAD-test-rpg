@@ -1,5 +1,6 @@
 using _Game.ScriptableObjects.Entities;
 using Game.Animations;
+using Game.Combat;
 using Game.Core;
 using Game.World;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace Game.AI
     /// Enemy Creature System: Migrated to EnemyTypeSO; death triggers AIAnimationDriver instead of SetActive(false).
     /// Renamed EntityHealth: generic for any entity type; NavMeshAgent stop is optional via TryGetComponent.
     /// </summary>
-    public class EntityHealth : MonoBehaviour
+    public class EntityHealth : MonoBehaviour, IDamageable
     {
         private const string TAG = "[Combat]";
 
@@ -71,6 +72,9 @@ namespace Game.AI
             _animationDriver?.TriggerGetHit();              // hit reaction only if still alive
         }
 
+        // AI entities do not block today — every hit lands. Part of IDamageable contract.
+        public HitResult TryReceiveHit(GameObject attacker) => HitResult.NotBlocked;
+
         private void Die()
         {
             IsDead = true;
@@ -86,6 +90,7 @@ namespace Game.AI
             // EntityBrain.Update() timing — avoids a stuck warning pose if the brain is disabled
             // by the ragdoll path before its next tick runs TransitionToDead().
             _animationDriver?.SetWarning(false);
+            _animationDriver?.SetInCombat(false);
             _animationDriver?.TriggerDeath();
             // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via AIAnimationDriver.EnableRagdoll()
             // If AIAnimationDriver is absent, this is a no-op and body stays active indefinitely.

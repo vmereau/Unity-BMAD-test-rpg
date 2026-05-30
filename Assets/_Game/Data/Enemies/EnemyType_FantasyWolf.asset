@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: EnemyType_FantasyWolf
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
   entityName: Wolf
+  _faction: {fileID: 11400000, guid: 332572146a19a2a41ad097d395d1e813, type: 2}
   _baseHealth: 80
   _attackDamage: 12
-  _baseSpeed: 2.5
-  _engageSpeed: 5
   _detectionRange: 10
   _disengageRange: 15
-  _idleWanderRadius: 5
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
   _engageStoppingDistance: 1.5
+  _baseSpeed: 2.5
+  _engageSpeed: 5
+  _xpOnKill: 25
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 2
   _attackCooldown: 2
-  _xpOnKill: 25
   _animatorOverride: {fileID: 22100000, guid: 679b6b231f1f5974aa6cc334e09de775, type: 2}
+  _idleWanderRadius: 5

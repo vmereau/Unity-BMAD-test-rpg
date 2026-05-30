@@ -12,7 +12,7 @@ namespace Game.Player
     /// Story 2.9: Initial implementation.
     /// Story 7.3: Added Defense reduction via PlayerStats.Defense.
     /// </summary>
-    public class PlayerHealth : MonoBehaviour
+    public class PlayerHealth : MonoBehaviour, IDamageable
     {
         private const string TAG = "[Combat]";
 
@@ -22,6 +22,9 @@ namespace Game.Player
 
         // Same-system reference — PlayerHealth and PlayerStats both in Scripts/Player/. No architecture violation.
         [SerializeField] private PlayerStats _playerStats;
+
+        // Same-system reference (Game.Combat) — delegated to for block/dodge/perfect-block resolution.
+        [SerializeField] private PlayerCombat _playerCombat;
 
         public float CurrentHealth { get; private set; }
         public float MaxHealth => _config != null ? _config.baseHealth : 0f;
@@ -41,6 +44,11 @@ namespace Game.Player
 
             if (_playerStats == null)
                 GameLog.Warn(TAG, "PlayerStats not assigned — damage will not be reduced by Defense");
+
+            // Same-GO fallback so a missed Inspector wiring still self-heals (PlayerCombat is on the Player root).
+            if (_playerCombat == null) _playerCombat = GetComponent<PlayerCombat>();
+            if (_playerCombat == null)
+                GameLog.Warn(TAG, "PlayerCombat not assigned and none on this GameObject — incoming hits will not check block/dodge");
 
             CurrentHealth = _config.baseHealth;
         }
@@ -65,6 +73,16 @@ namespace Game.Player
             GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
             _onPlayerHealthChanged?.Raise(CurrentHealth);
             if (CurrentHealth <= 0f) Die();
+        }
+
+        /// <summary>
+        /// IDamageable entry point for AI attacks. Delegates block/dodge/perfect-block resolution
+        /// to PlayerCombat, preserving all Defense/stamina logic. Returns NotBlocked if dead or unwired.
+        /// </summary>
+        public HitResult TryReceiveHit(GameObject attacker)
+        {
+            if (IsDead) return HitResult.NotBlocked;
+            return _playerCombat != null ? _playerCombat.TryReceiveHit(attacker) : HitResult.NotBlocked;
         }
 
         /// <summary>

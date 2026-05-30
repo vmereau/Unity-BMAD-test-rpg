@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: NPC_Elder
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Elder Aldric
+  _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
   _baseHealth: 50
   _attackDamage: 10
   _detectionRange: 8
   _disengageRange: 12
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
   _engageStoppingDistance: 1.5
   _baseSpeed: 2
   _engageSpeed: 4

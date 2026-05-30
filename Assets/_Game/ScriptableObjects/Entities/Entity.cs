@@ -1,4 +1,5 @@
 ﻿using Game.Core;
+using Game.Factions;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -12,10 +13,13 @@ namespace _Game.ScriptableObjects.Entities
 
         public string entityName;
 
+        [Header("Faction")]
+        [SerializeField] private FactionSO _faction;
+
         [Header("Stats")]
         [SerializeField, FormerlySerializedAs("baseHealth")]   private float _baseHealth   = 50f;
         [SerializeField, FormerlySerializedAs("attackDamage")] private float _attackDamage = 10f;
-        
+
         [Header("Detection")]
         [SerializeField, FormerlySerializedAs("detectionRange")]  private float _detectionRange  = 8f;
         [SerializeField, FormerlySerializedAs("disengageRange")]  private float _disengageRange  = 12f;
@@ -48,6 +52,7 @@ namespace _Game.ScriptableObjects.Entities
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
         
+        public FactionSO Faction              => _faction;
         public float BaseHealth               => _baseHealth;
         public float AttackDamage             => _attackDamage;
         public float BaseSpeed                => _baseSpeed;

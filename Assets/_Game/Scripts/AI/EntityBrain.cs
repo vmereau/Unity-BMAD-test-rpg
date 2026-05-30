@@ -2,7 +2,7 @@ using _Game.ScriptableObjects.Entities;
 using Game.Animations;
 using Game.Combat;
 using Game.Core;
-using Game.Player;
+using Game.Factions;
 using Game.World;
 using UnityEngine;
 using UnityEngine.AI;
@@ -27,16 +27,18 @@ namespace Game.AI
         [SerializeField] private AIAnimationDriver _animationDriver;
 
         [Header("Behavior")]
-        [Tooltip("True for hostile entities (enemies). Enables player detection, chase, and attack states.")]
-        [SerializeField] private bool _canEngagePlayer = true;
-        [Tooltip("Skip the warning telegraph and engage the instant the player is detected.")]
+        [Tooltip("Skip the warning telegraph and engage the instant a target is detected.")]
         [SerializeField] private bool _engageImmediately = false;
 
+        [Tooltip("This entity's faction membership — drives detection & engagement decisions.")]
+        [SerializeField] private FactionMember _selfFactionMember;
+        [Tooltip("Seconds between target-acquisition registry scans while Idle/Patrolling. Bounds per-frame scan cost.")]
+        [SerializeField] private float _targetScanInterval = 0.25f;
+
         private NavMeshAgent _agent;
-        private Transform _player;
         private EntityHealth _entityHealth;
-        private PlayerCombat _playerCombat;
-        private PlayerHealth _playerHealth;
+        private FactionMember _currentTarget;
+        private float _targetScanTimer;
 
         private EntityState _state = EntityState.Idle;
         private int _currentWaypoint;
@@ -69,37 +71,37 @@ namespace Game.AI
             {
                 GameLog.Error(TAG, "EntityHealth not found on same GameObject — EntityBrain disabled");
                 enabled = false;
+                return;
+            }
+
+            if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
+            if (_selfFactionMember == null)
+            {
+                GameLog.Error(TAG, $"{gameObject.name}: FactionMember not found on same GameObject — EntityBrain disabled");
+                enabled = false;
+                return;
             }
         }
 
         private void Start()
         {
-            if (_canEngagePlayer)
+            // FactionMember.Awake has run by now (all Awakes precede any Start). If it failed to resolve a
+            // faction it disabled itself but GetComponent still found it, leaving the brain silently passive —
+            // surface that here instead of running forever with no possible target.
+            if (_selfFactionMember.Faction == null)
             {
-                var playerObj = GameObject.FindGameObjectWithTag("Player");
-                if (playerObj == null)
-                {
-                    GameLog.Warn(TAG, "Player not found (tag 'Player') — entity cannot engage");
-                }
-                else
-                {
-                    _player = playerObj.transform;
-                    _playerCombat = playerObj.GetComponent<PlayerCombat>();
-                    _playerHealth = playerObj.GetComponent<PlayerHealth>();
-                    if (_playerCombat == null)
-                        GameLog.Warn(TAG, "PlayerCombat not found on Player — block/dodge checks skipped");
-                    if (_playerHealth == null)
-                        GameLog.Warn(TAG, "PlayerHealth not found on Player — attacks will deal no damage");
-                }
+                GameLog.Error(TAG, $"{gameObject.name}: FactionMember resolved no faction — brain can never acquire a target. Disabling.");
+                enabled = false;
+                return;
+            }
 
-                // Runtime guard: OnValidate only clamps in-editor. An un-migrated SO with
-                // WarningRange >= DetectionRange has an empty warning band, so the entity will
-                // always instant-engage and the telegraph silently never fires. Warn once.
-                if (!_engageImmediately &&
-                    _persistentID.Entity.WarningRange >= _persistentID.Entity.DetectionRange)
-                {
-                    GameLog.Warn(TAG, $"{gameObject.name}: WarningRange ({_persistentID.Entity.WarningRange}) >= DetectionRange ({_persistentID.Entity.DetectionRange}) — warning band empty; entity will instant-engage. Check the Entity SO.");
-                }
+            // Runtime guard: OnValidate only clamps in-editor. An un-migrated SO with
+            // WarningRange >= DetectionRange has an empty warning band, so the entity will
+            // always instant-engage and the telegraph silently never fires. Warn once.
+            if (!_engageImmediately &&
+                _persistentID.Entity.WarningRange >= _persistentID.Entity.DetectionRange)
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: WarningRange ({_persistentID.Entity.WarningRange}) >= DetectionRange ({_persistentID.Entity.DetectionRange}) — warning band empty; entity will instant-engage. Check the Entity SO.");
             }
 
             if (_waypoints == null || _waypoints.Length == 0)
@@ -142,18 +144,39 @@ namespace Game.AI
                 _attackCooldownTimer = Mathf.Max(0f, _attackCooldownTimer - Time.deltaTime);
         }
 
-        // --- Shared detection helper ---
+        // --- Shared detection helpers ---
 
-        private bool IsPlayerInDetectionRange() =>
-            _player != null && Vector3.Distance(transform.position, _player.position) <= _persistentID.Entity.DetectionRange;
+        // Throttled wrapper for the Idle/Patrol acquisition path so a crowd of idle entities does not
+        // each run a full registry scan every frame. Bounded to one scan per _targetScanInterval.
+        private bool TryAcquireTargetThrottled()
+        {
+            _targetScanTimer -= Time.deltaTime;
+            if (_targetScanTimer > 0f) return false;
+            _targetScanTimer = _targetScanInterval;
+            return TryAcquireTarget();
+        }
+
+        // Queries the registry for the closest hostile within detection range and caches it.
+        private bool TryAcquireTarget()
+        {
+            if (_selfFactionMember.Faction == null) return false;
+            _currentTarget = TargetRegistry.FindClosestHostile(
+                _selfFactionMember.Faction,
+                transform.position,
+                _persistentID.Entity.DetectionRange);
+            return _currentTarget != null;
+        }
+
+        private bool HasValidTarget() =>
+            _currentTarget != null && _currentTarget.Damageable != null && !_currentTarget.Damageable.IsDead;
 
         // --- State handlers ---
 
         private void HandleIdle()
         {
-            if (_canEngagePlayer && IsPlayerInDetectionRange())
+            if (TryAcquireTargetThrottled())
             {
-                RespondToDetectedPlayer();
+                RespondToDetectedTarget();
                 return;
             }
 
@@ -164,9 +187,9 @@ namespace Game.AI
 
         private void HandlePatrol()
         {
-            if (_canEngagePlayer && IsPlayerInDetectionRange())
+            if (TryAcquireTargetThrottled())
             {
-                RespondToDetectedPlayer();
+                RespondToDetectedTarget();
                 return;
             }
 
@@ -183,30 +206,30 @@ namespace Game.AI
         }
 
         // Decide how to react to first contact: instant engage, cross-inner-ring engage, or warn.
-        private void RespondToDetectedPlayer()
+        private void RespondToDetectedTarget()
         {
             if (_engageImmediately) { TransitionToEngaging(); return; }
-            float dist = Vector3.Distance(transform.position, _player.position);
+            float dist = Vector3.Distance(transform.position, _currentTarget.Transform.position);
             if (dist <= _persistentID.Entity.WarningRange) TransitionToEngaging();
             else TransitionToWarning();
         }
 
         private void HandleWarning()
         {
-            if (_player == null) { CancelWarning(); return; }
-            float dist = Vector3.Distance(transform.position, _player.position);
-            if (dist > _persistentID.Entity.DetectionRange) { CancelWarning(); return; }      // player escaped
+            if (!HasValidTarget()) { CancelWarning(); return; }
+            float dist = Vector3.Distance(transform.position, _currentTarget.Transform.position);
+            if (dist > _persistentID.Entity.DetectionRange) { CancelWarning(); return; }      // target escaped
             if (dist <= _persistentID.Entity.WarningRange) { TransitionToEngaging(); return; } // crossed inner ring
-            FacePlayer();
+            FaceTarget();
             _warningTimer -= Time.deltaTime;
             if (_warningTimer <= 0f) TransitionToEngaging();
         }
 
-        // Y-only rotation to face the player. Manual because the agent is stopped while warning,
+        // Y-only rotation to face the target. Manual because the agent is stopped while warning,
         // so NavMeshAgent auto-rotation does not apply.
-        private void FacePlayer()
+        private void FaceTarget()
         {
-            Vector3 dir = _player.position - transform.position;
+            Vector3 dir = _currentTarget.Transform.position - transform.position;
             dir.y = 0f;
             if (dir.sqrMagnitude < 0.0001f) return;
             Quaternion target = Quaternion.LookRotation(dir);
@@ -216,47 +239,47 @@ namespace Game.AI
 
         private void HandleEngage()
         {
-            if (_player == null)
+            if (!HasValidTarget())
             {
-                GameLog.Warn(TAG, "Player lost — disengaging");
+                GameLog.Warn(TAG, "Target lost — disengaging");
                 DisengageFromCombat();
                 return;
             }
 
-            float distToPlayer = Vector3.Distance(transform.position, _player.position);
+            float distToTarget = Vector3.Distance(transform.position, _currentTarget.Transform.position);
 
-            if (distToPlayer > _persistentID.Entity.DisengageRange)
+            if (distToTarget > _persistentID.Entity.DisengageRange)
             {
                 DisengageFromCombat();
                 return;
             }
 
-            if (distToPlayer <= _persistentID.Entity.AttackRange)
+            if (distToTarget <= _persistentID.Entity.AttackRange)
             {
                 TransitionToAttacking();
                 return;
             }
 
-            _agent.SetDestination(_player.position);
+            _agent.SetDestination(_currentTarget.Transform.position);
         }
 
         private void HandleAttack()
         {
-            if (_player == null)
+            if (!HasValidTarget())
             {
                 DisengageFromCombat();
                 return;
             }
 
-            float distToPlayer = Vector3.Distance(transform.position, _player.position);
+            float distToTarget = Vector3.Distance(transform.position, _currentTarget.Transform.position);
 
-            if (distToPlayer > _persistentID.Entity.DisengageRange)
+            if (distToTarget > _persistentID.Entity.DisengageRange)
             {
                 DisengageFromCombat();
                 return;
             }
 
-            if (distToPlayer > _persistentID.Entity.AttackRange)
+            if (distToTarget > _persistentID.Entity.AttackRange)
             {
                 TransitionToEngaging();
                 return;
@@ -278,12 +301,12 @@ namespace Game.AI
         {
             _animationDriver?.TriggerAttack();
             _attackCooldownTimer = _persistentID.Entity.AttackCooldown;
-            GameLog.Info(TAG, $"{gameObject.name} attacks player");
+            GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name}");
 
-            HitResult result = HitResult.NotBlocked;
-            if (_playerCombat != null)
-                result = _playerCombat.TryReceiveHit(gameObject);
+            IDamageable target = _currentTarget.Damageable;
+            if (target == null || target.IsDead) return;
 
+            HitResult result = target.TryReceiveHit(gameObject);
             switch (result)
             {
                 case HitResult.PerfectBlock:
@@ -296,8 +319,7 @@ namespace Game.AI
                     GameLog.Info(TAG, $"{gameObject.name} attack dodged — no damage");
                     break;
                 case HitResult.NotBlocked:
-                    if (_playerHealth != null)
-                        _playerHealth.TakeDamage(_persistentID.Entity.AttackDamage);
+                    target.TakeDamage(_persistentID.Entity.AttackDamage);
                     break;
             }
         }
@@ -326,6 +348,7 @@ namespace Game.AI
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
             _agent.speed = _persistentID.Entity.BaseSpeed;
+            _animationDriver?.SetInCombat(false);
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Idle at {origin}");
         }
 
@@ -337,13 +360,15 @@ namespace Game.AI
             _agent.isStopped = true;
             _warningTimer = _persistentID.Entity.WarningEngageTime;
             _animationDriver?.SetWarning(true);
-            GameLog.Info(TAG, $"{gameObject.name} detected player — warning");
+            _animationDriver?.SetInCombat(true);
+            GameLog.Info(TAG, $"{gameObject.name} detected target — warning");
         }
 
         private void CancelWarning()
         {
             _animationDriver?.SetWarning(false);
-            GameLog.Info(TAG, $"{gameObject.name} lost player during warning — standing down");
+            _animationDriver?.SetInCombat(false);
+            GameLog.Info(TAG, $"{gameObject.name} lost target during warning — standing down");
             if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
             else TransitionToPatrol();
         }
@@ -351,6 +376,7 @@ namespace Game.AI
         private void TransitionToEngaging()
         {
             _animationDriver?.SetWarning(false);
+            _animationDriver?.SetInCombat(true);
             // Only capture return state from non-combat states. Warning→Engaging and Attacking→Engaging
             // both preserve the disengage state already captured on the original Idle/Patrol entry.
             if (_state == EntityState.Idle || _state == EntityState.Patrolling)
@@ -359,20 +385,22 @@ namespace Game.AI
             _agent.isStopped = false;
             _agent.stoppingDistance = _persistentID.Entity.EngageStoppingDistance;
             _agent.speed = _persistentID.Entity.EngageSpeed;
-            _agent.SetDestination(_player.position);
-            GameLog.Info(TAG, $"{gameObject.name} engaged player");
+            _agent.SetDestination(_currentTarget.Transform.position);
+            GameLog.Info(TAG, $"{gameObject.name} engaged {_currentTarget.Transform.name}");
         }
 
         private void TransitionToAttacking()
         {
             _state = EntityState.Attacking;
             _agent.isStopped = true;
+            _animationDriver?.SetInCombat(true);
             GameLog.Info(TAG, $"{gameObject.name} entering attack range — switching to Attacking");
         }
 
         private void TransitionToPatrol()
         {
             _state = EntityState.Patrolling;
+            _animationDriver?.SetInCombat(false);
             AdvanceToNextWaypoint();
             GameLog.Info(TAG, $"{gameObject.name} returned to patrol");
         }
@@ -380,6 +408,7 @@ namespace Game.AI
         private void TransitionToDead()
         {
             _animationDriver?.SetWarning(false);
+            _animationDriver?.SetInCombat(false);
             _state = EntityState.Dead;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
@@ -387,6 +416,8 @@ namespace Game.AI
 
         private void DisengageFromCombat()
         {
+            _currentTarget = null;
+            _animationDriver?.SetInCombat(false);
             if (_disengageState == EntityState.Idle)
             {
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");

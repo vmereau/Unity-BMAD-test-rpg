@@ -17,5 +17,6 @@ namespace Game.Animations
         public virtual void TriggerDeath() { }
         public virtual void EnableRagdoll() { }
         public virtual void SetWarning(bool active) { }
-    }
-}
+        public virtual void SetInCombat(bool active) { }
+        }
+        }

@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: EnemyType_Grunt
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
   entityName: Grunt
+  _faction: {fileID: 11400000, guid: 332572146a19a2a41ad097d395d1e813, type: 2}
   _baseHealth: 50
   _attackDamage: 10
-  _baseSpeed: 2
-  _engageSpeed: 4
   _detectionRange: 8
   _disengageRange: 12
-  _idleWanderRadius: 5
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
   _engageStoppingDistance: 1.5
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 1.8
   _attackCooldown: 2
-  _xpOnKill: 25
   _animatorOverride: {fileID: 0}
+  _idleWanderRadius: 5

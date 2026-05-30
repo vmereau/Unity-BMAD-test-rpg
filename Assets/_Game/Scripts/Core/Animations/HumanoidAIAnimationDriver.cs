@@ -71,16 +71,12 @@ namespace Game.Animations
         public override void TriggerAttack() => GameLog.Warn(TAG, $"{name}: humanoid AI attack not implemented yet");
         public override void TriggerGetHit() => _bridge?.TriggerGetHit();
         public override void TriggerDeath()  => _bridge?.TriggerDeath();
+        public override void SetInCombat(bool active) => _bridge?.SetInCombat(active);
 
         public override void SetWarning(bool active)
         {
-            // Log once per instance — a patrolling NPC can repeatedly detect/lose the player,
-            // and the false (exit) call must stay silent.
-            if (active && !_warnedWarningNotImplemented)
-            {
-                _warnedWarningNotImplemented = true;
-                GameLog.Warn(TAG, $"{name}: humanoid AI warning animation not implemented yet");
-            }
+            // No-op for now; the Warning state in EntityBrain is handled via SetInCombat(true)
+            // which toggles the humanoid animator into its CombatIdle/CombatLocomotion state.
         }
 
         public override void EnableRagdoll()

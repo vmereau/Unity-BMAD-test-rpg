@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
-  m_Name: NPC_Merchant
-  m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
-  entityName: Merchant
-  _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
+  m_Name: NPC_Bandit
+  m_EditorClassIdentifier: Game::Game.NPC.NPCEntity
+  entityName: bandit
+  _faction: {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
   _baseHealth: 50
   _attackDamage: 10
   _detectionRange: 8
@@ -29,9 +29,8 @@ MonoBehaviour:
   _patrolWaitTime: 2
   _attackRange: 1.8
   _attackCooldown: 2
-  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
-  dayState: 0
-  nightState: 1
+  _animatorOverride: {fileID: 0}
+  dayState: 1
+  nightState: 2
   prefab: {fileID: 0}
-  memories:
-  - {fileID: 11400000, guid: cb4aa7dcd84ffd94f961ee61e8c3286f, type: 2}
+  memories: []

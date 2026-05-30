@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: EnemyType_GiantViper
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
   entityName: Giant Viper
+  _faction: {fileID: 11400000, guid: 332572146a19a2a41ad097d395d1e813, type: 2}
   _baseHealth: 60
   _attackDamage: 15
-  _baseSpeed: 1.5
-  _engageSpeed: 4
   _detectionRange: 8
   _disengageRange: 13
-  _idleWanderRadius: 5
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
   _engageStoppingDistance: 2
+  _baseSpeed: 1.5
+  _engageSpeed: 4
+  _xpOnKill: 25
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2.5
   _attackRange: 2.5
   _attackCooldown: 2.5
-  _xpOnKill: 25
   _animatorOverride: {fileID: 22100000, guid: e60a8416b3a40f1468d8420c09e7cde6, type: 2}
+  _idleWanderRadius: 5

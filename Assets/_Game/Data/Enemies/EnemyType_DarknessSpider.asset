@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: EnemyType_DarknessSpider
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
   entityName: Darkness Spider
+  _faction: {fileID: 11400000, guid: 332572146a19a2a41ad097d395d1e813, type: 2}
   _baseHealth: 50
   _attackDamage: 10
-  _baseSpeed: 2
-  _engageSpeed: 4
   _detectionRange: 9
   _disengageRange: 14
-  _idleWanderRadius: 5
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
   _engageStoppingDistance: 1.8
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 2.2
   _attackCooldown: 2
-  _xpOnKill: 25
   _animatorOverride: {fileID: 22100000, guid: 2cf8d3be8f56f324a8f6e4207b60bd35, type: 2}
+  _idleWanderRadius: 5

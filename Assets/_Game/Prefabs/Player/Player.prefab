@@ -99,6 +99,7 @@ GameObject:
   - component: {fileID: 1595858556485850305}
   - component: {fileID: 6376491736541447869}
   - component: {fileID: 4694893551373556916}
+  - component: {fileID: 2891873373869844298}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -336,6 +337,7 @@ MonoBehaviour:
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
   _onPlayerHealthChanged: {fileID: 11400000, guid: d93b6981e4214bd488ec8a72b03d8c60, type: 2}
   _playerStats: {fileID: 5748466653404673820}
+  _playerCombat: {fileID: 8895864641979124537}
 --- !u!114 &212298241250081144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -574,6 +576,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Characters.Humanoids.HumanoidAnimator
   _animator: {fileID: 256641999253984500}
+--- !u!114 &2891873373869844298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12e3a179ede4ed64ab054cb920bcd65f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.FactionMember
+  _factionOverride: {fileID: 11400000, guid: 503e951b4df9b64489bbddc766d68580, type: 2}
+  _persistentID: {fileID: 0}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

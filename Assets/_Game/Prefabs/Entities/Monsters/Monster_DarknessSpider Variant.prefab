@@ -74,7 +74,7 @@ PrefabInstance:
     - target: {fileID: 1186952831256218892, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: _killedFact
       value: 
-      objectReference: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_LocalPosition.x
       value: 18.424473
@@ -121,10 +121,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6892060459904109189, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6892060459904109189, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
-      propertyPath: _canEngagePlayer
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7557825151662695134, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
