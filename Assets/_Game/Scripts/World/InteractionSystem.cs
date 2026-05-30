@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Game.Core;
+using Game.UI;
 
 namespace Game.World
 {
@@ -24,16 +25,12 @@ namespace Game.World
 
         private RaycastHit[] _nameTagHitBuffer = new RaycastHit[16];
         private readonly HashSet<IInteractable> _nameTagSeen = new HashSet<IInteractable>();
-
-        private struct NameTagEntry { public string label; public Vector3 worldPos; }
-        private NameTagEntry[] _nameTagEntries = new NameTagEntry[16];
-        private int _nameTagCount;
+        private readonly List<EntityUI> _activeUIs = new List<EntityUI>();
+        private readonly HashSet<EntityUI> _uiToHide = new HashSet<EntityUI>();
 
         public IInteractable CurrentInteractable { get; private set; }
 
         private GUIStyle _promptStyle;
-        private GUIStyle _nameTagStyle;
-
 
         private void OnEnable()
         {
@@ -43,9 +40,16 @@ namespace Game.World
 
         private void OnDisable()
         {
-            if (_input == null) return; // Guard: Awake may disable before OnEnable runs
+            if (_input == null) return;
             _input.Player.Disable();
             _input.Dispose();
+            
+            // Cleanup: Hide all active UIs
+            foreach (var ui in _activeUIs)
+            {
+                if (ui != null) ui.Show(false);
+            }
+            _activeUIs.Clear();
         }
 
         private void Awake()
@@ -83,6 +87,8 @@ namespace Game.World
             _scanTimer = 0f;
 
             Ray ray = _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            
+            // 1. Interaction Scan (Center of Screen)
             int hitCount = Physics.SphereCastNonAlloc(ray, _config.scanRadius,
                                                       _sphereHitBuffer, _config.interactionRange,
                                                       _raycastMask);
@@ -111,8 +117,10 @@ namespace Game.World
                 _crosshairImage.color = best != null ? _highlightColor : _defaultColor;
             }
 
-            // Name-range scan
-            _nameTagCount = 0;
+            // 2. Name-range scan (Show World-Space UI)
+            _uiToHide.Clear();
+            foreach (var ui in _activeUIs) _uiToHide.Add(ui);
+            _activeUIs.Clear();
             _nameTagSeen.Clear();
 
             int nameHitCount = Physics.SphereCastNonAlloc(
@@ -120,19 +128,30 @@ namespace Game.World
                 _nameTagHitBuffer, _config.nameRange,
                 _raycastMask);
 
-            for (int i = 0; i < nameHitCount && _nameTagCount < _nameTagEntries.Length; i++)
+            for (int i = 0; i < nameHitCount; i++)
             {
                 var candidate = _nameTagHitBuffer[i].collider.GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
-                if (string.IsNullOrEmpty(candidate.NameTag)) continue;
                 if (!_nameTagSeen.Add(candidate)) continue; // dedup
 
-                Bounds b = _nameTagHitBuffer[i].collider.bounds;
-                _nameTagEntries[_nameTagCount++] = new NameTagEntry
-                {
-                    label = candidate.NameTag,
-                    worldPos = b.center + Vector3.up * (b.extents.y + 0.3f)
-                };
+                var comp = (Component)candidate;
+                var entityUI = comp.GetComponent<EntityUI>();
+                if (entityUI == null) continue;
+
+                // Name is static per entity; health updates itself via EntityHealth.HealthChanged
+                // (EntityUI self-subscribes), so the bar stays live whether or not we are scanning it.
+                entityUI.SetName(candidate.NameTag);
+
+                // Show world-space UI
+                entityUI.Show(true);
+                _activeUIs.Add(entityUI);
+                _uiToHide.Remove(entityUI);
+            }
+
+            // Hide UIs that are no longer in range
+            foreach (var ui in _uiToHide)
+            {
+                if (ui != null) ui.Show(false);
             }
         }
 
@@ -143,8 +162,29 @@ namespace Game.World
                 CurrentInteractable.Interact();
         }
 
-        private void OnDrawGizmos()
+        private void OnGUI()
         {
+            if (CurrentInteractable != null)
+            {
+                if (_promptStyle == null)
+                {
+                    _promptStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        fontSize = 20,
+                        alignment = TextAnchor.MiddleCenter,
+                        fontStyle = FontStyle.Bold
+                    };
+                    _promptStyle.normal.textColor = Color.white;
+                }
+
+                // Draw prompt near crosshair (slightly below center)
+                GUI.Label(new Rect(Screen.width / 2f - 200, Screen.height * 0.55f, 400, 30),
+                    $"[E] {CurrentInteractable.InteractPrompt}", _promptStyle);
+            }
+        }
+
+        private void OnDrawGizmos()
+{
             Camera cam = _mainCamera != null ? _mainCamera : Camera.main;
             if (cam == null || _config == null) return;
 
@@ -161,41 +201,6 @@ namespace Game.World
             Gizmos.DrawWireSphere(
                 ray.origin + ray.direction * _config.nameRange,
                 _config.scanRadius);
-        }
-
-        private void OnGUI()
-        {
-            if (CurrentInteractable != null)
-            {
-                if (_promptStyle == null)
-                    _promptStyle = new GUIStyle(GUI.skin.label) { fontSize = 20, alignment = TextAnchor.MiddleCenter };
-
-                GUI.Label(new Rect(Screen.width / 2f - 200, Screen.height * 0.55f, 400, 30),
-                    CurrentInteractable.InteractPrompt, _promptStyle);
-            }
-
-            if (_nameTagCount > 0)
-            {
-                if (_nameTagStyle == null)
-                    _nameTagStyle = new GUIStyle(GUI.skin.label)
-                    {
-                        fontSize = 16,
-                        alignment = TextAnchor.MiddleCenter,
-                        fontStyle = FontStyle.Bold
-                    };
-
-                for (int i = 0; i < _nameTagCount; i++)
-                {
-                    Vector3 screenPos = _mainCamera.WorldToScreenPoint(_nameTagEntries[i].worldPos);
-                    if (screenPos.z <= 0f) continue; // behind camera
-
-                    float guiY = Screen.height - screenPos.y;
-                    GUI.Label(
-                        new Rect(screenPos.x - 100f, guiY - 20f, 200f, 25f),
-                        _nameTagEntries[i].label,
-                        _nameTagStyle);
-                }
-            }
         }
     }
 }

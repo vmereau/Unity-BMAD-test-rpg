@@ -33,7 +33,9 @@
       "Bash(ls:*)",
       "mcp__UnityMCP__manage_material",
       "mcp__UnityMCP__get_sha",
-      "mcp__unity-mcp__Unity_GetConsoleLogs"
+      "mcp__unity-mcp__Unity_GetConsoleLogs",
+      "mcp__UnityMCP__manage_ui",
+      "PowerShell(Get-Content *)"
     ]
   }
 }

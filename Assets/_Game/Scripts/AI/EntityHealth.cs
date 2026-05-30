@@ -1,3 +1,4 @@
+using System;
 using _Game.ScriptableObjects.Entities;
 using Game.Animations;
 using Game.Combat;
@@ -28,7 +29,16 @@ namespace Game.AI
         [SerializeField] private AIAnimationDriver _animationDriver;
 
         public float CurrentHealth { get; private set; }
+        public float MaxHealth => _persistentID != null && _persistentID.Entity != null ? _persistentID.Entity.BaseHealth : 100f;
         public bool IsDead { get; private set; }
+
+        /// <summary>
+        /// Raised whenever CurrentHealth changes (damage, heal, or respawn reset).
+        /// Args: (currentHealth, maxHealth). Listeners (e.g. EntityUI) should subscribe in
+        /// OnEnable and unsubscribe in OnDisable, then seed their initial value from
+        /// CurrentHealth/MaxHealth since this may have already fired during Awake/OnEnable.
+        /// </summary>
+        public event Action<float, float> HealthChanged;
 
         private void Awake()
         {
@@ -54,6 +64,7 @@ namespace Game.AI
             if (_persistentID.Entity == null) return;
             CurrentHealth = _persistentID.Entity.BaseHealth;
             IsDead = false;
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
         }
 
         /// <summary>
@@ -67,9 +78,23 @@ namespace Game.AI
             CurrentHealth -= amount;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_persistentID.Entity.BaseHealth:F0}");
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
             if (CurrentHealth <= 0f) { Die(); return; }  // death path — no GetHit
             _animationDriver?.TriggerGetHit();              // hit reaction only if still alive
+        }
+
+        /// <summary>
+        /// Restores health up to MaxHealth. Ignored if the entity is dead.
+        /// Fires <see cref="HealthChanged"/> so listeners (UI) update immediately.
+        /// </summary>
+        public void Heal(float amount)
+        {
+            if (IsDead || amount <= 0f) return;
+
+            CurrentHealth = Mathf.Min(CurrentHealth + amount, MaxHealth);
+            GameLog.Info(TAG, $"{gameObject.name} healed {amount} — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
         }
 
         // AI entities do not block today — every hit lands. Part of IDamageable contract.

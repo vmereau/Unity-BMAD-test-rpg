@@ -52,7 +52,7 @@ namespace Game.UI
             GameLog.Info(TAG, $"HandleHealthChanged: {currentHealth}");
             float max = _config.baseHealth;
             float ratio = max > 0f ? currentHealth / max : 0f;
-            _fillImage.transform.localScale = new Vector3(ratio, 1f, 1f);
+            _fillImage.fillAmount = ratio;
         }
     }
 }
