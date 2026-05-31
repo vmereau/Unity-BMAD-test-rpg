@@ -96,6 +96,14 @@ Triggers to watch for:
 > - Cinemachine OTS setup, float/euler quirks, Input System action map, CharacterController velocity Y, PlayerStateManager gate pattern, PlayerAnimationDriver / HumanoidAnimationBridge API → `Assets/_Game/Scripts/Player/CLAUDE.md`
 > - AI animation polymorphism via `AIAnimationDriver` base class (Brain/Health → Driver → Bridge contract for monster + humanoid AI) → `Assets/_Game/Scripts/Core/Animations/CLAUDE.md`
 
+### Code Subsystem Map
+
+> - Core singletons (CursorManager, GameLog, GameConstants, WorldStateManager/world facts) → `Assets/_Game/Scripts/Core/CLAUDE.md`
+> - Entity brains, health, faction targeting, NPC presence/memory → `Assets/_Game/Scripts/AI/CLAUDE.md`
+> - World interaction, dialogue, containers, `PersistentID` → `Assets/_Game/Scripts/World/CLAUDE.md`
+> - Inventory, equipment, action bar, pickups → `Assets/_Game/Scripts/Inventory/CLAUDE.md`
+> - XP/level/LP/skills event chain (`Game.Progression`) → `Assets/_Game/Scripts/Player/Progression/CLAUDE.md`
+
 ### Unity Lifecycle Gotcha: OnDisable Before OnEnable
 
 Unity's first-activation order is `Awake → OnEnable → Start`.

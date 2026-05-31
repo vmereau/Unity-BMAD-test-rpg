@@ -126,7 +126,7 @@ Unarmed fallback: `maxSteps = 2` (2-hit combo). `ManageComboStep()` calls `Incre
 
 Events are stored in the FBX `.meta` file under `clipAnimations[].events`. The `time` field is **normalized time** (0.0–1.0). All four events must be on every attack clip.
 
-> **Per-clip timing tables and `.meta` YAML format** → `Assets/_Game/Art/Characters/Player/Animations/Combat/CLAUDE.md`
+> **Per-clip timing tables and `.meta` YAML format** → `Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md`
 
 Sword clips use uniform timings (0.25 / 0.50 / 0.50 / 0.90). Unarmed clips have custom timings tuned to their animation arcs — do not copy sword timings verbatim.
 
@@ -237,7 +237,7 @@ private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
 | HIGH | Subscribing to `_onEquipmentChanged` directly in `PlayerCombat` — `ActiveWeaponGO` is null due to GameEventSO reverse-iteration order; use `_onVisualsRefreshed` SO raised at the end of `Refresh()` |
 | HIGH | Using a plain C# event across `Game.Inventory` → `Game.Combat` boundary — architecture mandates `GameEventSO<T>` for all cross-system events |
 | MEDIUM | `WeaponHitbox` placed on the weapon prefab root instead of the mesh child — root has the kinematic Rigidbody; collider must be on a child so `OnTriggerEnter` resolves the correct GameObject |
-| HIGH | Weapon visual prefab missing a kinematic `Rigidbody` on its root — static trigger + static collider = `OnTriggerEnter` never fires (see Prefabs/Enemies/CLAUDE.md) |
+| HIGH | Weapon visual prefab missing a kinematic `Rigidbody` on its root — static trigger + static collider = `OnTriggerEnter` never fires (see Prefabs/Entities/Monsters/CLAUDE.md) |
 | HIGH | `AnimationEventReceiver` function name mismatch — Unity finds receiver methods by exact string match on the same GO as the Animator; typo = silent no-op, not a compile error |
 | HIGH | `GetComponentInChildren<WeaponHitbox>()` without `includeInactive: true` — `Drawn` child is inactive when weapon is equipped while sheathed; hitbox will not be found and attacks silently fall back to sphere overlap |
 | HIGH | `ScriptableObject.CreateInstance<WeaponSO>()` in new code or tests — `WeaponSO` is abstract (Story 7.10); use a concrete subclass like `SwordSO` |
