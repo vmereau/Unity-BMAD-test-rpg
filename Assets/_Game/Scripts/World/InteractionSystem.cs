@@ -100,6 +100,7 @@ namespace Game.World
             {
                 var candidate = _sphereHitBuffer[i].collider.GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
+                if (!candidate.CanInteract) continue; // in-combat NPCs (or dead) offer no prompt/interaction
 
                 Vector3 toCollider = (_sphereHitBuffer[i].collider.bounds.center - ray.origin).normalized;
                 float angle = Vector3.Angle(ray.direction, toCollider);
@@ -158,7 +159,10 @@ namespace Game.World
         private void LateUpdate()
         {
             if (!CursorManager.IsLocked) return;
-            if (CurrentInteractable != null && _input.Player.Interact.WasPressedThisFrame())
+            // Re-check CanInteract: the scan is throttled by _config.scanInterval, so combat could have
+            // started on the cached target since the last scan.
+            if (CurrentInteractable != null && CurrentInteractable.CanInteract
+                && _input.Player.Interact.WasPressedThisFrame())
                 CurrentInteractable.Interact();
         }
 

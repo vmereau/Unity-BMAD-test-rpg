@@ -13,6 +13,8 @@ namespace Game.World
 
         public string NameTag => "";
 
+        public bool CanInteract => true;
+
         public void Interact()
         {
             GameLog.Info(TAG, $"Interacted with {gameObject.name}");

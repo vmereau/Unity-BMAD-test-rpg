@@ -21,9 +21,14 @@ namespace Tests.EditMode
         private class StubInteractable : IInteractable
         {
             private readonly string _prompt;
-            public StubInteractable(string prompt = "Test Prompt") => _prompt = prompt;
+            public StubInteractable(string prompt = "Test Prompt", bool canInteract = true)
+            {
+                _prompt = prompt;
+                CanInteract = canInteract;
+            }
             public string InteractPrompt => _prompt;
             public string NameTag => "";
+            public bool CanInteract { get; }
             public void Interact() { }
         }
 
@@ -39,6 +44,10 @@ namespace Tests.EditMode
 
         // Mirrors InteractionSystem._previousInteractable caching check (line 81)
         private bool HasStateChanged(IInteractable previous, IInteractable current) => previous != current;
+
+        // Mirrors InteractionSystem.Update() prompt-candidate gate (skip when !CanInteract)
+        private bool IsPromptCandidate(IInteractable interactable) =>
+            interactable != null && interactable.CanInteract;
 
         // ── Crosshair color tests ──────────────────────────────────────────────
 
@@ -132,6 +141,35 @@ namespace Tests.EditMode
             var a = new StubInteractable("A");
             var b = new StubInteractable("B");
             Assert.IsTrue(HasStateChanged(a, b));
+        }
+
+        // ── CanInteract gate tests ─────────────────────────────────────────────
+
+        [Test]
+        public void Gate_CanInteractTrue_IsPromptCandidate()
+        {
+            var stub = new StubInteractable("Talk", canInteract: true);
+            Assert.IsTrue(IsPromptCandidate(stub));
+        }
+
+        [Test]
+        public void Gate_CanInteractFalse_IsNotPromptCandidate()
+        {
+            var stub = new StubInteractable("Talk", canInteract: false);
+            Assert.IsFalse(IsPromptCandidate(stub));
+        }
+
+        [Test]
+        public void Gate_NullCandidate_IsNotPromptCandidate()
+        {
+            Assert.IsFalse(IsPromptCandidate(null));
+        }
+
+        [Test]
+        public void Gate_DefaultStub_IsInteractable()
+        {
+            // Regression guard: existing stubs must default to interactable so prior tests stay valid.
+            Assert.IsTrue(new StubInteractable().CanInteract);
         }
 
         // ── IInteractable interface contract ──────────────────────────────────

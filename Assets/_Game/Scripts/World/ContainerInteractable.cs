@@ -21,6 +21,8 @@ namespace Game.World
         public string InteractPrompt => _isLocked ? _lockedInteractPrompt : _interactPrompt;
         public string NameTag => _nameTag;
 
+        public bool CanInteract => true;
+
         private void Awake()
         {
             _inventory = GetComponent<InventorySystem>();

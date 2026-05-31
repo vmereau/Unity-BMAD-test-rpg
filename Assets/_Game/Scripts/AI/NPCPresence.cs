@@ -17,10 +17,15 @@ namespace Game.AI
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
         private EntityHealth _entityHealth;
+        private ICombatStateProvider _combatState;
 
         public string InteractPrompt => "Talk";
 
         public string NameTag => _data.entityName;
+
+        public bool CanInteract =>
+            (_entityHealth == null || !_entityHealth.IsDead) &&
+            (_combatState == null || !_combatState.IsInCombat);
 
         private void Awake()
         {
@@ -31,6 +36,7 @@ namespace Game.AI
                 return;
             }
             _entityHealth = GetComponent<EntityHealth>();
+            _combatState = GetComponent<ICombatStateProvider>(); // null-safe: NPCs without a brain are always interactable
         }
 
         public void Interact()
@@ -44,6 +50,11 @@ namespace Game.AI
                 //       the future loot UX can plug in without re-introducing detection
                 //       logic. Crosshair highlight + NameTag are unchanged on purpose.
                 GameLog.Info(TAG, $"{gameObject.name} is dead — dialogue interaction blocked");
+                return;
+            }
+            if (_combatState != null && _combatState.IsInCombat)
+            {
+                GameLog.Info(TAG, $"{gameObject.name} is in combat — dialogue interaction blocked");
                 return;
             }
             if (_onDialogueRequested == null)

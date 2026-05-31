@@ -18,6 +18,8 @@ namespace Game.Inventory
 
         public string NameTag => _item?.itemName ?? "item";
 
+        public bool CanInteract => true;
+
         public void Configure(ItemSO item)
         {
             _item = item;

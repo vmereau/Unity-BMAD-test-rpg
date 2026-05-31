@@ -2,7 +2,7 @@
 title: 'NPC Combat-State Gating & Interaction Suppression'
 slug: 'npc-combat-state-gating'
 created: '2026-05-30'
-status: 'ready-for-dev'
+status: 'implementation-complete'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack:
   - 'Unity 6000.3.10f1 (Unity 6.3 LTS)'
@@ -184,7 +184,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
 
 ### Tasks
 
-- [ ] **Task 1: Create `ICombatStateProvider` interface**
+- [x] **Task 1: Create `ICombatStateProvider` interface**
   - File to create: `Assets/_Game/Scripts/AI/ICombatStateProvider.cs`
   - Action: Write the file with this exact body:
     ```csharp
@@ -205,7 +205,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
     ```
   - Notes: Lives in `Game.AI` so `EntityBrain` and `NPCPresence` (both `Game.AI`) need no new `using`.
 
-- [ ] **Task 2: `EntityBrain` implements `ICombatStateProvider` + `SetCombatState` funnel**
+- [x] **Task 2: `EntityBrain` implements `ICombatStateProvider` + `SetCombatState` funnel**
   - File: `Assets/_Game/Scripts/AI/EntityBrain.cs`
   - Action:
     1. Change the class declaration:
@@ -242,7 +242,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
     - The idempotent guard means redundant transitions (e.g. Engaging→Attacking, both true) skip the
       `SetBool` write — a minor improvement, no behavior change.
 
-- [ ] **Task 3: Add `CanInteract` to `IInteractable`**
+- [x] **Task 3: Add `CanInteract` to `IInteractable`**
   - File: `Assets/_Game/Scripts/World/IInteractable.cs`
   - Action: Add the member to the interface:
     ```csharp
@@ -260,7 +260,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
   - Notes: Breaking change — every implementer (Tasks 4, 5, 7) must add `CanInteract` or the `Game`
     assembly won't compile. Do Tasks 4–5 and 7 in the same change set.
 
-- [ ] **Task 4: `NPCPresence` — implement `CanInteract`, poll combat state, guard `Interact()`**
+- [x] **Task 4: `NPCPresence` — implement `CanInteract`, poll combat state, guard `Interact()`**
   - File: `Assets/_Game/Scripts/AI/NPCPresence.cs`
   - Action:
     1. Add a cached provider field next to `_entityHealth`:
@@ -290,7 +290,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
     InteractionSystem (today the corpse still shows a "Talk" prompt that no-ops). The `Interact()` guard
     is defense-in-depth for any non-InteractionSystem caller.
 
-- [ ] **Task 5: Add `CanInteract => true` to the non-NPC implementers**
+- [x] **Task 5: Add `CanInteract => true` to the non-NPC implementers**
   - Files:
     - `Assets/_Game/Scripts/World/InteractableObject.cs`
     - `Assets/_Game/Scripts/World/ContainerInteractable.cs`
@@ -301,7 +301,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
     ```
   - Notes: None of these have a combat concept. Containers/pickups remain always-interactable.
 
-- [ ] **Task 6: `InteractionSystem` honors `CanInteract`**
+- [x] **Task 6: `InteractionSystem` honors `CanInteract`**
   - File: `Assets/_Game/Scripts/World/InteractionSystem.cs`
   - Action:
     1. In the prompt-target selection loop in `Update()` (the loop at lines 93–105), after the
@@ -321,7 +321,7 @@ Introduce a small **combat-state capability** and gate interaction on it:
     next valid target) and the crosshair returns to `_defaultColor` automatically via the existing
     `best != _previousInteractable` branch — no extra crosshair handling needed.
 
-- [ ] **Task 7: EditMode tests for the `CanInteract` gate**
+- [x] **Task 7: EditMode tests for the `CanInteract` gate**
   - File: `Assets/Tests/EditMode/InteractionSystemTests.cs`
   - Action:
     1. Update `StubInteractable` to satisfy the new interface member, defaulting to interactable:

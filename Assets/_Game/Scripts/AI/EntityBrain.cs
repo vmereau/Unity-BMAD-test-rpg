@@ -14,11 +14,22 @@ namespace Game.AI
     /// Generic entity state machine: Idle → Patrolling → (Engaging → Attacking) → Dead.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
-    public class EntityBrain : MonoBehaviour
+    public class EntityBrain : MonoBehaviour, ICombatStateProvider
     {
         private const string TAG = "[AI]";
 
         private enum EntityState { Idle, Patrolling, Warning, Engaging, Attacking, Dead }
+
+        public bool IsInCombat { get; private set; }
+
+        // Single writer for combat state. Keeps the readable flag and the animator in lockstep,
+        // replacing the previously-scattered _animationDriver?.SetInCombat(...) calls. Idempotent.
+        private void SetCombatState(bool inCombat)
+        {
+            if (IsInCombat == inCombat) return;
+            IsInCombat = inCombat;
+            _animationDriver?.SetInCombat(inCombat);
+        }
 
         [SerializeField] private PersistentID _persistentID;
         [SerializeField] private Transform[] _waypoints;
@@ -348,7 +359,7 @@ namespace Game.AI
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
             _agent.speed = _persistentID.Entity.BaseSpeed;
-            _animationDriver?.SetInCombat(false);
+            SetCombatState(false);
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Idle at {origin}");
         }
 
@@ -360,14 +371,14 @@ namespace Game.AI
             _agent.isStopped = true;
             _warningTimer = _persistentID.Entity.WarningEngageTime;
             _animationDriver?.SetWarning(true);
-            _animationDriver?.SetInCombat(true);
+            SetCombatState(true);
             GameLog.Info(TAG, $"{gameObject.name} detected target — warning");
         }
 
         private void CancelWarning()
         {
             _animationDriver?.SetWarning(false);
-            _animationDriver?.SetInCombat(false);
+            SetCombatState(false);
             GameLog.Info(TAG, $"{gameObject.name} lost target during warning — standing down");
             if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
             else TransitionToPatrol();
@@ -376,7 +387,7 @@ namespace Game.AI
         private void TransitionToEngaging()
         {
             _animationDriver?.SetWarning(false);
-            _animationDriver?.SetInCombat(true);
+            SetCombatState(true);
             // Only capture return state from non-combat states. Warning→Engaging and Attacking→Engaging
             // both preserve the disengage state already captured on the original Idle/Patrol entry.
             if (_state == EntityState.Idle || _state == EntityState.Patrolling)
@@ -393,14 +404,14 @@ namespace Game.AI
         {
             _state = EntityState.Attacking;
             _agent.isStopped = true;
-            _animationDriver?.SetInCombat(true);
+            SetCombatState(true);
             GameLog.Info(TAG, $"{gameObject.name} entering attack range — switching to Attacking");
         }
 
         private void TransitionToPatrol()
         {
             _state = EntityState.Patrolling;
-            _animationDriver?.SetInCombat(false);
+            SetCombatState(false);
             AdvanceToNextWaypoint();
             GameLog.Info(TAG, $"{gameObject.name} returned to patrol");
         }
@@ -408,7 +419,7 @@ namespace Game.AI
         private void TransitionToDead()
         {
             _animationDriver?.SetWarning(false);
-            _animationDriver?.SetInCombat(false);
+            SetCombatState(false);
             _state = EntityState.Dead;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
@@ -417,7 +428,7 @@ namespace Game.AI
         private void DisengageFromCombat()
         {
             _currentTarget = null;
-            _animationDriver?.SetInCombat(false);
+            SetCombatState(false);
             if (_disengageState == EntityState.Idle)
             {
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");
