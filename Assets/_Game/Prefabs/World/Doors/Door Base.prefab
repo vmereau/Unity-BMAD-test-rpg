@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2622909916256321333}
   - component: {fileID: 8674531348068335778}
+  - component: {fileID: 4300203720893288423}
   m_Layer: 8
   m_Name: Door Base
   m_TagString: Untagged
@@ -42,10 +43,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 1964191851653859055}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6dc8240cdc40684fbd0866a5e2689c9, type: 3}
+  m_Script: {fileID: 11500000, guid: 8751c4b5deac26d469bb56d1d5da605e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::Game.World.InteractableObject
-  _promptText: Open Door
+  m_EditorClassIdentifier: 
+  _visual: {fileID: 7332594547792234785}
+  _openAngle: 90
+  _openDuration: 0.5
+  _interactPrompt: Open Door
+  _closePrompt: Close Door
+  _onDoorOpenRequested: {fileID: 11400000, guid: 4c888dc2346f98b44b5854259110af7f, type: 2}
+--- !u!114 &4300203720893288423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1964191851653859055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b46c510453645f41b561a7da67ad299, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Lockable
+  _isLocked: 0
+  _requiredSkill: {fileID: 0}
+  _lockedPrompt: Locked
 --- !u!1 &8800210140598787289
 GameObject:
   m_ObjectHideFlags: 0

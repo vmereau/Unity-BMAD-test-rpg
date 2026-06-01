@@ -2,7 +2,7 @@
 title: 'Door System — Interactable Doors + Reusable Lock'
 slug: 'door-system'
 created: '2026-05-31'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1 (URP 17.x)', 'C# / .NET Standard 2.1', 'Unity Input System', 'NUnit EditMode tests']
 files_to_modify: ['Assets/_Game/Scripts/World/ContainerInteractable.cs', 'Assets/_Game/Prefabs/Player/Player.prefab (+ UICanvas owner of DoorSystem)', 'Assets/_Game/Prefabs/World/Doors/Door Base.prefab (+ Simple door, Poor small door variants)', 'Container prefab(s) using ContainerInteractable (add Lockable, migrate inline values)']
@@ -204,7 +204,7 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
 
 ### Tasks
 
-- [ ] **Task 1: Create `Lockable` component.**
+- [x] **Task 1: Create `Lockable` component.**
   - File: `Assets/_Game/Scripts/World/Lockable.cs` (new)
   - Action: `namespace Game.World`. MonoBehaviour with `private const string TAG = "[Lockable]";`.
     Fields: `[SerializeField] private bool _isLocked;`, `[SerializeField] private SkillSO _requiredSkill;`
@@ -217,7 +217,7 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
     path so a test can set `_isLocked = true` before asserting `Unlock()` (decide implementation; do not
     add a public setter to production API).
 
-- [ ] **Task 2: Create the door-open event type.**
+- [x] **Task 2: Create the door-open event type.**
   - File: `Assets/_Game/ScriptableObjects/Events/GameEventSO_DoorOpenRequest.cs` (new)
   - Action: `namespace Game.Core`, `using Game.World;`. Define
     `[System.Serializable] public struct DoorOpenRequestData { public DoorInteractable door; public bool isLocked; public string requiredSkillId; }`
@@ -225,7 +225,7 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
   - Notes: Mirrors `GameEventSO_ContainerOpenRequest.cs` exactly. Struct + concrete class share this one
     file (per the project's event-file convention).
 
-- [ ] **Task 3: Create `DoorInteractable`.**
+- [x] **Task 3: Create `DoorInteractable`.**
   - File: `Assets/_Game/Scripts/World/DoorInteractable.cs` (new)
   - Action: `namespace Game.World`, `IInteractable`, `private const string TAG = "[Door]";`.
     Serialized: `_visual` (Transform), `_openAngle` (float, default 90), `_openDuration` (float, default
@@ -245,7 +245,7 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
   - Notes: `ToggleOpen` is `public` so the same-system `DoorSystem` can call it. Coroutine guard:
     if `gameObject.activeInHierarchy` is false, don't start (project rule).
 
-- [ ] **Task 4: Create `DoorSystem` (player-side resolver).**
+- [x] **Task 4: Create `DoorSystem` (player-side resolver).**
   - File: `Assets/_Game/Scripts/World/DoorSystem.cs` (new)
   - Action: `namespace Game.World`, `private const string TAG = "[DoorSystem]";`. Serialized:
     `_onDoorOpenRequested` (GameEventSO_DoorOpenRequest), `_playerSkills` (`Game.Progression.PlayerSkills`).
@@ -257,13 +257,13 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
     "door locked — lacks skill" + return. Then `data.door.Unlock(); data.door.ToggleOpen();`.
   - Notes: Structurally identical to `ContainerSystem.HandleContainerOpenRequested`.
 
-- [ ] **Task 5: Compile check + create event asset.**
+- [x] **Task 5: Compile check + create event asset.**
   - Action: `read_console` — resolve any compile errors before continuing. Then create
     `Assets/_Game/Data/Events/OnDoorOpenRequested.asset` (instance of `GameEventSO_DoorOpenRequest`) via
     `Create → Game/Events/Door Open Request` (or MCP `manage_scriptable_object`). Name it
     `OnDoorOpenRequested`.
 
-- [ ] **Task 6: Refactor `ContainerInteractable` to use `Lockable`.**
+- [x] **Task 6: Refactor `ContainerInteractable` to use `Lockable`.**
   - File: `Assets/_Game/Scripts/World/ContainerInteractable.cs`
   - Action: Remove `_isLocked`, `_lockedInteractPrompt`, `_requiredLockpickingSkill` fields and the
     `using Game.Progression;` if now unused. Add `private Lockable _lockable;` set in `Awake` via
@@ -273,10 +273,10 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
     `requiredSkillId = (isLocked && _lockable != null) ? _lockable.RequiredSkillId : null`.
   - Notes: `ContainerSystem` is **not** modified. Keep the existing `_inventory`/event null-guards.
 
-- [ ] **Task 7: Compile check.**
+- [x] **Task 7: Compile check.**
   - Action: `read_console` — confirm clean compile after the container refactor.
 
-- [ ] **Task 8: Wire `DoorSystem` onto the Player prefab.**
+- [x] **Task 8: Wire `DoorSystem` onto the Player prefab.**
   - File: `Assets/_Game/Prefabs/Player/Player.prefab`
   - Action: Add a `DoorSystem` component to the Player root (same level as `InteractionSystem` /
     `ContainerSystem`). Assign `_playerSkills` → the Player's `PlayerSkills`; assign `_onDoorOpenRequested`
@@ -284,7 +284,7 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
   - Notes: Edit the `.prefab` via MCP (`manage_components`) or open in Prefab Mode. If editing YAML
     directly, follow the project rule: `refresh_unity(mode="if_dirty")`, never `force`.
 
-- [ ] **Task 9: Wire the door prefabs.**
+- [x] **Task 9: Wire the door prefabs.**
   - Files: `Assets/_Game/Prefabs/World/Doors/Door Base.prefab` (+ `Simple door`, `Poor small door` variants)
   - Action: On `Door Base`, remove the placeholder `InteractableObject` and add `DoorInteractable`; assign
     `_visual` → the `Visual` child Transform; assign `_onDoorOpenRequested` → `OnDoorOpenRequested.asset`;
@@ -294,14 +294,14 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
   - Notes: Root must remain **Layer 8 (Interactable)**. Variants inherit `DoorInteractable` from the base
     automatically; only override per-variant authoring values + hinge.
 
-- [ ] **Task 10: Migrate container prefab(s).**
+- [x] **Task 10: Migrate container prefab(s).**
   - File: `Assets/_Game/Prefabs/World/Containers/Base_Container.prefab` (+ any locked container variants)
   - Action: `Base_Container` is currently unlocked (`_isLocked: 0`, no skill) → after the refactor it needs
     **no** `Lockable` (absence = unlocked); just verify it still opens. For any container variant that was
     locked, add a `Lockable` and migrate its old inline `_isLocked` / `_requiredLockpickingSkill` /
     `_lockedInteractPrompt` values onto it.
 
-- [ ] **Task 11: Add `LockableTests`.**
+- [x] **Task 11: Add `LockableTests`.**
   - File: `Assets/Tests/EditMode/LockableTests.cs` (new)
   - Action: `namespace Tests.EditMode`. Cover: fresh `Lockable` reports `IsLocked == false`;
     `RequiredSkillId == null` when no skill assigned; after setting locked, `Unlock()` sets
@@ -309,12 +309,12 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
   - Notes: Door rotation + `DoorSystem` gate are runtime/MonoBehaviour → not Edit-mode tested
     (consistent with `ContainerSystem`).
 
-- [ ] **Task 12: Create the deferred persistence stub spec.**
+- [x] **Task 12: Create the deferred persistence stub spec.**
   - File: `_bmad-output/implementation-artifacts/tech-spec-lockable-persistence-stub.md` (new)
   - Action: A short stub (problem + intended approach) for persisting unlocked doors AND containers (and
     door open/closed state) via `WorldStateManager` facts + per-instance keys. (Created alongside this spec.)
 
-- [ ] **Task 13: Update folder CLAUDE.md.**
+- [x] **Task 13: Update folder CLAUDE.md.**
   - File: `Assets/_Game/Scripts/World/CLAUDE.md`
   - Action: Add `Lockable`, `DoorInteractable`, `DoorSystem` to the "What's here" table, and a one-line
     note on the lock pattern (`Lockable` = data; locked interactables route a `GameEventSO` to a
@@ -377,4 +377,31 @@ public class GameEventSO_DoorOpenRequest : GameEventSO<DoorOpenRequestData> { }
 - Doors are NOT enemies/NPCs/loot-containers, so they do **not** require `PersistentID` now
   (`World/CLAUDE.md`); persistence is the stub's concern.
 - `[CLAUDE.md candidate]` for sign-off: the new `Lockable` + door event/`DoorSystem` trio belongs in
-  `Scripts/World/CLAUDE.md`'s "What's here" table.
+  `Scripts/World/CLAUDE.md`'s "What's here" table. *(Done — added in Task 13.)*
+
+## Review Notes
+
+- Adversarial review completed (skill:bmad-review-adversarial-general).
+- Findings: 10 total — 4 auto-fixed (real, code-level), 6 acknowledged/deferred/out-of-scope.
+- Resolution approach: **auto-fix real ones**.
+- **Fixed:**
+  - **F1** — `DoorInteractable` now captures the `Visual`'s authored rest pose in `Awake` (`_closedRotation`)
+    and opens/closes relative to it, instead of hardcoding closed = identity (0°).
+  - **F4** — added `OnDisable` that snaps `Visual` to the logical pose for the current `_isOpen` and clears
+    the stale coroutine handle, so a disable mid-swing can't desync `_isOpen` from the transform.
+  - **F6** — the "Close Door" prompt is now a serialized `_closePrompt` field (authorable), matching `_interactPrompt`.
+  - **F7** — re-added `DoorSystem` to `Player.prefab` via Unity (MCP) so the component anchor is editor-assigned
+    rather than a hand-picked fileID; event + `PlayerSkills` re-wired.
+- **Acknowledged / not changed:**
+  - **F2** (locked + empty/unassigned skill id opens freely) — mirrors `ContainerSystem` behavior by design;
+    flagged as an authoring footgun (a locked `Lockable` should have a real `SkillSO`).
+  - **F3** (`Simple door` collider centered → swing pivots on panel center) — requires in-editor hinge/pivot
+    adjustment + visual judgement; left for manual verification per the spec's hinge note.
+  - **F5** (`Game.Core` event references `Game.World.DoorInteractable`) — same-assembly, matches the
+    `GameEventSO_ContainerOpenRequest` precedent.
+  - **F9** (runtime unlock not persisted) — tracked by `tech-spec-lockable-persistence-stub.md`.
+  - **F10** (Y-euler hinge only) — out of scope.
+- **Tests:** clean compile (0 errors) after fixes. Earlier full EditMode run: 271 tests, 5 new `LockableTests`
+  pass. 2 failures (`InventorySystemTests.ItemPickup_Configure_SetsInteractPrompt`,
+  `WorldStateManagerFactsTests.SetWorldEvent_RaisesEvent_WithCorrectPayload`) are **pre-existing and unrelated**
+  (those files were not touched). AC1–AC7 are runtime behaviors requiring manual Play-mode verification.

@@ -100,6 +100,7 @@ GameObject:
   - component: {fileID: 6376491736541447869}
   - component: {fileID: 4694893551373556916}
   - component: {fileID: 2891873373869844298}
+  - component: {fileID: 8176500476053113911}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -590,6 +591,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.FactionMember
   _factionOverride: {fileID: 11400000, guid: 503e951b4df9b64489bbddc766d68580, type: 2}
   _persistentID: {fileID: 0}
+--- !u!114 &8176500476053113911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67ca6334c16361a4c98e921c06b33e23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.DoorSystem
+  _onDoorOpenRequested: {fileID: 11400000, guid: 4c888dc2346f98b44b5854259110af7f, type: 2}
+  _playerSkills: {fileID: 660869248586365014}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

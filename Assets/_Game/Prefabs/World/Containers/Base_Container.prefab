@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6700057468363837297}
   - component: {fileID: 5065574312572025887}
   - component: {fileID: 4337777753193801801}
+  - component: {fileID: 9016790465571243066}
   m_Layer: 8
   m_Name: Base_Container
   m_TagString: Untagged
@@ -60,11 +61,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.ContainerInteractable
   _interactPrompt: Open
-  _lockedInteractPrompt: Lockpick
   _nameTag: Chest
-  _isLocked: 0
-  _requiredLockpickingSkill: {fileID: 0}
   _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
+--- !u!114 &9016790465571243066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 871528207220645180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b46c510453645f41b561a7da67ad299, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Lockable
+  _isLocked: 0
+  _requiredSkill: {fileID: 0}
+  _lockedPrompt: Locked
 --- !u!1 &1884557561363051285
 GameObject:
   m_ObjectHideFlags: 0
