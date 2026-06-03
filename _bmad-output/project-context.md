@@ -237,7 +237,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Unarmed fallback: `_currentWeaponSO == null` → `maxSteps = 3` (3-hit sphere combo)
 
 **Inventory System Patterns (Epic 4):**
-- `InventorySystem` is a **MonoBehaviour on the Player prefab** — NOT a singleton; access via direct `[SerializeField]` reference or `FindFirstObjectByType<InventorySystem>()` in Awake only
+- `InventorySystem` is a **MonoBehaviour** (NOT a singleton) living on two unrelated prefab families: the **Player prefab** (the player's inventory) and the **`Entity_base.prefab` root** (so every NPC and monster inherits one — NPCs for the trade flow, monsters as groundwork for future looting). Access via direct `[SerializeField]` reference, `GetComponent<InventorySystem>()` on an entity, or `FindFirstObjectByType<InventorySystem>()` in Awake only. `GoldSystem` stays NPC-only (not on `Entity_base`) — see `Prefabs/CLAUDE.md` for the prefab migration gotcha
 - `ItemSO` class lives in `Assets/_Game/ScriptableObjects/Items/ItemSO.cs`, namespace `Game.Inventory` — assets created via `Assets/Items/Item` menu
 - `ItemSO.worldItemPrefab` must be a prefab with a **Rigidbody** — `InventoryUI.DropItem()` calls `AddForce` immediately after `Instantiate`; missing Rigidbody causes NullReferenceException
 - World item prefabs (used as `worldItemPrefab`) must also have **Layer 8 (Interactable)** and `ItemPickup.cs` pre-wired so dropped items are pickable again

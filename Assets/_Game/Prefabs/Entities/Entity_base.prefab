@@ -313,6 +313,7 @@ GameObject:
   - component: {fileID: 3156794405520552273}
   - component: {fileID: 2292172924411989332}
   - component: {fileID: 6326516008175686655}
+  - component: {fileID: 7887146153611111599}
   m_Layer: 6
   m_Name: Entity_base
   m_TagString: Untagged
@@ -479,6 +480,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.EntityPresence
   _persistentID: {fileID: 1186952831256218892}
+--- !u!114 &7887146153611111599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8283577674775524483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bb7168ca149809449a28fc126185f40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
+  _startingItems: []
 --- !u!1 &8934368094500991404
 GameObject:
   m_ObjectHideFlags: 0
