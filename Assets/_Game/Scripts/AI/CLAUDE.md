@@ -14,7 +14,7 @@
 | `FactionMember` | Tags a GO as a targetable faction participant. Self-registers with `TargetRegistry` on enable. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (Player uses override — no PersistentID). |
 | `TargetRegistry` | **Static** runtime registry of live `FactionMember`s. Query this instead of `FindGameObjectWithTag`. Reset on play-mode enter via `SubsystemRegistration`. |
 | `ICombatStateProvider` | Read-only "is this entity in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
-| `NPCPresence` | `IInteractable` on NPCs — gates interaction on combat state. |
+| `NPCPresence` | `: EntityPresence` (base lives in `Game.World`, on `Entity_base.prefab`). Overrides the dialogue-specific `Interact()` (raises `_onDialogueRequested`), `InteractPrompt` ("Talk") and `CanInteract` (`IsAliveAndOutOfCombat`). Name-tag + alive/combat gating helper are inherited from `EntityPresence`. |
 | `NPCMemoryComponent` / `NPCDialogueGraphComponent` | Hold an NPC's active memory set and resolve available dialogue start nodes / choices. |
 | `SMB_DeathState` | StateMachineBehaviour on the death animator state. |
 

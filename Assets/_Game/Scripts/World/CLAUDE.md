@@ -9,7 +9,8 @@
 
 | File | Role |
 |------|------|
-| `IInteractable` | Contract for anything the player can interact with (`CanInteract`, `Interact()`). Implemented by `InteractableObject`, `ContainerInteractable`, `ItemPickup`, `NPCPresence`. |
+| `IInteractable` | Contract for anything the player can interact with (`CanInteract`, `Interact()`). Implemented by `InteractableObject`, `ContainerInteractable`, `ItemPickup`, `EntityPresence` (and its subclass `NPCPresence`). |
+| `EntityPresence` | Base `IInteractable` for **any** entity (NPC, monster, …). Lives on `Entity_base.prefab` so every entity is discoverable by `InteractionSystem` and shows its world-space `EntityUI` on hover. Provides `NameTag` (null-guarded → `""` when `PersistentID.Entity` is null), a no-op `Interact()`, empty `InteractPrompt`, and a base `CanInteract => false` (UI shows, no `[E]` prompt). Exposes `IsAliveAndOutOfCombat` helper for subclasses. `NPCPresence` (Game.AI) subclasses it for dialogue. |
 | `InteractionSystem` | Player-side raycast that finds the focused `IInteractable` and dispatches `Interact()`. |
 | `InteractableObject` | Generic scene interactable. |
 | `DialogueSystem` | Drives NPC dialogue flow (start nodes, choices) using the NPC's memory/graph components. |

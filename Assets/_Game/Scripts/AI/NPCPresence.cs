@@ -7,48 +7,23 @@ using UnityEngine;
 
 namespace Game.AI
 {
-    public class NPCPresence : MonoBehaviour, IInteractable
+    public class NPCPresence : EntityPresence
     {
         private const string TAG = "[NPC]";
 
-        
-        [SerializeField] private PersistentID _persistentID;
-        private NPCEntity _data => (NPCEntity) _persistentID.Entity;
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
-        private EntityHealth _entityHealth;
-        private ICombatStateProvider _combatState;
+        public override string InteractPrompt => "Talk";
 
-        public string InteractPrompt => "Talk";
+        // NPCs are interactable while alive and not in combat (dead / in-combat → no prompt).
+        public override bool CanInteract => IsAliveAndOutOfCombat;
 
-        public string NameTag => _data.entityName;
-
-        public bool CanInteract =>
-            (_entityHealth == null || !_entityHealth.IsDead) &&
-            (_combatState == null || !_combatState.IsInCombat);
-
-        private void Awake()
+        public override void Interact()
         {
-            if (_data == null)
-            {
-                GameLog.Error(TAG, $"NPCPresence on {gameObject.name} has no NPCDataSO assigned");
-                enabled = false;
-                return;
-            }
-            _entityHealth = GetComponent<EntityHealth>();
-            _combatState = GetComponent<ICombatStateProvider>(); // null-safe: NPCs without a brain are always interactable
-        }
-
-        public void Interact()
-        {
-            if (_data == null) return;
+            if (Data == null) return;
             if (_entityHealth != null && _entityHealth.IsDead)
             {
-                // TODO: replace this early-return with a loot-corpse interaction unlock
-                //       once the looting-system story (sprint backlog 7-6) lands. The
-                //       corpse intentionally remains a valid IInteractable target so
-                //       the future loot UX can plug in without re-introducing detection
-                //       logic. Crosshair highlight + NameTag are unchanged on purpose.
+                // TODO: replace with a loot-corpse interaction unlock once the looting story lands.
                 GameLog.Info(TAG, $"{gameObject.name} is dead — dialogue interaction blocked");
                 return;
             }
@@ -62,17 +37,17 @@ namespace Game.AI
                 GameLog.Warn(TAG, $"No dialogue event assigned on {gameObject.name} — cannot open dialogue");
                 return;
             }
-            var memComponent = GetComponent<NPCMemoryComponent>(); // may be null — handled by DialogueSystem
-            var graphComponent = GetComponent<NPCDialogueGraphComponent>(); // may be null — handled by DialogueSystem
-            var invComponent = GetComponent<InventorySystem>(); // may be null — handled by Shop system
-            var goldComponent = GetComponent<GoldSystem>(); // may be null — handled by NPCTradeUI
+            var memComponent   = GetComponent<NPCMemoryComponent>();
+            var graphComponent = GetComponent<NPCDialogueGraphComponent>();
+            var invComponent   = GetComponent<InventorySystem>();
+            var goldComponent  = GetComponent<GoldSystem>();
 
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
-                npcName = _data.entityName,
-                memories = memComponent,
-                graph = graphComponent,
-                npcInventory = invComponent,
+                npcName       = Data.entityName,
+                memories      = memComponent,
+                graph         = graphComponent,
+                npcInventory  = invComponent,
                 npcGoldSystem = goldComponent
             });
         }

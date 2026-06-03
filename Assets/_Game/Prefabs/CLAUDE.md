@@ -79,8 +79,15 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 | Prefab type | Required layer | Why |
 |-------------|---------------|-----|
 | World item pickup | **Interactable (Layer 8)** on root | Root has the collider; `InteractionSystem` raycasts only against Layer 8 |
-| NPC (Entity_base variant) | **Characters (Layer 6)** on root + **Interactable (Layer 8)** on `InteractionCollider` child | Root must be Layer 6 so `LockOnSystem._lockOnLayerMask (m_Bits:64)` can detect them; a dedicated `InteractionCollider` child GO on Layer 8 carries the trigger CapsuleCollider for `InteractionSystem`. `GetComponentInParent<IInteractable>()` traverses up from the child to find `NPCPresence` on the root. |
-| Enemy (Entity_base variant) | **Characters (Layer 6)** on root | Lock-on only; enemies are not interactable, so no Layer 8 child needed |
+| **Any entity (`Entity_base`)** | **Characters (Layer 6)** on root + **Interactable (Layer 8)** on `InteractionCollider` child | The interactable surface now lives on the **base** prefab: `Entity_base` carries `EntityPresence` (`Game.World.IInteractable`) on the root plus a Layer-8 `InteractionCollider` child (trigger CapsuleCollider, Radius 0.5 / Height 2 / Center Y 1). **Every** entity (NPC and monster) is therefore interactable + UI-visible by default. Root stays Layer 6 so `LockOnSystem._lockOnLayerMask (m_Bits:64)` detects it; `GetComponentInParent<IInteractable>()` climbs from the Layer-8 child to `EntityPresence` (or its subclass) on the root. |
+| NPC (`Entity_base` variant) | inherits the above | NPCs add `NPCPresence : EntityPresence` for dialogue — see the variant gotcha below (the inherited base `EntityPresence` + collider must be removed). |
+| Monster (`Entity_base` variant) | inherits the above | Monsters inherit `EntityPresence` + the Layer-8 collider unchanged → name/HP UI on hover, no `[E]` prompt (`CanInteract == false`, `Interact()` no-op). A future loot spec will subclass/extend `EntityPresence` for corpses. |
+
+**Subclass-on-a-variant gotcha (base concrete component + subclass variant):** when a variant needs to *replace* an inherited base component with its own subclass (here `NPCPresence : EntityPresence`), Unity cannot re-type the inherited component. The variant must:
+- add the inherited base component's `fileID` to `m_RemovedComponents` (so the root keeps exactly **one** `IInteractable` — the subclass), and
+- if the base also owns a shared child the subclass needs its own copy of, add the inherited child GameObject's `fileID` to `m_RemovedGameObjects` and keep the variant's own added child.
+
+`NPC_base Variant` does both: it removes the inherited base `EntityPresence` + base `InteractionCollider`, and keeps its own added `NPCPresence` + hip-pinned `InteractionCollider` (referenced by `HumanoidAIAnimationDriver._transformsToPinToHips` — do **not** delete it).
 
 **NPC two-collider pattern** (do NOT collapse into one):
 - `Hitbox` child (Layer 7 — CharacterHitbox): non-trigger CapsuleCollider, used by `WeaponHitbox` for combat damage detection
