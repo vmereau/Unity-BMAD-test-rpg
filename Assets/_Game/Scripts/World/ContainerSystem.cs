@@ -51,7 +51,7 @@ namespace Game.World
                 }
             }
 
-            _containerUI.Open(data.containerInventory);
+            _containerUI.Open(data.containerInventory, data.takeOnly);
         }
     }
 }

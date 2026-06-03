@@ -13,18 +13,20 @@ namespace Game.AI
 
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
-        public override string InteractPrompt => "Talk";
+        // Dead with loot → "Loot"; alive → "Talk"; dead-and-empty → no prompt.
+        public override string InteractPrompt => IsDead ? (IsLootable ? "Loot" : string.Empty) : "Talk";
 
-        // NPCs are interactable while alive and not in combat (dead / in-combat → no prompt).
-        public override bool CanInteract => IsAliveAndOutOfCombat;
+        // Interactable when a non-empty corpse (loot) OR alive & out of combat (dialogue).
+        // In combat & alive, or an emptied corpse → no interaction.
+        public override bool CanInteract => IsLootable || IsAliveAndOutOfCombat;
 
         public override void Interact()
         {
             if (Data == null) return;
-            if (_entityHealth != null && _entityHealth.IsDead)
+
+            if (IsDead)
             {
-                // TODO: replace with a loot-corpse interaction unlock once the looting story lands.
-                GameLog.Info(TAG, $"{gameObject.name} is dead — dialogue interaction blocked");
+                base.Interact(); // loot the corpse via the shared container pipeline
                 return;
             }
             if (_combatState != null && _combatState.IsInCombat)

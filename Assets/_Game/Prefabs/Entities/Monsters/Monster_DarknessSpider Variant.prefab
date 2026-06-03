@@ -127,6 +127,26 @@ PrefabInstance:
       propertyPath: _animator
       value: 
       objectReference: {fileID: 2312858567818599327}
+    - target: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: 8b78cb18e53cc3049bd75623322cbd02, type: 2}
+    - target: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _startingItems.Array.data[1].item
+      value: 
+      objectReference: {fileID: 11400000, guid: 34b8b220987dd4246917b1dbb3c28799, type: 2}
+    - target: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _startingItems.Array.data[1].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_Name
       value: Monster_DarknessSpider Variant

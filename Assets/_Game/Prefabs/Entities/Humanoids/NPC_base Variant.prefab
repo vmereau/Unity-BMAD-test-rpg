@@ -1665,6 +1665,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.NPCPresence
   _persistentID: {fileID: 8935889491633091201}
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
+  _onLootRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
 --- !u!114 &4585579539212275391
 MonoBehaviour:
   m_ObjectHideFlags: 0

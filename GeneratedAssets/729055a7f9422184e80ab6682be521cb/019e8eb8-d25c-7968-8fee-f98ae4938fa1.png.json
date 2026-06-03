@@ -1,0 +1,38 @@
+{
+    "asset": "729055a7f9422184e80ab6682be521cb",
+    "fileName": "019e8eb8-d25c-7968-8fee-f98ae4938fa1.png",
+    "prompt": "Icon for a 'Darkness Spider Leg', a hairy black chitinous spider leg with a sharp curved tip, realistic 3D render style, game item icon, centered, studio lighting, matching the lighting and material style of the provided reference.",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelatePixelGridSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": [
+            {
+                "doodleReferenceType": 7,
+                "doodle": [],
+                "label": "Image",
+                "strength": 0.25,
+                "invertStrength": false,
+                "assetReferenceGuid": "3023f9329b5a3a1438bbb685e4c07864",
+                "unlabeledIndex": -1
+            }
+        ]
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}

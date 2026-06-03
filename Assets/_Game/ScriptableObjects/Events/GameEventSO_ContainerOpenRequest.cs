@@ -9,6 +9,7 @@ namespace Game.Core
         public InventorySystem containerInventory;
         public bool isLocked;
         public string requiredSkillId;
+        public bool takeOnly; // true for corpse loot (no deposit); false for world containers
     }
 
     [CreateAssetMenu(menuName = "Game/Events/Container Open Request", fileName = "NewContainerOpenRequestEvent")]

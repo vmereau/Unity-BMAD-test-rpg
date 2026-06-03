@@ -12,7 +12,7 @@ namespace Game.UI
         [SerializeField] private Button _takeButton;
         [SerializeField] private Button _putButton;
 
-        public void Bind(ContainerUI owner, int slotIndex, ItemSO item, ContainerSide side)
+        public void Bind(ContainerUI owner, int slotIndex, ItemSO item, ContainerSide side, bool takeOnly)
         {
             if (item == null || owner == null)
             {
@@ -32,14 +32,15 @@ namespace Game.UI
                 }
                 if (_putButton != null) _putButton.gameObject.SetActive(false);
             }
-            else
+            else // player side
             {
+                if (_takeButton != null) _takeButton.gameObject.SetActive(false);
                 if (_putButton != null)
                 {
-                    _putButton.gameObject.SetActive(true);
-                    _putButton.onClick.AddListener(() => owner.PutItem(slotIndex));
+                    bool showPut = !takeOnly;
+                    _putButton.gameObject.SetActive(showPut);
+                    if (showPut) _putButton.onClick.AddListener(() => owner.PutItem(slotIndex));
                 }
-                if (_takeButton != null) _takeButton.gameObject.SetActive(false);
             }
         }
     }

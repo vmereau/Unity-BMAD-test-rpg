@@ -12,6 +12,7 @@ namespace Game.UI
 
         [SerializeField] private InventorySystem _playerInventory;
         private InventorySystem _containerInventory;
+        private bool _takeOnly;
 
         [SerializeField] private Transform _containerContentRoot;
         [SerializeField] private Transform _playerContentRoot;
@@ -63,9 +64,10 @@ namespace Game.UI
                 Close();
         }
 
-        public void Open(InventorySystem containerInventory)
+        public void Open(InventorySystem containerInventory, bool takeOnly = false)
         {
             _containerInventory = containerInventory;
+            _takeOnly = takeOnly;
             gameObject.SetActive(true);
             OnScreenOpen();
         }
@@ -116,7 +118,7 @@ namespace Game.UI
         public void OnSlotDoubleClicked(int index, ContainerSide side)
         {
             if (side == ContainerSide.Container) TakeItem(index);
-            else PutItem(index);
+            else if (!_takeOnly) PutItem(index);
         }
 
         public void TakeItem(int index)
@@ -132,6 +134,7 @@ namespace Game.UI
 
         public void PutItem(int index)
         {
+            if (_takeOnly) return; // loot is take-only
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
             _playerInventory.DecrementStack(index);
@@ -145,6 +148,8 @@ namespace Game.UI
         {
             HideContextMenu();
             _contextMenuSlotIndex = slotIndex;
+
+            if (side == ContainerSide.Player && _takeOnly) return; // loot: cannot deposit into a corpse
 
             InventorySystem inv = (side == ContainerSide.Container) ? _containerInventory : _playerInventory;
             if (inv == null || slotIndex < 0 || slotIndex >= inv.Count) return;
@@ -233,7 +238,7 @@ namespace Game.UI
         private void UpdateDetailPanel(ItemSO item, int slotIndex, ContainerSide side)
         {
             _detailPanelUI?.Show(item);
-            _containerActions?.Bind(this, slotIndex, item, side);
+            _containerActions?.Bind(this, slotIndex, item, side, _takeOnly);
         }
 
         private void RefreshDetailPanelAfterAction(ItemSO item, int index, ContainerSide side)

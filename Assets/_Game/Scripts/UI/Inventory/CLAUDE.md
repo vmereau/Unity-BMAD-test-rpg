@@ -59,6 +59,15 @@ InventoryUI  (IScreenPanel)
 
 ---
 
+## ContainerUI Take-Only (Loot) Mode
+
+- `ContainerUI.Open(InventorySystem containerInventory, bool takeOnly = false)` — the two-pane take/put screen. `takeOnly = true` is **corpse loot**: the player can take from the container side but cannot deposit. World containers pass `false` (full take/put).
+- The flag arrives via `ContainerOpenRequestData.takeOnly` (raised by `ContainerInteractable` = `false`, by `EntityPresence`/`NPCPresence` corpse loot = `true`), forwarded through `ContainerSystem.HandleContainerOpenRequested` → `ContainerUI.Open(inv, takeOnly)`.
+- In take-only mode all four player→container Put paths are suppressed: double-click (`OnSlotDoubleClicked`), context menu (`ShowContextMenu` early-returns for the player side), the `PutItem` backstop guard, and the detail-action Put button (`ContainerDetailActions.Bind(..., takeOnly)` hides it). Take paths stay fully functional; the player grid stays visible (you see your own inventory while looting).
+- `_takeOnly` is reset on **every** `Open`, so a corpse open never leaks take-only state into a later world-container open (and vice-versa).
+
+---
+
 ## Gotchas
 
 - `EquipmentSlotUI` does **not** subscribe to events — it is refreshed by `EquipmentUI` calling `Refresh(item)` on each slot after `_onEquipmentChanged` fires.

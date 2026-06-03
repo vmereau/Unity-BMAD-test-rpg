@@ -45,7 +45,8 @@ namespace Game.World
             {
                 containerInventory = _inventory,
                 isLocked = isLocked,
-                requiredSkillId = isLocked ? _lockable.RequiredSkillId : null
+                requiredSkillId = isLocked ? _lockable.RequiredSkillId : null,
+                takeOnly = false
             });
         }
     }
