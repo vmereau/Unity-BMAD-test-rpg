@@ -9,8 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 993f385e7ab011645b6fbc2ed9523130, type: 3}
-  m_Name: KilledFact_bandit
-  m_EditorClassIdentifier: Game::Game.Core.KilledFact
-  _guid: 2a6a9f6c-052b-4cb0-8943-da9c1f0633ce
-  monsterType: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 44d19ccac4da84746a96c5445079f059, type: 3}
+  m_Name: OnLockUnlocked
+  m_EditorClassIdentifier: Game::Game.Core.GameEventSO_String

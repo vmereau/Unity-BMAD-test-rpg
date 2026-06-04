@@ -12,6 +12,7 @@ namespace Game.World
         [SerializeField] private GameEventSO_ContainerOpenRequest _onContainerOpenRequested;
         [SerializeField] private ContainerUI _containerUI;
         [SerializeField] private PlayerSkills _playerSkills;
+        [SerializeField] private GameEventSO_String _onLockUnlocked;
 
         private void OnEnable()
         {
@@ -37,7 +38,8 @@ namespace Game.World
                 return;
             }
 
-            if (data.isLocked && !string.IsNullOrEmpty(data.requiredSkillId))
+            bool wasLocked = data.isLocked && !string.IsNullOrEmpty(data.requiredSkillId);
+            if (wasLocked)
             {
                 if (_playerSkills == null)
                 {
@@ -49,6 +51,11 @@ namespace Game.World
                     GameLog.Info(TAG, $"Container locked — player lacks skill '{data.requiredSkillId}'");
                     return;
                 }
+                // Skill gate passed on a locked container — this is the "unlocked" moment.
+                // ContainerSystem and ContainerInteractable are both Game.World → same-system direct
+                // call is allowed. Unlock() persists the open state so this fires only once per chest.
+                data.container?.Unlock();
+                _onLockUnlocked?.Raise("Chest");
             }
 
             _containerUI.Open(data.containerInventory, data.takeOnly);

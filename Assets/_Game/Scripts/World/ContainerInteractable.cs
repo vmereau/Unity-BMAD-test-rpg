@@ -46,8 +46,12 @@ namespace Game.World
                 containerInventory = _inventory,
                 isLocked = isLocked,
                 requiredSkillId = isLocked ? _lockable.RequiredSkillId : null,
-                takeOnly = false
+                takeOnly = false,
+                container = this
             });
         }
+
+        /// <summary>Unlocks the sibling Lockable, if any. Safe to call when already unlocked.</summary>
+        public void Unlock() => _lockable?.Unlock();
     }
 }

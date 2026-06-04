@@ -15,6 +15,7 @@ namespace Game.World
 
         [SerializeField] private GameEventSO_DoorOpenRequest _onDoorOpenRequested;
         [SerializeField] private PlayerSkills _playerSkills;
+        [SerializeField] private GameEventSO_String _onLockUnlocked;
 
         private void OnEnable()
         {
@@ -52,6 +53,9 @@ namespace Game.World
 
             // DoorSystem and DoorInteractable are both Game.World → same-system direct call is allowed.
             data.door.Unlock();
+            // Only locked doors reach this system (unlocked ones toggle locally in DoorInteractable),
+            // and we are past the skill gate — so this is the unlock success path.
+            _onLockUnlocked?.Raise("Door");
             data.door.ToggleOpen();
         }
     }

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 993f385e7ab011645b6fbc2ed9523130, type: 3}
   m_Name: KilledFact_Monster_DarknessSpider Variant
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
-  _guid: 8f663730-eaea-4dfb-adc6-dcf945c774e5
+  _guid: babc20f4-bd5f-4bbf-9cb2-87847d90af04
   monsterType: {fileID: 0}
