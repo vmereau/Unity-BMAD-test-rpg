@@ -61,18 +61,6 @@ namespace Game.Editor
 
                 prop.objectReferenceValue = fact;
                 so.ApplyModifiedProperties();
-
-                var enemyTypeProp = so.FindProperty("entityType");
-                if (enemyTypeProp != null)
-                {
-                    var factSO = new SerializedObject(fact);
-                    var factEnemyProp = factSO.FindProperty("entityType");
-                    if (factEnemyProp != null)
-                    {
-                        factEnemyProp.objectReferenceValue = enemyTypeProp.objectReferenceValue;
-                        factSO.ApplyModifiedProperties();
-                    }
-                }
             }
 
             AssetDatabase.SaveAssets();

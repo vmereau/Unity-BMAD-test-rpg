@@ -13,4 +13,3 @@ MonoBehaviour:
   m_Name: KilledFact_Blacksmith
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
   _guid: a2759b98-6704-4668-8dea-416abbe751d1
-  monsterType: {fileID: 0}

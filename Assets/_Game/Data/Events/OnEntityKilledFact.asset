@@ -9,6 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2227c4ef6e2ca504f81089d6909b3e1f, type: 3}
+  m_Script: {fileID: 11500000, guid: 6c7581b21747faa4d8497e459cca629d, type: 3}
   m_Name: OnEntityKilledFact
-  m_EditorClassIdentifier: Game:Game.Core:GameEventSO_KilledFact
+  m_EditorClassIdentifier: Game:Game.Core:GameEventSO_EntityKilled

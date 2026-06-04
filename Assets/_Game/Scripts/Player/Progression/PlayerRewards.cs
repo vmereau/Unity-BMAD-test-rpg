@@ -12,7 +12,7 @@ namespace Game.Progression
         private const string TAG = "[PlayerRewards]";
 
         // ── Required ──────────────────────────────────────────────────────────
-        [SerializeField] private GameEventSO_KilledFact   _onEntityKilled;
+        [SerializeField] private GameEventSO_EntityKilled _onEntityKilled;
         [SerializeField] private XPSystem                 _xpSystem;
 
         // ── Dialogue event channel ────────────────────────────────────────────
@@ -74,17 +74,18 @@ namespace Game.Progression
 
         // ── Kill handler ──────────────────────────────────────────────────────
 
-        private void HandleEntityKilled(KilledFact fact)
+        private void HandleEntityKilled(EntityKilled e)
         {
-            // Base XP from the entity's EnemyTypeSO (always fires first)
-            int baseXp = fact?.MonsterType?.XpOnKill ?? 0;
+            // Base XP from the entity definition — works for every Entity subclass
+            // (MonsterEntity, NPCEntity, …), sourced from PersistentID.Entity. (always fires first)
+            int baseXp = e.entity != null ? e.entity.XpOnKill : 0;
             if (baseXp > 0)
                 _xpSystem.GiveExperience(baseXp);
 
             // Bonus rewards from matching PlayerRewardSO (e.g. special boss also gives LP)
             foreach (var reward in _rewards)
             {
-                if (reward != null && reward.MatchesKilledFact(fact))
+                if (reward != null && reward.MatchesKilledFact(e.fact))
                     ApplyRewards(reward);
             }
         }

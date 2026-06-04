@@ -13,4 +13,3 @@ MonoBehaviour:
   m_Name: KilledFact_bandit
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
   _guid: 2a6a9f6c-052b-4cb0-8943-da9c1f0633ce
-  monsterType: {fileID: 0}

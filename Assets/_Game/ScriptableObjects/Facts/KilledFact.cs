@@ -1,10 +1,11 @@
-using Game.AI;
 using UnityEngine;
 
 namespace Game.Core
 {
     /// <summary>
     /// Key format: Killed.{guid}
+    /// Pure persistence identity for a tracked entity (GUID + Killed prefix). The entity
+    /// definition (XpOnKill, etc.) lives solely on PersistentID.Entity — not here.
     /// Assign one KilledFact asset per tracked entity. The GUID uniquely identifies
     /// the entity across sessions. Use the Generate GUID context menu to create one.
     /// </summary>
@@ -12,17 +13,14 @@ namespace Game.Core
     public class KilledFact : Fact
     {
         [SerializeField] private string _guid;
-        [SerializeField] private MonsterEntity monsterType;
 
         /// <summary>The entity's unique identifier.</summary>
         public string EntityGuid => _guid;
-        public MonsterEntity MonsterType => monsterType;
 
-        public KilledFact Init(string guid, MonsterEntity monsterType = null)
+        public KilledFact Init(string guid)
         {
             Prefix = WorldFactPrefix.Killed;
             _guid = guid;
-            this.monsterType = monsterType;
             return this;
         }
 

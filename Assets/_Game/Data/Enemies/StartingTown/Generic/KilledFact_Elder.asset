@@ -13,4 +13,3 @@ MonoBehaviour:
   m_Name: KilledFact_Elder
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
   _guid: b94ee87a-fd3f-4f91-8d6f-84b8b421db42
-  monsterType: {fileID: 0}

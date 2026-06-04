@@ -1,5 +1,4 @@
 using _Game.ScriptableObjects.Entities;
-using Game.AI;
 using Game.Core;
 using UnityEngine;
 
@@ -58,7 +57,7 @@ namespace Game.World
                 return;
             }
 
-            WorldStateManager.Instance?.RegisterKill(_killedFact);
+            WorldStateManager.Instance?.RegisterKill(_killedFact, entityType);
         }
     }
 }

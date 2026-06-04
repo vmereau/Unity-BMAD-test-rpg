@@ -13,4 +13,3 @@ MonoBehaviour:
   m_Name: KilledFact_Villager
   m_EditorClassIdentifier: Game::Game.Core.KilledFact
   _guid: 6a226255-40f1-452d-8b52-6ea0ca29ed8f
-  monsterType: {fileID: 11400000, guid: 6e9e881882f12b7489060bb2d521bcc3, type: 2}

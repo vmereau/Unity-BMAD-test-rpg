@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _Game.ScriptableObjects.Entities;
 using Game.Player;
 using Game.Progression;
 using Game.Quest;
@@ -20,7 +21,7 @@ namespace Game.Core
         public static WorldStateManager Instance { get; private set; }
 
         [SerializeField] private GameEventSO_Fact _onFactChanged;
-        [SerializeField] private GameEventSO_KilledFact _onEntityKilled;
+        [SerializeField] private GameEventSO_EntityKilled _onEntityKilled;
         [SerializeField] private GameEventSO_DialogueFact _onDialoguePlayed;
 
         [SerializeField] private PlayerSkills _playerSkills;
@@ -48,10 +49,11 @@ namespace Game.Core
             return GetFact(fact);
         }
 
-        public void RegisterKill(KilledFact fact)
+        public void RegisterKill(KilledFact fact, Entity entity = null)
         {
             if (fact == null) { GameLog.Warn(TAG, "RegisterKill called with null fact"); return; }
             SetFact(fact, true);
+            _onEntityKilled?.Raise(new EntityKilled(entity, fact));
         }
 
         // ── Typed read/write ───────────────────────────────────────────────────
@@ -71,6 +73,12 @@ namespace Game.Core
         }
 
         /// <summary>Typed write — calls fact.ToString() as the storage key.</summary>
+        /// <remarks>
+        /// NOTE: For a <see cref="KilledFact"/> always go through <see cref="RegisterKill"/>, not this
+        /// method directly — the enriched <c>OnEntityKilled</c> reward event is raised by RegisterKill,
+        /// not by the generic fact path. A raw SetFact(killedFact, true) records the kill for persistence
+        /// but grants no XP/rewards.
+        /// </remarks>
         public void SetFact(Fact fact, bool value)
         {
             if (fact == null) { GameLog.Warn(TAG, "SetFact called with null fact"); return; }
@@ -86,9 +94,6 @@ namespace Game.Core
         {
             switch (fact)
             {
-                case KilledFact killedFact:
-                    _onEntityKilled?.Raise(killedFact);
-                    break;
                 case DialogueFact dialogueFact:
                     _onDialoguePlayed?.Raise(dialogueFact);
                     break;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using Game.AI;
 using Game.Core;
 using Game.Quest;
 
@@ -98,6 +99,29 @@ namespace Tests.EditMode
 
             Assert.That(_wsm.IsKilled(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
             Assert.That(_wsm.GetFact(MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"))), Is.True);
+        }
+
+        [Test]
+        public void RegisterKill_RaisesEntityKilled_WithEntityAndFact()
+        {
+            var eventSO = ScriptableObject.CreateInstance<GameEventSO_EntityKilled>();
+            _cleanup.Add(eventSO);
+
+            typeof(WorldStateManager)
+                .GetField("_onEntityKilled", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(_wsm, eventSO);
+
+            EntityKilled received = default;
+            bool fired = false;
+            eventSO.AddListener(payload => { received = payload; fired = true; });
+
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<KilledFact>().Init("StartingTown_NPC_Guard"));
+            var entity = MakeFact(() => ScriptableObject.CreateInstance<MonsterEntity>());
+            _wsm.RegisterKill(fact, entity);
+
+            Assert.That(fired, Is.True);
+            Assert.That(received.fact, Is.SameAs(fact));
+            Assert.That(received.entity, Is.SameAs(entity));
         }
 
         // ── IsQuestFactTrue ───────────────────────────────────────────────────
@@ -248,7 +272,7 @@ namespace Tests.EditMode
             _cleanup.Add(eventSO);
 
             typeof(WorldStateManager)
-                .GetField("_onWorldFactChanged", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetField("_onFactChanged", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(_wsm, eventSO);
 
             FactData received = default;
