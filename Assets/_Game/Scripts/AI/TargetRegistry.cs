@@ -49,7 +49,7 @@ namespace Game.AI
                 float sqr = (m.Transform.position - origin).sqrMagnitude;
                 if (sqr > bestSqr) continue;
                 // Deterministic tie-break on exact-distance ties (HashSet iteration order is not stable).
-                if (best == null || sqr < bestSqr || m.GetInstanceID() < best.GetInstanceID())
+                if (best == null || sqr < bestSqr || m.GetEntityId().CompareTo(best.GetEntityId()) < 0)
                 {
                     bestSqr = sqr;
                     best = m;

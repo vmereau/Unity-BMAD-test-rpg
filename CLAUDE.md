@@ -7,7 +7,7 @@
 
 ## Project Identity
 
-- **Engine:** Unity 6000.3.10f1 (Unity 6.3 LTS)
+- **Engine:** Unity 6000.6.2f1 (Unity 6.6)
 - **Render Pipeline:** URP 17.x (`Assets/Settings/PC_RPAsset`, `PC_Renderer`)
 - **Input:** Unity Input System — generated class `InputSystem_Actions` at `Assets/_Game/InputSystem_Actions.cs`; legacy input disabled
 - **Platform:** PC Windows x64 → Steam distribution
