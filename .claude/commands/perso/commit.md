@@ -33,9 +33,9 @@ Follow `.claude/git-conventions.md` exactly:
 - `<type>(<scope>): <short description>` — imperative, lowercase, ≤ 72 chars
 - Optional body explaining *what* and *why*
 - `BREAKING CHANGE:` footer if applicable
-- Always append the co-author footer:
+- Always append the co-author footer, naming the model actually generating the commit:
   ```
-  Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+  Co-Authored-By: Claude <model name> <noreply@anthropic.com>
   ```
 
 ### 6 — Commit
@@ -46,7 +46,7 @@ git commit -m "$(cat <<'EOF'
 
 <optional body>
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude <model name> <noreply@anthropic.com>
 EOF
 )"
 ```
