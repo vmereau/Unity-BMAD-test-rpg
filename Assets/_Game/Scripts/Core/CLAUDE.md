@@ -13,7 +13,7 @@
 | `GameLog` | **Static.** Project logging wrapper. `Info`/`Warn` stripped in Release; `Error` always writes. Never call `Debug.Log` directly — always `GameLog.*` with a `TAG`. |
 | `GameConstants` | **Static.** Compile-time *structural* constants only. Tunable gameplay values belong in config SOs, not here. |
 | `SceneLoader` | Scene/additive-scene loading. |
-| `State/WorldStateManager` | Central runtime state singleton (on the `WorldStateManager` GO in `Core.unity`). Kill tracking + flat key/bool world-fact store backed by typed Fact SOs. Save/Load is Epic 8. |
+| `State/WorldStateManager` | Central runtime state singleton (on the `WorldStateManager` GO in `Core.unity`). Kill tracking + flat key/bool world-fact store backed by typed Fact SOs. Save/Load is story 9-5 (Epic 9). |
 | `State/WorldFactPrefix` | Canonical key prefixes (`enum`). Use the typed setters (`RegisterKill`, `SetQuestStep`, `SetWorldEvent`) — never build fact-key strings by hand at call sites. |
 
 ---

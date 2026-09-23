@@ -35,7 +35,7 @@ QuestSO
 | **QuestFact** | Create a `QuestFact` SO (`Game/Facts/Quest Fact`) referencing this quest + a state (IsStarted / IsCompleted / IsFailed / step index). Use it as an unlock/invalidation condition on `NPCMemoryEntrySO` or as a `QuestPart.fact` in another quest. |
 | **QuestEventsManager** | Add this `QuestSO` to its `_quests` list. It will fire `_onQuestStarted/Completed/Failed/StepCompleted` on transitions. |
 | **PlayerRewardSO** | Create a `PlayerRewardSO` (`Game/Rewards/Player Reward`) with `FactType = Quest`, point it at this quest + state. Wire it into `PlayerRewards._rewards`. See `docs/Systems/Quest.md`. |
-| **NPC Memory** | Create a `QuestFact` for the desired state and add it to an `NPCMemoryEntrySO.unlockConditions` or `invalidationConditions` to gate NPC dialogue on quest progress. See `Assets/_Game/ScriptableObjects/NPC/`. |
+| **NPC Memory** | Create a `QuestFact` for the desired state and add it to an `NPCMemoryEntrySO.unlockConditions` or `invalidationConditions` to gate NPC dialogue on quest progress. See `Assets/_Game/ScriptableObjects/Entities/NPC/`. |
 | **Quest Log UI** | Add this `QuestSO` to `QuestLogUI._allQuests`. No other wiring needed — the UI reads state directly from the SO. |
 
 ---

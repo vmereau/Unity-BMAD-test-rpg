@@ -17,10 +17,10 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ## Technology Stack & Versions
 
-- **Engine:** Unity 6000.3.10f1 (Unity 6.3 LTS)
+- **Engine:** Unity 6000.6.2f1 (Unity 6.6) — upgraded from 6.3 on 2026-09-22
 - **Render Pipeline:** Universal Render Pipeline (URP 17.x) — PC_RPAsset / PC_Renderer
 - **Input:** Unity Input System (new input system only; legacy input disabled)
-- **Steam Integration:** Steamworks.NET (Epic 8) — save sync + achievements
+- **Steam Integration:** Steamworks.NET (Epic 9) — save sync + achievements
 - **Color Space:** Linear
 - **Target Platform:** PC (Windows x64) via Steam
 
@@ -33,7 +33,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **Unity Lifecycle:**
 - Use `Awake` for self-initialization (cache own references), `Start` for cross-component initialization
 - Never call `GetComponent` in `Update` — cache references in `Awake`
-- Prefer `OnDestroy` for cleanup of event subscriptions and allocated resources
+- Unsubscribe events in `OnDisable` (see Architecture Patterns); use `OnDestroy` only to release allocated resources
 - `[SerializeField] private` is preferred over `public` for Inspector-exposed fields
 
 **URP Specifics:**
@@ -64,7 +64,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - NEVER use `Debug.Log` / `Debug.LogWarning` / `Debug.LogError` directly
 - ALWAYS use `GameLog` wrapper: `GameLog.Info(TAG, msg)` / `GameLog.Warn(TAG, msg)` / `GameLog.Error(TAG, msg)`
 - Every class defines its own tag constant: `private const string TAG = "[SystemName]";`
-- `Info` and `Warn` are stripped in Release builds; `Error` writes to `game_log.txt`
+- `Info` and `Warn` are stripped in Release builds; `Error` always writes to the console (file output to `game_log.txt` is a TODO in `GameLog.cs`)
 
 **Coroutine/Async Patterns:**
 - Prefer coroutines for time-based gameplay logic
@@ -87,7 +87,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **Asset Loading:**
 - `Resources.Load()` is BANNED — deprecated in Unity 6; use direct serialized Inspector references
 - All asset references assigned in Inspector on prefabs/SOs — no runtime path-based loading
-- Addressables deferred to Epic 8 only if build exceeds 5GB or memory pressure identified
+- Addressables deferred to Epic 9 only if build exceeds 5GB or memory pressure identified
 
 **Physics:**
 - Use `Physics.SphereCastNonAlloc` / `OverlapSphereNonAlloc` (non-allocating variants) for runtime queries
@@ -192,7 +192,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Steam Cloud (Steamworks.NET) syncs `savegame.json` automatically — do not implement custom cloud sync
 - Save triggers: manual save (pause menu), autosave on region transition, autosave on quest completion
 
-**Steam Integration (Epic 8):**
+**Steam Integration (Epic 9):**
 - Steamworks.NET lives in `ThirdParty/Steamworks.NET/`
 - All Steam API calls wrapped in try-catch (I/O rule applies)
 - Steam App ID configured in `steam_appid.txt` at project root

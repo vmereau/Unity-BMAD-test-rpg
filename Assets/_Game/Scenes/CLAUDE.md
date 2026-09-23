@@ -4,12 +4,18 @@
 
 ---
 
-## Core.unity Scene Stubs (Complete as of Story 1.5)
+## Core.unity Manager GameObjects
 
-All 7 manager stub GameObjects are in `Core.unity`:
-`WorldStateManager`, `GameEventBus`, `SaveSystem`, `SceneLoader`, `DayNightController`, `AudioManager`, `UI`
+Manager GameObjects in `Core.unity`:
+`WorldStateManager`, `GameEventBus`, `SaveSystem`, `SceneLoader`, `DayNightController`, `AudioManager`
 
-These are empty GameObjects only — no scripts yet. Scripts are added per-epic.
+| GO | Status |
+|----|--------|
+| `WorldStateManager` | Scripted — `Game.Core.State.WorldStateManager` |
+| `SceneLoader` | Scripted — `Game.Core.SceneLoader` |
+| `GameEventBus`, `SaveSystem`, `DayNightController`, `AudioManager` | Empty stubs — scripts arrive with their epics (save/load = story 9-5, day/night = story 5-6) |
+
+`Core.unity` also hosts `PlayerStats` and `PlayerSkills` components.
 
 ---
 

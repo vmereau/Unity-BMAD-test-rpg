@@ -1,4 +1,4 @@
-# CLAUDE.md — Assets/_Game/Art/Characters/Player/Animations/Combat
+# CLAUDE.md — Assets/_Game/Art/Characters/Humanoids/Animations/Combat
 
 > Loaded when Claude accesses files in this folder. Covers attack animation structure, animation events, and hitbox/combo timing per weapon type.
 

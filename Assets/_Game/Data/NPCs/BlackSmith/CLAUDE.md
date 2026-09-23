@@ -68,4 +68,4 @@ Edric grew up in a small village, the son of a blacksmith. As a child he fell in
 | NPCDataSO | `Assets/_Game/Data/NPCs/BlackSmith/NPC_Blacksmith.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/BlackSmith/Dialogues/` |
 | Memories | `Assets/_Game/Data/NPCs/BlackSmith/Memories/` |
-| Prefab | `Assets/_Game/Prefabs/NPCs/Blacksmith.prefab` *(if exists)* |
+| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

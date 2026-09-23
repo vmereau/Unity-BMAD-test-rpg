@@ -10,8 +10,9 @@
 - **Engine:** Unity 6000.6.2f1 (Unity 6.6)
 - **Render Pipeline:** URP 17.x (`Assets/Settings/PC_RPAsset`, `PC_Renderer`)
 - **Input:** Unity Input System — generated class `InputSystem_Actions` at `Assets/_Game/InputSystem_Actions.cs`; legacy input disabled
+- **Camera:** Cinemachine 3.x, third-person over-the-shoulder
 - **Platform:** PC Windows x64 → Steam distribution
-- **Game type:** 3D RPG, third-person over-the-shoulder camera
+- **Game type:** 3D RPG
 
 ---
 
@@ -19,12 +20,13 @@
 
 | What | Path |
 |------|------|
-| **Authoritative coding rules (57 rules)** | `_bmad-output/project-context.md` |
-| **Game architecture doc** | `_bmad-output/planning-artifacts/` |
+| **Authoritative coding rules** | `_bmad-output/project-context.md` |
+| **GDD / architecture / narrative / epics** | `_bmad-output/gdd.md`, `game-architecture.md`, `narrative-design.md`, `epics.md` |
 | **Sprint status** | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
-| **Story files** | `_bmad-output/implementation-artifacts/*.md` |
+| **Story files + tech specs** | `_bmad-output/implementation-artifacts/*.md` |
+| **Superseded proposals / archived specs** | `_bmad-output/archive/` |
 | **All game source code** | `Assets/_Game/` |
-| **Game assembly definition** | `Assets/_Game/Game.asmdef` (refs: `Unity.InputSystem`) |
+| **Game assembly definition** | `Assets/_Game/Game.asmdef` |
 | **Git conventions** | `.claude/rules/git-conventions.md` |
 
 > **Never treat `_bmad/` or `_bmad-output/` as game source code.** They are BMAD
@@ -34,9 +36,31 @@
 
 ## Before Writing Any Game Code
 
-1. Read `_bmad-output/project-context.md` — all 57 rules are mandatory
-2. Check `_bmad-output/implementation-artifacts/sprint-status.yaml` for current state
-3. If a story file exists for the task, read it fully before implementing
+1. Read `_bmad-output/project-context.md` — its rules are mandatory
+2. Check `sprint-status.yaml` for current state
+3. If a story file or tech spec exists for the task, read it fully before implementing
+4. Read the folder `CLAUDE.md` for every folder you touch (index below)
+
+---
+
+## Development Workflow
+
+Epics 1–4 were delivered as BMAD stories. Since mid-April 2026, work is done as **quick tech
+specs** (`tech-spec-*.md` in `implementation-artifacts/`). When a spec ships a feature that maps
+to a sprint story, update `sprint-status.yaml` in the same session, and set the spec's
+`status:` to `completed` — otherwise tracking drifts.
+
+| Skill / command | When to use |
+|-----------------|-------------|
+| `gds-sprint-status` | See what's in-progress / what's next |
+| `gds-quick-spec` → `gds-quick-dev` | Spec and implement a feature (current default flow) |
+| `gds-create-story` → `gds-dev-story` | Full story flow from `epics.md` |
+| `gds-code-review` | Adversarial review after a feature is complete |
+| `gds-correct-course` | Re-plan when scope drifts from `epics.md` |
+| `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
+| `quests:design` → `quests:implement` | Quest spec, then Unity assets |
+| `perso:commit` | Stage, commit, and push changes |
+| `perso:wrap-up` | End of session — update CLAUDE.md with learned patterns |
 
 ---
 
@@ -60,51 +84,47 @@ Triggers to watch for:
 - A code review surfaces a recurring issue not yet in the checklist
 - A new system (script, prefab, SO, scene) is introduced that other agents need to know about
 
----
-
-## BMAD Workflow Commands
-
-| Command | When to use |
-|---------|-------------|
-| `/bmad:bmgd:workflows:sprint-status` | See what's in-progress / what's next |
-| `/bmad:bmgd:workflows:dev-story` | Implement the current story |
-| `/bmad:bmgd:workflows:code-review` | Adversarial review after a story is complete |
-| `/bmad:bmgd:workflows:create-story` | Generate next story file from epics |
-| `/perso:commit` | Stage, commit, and push changes |
-| `/perso:wrap-up` | End of session — update CLAUDE.md with learned patterns |
+Put each pattern in the **most specific folder CLAUDE.md** that owns it; keep only cross-cutting
+rules here. Don't duplicate a rule that already lives in `project-context.md` or a folder file.
 
 ---
 
-## Learned Patterns & Gotchas
+## Folder CLAUDE.md Index
 
-### Assembly, Input & Scene Rules
+| Area | File (under `Assets/_Game/`) | Covers |
+|------|------------------------------|--------|
+| Assembly & input | `CLAUDE.md` | `Game.asmdef`, `InputSystem_Actions` dual-file contract |
+| Scenes | `Scenes/CLAUDE.md` | Core.unity managers, MCP scene-load quirk |
+| Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts |
+| Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
+| AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
+| Combat | `Scripts/Combat/CLAUDE.md` | `WeaponHitbox`, animation events, combo guard, draw/sheathe combat state |
+| Player | `Scripts/Player/CLAUDE.md` | Cinemachine OTS setup, input map, `PlayerStateManager`, animation driver |
+| Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
+| Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
+| World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
+| Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
+| UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`) | Canvas setup, cursor, input, layout; HUD (incl. toasts), screens, dialogue, quest UI |
+| Prefabs | `Prefabs/CLAUDE.md` | Player / Entity hierarchies, layer rules, world-item rules |
+| Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
+| Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
+| Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
+| NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
+| Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
+| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Animator Controller practices, MCP animation quirks |
 
-> - Assembly setup + `InputSystem_Actions` dual-file contract → `Assets/_Game/CLAUDE.md`
-> - Scene stubs + MCP scene-load quirk → `Assets/_Game/Scenes/CLAUDE.md`
-> - Debug namespace rules + EnemyRespawner scaffolding → `Assets/_Game/Scripts/Debug/CLAUDE.md`
+---
 
-### Unity MCP Tool Quirks
+## Unity MCP Tool Quirks
 
-- **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` + `refresh_unity(mode="force")`.
+- **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` (move the `.meta` too) + `refresh_unity(mode="force")`.
 - **`manage_gameobject(create)` ignores `component_properties` for Canvas `renderMode`** — Canvas always defaults to `renderMode = 2` (World Space). After creating a Canvas GO, always follow up with `manage_components set_property renderMode 0` to set Screen Space Overlay.
 - **`refresh_unity(mode="force")` after direct YAML edits destroys the edits** — Unity reimports from cached in-memory state, discarding disk changes. After YAML-editing a `.prefab` file directly, always use `refresh_unity(mode="if_dirty")`. Never use `force` after a raw YAML edit.
-- Animation and scene-specific MCP quirks → `Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` and `Assets/_Game/Scenes/CLAUDE.md`.
+- Scene-loading and animation quirks live in `Scenes/CLAUDE.md` and the Combat animations CLAUDE.md.
 
-### Animator, Camera & Player Script Rules
+---
 
-> - Animator Controller best practices + MCP animation quirks → `Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md`
-> - Cinemachine OTS setup, float/euler quirks, Input System action map, CharacterController velocity Y, PlayerStateManager gate pattern, PlayerAnimationDriver / HumanoidAnimationBridge API → `Assets/_Game/Scripts/Player/CLAUDE.md`
-> - AI animation polymorphism via `AIAnimationDriver` base class (Brain/Health → Driver → Bridge contract for monster + humanoid AI) → `Assets/_Game/Scripts/Core/Animations/CLAUDE.md`
-
-### Code Subsystem Map
-
-> - Core singletons (CursorManager, GameLog, GameConstants, WorldStateManager/world facts) → `Assets/_Game/Scripts/Core/CLAUDE.md`
-> - Entity brains, health, faction targeting, NPC presence/memory → `Assets/_Game/Scripts/AI/CLAUDE.md`
-> - World interaction, dialogue, containers, `PersistentID` → `Assets/_Game/Scripts/World/CLAUDE.md`
-> - Inventory, equipment, action bar, pickups → `Assets/_Game/Scripts/Inventory/CLAUDE.md`
-> - XP/level/LP/skills event chain (`Game.Progression`) → `Assets/_Game/Scripts/Player/Progression/CLAUDE.md`
-
-### Unity Lifecycle Gotcha: OnDisable Before OnEnable
+## Unity Lifecycle Gotcha: OnDisable Before OnEnable
 
 Unity's first-activation order is `Awake → OnEnable → Start`.
 If `Awake()` sets `enabled = false`, Unity calls `OnDisable()` **before** `OnEnable()` has run.
@@ -122,32 +142,21 @@ private void OnDisable()
 }
 ```
 
-### Prefab Structure & Layer Rules
-
-> See `Assets/_Game/Prefabs/CLAUDE.md` for full prefab hierarchies (Player, Enemy_Grunt) and layer requirements.
-
 ---
 
 ## Code Review Checklist (Patterns Found in Practice)
 
-High-signal issues to always check in Unity MonoBehaviour reviews:
+Cross-cutting issues to check in every Unity MonoBehaviour review. Folder-specific checklists
+(namespace, cursor, logging, prefab/layer, input, animator) live in the folder CLAUDE.md files
+and `project-context.md` — apply those too.
 
 | Severity | Pattern |
 |----------|---------|
-| HIGH | `OnDisable` calls fields initialized in `OnEnable` without null guard |
-| HIGH | `enabled = false` set in `Awake` without OnDisable null guard |
-| MEDIUM | `GetComponent` or `Camera.main` called in `Update` instead of cached in `Awake` |
-| MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |
-| LOW | `Debug.Log` / `Debug.LogWarning` / `Debug.LogError` used directly (use `GameLog`) |
-| LOW | Magic numbers in gameplay logic (use `[SerializeField]` or config SO) |
-| LOW | Story File List missing Unity Editor-generated assets (FBX, AnimatorController, .meta files) — always audit art asset directories when story covers animation/import work |
-| HIGH | `Cursor.lockState`, `Cursor.visible`, or `CursorLockMode` used directly outside `CursorManager.cs` — all cursor state changes must go through `CursorManager.Lock()` / `CursorManager.Unlock()` / `CursorManager.IsLocked` (`Assets/_Game/Scripts/Core/CursorManager.cs`) |
-| HIGH | Namespace `Game.Debug` — use `Game.DevTools`; see `Assets/_Game/Scripts/Debug/CLAUDE.md` |
-| HIGH | Prefab structure or layer misconfigured — see `Assets/_Game/Prefabs/CLAUDE.md` |
-| HIGH | Assembly / InputSystem / Player / Animator rules — see folder-specific CLAUDE.md files |
+| HIGH | `OnDisable` uses fields initialized in `OnEnable` without a null guard (see lifecycle gotcha above) |
 | MEDIUM | Public method on MonoBehaviour dereferences a `[SerializeField]` dependency without a null guard — `Awake` setting `enabled = false` does NOT block external callers from reaching public methods; add `if (_dep == null) return;` at the top of every public method that uses a serialized dependency |
+| MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |
 | LOW | `private const string TAG` declared in a class that has no `GameLog.*` calls — dead code, remove it |
 | LOW | `[SerializeField]` field declared but never read or written in code — remove unless a future story explicitly needs it |
 | LOW | `System.Enum.GetValues(typeof(T))` inside a button-click or event handler — allocates a new array on every call; cache as `static readonly T[]` at class level |
-| LOW | `Transform.Find("ChildName")` for context menu button lookup with no warn/error when null — fails silently if prefab child is renamed; log a warning when the result is null and the feature is expected |
-| LOW | Story File List missing Unity-generated `{SceneName}Settings.lighting` asset — auto-created at `Assets/` root when any scene's lighting settings are modified in the Editor (no bake required); always check `Assets/*.lighting` after scene work |
+| LOW | `Transform.Find("ChildName")` with no warn/error when null — fails silently if a prefab child is renamed; log a warning when the result is null and the feature is expected |
+| LOW | Story/spec File List missing Unity-generated assets — FBX, AnimatorController, `.meta` files, and `Assets/*.lighting` (auto-created when any scene's lighting settings change) |

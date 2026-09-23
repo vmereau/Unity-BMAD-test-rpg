@@ -8,7 +8,7 @@
 
 `Game.asmdef` exists with:
 - `"name": "Game"`, `"autoReferenced": true`
-- `"references": ["Unity.InputSystem"]`
+- `"references": ["Unity.InputSystem", "Unity.TextMeshPro", "Unity.Cinemachine"]`
 
 All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Assembly-CSharp`).
 `InputSystem_Actions.cs` was moved from `Assets/` root into `Assets/_Game/` so it compiles into `Game`.

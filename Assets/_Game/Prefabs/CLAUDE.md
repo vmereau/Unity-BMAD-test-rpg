@@ -48,8 +48,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 │       ├── CharacterStatsUI  (inactive by default)
 │       └── OptionsUI         (inactive by default)
 ├── CameraTarget         (child — pure Transform pivot, local Y = 1.6; Cinemachine Follow/LookAt target)
-├── Virtual Camera       (child — CinemachineVirtualCamera; Follow/LookAt → CameraTarget)
-│   └── cm               (CinemachinePipeline, CinemachineTransposer, CinemachineSameAsFollowTarget)
+├── Virtual Camera       (child — CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget; Follow → CameraTarget — see Scripts/Player/CLAUDE.md)
 ├── Camera               (child — Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
 └── Character            (child — nested Mixamo FBX prefab: Idle.fbx, Humanoid rig)
 ```
@@ -68,9 +67,11 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 
 ---
 
-## Enemy Prefab Structure
+## Entity Prefab Structure (NPCs & Monsters)
 
-> See `Assets/_Game/Prefabs/Enemies/CLAUDE.md` for full enemy prefab hierarchy, physics hit detection requirements, and checklist for adding new enemy types.
+> All entities are variants of `Assets/_Game/Prefabs/Entities/Entity_base.prefab`
+> (`Humanoids/NPC_base Variant`, `Monsters/Monster_DarknessSpider Variant`).
+> See `Assets/_Game/Prefabs/Entities/Monsters/CLAUDE.md` for the monster hierarchy, physics hit detection requirements, and checklist for adding new monster types.
 
 ---
 

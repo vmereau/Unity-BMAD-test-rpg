@@ -69,4 +69,4 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 | Dialogues | `Assets/_Game/Data/NPCs/Innkeeper/Dialogues/` |
 | Teachings | `Assets/_Game/Data/NPCs/Innkeeper/Teachings/` |
 | Memories | `Assets/_Game/Data/NPCs/Innkeeper/Memories/` |
-| Prefab | `Assets/_Game/Prefabs/NPCs/Innkeeper.prefab` *(if exists)* |
+| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |
