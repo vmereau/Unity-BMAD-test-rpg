@@ -110,6 +110,7 @@ namespace Game.AI
             // WarningRange >= DetectionRange has an empty warning band, so the entity will
             // always instant-engage and the telegraph silently never fires. Warn once.
             if (!_engageImmediately &&
+                _persistentID.Entity.DetectionRange > 0f &&
                 _persistentID.Entity.WarningRange >= _persistentID.Entity.DetectionRange)
             {
                 GameLog.Warn(TAG, $"{gameObject.name}: WarningRange ({_persistentID.Entity.WarningRange}) >= DetectionRange ({_persistentID.Entity.DetectionRange}) — warning band empty; entity will instant-engage. Check the Entity SO.");

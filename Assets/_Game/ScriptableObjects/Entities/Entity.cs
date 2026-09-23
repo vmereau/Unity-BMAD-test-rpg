@@ -87,7 +87,8 @@ namespace _Game.ScriptableObjects.Entities
         private void OnValidate()
         {
             if (_warningRange < 0f) _warningRange = 0f;
-            if (_warningRange >= _detectionRange)
+            // _detectionRange <= 0 means a passive entity that never detects — no warning band to validate.
+            if (_detectionRange > 0f && _warningRange >= _detectionRange)
             {
                 GameLog.Warn(TAG, $"'{name}': _warningRange ({_warningRange}) must be below _detectionRange ({_detectionRange}) — clamped.");
                 _warningRange = Mathf.Max(0f, _detectionRange - 0.5f);

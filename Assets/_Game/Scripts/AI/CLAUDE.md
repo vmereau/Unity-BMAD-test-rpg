@@ -24,6 +24,7 @@
 
 - **No `event Action` across system boundaries** (project-context.md). `ICombatStateProvider` is polled via `GetComponent`, not subscribed. Use a `GameEventSO<T>` channel if push is ever needed.
 - `EntityHealth.MaxHealth` is driven by `PersistentID.Entity.BaseHealth` — falls back to `100f` when no `PersistentID`/Entity is assigned.
+- **Passive entities** (e.g. `Entity_HumanoidNPC`) use `_detectionRange = 0` — they never detect targets. Any validation comparing `WarningRange` vs `DetectionRange` (`Entity.OnValidate`, `EntityBrain` runtime guard) must skip when `DetectionRange <= 0`, or it fires a false warning (`0 >= 0`) on every asset load.
 - `PersistentID`, `AIAnimationDriver`, and `NavMeshAgent` are all **optional** on an entity — guard every access (`TryGetComponent` / null check).
 
 > AI animation polymorphism (`AIAnimationDriver` base, Brain/Health → Driver → Bridge contract) → `Assets/_Game/Scripts/Core/Animations/CLAUDE.md`
