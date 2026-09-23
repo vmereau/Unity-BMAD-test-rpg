@@ -2,7 +2,7 @@
 title: 'ItemDetailPanel Actions Prefab Separation'
 slug: 'itemdetailpanel-actions-prefab-separation'
 created: '2026-05-09'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C# (.NET Standard 2.1)', 'URP 17.x', 'Unity UI (UGUI)', 'TextMeshPro', 'Unity Input System']
 files_to_modify:

@@ -318,7 +318,7 @@ Assets/_Game/ScriptableObjects/Items/ArmorSO.cs             ← no changes neede
 
 ### References
 
-- [Source: `_bmad-output/sprint-change-proposal-2026-03-21.md`#Section-4] — Detailed change specs for Changes A, B, C; authoritative source for all AC details
+- [Source: `_bmad-output/archive/sprint-change-proposal-2026-03-21.md`#Section-4] — Detailed change specs for Changes A, B, C; authoritative source for all AC details
 - [Source: `_bmad-output/implementation-artifacts/7-4-equipment-visual-update.md`] — Prior story implementing `EquipmentVisuals`, `WeaponSocket`, `HelmetSocket`, `WireEquipmentVisuals.cs`; full prior implementation context
 - [Source: `Assets/_Game/Scripts/Inventory/EquipmentVisuals.cs`] — Current file being modified; read before implementing
 - [Source: `Assets/_Game/ScriptableObjects/Items/EquipableItemSO.cs`] — Class being modified; current field structure

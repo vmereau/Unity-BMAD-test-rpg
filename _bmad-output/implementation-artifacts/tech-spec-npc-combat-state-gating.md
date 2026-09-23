@@ -2,7 +2,7 @@
 title: 'NPC Combat-State Gating & Interaction Suppression'
 slug: 'npc-combat-state-gating'
 created: '2026-05-30'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack:
   - 'Unity 6000.3.10f1 (Unity 6.3 LTS)'

@@ -2,7 +2,7 @@
 title: 'Generic Enemy KilledFact Generator'
 slug: 'generic-killedfact-generator'
 created: '2026-04-11'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C# Editor scripting', 'AssetDatabase API', 'SerializedObject API']
 files_to_modify: []

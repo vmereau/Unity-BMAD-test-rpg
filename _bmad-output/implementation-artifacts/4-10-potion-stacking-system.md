@@ -452,7 +452,7 @@ Assets/_Game/Prefabs/Items/TestItem_Health_Potion.prefab     ← must have ItemP
 
 ### References
 
-- Sprint Change Proposal: `_bmad-output/sprint-change-proposal-2026-03-18.md` — full rationale, code snippets, and impact analysis
+- Sprint Change Proposal: `_bmad-output/archive/sprint-change-proposal-2026-03-18.md` — full rationale, code snippets, and impact analysis
 - Story 4.9 — `UsableItemSO`, `SkillItemSO`, `InventoryUI.UseItem()`, `InventoryContextMenu.prefab` pattern: `_bmad-output/implementation-artifacts/4-9-usable-item-system.md`
 - Story 4.5 — `ItemSO` base class structure (implemented inline during story 4.4): `_bmad-output/implementation-artifacts/4-5-item-scriptable-object`
 - Story 4.3 — `InventorySystem.cs` initial API: `_bmad-output/implementation-artifacts/4-3-inventory-panel.md`

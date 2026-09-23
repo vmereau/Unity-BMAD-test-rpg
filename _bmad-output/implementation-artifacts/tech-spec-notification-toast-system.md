@@ -2,7 +2,7 @@
 title: 'Notification Toast System'
 slug: 'notification-toast-system'
 created: '2026-06-04'
-status: 'Completed'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4, 5, 6]
 tech_stack: ['Unity 6000.3.10f1', 'URP 17.x', 'TextMeshPro (TMP_Text)', 'GameEventSO event channels', 'uGUI Canvas + CanvasGroup']
 files_to_modify: ['CREATE Assets/_Game/Scripts/UI/HUD/NotificationToastUI.cs', 'CREATE Assets/_Game/Data/Events/OnLockUnlocked.asset (+.meta)', 'MODIFY Assets/_Game/Scripts/World/DoorSystem.cs', 'MODIFY Assets/_Game/Scripts/World/ContainerSystem.cs', 'CREATE NotificationToast entry prefab (TMP_Text + CanvasGroup)', 'EDIT UICanvas.prefab (add toast container under Game HUD layer)', 'UPDATE Assets/_Game/Scripts/UI/HUD/CLAUDE.md']

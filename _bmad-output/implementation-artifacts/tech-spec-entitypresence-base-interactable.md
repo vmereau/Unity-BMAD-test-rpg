@@ -2,7 +2,7 @@
 title: 'EntityPresence — base interactable for all entities'
 slug: 'entitypresence-base-interactable'
 created: '2026-06-02'
-status: 'Implementation Complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1 (URP 17)', 'C# / Game.asmdef', 'Unity Prefab Variants (raw YAML edits)', 'Unity Test Framework (EditMode, NUnit)']
 files_to_modify:

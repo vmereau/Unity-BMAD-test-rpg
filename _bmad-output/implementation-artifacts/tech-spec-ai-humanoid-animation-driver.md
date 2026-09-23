@@ -2,7 +2,7 @@
 title: 'AI Humanoid Animation Driver'
 slug: 'tech-spec-ai-humanoid-animation-driver'
 created: '2026-05-19'
-status: 'dev-complete-awaiting-play-test'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 tech_stack:
   - Unity 6000.3.10f1

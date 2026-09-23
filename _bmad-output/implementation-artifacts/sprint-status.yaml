@@ -34,6 +34,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-11
+last_updated: 2026-09-23  # reconciled with work done via quick tech-specs (Apr–Jun 2026)
 project: Unity-BMAD-test-rpg
 project_key: N/A
 tracking_system: file-system
@@ -49,7 +50,7 @@ development_status:
   1-6-jump: done
   epic-1-retrospective: done
 
-  epic-2: in-progress  # reopened for lock-on targeting (stories 2-10, 2-11)
+  epic-2: done
   2-1-stamina-bar-system: done
   2-2-zero-stamina-gate: done
   2-3-directional-attacks: superseded  # replaced by 2-3-timed-combo
@@ -65,7 +66,7 @@ development_status:
   2-12-directional-locomotion-animations: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-xp-gain-from-combat: done
   3-2-level-up-system: done
   3-3-learning-points: done
@@ -74,7 +75,7 @@ development_status:
   3-6-stat-combat-effects: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
+  epic-4: done
   4-1-look-at-interaction-system: done
   4-2-item-pickup: done
   4-3-inventory-panel: done
@@ -99,15 +100,15 @@ development_status:
 
   epic-6: in-progress
   6-1-npc-topic-dialogue: done
-  6-2-dialogue-graph-so-foundation: done  # new: DialogueNode abstract SO + StartDialogueNode/TextDialogueNode/ChoiceDialogueNode + NPCDialogueGraphComponent — see tech-spec-wip.md
-  6-3-dialogue-graph-integration: done    # new: wire graph into DialogueSystem/DialogueUI/NPCPresence; depends on 6-2 — see tech-spec-wip.md
+  6-2-dialogue-graph-so-foundation: done  # new: DialogueNode abstract SO + StartDialogueNode/TextDialogueNode/ChoiceDialogueNode + NPCDialogueGraphComponent — see tech-spec-dialogue-graph-node-system.md
+  6-3-dialogue-graph-integration: done    # new: wire graph into DialogueSystem/DialogueUI/NPCPresence; depends on 6-2 — see tech-spec-dialogue-graph-node-system.md
   # superseded: 6-2-conditional-dialogue-topics (replaced by dialogue-graph-so-foundation)
   # superseded: 6-3-dialogue-actions (replaced by dialogue-graph-integration)
-  6-4-quest-acquisition: review
-  6-5-quest-log: backlog
-  6-6-quest-multiple-outcomes: backlog
-  6-7-permanent-quest-failure: backlog
-  6-8-quest-rewards: backlog
+  6-4-quest-acquisition: done  # later evolved into quest-step system (tech-spec-quest-step-system)
+  6-5-quest-log: done  # via tech-spec-quest-log-ui + tech-spec-quest-info-panel-prefab-content
+  6-6-quest-multiple-outcomes: backlog  # partial: QuestSO completedFacts/failedFacts (tech-spec-quest-state-system-redesign)
+  6-7-permanent-quest-failure: backlog  # partial: IsFailed state exists (tech-spec-quest-state-system-redesign)
+  6-8-quest-rewards: backlog  # partial: per-type XP rewards (tech-spec-player-rewards-per-type-xp)
   6-9-story-quest-world-changes: backlog
   epic-6-retrospective: optional
 
@@ -122,9 +123,9 @@ development_status:
   7-11-weapon-so-hitbox-animation-events: done
   7-12-combat-state-toggle: done     # draw/sheathe weapon, InCombat gate, UndrawnWeaponSocket
   7-13-combat-animation-rewiring: done  # InCombat upper body layer, weapon-specific idle + attacks
-  7-5-shop-npc-trading: backlog       # was 7-3
-  7-6-looting-system: backlog          # was 7-4
-  7-7-gold-bribe-system: backlog       # was 7-5
+  7-5-shop-npc-trading: done  # via NPC shop system + trade UI (commit 08be2b0), tech-spec-npc-gold-display-and-sell-gate
+  7-6-looting-system: done  # via tech-spec-container-interaction-ui + tech-spec-lootable-dead-entities
+  7-7-gold-bribe-system: backlog
   epic-7-retrospective: optional
 
   epic-8: backlog
@@ -141,7 +142,7 @@ development_status:
   9-1-free-asset-integration: backlog
   9-2-ambient-audio-sfx: backlog
   9-3-dynamic-background-music: backlog
-  9-4-functional-hud: backlog
+  9-4-functional-hud: backlog  # partial: HUD bars, action bar, notification toast
   9-5-save-load-system: backlog
   9-6-key-rebinding: backlog
   9-7-steam-achievements: backlog

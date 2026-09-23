@@ -2,7 +2,7 @@
 title: 'Humanoid AI Death, Ragdoll & Hit-React Wiring'
 slug: 'humanoid-ai-death-ragdoll'
 created: '2026-05-23'
-status: 'implementation-complete-pending-manual-steps'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4, 5, 6]
 reviewNotes:
   findings: 5

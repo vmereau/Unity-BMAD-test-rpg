@@ -2,7 +2,7 @@
 title: 'Faction-Based Targeting System'
 slug: 'faction-based-targeting'
 created: '2026-05-28'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack:
   - 'Unity 6000.3.10f1 (Unity 6.3 LTS)'

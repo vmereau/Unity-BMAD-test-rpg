@@ -1,6 +1,6 @@
 # Story 6.4: Quest Acquisition
 
-Status: review
+Status: done
 
 ## Story
 

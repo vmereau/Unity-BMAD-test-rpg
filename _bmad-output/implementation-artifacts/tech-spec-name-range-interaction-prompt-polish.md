@@ -2,7 +2,7 @@
 title: 'Name Range & Interaction Prompt Polish'
 slug: 'name-range-interaction-prompt-polish'
 created: '2026-04-28'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'C#', 'URP', 'IMGUI (OnGUI)']
 files_to_modify:

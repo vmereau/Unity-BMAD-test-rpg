@@ -2,7 +2,7 @@
 title: 'Interaction System — SphereCast Radius Detection'
 slug: 'interaction-spherecast-radius-detection'
 created: '2026-04-27'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6.3 LTS', 'C#', 'Unity Physics (SphereCastNonAlloc)']
 files_to_modify:

@@ -2,7 +2,7 @@
 title: 'Teach Choice Dialogue Node'
 slug: 'teach-choice-dialogue-node'
 created: '2026-04-10'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'C#', 'ScriptableObjects', 'Unity UI']
 files_to_modify:

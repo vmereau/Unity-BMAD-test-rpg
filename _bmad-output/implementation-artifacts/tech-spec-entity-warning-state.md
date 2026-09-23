@@ -2,7 +2,7 @@
 title: 'Entity Warning State (Detection-to-Engage Buffer)'
 slug: 'entity-warning-state'
 created: '2026-05-25'
-status: 'Completed'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C# / .NET Standard 2.1', 'NavMeshAgent', 'Animator', 'URP 17.x']
 files_to_modify: ['Assets/_Game/ScriptableObjects/Entities/Entity.cs', 'Assets/_Game/Scripts/AI/EntityBrain.cs', 'Assets/_Game/Scripts/Core/Animations/AIAnimationDriver.cs', 'Assets/_Game/Scripts/Core/Animations/MonsterAnimationDriver.cs', 'Assets/_Game/Scripts/Core/Animations/MonsterAnimationBridge.cs', 'Assets/_Game/Scripts/Core/Animations/HumanoidAIAnimationDriver.cs', 'Assets/_Game/Art/Characters/Monsters/EntityBase.controller', 'Assets/_Game/Scripts/Core/Animations/CLAUDE.md']

@@ -2,7 +2,7 @@
 title: 'Inventory/Trade Context Menu Separation'
 slug: 'inventory-trade-context-menu-separation'
 created: '2026-05-06'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'C#', 'URP', 'Unity UI (UGUI)', 'TextMeshPro']
 files_to_modify:

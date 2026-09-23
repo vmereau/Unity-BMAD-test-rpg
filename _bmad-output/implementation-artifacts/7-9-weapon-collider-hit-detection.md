@@ -259,7 +259,7 @@ Missing even one causes the hitbox to stay enabled between attacks, producing ph
 - [Source: Assets/_Game/Scripts/Inventory/EquipmentSystem.cs] — confirms `_onEquipmentChanged.Raise()` called in `Equip()` and `Unequip()`
 - [Source: Assets/_Game/Data/Events/OnEquipmentChanged.asset] — event SO, already exists, `GameEventSO_Void` type
 - [Source: _bmad-output/project-context.md#Architecture Patterns] — cross-system comms via GameEventSO only, event subscribe in OnEnable/OnDisable
-- [Source: _bmad-output/sprint-change-proposal-2026-03-21.md] — full specification and rationale for this story
+- [Source: _bmad-output/archive/sprint-change-proposal-2026-03-21.md] — full specification and rationale for this story
 
 ## Dev Agent Record
 

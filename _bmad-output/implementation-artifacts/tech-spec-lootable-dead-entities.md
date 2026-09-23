@@ -2,7 +2,7 @@
 title: 'Lootable dead entities (loot corpse via container system)'
 slug: 'lootable-dead-entities'
 created: '2026-06-03'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1 (URP 17)', 'C# / Game.asmdef', 'Unity Prefab Variants (raw YAML / MCP)', 'GameEventSO<T> event channels', 'Unity Editor / MCP (manage_components)']
 files_to_modify:

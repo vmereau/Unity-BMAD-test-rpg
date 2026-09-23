@@ -2,7 +2,7 @@
 title: 'Skill and Stat Facts for Player Requirement Checks'
 slug: 'skill-stat-facts-player-requirement-checks'
 created: '2026-04-11'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['C#', 'Unity ScriptableObject', 'Game.Core', 'Game.Progression', 'Game.Player']
 files_to_modify:

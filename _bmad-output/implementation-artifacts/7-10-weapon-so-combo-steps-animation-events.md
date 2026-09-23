@@ -262,7 +262,7 @@ Exact values are tuned by playing the clip in the Animation window and adjusting
 
 ### References
 
-- [Source: _bmad-output/sprint-change-proposal-2026-03-22.md] — full specification and rationale
+- [Source: _bmad-output/archive/sprint-change-proposal-2026-03-22.md] — full specification and rationale
 - [Source: Assets/_Game/Scripts/Combat/PlayerCombat.cs] — current combo state machine and timer logic
 - [Source: Assets/_Game/ScriptableObjects/Items/WeaponSO.cs] — current concrete class to be made abstract
 - [Source: Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs] — combo fields to remove

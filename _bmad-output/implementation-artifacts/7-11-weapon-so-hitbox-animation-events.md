@@ -218,7 +218,7 @@ No new scripts, prefabs, or assets created.
 
 ### References
 
-- [Source: _bmad-output/sprint-change-proposal-2026-03-22.md#Story-7.11] — implementation handoff for hitbox events
+- [Source: _bmad-output/archive/sprint-change-proposal-2026-03-22.md#Story-7.11] — implementation handoff for hitbox events
 - [Source: _bmad-output/implementation-artifacts/7-10-weapon-so-combo-steps-animation-events.md] — AnimationEventReceiver pattern + deferred null guard from code review
 - [Source: Assets/_Game/Scripts/Combat/PlayerCombat.cs:256-260] — `ExecuteAttack()` line to remove
 - [Source: Assets/_Game/Scripts/Combat/AnimationEventReceiver.cs] — stub methods already in place

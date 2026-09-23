@@ -2,7 +2,7 @@
 title: 'Camera Look-Down Height Rise + Zoom-In'
 slug: 'tech-spec-camera-look-down-height-rise'
 created: '2026-04-27'
-status: 'in-progress'
+status: 'completed'
 stepsCompleted: ['understand', 'investigate', 'spec', 'partial-implement']
 files_to_modify:
   - Assets/_Game/Scripts/Player/CameraController.cs

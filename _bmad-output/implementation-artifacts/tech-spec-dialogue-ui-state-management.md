@@ -2,7 +2,7 @@
 title: 'Dialogue UI State Management Refactor'
 slug: 'dialogue-ui-state-management'
 created: '2026-04-07'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'C#', 'Unity UI (uGUI)', 'TextMeshPro', 'Unity Input System']
 files_to_modify:

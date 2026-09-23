@@ -2,7 +2,7 @@
 title: 'Dialogue UX Improvements — Number Keys, Escape Guard & IsInDialogue State'
 slug: 'dialogue-ux-improvements'
 created: '2026-04-09'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C#', 'Unity Input System', 'TextMeshPro']
 files_to_modify:

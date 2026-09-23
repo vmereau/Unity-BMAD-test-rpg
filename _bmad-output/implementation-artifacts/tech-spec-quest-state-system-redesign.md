@@ -2,7 +2,7 @@
 title: 'Quest State System Redesign'
 slug: 'quest-state-system-redesign'
 created: '2026-04-14'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C# 9', 'URP 17.x', 'ScriptableObject event channels']
 files_to_modify:

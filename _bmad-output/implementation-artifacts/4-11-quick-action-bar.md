@@ -497,7 +497,7 @@ Assets/_Game/ScriptableObjects/Items/PotionItemSO.cs ← unchanged
 ### References
 
 - Architecture — ActionBar System Pattern (data flow, components, design rules): `_bmad-output/game-architecture.md` §ActionBar System Pattern
-- Sprint Change Proposal — full rationale, impact analysis, feature spec: `_bmad-output/sprint-change-proposal-2026-03-18.md`
+- Sprint Change Proposal — full rationale, impact analysis, feature spec: `_bmad-output/archive/sprint-change-proposal-2026-03-18.md`
 - Story 4.10 — `InventorySlot` struct, `DecrementStack`, `ItemSlotUI.Bind()` badge pattern: `_bmad-output/implementation-artifacts/4-10-potion-stacking-system.md`
 - Story 4.9 — `UsableItemSO.OnUse()`, `SkillItemSO`, `consumable` flag: `_bmad-output/implementation-artifacts/4-9-usable-item-system.md`
 - `project-context.md` — Inventory system patterns (MonoBehaviour on Player, not singleton), logging rules, input subscription rules, drag-and-drop ghost pattern

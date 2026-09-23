@@ -1,6 +1,6 @@
 # Tech-Spec: HUD Health Bar & Stamina Bar
 
-**Status:** implementation-complete
+**Status:** completed
 **Baseline commit:** 2d56ec80a7eeda7d60ec1a4c35754a9ad00b5073
 
 ---

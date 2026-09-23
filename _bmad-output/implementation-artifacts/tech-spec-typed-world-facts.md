@@ -2,7 +2,7 @@
 title: 'Typed World Facts System (ScriptableObject)'
 slug: 'typed-world-facts'
 created: '2026-04-10'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1', 'C#', 'NUnit (Edit Mode tests)']
 files_to_modify:

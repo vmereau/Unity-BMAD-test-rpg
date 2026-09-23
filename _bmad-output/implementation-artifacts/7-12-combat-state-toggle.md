@@ -333,7 +333,7 @@ Modified files:
 
 ### References
 
-- [Source: _bmad-output/sprint-change-proposal-2026-03-23.md#Story-7-12] — full spec, code patterns, and acceptance criteria
+- [Source: _bmad-output/archive/sprint-change-proposal-2026-03-23.md#Story-7-12] — full spec, code patterns, and acceptance criteria
 - [Source: Assets/_Game/Scripts/Player/PlayerStateManager.cs:87-98] — existing `Can*()` methods being modified
 - [Source: Assets/_Game/Scripts/Combat/PlayerCombat.cs:111-136] — `OnEnable`/`OnDisable` pattern to follow for DrawWeapon subscription
 - [Source: Assets/_Game/Scripts/Inventory/EquipmentVisuals.cs:71-94] — `RefreshWeapon()` being modified

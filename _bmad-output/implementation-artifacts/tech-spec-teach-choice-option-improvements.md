@@ -2,7 +2,7 @@
 title: 'TeachChoiceOption: Teaching Type, Confirm/Deny Routing, and Stat Cap'
 slug: 'teach-choice-option-improvements'
 created: '2026-04-12'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'C#', 'ScriptableObjects', 'Unity Editor PropertyDrawer']
 files_to_modify:

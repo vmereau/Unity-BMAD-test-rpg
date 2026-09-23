@@ -2,7 +2,7 @@
 title: 'UIScreenManager — Tabbed Screen System'
 slug: 'ui-screen-manager-tabbed-screens'
 created: '2026-04-02'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6.3', 'URP 17', 'Unity Input System', 'Unity UI (uGUI)']
 files_to_modify:

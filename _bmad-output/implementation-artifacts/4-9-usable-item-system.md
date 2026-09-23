@@ -218,7 +218,7 @@ Both buttons must use the exact names `"DropButton"` and `"UseButton"` to match 
 
 ### References
 
-- Sprint Change Proposal: `_bmad-output/sprint-change-proposal-2026-03-17.md` — full rationale, code snippets, and impact analysis
+- Sprint Change Proposal: `_bmad-output/archive/sprint-change-proposal-2026-03-17.md` — full rationale, code snippets, and impact analysis
 - Story 4.5 — `ItemSO` structure: `_bmad-output/implementation-artifacts/4-5-item-scriptable-object` (note: story 4.5 was implemented inline during story 4.4)
 - Story 4.8 — `InventoryUI.ShowContextMenu()`, `InventoryContextMenu.prefab`: `_bmad-output/implementation-artifacts/4-8-inventory-context-menu-and-detail-panel.md`
 - Story 3.5 — `SkillSO`, `PlayerSkills.LearnSkill()`: `_bmad-output/implementation-artifacts/3-5-tome-skill-learning.md`

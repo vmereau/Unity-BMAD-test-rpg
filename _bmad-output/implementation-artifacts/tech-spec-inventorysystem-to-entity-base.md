@@ -2,7 +2,7 @@
 title: 'Move InventorySystem to Entity_base (lootable-entity groundwork)'
 slug: 'inventorysystem-to-entity-base'
 created: '2026-06-03'
-status: 'implementation-complete'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.3.10f1 (URP 17)', 'C# / Game.asmdef', 'Unity Prefab Variants', 'Unity Editor / MCP (manage_gameobject / manage_components)']
 files_to_modify:

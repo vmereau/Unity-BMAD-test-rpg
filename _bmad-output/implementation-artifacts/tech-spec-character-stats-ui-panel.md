@@ -2,7 +2,7 @@
 title: 'Character Stats UI Panel'
 slug: 'character-stats-ui-panel'
 created: '2026-04-02'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6', 'URP', 'TextMeshPro', 'GameEventSO', 'UGUI']
 files_to_modify:
