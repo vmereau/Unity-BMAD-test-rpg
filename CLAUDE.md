@@ -154,6 +154,7 @@ and `project-context.md` — apply those too.
 |----------|---------|
 | HIGH | `OnDisable` uses fields initialized in `OnEnable` without a null guard (see lifecycle gotcha above) |
 | MEDIUM | Public method on MonoBehaviour dereferences a `[SerializeField]` dependency without a null guard — `Awake` setting `enabled = false` does NOT block external callers from reaching public methods; add `if (_dep == null) return;` at the top of every public method that uses a serialized dependency |
+| MEDIUM | Spec changes a player-visible string or behavior (prompt, label, format) but EditMode tests still assert the old value — grep `Assets/Tests/` for the old value in the same session |
 | MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |
 | LOW | `private const string TAG` declared in a class that has no `GameLog.*` calls — dead code, remove it |
 | LOW | `[SerializeField]` field declared but never read or written in code — remove unless a future story explicitly needs it |
