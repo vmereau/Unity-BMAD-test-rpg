@@ -107,7 +107,8 @@ namespace Tests.EditMode
 
             pickup.Configure(item);
 
-            Assert.AreEqual("Press E to pick up Magic Sword", pickup.InteractPrompt);
+            Assert.AreEqual("Pick Up", pickup.InteractPrompt);
+            Assert.AreEqual("Magic Sword", pickup.NameTag);
 
             Object.DestroyImmediate(go);
             Object.DestroyImmediate(item);
