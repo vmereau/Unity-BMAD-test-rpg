@@ -12,14 +12,27 @@ ItemSO                              (base — any item in the inventory)
 │   ├── SkillItemSO                 (teaches a SkillSO to the player on use)
 │   └── PotionItemSO                (restores player health when used; stackable)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
-    ├── WeaponSO  (abstract)        (occupies the Weapon slot; concrete types in Weapons/ subfolder)
-    │   └── SwordSO                 (Assets/_Game/ScriptableObjects/Items/Weapons/SwordSO.cs)
+    ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
+    │   └── SwordSO                 (Assets/_Game/ScriptableObjects/Items/Weapons/SwordSO.cs — used for all current weapons)
     └── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
+
+WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
+  + WeaponPose (struct), WeaponSheathSocket (Hip/Back), SignedAxis, WeaponGripMath (static) — all in Weapons/
 ```
 
 All types live in namespace `Game.Inventory`.
 
-**`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`). New weapon categories get their own concrete class under `Assets/_Game/ScriptableObjects/Items/Weapons/`. Adding a new weapon type requires: a new `XxxSO : WeaponSO` file in `Weapons/` + a new SO asset — no code changes in the rest of the system.
+**`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
+
+**New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (grip poses, Hip/Back
+sheath socket, animator override, default combo steps) — no code. Add a new `XxxSO : WeaponSO` class only when
+the family needs new **fields**. `SwordSO` is kept (renaming would break asset `m_Script` refs) even though the
+class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
+
+**Weapon-level overrides win over the archetype:**
+- `ResolvedComboSteps` = `comboSteps` if > 0, else `archetype.defaultComboSteps` (min 1), else `WeaponSO.DEFAULT_COMBO_STEPS` (2).
+- `ResolvedAnimatorOverride` = `animatorOverrideController` if set, else `archetype.animatorOverrideController`, else null (default controller).
+- Always read the `Resolved*` properties in runtime code — never the raw fields.
 
 `EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.
 
