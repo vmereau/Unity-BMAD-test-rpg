@@ -1,5 +1,11 @@
 # Echoes of the Fallen - Development Epics
 
+> **⚠ OBSOLETE (marked 2026-09-28).** This epic/story plan was last maintained in April 2026.
+> Since then, development has run exclusively through `gds-quick-spec` → `gds-quick-dev`
+> (`implementation-artifacts/tech-spec-*.md`), and the scope has drifted from what is listed
+> here (e.g. Company Encampment area, factions, lootable corpses, doors/locks). Keep this file
+> for historical context and as a loose backlog of ideas only — do not treat it as the plan.
+
 | # | Epic Name | Dependencies |
 |---|---|---|
 | 1 | Foundation & Movement | None |

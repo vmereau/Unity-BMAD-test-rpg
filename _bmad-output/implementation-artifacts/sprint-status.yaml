@@ -1,3 +1,7 @@
+# ⚠ OBSOLETE (marked 2026-09-28): this file tracks the epics.md story plan, which is no longer
+# followed. Work is done via gds-quick-spec → gds-quick-dev; the source of truth for what is
+# done/in progress is the `status:` field of each tech-spec-*.md. Kept for history only.
+#
 # generated: 2026-04-13
 # project: Unity-BMAD-test-rpg
 # project_key: N/A

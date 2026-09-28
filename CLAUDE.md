@@ -21,8 +21,8 @@
 | What | Path |
 |------|------|
 | **Authoritative coding rules** | `_bmad-output/project-context.md` |
-| **GDD / architecture / narrative / epics** | `_bmad-output/gdd.md`, `game-architecture.md`, `narrative-design.md`, `epics.md` |
-| **Sprint status** | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
+| **GDD / architecture / narrative** | `_bmad-output/gdd.md`, `game-architecture.md`, `narrative-design.md` |
+| **Obsolete plan (history only)** | `_bmad-output/epics.md`, `implementation-artifacts/sprint-status.yaml` |
 | **Story files + tech specs** | `_bmad-output/implementation-artifacts/*.md` |
 | **Superseded proposals / archived specs** | `_bmad-output/archive/` |
 | **All game source code** | `Assets/_Game/` |
@@ -37,7 +37,7 @@
 ## Before Writing Any Game Code
 
 1. Read `_bmad-output/project-context.md` — its rules are mandatory
-2. Check `sprint-status.yaml` for current state
+2. Check the `status:` of existing `tech-spec-*.md` files for current state
 3. If a story file or tech spec exists for the task, read it fully before implementing
 4. Read the folder `CLAUDE.md` for every folder you touch (index below)
 
@@ -45,18 +45,16 @@
 
 ## Development Workflow
 
-Epics 1–4 were delivered as BMAD stories. Since mid-April 2026, work is done as **quick tech
-specs** (`tech-spec-*.md` in `implementation-artifacts/`). When a spec ships a feature that maps
-to a sprint story, update `sprint-status.yaml` in the same session, and set the spec's
-`status:` to `completed` — otherwise tracking drifts.
+Epics 1–4 were delivered as BMAD stories. Since mid-April 2026, work is done **only** as quick
+tech specs (`tech-spec-*.md` in `implementation-artifacts/`) via `gds-quick-spec` → `gds-quick-dev`.
+`epics.md` and `sprint-status.yaml` are **obsolete** (marked 2026-09-28) — don't update them or
+plan from them. Each spec's `status:` field is the source of truth: set it to `completed` in the
+same session the feature ships.
 
 | Skill / command | When to use |
 |-----------------|-------------|
-| `gds-sprint-status` | See what's in-progress / what's next |
 | `gds-quick-spec` → `gds-quick-dev` | Spec and implement a feature (current default flow) |
-| `gds-create-story` → `gds-dev-story` | Full story flow from `epics.md` |
 | `gds-code-review` | Adversarial review after a feature is complete |
-| `gds-correct-course` | Re-plan when scope drifts from `epics.md` |
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
 | `quests:design` → `quests:implement` | Quest spec, then Unity assets |
 | `perso:commit` | Stage, commit, and push changes |
