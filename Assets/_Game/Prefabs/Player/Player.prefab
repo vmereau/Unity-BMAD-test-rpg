@@ -283,6 +283,7 @@ MonoBehaviour:
   _onEquipmentChanged: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}
   _weaponSocket: {fileID: 8673219035356568163}
   _undrawnWeaponSocket: {fileID: 7150962812496113435}
+  _backWeaponSocket: {fileID: 5393251620080455624}
   _helmetSocket: {fileID: 644023710468929199}
   _bodyRenderer: {fileID: 2071565017843899799}
   _armorPlaceholderMaterial: {fileID: 2100000, guid: 8da08946dd97a2d429c6f2c5197eabb4, type: 2}
@@ -852,6 +853,37 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!1 &5940779324546219229
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5393251620080455624}
+  m_Layer: 3
+  m_Name: BackWeaponSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5393251620080455624
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5940779324546219229}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.05, z: -0.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5548420492828276739}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6284543806637964065
 GameObject:
   m_ObjectHideFlags: 0
@@ -1428,6 +1460,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5465940246521907071, guid: 1cd071724417064469dd6b24aac9246f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7150962812496113435}
+    - targetCorrespondingSourceObject: {fileID: 366175167995203695, guid: 1cd071724417064469dd6b24aac9246f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5393251620080455624}
     - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: 1cd071724417064469dd6b24aac9246f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 644023710468929199}
@@ -1449,6 +1484,11 @@ Transform:
 --- !u!137 &2071565017843899799 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 6148737315974723067, guid: 1cd071724417064469dd6b24aac9246f, type: 3}
+  m_PrefabInstance: {fileID: 5326378929876543596}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5548420492828276739 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 366175167995203695, guid: 1cd071724417064469dd6b24aac9246f, type: 3}
   m_PrefabInstance: {fileID: 5326378929876543596}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5647971432250462087 stripped

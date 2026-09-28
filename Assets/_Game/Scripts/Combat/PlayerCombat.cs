@@ -274,8 +274,8 @@ namespace Game.Combat
 
         private bool IsMaxCombo()
         {
-            // Story 7.10: query comboSteps from equipped weapon SO; unarmed defaults to 2
-            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.comboSteps : 2;
+            // Story 7.10: query combo steps from equipped weapon SO (weapon > 0 overrides archetype); unarmed defaults to DEFAULT_COMBO_STEPS
+            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.ResolvedComboSteps : WeaponSO.DEFAULT_COMBO_STEPS;
             return _comboStep == maxSteps;
         }
 

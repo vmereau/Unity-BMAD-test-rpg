@@ -11,6 +11,7 @@ namespace Game.Inventory
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
         [SerializeField] private Transform _weaponSocket;
         [SerializeField] private Transform _undrawnWeaponSocket;
+        [SerializeField] private Transform _backWeaponSocket;
         [SerializeField] private Transform _helmetSocket;
         [SerializeField] private Renderer _bodyRenderer;
         [SerializeField] private Material _armorPlaceholderMaterial;
@@ -20,6 +21,8 @@ namespace Game.Inventory
         [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
         private GameObject _weaponVisual;
+        private WeaponArchetypeSO _currentArchetype;
+        private bool _backSocketWarned; // warn once per equipped weapon, not on every sheathe
         private GameObject _helmetVisual;
         private Material _originalBodyMaterial;
         private bool _isInCombat = false;
@@ -65,10 +68,10 @@ namespace Game.Inventory
         {
             _isInCombat = isInCombat;
             if (_weaponVisual == null) return;
-            var targetSocket = isInCombat ? _weaponSocket : _undrawnWeaponSocket;
+            var targetSocket = isInCombat ? _weaponSocket : CurrentSheathSocket();
             if (targetSocket == null)
             {
-                GameLog.Warn(TAG, $"SetCombatState({isInCombat}): target socket is null — weapon visual not moved. Check _undrawnWeaponSocket assignment on EquipmentVisuals.");
+                GameLog.Warn(TAG, $"SetCombatState({isInCombat}): target socket is null — weapon visual not moved. Check socket assignments on EquipmentVisuals.");
                 return;
             }
             _weaponVisual.transform.SetParent(targetSocket, worldPositionStays: false);
@@ -92,17 +95,22 @@ namespace Game.Inventory
             if (_weaponVisual != null)
                 Destroy(_weaponVisual);
             _weaponVisual = null;
+            _currentArchetype = null;
+            _backSocketWarned = false;
             ApplyAnimatorOverride(null); // Restore default controller when weapon removed
 
             var weapon = _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as EquipableItemSO;
             if (weapon == null || _weaponSocket == null) return;
 
-            var targetSocket = (_isInCombat || _undrawnWeaponSocket == null) ? _weaponSocket : _undrawnWeaponSocket;
+            _currentArchetype = (weapon as WeaponSO)?.archetype;
+            var sheathSocket = _isInCombat ? null : CurrentSheathSocket();
+            var targetSocket = sheathSocket != null ? sheathSocket : _weaponSocket;
             if (weapon.equipVisualPrefab != null)
             {
                 _weaponVisual = Instantiate(weapon.equipVisualPrefab, targetSocket);
                 _weaponVisual.transform.localPosition = Vector3.zero;
                 _weaponVisual.transform.localRotation = Quaternion.identity;
+                ApplyArchetypePoses(_weaponVisual, _currentArchetype);
                 ApplyCombatVisibility(_weaponVisual, _isInCombat);
                 GameLog.Info(TAG, $"Weapon visual attached (prefab: {weapon.equipVisualPrefab.name})");
             }
@@ -111,7 +119,7 @@ namespace Game.Inventory
                 _weaponVisual = CreatePlaceholder(PrimitiveType.Cube, targetSocket, new Vector3(0.07f, 0.07f, 0.5f), Color.yellow);
                 GameLog.Info(TAG, "Weapon visual attached (placeholder)");
             }
-            ApplyAnimatorOverride((weapon as WeaponSO)?.animatorOverrideController);
+            ApplyAnimatorOverride((weapon as WeaponSO)?.ResolvedAnimatorOverride);
         }
 
         private void RefreshHelmet()
@@ -154,6 +162,38 @@ namespace Game.Inventory
             _animator.runtimeAnimatorController = overrideController != null
                 ? overrideController
                 : _defaultAnimatorController;
+        }
+
+        private Transform CurrentSheathSocket()
+        {
+            if (!_backSocketWarned && _currentArchetype != null && _currentArchetype.sheathSocket == WeaponSheathSocket.Back && _backWeaponSocket == null)
+            {
+                _backSocketWarned = true;
+                GameLog.Warn(TAG, $"Archetype '{_currentArchetype.name}' requests the Back sheath socket but _backWeaponSocket is not assigned — falling back to hip");
+            }
+            return ResolveSheathSocket(_currentArchetype, _undrawnWeaponSocket, _backWeaponSocket);
+        }
+
+        /// <summary>Back socket when the archetype asks for it and it exists; hip socket otherwise (incl. null archetype).</summary>
+        public static Transform ResolveSheathSocket(WeaponArchetypeSO archetype, Transform hipSocket, Transform backSocket)
+        {
+            if (archetype != null && archetype.sheathSocket == WeaponSheathSocket.Back && backSocket != null)
+                return backSocket;
+            return hipSocket;
+        }
+
+        /// <summary>
+        /// Applies the archetype's Drawn / Sheathed poses to the matching children of a weapon visual.
+        /// No-op when either argument is null (weapons without an archetype keep their prefab poses);
+        /// missing children are skipped silently, consistent with ApplyCombatVisibility.
+        /// </summary>
+        public static void ApplyArchetypePoses(GameObject weaponVisual, WeaponArchetypeSO archetype)
+        {
+            if (weaponVisual == null || archetype == null) return;
+            var drawn = weaponVisual.transform.Find("Drawn");
+            var sheathed = weaponVisual.transform.Find("Sheathed");
+            if (drawn != null) archetype.drawnPose.ApplyTo(drawn);
+            if (sheathed != null) archetype.sheathedPose.ApplyTo(sheathed);
         }
 
         /// <summary>

@@ -13,16 +13,19 @@ MonoBehaviour:
   m_Name: Weapon_TestSword
   m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
   itemName: Test Sword
-  description:
+  description: 
   icon: {fileID: 21300000, guid: 671de81176c75b64b9d0703cbb13ec5e, type: 3}
   maxStacks: 1
   worldItemPrefab: {fileID: 7470631476087896926, guid: 2e069da214588594da0543e4adae3003, type: 3}
+  buyValue: 1
+  sellValue: 1
   equipVisualPrefab: {fileID: 100000000, guid: d5e6f7a8b9c0d1e2f3a4b5c6d7e8f901, type: 3}
   strengthBonus: 3
   dexterityBonus: 0
   enduranceBonus: 0
-  manaBonus: 0
+  intelligenceBonus: 0
   defenseBonus: 0
-  comboSteps: 2
+  archetype: {fileID: 11400000, guid: fc2dbd72d1523f6469137c51246c5a15, type: 2}
   damageBonus: 5
-  animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  comboSteps: 0
+  animatorOverrideController: {fileID: 0}

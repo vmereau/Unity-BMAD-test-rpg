@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e02bdb20716234fbc7e887920b1eb3, type: 3}
+  m_Name: Archetype_OneHandedSword
+  m_EditorClassIdentifier: Game::Game.Inventory.WeaponArchetypeSO
+  drawnPose:
+    localPosition: {x: 0.011257708, y: 0.013294995, z: 0.013848245}
+    localEulerAngles: {x: 293.1189, y: 318.97446, z: 107.92484}
+  sheathedPose:
+    localPosition: {x: 0.010540806, y: 0.110260576, z: 0.015339233}
+    localEulerAngles: {x: 13.852132, y: 358.55875, z: 193.62311}
+  sheathSocket: 0
+  animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  defaultComboSteps: 2

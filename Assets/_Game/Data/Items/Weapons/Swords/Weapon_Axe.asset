@@ -25,6 +25,7 @@ MonoBehaviour:
   enduranceBonus: 0
   intelligenceBonus: 0
   defenseBonus: 0
+  archetype: {fileID: 11400000, guid: 104016b0a182d144996c31c9f24bbf3c, type: 2}
   damageBonus: 5
-  comboSteps: 2
-  animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  comboSteps: 0
+  animatorOverrideController: {fileID: 0}
