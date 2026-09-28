@@ -231,10 +231,10 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **Equipment System Patterns (Epic 7):**
 - `WeaponSO` is **abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` returns null; always use a concrete subclass (e.g. `SwordSO`)
 - Concrete weapon classes live in `Assets/_Game/ScriptableObjects/Items/Weapons/` — each has `[CreateAssetMenu]` only; no additional fields needed unless the weapon type requires them
-- Adding a new weapon category = new `XxxSO : WeaponSO` file in `Weapons/` + SO asset — zero code changes in `EquipmentSystem`, `ItemDetailPanelUI`, or `PlayerCombat`
+- Adding a new weapon family = new `WeaponArchetypeSO` asset in `Data/Items/Weapons/Archetypes/` (grip poses, Hip/Back sheath socket, animator override, default combo steps) — a new `XxxSO : WeaponSO` class only when the family needs new fields. Create weapons with the Weapon Creator (`Tools/Items/Weapon Creator`), which normalizes the mesh (grip at origin, blade +Y, edge +Z)
 - Combo window timing is **Animation Event–driven** (Story 7.10) — `AnimationEventReceiver` on Player root receives `ComboWindowOpen`/`ComboWindowClose` events from attack clips and routes them to `PlayerCombat.OnComboWindowOpen()` / `OnComboWindowClose()`
-- `comboSteps` on `WeaponSO` is the only design-level combo field — no timer floats; all timing lives in the animation clip events
-- Unarmed fallback: `_currentWeaponSO == null` → `maxSteps = 3` (3-hit sphere combo)
+- Combo length = `WeaponSO.ResolvedComboSteps` (weapon `comboSteps` > 0 overrides the archetype's `defaultComboSteps`) — no timer floats; all timing lives in the animation clip events
+- Unarmed fallback: `_currentWeaponSO == null` → `maxSteps = WeaponSO.DEFAULT_COMBO_STEPS` (2)
 
 **Inventory System Patterns (Epic 4):**
 - `InventorySystem` is a **MonoBehaviour** (NOT a singleton) living on two unrelated prefab families: the **Player prefab** (the player's inventory) and the **`Entity_base.prefab` root** (so every NPC and monster inherits one — NPCs for the trade flow, monsters as groundwork for future looting). Access via direct `[SerializeField]` reference, `GetComponent<InventorySystem>()` on an entity, or `FindFirstObjectByType<InventorySystem>()` in Awake only. `GoldSystem` stays NPC-only (not on `Entity_base`) — see `Prefabs/CLAUDE.md` for the prefab migration gotcha
