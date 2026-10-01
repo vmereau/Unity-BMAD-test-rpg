@@ -36,6 +36,8 @@ namespace Game.AI
         [FormerlySerializedAs("_animationBridge")]
         [FormerlySerializedAs("_entityAnimator")]
         [SerializeField] private AIAnimationDriver _animationDriver;
+        [Tooltip("Resolves attack hits from animation-driven hit windows.")]
+        [SerializeField] private EntityMeleeAttacker _meleeAttacker;
 
         [Header("Behavior")]
         [Tooltip("Skip the warning telegraph and engage the instant a target is detected.")]
@@ -92,6 +94,13 @@ namespace Game.AI
                 enabled = false;
                 return;
             }
+
+            // Hard switch: damage only flows through hit windows. Missing attacker → attacks still
+            // animate but deal no damage (no hitscan fallback). The brain keeps running.
+            if (_meleeAttacker == null) _meleeAttacker = GetComponent<EntityMeleeAttacker>();
+            // Passive entities (DetectionRange <= 0) never attack — stay silent for them.
+            if (_meleeAttacker == null && _persistentID.Entity.DetectionRange > 0f)
+                GameLog.Error(TAG, $"{gameObject.name}: no EntityMeleeAttacker — attacks will deal no damage");
         }
 
         private void Start()
@@ -297,6 +306,10 @@ namespace Game.AI
                 return;
             }
 
+            // Agent is stopped while attacking, so NavMeshAgent auto-rotation does not apply — hits are
+            // spatial now, so keep the attack pointed at the target.
+            FaceTarget();
+
             if (_attackCooldownTimer > 0f) return;
 
             ExecuteAttack();
@@ -309,31 +322,14 @@ namespace Game.AI
 
         // --- Combat ---
 
+        // Range check only starts the attack — damage is resolved by EntityMeleeAttacker when the
+        // clip's hit window overlaps a hostile hurtbox.
         private void ExecuteAttack()
         {
+            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(_persistentID.Entity.AttackDamage);
             _animationDriver?.TriggerAttack();
             _attackCooldownTimer = _persistentID.Entity.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name}");
-
-            IDamageable target = _currentTarget.Damageable;
-            if (target == null || target.IsDead) return;
-
-            HitResult result = target.TryReceiveHit(gameObject);
-            switch (result)
-            {
-                case HitResult.PerfectBlock:
-                    GameLog.Info(TAG, $"{gameObject.name} attack staggered by perfect block");
-                    break;
-                case HitResult.Blocked:
-                    GameLog.Info(TAG, $"{gameObject.name} attack blocked — no damage");
-                    break;
-                case HitResult.Dodged:
-                    GameLog.Info(TAG, $"{gameObject.name} attack dodged — no damage");
-                    break;
-                case HitResult.NotBlocked:
-                    target.TakeDamage(_persistentID.Entity.AttackDamage);
-                    break;
-            }
         }
 
         // --- Movement helpers ---
@@ -423,6 +419,7 @@ namespace Game.AI
             SetCombatState(false);
             _state = EntityState.Dead;
             _agent.isStopped = true;
+            if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }
 
@@ -430,6 +427,7 @@ namespace Game.AI
         {
             _currentTarget = null;
             SetCombatState(false);
+            if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             if (_disengageState == EntityState.Idle)
             {
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");

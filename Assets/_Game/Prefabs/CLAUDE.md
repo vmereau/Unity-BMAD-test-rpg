@@ -64,7 +64,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 - `DialoguePanel.prefab` is nested inside `UICanvas.prefab` as a `PrefabInstance`; `DialogueUI._dialogueSystem` and `DialogueSystem._dialogueUI` are cross-wired via Player.prefab nested-prefab overrides — do NOT try to wire them inside UICanvas.prefab alone
 - `DialogueSystem` is on the **Player root** (not UICanvas, not a separate scene GO)
 - No Rigidbody on player — `CharacterController` only
-- `Hitbox` child is the player's hurtbox for future AI `WeaponHitbox` sweeps (AI still uses a range check today). The player's own sweeps skip it (`SetOwner` + `IsChildOf`); `LockOnSystem` scans Layer 6 only and the CharacterController ignores triggers, so it has no side effects
+- `Hitbox` child is the player's hurtbox, hit by AI `WeaponHitbox` sweeps (`EntityMeleeAttacker`, e.g. the spider `Bite`). The player's own sweeps skip it (`SetOwner` + `IsChildOf`); `LockOnSystem` scans Layer 6 only and the CharacterController ignores triggers, so it has no side effects
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
 - `PlayerAnimationDriver` reads `CharacterController.velocity` passively for movement — never writes to movement state
 
@@ -99,7 +99,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 
 **NPC two-collider pattern** (do NOT collapse into one):
 - `Hitbox` child (Layer 7 — CharacterHitbox): **trigger** CapsuleCollider, the hurtbox found by `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`)
-- `NPC_base Variant/.../UnarmedHitbox` (`WeaponHitbox` + sphere) is currently **undriven** — groundwork for a future AI hitbox (`EntityBrain` → `SetOwner(transform)`)
+- `NPC_base Variant/.../UnarmedHitbox` (`WeaponHitbox` + sphere) is still **undriven** — humanoid NPCs have no `EntityMeleeAttacker` yet (see `tech-spec-humanoid-unarmed-combat`)
 - `InteractionCollider` child (Layer 8 — Interactable): trigger CapsuleCollider (Radius: 0.5, Height: 2.0, Center Y: 1.0), used by `InteractionSystem` for dialogue detection
 
 ---

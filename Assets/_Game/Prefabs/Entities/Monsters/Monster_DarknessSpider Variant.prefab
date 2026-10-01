@@ -1,5 +1,79 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3334713121986387961
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 500714586975875476}
+  - component: {fileID: 495901977997484490}
+  - component: {fileID: 2935523744275433176}
+  m_Layer: 0
+  m_Name: Hitbox_Bite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &500714586975875476
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3334713121986387961}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.27, y: 0, z: 0.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2312858567811347575}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &495901977997484490
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3334713121986387961}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Radius: 0.15
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2935523744275433176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3334713121986387961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3698d187bb02ff4f9d9218ca603f3fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Combat.WeaponHitbox
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _reachPadding: 0.1
+  _verticalReach: 0.3
+  _verticalReachRadius: 0.25
+  _maxStepDistance: 0.1
+  _maxSubSteps: 8
 --- !u!1 &3960381533169815868
 GameObject:
   m_ObjectHideFlags: 0
@@ -75,15 +149,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 18.424473
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.34
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -21.65
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: m_LocalRotation.w
@@ -121,6 +195,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6892060459904109189, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      propertyPath: _meleeAttacker
+      value: 
+      objectReference: {fileID: 9393511327473325}
     - target: {fileID: 7557825151662695134, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       propertyPath: _animator
       value: 
@@ -156,13 +234,48 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2312858567811347459}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9393511327473325}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!4 &1648192237057540491 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
   m_PrefabInstance: {fileID: 135613284779477823}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3039617870295530094 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3156794405520552273, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+  m_PrefabInstance: {fileID: 135613284779477823}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8292505227584815036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12e3a179ede4ed64ab054cb920bcd65f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.FactionMember
+--- !u!1 &8292505227584815036 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+  m_PrefabInstance: {fileID: 135613284779477823}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9393511327473325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8292505227584815036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a6b3cbd0935eb8408a223d9a006bee1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityMeleeAttacker
+  _hitboxes:
+  - Id: Bite
+    Hitbox: {fileID: 2935523744275433176}
+  _selfFactionMember: {fileID: 3039617870295530094}
 --- !u!1001 &559364768911813784
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -513,7 +626,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2872082521720772763, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4974538262964649995}
+    - targetCorrespondingSourceObject: {fileID: 2872082521720772847, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 500714586975875476}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2872082521720472955, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2649996875240181686}
     - targetCorrespondingSourceObject: {fileID: 2872082521720472775, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3854923782826628066}
@@ -1468,6 +1587,24 @@ CharacterJoint:
   m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
+--- !u!1 &2312858567811181027 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2872082521720472955, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
+  m_PrefabInstance: {fileID: 559364768911813784}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2649996875240181686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2312858567811181027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89f59e5d79e04f24db2aae57aacb06df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityAnimationEventReceiver
+  _attacker: {fileID: 9393511327473325}
 --- !u!1 &2312858567811181049 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2872082521720472929, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
@@ -1673,6 +1810,11 @@ CharacterJoint:
 --- !u!4 &2312858567811347459 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2872082521720772763, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
+  m_PrefabInstance: {fileID: 559364768911813784}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2312858567811347575 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2872082521720772847, guid: 4bce4cac38bc36c41b64b43e529a9e1c, type: 3}
   m_PrefabInstance: {fileID: 559364768911813784}
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &2312858567818599327 stripped

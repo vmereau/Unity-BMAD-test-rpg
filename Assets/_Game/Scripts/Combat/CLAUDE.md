@@ -25,8 +25,9 @@ Rigidbody, no layer-collision-matrix dependency.
   + `_verticalReachRadius` add a downward world-space capsule from the shape centre so swings catch
   low targets (spider). Tune per weapon prefab — never inflate target hurtboxes instead.
 - **Owner:** the controller must call `SetOwner(transform)` when binding. Colliders under `Owner`
-  are skipped; the owner's own `IDamageable` is rejected. Faction filtering (future) goes next to the
-  owner check in `ProcessOverlaps`.
+  are skipped; the owner's own `IDamageable` is rejected. `WeaponHitbox` has no faction filter — AI
+  hits are faction-filtered by `EntityMeleeAttacker` (`Game.AI`), keeping `Game.Combat` free of AI deps.
+- `IsWindowOpen` exposes the hit-window state (used by `EntityMeleeAttacker` and tests).
 - Targets resolve as `IDamageable` via `GetComponentInParent`; `event Action<IDamageable, Vector3> OnHit`
   (target, approximate hit point) fires **once per target per window**.
 - Pure logic (dedupe, owner/dead/null rejection, sub-step count, shape inflation math) lives in
@@ -38,9 +39,27 @@ Rigidbody, no layer-collision-matrix dependency.
 `target.TryReceiveHit(gameObject)` → `TakeDamage(ComputeEffectiveDamage())` **only on `NotBlocked`**;
 other results are logged and deal no damage.
 
-**AI adoption (future):** `EntityBrain` owns a `WeaponHitbox` (the NPC `UnarmedHitbox` already exists,
-undriven), calls `SetOwner(transform)`, subscribes `OnHit`, and resolves hits with the same
-`TryReceiveHit → TakeDamage` sequence.
+**Shared with AI:** `EntityMeleeAttacker` (`Scripts/AI`, see its CLAUDE.md) owns named `WeaponHitbox`es
+on entities, calls `SetOwner`, subscribes `OnHit` and resolves hits with the same
+`TryReceiveHit → TakeDamage` sequence (plus a faction filter).
+
+**Event naming:** the player's clips use parameterless `HitboxEnable()` / `HitboxDisable()`
+(`AnimationEventReceiver`); entity clips use `HitboxEnable(string id)` / `HitboxDisable(string id)`
+(`EntityAnimationEventReceiver`, a separate class — no overload clash). An event with no string
+parameter delivers `""` = all hitboxes.
+
+### Hit-window tooling
+
+- `HitWindowEvents` (pure, `Game.Combat`) — frame↔time conversion and add/replace/remove of
+  `HitboxEnable/HitboxDisable` pairs by id on `AnimationEvent[]`. **FBX importer events are
+  normalized over `firstFrame..lastFrame`; `.anim` events are seconds** — always convert through it.
+  Covered by `HitWindowEventsTests`.
+- **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`, `Game.Editor.HitboxTunerWindow`) — scrub a clip on a
+  scene/Prefab-Mode entity via `AnimationMode`, see posed hitboxes + swept trail, add `Hitbox_<id>` to
+  a bone, write/remove events (FBX via `ModelImporter.clipAnimations`, `.anim` via `AnimationUtility`).
+- **Debug sweeps** — `Tools/Combat/Show Hitbox Sweeps` toggles `HitboxDebug.DrawSweeps` (editor-only,
+  persisted in EditorPrefs). `WeaponHitbox` records samples in a fixed ring buffer and draws them in
+  `OnDrawGizmos` during play mode: yellow samples fading over 1 s, red hits. Compiled out of builds.
 
 ### Binding Pattern — OnVisualsRefreshed GameEventSO
 

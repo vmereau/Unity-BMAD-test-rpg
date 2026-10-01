@@ -66,6 +66,9 @@ Symmetric on both sides: bridge + driver.
   owns the warning *logic* (stop, face, timer, escalate) identically for both; only the humanoid
   *animation* is stubbed. `SetBool` on a controller missing the `IsWarning` param is a silent
   no-op in Unity, so the C# is safe to ship before the controller is wired.
+- **`EntityBase.controller`'s `Attack` state carries `SMB_EntityAttackState`** (closes every AI hit
+  window on state exit). Every monster override controller inherits it; a new monster *base*
+  controller must add it to its attack state(s).
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 
@@ -80,4 +83,5 @@ Symmetric on both sides: bridge + driver.
 | HIGH | Player code routed through `AIAnimationDriver` — Player is not AI |
 | MEDIUM | `HumanoidAIAnimationDriver._runSpeed` left at default `4f` on a variant whose `Entity.EngageSpeed > 4` |
 | MEDIUM | New monster `Trigger*` parameter added to `MonsterAnimationBridge` but not exposed via `AIAnimationDriver` virtual method — humanoid driver can't no-op-stub it |
+| HIGH | New monster base controller whose attack state lacks `SMB_EntityAttackState` — an interrupted attack leaves the hit window open (phantom bites) |
 | MEDIUM | `IsWarning` animator param missing on a monster controller using warning detection — `SetBool` no-ops silently, so the warning telegraph never plays (no error, no clip). Verify the param name matches exactly (case-sensitive). |

@@ -39,6 +39,9 @@ namespace Game.Combat
         /// <summary>Root of the attacker's hierarchy — its colliders are never hit.</summary>
         public Transform Owner { get; private set; }
 
+        /// <summary>True between <see cref="Enable"/> and <see cref="Disable"/>.</summary>
+        public bool IsWindowOpen => _tracker.IsWindowOpen;
+
         private readonly HitSweepTracker _tracker = new();
         private readonly Collider[] _overlapBuffer = new Collider[MAX_OVERLAP_RESULTS];
         private Collider _shape;              // Box/Sphere/Capsule on this GO — shape definition only
@@ -121,6 +124,9 @@ namespace Game.Combat
             Vector3 lossyScale = transform.lossyScale;
             Vector3 center = ComputeShapeCenter(_shape, pos, rot, lossyScale);
             int count;
+#if UNITY_EDITOR
+            float debugRadius;
+#endif
 
             switch (_shape)
             {
@@ -128,11 +134,17 @@ namespace Game.Combat
                     count = Physics.OverlapBoxNonAlloc(center,
                         HitSweepTracker.ComputeBoxHalfExtents(box.size, lossyScale, _reachPadding),
                         _overlapBuffer, rot, _targetLayers, QueryTriggerInteraction.Collide);
+#if UNITY_EDITOR
+                    debugRadius = HitSweepTracker.ComputeBoxHalfExtents(box.size, lossyScale, _reachPadding).magnitude;
+#endif
                     break;
                 case SphereCollider sphere:
                     count = Physics.OverlapSphereNonAlloc(center,
                         HitSweepTracker.ComputeScaledRadius(sphere.radius, lossyScale, _reachPadding),
                         _overlapBuffer, _targetLayers, QueryTriggerInteraction.Collide);
+#if UNITY_EDITOR
+                    debugRadius = HitSweepTracker.ComputeScaledRadius(sphere.radius, lossyScale, _reachPadding);
+#endif
                     break;
                 case CapsuleCollider capsule:
                 {
@@ -153,6 +165,9 @@ namespace Game.Combat
                     Vector3 offset = rot * axis * halfSegment;
                     count = Physics.OverlapCapsuleNonAlloc(center - offset, center + offset,
                         scaledRadius + _reachPadding, _overlapBuffer, _targetLayers, QueryTriggerInteraction.Collide);
+#if UNITY_EDITOR
+                    debugRadius = halfSegment + scaledRadius + _reachPadding;
+#endif
                     break;
                 }
                 default:
@@ -167,6 +182,10 @@ namespace Game.Combat
                     _verticalReachRadius, _overlapBuffer, _targetLayers, QueryTriggerInteraction.Collide);
                 ProcessOverlaps(count, center);
             }
+
+#if UNITY_EDITOR
+            if (HitboxDebug.DrawSweeps) RecordDebugSample(center, debugRadius, false);
+#endif
         }
 
         private void ProcessOverlaps(int count, Vector3 queryCenter)
@@ -189,7 +208,11 @@ namespace Game.Combat
                 var target = col.GetComponentInParent<IDamageable>();
                 if (!_tracker.TryRegisterHit(target, _ownerDamageable)) continue;
 
-                OnHit?.Invoke(target, ClosestPointOn(col, queryCenter));
+                Vector3 hitPoint = ClosestPointOn(col, queryCenter);
+                OnHit?.Invoke(target, hitPoint);
+#if UNITY_EDITOR
+                if (HitboxDebug.DrawSweeps) RecordDebugSample(hitPoint, DEBUG_HIT_RADIUS, true);
+#endif
             }
         }
 
@@ -228,5 +251,51 @@ namespace Game.Combat
             Gizmos.DrawWireSphere(bottom, _verticalReachRadius);
             Gizmos.DrawLine(top, bottom);
         }
+
+#if UNITY_EDITOR
+        // --- Editor play-mode sweep gizmos (Tools/Combat/Show Hitbox Sweeps). Zero cost in builds. ---
+
+        private struct DebugSample { public Vector3 Center; public float Radius; public float Time; public bool Hit; }
+        private const int DEBUG_SAMPLE_CAPACITY = 64;
+        private const float DEBUG_SAMPLE_LIFETIME = 1f;
+        private const float DEBUG_HIT_RADIUS = 0.05f;
+        private readonly DebugSample[] _debugSamples = new DebugSample[DEBUG_SAMPLE_CAPACITY];
+        private int _debugSampleHead;
+
+        private void RecordDebugSample(Vector3 center, float radius, bool hit)
+        {
+            _debugSamples[_debugSampleHead] = new DebugSample
+            {
+                Center = center,
+                Radius = radius,
+                Time = UnityEngine.Time.time,
+                Hit = hit,
+            };
+            _debugSampleHead = (_debugSampleHead + 1) % DEBUG_SAMPLE_CAPACITY;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (!Application.isPlaying || !HitboxDebug.DrawSweeps) return;
+
+            float now = UnityEngine.Time.time;
+            for (int i = 0; i < DEBUG_SAMPLE_CAPACITY; i++)
+            {
+                DebugSample sample = _debugSamples[i];
+                if (sample.Radius <= 0f) continue; // never written
+                float age = now - sample.Time;
+                if (age < 0f || age > DEBUG_SAMPLE_LIFETIME) continue;
+                float alpha = 1f - age / DEBUG_SAMPLE_LIFETIME;
+                Gizmos.color = sample.Hit ? new Color(1f, 0f, 0f, alpha) : new Color(1f, 0.92f, 0.016f, alpha);
+                Gizmos.DrawWireSphere(sample.Center, sample.Radius);
+            }
+
+            if (IsWindowOpen && _shape != null)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawSphere(ComputeShapeCenter(_shape, transform.position, transform.rotation, transform.lossyScale), 0.04f);
+            }
+        }
+#endif
     }
 }
