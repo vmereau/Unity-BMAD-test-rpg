@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4974538262964649995}
-  - component: {fileID: 2537990112793634469}
+  - component: {fileID: 1571313278863714260}
   m_Layer: 7
   m_Name: HitBox
   m_TagString: Untagged
@@ -32,8 +32,8 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2312858567811347459}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &2537990112793634469
-CapsuleCollider:
+--- !u!65 &1571313278863714260
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -50,11 +50,9 @@ CapsuleCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.4
-  m_Height: 1.5
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.75, z: 0}
+  serializedVersion: 3
+  m_Size: {x: 1.7296145, y: 0.49764007, z: 1.4302845}
+  m_Center: {x: 0.0000015803912, y: 0.29288426, z: -0.06432068}
 --- !u!1001 &135613284779477823
 PrefabInstance:
   m_ObjectHideFlags: 0

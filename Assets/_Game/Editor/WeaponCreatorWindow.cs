@@ -260,8 +260,8 @@ namespace Game.Editor
             _workingInstance = null;
 
             // 3. Create the equip-visual prefab (Drawn + Sheathed nodes).
+            // No Rigidbody: WeaponHitbox sweeps with physics queries, not trigger callbacks.
             GameObject visualRoot = new GameObject($"{weaponName}_Visual");
-            visualRoot.AddComponent<Rigidbody>().isKinematic = true;
 
             GameObject drawn = new GameObject("Drawn");
             drawn.transform.SetParent(visualRoot.transform);
@@ -337,10 +337,12 @@ namespace Game.Editor
 
             if (isDrawn)
             {
-                var trigger = parent.AddComponent<BoxCollider>();
-                trigger.isTrigger = true;
+                // Shape definition for WeaponHitbox sweeps — fitted, then disabled (never a physics participant).
+                var shape = parent.AddComponent<BoxCollider>();
+                shape.isTrigger = true;
                 parent.AddComponent<WeaponHitbox>();
-                WeaponModelUtility.FitBoxToRenderers(trigger);
+                WeaponModelUtility.FitBoxToRenderers(shape);
+                shape.enabled = false;
             }
         }
 

@@ -24,5 +24,8 @@ namespace Game.Core
         public const string WILDERNESS_SCENE_NAME = "Wilderness";
         public const string DUNGEON_SCENE_NAME = "Dungeon";
         public const string MAIN_MENU_SCENE_NAME = "MainMenu";
+
+        // --- Physics layers ---
+        public const string CHARACTER_HITBOX_LAYER_NAME = "CharacterHitbox";
     }
 }

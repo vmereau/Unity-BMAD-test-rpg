@@ -50,7 +50,9 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── CameraTarget         (child — pure Transform pivot, local Y = 1.6; Cinemachine Follow/LookAt target)
 ├── Virtual Camera       (child — CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget; Follow → CameraTarget — see Scripts/Player/CLAUDE.md)
 ├── Camera               (child — Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
-└── Character            (child — nested Mixamo FBX prefab: Idle.fbx, Humanoid rig)
+├── Character            (child — nested Mixamo FBX prefab: Idle.fbx, Humanoid rig)
+│   └── …/WeaponSocket/UnarmedHitbox  (Layer 0, inactive; disabled SphereCollider r=0.25 as shape + WeaponHitbox — toggled by PlayerCombat)
+└── Hitbox               (child — Layer 7 CharacterHitbox, trigger CapsuleCollider r=0.3 h=1.7 center y=0.9 — the player's hurtbox)
 ```
 
 - The prefab is **self-contained**: drop it into any scene and it works without scene-level camera or UI wiring
@@ -62,6 +64,7 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 - `DialoguePanel.prefab` is nested inside `UICanvas.prefab` as a `PrefabInstance`; `DialogueUI._dialogueSystem` and `DialogueSystem._dialogueUI` are cross-wired via Player.prefab nested-prefab overrides — do NOT try to wire them inside UICanvas.prefab alone
 - `DialogueSystem` is on the **Player root** (not UICanvas, not a separate scene GO)
 - No Rigidbody on player — `CharacterController` only
+- `Hitbox` child is the player's hurtbox for future AI `WeaponHitbox` sweeps (AI still uses a range check today). The player's own sweeps skip it (`SetOwner` + `IsChildOf`); `LockOnSystem` scans Layer 6 only and the CharacterController ignores triggers, so it has no side effects
 - Camera-relative movement uses `Camera.main` cached in `Awake()` as `_mainCamera`
 - `PlayerAnimationDriver` reads `CharacterController.velocity` passively for movement — never writes to movement state
 
@@ -95,14 +98,15 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 **Migration gotcha — moving a variant-added component down to the base:** when you relocate a component from a variant's `m_AddedComponents` onto the shared base, you must (a) delete the variant's added copy (otherwise the root ends up with two and `GetComponent<T>()` may resolve the wrong one), and (b) **retarget any scene `m_Modifications`** that referenced the old added-component `fileID`. The inherited base component gets a **fresh Unity-generated variant-local stripped `fileID`** (e.g. the moved `InventorySystem` became `76150843049530146` on `NPC_base Variant`, *not* the base `fileID` `7887146153611111599` and *not* the old added `fileID` `-8669163291337827286`) — so the only reliable way to re-author the override is to **set the value through the Editor on the scene instance** and let Unity write the correct target. Removing the added component first orphans the scene override (the Editor drops it on reload), so capture the data, then restore it on the inherited component. A hand-edited fileID will silently break the override.
 
 **NPC two-collider pattern** (do NOT collapse into one):
-- `Hitbox` child (Layer 7 — CharacterHitbox): non-trigger CapsuleCollider, used by `WeaponHitbox` for combat damage detection
+- `Hitbox` child (Layer 7 — CharacterHitbox): **trigger** CapsuleCollider, the hurtbox found by `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`)
+- `NPC_base Variant/.../UnarmedHitbox` (`WeaponHitbox` + sphere) is currently **undriven** — groundwork for a future AI hitbox (`EntityBrain` → `SetOwner(transform)`)
 - `InteractionCollider` child (Layer 8 — Interactable): trigger CapsuleCollider (Radius: 0.5, Height: 2.0, Center Y: 1.0), used by `InteractionSystem` for dialogue detection
 
 ---
 
 ## Weapon Prefabs
 
-> See `Assets/_Game/Prefabs/Items/Weapons/CLAUDE.md` for the full weapon prefab spec: two-prefab convention (`_World` / `_Visual`), Drawn/Sheathed child convention, kinematic Rigidbody requirement, trigger collider placement, grip alignment, and GUID notes.
+> See `Assets/_Game/Prefabs/Items/Weapons/CLAUDE.md` for the full weapon prefab spec: two-prefab convention (`_World` / `_Visual`), Drawn/Sheathed child convention, hitbox shape collider, grip alignment, and GUID notes.
 
 ---
 

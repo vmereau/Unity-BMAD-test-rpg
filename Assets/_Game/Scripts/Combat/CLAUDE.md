@@ -4,15 +4,43 @@
 
 ---
 
-## WeaponHitbox System (Story 7.9)
+## WeaponHitbox System (Story 7.9, reworked by `tech-spec-hit-detection-sweep-rework`)
 
 ### Overview
 
-`WeaponHitbox` is placed on the **weapon mesh child GO** inside a weapon visual prefab (e.g. `SM_Sword_1` inside `SwordBase_Visual`). It manages trigger collider(s) that represent the weapon's hit zone.
+`WeaponHitbox` is an **owner-agnostic, attacker-side swept hitbox** placed on the weapon's `Drawn`
+child (or on a hand hitbox GO such as the Player's `UnarmedHitbox`). No trigger callbacks, no
+Rigidbody, no layer-collision-matrix dependency.
 
-- Colliders start **disabled** (dormant) — enabled only during an active attack frame window
-- `Enable()` / `Disable()` are called by `PlayerCombat` at the start/end of each attack window
-- `OnTriggerEnter` fires `OnEnemyHit` C# event if `EnemyHealth` is found in the collided object's parent hierarchy
+- **Shape = the Box/Sphere/Capsule collider on the same GO**, kept **permanently disabled** — it is a
+  shape definition only (center/size/radius + transform). Any other collider type → `GameLog.Error`
+  in `Awake` and the hitbox is a no-op.
+- `Enable()` / `Disable()` open/close the hit window (driven by `HitboxEnable`/`HitboxDisable`
+  animation events + SMB safety nets — unchanged contract).
+- While open, `LateUpdate` (after the Animator posed the hand) samples the shape between last
+  frame's pose and this frame's pose — `ceil(travel / _maxStepDistance)` sub-steps, capped by
+  `_maxSubSteps` — with `Physics.Overlap*NonAlloc`, explicit `_targetLayers` (empty → CharacterHitbox
+  via `GameConstants.CHARACTER_HITBOX_LAYER_NAME`) and `QueryTriggerInteraction.Collide`.
+- **Forgiveness (per hitbox, serialized):** `_reachPadding` inflates the query shape; `_verticalReach`
+  + `_verticalReachRadius` add a downward world-space capsule from the shape centre so swings catch
+  low targets (spider). Tune per weapon prefab — never inflate target hurtboxes instead.
+- **Owner:** the controller must call `SetOwner(transform)` when binding. Colliders under `Owner`
+  are skipped; the owner's own `IDamageable` is rejected. Faction filtering (future) goes next to the
+  owner check in `ProcessOverlaps`.
+- Targets resolve as `IDamageable` via `GetComponentInParent`; `event Action<IDamageable, Vector3> OnHit`
+  (target, approximate hit point) fires **once per target per window**.
+- Pure logic (dedupe, owner/dead/null rejection, sub-step count, shape inflation math) lives in
+  `HitSweepTracker` (plain C#) — covered by `Tests/EditMode/HitSweepTrackerTests`.
+
+### Hit Resolution
+
+`PlayerCombat.OnWeaponHit(IDamageable target, Vector3 hitPoint)` mirrors `EntityBrain.ExecuteAttack()`:
+`target.TryReceiveHit(gameObject)` → `TakeDamage(ComputeEffectiveDamage())` **only on `NotBlocked`**;
+other results are logged and deal no damage.
+
+**AI adoption (future):** `EntityBrain` owns a `WeaponHitbox` (the NPC `UnarmedHitbox` already exists,
+undriven), calls `SetOwner(transform)`, subscribes `OnHit`, and resolves hits with the same
+`TryReceiveHit → TakeDamage` sequence.
 
 ### Binding Pattern — OnVisualsRefreshed GameEventSO
 
@@ -42,17 +70,24 @@ private void BindWeaponHitbox()
     if (weaponGO == null) { BindUnarmedHitbox(); return; }  // no weapon visual — unarmed
     _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>(true);
     if (_activeHitbox != null)
-        _activeHitbox.OnEnemyHit += OnWeaponHit;
+    {
+        _activeHitbox.SetOwner(transform);
+        _activeHitbox.OnHit += OnWeaponHit;
+    }
     else
         BindUnarmedHitbox(); // weapon visual exists but has no WeaponHitbox — fallback
 }
 
 private void BindUnarmedHitbox()
 {
+    if (_unarmedHitbox == null) { /* warn, _activeHitbox = null */ return; }
     _unarmedHitbox.SetActive(true);
     _activeHitbox = _unarmedHitbox.GetComponent<WeaponHitbox>();
     if (_activeHitbox != null)
-        _activeHitbox.OnEnemyHit += OnWeaponHit;
+    {
+        _activeHitbox.SetOwner(transform);
+        _activeHitbox.OnHit += OnWeaponHit;
+    }
 }
 
 // EquipmentVisuals.Refresh() — end of method
@@ -236,10 +271,12 @@ private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
 | HIGH | `_activeHitbox` not disabled on all combo-end paths — phantom hits will persist between attacks |
 | HIGH | Subscribing to `_onEquipmentChanged` directly in `PlayerCombat` — `ActiveWeaponGO` is null due to GameEventSO reverse-iteration order; use `_onVisualsRefreshed` SO raised at the end of `Refresh()` |
 | HIGH | Using a plain C# event across `Game.Inventory` → `Game.Combat` boundary — architecture mandates `GameEventSO<T>` for all cross-system events |
-| MEDIUM | `WeaponHitbox` placed on the weapon prefab root instead of the mesh child — root has the kinematic Rigidbody; collider must be on a child so `OnTriggerEnter` resolves the correct GameObject |
-| HIGH | Weapon visual prefab missing a kinematic `Rigidbody` on its root — static trigger + static collider = `OnTriggerEnter` never fires (see Prefabs/Entities/Monsters/CLAUDE.md) |
+| HIGH | `WeaponHitbox` bound without `SetOwner(...)` — the owner's own hurtbox (e.g. Player `Hitbox`, layer 7) can be hit; `Enable()` logs a "no owner" warning |
+| MEDIUM | `WeaponHitbox` shape collider left enabled, or not Box/Sphere/Capsule, or placed on a child instead of the hitbox GO itself — the shape must be a disabled Box/Sphere/Capsule on the same GO |
+| MEDIUM | Low-target misses "fixed" by inflating the target's hurtbox — tune the attacker's `_verticalReach` / `_reachPadding` instead |
+| MEDIUM | Weapon hit applied with `TakeDamage` directly — always `TryReceiveHit` first, damage only on `NotBlocked` |
 | HIGH | `AnimationEventReceiver` function name mismatch — Unity finds receiver methods by exact string match on the same GO as the Animator; typo = silent no-op, not a compile error |
-| HIGH | `GetComponentInChildren<WeaponHitbox>()` without `includeInactive: true` — `Drawn` child is inactive when weapon is equipped while sheathed; hitbox will not be found and attacks silently fall back to sphere overlap |
+| HIGH | `GetComponentInChildren<WeaponHitbox>()` without `includeInactive: true` — `Drawn` child is inactive when weapon is equipped while sheathed; hitbox will not be found and attacks silently fall back to the unarmed hitbox |
 | HIGH | `ScriptableObject.CreateInstance<WeaponSO>()` in new code or tests — `WeaponSO` is abstract (Story 7.10); use a concrete subclass like `SwordSO` |
 | MEDIUM | New weapon SO added without a concrete subclass (e.g. inheriting `WeaponSO` directly via `[CreateAssetMenu]`) — `WeaponSO` is abstract and has no `[CreateAssetMenu]`; all new weapon types need a concrete class in `ScriptableObjects/Items/Weapons/` |
 | MEDIUM | `OnDrawWeaponStarted` missing `IsAttacking` guard — draw/sheathe during active combo deactivates `Drawn` child mid-swing, silencing the animation-event hit window; always check `if (_stateManager.IsAttacking) return;` before toggling combat state |

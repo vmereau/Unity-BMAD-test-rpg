@@ -11,8 +11,8 @@ Each weapon lives in its own folder and ships as **two prefabs**:
 ```
 Swords/SwordBase/
 ├── SwordBase_World.prefab    ← dropped item (Rigidbody, ItemPickup, solid BoxCollider, Layer: Interactable)
-└── SwordBase_Visual.prefab   ← equipped visual (kinematic Rigidbody on root, no ItemPickup, Layer: Default)
-    ├── Drawn                 ← combat state: WeaponHitbox + trigger collider, posed for WeaponSocket (hand)
+└── SwordBase_Visual.prefab   ← equipped visual (no Rigidbody, no ItemPickup, Layer: Default)
+    ├── Drawn                 ← combat state: WeaponHitbox + DISABLED BoxCollider (shape only), posed for WeaponSocket (hand)
     │   └── Mesh              ← normalizing transform (grip at origin, blade +Y, edge +Z) → renderer(s)
     └── Sheathed              ← sheathed state: visuals only, posed for the sheath socket (hip / back)
         └── Mesh
@@ -36,7 +36,7 @@ Swords/SwordBase/
 | Sheathed (IsInCombat = false) | `UndrawnWeaponSocket` (hip) or `BackWeaponSocket` (archetype `sheathSocket = Back`) | inactive | active |
 
 **Rules:**
-- `Drawn` child: contains the mesh at the grip orientation for the hand + `WeaponHitbox` component + trigger `BoxCollider`
+- `Drawn` child: contains the mesh at the grip orientation for the hand + `WeaponHitbox` component + **disabled** `BoxCollider` (sweep shape)
 - `Sheathed` child: contains the mesh (or a subset) at the hip scabbard orientation — visuals only, no hitbox/collider
 - The root's `localPosition` and `localRotation` are always reset to `(0,0,0)` / `identity` on socket attach — the `Drawn`/`Sheathed` poses come from the weapon's archetype (see below), per-mesh correction lives in the `Mesh` child
 - If either child is absent, `ApplyCombatVisibility` silently no-ops — both stay visible (safe fallback for weapons not yet updated or placeholder cubes)
@@ -44,17 +44,14 @@ Swords/SwordBase/
 
 ---
 
-## Kinematic Rigidbody on Visual Root (Story 7.9)
+## Hitbox Shape Collider
 
-Required for `WeaponHitbox.OnTriggerEnter` to fire. Unity does not generate trigger events between two static colliders. The weapon trigger on a `CharacterController` child is static; `Enemy_Grunt/Visual`'s CapsuleCollider is also static. Adding `isKinematic=true, useGravity=false` Rigidbody to the `_Visual` root satisfies the requirement without affecting movement.
-
-**Every weapon visual prefab that uses `WeaponHitbox` must have a kinematic Rigidbody on its root.**
-
----
-
-## Trigger Collider Placement
-
-`BoxCollider` (`isTrigger=true`) goes on the **`Drawn` child GO** (where `WeaponHitbox.cs` also lives). Do NOT place it on the visual root. `GetComponentInChildren<WeaponHitbox>()` from `ActiveWeaponGO` (the root) finds it regardless of depth.
+`WeaponHitbox` sweeps with physics queries (see `Scripts/Combat/CLAUDE.md`) — **no Rigidbody** on the
+`_Visual` root and no layer requirement. The `BoxCollider` on the **`Drawn` child GO** (same GO as
+`WeaponHitbox`) is only the sweep **shape**: keep it **disabled** (`WeaponHitbox.Awake` also disables it).
+Box/Sphere/Capsule only. Do NOT place it on the visual root or on a sub-child. `GetComponentInChildren<WeaponHitbox>(true)`
+from `ActiveWeaponGO` (the root) finds it regardless of depth. Per-weapon reach tuning = the
+`WeaponHitbox` `_reachPadding` / `_verticalReach` fields on `Drawn`.
 
 Note: nested prefab children can't be reparented under a stripped transform via YAML — keep the collider as a component on `Drawn`, not in a separate sub-prefab.
 
@@ -108,7 +105,7 @@ Use it for every new weapon instead of hand-building prefabs. Inputs: name, C# t
 (required), **grip point** (model local), **blade axis**, **edge axis** (must be on different axes). It:
 
 - strips every `Collider`, `Rigidbody`, `LODGroup` and `_LOD1+` child from the model (keeps LOD0),
-- builds `_Visual` (kinematic RB root → `Drawn` [trigger `BoxCollider` fitted to the renderers + `WeaponHitbox`]
+- builds `_Visual` (no Rigidbody; root → `Drawn` [**disabled** `BoxCollider` fitted to the renderers + `WeaponHitbox`]
   → `Mesh`; `Sheathed` → `Mesh`), both `Mesh` children normalized, `Drawn`/`Sheathed` left at identity,
 - builds `_World` (un-normalized model, root `BoxCollider` fitted to **all** renderers),
 - writes `Data/Items/Weapons/{Family}/Weapon_{Name}.asset` and `Prefabs/Items/Weapons/{Family}/{Name}/`
@@ -135,11 +132,11 @@ New weapons: use the Weapon Creator — it wires the SO references itself (no YA
 
 | Severity | Pattern |
 |----------|---------|
-| HIGH | `_Visual` prefab root missing kinematic Rigidbody — `WeaponHitbox.OnTriggerEnter` will never fire |
+| MEDIUM | `_Visual` root still carries a (legacy) Rigidbody, or the `Drawn` shape `BoxCollider` is left enabled — both are dead physics participants since the sweep rework |
 | HIGH | `Drawn` or `Sheathed` child named incorrectly (wrong case, extra suffix) — `ApplyCombatVisibility` silently no-ops, both children stay visible simultaneously |
 | HIGH | `WeaponHitbox` + trigger collider placed on `Sheathed` child — hitbox would be active on hip socket instead of hand |
 | HIGH | `Mesh` child not normalized (weapon uses an archetype but the mesh pivot/axes are raw art-pack) — weapon sits offset/rotated in hand and on hip |
-| HIGH | Non-trigger collider (e.g. art-pack `MeshCollider`) left under `Drawn`/`Sheathed` — `WeaponHitbox` collects it as part of the hitbox / it blocks the CharacterController |
+| HIGH | Extra collider (e.g. art-pack `MeshCollider`) left under `Drawn`/`Sheathed` — it blocks the CharacterController; only the disabled shape collider on `Drawn` is allowed |
 | MEDIUM | `Drawn` child absent but `Sheathed` present (or vice versa) — one state will have both children visible |
 | MEDIUM | Hitbox `BoxCollider` left at the default 1×1×1 — hits register far outside the blade |
 | MEDIUM | Visual offsets hardcoded in `EquipmentVisuals.cs` instead of the archetype poses / `Mesh` child |

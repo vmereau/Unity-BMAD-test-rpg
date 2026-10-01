@@ -1,4 +1,3 @@
-using Game.AI;
 using Game.Core;
 using Game.Inventory;
 using Game.Player;
@@ -108,6 +107,8 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "EquipmentSystem not assigned — weapon damage bonus inactive");
             if (_equipmentVisuals == null)
                 GameLog.Warn(TAG, "EquipmentVisuals not assigned — draw/sheathe will have no visual effect");
+            if (_unarmedHitbox == null)
+                GameLog.Warn(TAG, "Unarmed hitbox not assigned — unarmed attacks cannot hit");
 
             _input = new InputSystem_Actions();
         }
@@ -267,7 +268,7 @@ namespace Game.Combat
             _stateManager.SetAttacking(true, triggerHash);
 
             // Story 7.11: hitbox enabled/disabled by HitboxEnable/HitboxDisable animation events.
-            // Unarmed fallback (no hitbox): sphere overlap fires immediately on input frame.
+            // No hitbox bound (e.g. _unarmedHitbox unassigned) — this attack cannot deal damage.
             if (_activeHitbox == null)
                 GameLog.Warn(TAG, $"Warning: No active hitbox");
         }
@@ -336,17 +337,29 @@ namespace Game.Combat
             // includeInactive: true — Drawn child may be inactive when weapon is equipped while sheathed
             _activeHitbox = weaponGO.GetComponentInChildren<WeaponHitbox>(true);
             if (_activeHitbox != null)
-                _activeHitbox.OnEnemyHit += OnWeaponHit;
+            {
+                _activeHitbox.SetOwner(transform);
+                _activeHitbox.OnHit += OnWeaponHit;
+            }
             else
                 BindUnarmedHitbox(); // Weapon visual exists but has no WeaponHitbox — fallback
         }
 
         private void BindUnarmedHitbox()
         {
+            if (_unarmedHitbox == null)
+            {
+                GameLog.Warn(TAG, "Unarmed hitbox not assigned — unarmed attacks cannot hit");
+                _activeHitbox = null;
+                return;
+            }
             _unarmedHitbox.SetActive(true);
             _activeHitbox = _unarmedHitbox.GetComponent<WeaponHitbox>();
             if (_activeHitbox != null)
-                _activeHitbox.OnEnemyHit += OnWeaponHit;
+            {
+                _activeHitbox.SetOwner(transform);
+                _activeHitbox.OnHit += OnWeaponHit;
+            }
         }
 
         private void UnbindWeaponHitbox()
@@ -355,14 +368,22 @@ namespace Game.Combat
             _unarmedHitbox?.SetActive(false);
             if (_activeHitbox == null) return;
             _activeHitbox.Disable();
-            _activeHitbox.OnEnemyHit -= OnWeaponHit;
+            _activeHitbox.OnHit -= OnWeaponHit;
             _activeHitbox = null;
         }
 
-        private void OnWeaponHit(EntityHealth health)
+        // Mirrors EntityBrain.ExecuteAttack: TryReceiveHit first, damage only when NotBlocked.
+        private void OnWeaponHit(IDamageable target, Vector3 hitPoint)
         {
-            health.TakeDamage(ComputeEffectiveDamage());
-            GameLog.Info(TAG, $"Weapon hit: {health.gameObject.name}");
+            if (target == null || target.IsDead) return;
+            HitResult result = target.TryReceiveHit(gameObject);
+            if (result != HitResult.NotBlocked)
+            {
+                GameLog.Info(TAG, $"Weapon hit {result} at {hitPoint}");
+                return;
+            }
+            target.TakeDamage(ComputeEffectiveDamage());
+            GameLog.Info(TAG, $"Weapon hit landed at {hitPoint}");
         }
 
         // Story 7.10: public methods called by AnimationEventReceiver ----------------

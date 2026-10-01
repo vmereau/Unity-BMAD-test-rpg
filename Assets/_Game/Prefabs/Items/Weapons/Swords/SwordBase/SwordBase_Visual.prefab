@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 100000001}
-  - component: {fileID: 6641488423535677307}
   m_Layer: 0
   m_Name: SwordBase_Visual
   m_TagString: Untagged
@@ -34,33 +33,6 @@ Transform:
   - {fileID: 4711599047269524225}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &6641488423535677307
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 100000000}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &2595516706460881540
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,7 +84,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.02894753, y: 0.84506357, z: 0.14553651}
   m_Center: {x: -0.000000011175871, y: 0.35000008, z: 0.000000007450581}
@@ -128,6 +100,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3698d187bb02ff4f9d9218ca603f3fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.WeaponHitbox
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _reachPadding: 0.1
+  _verticalReach: 0.6
+  _verticalReachRadius: 0.25
+  _maxStepDistance: 0.1
+  _maxSubSteps: 8
 --- !u!1 &5265344926228848660
 GameObject:
   m_ObjectHideFlags: 0

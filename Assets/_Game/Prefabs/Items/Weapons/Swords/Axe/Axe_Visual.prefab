@@ -51,7 +51,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.06, y: 0.22, z: 0.22}
   m_Center: {x: 0, y: 0.39, z: 0.095}
@@ -67,6 +67,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3698d187bb02ff4f9d9218ca603f3fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.WeaponHitbox
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _reachPadding: 0.1
+  _verticalReach: 0.6
+  _verticalReachRadius: 0.25
+  _maxStepDistance: 0.1
+  _maxSubSteps: 8
 --- !u!1 &1447652550113882422
 GameObject:
   m_ObjectHideFlags: 0
@@ -108,7 +116,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7476789048708703759}
-  - component: {fileID: 3437055783895435487}
   m_Layer: 0
   m_Name: Axe_Visual
   m_TagString: Untagged
@@ -133,33 +140,6 @@ Transform:
   - {fileID: 605661142994262208}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &3437055783895435487
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2464659363482329701}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &6116222465586108278
 GameObject:
   m_ObjectHideFlags: 0
