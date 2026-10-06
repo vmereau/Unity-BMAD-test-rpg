@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Quest.QuestSO
   questId: SpiderClear
   title: Spider Infestation
-  description: The town guard has spotted a nest of Darkness Spiders lurking near
-    the outskirts of town. He's asked you to hunt them down before they become a
-    real problem. Kill all five and report back to the guard for your reward.
+  description: The town guard has spotted a nest of Darkness Spiders lurking near the outskirts of town. He's asked you to hunt them down before they become a real problem. Kill all five and report back to the guard for your reward.
   startPart:
     fact: {fileID: 11400000, guid: 6dbfcecc138b29a42904b465db447573, type: 2}
     entry: You accepted the guard's request to clear the Darkness Spiders.
@@ -28,7 +26,7 @@ MonoBehaviour:
   - title: Kill the Darkness Spiders
     description: I have found and slain some of the spiders
     parts:
-    - fact: {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
+    - fact: {fileID: 11400000, guid: 0af271ae14301e14c849bbbaf7344b62, type: 2}
       entry: 
     - fact: {fileID: 11400000, guid: f65846bc5101a0d4ea9eeeeedd883f59, type: 2}
       entry: 

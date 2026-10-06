@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions:
   - {fileID: 11400000, guid: f65846bc5101a0d4ea9eeeeedd883f59, type: 2}
-  - {fileID: 11400000, guid: 3d29e5de14792a741b06513a2b48e039, type: 2}
+  - {fileID: 11400000, guid: 0af271ae14301e14c849bbbaf7344b62, type: 2}
   invalidationConditions: []
   effects:
     startdialog: {fileID: 0}
