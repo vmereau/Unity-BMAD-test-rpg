@@ -2,7 +2,7 @@
 title: 'Humanoid Unarmed Combat — AI NPCs Through Hit Windows'
 slug: 'humanoid-unarmed-combat'
 created: '2026-10-01'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['Unity 6000.6.2f1', 'C# (.NET Standard 2.1)', 'Mecanim (Humanoid_Template, upper-body Attack layer, triggers)', 'StateMachineBehaviours', 'Unity Test Framework (EditMode, NUnit)']
 files_to_modify:
@@ -14,9 +14,12 @@ files_to_modify:
   - 'Assets/_Game/Scripts/Core/Animations/AIAnimationDriver.cs'
   - 'Assets/_Game/Scripts/Core/Animations/HumanoidAIAnimationDriver.cs'
   - 'Assets/_Game/Scripts/Core/Animations/HumanoidAnimationBridge.cs'
-  - 'Assets/_Game/Scripts/Combat/SMB_AttackState.cs (explicit null check)'
+  - 'Assets/_Game/Scripts/Combat/SMB_AttackState.cs (explicit null check, cached missing receiver)'
+  - 'Assets/_Game/Scripts/Combat/PlayerCombat.cs (unarmed combo from config; ComboWindowClose ignored mid-chain)'
+  - 'Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs + Data/Config/CombatConfig.asset (unarmedComboSteps 3)'
+  - 'Assets/_Game/Scripts/Combat/CLAUDE.md'
   - 'Assets/_Game/ScriptableObjects/Entities/Entity.cs (combo hit count fields)'
-  - 'Assets/_Game/Art/Characters/Humanoids/Controllers/Humanoid_Template.controller (SMB on Attack_1/2/3_State)'
+  - 'Assets/_Game/Art/Characters/Humanoids/Controllers/Humanoid_Template.controller (SMB on Attack_1/2/3_State; Attack_2 → Attack_3 interruptionSource None)'
   - 'Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab'
   - 'Assets/_Game/Data/NPCs/**/NPC_*.asset (7 Entity SOs: range + combo)'
   - 'Assets/Tests/EditMode/AttackComboPlanTests.cs (new) + .meta'
@@ -228,7 +231,7 @@ states as the exit safety net.
 
 ### Tasks
 
-- [ ] Task 1: Create the pure combo logic `AttackComboPlan`
+- [x] Task 1: Create the pure combo logic `AttackComboPlan`
   - File: `Assets/_Game/Scripts/AI/AttackComboPlan.cs` (new, namespace `Game.AI`, `public sealed class`, no MonoBehaviour, no `GameLog` → no `TAG`)
   - Action:
     ```csharp
@@ -243,7 +246,7 @@ states as the exit safety net.
     ```
   - Notes: XML summary: "Step 1 is started by TriggerAttack; steps 2..N are requested on ComboWindowOpen."
 
-- [ ] Task 2: Add combo hit-count config to `Entity`
+- [x] Task 2: Add combo hit-count config to `Entity`
   - File: `Assets/_Game/ScriptableObjects/Entities/Entity.cs`
   - Action: Under `[Header("Attack")]` add
     `[Tooltip("Minimum hits per attack combo (1 = single attack).")] [SerializeField, Min(1)] private int _comboHitsMin = 1;`
@@ -251,7 +254,7 @@ states as the exit safety net.
     properties `ComboHitsMin` / `ComboHitsMax`. In the existing `OnValidate`: `if (_comboHitsMax < _comboHitsMin) _comboHitsMax = _comboHitsMin;`.
   - Notes: Defaults 1/1 keep every monster SO (spider etc.) on single attacks with no asset change.
 
-- [ ] Task 3: Extend the animation driver seam + humanoid implementation
+- [x] Task 3: Extend the animation driver seam + humanoid implementation
   - Files: `Assets/_Game/Scripts/Core/Animations/AIAnimationDriver.cs`, `HumanoidAnimationBridge.cs`, `HumanoidAIAnimationDriver.cs`
   - Action:
     1. `AIAnimationDriver`: add `public virtual int MaxComboSteps => 1;` and `public virtual void TriggerComboStep(int step) { }` (XML: step 2..MaxComboSteps; step 1 is `TriggerAttack`).
@@ -262,7 +265,7 @@ states as the exit safety net.
        Update the class XML summary (attack implemented; unarmed combo via Attack_1/2/3 triggers).
   - Notes: Explicit `!= null` (Unity-null). `MonsterAnimationDriver` untouched (inherits 1 / no-op). Clearing stale `Attack_2/3` triggers in `TriggerAttack` prevents a leftover trigger from auto-chaining the next attack.
 
-- [ ] Task 4: Add combo + attack-state tracking to `EntityMeleeAttacker`
+- [x] Task 4: Add combo + attack-state tracking to `EntityMeleeAttacker`
   - File: `Assets/_Game/Scripts/AI/EntityMeleeAttacker.cs`
   - Action:
     1. Fields: `[Tooltip("Plays attack/combo steps. Auto-resolved on the same GO if null.")] [SerializeField] private AIAnimationDriver _animationDriver;`
@@ -279,15 +282,15 @@ states as the exit safety net.
     8. Update the class XML summary: combo (hit count rolled by the brain, steps requested on ComboWindowOpen, damage per hit = per window) and the state counter (crossfades between combo states keep the attack alive).
   - Notes: Dedupe stays per `WeaponHitbox` window → each combo hit can damage the same target once (intended "damage per hit").
 
-- [ ] Task 5: Extend `EntityAnimationEventReceiver`
+- [x] Task 5: Extend `EntityAnimationEventReceiver`
   - File: `Assets/_Game/Scripts/AI/EntityAnimationEventReceiver.cs`
   - Action: `ComboWindowOpen()` → `if (_attacker == null) return; _attacker.OnComboWindowOpen();` (keep `ComboWindowClose()` a no-op, update comment). Add `public void NotifyAttackEntered() { if (_attacker == null) return; _attacker.NotifyAttackStateEntered(); }`. `NotifyAttackExited()` now calls `_attacker.NotifyAttackStateExited()` (not `EndAttack()` directly). Update XML/comments.
 
-- [ ] Task 6: Extend `SMB_EntityAttackState`
+- [x] Task 6: Extend `SMB_EntityAttackState`
   - File: `Assets/_Game/Scripts/AI/SMB_EntityAttackState.cs`
   - Action: Add `OnStateEnter` → `receiver.NotifyAttackEntered()`; `OnStateExit` unchanged call. Cache the lookup once per instance with a `_resolved` bool (avoid a `GetComponent` on every enter/exit on the Player, where the receiver is legitimately absent). Explicit `!= null` checks. Update XML: counter semantics, works on Player states as a no-op.
 
-- [ ] Task 7: `EntityBrain` — attack gate + combo roll
+- [x] Task 7: `EntityBrain` — attack gate + combo roll
   - File: `Assets/_Game/Scripts/AI/EntityBrain.cs`
   - Action:
     1. `HandleAttack()`: right after `FaceTarget();` add `if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // never cut an attack/combo mid-swing`.
@@ -295,17 +298,17 @@ states as the exit safety net.
        `int hits = Random.Range(entity.ComboHitsMin, entity.ComboHitsMax + 1);` (where `entity = _persistentID.Entity`) and `_meleeAttacker.BeginAttack(entity.AttackDamage, hits);`. Log line includes the hit count.
   - Notes: Cooldown still starts at `ExecuteAttack`; the gate makes the effective interval `max(cooldown, attack duration)`.
 
-- [ ] Task 8: Player SMB null-safety
+- [x] Task 8: Player SMB null-safety
   - File: `Assets/_Game/Scripts/Combat/SMB_AttackState.cs`
   - Action: Replace `GetReceiver(animator)?.X()` with `var r = GetReceiver(animator); if (r != null) r.X();` in both callbacks. Behaviour unchanged for the Player.
   - Notes: These states now also run on NPC Animators (no `AnimationEventReceiver`) — `?.` does not respect Unity-null.
 
-- [ ] Task 9: Add `SMB_EntityAttackState` to the humanoid attack states
+- [x] Task 9: Add `SMB_EntityAttackState` to the humanoid attack states
   - File: `Assets/_Game/Art/Characters/Humanoids/Controllers/Humanoid_Template.controller`
   - Action: Via Unity MCP `execute_code`: load the `AnimatorController`, layer `Attack`, states `Attack_1_State`, `Attack_2_State`, `Attack_3_State` → `AddStateMachineBehaviour<Game.AI.SMB_EntityAttackState>()` if absent (keep `SMB_AttackState`), `SetDirty` + `SaveAssets`. `read_console`.
   - Notes: Never hand-edit the controller YAML.
 
-- [ ] Task 10: Wire `NPC_base Variant.prefab`
+- [x] Task 10: Wire `NPC_base Variant.prefab`
   - File: `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab`
   - Action (one `execute_code` with `PrefabUtility.LoadPrefabContents` / `SaveAsPrefabAsset` on the same path):
     1. `UnarmedHitbox` (`Character/.../mixamorig:RightHand/WeaponSocket/UnarmedHitbox`) → `SetActive(true)`; leave its collider disabled; no Rigidbody (ragdoll scan).
@@ -314,11 +317,11 @@ states as the exit safety net.
     4. `Character`: `AddComponent<EntityAnimationEventReceiver>()`, `_attacker` assigned.
   - Notes: Verify afterwards that the 7 StartingTown scene instances resolve the attacker (play-mode query) and that no instance override blanks the new fields. `refresh_unity(mode="if_dirty")` only.
 
-- [ ] Task 11: Tune the NPC Entity SOs
+- [x] Task 11: Tune the NPC Entity SOs
   - Files: `Assets/_Game/Data/NPCs/Bandit/NPC_Bandit.asset`, `BlackSmith/NPC_Blacksmith.asset`, `Elder/NPC_Elder.asset`, `Innkeeper/NPC_Innkeeper.asset`, `Merchant/NPC_Merchant.asset`, `NPC_Guard/NPC_Guard.asset`, `Villager/NPC_Villager.asset`
   - Action: Via `SerializedObject`: `_attackRange` 1.5, `_engageStoppingDistance` 1.3, `_comboHitsMin` 1, `_comboHitsMax` 3. `AttackDamage` / `AttackCooldown` untouched.
 
-- [ ] Task 12: EditMode tests
+- [x] Task 12: EditMode tests
   - Files: `Assets/Tests/EditMode/AttackComboPlanTests.cs` (new), `Assets/Tests/EditMode/EntityMeleeAttackerTests.cs`
   - Action — `AttackComboPlanTests`:
     `Begin_SetsStepOne`; `Begin_ClampsHitsToMaxSteps` (5 hits, max 3 → 3); `Begin_ClampsHitsToAtLeastOne` (0 → 1);
@@ -333,7 +336,7 @@ states as the exit safety net.
     `OnComboWindowOpen_WhenNotAttacking_DoesNotAdvance`.
   - Notes: Driver-backed combo advancing is covered by `AttackComboPlanTests` + play mode (no test doubles for MonoBehaviour drivers). Full suite must stay green.
 
-- [ ] Task 13: Play-mode verification + reach retune
+- [x] Task 13: Play-mode verification + reach retune
   - Action: StartingTown, `Tools/Combat/Show Hitbox Sweeps` on.
     1. Bandit vs player: jab sweeps reach the player at the engage distance; adjust `_attackRange` / `_engageStoppingDistance` (all 7 SOs) if the sweep falls short or overshoots; record final values.
     2. Uppercut (step 2): check where its sweep goes under the upper-body mask. If it never reaches forward, record it as a known limitation (no new animations in scope) — do **not** change the controller.
@@ -341,7 +344,7 @@ states as the exit safety net.
     4. Root motion: after several combos, `Character.localPosition` stays ≈ (0,0,0) relative to the root. If it drifts, record it and set `Animator.applyRootMotion = false` on `Character` **only if** locomotion is unaffected (otherwise note as follow-up).
     5. Console clean (no "humanoid AI attack not implemented", no "no EntityMeleeAttacker" errors).
 
-- [ ] Task 14: Documentation
+- [x] Task 14: Documentation
   - `Assets/_Game/Scripts/AI/CLAUDE.md`: `AttackComboPlan` row; attacker combo + state counter; brain gate; combo hits from `Entity.ComboHitsMin/Max`; remove the "every StartingTown humanoid logs this" note.
   - `Assets/_Game/Scripts/Core/Animations/CLAUDE.md`: `MaxComboSteps` / `TriggerComboStep` seam; replace the "Humanoid AI combat triggers are stubs" rule (attack implemented; GetHit/Death on the Base layer do not interrupt the upper-body attack); `Humanoid_Template` `Attack_1/2/3_State` carry both `SMB_AttackState` and `SMB_EntityAttackState`.
   - `Assets/_Game/Prefabs/CLAUDE.md` (Entities/NPC section): NPC attack wiring (attacker on root with `Unarmed`, receiver on `Character`, `UnarmedHitbox` active + dormant, no Rigidbody), final range values.
@@ -381,6 +384,30 @@ states as the exit safety net.
   mid-combo (AC 8), spider bite unchanged (AC 9), player combos unchanged (AC 10), console on load (AC 11).
 - `read_console` after every domain reload, controller save and prefab save.
 
+### Implementation Results (2026-10-06)
+
+Play mode, StartingTown (editor-side probes logging attacker/animator state per change):
+- **Wiring:** all 7 humanoids resolve `EntityMeleeAttacker` (1 `Unarmed` hitbox), `HumanoidAIAnimationDriver`
+  and the `Character` receiver; no scene override blanks the new fields. Console clean on load (AC 11).
+- **Bandit vs player:** jab windows land at 0.6–1.0 m (one hit per window, 10 dmg each); the next attack waits
+  for the last attack state to exit (AC 1–3, 5). Range values kept at 1.5 / 1.3.
+- **Step 3 bug found & fixed (controller):** `Attack_2 → Attack_3` (0.42 s fixed blend, interruption `Source`)
+  started at Uppercut 0.63 and was cancelled by `Attack_2 → CombatIdle` at exit time 0.89 — step 3 never played.
+  Set that transition's `interruptionSource = None`; re-verified A1 → A2 → A3 with a window per step and the
+  counter held across both crossfades (AC 2, 4). Player impact: only removes the same cut on 3-step weapon combos.
+- **Uppercut reach (known limitation):** the step-2 window hit the player once at 0.9 m but whiffed at 1.0 m in
+  every later combo; it does hit spiders at 1.0 m. No controller/animation change (out of scope).
+- **Guard vs spider:** jab + uppercut hits land on the spider (`_verticalReach` 0.6 sufficient — unchanged);
+  Merchant/Guard/Blacksmith gang up on spiders with no friendly fire (AC 6). Spiders never bite NPCs: spider
+  `AttackRange` 0.8 vs ≈ 1.0 m agent separation — pre-existing tuning gap, recorded in `Scripts/AI/CLAUDE.md`.
+- **Spider vs player:** single bite, hit lands, 1-hit combo (AC 9).
+- **Death mid-combo:** killing the Innkeeper at step 2 → `IsAttacking` false, combo cleared, window closed, no
+  further steps (AC 8).
+- **Root motion:** `Character.localPosition` stayed (0,0,0) through every combo — `applyRootMotion` left on.
+- **Not exercised automatically (needs manual play):** AC 7 (player block/dodge vs NPC hit — `TryReceiveHit`
+  path unchanged from the previous spec) and AC 10 (player combos — `SMB_AttackState` change is an equivalent
+  null-check; the new SMB is a no-op without a receiver; no errors logged).
+
 ### Notes
 
 - **High-risk items:**
@@ -399,3 +426,22 @@ states as the exit safety net.
 - **Future (out of scope):** armed NPCs (register the equipped weapon's `WeaponHitbox` as `Weapon`, weapon
   archetype clips); NPC block/dodge; civilians fleeing; per-NPC damage/combo tuning; hit reactions on the
   attack layer.
+
+## Review Notes
+
+- Adversarial review completed (2026-10-06)
+- Findings: 10 total — 5 fixed (F2, F7, F8, F9 auto-fixed; F3/AC 10 player combos verified by the user), 5
+  acknowledged (F1 controller change accepted, F4 spider range pre-existing, F5 off-screen culling, F6
+  combo continues while chasing, F10 uppercut reach = known limitation)
+- Resolution approach: auto-fix
+- Fixes: `AIAnimationDriver.CancelAttack()` (humanoid resets Attack_1/2/3) called from
+  `EntityMeleeAttacker.EndAttack` (F2); 5 driver-backed/lifecycle tests with a fake driver (F7);
+  `SMB_AttackState` caches a missing receiver (F8); `EntityBrain.Start` warns when `ComboHitsMax` >
+  driver `MaxComboSteps` (F9).
+- **Scope addition (user request):** player unarmed combo is now 3 steps
+  (`CombatConfigSO.unarmedComboSteps = 3`; `WeaponSO.DEFAULT_COMBO_STEPS` stays 2 for archetype-less
+  weapons). Exposed a player bug: Uppercut's `ComboWindowClose` (0.93) fires inside the now-uninterruptible
+  `Attack_2 → Attack_3` blend and reset `_comboStep`, letting a 4th press restart Attack_1. Fixed by ignoring
+  `OnComboWindowClose` while `_IsComboAttacking`. Verified in play mode: A1 → A2 → A3, 4th press ignored
+  (max combo), clean exit to CombatIdle; NPC 3-hit combos unchanged. AC 7 (block/dodge vs NPC) still
+  manual-only.
