@@ -275,8 +275,8 @@ namespace Game.Combat
 
         private bool IsMaxCombo()
         {
-            // Story 7.10: query combo steps from equipped weapon SO (weapon > 0 overrides archetype); unarmed defaults to DEFAULT_COMBO_STEPS
-            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.ResolvedComboSteps : WeaponSO.DEFAULT_COMBO_STEPS;
+            // Story 7.10: query combo steps from equipped weapon SO (weapon > 0 overrides archetype); unarmed uses the config
+            int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.ResolvedComboSteps : _config.unarmedComboSteps;
             return _comboStep == maxSteps;
         }
 
@@ -401,6 +401,9 @@ namespace Game.Combat
 
         public void OnComboWindowClose()
         {
+            // The next step is already queued: this is the OUTGOING clip's close event firing during the
+            // crossfade (e.g. Uppercut's 0.93 inside the Attack_2 → Attack_3 blend) — not an expired window.
+            if (_IsComboAttacking) return;
             ResetAttackCombo();
             GameLog.Info(TAG, "Combo window closed");
         }

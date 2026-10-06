@@ -42,6 +42,10 @@ namespace Game.Combat
         [Tooltip("Radius of the sphere overlap used for player attack hit detection.")]
         public float attackHitRange = 2f;
 
+        [Header("Unarmed Combo")]
+        [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
+        [Min(1)] public int unarmedComboSteps = 3;
+
         [Header("Lock-On")]
         [Tooltip("Max acquisition distance in metres.")]
         public float lockOnRange = 15f;

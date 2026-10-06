@@ -171,10 +171,11 @@ _currentWeaponSO = _equipmentSystem?.GetEquipped(EquipmentSlot.Weapon) as Weapon
 ```
 `IsMaxCombo()` queries it:
 ```csharp
-int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.comboSteps : 2;
+int maxSteps = _currentWeaponSO != null ? _currentWeaponSO.ResolvedComboSteps : _config.unarmedComboSteps;
 return _comboStep == maxSteps;
 ```
-Unarmed fallback: `maxSteps = 2` (2-hit combo). `ManageComboStep()` calls `IncreaseAttackCombo()` only if not at max; if `_comboStep > 1` after increment, `_IsComboAttacking` is set `true` to guard the SMB exit path.
+Unarmed: `CombatConfigSO.unarmedComboSteps` (3 — Jab → Uppercut → Jab via `Attack_1/2/3`). Not
+`WeaponSO.DEFAULT_COMBO_STEPS` (2), which stays the fallback for weapons without an archetype. `ManageComboStep()` calls `IncreaseAttackCombo()` only if not at max; if `_comboStep > 1` after increment, `_IsComboAttacking` is set `true` to guard the SMB exit path.
 
 ### Animation Events on FBX Clips (Story 7.11)
 
@@ -231,6 +232,11 @@ public class SMB_AttackState : StateMachineBehaviour
 
 **Why not `GetNextAnimatorStateInfo(layerIndex).IsTag("Attack")` to detect combo chains?**
 Unity may have already completed the transition by the time `OnStateExit` fires — `GetNextAnimatorStateInfo` returns empty `AnimatorStateInfo` in that case. Always returns false, even when the next state is an attack state. Use `_IsComboAttacking` flag instead.
+
+**`OnComboWindowClose()` is ignored while `_IsComboAttacking`** — once the next step is queued, the
+outgoing clip can still fire its `ComboWindowClose` during the crossfade (Uppercut's 0.93 lands inside
+the 0.63 → 0.95 `Attack_2 → Attack_3` blend). Resetting there zeroed `_comboStep` mid-chain and let a
+press in Attack_3's window restart Attack_1 (endless loop instead of a finisher).
 
 ---
 

@@ -18,5 +18,15 @@ MonoBehaviour:
   dodgeStaminaCost: 25
   staminaRegenRate: 20
   staminaRegenDelay: 1.5
-  comboWindowDelay: 0.5
-  comboWindowDuration: 0.5
+  perfectBlockWindowDuration: 0.25
+  dodgeDuration: 0.5
+  dodgeSpeed: 8
+  baseHealth: 100
+  attackDamage: 25
+  attackHitRange: 2
+  unarmedComboSteps: 3
+  lockOnRange: 15
+  lockOnFOV: 60
+  lockOnLerpSpeed: 5
+  lockOnBreakDistance: 20
+  lockOnTargetHeightOffset: 1
