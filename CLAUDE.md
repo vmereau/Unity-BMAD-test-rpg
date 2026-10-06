@@ -27,6 +27,7 @@
 | **Superseded proposals / archived specs** | `_bmad-output/archive/` |
 | **All game source code** | `Assets/_Game/` |
 | **Game assembly definition** | `Assets/_Game/Game.asmdef` |
+| **Editor-only tools** | `Assets/_Game/Editor/` (`Game.Editor` asmdef). `Assets/_Game/Scripts/Editor/` compiles into the runtime `Game` assembly and requires `#if UNITY_EDITOR` |
 | **Git conventions** | `.claude/rules/git-conventions.md` |
 
 > **Never treat `_bmad/` or `_bmad-output/` as game source code.** They are BMAD
@@ -109,6 +110,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
+| Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
+| Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing |
 | Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Animator Controller practices, MCP animation quirks |
 
 ---
@@ -151,6 +154,7 @@ and `project-context.md` — apply those too.
 | Severity | Pattern |
 |----------|---------|
 | HIGH | `OnDisable` uses fields initialized in `OnEnable` without a null guard (see lifecycle gotcha above) |
+| HIGH | Editor script under `Scripts/Editor/` without `#if UNITY_EDITOR` — breaks player builds |
 | MEDIUM | Public method on MonoBehaviour dereferences a `[SerializeField]` dependency without a null guard — `Awake` setting `enabled = false` does NOT block external callers from reaching public methods; add `if (_dep == null) return;` at the top of every public method that uses a serialized dependency |
 | MEDIUM | Spec changes a player-visible string or behavior (prompt, label, format) but EditMode tests still assert the old value — grep `Assets/Tests/` for the old value in the same session |
 | MEDIUM | `.meta` file manually created and missing `MonoImporter` block — Unity may regenerate with new GUID on reimport, breaking prefab script references |

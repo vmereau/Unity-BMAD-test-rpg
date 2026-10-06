@@ -1,6 +1,8 @@
 # CLAUDE.md — Assets/_Game/Data/Quests
 
-> Quest ScriptableObject assets live here. Full system doc: `docs/Quests/Quest.md`.
+> Quest ScriptableObject assets live here. Full system doc: `docs/World/Quests/Quest.md`.
+> Inspect / validate a quest (setters, readers, orphan facts, registration): `Tools/Quests/Quest Explorer`
+> (see `Assets/_Game/Editor/QuestExplorer/CLAUDE.md`). Fact types: `Assets/_Game/Data/Facts/CLAUDE.md`.
 
 ---
 
@@ -23,7 +25,8 @@ QuestSO
       └── parts[]    QuestPart list              — step active if ANY true; done if ALL true
 ```
 
-`QuestPart.entry` is the text shown in the Quest Log for that condition.
+`QuestPart.entry` is the text shown in the Quest Log for that condition. It may be empty on step parts
+(the validator only reports that as Info); keep it filled on start / completed / failed parts.
 
 ---
 
@@ -33,10 +36,10 @@ QuestSO
 |---|---|
 | **Facts** | Every `QuestPart.fact` must be a `Fact` SO asset (`WorldFact`, `KilledFact`, `DialogueFact`, etc.). The fact is written externally (kill, dialogue played, etc.) — `QuestSO` only reads it. |
 | **QuestFact** | Create a `QuestFact` SO (`Game/Facts/Quest Fact`) referencing this quest + a state (IsStarted / IsCompleted / IsFailed / step index). Use it as an unlock/invalidation condition on `NPCMemoryEntrySO` or as a `QuestPart.fact` in another quest. |
-| **QuestEventsManager** | Add this `QuestSO` to its `_quests` list. It will fire `_onQuestStarted/Completed/Failed/StepCompleted` on transitions. |
-| **PlayerRewardSO** | Create a `PlayerRewardSO` (`Game/Rewards/Player Reward`) with `FactType = Quest`, point it at this quest + state. Wire it into `PlayerRewards._rewards`. See `docs/Systems/Quest.md`. |
+| **QuestEventsManager** | Prefab `Prefabs/QuestEventsManager.prefab` — `_quests` is **auto-synced** with every `QuestSO` by `QuestEventsManagerAutoSync` (manual: `Game/Dev/Sync Quests to QuestEventsManager Prefab`). It fires `_onQuestStarted/Completed/Failed/StepCompleted` on transitions. |
+| **PlayerRewardSO** | Create a `PlayerRewardSO` (`Game/Rewards/Player Reward`) with `FactType = Quest`, point it at this quest + state. `PlayerRewards._rewards` on `Prefabs/Player/Player.prefab` is auto-synced. See `docs/World/Quests/Quest.md`. |
 | **NPC Memory** | Create a `QuestFact` for the desired state and add it to an `NPCMemoryEntrySO.unlockConditions` or `invalidationConditions` to gate NPC dialogue on quest progress. See `Assets/_Game/ScriptableObjects/Entities/NPC/`. |
-| **Quest Log UI** | Add this `QuestSO` to `QuestLogUI._allQuests`. No other wiring needed — the UI reads state directly from the SO. |
+| **Quest Log UI** | Prefab `Prefabs/UI/QuestLog/QuestLogUI.prefab` — add this `QuestSO` to `_allQuests` **manually** (or Quest Explorer's "QuestLog ✗ → Fix"). No other wiring needed — the UI reads state directly from the SO. |
 
 ---
 
