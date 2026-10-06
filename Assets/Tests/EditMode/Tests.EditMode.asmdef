@@ -4,6 +4,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Game",
+        "Game.Editor",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [
