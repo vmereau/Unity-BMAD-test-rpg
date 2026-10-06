@@ -457,6 +457,7 @@ MonoBehaviour:
   _xpSystem: {fileID: 867121166079641131}
   _onXPGained: {fileID: 11400000, guid: 387e2bcb26e7a7748b746e85c754c376, type: 2}
   _onLevelUp: {fileID: 11400000, guid: a4c30ecc3cf57304e8adb0bf2cab1630, type: 2}
+  _onPlayerXPProgressChanged: {fileID: 11400000, guid: 696ac4454fa5e364d927e4b8b1e6a9fb, type: 2}
 --- !u!114 &7805096736339071647
 MonoBehaviour:
   m_ObjectHideFlags: 0

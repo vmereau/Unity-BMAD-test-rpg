@@ -1,10 +1,12 @@
+using Game.Progression;
 using NUnit.Framework;
 
 namespace Game.Tests.EditMode
 {
     /// <summary>
-    /// Edit Mode tests for the level-up formula logic (Story 3.2).
-    /// Tests pure formula helper — no MonoBehaviour, no scene required.
+    /// Edit Mode tests for the level-up formula logic (Story 3.2) and the in-level progress formula
+    /// (HUD experience bar). Level tests use a private formula copy; progress tests call the real
+    /// LevelSystem.CalculateLevelProgress. No MonoBehaviour, no scene required.
     /// </summary>
     public class LevelSystemTests
     {
@@ -85,6 +87,76 @@ namespace Game.Tests.EditMode
         {
             int result = CalculateLevel(900, DefaultThresholds);
             Assert.AreEqual(5, result);
+        }
+
+        // ── LevelSystem.CalculateLevelProgress (HUD experience bar) ──
+
+        [Test]
+        public void Progress_ZeroXPAtLevel1_IsEmpty()
+        {
+            Assert.AreEqual(0f, LevelSystem.CalculateLevelProgress(0, 1, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_HalfwayThroughLevel1_IsHalf()
+        {
+            Assert.AreEqual(0.5f, LevelSystem.CalculateLevelProgress(50, 1, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_JustLevelledTo2_IsEmpty()
+        {
+            Assert.AreEqual(0f, LevelSystem.CalculateLevelProgress(100, 2, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_HalfwayThroughLevel2_UsesPreviousThreshold()
+        {
+            // (175 − 100) / (250 − 100) = 0.5
+            Assert.AreEqual(0.5f, LevelSystem.CalculateLevelProgress(175, 2, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_OneXPBeforeLastThreshold_IsNearlyFull()
+        {
+            // (1399 − 900) / (1400 − 900) = 0.998
+            Assert.AreEqual(499f / 500f, LevelSystem.CalculateLevelProgress(1399, 5, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_AtMaxLevel_IsFull()
+        {
+            Assert.AreEqual(1f, LevelSystem.CalculateLevelProgress(1400, 6, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_BeyondMaxXP_IsFull()
+        {
+            Assert.AreEqual(1f, LevelSystem.CalculateLevelProgress(9999, 6, DefaultThresholds), 0.001f);
+        }
+
+        [Test]
+        public void Progress_NullThresholds_IsFull()
+        {
+            Assert.AreEqual(1f, LevelSystem.CalculateLevelProgress(50, 1, null), 0.001f);
+        }
+
+        [Test]
+        public void Progress_EmptyThresholds_IsFull()
+        {
+            Assert.AreEqual(1f, LevelSystem.CalculateLevelProgress(50, 1, new int[0]), 0.001f);
+        }
+
+        [Test]
+        public void Progress_DegenerateSpan_IsFull()
+        {
+            Assert.AreEqual(1f, LevelSystem.CalculateLevelProgress(100, 2, new[] { 100, 100 }), 0.001f);
+        }
+
+        [Test]
+        public void Progress_LevelZero_TreatedAsLevel1()
+        {
+            Assert.AreEqual(0.5f, LevelSystem.CalculateLevelProgress(50, 0, DefaultThresholds), 0.001f);
         }
     }
 }
