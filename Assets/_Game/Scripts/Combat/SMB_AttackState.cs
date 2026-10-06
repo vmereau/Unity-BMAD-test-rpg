@@ -17,21 +17,28 @@ namespace Game.Combat
         [SerializeField] private int attackIndex; // 1, 2, or 3 — set per-state in Animator Inspector
 
         private AnimationEventReceiver _receiver;
+        private bool _resolved;
 
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
-            GetReceiver(animator)?.NotifyAttackEntered(attackIndex);
+            AnimationEventReceiver receiver = GetReceiver(animator);
+            if (receiver != null) receiver.NotifyAttackEntered(attackIndex);
         }
 
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
-            GetReceiver(animator)?.NotifyAttackExited();
+            AnimationEventReceiver receiver = GetReceiver(animator);
+            if (receiver != null) receiver.NotifyAttackExited();
         }
 
         private AnimationEventReceiver GetReceiver(Animator animator)
         {
-            if (_receiver == null)
+            // Resolved once per SMB instance — NPCs share Humanoid_Template and have no receiver.
+            if (!_resolved)
+            {
                 _receiver = animator.GetComponent<AnimationEventReceiver>();
+                _resolved = true;
+            }
             return _receiver;
         }
     }

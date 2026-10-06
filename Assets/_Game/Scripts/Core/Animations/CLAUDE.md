@@ -53,10 +53,17 @@ Symmetric on both sides: bridge + driver.
   the 2D blend tree normalizes against `_runSpeed`. If a humanoid type uses
   `EngageSpeed = 6` but the driver's `_runSpeed` stays `4`, the blend tree saturates at 1.0
   before the agent reaches full speed.
-- **Humanoid AI combat triggers are stubs** — `TriggerAttack` / `TriggerGetHit` /
-  `TriggerDeath` / `EnableRagdoll` on `HumanoidAIAnimationDriver` warn-log and no-op. Implement
-  when the humanoid AI combat story is created. Until then, `EntityHealth` damage flow to
-  NPCs will warn-log without NRE.
+- **Combo seam:** `AIAnimationDriver.MaxComboSteps` (default 1) + `TriggerComboStep(int step)`
+  (steps 2..Max; step 1 is `TriggerAttack`). `MonsterAnimationDriver` inherits 1 / no-op.
+  `HumanoidAIAnimationDriver`: `MaxComboSteps = 3`; `TriggerAttack` calls
+  `HumanoidAnimationBridge.ResetAttackTriggers()` then sets `Attack_1` (a stale `Attack_2/3` would
+  otherwise auto-chain the next attack); `TriggerComboStep(2|3)` sets `Attack_2|Attack_3`.
+  `CancelAttack()` (called by `EntityMeleeAttacker.EndAttack`) resets the attack triggers — an
+  `Attack_1` set before the Attack layer reached `CombatIdle` (disengage during the `IsInCombat`
+  blend) would otherwise fire as a damage-less punch on the next combat entry. Monster: no-op.
+- **Humanoid hits don't interrupt punches** — `GetHit` / `Death` are AnyState transitions on the
+  **Base** layer; the attack lives on the upper-body-masked `Attack` layer, so an NPC keeps punching
+  while hit. Death is safe via `EntityBrain.TransitionToDead → EndAttack` + the ragdoll.
 - **`SetWarning(bool)` is a held bool, not a trigger.** The warning telegraph must hold for the
   multi-second warning timer and exit cleanly, so the seam method takes a bool (not a one-shot
   trigger). `MonsterAnimationBridge.SetWarning` writes the `IsWarning` bool animator param;
@@ -69,6 +76,14 @@ Symmetric on both sides: bridge + driver.
 - **`EntityBase.controller`'s `Attack` state carries `SMB_EntityAttackState`** (closes every AI hit
   window on state exit). Every monster override controller inherits it; a new monster *base*
   controller must add it to its attack state(s).
+- **`Humanoid_Template` `Attack_1/2/3_State` carry both `SMB_AttackState` (player) and
+  `SMB_EntityAttackState` (AI)** — the controller is shared, so each SMB must be a silent no-op when
+  its receiver is absent (explicit `!= null`, never `?.`).
+- **Combo transitions must not be interruptible by the source state's exit** — `Attack_2 → Attack_3`
+  uses `interruptionSource = None`. With `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3
+  started at ComboWindowOpen (0.63) was cancelled by `Attack_2 → CombatIdle` at exit time 0.89, so
+  step 3 never played. Check `requestTime + blendDuration < exitTime` (normalized) when adding/retiming
+  combo clips, or keep the combo transition at `None`.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 

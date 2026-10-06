@@ -9,12 +9,15 @@ namespace Game.Animations
     /// humanoid enemies). Reads <c>NavMeshAgent.velocity</c>, normalizes it into local space
     /// against <c>_runSpeed</c>, and forwards <c>VelocityX</c>/<c>VelocityZ</c>/<c>IsGrounded</c>/<c>IsRising</c>
     /// to <see cref="HumanoidAnimationBridge"/>. Owns ragdoll-bone caching + death-component-disable
-    /// lifecycle; <c>TriggerAttack</c> remains a stub pending the humanoid AI combat epic.
+    /// lifecycle. Attacks play the unarmed combo on the upper-body <c>Attack</c> layer:
+    /// <c>TriggerAttack</c> resets the Attack_1/2/3 triggers and sets <c>Attack_1</c>;
+    /// <c>TriggerComboStep(2|3)</c> sets <c>Attack_2|Attack_3</c>.
     /// </summary>
     [RequireComponent(typeof(HumanoidAnimationBridge))]
     public class HumanoidAIAnimationDriver : AIAnimationDriver
     {
         private const string TAG = "[AI]";
+        private const int MAX_COMBO_STEPS = 3; // Humanoid_Template Attack layer: Attack_1 → Attack_2 → Attack_3
 
         [SerializeField] private HumanoidAnimationBridge _bridge;
 
@@ -68,7 +71,29 @@ namespace Game.Animations
             _bridge.SetRising(false);
         }
 
-        public override void TriggerAttack() => GameLog.Warn(TAG, $"{name}: humanoid AI attack not implemented yet");
+        public override int MaxComboSteps => MAX_COMBO_STEPS;
+
+        public override void TriggerAttack()
+        {
+            if (_bridge == null) return;
+            _bridge.ResetAttackTriggers();
+            _bridge.PlayAttack(_bridge.AttackTriggerHash(1));
+        }
+
+        public override void TriggerComboStep(int step)
+        {
+            if (_bridge == null || step < 2 || step > MAX_COMBO_STEPS) return;
+            _bridge.PlayAttack(_bridge.AttackTriggerHash(step));
+        }
+
+        // An Attack_1 set before the Attack layer reached CombatIdle (e.g. disengage during the
+        // IsInCombat blend) would otherwise fire on the next combat entry as a damage-less punch.
+        public override void CancelAttack()
+        {
+            if (_bridge == null) return;
+            _bridge.ResetAttackTriggers();
+        }
+
         public override void TriggerGetHit() => _bridge?.TriggerGetHit();
         public override void TriggerDeath()  => _bridge?.TriggerDeath();
         public override void SetInCombat(bool active) => _bridge?.SetInCombat(active);

@@ -125,6 +125,11 @@ namespace Game.AI
                 GameLog.Warn(TAG, $"{gameObject.name}: WarningRange ({_persistentID.Entity.WarningRange}) >= DetectionRange ({_persistentID.Entity.DetectionRange}) — warning band empty; entity will instant-engage. Check the Entity SO.");
             }
 
+            // ComboHitsMax above what the driver can animate is silently clamped by EntityMeleeAttacker — surface it.
+            int maxComboSteps = _animationDriver != null ? _animationDriver.MaxComboSteps : 1;
+            if (_persistentID.Entity.ComboHitsMax > maxComboSteps)
+                GameLog.Warn(TAG, $"{gameObject.name}: ComboHitsMax ({_persistentID.Entity.ComboHitsMax}) exceeds the animation driver's MaxComboSteps ({maxComboSteps}) — combos clamped. Check the Entity SO.");
+
             if (_waypoints == null || _waypoints.Length == 0)
             {
                 GameLog.Info(TAG, $"{gameObject.name}: No waypoints assigned — entering Idle wander");
@@ -310,6 +315,7 @@ namespace Game.AI
             // spatial now, so keep the attack pointed at the target.
             FaceTarget();
 
+            if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // never cut an attack/combo mid-swing
             if (_attackCooldownTimer > 0f) return;
 
             ExecuteAttack();
@@ -326,10 +332,12 @@ namespace Game.AI
         // clip's hit window overlaps a hostile hurtbox.
         private void ExecuteAttack()
         {
-            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(_persistentID.Entity.AttackDamage);
+            Entity entity = _persistentID.Entity;
+            int hits = Random.Range(entity.ComboHitsMin, entity.ComboHitsMax + 1);
+            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(entity.AttackDamage, hits);
             _animationDriver?.TriggerAttack();
-            _attackCooldownTimer = _persistentID.Entity.AttackCooldown;
-            GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name}");
+            _attackCooldownTimer = entity.AttackCooldown;
+            GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name} ({hits}-hit combo)");
         }
 
         // --- Movement helpers ---

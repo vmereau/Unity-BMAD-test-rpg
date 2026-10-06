@@ -48,6 +48,10 @@ namespace _Game.ScriptableObjects.Entities
         [Header("Attack")]
         [SerializeField, FormerlySerializedAs("attackRange")]    private float _attackRange    = 1.8f;
         [SerializeField, FormerlySerializedAs("attackCooldown")] private float _attackCooldown = 2f;
+        [Tooltip("Minimum hits per attack combo (1 = single attack).")]
+        [SerializeField, Min(1)] private int _comboHitsMin = 1;
+        [Tooltip("Maximum hits per attack combo; clamped by the animation driver's MaxComboSteps.")]
+        [SerializeField, Min(1)] private int _comboHitsMax = 1;
 
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
@@ -69,6 +73,8 @@ namespace _Game.ScriptableObjects.Entities
         public float PatrolWaitTime           => _patrolWaitTime;
         public float AttackRange              => _attackRange;
         public float AttackCooldown           => _attackCooldown;
+        public int ComboHitsMin               => _comboHitsMin;
+        public int ComboHitsMax               => _comboHitsMax;
         
         public AnimatorOverrideController AnimatorOverride => _animatorOverride;
 
@@ -86,6 +92,7 @@ namespace _Game.ScriptableObjects.Entities
 #if UNITY_EDITOR
         private void OnValidate()
         {
+            if (_comboHitsMax < _comboHitsMin) _comboHitsMax = _comboHitsMin;
             if (_warningRange < 0f) _warningRange = 0f;
             // _detectionRange <= 0 means a passive entity that never detects — no warning band to validate.
             if (_detectionRange > 0f && _warningRange >= _detectionRange)

@@ -21,14 +21,16 @@ MonoBehaviour:
   _warningRange: 5
   _warningEngageTime: 3
   _warningTurnSpeed: 540
-  _engageStoppingDistance: 1.5
+  _engageStoppingDistance: 1.3
   _baseSpeed: 2
   _engageSpeed: 4
   _xpOnKill: 25
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
-  _attackRange: 1.8
+  _attackRange: 1.5
   _attackCooldown: 2
+  _comboHitsMin: 1
+  _comboHitsMax: 3
   _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
   dayState: 0
   nightState: 3

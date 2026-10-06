@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Animations;
 using Game.Combat;
 using Game.Core;
 using UnityEngine;
@@ -18,6 +19,12 @@ namespace Game.AI
     /// Humanoid reuse path: register the equipped weapon's <see cref="WeaponHitbox"/> at runtime
     /// (<see cref="RegisterHitbox"/>, e.g. id <c>Weapon</c>); the player's parameterless clip events
     /// arrive as an empty id, which opens every hitbox.
+    /// Combos: the brain rolls the hit count (<see cref="BeginAttack(float, int)"/>, clamped to the
+    /// driver's <see cref="AIAnimationDriver.MaxComboSteps"/>); step 1 is the driver's TriggerAttack,
+    /// steps 2..N are requested on <see cref="OnComboWindowOpen"/>. Each step's clip opens its own window,
+    /// so every hit can damage the target once (damage per hit).
+    /// The attack ends when the animator's active attack-state count (SMB enter/exit) returns to 0 —
+    /// crossfades between combo states overlap enter(next) before exit(previous), keeping the attack alive.
     /// </summary>
     public class EntityMeleeAttacker : MonoBehaviour
     {
@@ -34,16 +41,25 @@ namespace Game.AI
         [SerializeField] private List<NamedHitbox> _hitboxes = new();
         [Tooltip("This entity's faction — hits only land on hostile factions. Auto-resolved on the same GO if null.")]
         [SerializeField] private FactionMember _selfFactionMember;
+        [Tooltip("Plays attack/combo steps. Auto-resolved on the same GO if null.")]
+        [SerializeField] private AIAnimationDriver _animationDriver;
 
         public float CurrentDamage { get; private set; }
         public bool IsAttacking { get; private set; }
         public IReadOnlyList<NamedHitbox> Hitboxes => _hitboxes;
+        public bool IsInAttackState => _activeAttackStates > 0;
+        public int ComboStep => _combo.CurrentStep;
+        public int ComboHits => _combo.TotalHits;
 
         private readonly HashSet<string> _warnedUnknownIds = new();
+        private readonly AttackComboPlan _combo = new();
+        private int _activeAttackStates;
 
         private void Awake()
         {
             if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
+            // No warning when missing — driverless setups (tests) are valid and play single hits.
+            if (_animationDriver == null) _animationDriver = GetComponent<AIAnimationDriver>();
             if (_selfFactionMember == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: EntityMeleeAttacker has no FactionMember — hits land on any target with a FactionMember");
 
@@ -65,6 +81,7 @@ namespace Game.AI
         private void OnDisable()
         {
             EndAttack();
+            _activeAttackStates = 0;
         }
 
         private void OnDestroy()
@@ -102,19 +119,50 @@ namespace Game.AI
             _hitboxes.RemoveAt(index);
         }
 
-        /// <summary>Called by the brain when an attack starts: closes stale windows and stores the damage.</summary>
-        public void BeginAttack(float damage)
+        /// <summary>Single-hit attack — see <see cref="BeginAttack(float, int)"/>.</summary>
+        public void BeginAttack(float damage) => BeginAttack(damage, 1);
+
+        /// <summary>
+        /// Called by the brain when an attack starts: closes stale windows, stores the per-hit damage and
+        /// plans a combo of <paramref name="comboHits"/> (clamped to the driver's MaxComboSteps; no driver → 1).
+        /// </summary>
+        public void BeginAttack(float damage, int comboHits)
         {
             CloseAllWindows();
             CurrentDamage = damage;
             IsAttacking = true;
+            _combo.Begin(comboHits, _animationDriver != null ? _animationDriver.MaxComboSteps : 1);
         }
 
-        /// <summary>Attack over or interrupted (state exit, death, disengage) — closes every window.</summary>
+        /// <summary>
+        /// Attack over or interrupted (last state exit, death, disengage) — closes every window, clears the
+        /// combo and drops any queued attack trigger. Does not touch the attack-state count, which mirrors
+        /// the animator.
+        /// </summary>
         public void EndAttack()
         {
             CloseAllWindows();
             IsAttacking = false;
+            _combo.Reset();
+            if (_animationDriver != null) _animationDriver.CancelAttack();
+        }
+
+        /// <summary>ComboWindowOpen clip event — requests the next combo step while hits remain.</summary>
+        public void OnComboWindowOpen()
+        {
+            if (!IsAttacking) return;
+            if (!_combo.TryAdvance(out int next)) return;
+            if (_animationDriver != null) _animationDriver.TriggerComboStep(next);
+        }
+
+        /// <summary>An attack animator state was entered (SMB_EntityAttackState).</summary>
+        public void NotifyAttackStateEntered() => _activeAttackStates++;
+
+        /// <summary>An attack animator state was exited — ends the attack when none remain active.</summary>
+        public void NotifyAttackStateExited()
+        {
+            _activeAttackStates = Mathf.Max(0, _activeAttackStates - 1);
+            if (_activeAttackStates == 0) EndAttack();
         }
 
         /// <summary>Opens the hitbox with <paramref name="id"/>; null/empty = all. Ignored outside an attack.</summary>

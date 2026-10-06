@@ -39,15 +39,29 @@ namespace Game.AI
             _attacker.CloseWindow(id);
         }
 
-        // Called by SMB_EntityAttackState.OnStateExit — covers normal end, GetHit interrupt and death.
+        // Called by SMB_EntityAttackState.OnStateEnter — counts the active attack state.
+        public void NotifyAttackEntered()
+        {
+            if (_attacker == null) return;
+            _attacker.NotifyAttackStateEntered();
+        }
+
+        // Called by SMB_EntityAttackState.OnStateExit — the attack ends (all windows closed) once the last
+        // active attack state exits: normal end, GetHit interrupt, death. Combo crossfades keep it alive.
         public void NotifyAttackExited()
         {
             if (_attacker == null) return;
-            _attacker.EndAttack();
+            _attacker.NotifyAttackStateExited();
         }
 
-        // Player attack clips also fire these — no-ops so reused clips don't log "no receiver".
-        public void ComboWindowOpen() { }
+        // Called from attack clips when the next combo step may be requested (humanoid combos).
+        public void ComboWindowOpen()
+        {
+            if (_attacker == null) return;
+            _attacker.OnComboWindowOpen();
+        }
+
+        // Player attack clips also fire this — no-op (the next step is requested on open).
         public void ComboWindowClose() { }
     }
 }

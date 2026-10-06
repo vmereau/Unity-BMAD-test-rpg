@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Game.AI;
+using Game.Animations;
 using Game.Combat;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -17,6 +19,26 @@ public class EntityMeleeAttackerTests
     private WeaponHitbox _bite;
     private WeaponHitbox _tail;
     private readonly List<GameObject> _created = new();
+
+    /// <summary>Records combo calls; MaxComboSteps 3 like the humanoid driver.</summary>
+    private class FakeComboDriver : AIAnimationDriver
+    {
+        public readonly List<int> ComboSteps = new();
+        public int CancelCount;
+        public override int MaxComboSteps => 3;
+        public override void TriggerComboStep(int step) => ComboSteps.Add(step);
+        public override void CancelAttack() => CancelCount++;
+    }
+
+    // Awake does not run in EditMode — assign the driver through the serialized field.
+    private FakeComboDriver AttachDriver()
+    {
+        var driver = _attackerGO.AddComponent<FakeComboDriver>();
+        var so = new SerializedObject(_attacker);
+        so.FindProperty("_animationDriver").objectReferenceValue = driver;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return driver;
+    }
 
     [SetUp]
     public void SetUp()
@@ -129,5 +151,137 @@ public class EntityMeleeAttackerTests
         Assert.IsFalse(_bite.IsWindowOpen);
         Assert.AreEqual(1, _attacker.Hitboxes.Count);
         Assert.AreEqual("Tail", _attacker.Hitboxes[0].Id);
+    }
+
+    [Test]
+    public void NotifyAttackStateExited_LastState_EndsAttack()
+    {
+        _attacker.BeginAttack(10f);
+        _attacker.NotifyAttackStateEntered();
+        _attacker.OpenWindow("Bite");
+
+        _attacker.NotifyAttackStateExited();
+
+        Assert.IsFalse(_attacker.IsAttacking);
+        Assert.IsFalse(_attacker.IsInAttackState);
+        Assert.IsFalse(_bite.IsWindowOpen);
+    }
+
+    [Test]
+    public void NotifyAttackStateExited_WithOverlappingNextState_KeepsAttacking()
+    {
+        // Combo crossfade: OnStateEnter(next) fires before OnStateExit(previous).
+        _attacker.BeginAttack(10f);
+        _attacker.NotifyAttackStateEntered();
+        _attacker.NotifyAttackStateEntered();
+
+        _attacker.NotifyAttackStateExited();
+        _attacker.OpenWindow("Bite");
+
+        Assert.IsTrue(_attacker.IsAttacking);
+        Assert.IsTrue(_attacker.IsInAttackState);
+        Assert.IsTrue(_bite.IsWindowOpen);
+    }
+
+    [Test]
+    public void NotifyAttackStateExited_BelowZero_Clamps()
+    {
+        Assert.DoesNotThrow(() => _attacker.NotifyAttackStateExited());
+        Assert.IsFalse(_attacker.IsInAttackState);
+
+        _attacker.NotifyAttackStateEntered();
+        Assert.IsTrue(_attacker.IsInAttackState);
+    }
+
+    [Test]
+    public void EndAttack_DoesNotResetStateCounter()
+    {
+        _attacker.BeginAttack(10f);
+        _attacker.NotifyAttackStateEntered();
+
+        _attacker.EndAttack();
+
+        Assert.IsFalse(_attacker.IsAttacking);
+        Assert.IsTrue(_attacker.IsInAttackState);
+    }
+
+    [Test]
+    public void BeginAttack_NoDriver_ClampsComboToOneHit()
+    {
+        _attacker.BeginAttack(10f, 3);
+
+        Assert.AreEqual(1, _attacker.ComboHits);
+        Assert.AreEqual(1, _attacker.ComboStep);
+    }
+
+    [Test]
+    public void OnComboWindowOpen_WhenNotAttacking_DoesNotAdvance()
+    {
+        _attacker.OnComboWindowOpen();
+
+        Assert.AreEqual(0, _attacker.ComboStep);
+        Assert.AreEqual(0, _attacker.ComboHits);
+    }
+
+    [Test]
+    public void OnComboWindowOpen_WithDriver_AdvancesThroughAllSteps()
+    {
+        FakeComboDriver driver = AttachDriver();
+        _attacker.BeginAttack(10f, 3);
+
+        _attacker.OnComboWindowOpen();
+        _attacker.OnComboWindowOpen();
+        _attacker.OnComboWindowOpen(); // third window (last step) must not request a step 4
+
+        CollectionAssert.AreEqual(new[] { 2, 3 }, driver.ComboSteps);
+        Assert.AreEqual(3, _attacker.ComboStep);
+    }
+
+    [Test]
+    public void BeginAttack_WithDriver_ClampsToMaxComboSteps()
+    {
+        AttachDriver();
+
+        _attacker.BeginAttack(10f, 5);
+
+        Assert.AreEqual(3, _attacker.ComboHits);
+    }
+
+    [Test]
+    public void BeginAttack_MidCombo_RestartsAtStepOne()
+    {
+        AttachDriver();
+        _attacker.BeginAttack(10f, 3);
+        _attacker.OnComboWindowOpen();
+
+        _attacker.BeginAttack(10f, 2);
+
+        Assert.AreEqual(1, _attacker.ComboStep);
+        Assert.AreEqual(2, _attacker.ComboHits);
+    }
+
+    [Test]
+    public void EndAttack_CancelsQueuedAttackTriggers()
+    {
+        FakeComboDriver driver = AttachDriver();
+        _attacker.BeginAttack(10f, 3);
+
+        _attacker.EndAttack();
+
+        Assert.AreEqual(1, driver.CancelCount);
+    }
+
+    [Test]
+    public void OnDisable_ResetsStateCounter()
+    {
+        _attacker.NotifyAttackStateEntered();
+        _attacker.NotifyAttackStateEntered();
+
+        // Lifecycle callbacks don't fire in EditMode — invoke OnDisable directly.
+        typeof(EntityMeleeAttacker)
+            .GetMethod("OnDisable", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .Invoke(_attacker, null);
+
+        Assert.IsFalse(_attacker.IsInAttackState);
     }
 }

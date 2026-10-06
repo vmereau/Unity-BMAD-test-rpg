@@ -20,6 +20,9 @@ namespace Game.Animations
         private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
         private static readonly int GetHitHash = Animator.StringToHash("GetHit");
         private static readonly int DeathHash = Animator.StringToHash("Death");
+        private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
+        private static readonly int Attack2Hash = Animator.StringToHash("Attack_2");
+        private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
 
         [SerializeField] private Animator _animator;
 
@@ -43,6 +46,27 @@ namespace Game.Animations
         public void PlayAttack(int triggerHash)
         {
             if (_animator != null && triggerHash != 0) _animator.SetTrigger(triggerHash);
+        }
+
+        /// <summary>Trigger hash for combo step 1..3 (<c>Attack_1/2/3</c>); 0 for any other step.</summary>
+        public int AttackTriggerHash(int step)
+        {
+            switch (step)
+            {
+                case 1: return Attack1Hash;
+                case 2: return Attack2Hash;
+                case 3: return Attack3Hash;
+                default: return 0;
+            }
+        }
+
+        /// <summary>Clears pending Attack_1/2/3 triggers so a stale one can't auto-chain the next attack.</summary>
+        public void ResetAttackTriggers()
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(Attack1Hash);
+            _animator.ResetTrigger(Attack2Hash);
+            _animator.ResetTrigger(Attack3Hash);
         }
 
         public void PlayDodge(bool isBackwardRoll = false)

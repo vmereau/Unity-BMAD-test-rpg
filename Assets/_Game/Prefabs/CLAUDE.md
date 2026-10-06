@@ -99,8 +99,13 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 
 **NPC two-collider pattern** (do NOT collapse into one):
 - `Hitbox` child (Layer 7 — CharacterHitbox): **trigger** CapsuleCollider, the hurtbox found by `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`)
-- `NPC_base Variant/.../UnarmedHitbox` (`WeaponHitbox` + sphere) is still **undriven** — humanoid NPCs have no `EntityMeleeAttacker` yet (see `tech-spec-humanoid-unarmed-combat`)
 - `InteractionCollider` child (Layer 8 — Interactable): trigger CapsuleCollider (Radius: 0.5, Height: 2.0, Center Y: 1.0), used by `InteractionSystem` for dialogue detection
+
+**NPC attack wiring** (on `NPC_base Variant`, so all 7 StartingTown NPCs inherit it — they are direct scene instances):
+- Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_selfFactionMember` = root `FactionMember`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
+- `Character` (Animator GO): `EntityAnimationEventReceiver` (`_attacker` assigned) — clip events only reach the Animator's GO.
+- `.../WeaponSocket/UnarmedHitbox`: **active** but dormant (SphereCollider disabled, window closed until a clip's `HitboxEnable`). **No Rigidbody** — `HumanoidAIAnimationDriver` caches every Rigidbody under the Animator as a ragdoll body.
+- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3 (jab reach ≈ 1.59 vs the player), combo 1–3. Verified in play mode: jabs land at 1.0 m; the uppercut (step 2) mostly whiffs vs a standing target (upper-body-masked clip barely reaches forward — known limitation).
 
 ---
 

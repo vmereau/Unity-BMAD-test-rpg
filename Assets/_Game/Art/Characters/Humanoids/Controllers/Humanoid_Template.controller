@@ -1,5 +1,29 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8699038519510754348
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a210220e7676e344a0f00e9f51522f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.SMB_EntityAttackState
+--- !u!114 &-8583126357654721587
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a210220e7676e344a0f00e9f51522f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.SMB_EntityAttackState
 --- !u!1102 &-8293314469946085038
 AnimatorState:
   serializedVersion: 6
@@ -304,7 +328,7 @@ AnimatorController:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Humanoid_Template
-  serializedVersion: 5
+  serializedVersion: 6
   m_AnimatorParameters:
   - m_Name: IsGrounded
     m_Type: 4
@@ -415,6 +439,7 @@ AnimatorController:
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
+  m_EvaluateTransitionsOnStart: 0
 --- !u!1101 &27881567804060237
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -439,7 +464,7 @@ AnimatorStateTransition:
   m_CanTransitionToSelf: 1
 --- !u!1107 &64360229391699431
 AnimatorStateMachine:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -529,6 +554,7 @@ AnimatorState:
   - {fileID: -8063040243559309449}
   m_StateMachineBehaviours:
   - {fileID: 8130000000000000001}
+  - {fileID: 1696194570798245901}
   m_Position: {x: 220, y: 20, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 0
@@ -558,6 +584,7 @@ AnimatorState:
   - {fileID: -7046222632271518371}
   m_StateMachineBehaviours:
   - {fileID: 8130000000000000002}
+  - {fileID: -8583126357654721587}
   m_Position: {x: 310, y: 140, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 0
@@ -586,6 +613,7 @@ AnimatorState:
   - {fileID: 4435782511499640642}
   m_StateMachineBehaviours:
   - {fileID: 8130000000000000003}
+  - {fileID: -8699038519510754348}
   m_Position: {x: 480, y: 230, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 0
@@ -881,6 +909,18 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
+--- !u!114 &1696194570798245901
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a210220e7676e344a0f00e9f51522f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.SMB_EntityAttackState
 --- !u!1101 &1883370393949145108
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -1108,7 +1148,7 @@ AnimatorState:
   m_TimeParameter: 
 --- !u!1107 &2604412984486709926
 AnimatorStateMachine:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1548,7 +1588,7 @@ AnimatorStateTransition:
   m_ExitTime: 0.4395174
   m_HasExitTime: 0
   m_HasFixedDuration: 1
-  m_InterruptionSource: 1
+  m_InterruptionSource: 0
   m_OrderedInterruption: 0
   m_CanTransitionToSelf: 1
 --- !u!1101 &7276273962642888174

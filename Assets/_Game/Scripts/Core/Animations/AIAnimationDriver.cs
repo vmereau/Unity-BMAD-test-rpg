@@ -18,5 +18,14 @@ namespace Game.Animations
         public virtual void EnableRagdoll() { }
         public virtual void SetWarning(bool active) { }
         public virtual void SetInCombat(bool active) { }
-        }
-        }
+
+        /// <summary>Highest combo step this driver can play (1 = single attacks only).</summary>
+        public virtual int MaxComboSteps => 1;
+
+        /// <summary>Plays combo step 2..<see cref="MaxComboSteps"/>; step 1 is <see cref="TriggerAttack"/>.</summary>
+        public virtual void TriggerComboStep(int step) { }
+
+        /// <summary>Drops any queued attack/combo trigger so an ended attack can't replay later.</summary>
+        public virtual void CancelAttack() { }
+    }
+}
