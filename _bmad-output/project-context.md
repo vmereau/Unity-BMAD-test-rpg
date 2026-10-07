@@ -248,7 +248,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - `IInteractable` exact signature: `string InteractPrompt { get; }` and `void Interact()` — **no parameters on `Interact()`**; story templates sometimes show `Interact(GameObject interactor)` which is wrong and will not compile
 - `InteractionSystem` raycasts from center-screen with `ViewportPointToRay(0.5, 0.5, 0)` against **Layer 8 only**
 - Hit detection uses `GetComponentInParent<IInteractable>()` — collider may be on a child GameObject
-- Interaction prompt (`InteractPrompt` property) displayed via `OnGUI` under `#if DEVELOPMENT_BUILD || UNITY_EDITOR` — this is the one permitted `OnGUI` exception (dev-only overlay, not gameplay UI)
+- Interaction prompt is uGUI (`InteractionPromptUI`) driven by `OnInteractionFocusChanged` — no `OnGUI` in gameplay code
 
 **Novel Pattern Gotchas:**
 - `PlayerCombat` combo window must be explicitly closed when the animator exits an attack state — if the window stays open after exit time, rapid LMB presses can register a hit on the wrong combo step
