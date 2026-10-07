@@ -1,3 +1,7 @@
+---
+description: Stage, write a conventional commit (project scopes) and push the current changes
+---
+
 > **Before proceeding, read `.claude/rules/git-conventions.md`** to understand the commit format and project-specific scopes required for this repository.
 
 Your task is to inspect the current repository state, craft a well-structured conventional commit, and push it to the remote.

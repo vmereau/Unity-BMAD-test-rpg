@@ -1,3 +1,8 @@
+---
+description: Audit all CLAUDE.md files for size, folder relevance, duplication and stale facts, then restructure them (one commit per approved part)
+argument-hint: "[folder to limit the audit to]"
+---
+
 > **Before proceeding, read `.claude/rules/git-conventions.md`** — every applied part is committed separately.
 
 Your task is to audit every CLAUDE.md in this project (and the docs they point to) for size, relevance to their
