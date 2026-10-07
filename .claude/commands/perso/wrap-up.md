@@ -1,4 +1,17 @@
-Analyze the current conversation and update `CLAUDE.md` with any new knowledge worth preserving across sessions.
+Analyze the current conversation and record any new knowledge worth preserving across sessions in the **right**
+documentation file — usually a folder CLAUDE.md, not the root one.
+
+## Where knowledge lives
+
+| Target | What goes there | Loaded |
+|---|---|---|
+| Root `CLAUDE.md` | Index of folder files, cross-cutting rules (lifecycle gotchas, MCP quirks, workflow) | every session |
+| Folder `CLAUDE.md` (`Assets/_Game/**`) | Rules/gotchas for the files in that folder — see the root "Folder CLAUDE.md Index" | when a file in that folder is read |
+| Topic file (e.g. `Scripts/Combat/PLAYER_COMBO.md`, `Data/NPCs/DIALOGUE.md`) | Long recipes / flows already split out of a folder CLAUDE.md | when the folder CLAUDE.md says to read it |
+| `.claude/rules/*.md` with `paths:` | Contracts spanning several unrelated folders (e.g. `attack-pipeline.md`) | when matching files are touched |
+| `_bmad-output/project-context.md` | Game coding rules all BMAD agents must follow (architecture, naming, performance, anti-patterns) | by BMAD workflows |
+
+Each rule has **exactly one owner**. Never copy a rule into a second file — add a one-line pointer instead.
 
 ## Steps
 
@@ -11,44 +24,47 @@ Review the full conversation history and extract:
 - **Gotchas discovered** — Unity-specific surprises, third-party library behaviors, undocumented edge cases
 - **Project facts** learned (real file paths, inspector configurations, what actually exists vs. what docs claim)
 - **Workflow corrections** — cases where a command behaved differently than expected, or a BMAD workflow step was adjusted
+- **Stale docs** — anything the session proved wrong in an existing CLAUDE.md (fix it, don't add next to it)
+- Any `[CLAUDE.md candidate]` notes raised during the session
 
 Ignore session-specific context (current task details, in-progress work) — only record patterns that will recur.
 
-### 2 — Read current CLAUDE.md
+### 2 — Pick the owner file for each finding
 
-```bash
-cat CLAUDE.md
-```
+For each finding, choose the **most specific** target from the table above:
+- Identify the files/assets it concerns, and the deepest folder containing them that has (or should have) a
+  CLAUDE.md — use the root "Folder CLAUDE.md Index". Spans several unrelated folders → existing
+  `.claude/rules/*.md` file, or the root if it's truly project-wide.
+- Is it a coding rule every BMAD agent needs? → `project-context.md` (CLAUDE.md does not repeat it).
 
-Note what's already captured. Do not duplicate existing entries.
+### 3 — Read the target files
 
-### 3 — Read project-context.md
-
-```bash
-cat _bmad-output/project-context.md
-```
-
-Determine whether each new finding belongs in:
-- **CLAUDE.md** — Claude Code meta-knowledge: workflow orientation, Unity gotchas, project structure facts, code review patterns
-- **`_bmad-output/project-context.md`** — game coding rules all BMAD agents must follow (architecture, naming, performance, anti-patterns)
-- **Both** — if it's both a coding rule and a Claude-specific reminder
+Read the root `CLAUDE.md`, `_bmad-output/project-context.md`, and **every target file chosen in step 2** (plus
+topic files they point to for that subject). Note what's already captured — do not duplicate; update an
+existing entry if it's incomplete or wrong.
 
 ### 4 — Propose updates
 
 For each item, state:
 - The finding in one sentence
-- Which file it belongs in and why
-- The exact text to add (bullet, code block, or table row)
+- The target file and why it is the owner (folder / scope)
+- The exact text to add or change (bullet, code block, or table row)
+
+If a target folder has no CLAUDE.md yet, propose creating it (and its root index row). If a target file would
+grow past ~150 lines, say so and suggest `/perso:claude-md-audit` instead of piling on.
 
 Present all proposals before writing anything. Ask for confirmation if anything is ambiguous.
 
 ### 5 — Apply confirmed updates
 
 Edit the target files. Follow these style rules:
-- Prefer bullet points and code snippets over prose
+- Prefer bullet points over prose; reference code by file/method instead of pasting method bodies
 - Keep each entry self-contained (a future Claude with no session context should understand it)
 - Place entries in the most specific existing section; create a new section only if no section fits
-- Do not pad or editorialize — one crisp sentence per finding is enough
+  (code-review patterns go in that file's `## Code Review Checklist` table)
+- Do not pad or editorialize — one crisp sentence per finding is enough; no story numbers or "added in …" history
+- New `.md` under `Assets/` → also create its `.meta` (`TextScriptImporter`, random 32-hex GUID — format in
+  `/perso:claude-md-audit`) and add a row to the root "Folder CLAUDE.md Index"
 
 ### 6 — Summarize
 

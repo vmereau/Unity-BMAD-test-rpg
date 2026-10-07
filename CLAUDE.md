@@ -60,7 +60,8 @@ same session the feature ships.
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
 | `perso:commit` | Stage, commit, and push changes |
-| `perso:wrap-up` | End of session — update CLAUDE.md with learned patterns |
+| `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
+| `perso:claude-md-audit` | Periodic doc maintenance — find oversized, misplaced, duplicated or stale CLAUDE.md content and restructure it (one commit per part) |
 
 ---
 
