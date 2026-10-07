@@ -27,5 +27,8 @@ namespace Game.Core
 
         // --- Physics layers ---
         public const string CHARACTER_HITBOX_LAYER_NAME = "CharacterHitbox";
+
+        // --- Rendering ---
+        public const string INTERACTION_OUTLINE_COLOR_PROPERTY = "_InteractionOutlineColor";
     }
 }

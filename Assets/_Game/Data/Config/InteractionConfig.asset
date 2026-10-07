@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: InteractionConfig
   m_EditorClassIdentifier: Game::Game.World.InteractionConfigSO
   interactionRange: 6
+  nameRange: 8
+  scanRadius: 0.5
+  scanInterval: 0.2
+  outlineColor: {r: 1, g: 0.85, b: 0.45, a: 1}
+  outlineRenderingLayer:
+    serializedVersion: 0
+    m_Bits: 2

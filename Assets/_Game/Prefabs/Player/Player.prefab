@@ -387,6 +387,7 @@ MonoBehaviour:
   _raycastMask:
     serializedVersion: 2
     m_Bits: 256
+  _onFocusChanged: {fileID: 11400000, guid: 9fe3179e372587c448733f65b1b86021, type: 2}
 --- !u!114 &660869248586365014
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 1648881494291638466}
   - component: {fileID: 9181049141736141227}
   - component: {fileID: 6543219876543219876}
+  - component: {fileID: 8453776911520102006}
   m_Layer: 8
   m_Name: Tome_PowerStrike
   m_TagString: Untagged
@@ -80,8 +81,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b025cb941d9d6f945aefe898b54cbc7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.PersistentID
-  _guid: f0a7f62282e7402baf2cd9ed09fa8d80
-  _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
+  _killedFact: {fileID: 0}
+  entityType: {fileID: 0}
 --- !u!54 &1648881494291638466
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -144,6 +145,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.ItemPickup
   _item: {fileID: 11400000, guid: eae9b744af120e4489681efc2ad4ca9f, type: 2}
   _promptOverride: 
+--- !u!114 &8453776911520102006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8772004600541926251}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0154be409caad7a4db6634b39e32056e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.InteractionHighlight
+  _targets: []
+  _overrideColor: 0
+  _color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &7792246340065368555
 PrefabInstance:
   m_ObjectHideFlags: 0

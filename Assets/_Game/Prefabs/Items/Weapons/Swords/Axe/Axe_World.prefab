@@ -166,6 +166,7 @@ GameObject:
   - component: {fileID: 8377326749066757717}
   - component: {fileID: 6675109533084106924}
   - component: {fileID: 7572968838212032080}
+  - component: {fileID: 7460510946048871045}
   m_Layer: 8
   m_Name: Axe_World
   m_TagString: Untagged
@@ -251,3 +252,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.043484956, y: 0.57062197, z: 0.21581174}
   m_Center: {x: -0.000000004656613, y: 0.2904833, z: 0.08801923}
+--- !u!114 &7460510946048871045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8364113362246376723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0154be409caad7a4db6634b39e32056e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.InteractionHighlight
+  _targets: []
+  _overrideColor: 0
+  _color: {r: 1, g: 1, b: 1, a: 1}

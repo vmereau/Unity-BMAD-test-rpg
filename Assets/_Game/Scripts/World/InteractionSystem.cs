@@ -17,6 +17,12 @@ namespace Game.World
 
         [SerializeField] private LayerMask _raycastMask;
 
+        [Header("Event Channels")]
+        [SerializeField] private GameEventSO_InteractionFocus _onFocusChanged;
+
+        private static readonly int OutlineColorId =
+            Shader.PropertyToID(GameConstants.INTERACTION_OUTLINE_COLOR_PROPERTY);
+
         private Camera _mainCamera;
         private IInteractable _previousInteractable;
         private InputSystem_Actions _input;
@@ -28,9 +34,12 @@ namespace Game.World
         private readonly List<EntityUI> _activeUIs = new List<EntityUI>();
         private readonly HashSet<EntityUI> _uiToHide = new HashSet<EntityUI>();
 
-        public IInteractable CurrentInteractable { get; private set; }
+        private InteractionHighlight _focusedHighlight;
+        private string _focusedVerb = "";
+        private string _focusedName = "";
+        private uint _outlineBits;
 
-        private GUIStyle _promptStyle;
+        public IInteractable CurrentInteractable { get; private set; }
 
         private void OnEnable()
         {
@@ -40,6 +49,9 @@ namespace Game.World
 
         private void OnDisable()
         {
+            // Before the _input guard: a focused target must lose its outline even if Awake disabled us.
+            ClearFocus();
+
             if (_input == null) return;
             _input.Player.Disable();
             _input.Dispose();
@@ -78,6 +90,13 @@ namespace Game.World
 
             if (_raycastMask == 0)
                 GameLog.Warn(TAG, "_raycastMask is 0 (Nothing) — no interactables will be detected. Assign the Interactable layer in Inspector.");
+
+            if (_onFocusChanged == null)
+                GameLog.Warn(TAG, "_onFocusChanged is null — outline still works but no prompt card will be shown");
+
+            _outlineBits = _config.outlineRenderingLayer.value;
+            if (_outlineBits == 0)
+                GameLog.Warn(TAG, "InteractionConfig.outlineRenderingLayer is Nothing — outline disabled");
         }
 
         private void Update()
@@ -111,12 +130,15 @@ namespace Game.World
                 }
             }
 
-            if (best != _previousInteractable)
-            {
-                CurrentInteractable = best;
-                _previousInteractable = best;
-                _crosshairImage.color = best != null ? _highlightColor : _defaultColor;
-            }
+            // Menus / dialogue / containers open: no focus, so the outline and crosshair tint match the hidden card.
+            if (!CursorManager.IsLocked) best = null;
+
+            // Also fires when the same target's verb/name changes (e.g. a door's lock prompt after unlocking).
+            string verb = InteractionFocus.ResolveVerb(best);
+            string targetName = InteractionFocus.ResolveName(best);
+            if (InteractionFocus.HasFocusChanged(_previousInteractable, _focusedVerb, _focusedName,
+                                                 best, verb, targetName))
+                ApplyFocus(best, verb, targetName);
 
             // 2. Name-range scan (Show World-Space UI)
             _uiToHide.Clear();
@@ -161,30 +183,54 @@ namespace Game.World
             if (!CursorManager.IsLocked) return;
             // Re-check CanInteract: the scan is throttled by _config.scanInterval, so combat could have
             // started on the cached target since the last scan.
-            if (CurrentInteractable != null && CurrentInteractable.CanInteract
+            // IsAlive: the target may have been destroyed (e.g. picked up) since the last scan.
+            if (InteractionFocus.IsAlive(CurrentInteractable) && CurrentInteractable.CanInteract
                 && _input.Player.Interact.WasPressedThisFrame())
+            {
                 CurrentInteractable.Interact();
+                // Force a rescan next frame so a destroyed target is dropped before another [E] press.
+                _scanTimer = _config.scanInterval;
+            }
         }
 
-        private void OnGUI()
+        private void ApplyFocus(IInteractable next, string verb, string targetName)
         {
-            if (CurrentInteractable != null)
-            {
-                if (_promptStyle == null)
-                {
-                    _promptStyle = new GUIStyle(GUI.skin.label)
-                    {
-                        fontSize = 20,
-                        alignment = TextAnchor.MiddleCenter,
-                        fontStyle = FontStyle.Bold
-                    };
-                    _promptStyle.normal.textColor = Color.white;
-                }
+            if (_focusedHighlight != null) _focusedHighlight.SetHighlighted(false, _outlineBits);
 
-                // Draw prompt near crosshair (slightly below center)
-                GUI.Label(new Rect(Screen.width / 2f - 200, Screen.height * 0.55f, 400, 30),
-                    $"[E] {CurrentInteractable.InteractPrompt}", _promptStyle);
+            // GetComponent only when the target itself changes, not on a verb/name refresh.
+            if (!ReferenceEquals(next, _previousInteractable))
+            {
+                _focusedHighlight = null;
+                if (next is Component nextComponent && nextComponent != null)
+                    nextComponent.TryGetComponent(out _focusedHighlight);
             }
+
+            if (_focusedHighlight != null)
+            {
+                Shader.SetGlobalColor(OutlineColorId, InteractionFocus.ResolveOutlineColor(
+                    _focusedHighlight.HasColorOverride, _focusedHighlight.ColorOverride, _config.outlineColor));
+                _focusedHighlight.SetHighlighted(true, _outlineBits);
+            }
+
+            CurrentInteractable = next;
+            _previousInteractable = next;
+            _focusedVerb = verb;
+            _focusedName = targetName;
+            if (_crosshairImage != null)
+                _crosshairImage.color = InteractionFocus.SelectCrosshairColor(next != null, _defaultColor, _highlightColor);
+
+            _onFocusChanged?.Raise(new InteractionFocusData
+            {
+                target = next as Component,
+                verb = verb,
+                name = targetName
+            });
+        }
+
+        private void ClearFocus()
+        {
+            if (CurrentInteractable == null && _focusedHighlight == null) return;
+            ApplyFocus(null, "", "");
         }
 
         private void OnDrawGizmos()

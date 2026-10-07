@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8970050169075734784}
   - component: {fileID: 290358418446712808}
   - component: {fileID: 4788758735672090356}
+  - component: {fileID: 8943242798768165554}
   m_Layer: 8
   m_Name: SwordBase_World
   m_TagString: Untagged
@@ -97,6 +98,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.14583203, y: 0.8423921, z: 0.027798558}
   m_Center: {x: -0.0073580295, y: 0.0010866523, z: 0.0011585271}
+--- !u!114 &8943242798768165554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7470631476087896926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0154be409caad7a4db6634b39e32056e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.InteractionHighlight
+  _targets: []
+  _overrideColor: 0
+  _color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &4467297818611748646
 PrefabInstance:
   m_ObjectHideFlags: 0
