@@ -97,7 +97,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
 | AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
-| Combat | `Scripts/Combat/CLAUDE.md` | `WeaponHitbox`, animation events, combo guard, draw/sheathe combat state |
+| Combat | `Scripts/Combat/CLAUDE.md` | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; `PLAYER_COMBO.md` = player attack/combo pipeline |
 | Player | `Scripts/Player/CLAUDE.md` | Cinemachine OTS setup, input map, `PlayerStateManager`, animation driver |
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
