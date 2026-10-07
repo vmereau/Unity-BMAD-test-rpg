@@ -29,6 +29,18 @@ All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Ass
 
 If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFound: true)` will throw `ArgumentException` because the embedded JSON doesn't have the new action.
 
+### Action Map Layout
+
+- **Player:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, Block, Dodge,
+  InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle, QuestLogToggle —
+  **no Cancel action**.
+- **UI:** Navigate, Submit, **Cancel** (Escape), Point, **Click** (left mouse), RightClick, MiddleClick,
+  ScrollWheel, TrackedDevice*, DialogueOption1–9 / DialogueOption0.
+
+Consequences: Escape / menu-close logic reads `_input.UI.Cancel`, and cursor re-lock on click reads
+`_input.UI.Click` — so any script reading those must `Enable()` / `Disable()` the **UI** map alongside the
+Player map (e.g. `CameraController`).
+
 ---
 
 ## Code Review Checklist — Assets/_Game
@@ -36,4 +48,4 @@ If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFou
 | Severity | Pattern |
 |----------|---------|
 | HIGH | Auto-generated files (e.g. `InputSystem_Actions.cs`) left in `Assets/` root after adding a named asmdef — named assemblies can't see `Assembly-CSharp`; move them inside `Assets/_Game/` |
-| MEDIUM | `Keyboard.current` / `Mouse.current` used instead of `InputSystem_Actions` action map — see `Scripts/Player/CLAUDE.md` for action map layout |
+| MEDIUM | `Keyboard.current` / `Mouse.current` used instead of the `InputSystem_Actions` action maps (layout above) |

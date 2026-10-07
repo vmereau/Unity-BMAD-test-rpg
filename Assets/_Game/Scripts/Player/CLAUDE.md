@@ -21,7 +21,7 @@
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
 - `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
-- `CanAttack()` and `CanBlock()` both require `IsInCombat == true` (Story 7.12) — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
+- `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
@@ -45,7 +45,7 @@ Consequences:
 
 ### Locomotion — Unified 2D Blend Tree
 
-The `PlayerAnimatorController` uses a **single `LockOn Locomotion` state** (2D Freeform Cartesian blend tree) for all movement — there is no separate 1D free-locomotion state. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` from local-space velocity, then forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`:
+The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see `Art/Characters/Humanoids/Controllers/CLAUDE.md`) uses a **single `LockOn Locomotion` state** (2D Freeform Cartesian blend tree) for all movement — there is no separate 1D free-locomotion state. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` from local-space velocity, then forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`:
 
 ```csharp
 Vector3 worldHoriz = new Vector3(velocity.x, 0f, velocity.z);
@@ -70,7 +70,7 @@ _humanoidBridge.SetMovement(normX, normZ);
 | `SetBlocking(bool)` | `HumanoidAnimationBridge.SetBlocking` | Sets `IsBlocking` bool |
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
-| `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (parameter exists from 7.12; layer weight added in 7.13) |
+| `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (also weights the `Attack` layer) |
 
 **Consequence:** When adding new player animations, add a public method to `HumanoidAnimationBridge` (the actual Animator owner), expose a player-facing wrapper on `PlayerAnimationDriver`, and call it from `PlayerStateManager`. Never add `Animator.SetTrigger/SetBool` calls outside `HumanoidAnimationBridge`.
 
@@ -121,17 +121,11 @@ Cinemachine reads `CameraTarget` passively — it never takes direct input.
 
 ---
 
-## Unity Input System — Action Map Layout
+## Cursor Lock in CameraController
 
-The project's `InputSystem_Actions` action maps:
-
-- **Player map:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, **InventoryToggle**, **LockOn**, ActionBar1–6, **DrawWeapon** (R key) — **no Cancel action**
-- **UI map:** Navigate, Submit, **Cancel** (Escape), **Click** (left mouse), Point, RightClick, MiddleClick, ScrollWheel
-
-Consequences for cursor lock handling in `CameraController`:
-- Escape unlock → `_input.UI.Cancel.WasPressedThisFrame()`
-- Left-click re-lock → `_input.UI.Click.WasPressedThisFrame()`
-- Must call `_input.UI.Enable()` / `_input.UI.Disable()` alongside the Player map
+Escape unlocks via `_input.UI.Cancel.WasPressedThisFrame()`, left-click re-locks via
+`_input.UI.Click.WasPressedThisFrame()` — the Player map has no Cancel action, so `CameraController` enables /
+disables the **UI** map alongside the Player map. Full action list: `Assets/_Game/CLAUDE.md`.
 
 ---
 
@@ -141,11 +135,11 @@ Consequences for cursor lock handling in `CameraController`:
 |----------|---------|
 | HIGH | Player action performed without checking `PlayerStateManager.Can*()` — always gate Attack/Block/Dodge/Jump/Move through `PlayerStateManager` |
 | HIGH | `Animator.SetTrigger/SetBool` for humanoid player animations called outside `HumanoidAnimationBridge` — all animator calls for the player must go through `HumanoidAnimationBridge` (owner) via `PlayerAnimationDriver`'s public methods (`SetBlocking`, `PlayAttack`, `PlayDodge`, `SetInCombat`) |
-| HIGH | `CanAttack()` or `CanBlock()` returns true when weapon is sheathed — both gates require `IsInCombat == true` since Story 7.12; test scenarios must press R before attacking |
+| HIGH | `CanAttack()` or `CanBlock()` returns true when weapon is sheathed — both gates require `IsInCombat == true`; test scenarios must press R before attacking |
 | HIGH | `PlayerAnimationDriver` reads `_characterController.isGrounded` directly for the animator `IsGrounded` bool — must read `!_stateManager.IsAirborne` so the coyote-time grace applies; raw `isGrounded` causes falling-clip flicker on slopes/ledges |
 | MEDIUM | Action-gating code uses `!_characterController.isGrounded` instead of `_stateManager.IsAirborne` — bypasses the coyote window and reintroduces single-frame action cancellation on slope crests |
 | MEDIUM | Code sets `_verticalVelocity` to a positive value (jump, launcher, knockback) without calling `_stateManager.NotifyJumpStarted()` — the coyote window will swallow the upward motion and delay the rising animation by `_coyoteTime` seconds |
-| HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `PlayerAnimatorController`; locomotion uses `VelocityX`/`VelocityZ` only |
+| HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `Humanoid_Template`; locomotion uses `VelocityX`/`VelocityZ` only |
 | MEDIUM | `CharacterController.velocity.magnitude` used for animation — Y component inflates value; strip Y before normalizing |
 | MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |
 | MEDIUM | `eulerAngles` used as signed source without `Mathf.DeltaAngle` conversion |
