@@ -105,7 +105,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
-| UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`) | Canvas setup, cursor, input, layout; HUD (incl. toasts), screens, dialogue, quest UI |
+| UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`) | Canvas, cursor, UI input lifecycle; HUD (incl. toasts), screens, dialogue, quest UI |
 | Prefabs | `Prefabs/CLAUDE.md` | Layer rules + index of the prefab-family files below |
 | Player prefab | `Prefabs/Player/CLAUDE.md` | Player hierarchy, camera/audio ownership, sockets, hurtbox |
 | UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
