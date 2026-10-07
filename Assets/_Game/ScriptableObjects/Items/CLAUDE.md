@@ -142,7 +142,7 @@ the description and a price, all computed by `ItemDetailFormatter`. Action butto
 |---|---|---|
 | `InventorySystem` | `Scripts/Inventory/InventorySystem.cs` | Holds `List<InventorySlot>` at runtime; `AddItem` (stacks stackable items), `RemoveItem` (removes whole slot), `DecrementStack` (removes one unit), `MoveItem` |
 | `ItemPickup` | `Scripts/Inventory/ItemPickup.cs` | World interactable; calls `InventorySystem.AddItem(_item)` and destroys itself |
-| `InventoryUI` | `Scripts/UI/InventoryUI.cs` | Reads `InventorySystem.Items`; calls `UseItem` / `DropItem` |
+| `InventoryUI` | `Scripts/UI/Inventory/InventoryUI.cs` | Reads `InventorySystem.Items`; calls `UseItem` / `DropItem` |
 | `ItemDetailPanelUI` | `Scripts/UI/Inventory/ItemDetailPanelUI.cs` | Paints an `ItemSO` (category, stat rows, description, price) from `ItemDetailFormatter` |
 
 ---
@@ -159,6 +159,6 @@ the description and a price, all computed by `ItemDetailFormatter`. Action butto
 |---|---|
 | HIGH | New `UsableItemSO` subclass returns `true` from `OnUse` when the use actually failed — item will be consumed incorrectly |
 | HIGH | `worldItemPrefab` left unassigned on a droppable item — drop silently no-ops |
-| MEDIUM | New item type added without a corresponding `case` in `ItemDetailPanelUI.Show()` — detail panel shows only base info |
+| MEDIUM | New item type with numeric fields but no category/stat rows in `ItemDetailFormatter` (+ `ItemDetailFormatterTests`) — detail panel shows only the generic rows. `ItemDetailPanelUI` has no per-type code; never add cases there |
 | MEDIUM | `OnUse` calls `GetComponent` on `user` without a null guard — logs no error if component is missing |
 | MEDIUM | New stackable item type (`maxStacks > 1`) without verifying `worldItemPrefab` has `ItemPickup` + `Rigidbody` — dropped items must be re-pickable |

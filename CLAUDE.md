@@ -113,7 +113,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
-| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Animator Controller practices, MCP animation quirks |
+| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Attack clip events, per-clip hit/combo timings |
 
 ---
 
@@ -124,7 +124,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 - **`manage_asset(action="move")`** is unreliable — partial moves have been observed. Fallback: `Bash mv` (move the `.meta` too) + `refresh_unity(mode="force")`.
 - **`manage_gameobject(create)` ignores `component_properties` for Canvas `renderMode`** — Canvas always defaults to `renderMode = 2` (World Space). After creating a Canvas GO, always follow up with `manage_components set_property renderMode 0` to set Screen Space Overlay.
 - **`refresh_unity(mode="force")` after direct YAML edits destroys the edits** — Unity reimports from cached in-memory state, discarding disk changes. After YAML-editing a `.prefab` file directly, always use `refresh_unity(mode="if_dirty")`. Never use `force` after a raw YAML edit.
-- Scene-loading and animation quirks live in `Scenes/CLAUDE.md` and the Combat animations CLAUDE.md.
+- The scene-loading quirk (`manage_scene(load)` can't reach sub-folder scenes) lives in `Scenes/CLAUDE.md`.
 
 ---
 

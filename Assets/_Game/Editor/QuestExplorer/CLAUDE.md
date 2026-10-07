@@ -51,7 +51,6 @@ Claude can't click the window — it reads the same data as text:
   `QuestValidator.ValidateAllMemories(idx)`.
 - Edits: `QuestEditActions` (Undo-aware). Non-interactive creators for scripts: `CreateQuest`,
   `GetOrCreateDialogueFact / WorldFact / QuestFact`. The `Create*Fact(quest, loc)` variants open dialogs — UI only.
-- In `execute_code`, `Object` is ambiguous (System vs UnityEngine) — write `UnityEngine.Object`.
 - Workflow commands: `/quests:design`, `/quests:implement`, `/quests:audit`.
 
 - Index rebuild: window open, **Refresh**, and debounced (one `delayCall`) on `projectChanged`,

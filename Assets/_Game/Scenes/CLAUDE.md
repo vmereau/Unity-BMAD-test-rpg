@@ -15,7 +15,8 @@ Manager GameObjects in `Core.unity`:
 | `SceneLoader` | Scripted — `Game.Core.SceneLoader` |
 | `GameEventBus`, `SaveSystem`, `DayNightController`, `AudioManager` | Empty stubs — scripts arrive with their epics (save/load = story 9-5, day/night = story 5-6) |
 
-`Core.unity` also hosts `PlayerStats` and `PlayerSkills` components.
+`Core.unity` also contains a `Player.prefab` instance — the `PlayerStats` / `PlayerSkills` references in
+the scene YAML are that instance's components, not separate scene components.
 
 ---
 
