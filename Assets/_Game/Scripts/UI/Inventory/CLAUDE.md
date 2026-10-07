@@ -10,7 +10,11 @@
 |--------|---------|
 | `InventoryUI` | Root inventory panel. Spawns `ItemSlotUI` from prefab, manages context menu, selection state, and wires `EquipmentUI` + `ActionBarUI`. Implements `IScreenPanel`. |
 | `ItemSlotUI` | Single inventory slot. Supports drag-and-drop, hover highlight, selection, stack count display. Notifies parent `InventoryUI` on click/drag events. |
-| `ItemDetailPanelUI` | Detail side-panel. Shows icon, name, description, and type-specific sections (usable, equipment, skill). Call `Show(ItemSO)` / `Hide()`. |
+| `ItemDetailPanelUI` | Shared display-only detail panel (header / stats / description / price). Call `Show(ItemSO, ItemPriceContext = Value)` / `Hide()`. Paints only. |
+| `ItemDetailFormatter` | Pure static display logic for the panel: category line, stat rows, skill description, price label/value. Covered by `ItemDetailFormatterTests`. |
+| `ItemStatRowUI` | One label/value stat row (`ItemStatRow.prefab`). Hides the value for tag rows (empty value). |
+| `ItemStatLine` / `StatPolarity` | Row data (label, value, polarity → green/red/neutral). |
+| `ItemPriceContext` | `Value` ("Value", sellValue) / `Buy` ("Price", buyValue) / `Sell` ("Sells for", sellValue). |
 | `EquipmentUI` | Equipment panel with 6 named slots (weapon, helmet, armor, ring×2, necklace). Subscribes to `GameEventSO_Void _onEquipmentChanged`. |
 | `EquipmentSlotUI` | Single equipment slot. Detects double-click (threshold = 0.3 s) to unequip; single-click on occupied slot shows detail. Notifies parent `EquipmentUI`. |
 
@@ -54,8 +58,14 @@ InventoryUI  (IScreenPanel)
 
 ## ItemDetailPanelUI Notes
 
-- Section GameObjects (`_usableSection`, `_weaponSection`, etc.) are optional — leave unassigned to hide that section for all items.
-- All sections are hidden in `Hide()` and selectively shown in `Show(ItemSO)` based on item type.
+- Layout (root `VerticalLayoutGroup`): `Header` (icon + name + category) → `StatsSection` → `DescriptionSection` → `Spacer` (flexible) → `PriceSection` → `ActionsContainer`. Empty sections hide with their divider.
+- `Show(item, ItemPriceContext)`: `NPCTradeUI` passes `Buy` (NPC side) / `Sell` (player side); inventory, equipment and containers use the default `Value`. The trade buttons read plain `Buy` / `Sell` (price lives in the panel).
+- All display decisions (category, rows, order, polarity, price) live in `ItemDetailFormatter` — change and test them there, not in the MonoBehaviour.
+- Stat rows are pooled under `StatsSection/StatRows`: instantiated only when more are needed, extras `SetActive(false)`. Never destroy rows on `Show`.
+- **`ActionsContainer` must never be deleted/recreated** — each host statically nests its actions prefab under it (by fileID). Move/reorder only. It has no `ContentSizeFitter` (the root layout group sizes it).
+- Host prefabs (`InventoryUI`, `NPCTradeUI`, `ContainerUI`) must only override the nested panel's **root** RectTransform/GameObject. Child overrides orphan on the next panel rebuild.
+- `EquipmentUI._itemDetailPanel` points at the same shared panel inside `InventoryUI.prefab`.
+- Item descriptions are flavour text; numeric effects belong in stat rows (`ItemDetailFormatter.BuildStatLines`).
 
 ---
 

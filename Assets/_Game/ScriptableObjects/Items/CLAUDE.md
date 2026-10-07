@@ -53,6 +53,8 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 
 Create via **Assets → Create → Items → Item**.
 
+Keep `description` as flavour text; numeric effects are shown by the detail panel's stat rows (`ItemDetailFormatter`) — add a row there when a new item type gains a numeric field.
+
 ---
 
 ## UsableItemSO (abstract)
@@ -115,7 +117,7 @@ Create via **Assets → Create → Items → Skill Item**.
 ### Usable item (context menu "Use")
 1. Extend `UsableItemSO` (abstract), override `OnUse(GameObject user)`.
 2. Add `[CreateAssetMenu]`.
-3. Add a new `case` in `ItemDetailPanelUI.ShowSections()` → call `ShowUsableSection()` + any new section helper.
+3. If it has numeric effects, add its rows (and category) in `ItemDetailFormatter` + `ItemDetailFormatterTests`. The Consumable/Reusable tag row is automatic.
 4. The context menu **Use** button enables automatically (checks `item is UsableItemSO`).
 
 ### Equippable item (wearable gear)
@@ -123,20 +125,14 @@ Create via **Assets → Create → Items → Skill Item**.
 2. Add `[CreateAssetMenu]`.
 3. Define which `EquipmentSlot` the item targets (either hardcoded like `WeaponSO`, or via a `slot` field like `ArmorSO`).
 4. Add a new `case` in `EquipmentSystem.Equip()` for slot resolution, plus an `else` warn for unknown types.
-5. Add a `ShowXxxSection(XxxSO item)` helper in `ItemDetailPanelUI` and call it from `ShowSections()`.
-6. Add section GameObjects in the `ItemDetailPanel` prefab/scene and wire them to the new `[SerializeField]` fields.
-7. The **Equip/Unequip** button in `ItemDetailPanelUI` is handled automatically by `ManageEquipButton()` for any `EquipableItemSO`.
-8. The context menu **Equip** button in `InventoryUI.ShowContextMenu()` also appears automatically — it checks `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click on the equipment slot or the Equip/Unequip button in `ItemDetailPanelUI`.
+5. Stat bonus rows are automatic for any `EquipableItemSO`; add type-specific rows and a category in `ItemDetailFormatter` (concrete types before abstract bases in its `switch`) + tests. No prefab change needed.
+6. The **Equip/Unequip** detail button is handled by `InventoryDetailActions` for any `EquipableItemSO`.
+7. The context menu **Equip** button in `InventoryUI.ShowContextMenu()` also appears automatically — it checks `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click on the equipment slot or the Unequip detail button.
 
-### ItemDetailPanelUI section structure
-`ItemDetailPanelUI` uses **section GameObjects** shown/hidden per item type — not text labels:
-- `_equipableSection` — parent wrapper shown for all equippable items
-  - `_weaponSection` — shown only for `WeaponSO`
-  - `_armorSection` — shown only for `ArmorSO` (also sets `_armorTypeText`)
-- `_usableSection` — shown for `UsableItemSO` subtypes
-- `_skillSection` — shown additionally for `SkillItemSO`
-
-Button visibility is managed by dedicated helpers (`ManageEquipButton`, `ManageDropButton`, `ManageUseButton`) — each shows/hides and rewires its button per call to `Show()`.
+### Item detail panel
+`ItemDetailPanelUI` (`Scripts/UI/Inventory/`) has no per-type sections: it paints a category line, data-driven stat rows,
+the description and a price, all computed by `ItemDetailFormatter`. Action buttons live in the per-host actions prefabs
+(`InventoryDetailActions`, `TradeDetailActions`, `ContainerDetailActions`). See `Scripts/UI/Inventory/CLAUDE.md`.
 
 ---
 
@@ -147,7 +143,7 @@ Button visibility is managed by dedicated helpers (`ManageEquipButton`, `ManageD
 | `InventorySystem` | `Scripts/Inventory/InventorySystem.cs` | Holds `List<InventorySlot>` at runtime; `AddItem` (stacks stackable items), `RemoveItem` (removes whole slot), `DecrementStack` (removes one unit), `MoveItem` |
 | `ItemPickup` | `Scripts/Inventory/ItemPickup.cs` | World interactable; calls `InventorySystem.AddItem(_item)` and destroys itself |
 | `InventoryUI` | `Scripts/UI/InventoryUI.cs` | Reads `InventorySystem.Items`; calls `UseItem` / `DropItem` |
-| `ItemDetailPanelUI` | `Scripts/UI/ItemDetailPanelUI.cs` | Receives an `ItemSO`, dispatches display per type via `switch` pattern match |
+| `ItemDetailPanelUI` | `Scripts/UI/Inventory/ItemDetailPanelUI.cs` | Paints an `ItemSO` (category, stat rows, description, price) from `ItemDetailFormatter` |
 
 ---
 
