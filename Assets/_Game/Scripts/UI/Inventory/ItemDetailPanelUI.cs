@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using Game.Core;
 using Game.Inventory;
-using Game.Progression;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,46 +8,63 @@ using UnityEngine.UI;
 namespace Game.UI
 {
     /// <summary>
-    /// Display-only detail panel. Shows icon, name, description, and type-specific sections.
-    /// Call Show(item) to populate and reveal; Hide() to collapse.
-    /// Action buttons are managed by the owner UI via InventoryDetailActions or TradeDetailActions.
+    /// Display-only detail panel: header (icon, name, category), stat rows, description, price.
+    /// All display decisions come from <see cref="ItemDetailFormatter"/>; this class only paints.
+    /// Call Show(item, priceContext) to populate and reveal; Hide() to collapse.
+    /// Action buttons are managed by the owner UI via the actions prefab nested under ActionsContainer.
     /// </summary>
     public class ItemDetailPanelUI : MonoBehaviour
     {
-        [Header("Common")]
+        private const string TAG = "[ItemDetailPanelUI]";
+
+        [Header("Header")]
         [SerializeField] private Image _icon;
         [SerializeField] private TMP_Text _nameText;
-        [SerializeField] private TMP_Text _descriptionText;
+        [SerializeField] private TMP_Text _categoryText;
 
-        [Header("Usable Item Section (optional)")]
-        [SerializeField] private GameObject _usableSection;
-        [SerializeField] private TMP_Text _consumableLabel;
-
-        [Header("Equipment Type Label (optional)")]
-        [SerializeField] private GameObject _equipableSection;
-        [SerializeField] private GameObject _weaponSection;
-        [SerializeField] private GameObject _armorSection;
-        [SerializeField] private TMP_Text _armorTypeText;
-        [SerializeField] private TMP_Text _weaponDamageBonusText;
-        [SerializeField] private TMP_Text _equipableStatBonusText;
-
-        [Header("Skill Item Section (optional)")]
-        [SerializeField] private GameObject _skillSection;
-        [SerializeField] private TMP_Text _skillNameText;
-        [SerializeField] private TMP_Text _skillLpCostText;
+        [Header("Stats")]
+        [SerializeField] private GameObject _statsSection;
+        [SerializeField] private Transform _statRowsRoot;
+        [SerializeField] private ItemStatRowUI _statRowPrefab;
         [SerializeField] private TMP_Text _skillDescriptionText;
 
+        [Header("Description")]
+        [SerializeField] private GameObject _descriptionSection;
+        [SerializeField] private TMP_Text _descriptionText;
+
+        [Header("Price")]
+        [SerializeField] private TMP_Text _priceLabelText;
+        [SerializeField] private TMP_Text _priceValueText;
+
+        [Header("Colors")]
+        [SerializeField] private Color _positiveColor = new(0.49f, 0.80f, 0.42f);
+        [SerializeField] private Color _negativeColor = new(0.88f, 0.42f, 0.42f);
+        [SerializeField] private Color _neutralColor = new(0.88f, 0.88f, 0.88f);
+        [SerializeField] private Color _priceColor = new(0.90f, 0.76f, 0.36f);
+
+        private readonly List<ItemStatLine> _lines = new();
+        private readonly List<ItemStatRowUI> _rows = new();
         private CanvasGroup _canvasGroup;
+        private bool _warnedMissingRowRefs;
 
         private void Awake()
         {
             _canvasGroup = GetComponent<CanvasGroup>();
         }
 
-        public void Show(ItemSO item)
+        public void Show(ItemSO item, ItemPriceContext priceContext = ItemPriceContext.Value)
         {
-            ShowBaseItemDetails(item);
-            ShowSections(item);
+            if (item == null)
+            {
+                GameLog.Warn(TAG, "Show: item is null");
+                Hide();
+                return;
+            }
+
+            PaintHeader(item);
+            PaintStats(item);
+            PaintDescription(item);
+            PaintPrice(item, priceContext);
 
             if (_canvasGroup != null)
             {
@@ -69,116 +87,77 @@ namespace Game.UI
             }
         }
 
-        private void HideTypeSections()
+        private void PaintHeader(ItemSO item)
         {
-            _usableSection?.SetActive(false);
-            _skillSection?.SetActive(false);
-            _armorSection?.SetActive(false);
-            _weaponSection?.SetActive(false);
-            _equipableSection?.SetActive(false);
-        }
-
-        private void ShowBaseItemDetails(ItemSO item)
-        {
-            _icon.sprite = item.icon;
-            _icon.color = item.icon != null ? Color.white : Color.gray;
-            _nameText.text = item.itemName;
-            _descriptionText.text = item.description;
-        }
-
-        private void ShowSections(ItemSO item)
-        {
-            HideTypeSections();
-
-            switch (item)
+            if (_icon != null)
             {
-                case WeaponSO weapon:
-                    ShowWeaponSection(weapon);
-                    break;
-                case ArmorSO armor:
-                    ShowArmorSection(armor);
-                    break;
-                case SkillItemSO skillItem:
-                    ShowUsableSection(skillItem);
-                    ShowSkillSection(skillItem.Skill);
-                    break;
-                case PotionItemSO potionItem:
-                    ShowUsableSection(potionItem);
-                    break;
+                _icon.sprite = item.icon;
+                _icon.color = item.icon != null ? Color.white : Color.gray;
             }
+            if (_nameText != null) _nameText.text = item.itemName;
+
+            if (_categoryText == null) return;
+            string category = ItemDetailFormatter.GetCategory(item);
+            bool hasCategory = !string.IsNullOrEmpty(category);
+            _categoryText.gameObject.SetActive(hasCategory);
+            if (hasCategory) _categoryText.text = category;
         }
 
-        private void ShowWeaponSection(WeaponSO item)
+        private void PaintStats(ItemSO item)
         {
-            if (_equipableSection == null) return;
-            _equipableSection.SetActive(true);
-            if (_weaponSection == null) return;
-            _weaponSection.SetActive(true);
-
-            if (_weaponDamageBonusText != null)
+            if (_statRowPrefab == null || _statRowsRoot == null)
             {
-                bool hasDmgBonus = item.damageBonus > 0f;
-                _weaponDamageBonusText.gameObject.SetActive(hasDmgBonus);
-                if (hasDmgBonus) _weaponDamageBonusText.text = $"DMG: +{item.damageBonus:F0}";
+                if (!_warnedMissingRowRefs)
+                {
+                    GameLog.Warn(TAG, "PaintStats: _statRowPrefab or _statRowsRoot is not assigned; stats hidden");
+                    _warnedMissingRowRefs = true;
+                }
+                if (_statsSection != null) _statsSection.SetActive(false);
+                return;
             }
-            ShowEquipableStatBonuses(item);
+
+            ItemDetailFormatter.BuildStatLines(item, _lines);
+
+            while (_rows.Count < _lines.Count)
+                _rows.Add(Instantiate(_statRowPrefab, _statRowsRoot));
+
+            for (int i = 0; i < _rows.Count; i++)
+            {
+                bool used = i < _lines.Count;
+                _rows[i].gameObject.SetActive(used);
+                if (used) _rows[i].Set(_lines[i].Label, _lines[i].Value, ColorFor(_lines[i].Polarity));
+            }
+
+            string skillDesc = ItemDetailFormatter.GetSkillDescription(item);
+            if (_skillDescriptionText != null)
+            {
+                _skillDescriptionText.gameObject.SetActive(skillDesc != null);
+                if (skillDesc != null) _skillDescriptionText.text = skillDesc;
+            }
+
+            if (_statsSection != null) _statsSection.SetActive(_lines.Count > 0 || skillDesc != null);
         }
 
-        private void ShowArmorSection(ArmorSO item)
+        private void PaintDescription(ItemSO item)
         {
-            if (_equipableSection == null) return;
-            _equipableSection.SetActive(true);
-            if (_armorSection == null) return;
-            _armorSection.SetActive(true);
-            if (_armorTypeText != null) _armorTypeText.text = ArmorSlotDisplayName(item.slot);
-            ShowEquipableStatBonuses(item);
+            bool hasDescription = !string.IsNullOrWhiteSpace(item.description);
+            if (_descriptionSection != null) _descriptionSection.SetActive(hasDescription);
+            if (hasDescription && _descriptionText != null) _descriptionText.text = item.description;
         }
 
-        private void ShowEquipableStatBonuses(EquipableItemSO item)
+        private void PaintPrice(ItemSO item, ItemPriceContext context)
         {
-            if (_equipableStatBonusText == null) return;
-
-            var sb = new System.Text.StringBuilder();
-            if (item.strengthBonus    != 0) sb.AppendLine(FormatBonus("STR", item.strengthBonus));
-            if (item.dexterityBonus   != 0) sb.AppendLine(FormatBonus("DEX", item.dexterityBonus));
-            if (item.enduranceBonus   != 0) sb.AppendLine(FormatBonus("END", item.enduranceBonus));
-            if (item.intelligenceBonus != 0) sb.AppendLine(FormatBonus("INT", item.intelligenceBonus));
-            if (item.defenseBonus     != 0) sb.AppendLine(FormatBonus("DEF", item.defenseBonus));
-
-            bool hasAny = sb.Length > 0;
-            _equipableStatBonusText.gameObject.SetActive(hasAny);
-            if (hasAny) _equipableStatBonusText.text = sb.ToString().TrimEnd();
+            if (_priceLabelText != null) _priceLabelText.text = ItemDetailFormatter.GetPriceLabel(context);
+            if (_priceValueText == null) return;
+            _priceValueText.text = $"{ItemDetailFormatter.GetPrice(item, context)}g";
+            _priceValueText.color = _priceColor;
         }
 
-        private static string FormatBonus(string label, int value)
-            => value > 0 ? $"{label}: +{value}" : $"{label}: {value}";
-
-        private static string ArmorSlotDisplayName(EquipmentSlot slot) => slot switch
+        private Color ColorFor(StatPolarity polarity) => polarity switch
         {
-            EquipmentSlot.Helmet   => "Helmet",
-            EquipmentSlot.Armor    => "Armor Set",
-            EquipmentSlot.Ring1    => "Ring",
-            EquipmentSlot.Ring2    => "Ring",
-            EquipmentSlot.Necklace => "Necklace",
-            _                      => slot.ToString()
+            StatPolarity.Positive => _positiveColor,
+            StatPolarity.Negative => _negativeColor,
+            _ => _neutralColor
         };
-
-        private void ShowUsableSection(UsableItemSO usable)
-        {
-            if (_usableSection == null) return;
-            _usableSection.SetActive(true);
-            if (_consumableLabel != null)
-                _consumableLabel.text = usable.consumable ? "Consumable" : "Reusable";
-        }
-
-        private void ShowSkillSection(SkillSO skill)
-        {
-            if (_skillSection == null) return;
-            _skillSection.SetActive(true);
-            if (skill == null) return;
-            if (_skillNameText != null)        _skillNameText.text = skill.displayName;
-            if (_skillLpCostText != null)      _skillLpCostText.text = $"LP Cost: {skill.lpCost}";
-            if (_skillDescriptionText != null) _skillDescriptionText.text = skill.description;
-        }
     }
 }

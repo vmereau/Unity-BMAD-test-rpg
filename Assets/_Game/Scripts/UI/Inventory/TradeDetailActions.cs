@@ -14,6 +14,10 @@ namespace Game.UI
         [SerializeField] private Button _buyButton;
         [SerializeField] private Button _sellButton;
 
+        // Cached lazily: Bind can run before Awake while the panel is still inactive.
+        private TMP_Text _buyLabel;
+        private TMP_Text _sellLabel;
+
         public void Bind(NPCTradeUI owner, int slotIndex, ItemSO item, TradeSide side,
                          GoldSystem playerGold, GoldSystem npcGold)
         {
@@ -39,8 +43,8 @@ namespace Game.UI
         {
             if (_buyButton == null) { GameLog.Warn(TAG, "Bind: BuyButton is not assigned"); return; }
             _buyButton.gameObject.SetActive(true);
-            var label = _buyButton.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = $"Buy ({item.buyValue}g)";
+            if (_buyLabel == null) _buyLabel = _buyButton.GetComponentInChildren<TMP_Text>(true);
+            if (_buyLabel != null) _buyLabel.text = "Buy";
             _buyButton.interactable = playerGold != null && playerGold.Gold >= item.buyValue;
             _buyButton.onClick.AddListener(() => owner.BuyItem(slotIndex));
         }
@@ -49,8 +53,8 @@ namespace Game.UI
         {
             if (_sellButton == null) { GameLog.Warn(TAG, "Bind: SellButton is not assigned"); return; }
             _sellButton.gameObject.SetActive(true);
-            var label = _sellButton.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = $"Sell ({item.sellValue}g)";
+            if (_sellLabel == null) _sellLabel = _sellButton.GetComponentInChildren<TMP_Text>(true);
+            if (_sellLabel != null) _sellLabel.text = "Sell";
             _sellButton.interactable = npcGold != null && npcGold.Gold >= item.sellValue;
             _sellButton.onClick.AddListener(() => owner.SellItem(slotIndex));
         }

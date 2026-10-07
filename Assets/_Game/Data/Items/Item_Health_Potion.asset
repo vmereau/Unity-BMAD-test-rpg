@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Health_Potion
   m_EditorClassIdentifier: Game::Game.Inventory.PotionItemSO
   itemName: Health Potion
-  description: Restores 30 HP when consumed.
+  description: A red tonic that mends wounds.
   icon: {fileID: 21300000, guid: f5af8fede152fef4cad743871af5aaca, type: 3}
   maxStacks: 10
   worldItemPrefab: {fileID: 5273174817731578079, guid: 3369ecd03d9c07142ba5e2cbca261f2b, type: 3}

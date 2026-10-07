@@ -154,7 +154,7 @@ namespace Game.UI
         private void UpdateDetailPanel(ItemSO item, int slotIndex, TradeSide side)
         {
             if (_detailPanelUI == null) return;
-            _detailPanelUI.Show(item);
+            _detailPanelUI.Show(item, side == TradeSide.NPC ? ItemPriceContext.Buy : ItemPriceContext.Sell);
             _tradeActions?.Bind(this, slotIndex, item, side, _goldSystem, _npcGoldSystem);
         }
 
