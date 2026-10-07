@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
   m_Name: Item_darkness_spider_leg
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
+  itemId: 44c9d61fd0df455ea24065ba1a125dd0
   itemName: Darkness Spider Leg
-  description: A sharp, chitinous leg from a Darkness Spider. Once used to skitter
-    through the shadows, it is now a grim trophy or crafting material.
+  description: A sharp, chitinous leg from a Darkness Spider. Once used to skitter through the shadows, it is now a grim trophy or crafting material.
   icon: {fileID: 21300000, guid: 729055a7f9422184e80ab6682be521cb, type: 3}
   maxStacks: 50
   worldItemPrefab: {fileID: 1030972012, guid: abc00000000013741201486591237417, type: 3}

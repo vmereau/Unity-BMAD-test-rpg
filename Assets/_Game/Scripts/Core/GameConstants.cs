@@ -8,8 +8,15 @@ namespace Game.Core
     public static class GameConstants
     {
         // --- Save / Persistence ---
-        public const string SAVE_FILE_NAME = "savegame.json";
         public const string CRASH_LOG_FILE_NAME = "crash_log.txt";
+        public const int SAVE_FORMAT_VERSION = 1;
+        public const string SAVE_FOLDER_NAME = "Saves";
+        public const string SAVE_FILE_PREFIX = "save_";
+        public const string SAVE_FILE_EXTENSION = ".json";
+        public const string SAVE_SLOT_QUICK = "quick";
+        public const string SAVE_SLOT_AUTO = "auto";
+        public const string SAVE_MANUAL_SLOT_PREFIX = "slot_";
+        public const int SAVE_MANUAL_SLOT_COUNT = 10;
 
         // --- Equipment ---
         public const int MAX_EQUIPMENT_RING_SLOTS = 2;

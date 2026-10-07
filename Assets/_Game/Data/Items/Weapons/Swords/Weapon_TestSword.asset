@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c74775224fcfbc4e9dad8ee64eaad95, type: 3}
   m_Name: Weapon_TestSword
   m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
+  itemId: 6b076232c55445d39a786e4734de550e
   itemName: Test Sword
   description: 
   icon: {fileID: 21300000, guid: 671de81176c75b64b9d0703cbb13ec5e, type: 3}

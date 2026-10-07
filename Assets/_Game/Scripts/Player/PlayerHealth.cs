@@ -97,6 +97,18 @@ namespace Game.Player
             GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
         }
 
+        /// <summary>
+        /// Save/load: sets health to the saved value (clamped to [1, MaxHealth]) and revives the player.
+        /// Raises only the health-changed event.
+        /// </summary>
+        public void RestoreHealth(float health)
+        {
+            if (_config == null) return;
+            CurrentHealth = Mathf.Clamp(health, 1f, MaxHealth);
+            IsDead = false;
+            _onPlayerHealthChanged?.Raise(CurrentHealth);
+        }
+
         private void Die()
         {
             IsDead = true;

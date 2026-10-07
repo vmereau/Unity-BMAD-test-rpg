@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de73bc04aa74f70428f8f5bfc8180de1, type: 3}
   m_Name: Armor_TestHelmet
   m_EditorClassIdentifier: Game::Game.Inventory.ArmorSO
+  itemId: 3c3fd5a812a645d38616b3f018d8cfdc
   itemName: Test Helmet
   description: 
   icon: {fileID: 21300000, guid: 0fe43dd8fa49ea047b7b2d7240c8bc82, type: 3}

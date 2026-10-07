@@ -71,6 +71,17 @@ namespace Game.Progression
             RaiseProgress(); // After CheckLevelUp so a level-up never reports progress > 1
         }
 
+        /// <summary>
+        /// Save/load: sets the level directly (clamped to [1, MaxLevel]) and refreshes the XP bar.
+        /// Never raises OnLevelUp — that would grant LP again. Restore XPSystem first.
+        /// </summary>
+        public void RestoreLevel(int level)
+        {
+            if (_config == null || _xpSystem == null) return;
+            CurrentLevel = Mathf.Clamp(level, 1, MaxLevel);
+            RaiseProgress();
+        }
+
         private void RaiseProgress() =>
             _onPlayerXPProgressChanged?.Raise(CalculateLevelProgress(_xpSystem.CurrentXP, CurrentLevel, _config.xpPerLevel));
 

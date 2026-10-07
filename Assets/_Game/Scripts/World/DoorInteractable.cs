@@ -36,6 +36,7 @@ namespace Game.World
         }
 
         public string NameTag => "";
+        public bool IsOpen => _isOpen;
         public bool CanInteract => true;
 
         private void Awake()
@@ -92,6 +93,20 @@ namespace Game.World
 
             _isOpen = !_isOpen;
             _rotateRoutine = StartCoroutine(RotateCoroutine(PoseFor(_isOpen)));
+        }
+
+        /// <summary>
+        /// Save/load: snaps the door to open / closed with no animation (stops any running rotation).
+        /// </summary>
+        public void SetOpenImmediate(bool open)
+        {
+            if (_rotateRoutine != null)
+            {
+                StopCoroutine(_rotateRoutine);
+                _rotateRoutine = null;
+            }
+            _isOpen = open;
+            if (_visual != null) _visual.localRotation = PoseFor(_isOpen);
         }
 
         // Closed = authored rest pose; open = rest pose rotated by _openAngle around local Y.

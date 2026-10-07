@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Game.Core;
@@ -8,6 +9,12 @@ namespace Game.Inventory
     public class ActionBarSystem : MonoBehaviour
     {
         private const string TAG = "[Inventory]";
+
+        /// <summary>
+        /// OnActionBarUsed payload meaning "slots changed, refresh" (no slot was used). Every listener must
+        /// treat it as refresh-only — raised by <see cref="RestoreSlots"/> after a load.
+        /// </summary>
+        public const int REFRESH_ONLY_SLOT = -1;
 
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
         [SerializeField] private PlayerStateManager _playerStateManager;
@@ -109,6 +116,21 @@ namespace Game.Inventory
                 return null;
             }
             return _slots[slotIndex];
+        }
+
+        /// <summary>
+        /// Save/load: clears all six slots, assigns the saved ones, re-validates them against the
+        /// (already restored) inventory, then raises OnActionBarUsed(<see cref="REFRESH_ONLY_SLOT"/>) so the
+        /// bar and inventory UIs refresh.
+        /// </summary>
+        public void RestoreSlots(IEnumerable<(int slot, int invIndex, ItemSO item)> slots)
+        {
+            for (int i = 0; i < _slots.Length; i++) _slots[i] = null;
+            if (slots != null)
+                foreach (var (slot, invIndex, item) in slots)
+                    if (item != null) Assign(slot, invIndex, item);
+            if (_inventorySystem != null) ValidateSlots();
+            _onActionBarUsed?.Raise(REFRESH_ONLY_SLOT);
         }
 
         public void ValidateSlots()

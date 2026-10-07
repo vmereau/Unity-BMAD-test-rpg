@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c74775224fcfbc4e9dad8ee64eaad95, type: 3}
   m_Name: Weapon_big sword
   m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
+  itemId: a63736ff028541a19333a1ebc635cbff
   itemName: big sword
   description: Big sword
   icon: {fileID: 21300000, guid: 0e2a1347e5c7d9f42ac2f616861dcf21, type: 3}

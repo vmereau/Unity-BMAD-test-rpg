@@ -298,6 +298,24 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""QuickSave"",
+                    ""type"": ""Button"",
+                    ""id"": ""5a7e0001-5a7e-4a7e-8a7e-5a7e00015a7e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""QuickLoad"",
+                    ""type"": ""Button"",
+                    ""id"": ""10ad0001-10ad-40ad-80ad-10ad000110ad"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -815,6 +833,28 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""SkillsToggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5a7e0002-5a7e-4a7e-8a7e-5a7e00025a7e"",
+                    ""path"": ""<Keyboard>/f5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""QuickSave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""10ad0002-10ad-40ad-80ad-10ad000210ad"",
+                    ""path"": ""<Keyboard>/f9"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""QuickLoad"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1625,6 +1665,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_CharacterStatsToggle = m_Player.FindAction("CharacterStatsToggle", throwIfNotFound: true);
         m_Player_QuestLogToggle = m_Player.FindAction("QuestLogToggle", throwIfNotFound: true);
         m_Player_SkillsToggle = m_Player.FindAction("SkillsToggle", throwIfNotFound: true);
+        m_Player_QuickSave = m_Player.FindAction("QuickSave", throwIfNotFound: true);
+        m_Player_QuickLoad = m_Player.FindAction("QuickLoad", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1751,6 +1793,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_CharacterStatsToggle;
     private readonly InputAction m_Player_QuestLogToggle;
     private readonly InputAction m_Player_SkillsToggle;
+    private readonly InputAction m_Player_QuickSave;
+    private readonly InputAction m_Player_QuickLoad;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1826,6 +1870,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @QuestLogToggle => m_Wrapper.m_Player_QuestLogToggle;
         /// <summary>Provides access to the underlying input action "Player/SkillsToggle".</summary>
         public InputAction @SkillsToggle => m_Wrapper.m_Player_SkillsToggle;
+        /// <summary>Provides access to the underlying input action "Player/QuickSave".</summary>
+        public InputAction @QuickSave => m_Wrapper.m_Player_QuickSave;
+        /// <summary>Provides access to the underlying input action "Player/QuickLoad".</summary>
+        public InputAction @QuickLoad => m_Wrapper.m_Player_QuickLoad;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>

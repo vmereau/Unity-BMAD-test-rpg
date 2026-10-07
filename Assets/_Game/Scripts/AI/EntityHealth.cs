@@ -100,6 +100,25 @@ namespace Game.AI
         // AI entities do not block today — every hit lands. Part of IDamageable contract.
         public HitResult TryReceiveHit(GameObject attacker) => HitResult.NotBlocked;
 
+        /// <summary>
+        /// Save/load: puts a killed entity back as a lootable corpse — dead, agent stopped, ragdoll on.
+        /// No RegisterDeath (no kill event / XP) and no death animation. EntityBrain switches itself to
+        /// Dead on its next tick.
+        /// </summary>
+        public void RestoreAsCorpse()
+        {
+            IsDead = true;
+            CurrentHealth = 0f;
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+
+            if (TryGetComponent<NavMeshAgent>(out var agent) && agent.isActiveAndEnabled && agent.isOnNavMesh)
+                agent.isStopped = true;
+
+            _animationDriver?.SetWarning(false);
+            _animationDriver?.SetInCombat(false);
+            _animationDriver?.EnableRagdoll();
+        }
+
         private void Die()
         {
             IsDead = true;

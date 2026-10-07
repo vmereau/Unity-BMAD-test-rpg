@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9d95afcdc860e048a99384b5fed4c9a, type: 3}
   m_Name: Item_Tome_PowerStrike
   m_EditorClassIdentifier: Game::Game.Inventory.SkillItemSO
+  itemId: 422e233baca54a78aa98882905137197
   itemName: Tome of Power Strike
   description: A worn tome that teaches the Power Strike technique.
   icon: {fileID: 21300000, guid: f6da763ae3733b745be027652cc73270, type: 3}

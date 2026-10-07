@@ -22,6 +22,9 @@ namespace Game.World
         public string RequiredSkillId => _requiredSkill != null ? _requiredSkill.skillId : null;
         public string LockedPrompt => _lockedPrompt;
 
+        /// <summary>Save/load: sets the lock state directly (can re-lock). No log, no event.</summary>
+        public void RestoreLocked(bool locked) => _isLocked = locked;
+
         public void Unlock()
         {
             if (!_isLocked) return;

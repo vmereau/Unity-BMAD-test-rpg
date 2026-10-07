@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c74775224fcfbc4e9dad8ee64eaad95, type: 3}
   m_Name: Weapon_Axe
   m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
+  itemId: 93a2b1c9ec8f439bb5fd0ed543986cd4
   itemName: Axe
   description: A simple axe
   icon: {fileID: 21300000, guid: 3023f9329b5a3a1438bbb685e4c07864, type: 3}

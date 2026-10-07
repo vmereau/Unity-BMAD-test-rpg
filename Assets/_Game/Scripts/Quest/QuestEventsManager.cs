@@ -33,9 +33,15 @@ namespace Game.Quest
             public bool[] stepCompleted; // indexed by quest.steps index
         }
 
-        private void Start()
+        private void Start() => ReseedState();
+
+        /// <summary>
+        /// Re-reads every quest's state without firing events. Called on start and after a save is
+        /// loaded, so the next real fact change doesn't raise stale started / completed events.
+        /// </summary>
+        public void ReseedState()
         {
-            // Seed initial state without firing events (prevents spurious transitions on scene load).
+            _lastState.Clear();
             foreach (var quest in _quests)
             {
                 if (quest == null) continue;

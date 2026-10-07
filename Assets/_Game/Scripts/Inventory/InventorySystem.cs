@@ -131,6 +131,22 @@ namespace Game.Inventory
             return existing.Item;
         }
 
+        /// <summary>
+        /// Save/load: replaces every slot, one slot per entry in order (no re-stacking, so indices the
+        /// action bar relies on are preserved). Counts are clamped to [1, item.maxStacks]; null items skipped.
+        /// Runs after Awake, so starting items are overwritten.
+        /// </summary>
+        public void RestoreSlots(IEnumerable<(ItemSO item, int count)> slots)
+        {
+            _slots.Clear();
+            if (slots == null) return;
+            foreach (var (item, count) in slots)
+            {
+                if (item == null) continue;
+                _slots.Add(new InventorySlot(item, Mathf.Clamp(count, 1, Mathf.Max(1, item.maxStacks))));
+            }
+        }
+
         public void MoveItem(int fromIndex, int toIndex)
         {
             if (fromIndex < 0 || fromIndex >= _slots.Count || toIndex < 0 || toIndex >= _slots.Count)

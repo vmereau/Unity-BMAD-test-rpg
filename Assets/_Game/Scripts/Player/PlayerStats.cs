@@ -81,6 +81,19 @@ namespace Game.Player
         }
 
         /// <summary>
+        /// Save/load: replaces the four base stats and raises the stats-changed event.
+        /// Equipment bonuses are not touched — they are re-derived from the restored equipment.
+        /// </summary>
+        public void RestoreBaseStats(int str, int dex, int end, int intl)
+        {
+            _baseStrength = str;
+            _baseDexterity = dex;
+            _baseEndurance = end;
+            _baseIntelligence = intl;
+            _onStatsChanged?.Raise(true);
+        }
+
+        /// <summary>
         /// Returns the current value of a stat.
         /// </summary>
         public int GetStat(StatType stat)

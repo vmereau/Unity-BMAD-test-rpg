@@ -122,6 +122,43 @@ namespace Game.Inventory
             RecomputeAndApplyBonuses();
         }
 
+        /// <summary>Every occupied slot (save capture).</summary>
+        public IReadOnlyDictionary<EquipmentSlot, ItemSO> Equipped => _equipped;
+
+        /// <summary>
+        /// Save/load: replaces the equipped set without touching the inventory (equipped items are not in
+        /// the inventory list — Equip removes them). Skips null / non-equippable items, then refreshes
+        /// visuals (OnEquipmentChanged) and stat bonuses.
+        /// </summary>
+        public void RestoreEquipped(IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped)
+        {
+            _equipped.Clear();
+            if (equipped != null)
+            {
+                foreach (var pair in equipped)
+                {
+                    if (!FitsSlot(pair.Value, pair.Key))
+                    {
+                        if (pair.Value != null)
+                            GameLog.Warn(TAG, $"RestoreEquipped: {pair.Value.itemName} cannot go in {pair.Key} — skipped");
+                        continue;
+                    }
+                    _equipped[pair.Key] = pair.Value;
+                }
+            }
+            _onEquipmentChanged?.Raise(true);
+            RecomputeAndApplyBonuses();
+        }
+
+        // Mirrors Equip()'s slot resolution: weapons → Weapon, rings → Ring1/Ring2, other armor → its slot.
+        private static bool FitsSlot(ItemSO item, EquipmentSlot slot) => item switch
+        {
+            WeaponSO => slot == EquipmentSlot.Weapon,
+            ArmorSO armor when armor.slot == EquipmentSlot.Ring1 => slot is EquipmentSlot.Ring1 or EquipmentSlot.Ring2,
+            ArmorSO armor => slot == armor.slot,
+            _ => false
+        };
+
         /// <summary>Returns the item equipped in the given slot, or null if empty.</summary>
         public ItemSO GetEquipped(EquipmentSlot slot)
             => _equipped.TryGetValue(slot, out var item) ? item : null;

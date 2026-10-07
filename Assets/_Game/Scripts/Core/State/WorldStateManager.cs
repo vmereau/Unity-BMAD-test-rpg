@@ -8,10 +8,9 @@ using UnityEngine;
 namespace Game.Core
 {
     /// <summary>
-    /// Central runtime state manager. Story 2.8: Minimal stub (singleton + kill tracking).
-    /// Story 2.9 adds: OnEntityKilled event wiring.
-    /// World Facts extension: flat key/bool store backed by typed Fact ScriptableObjects.
-    /// Epic 8: Save/Load, Steam Cloud sync.
+    /// Central runtime state manager: kill tracking + flat key/bool world-fact store backed by
+    /// typed Fact ScriptableObjects. The save system snapshots the stored facts with
+    /// <see cref="CaptureFacts"/> and puts them back with <see cref="RestoreFacts"/>.
     /// Attach to the WorldStateManager GameObject in Core.unity.
     /// </summary>
     public class WorldStateManager : MonoBehaviour
@@ -158,32 +157,29 @@ namespace Game.Core
             };
         }
 
-        // ── Save data (Epic 8) ────────────────────────────────────────────────
+        // ── Save / load ───────────────────────────────────────────────────────
 
-        /// <summary>Returns a snapshot of world state for Epic 8 save integration (not yet wired).</summary>
-        public WorldStateSaveData GetSaveData() => new WorldStateSaveData
+        /// <summary>Copy of every stored fact (computed Skill / Stat / Quest facts are not stored).</summary>
+        public Dictionary<string, bool> CaptureFacts() => new Dictionary<string, bool>(_worldFacts);
+
+        /// <summary>
+        /// Replaces every stored fact with <paramref name="facts"/> (null → empty). Raises no events and
+        /// grants nothing — listeners that cache fact-derived state must re-read it after a load.
+        /// </summary>
+        public void RestoreFacts(Dictionary<string, bool> facts)
         {
-            worldFacts = new Dictionary<string, bool>(_worldFacts)
-        };
+            _worldFacts.Clear();
+            if (facts != null)
+                foreach (var pair in facts)
+                    _worldFacts[pair.Key] = pair.Value;
+            GameLog.Info(TAG, $"Restored {_worldFacts.Count} world fact(s)");
+        }
 
         // ── Internal ──────────────────────────────────────────────────────────
 
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
-        }
-
-        // ── Save-data shape (not yet wired — Epic 8) ─────────────────────────
-
-        /// <summary>
-        /// Snapshot struct for Epic 8 save integration.
-        /// WARNING: Unity's JsonUtility cannot serialize <c>Dictionary&lt;string,bool&gt;</c>.
-        /// Convert to parallel arrays or use Newtonsoft Json.NET before serializing.
-        /// </summary>
-        [System.Serializable]
-        public struct WorldStateSaveData
-        {
-            public Dictionary<string, bool> worldFacts;
         }
     }
 }

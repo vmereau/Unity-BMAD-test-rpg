@@ -65,6 +65,13 @@ namespace Game.Progression
             GameLog.Info(TAG, $"Level {newLevel} reached — awarded {_config.learningPointsPerLevel} LP. Total: {CurrentLP}");
         }
 
+        /// <summary>Save/load: sets LP directly (clamped to >= 0) and raises OnLPChanged.</summary>
+        public void RestoreLP(int lp)
+        {
+            CurrentLP = Mathf.Max(0, lp);
+            _onLPChanged?.Raise(CurrentLP);
+        }
+
         public void GiveLp(int amount)
         {
             CurrentLP += amount;

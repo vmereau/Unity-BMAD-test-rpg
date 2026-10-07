@@ -426,7 +426,8 @@ namespace Game.AI
             _animationDriver?.SetWarning(false);
             SetCombatState(false);
             _state = EntityState.Dead;
-            _agent.isStopped = true;
+            // Guarded: a corpse restored from a save may have an agent that is off the NavMesh.
+            if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = true;
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }

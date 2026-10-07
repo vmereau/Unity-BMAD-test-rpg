@@ -103,6 +103,15 @@ namespace Game.Combat
             return true;
         }
 
+        /// <summary>Save/load: fills the pool to the current MaxStamina (restore stats first).</summary>
+        public void RefillToMax()
+        {
+            if (_config == null) return;
+            _currentStamina = MaxStamina;
+            _regenCooldown = 0f;
+            RaiseStaminaChanged();
+        }
+
         private void RaiseStaminaChanged()
         {
             float max = MaxStamina;

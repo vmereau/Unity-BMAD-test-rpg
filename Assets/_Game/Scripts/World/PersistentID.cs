@@ -21,6 +21,7 @@ namespace Game.World
         
         [SerializeField] private Entity entityType;
         public Entity Entity => entityType;
+        public KilledFact KilledFact => _killedFact;
 
         private void Awake()
         {

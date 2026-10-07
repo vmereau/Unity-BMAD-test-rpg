@@ -61,6 +61,13 @@ namespace Game.Economy
             _onGoldChanged?.Raise(Gold);
         }
 
+        /// <summary>Save/load: sets gold directly (clamped to >= 0) and raises OnGoldChanged.</summary>
+        public void RestoreGold(int gold)
+        {
+            Gold = Mathf.Max(0, gold);
+            _onGoldChanged?.Raise(Gold);
+        }
+
 #if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {

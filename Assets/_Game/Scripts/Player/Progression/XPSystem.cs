@@ -36,6 +36,13 @@ namespace Game.Progression
             _onXPGained?.Raise(amount);
         }
 
+        /// <summary>Save/load: sets XP and kill count directly. Raises nothing (no XP-gained / level-up chain).</summary>
+        public void RestoreState(int xp, int totalKills)
+        {
+            CurrentXP = Mathf.Max(0, xp);
+            TotalKills = Mathf.Max(0, totalKills);
+        }
+
 #if false // DISABLED: debug OnGUI — to be reworked
         private void OnGUI()
         {

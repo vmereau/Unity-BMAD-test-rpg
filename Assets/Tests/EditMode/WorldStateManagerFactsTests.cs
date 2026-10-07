@@ -285,5 +285,111 @@ namespace Tests.EditMode
             Assert.That(received.key, Is.EqualTo("World.mill_cleared"));
             Assert.That(received.value, Is.True);
         }
+
+        // ── Save / load: CaptureFacts / RestoreFacts ──────────────────────────
+
+        private GameEventSO_Fact WireFactChangedEvent()
+        {
+            var eventSO = ScriptableObject.CreateInstance<GameEventSO_Fact>();
+            _cleanup.Add(eventSO);
+            typeof(WorldStateManager)
+                .GetField("_onFactChanged", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(_wsm, eventSO);
+            return eventSO;
+        }
+
+        [Test]
+        public void CaptureFacts_ReturnsCopy()
+        {
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("gate"));
+            _wsm.SetWorldEvent(fact, true);
+
+            var snapshot = _wsm.CaptureFacts();
+            snapshot["World.gate"] = false;
+            snapshot["World.extra"] = true;
+
+            Assert.That(_wsm.GetFact(fact), Is.True);
+            Assert.That(_wsm.CaptureFacts().ContainsKey("World.extra"), Is.False);
+        }
+
+        [Test]
+        public void RestoreFacts_ReplacesAllFacts_AndRaisesNoEvent()
+        {
+            var oldFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("old"));
+            var newFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("new"));
+            _wsm.SetWorldEvent(oldFact, true);
+            var eventSO = WireFactChangedEvent();
+            int raised = 0;
+            eventSO.AddListener(_ => raised++);
+
+            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.new", true } });
+
+            Assert.That(_wsm.GetFact(oldFact), Is.False);
+            Assert.That(_wsm.GetFact(newFact), Is.True);
+            Assert.That(raised, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void RestoreFacts_Null_ClearsFacts()
+        {
+            var fact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("x"));
+            _wsm.SetWorldEvent(fact, true);
+            _wsm.RestoreFacts(null);
+            Assert.That(_wsm.CaptureFacts(), Is.Empty);
+        }
+
+        // ── QuestEventsManager.ReseedState after a load ───────────────────────
+
+        private (QuestEventsManager qem, System.Func<int> completedCount) MakeQuestEventsManager(WorldFact completeFact)
+        {
+            var quest = ScriptableObject.CreateInstance<QuestSO>();
+            quest.title = "Test quest";
+            quest.completedParts = new List<QuestPart> { new QuestPart { fact = completeFact } };
+            _cleanup.Add(quest);
+
+            var completedEvent = ScriptableObject.CreateInstance<GameEventSO_Quest>();
+            _cleanup.Add(completedEvent);
+            int count = 0;
+            completedEvent.AddListener(_ => count++);
+
+            var go = new GameObject("QuestEventsManager_Test");
+            _cleanup.Add(go);
+            var qem = go.AddComponent<QuestEventsManager>();
+            var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            typeof(QuestEventsManager).GetField("_quests", flags).SetValue(qem, new List<QuestSO> { quest });
+            typeof(QuestEventsManager).GetField("_onQuestCompleted", flags).SetValue(qem, completedEvent);
+            qem.ReseedState(); // what Start() does — quest not completed yet
+            return (qem, () => count);
+        }
+
+        private static void RaiseFactChanged(QuestEventsManager qem) =>
+            typeof(QuestEventsManager)
+                .GetMethod("HandleWorldFactChanged", BindingFlags.NonPublic | BindingFlags.Instance)
+                .Invoke(qem, new object[] { default(FactData) });
+
+        [Test]
+        public void ReseedState_AfterRestore_NextFactChangeRaisesNoStaleQuestEvent()
+        {
+            var completeFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_done"));
+            var (qem, completedCount) = MakeQuestEventsManager(completeFact);
+
+            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_done", true } });
+            qem.ReseedState();
+            RaiseFactChanged(qem); // an unrelated fact change after the load
+
+            Assert.That(completedCount(), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void WithoutReseed_AfterRestore_NextFactChangeRaisesStaleQuestEvent()
+        {
+            var completeFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_done"));
+            var (qem, completedCount) = MakeQuestEventsManager(completeFact);
+
+            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_done", true } });
+            RaiseFactChanged(qem);
+
+            Assert.That(completedCount(), Is.EqualTo(1), "control: proves the reseed is what prevents the event");
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace Game.Inventory
 
         public bool CanInteract => true;
 
+        public ItemSO Item => _item;
+
         public void Configure(ItemSO item)
         {
             _item = item;
@@ -55,6 +57,9 @@ namespace Game.Inventory
         {
             if (_inventory == null) return;
             _inventory.AddItem(_item);
+            // Scene-authored pickups carry a SaveableObject — record the pickup so a load doesn't respawn it.
+            if (TryGetComponent<SaveableObject>(out var saveable))
+                SaveSystem.Instance?.MarkConsumed(saveable.SaveKey);
             Destroy(gameObject);
         }
     }
