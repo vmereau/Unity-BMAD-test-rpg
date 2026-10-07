@@ -467,7 +467,7 @@ Deviations / facts for whoever implements Phase C onward:
 
 #### Phase C — SaveSystem orchestration and region flow
 
-- [ ] Task 17: SceneLoader events and region reload
+- [x] Task 17: SceneLoader events and region reload
   - File: `Scripts/Core/SceneLoader.cs`
   - Action:
     - `public string CurrentRegion { get; private set; }` (set after a region finishes loading; set in the
@@ -482,7 +482,7 @@ Deviations / facts for whoever implements Phase C onward:
     - `public bool IsBusy` while any load / unload coroutine runs.
   - Notes: all waits are `yield return op` / `yield return null` — they work at `Time.timeScale = 0`.
 
-- [ ] Task 18: Player save adapter
+- [x] Task 18: Player save adapter
   - File (new): `Scripts/Player/PlayerSaveAdapter.cs` (namespace `Game.Player`), on the `Player.prefab`
     root.
   - Action: `[SerializeField]` refs to `PlayerStats`, `PlayerHealth`, `StaminaSystem`, `XPSystem`,
@@ -494,7 +494,7 @@ Deviations / facts for whoever implements Phase C onward:
     `PlayerStateManager.SetDead(false)` → teleport (disable `CharacterController`, set position / rotation,
     re-enable). Null-guard every ref with a `GameLog.Warn`.
 
-- [ ] Task 19: SaveSystem singleton
+- [x] Task 19: SaveSystem singleton
   - File (new): `Scripts/Core/Save/SaveSystem.cs` (namespace `Game.Core`), on the existing empty
     `SaveSystem` GO in `Core.unity`.
   - Fields: `[SerializeField] SceneLoader _sceneLoader; PlayerSaveAdapter _player; ItemCatalogSO _catalog;
@@ -557,7 +557,7 @@ Deviations / facts for whoever implements Phase C onward:
 
 #### Phase D — Death flow
 
-- [ ] Task 20: Keep the player active on death
+- [x] Task 20: Keep the player active on death
   - File: `Scripts/Player/PlayerHealth.cs` — `Die()` no longer calls `gameObject.SetActive(false)`; it
     calls `_playerStateManager?.SetDead(true)` (new `[SerializeField] PlayerStateManager`, same-system
     ref) after raising `_onPlayerDied`. Update the class summary.
@@ -567,6 +567,34 @@ Deviations / facts for whoever implements Phase C onward:
   - Notes: `TargetRegistry` / AI must stop targeting a dead player — check `PlayerHealth.IsDead` is already
     what `IDamageable.IsDead` exposes (it is; `EntityBrain.cs:197` checks `Damageable.IsDead`). Play the
     player's death animation only if one already exists; adding one is out of scope.
+
+#### Implementation notes — Phases C+D (2026-10-07)
+
+- `SceneLoader.ReloadRegion(name, Action<bool> onDone)` — `onDone(false)` when the load fails mid-way;
+  `SaveSystem.FailLoad` then resets `IsLoading` / `timeScale` and raises `OnLoadFinished`, so the loading overlay
+  never sticks. `SceneLoader.CanLoadRegion(name)` (build-settings check) runs **before** facts are touched.
+  The startup path also spawns the player one frame later than before (all region `Start()`s run first).
+- `SaveSystem` input: its own `InputSystem_Actions` enables **only** `Player.QuickSave` / `Player.QuickLoad`, so other
+  systems disabling their Player maps can't silence F5 / F9 (resolves review F13). Phase E still has to ignore
+  QuickLoad while the Game Menu confirm dialog is open (`SaveSystem` has no hook for it yet).
+- Fields wired in Task 26: `_sceneLoader`, `_catalog`, `_player`, `_playerState`, `_playerHealth`, `_containerUI`,
+  `_questEvents`, `_onQuestCompleted`, `_onSaveNotification`, `_onLoadStarted`, `_onLoadFinished`.
+  `PlayerSaveAdapter` and `PlayerHealth._playerStateManager` fall back to `GetComponent` on the Player root when unwired.
+- `CanSave` also checks `PlayerStateManager.IsDead` and an empty `CurrentRegion`; its reasons are player-facing
+  strings (shown by F5 / the Save button). Notifications: "Game saved" / "Quicksave" / "Autosave" / "Game loaded" /
+  "Restarted" / "No quicksave" / error text.
+- Death (Task 20): `PlayerStateManager.SetDead(true)` clears block / attack / dodge and plays the shared humanoid
+  `Death` trigger; `SetDead(false)` (from `PlayerSaveAdapter.Restore`) calls `HumanoidAnimationBridge.ResetToDefaultState()`
+  (`Animator.Rebind`) and re-applies `IsInCombat`. `UIScreenManager.OpenTab` refuses tabs while dead.
+  `InteractionSystem` also refuses focus / interaction while `PlayerStateManager.IsDead`.
+- Review fixes (C+D, auto-fixed): `Load` / `RestartNewGame` refuse while in dialogue / trade or looting (those windows
+  reference objects the reload destroys and nothing closes them) — still allowed while dead; every load sheathes the
+  weapon (stance isn't saved); the teleport zeroes `PlayerController` fall velocity (`ResetVerticalVelocity`).
+  Known limitation: a region that fails to load after the old one unloaded leaves an empty world (toast only).
+- Play-Mode smoke test (runtime-attached SaveSystem, StartingTown): save slot → change gold / HP / position → load
+  restored all three through a full region reload; F9 with no quicksave → "No quicksave"; death keeps the Player active.
+  **Until Task 26 adds `SaveableObject` to scene-authored pickups, those are captured as runtime drops and duplicate
+  on load** — expected, fixed by the wiring.
 
 #### Phase E — UI
 
