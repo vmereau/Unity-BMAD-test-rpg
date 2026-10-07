@@ -74,7 +74,7 @@ namespace Game.UI
 
         public void OpenTab(ScreenTab tab)
         {
-            if (_playerStateManager != null && _playerStateManager.IsInDialogue) return;
+            if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.IsDead)) return;
             if (_activeTab == tab) return;
 
             // Close current tab content if switching

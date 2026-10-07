@@ -24,6 +24,9 @@ namespace Game.Player
         private Camera _mainCamera;
         private InputSystem_Actions _input;
         private float _verticalVelocity;
+
+        /// <summary>Teleports (save load) drop any fall speed accumulated while the region was gone.</summary>
+        public void ResetVerticalVelocity() => _verticalVelocity = GROUNDED_VELOCITY;
         private PlayerStateManager _stateManager;
 
         private void Awake()

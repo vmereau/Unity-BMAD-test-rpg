@@ -5,7 +5,7 @@ namespace Game.Player
 {
     /// <summary>
     /// Single source of truth for player action gating and state.
-    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat.
+    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat, IsDead.
     /// All Can-do queries (CanAttack, CanBlock, CanDodge, CanJump, CanMove) live here.
     /// Animation side-effects are delegated to PlayerAnimator — this class never touches the Animator directly.
     /// State is written by PlayerCombat and DodgeController; state is read by any system needing action gates.
@@ -60,8 +60,11 @@ namespace Game.Player
             _lastGroundedTime = float.MinValue;
         }
 
-        /// <summary>True when the player cannot perform any action (cursor unlocked).</summary>
-        public bool IsBusy => !CursorManager.IsLocked;
+        /// <summary>True when the player cannot perform any action (dead, or cursor unlocked).</summary>
+        public bool IsBusy => IsDead || !CursorManager.IsLocked;
+
+        /// <summary>True from death until a save is loaded. Blocks every action through IsBusy.</summary>
+        public bool IsDead { get; private set; }
 
         // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging / SetInCombat
         public bool IsBlocking { get; private set; }
@@ -134,6 +137,35 @@ namespace Game.Player
         {
             IsInDialogue = value;
             GameLog.Info(TAG, $"IsInDialogue: {value}");
+        }
+
+        /// <summary>
+        /// Called by PlayerHealth on death (true) and by the save system on revive (false). Death clears action
+        /// states and plays the death animation; revive resets the Animator and re-applies the combat stance.
+        /// </summary>
+        public void SetDead(bool value)
+        {
+            if (IsDead == value) return;
+            IsDead = value;
+            GameLog.Info(TAG, $"IsDead: {value}");
+            if (value)
+            {
+                IsBlocking = false;
+                IsAttacking = false;
+                IsDodging = false;
+            }
+            if (_playerAnimator == null) return;
+
+            if (value)
+            {
+                _playerAnimator.SetBlocking(false);
+                _playerAnimator.PlayDeath();
+            }
+            else
+            {
+                _playerAnimator.ResetAfterRevive();
+                _playerAnimator.SetInCombat(IsInCombat);
+            }
         }
 
         // ── Can-do queries ────────────────────────────────────────────────────

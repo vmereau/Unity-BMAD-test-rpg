@@ -6,8 +6,9 @@ namespace Game.Player
 {
     /// <summary>
     /// Manages player health. Handles damage and death.
-    /// On death: raises OnPlayerDied event, deactivates the player GameObject.
-    /// Respawn/checkpoint logic deferred to Epic 8.
+    /// On death: raises OnPlayerDied, then marks PlayerStateManager dead (blocks all actions, plays the death
+    /// animation). The Player GameObject stays active — it hosts the UICanvas with the death screen.
+    /// Revival happens through a save load (RestoreHealth).
     /// Attach to the Player prefab root.
     /// Story 2.9: Initial implementation.
     /// Story 7.3: Added Defense reduction via PlayerStats.Defense.
@@ -25,6 +26,9 @@ namespace Game.Player
 
         // Same-system reference (Game.Combat) — delegated to for block/dodge/perfect-block resolution.
         [SerializeField] private PlayerCombat _playerCombat;
+
+        // Same-system reference — marks the player dead so every action gate closes.
+        [SerializeField] private PlayerStateManager _playerStateManager;
 
         public float CurrentHealth { get; private set; }
         public float MaxHealth => _config != null ? _config.baseHealth : 0f;
@@ -49,6 +53,10 @@ namespace Game.Player
             if (_playerCombat == null) _playerCombat = GetComponent<PlayerCombat>();
             if (_playerCombat == null)
                 GameLog.Warn(TAG, "PlayerCombat not assigned and none on this GameObject — incoming hits will not check block/dodge");
+
+            if (_playerStateManager == null) _playerStateManager = GetComponent<PlayerStateManager>();
+            if (_playerStateManager == null)
+                GameLog.Warn(TAG, "PlayerStateManager not assigned and none on this GameObject — death will not block input");
 
             CurrentHealth = _config.baseHealth;
         }
@@ -114,11 +122,11 @@ namespace Game.Player
             IsDead = true;
             GameLog.Info(TAG, "Player has died");
 
-            // Raise event so Save/UI systems can react (Epic 8 subscribers)
+            // Raise event so the death screen / save system can react
             _onPlayerDied?.Raise(true);
 
-            // Simple prototype death: deactivate player (respawn in Epic 8)
-            gameObject.SetActive(false);
+            // Stay active (the UICanvas with the death screen is nested in the Player) — just block control.
+            _playerStateManager?.SetDead(true);
         }
 
 #if false // DISABLED: debug OnGUI — to be reworked

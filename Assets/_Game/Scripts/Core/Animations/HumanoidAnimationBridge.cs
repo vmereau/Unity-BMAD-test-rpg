@@ -77,5 +77,16 @@ namespace Game.Animations
 
         public void TriggerGetHit() => _animator?.SetTrigger(GetHitHash);
         public void TriggerDeath()  => _animator?.SetTrigger(DeathHash);
+
+        /// <summary>
+        /// Returns the Animator to its default state with default parameters (e.g. out of the terminal Death
+        /// state after a revive). Callers must re-apply any parameter they still need (e.g. IsInCombat).
+        /// </summary>
+        public void ResetToDefaultState()
+        {
+            if (_animator == null) return;
+            _animator.Rebind();
+            _animator.Update(0f);
+        }
     }
 }

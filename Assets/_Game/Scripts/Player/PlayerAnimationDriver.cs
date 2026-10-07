@@ -71,5 +71,7 @@ namespace Game.Player
         public void PlayAttack(int triggerHash) => _humanoidBridge.PlayAttack(triggerHash);
         public void PlayDodge(bool isBackwardRoll = false) => _humanoidBridge.PlayDodge(isBackwardRoll);
         public void SetInCombat(bool value) => _humanoidBridge.SetInCombat(value);
+        public void PlayDeath() => _humanoidBridge.TriggerDeath();
+        public void ResetAfterRevive() => _humanoidBridge.ResetToDefaultState();
     }
 }

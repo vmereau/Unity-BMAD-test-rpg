@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Game.Core;
+using Game.Player;
 using Game.UI;
 
 namespace Game.World
@@ -24,6 +25,9 @@ namespace Game.World
             Shader.PropertyToID(GameConstants.INTERACTION_OUTLINE_COLOR_PROPERTY);
 
         private Camera _mainCamera;
+        private PlayerStateManager _playerState;
+
+        private bool IsPlayerDead => _playerState != null && _playerState.IsDead;
         private IInteractable _previousInteractable;
         private InputSystem_Actions _input;
         private float _scanTimer;
@@ -66,6 +70,8 @@ namespace Game.World
 
         private void Awake()
         {
+            // Same Player rig; null-safe (no state manager → only the cursor gates interaction).
+            _playerState = GetComponentInParent<PlayerStateManager>();
             _mainCamera = Camera.main;
             if (_mainCamera == null)
             {
@@ -131,7 +137,7 @@ namespace Game.World
             }
 
             // Menus / dialogue / containers open: no focus, so the outline and crosshair tint match the hidden card.
-            if (!CursorManager.IsLocked) best = null;
+            if (!CursorManager.IsLocked || IsPlayerDead) best = null;
 
             // Also fires when the same target's verb/name changes (e.g. a door's lock prompt after unlocking).
             string verb = InteractionFocus.ResolveVerb(best);
@@ -180,7 +186,7 @@ namespace Game.World
 
         private void LateUpdate()
         {
-            if (!CursorManager.IsLocked) return;
+            if (!CursorManager.IsLocked || IsPlayerDead) return;
             // Re-check CanInteract: the scan is throttled by _config.scanInterval, so combat could have
             // started on the cached target since the last scan.
             // IsAlive: the target may have been destroyed (e.g. picked up) since the last scan.
