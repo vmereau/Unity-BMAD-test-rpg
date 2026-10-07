@@ -34,9 +34,8 @@
 - `EntityBrain` calls `EndAttack()` in `TransitionToDead` and `DisengageFromCombat`; `SMB_EntityAttackState` covers animator state exits.
 - `EntityBrain.Start` warns once when `Entity.ComboHitsMax` exceeds the driver's `MaxComboSteps` (the attacker clamps silently).
 - **Brain gate:** `HandleAttack` returns while `_meleeAttacker.IsInAttackState` (after `FaceTarget()`, before the cooldown check) — a combo (~3.3 s) outlasts the 2 s cooldown and must never be cut mid-swing. Effective interval = `max(cooldown, attack duration)`.
-- **Combo crossfades need a counter, not exit-only:** Unity fires `OnStateEnter(next)` at transition start and `OnStateExit(previous)` at transition end, so an exit-only SMB would end the attack on every `Attack_1 → Attack_2` blend.
 - **The brain faces its target while Attacking** (`FaceTarget()` every `HandleAttack` tick, reusing `Entity.WarningTurnSpeed`) — hits are spatial, a non-facing attacker whiffs.
-- **Humanoid NPCs fight unarmed** (`Unarmed` hitbox on the right hand, random 1–3 hit Jab → Uppercut → Jab combo). Armed NPCs (future): register the equipped weapon's `WeaponHitbox` via `RegisterHitbox("Weapon", hitbox)`. Player sword clips' parameterless `HitboxEnable` events arrive as `""` → open every hitbox.
+- **Humanoid NPCs fight unarmed** (`Unarmed` hitbox on the right hand, random 1–3 hit Jab → Uppercut → Jab combo). Armed NPCs (future): register the equipped weapon's `WeaponHitbox` via `RegisterHitbox("Weapon", hitbox)`. Event/SMB contract shared with the player (why a state counter, `""` = all hitboxes): `.claude/rules/attack-pipeline.md`.
 - **Spider vs humanoid NPC range gap (pre-existing):** spider `AttackRange` 0.8 is root-to-root, but NavMeshAgent avoidance holds it ≈ 1.0 m from an NPC (agent radius 0.5) → spiders engage NPCs but never bite them (they do bite the player). Retune the spider SO if NPC-vs-spider fights should be two-sided.
 - One damage value per attack (`Entity.AttackDamage`). Two hitboxes open at once can each hit the same target once (dedupe is per `WeaponHitbox`).
 

@@ -29,6 +29,7 @@
 | **Game assembly definition** | `Assets/_Game/Game.asmdef` |
 | **Editor-only tools** | `Assets/_Game/Editor/` (`Game.Editor` asmdef). `Assets/_Game/Scripts/Editor/` compiles into the runtime `Game` assembly and requires `#if UNITY_EDITOR` |
 | **Git conventions** | `.claude/rules/git-conventions.md` |
+| **Path-scoped rules** | `.claude/rules/attack-pipeline.md` (auto-loads for combat / AI / animation / entity files) |
 
 > **Never treat `_bmad/` or `_bmad-output/` as game source code.** They are BMAD
 > workflow artifacts. Always exclude them from code reviews and source analysis.
@@ -118,6 +119,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
 | Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Attack clip events, per-clip hit/combo timings |
+| Humanoid controller | `Art/Characters/Humanoids/Controllers/CLAUDE.md` | `Humanoid_Template` layers/params, SMB wiring, combo transition rules |
 
 ---
 

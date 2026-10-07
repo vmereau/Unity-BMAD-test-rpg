@@ -13,7 +13,7 @@ any scene without external wiring.
 ```
 Player.prefab
 ├── CharacterController  (Height 1.8, Center Y 1.0) — no Rigidbody
-├── Animator             (Apply Root Motion OFF; Controller: PlayerAnimatorController)
+├── Animator             (Apply Root Motion OFF; Controller: Humanoid_Template — shared with humanoid NPCs)
 ├── PlayerController, HumanoidAnimationBridge, PlayerAnimationDriver, CameraController,
 │   PlayerStateManager, PlayerCombat, DodgeController, StaminaSystem, PlayerHealth, PlayerStats,
 │   PlayerSkills, InteractionSystem, InventorySystem, ActionBarSystem, EquipmentSystem, XPSystem,

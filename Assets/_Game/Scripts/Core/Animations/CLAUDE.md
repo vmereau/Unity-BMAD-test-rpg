@@ -1,7 +1,9 @@
 # CLAUDE.md — Assets/_Game/Scripts/Core/Animations
 
 > Loaded when Claude accesses files in this folder. Covers the AI animation polymorphism
-> hierarchy and the Brain → Driver → Bridge contract.
+> hierarchy and the Brain → Driver → Bridge contract. Animator-controller authoring (SMBs, combo
+> transitions, layers): `Art/Characters/Humanoids/Controllers/CLAUDE.md` and
+> `.claude/rules/attack-pipeline.md`.
 
 ---
 
@@ -61,9 +63,6 @@ Symmetric on both sides: bridge + driver.
   `CancelAttack()` (called by `EntityMeleeAttacker.EndAttack`) resets the attack triggers — an
   `Attack_1` set before the Attack layer reached `CombatIdle` (disengage during the `IsInCombat`
   blend) would otherwise fire as a damage-less punch on the next combat entry. Monster: no-op.
-- **Humanoid hits don't interrupt punches** — `GetHit` / `Death` are AnyState transitions on the
-  **Base** layer; the attack lives on the upper-body-masked `Attack` layer, so an NPC keeps punching
-  while hit. Death is safe via `EntityBrain.TransitionToDead → EndAttack` + the ragdoll.
 - **`SetWarning(bool)` is a held bool, not a trigger.** The warning telegraph must hold for the
   multi-second warning timer and exit cleanly, so the seam method takes a bool (not a one-shot
   trigger). `MonsterAnimationBridge.SetWarning` writes the `IsWarning` bool animator param;
@@ -73,17 +72,6 @@ Symmetric on both sides: bridge + driver.
   owns the warning *logic* (stop, face, timer, escalate) identically for both; only the humanoid
   *animation* is stubbed. `SetBool` on a controller missing the `IsWarning` param is a silent
   no-op in Unity, so the C# is safe to ship before the controller is wired.
-- **`EntityBase.controller`'s `Attack` state carries `SMB_EntityAttackState`** (closes every AI hit
-  window on state exit). Every monster override controller inherits it; a new monster *base*
-  controller must add it to its attack state(s).
-- **`Humanoid_Template` `Attack_1/2/3_State` carry both `SMB_AttackState` (player) and
-  `SMB_EntityAttackState` (AI)** — the controller is shared, so each SMB must be a silent no-op when
-  its receiver is absent (explicit `!= null`, never `?.`).
-- **Combo transitions must not be interruptible by the source state's exit** — `Attack_2 → Attack_3`
-  uses `interruptionSource = None`. With `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3
-  started at ComboWindowOpen (0.63) was cancelled by `Attack_2 → CombatIdle` at exit time 0.89, so
-  step 3 never played. Check `requestTime + blendDuration < exitTime` (normalized) when adding/retiming
-  combo clips, or keep the combo transition at `None`.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 
