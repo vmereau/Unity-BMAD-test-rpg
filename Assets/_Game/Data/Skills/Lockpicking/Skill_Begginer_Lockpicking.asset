@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Progression.SkillSO
   _skillId: beginner_lockpicking
   _displayName: Beginner Lockpicking
-  _description: 
+  _description: The basics of working a lock with picks and patience.
+  _effectDescription: Lets you open doors and chests secured with a beginner lock.
   _lpCost: 3
   _statsRequirements:
   - statType: 1

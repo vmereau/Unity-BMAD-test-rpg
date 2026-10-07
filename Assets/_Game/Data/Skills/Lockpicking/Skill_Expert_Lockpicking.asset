@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Progression.SkillSO
   _skillId: expert_lockpicking
   _displayName: Expert Lockpicking
-  _description: 
+  _description: Mastery of complex mechanisms that would stump most thieves.
+  _effectDescription: Lets you open doors and chests secured with an expert lock.
   _lpCost: 5
   _statsRequirements:
   - statType: 1

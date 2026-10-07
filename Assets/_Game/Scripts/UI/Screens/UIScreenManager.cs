@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Options = 3 }
+    public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3, Options = 4 }
 
     public class UIScreenManager : MonoBehaviour
     {
@@ -32,6 +32,7 @@ namespace Game.UI
             _input.Player.InventoryToggle.performed += HandleInventoryToggle;
             _input.Player.CharacterStatsToggle.performed += HandleCharacterStatsToggle;
             _input.Player.QuestLogToggle.performed += HandleQuestLogToggle;
+            _input.Player.SkillsToggle.performed += HandleSkillsToggle;
             _input.UI.Cancel.performed += HandleCancel;
             WireTabButtons();
         }
@@ -42,6 +43,7 @@ namespace Game.UI
             _input.Player.InventoryToggle.performed -= HandleInventoryToggle;
             _input.Player.CharacterStatsToggle.performed -= HandleCharacterStatsToggle;
             _input.Player.QuestLogToggle.performed -= HandleQuestLogToggle;
+            _input.Player.SkillsToggle.performed -= HandleSkillsToggle;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.Player.Disable();
             _input.UI.Disable();
@@ -155,6 +157,14 @@ namespace Game.UI
                 CloseAll();
             else
                 OpenTab(ScreenTab.QuestLog);
+        }
+
+        private void HandleSkillsToggle(InputAction.CallbackContext ctx)
+        {
+            if (_activeTab == ScreenTab.Skills)
+                CloseAll();
+            else
+                OpenTab(ScreenTab.Skills);
         }
 
         private void HandleCancel(InputAction.CallbackContext ctx)

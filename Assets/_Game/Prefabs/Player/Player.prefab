@@ -2138,6 +2138,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 79.99999
       objectReference: {fileID: 0}
+    - target: {fileID: 5175463974535025791, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerStats
+      value: 
+      objectReference: {fileID: 5748466653404673820}
+    - target: {fileID: 5175463974535025791, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerSkills
+      value: 
+      objectReference: {fileID: 660869248586365014}
     - target: {fileID: 5383819861462662927, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

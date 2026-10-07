@@ -89,12 +89,18 @@ namespace Game.UI
                 into.Add(new ItemStatLine(LABEL_STACK, STACK_PREFIX + item.maxStacks));
         }
 
-        /// <summary>The taught skill's description for a skill tome, or null when absent or blank.</summary>
+        /// <summary>
+        /// The taught skill's description followed by its effect text (one per line) for a skill tome,
+        /// or null when the skill is absent or both texts are blank.
+        /// </summary>
         public static string GetSkillDescription(ItemSO item)
         {
             if (item is not SkillItemSO skillItem || skillItem.Skill == null) return null;
-            string desc = skillItem.Skill.description;
-            return string.IsNullOrWhiteSpace(desc) ? null : desc;
+            bool hasDesc = !string.IsNullOrWhiteSpace(skillItem.Skill.description);
+            bool hasEffect = !string.IsNullOrWhiteSpace(skillItem.Skill.effectDescription);
+            if (hasDesc && hasEffect) return skillItem.Skill.description.Trim() + "\n" + skillItem.Skill.effectDescription.Trim();
+            if (hasDesc) return skillItem.Skill.description;
+            return hasEffect ? skillItem.Skill.effectDescription.Trim() : null;
         }
 
         public static string GetPriceLabel(ItemPriceContext context) => context switch

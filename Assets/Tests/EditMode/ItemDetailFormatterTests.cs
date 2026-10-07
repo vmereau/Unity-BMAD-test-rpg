@@ -196,6 +196,26 @@ namespace Tests.EditMode
             Assert.IsNull(ItemDetailFormatter.GetSkillDescription(tome));
         }
 
+        [Test]
+        public void SkillTome_DescriptionAndEffect_JoinedOnTwoLines()
+        {
+            var skill = CreateSkill("Power Strike", 2, "A strong swing. ");
+            SetSerialized(skill, "_effectDescription", p => p.stringValue = " +10 damage on all melee attacks.");
+            var tome = CreateTome(skill);
+
+            Assert.AreEqual("A strong swing.\n+10 damage on all melee attacks.", ItemDetailFormatter.GetSkillDescription(tome));
+        }
+
+        [Test]
+        public void SkillTome_EffectOnly_ReturnsEffect()
+        {
+            var skill = CreateSkill("Power Strike", 2, "  ");
+            SetSerialized(skill, "_effectDescription", p => p.stringValue = "+10 damage on all melee attacks.");
+            var tome = CreateTome(skill);
+
+            Assert.AreEqual("+10 damage on all melee attacks.", ItemDetailFormatter.GetSkillDescription(tome));
+        }
+
         // AC 5
         [Test]
         public void SkillTome_NoSkill_NoSkillRowsAndNullDescription()
