@@ -149,7 +149,8 @@ the description and a price, all computed by `ItemDetailFormatter`. Action butto
 
 ## Drop Behaviour
 
-`InventoryUI.DropItem` instantiates `item.worldItemPrefab` at the player's position (1.5 m forward, 0.5 m up) and applies a small `Rigidbody` impulse. **Every item that should be droppable must have `worldItemPrefab` assigned** — a missing prefab causes the drop to be silently skipped (a warning is logged via `GameLog`).
+**Every item that should be droppable must have `worldItemPrefab` assigned** — otherwise the drop is
+skipped (`GameLog` warning). Prefab requirements and drop physics: `Prefabs/Items/CLAUDE.md`.
 
 ---
 

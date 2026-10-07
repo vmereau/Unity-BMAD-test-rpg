@@ -105,8 +105,12 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
 | UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`) | Canvas setup, cursor, input, layout; HUD (incl. toasts), screens, dialogue, quest UI |
-| Prefabs | `Prefabs/CLAUDE.md` | Player / Entity hierarchies, layer rules, world-item rules |
+| Prefabs | `Prefabs/CLAUDE.md` | Layer rules + index of the prefab-family files below |
+| Player prefab | `Prefabs/Player/CLAUDE.md` | Player hierarchy, camera/audio ownership, sockets, hurtbox |
+| UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
+| Entity prefabs | `Prefabs/Entities/CLAUDE.md` | `Entity_base`, `NPC_base Variant`, variant-editing gotchas |
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
+| Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
