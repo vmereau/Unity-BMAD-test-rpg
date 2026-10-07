@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Game.Core;
+using Game.NPC;
 using Game.Quest;
 
 namespace Game.Editor.QuestExplorer
@@ -16,7 +17,7 @@ namespace Game.Editor.QuestExplorer
         public UnityEngine.Object Context;
         /// <summary>Part / step row to scroll to when the issue is clicked. May be null.</summary>
         public QuestPartLocation? Location;
-        /// <summary>Rule id (V1..V13) — for tests and tooling.</summary>
+        /// <summary>Rule id (V1..V17) — for tests and tooling.</summary>
         public string Rule;
 
         public override string ToString() => $"{Severity} {Rule}: {Message}";
@@ -46,6 +47,7 @@ namespace Game.Editor.QuestExplorer
             ValidateRegistration(quest, index, issues);
             ValidateIdentity(quest, allQuests, issues);
             ValidateQuestFacts(quest, index, issues);
+            ValidateMemories(quest, index, issues);
             ValidateDescriptionCount(quest, issues);
 
             return issues.OrderBy(i => (int)i.Severity).ToList(); // OrderBy is stable
@@ -168,6 +170,61 @@ namespace Game.Editor.QuestExplorer
                 if (FactOrder(qf, stepCount) >= SlotOrder(loc, stepCount))
                     Add(issues, "V12", IssueSeverity.Warning,
                         $"{loc} depends on its own quest state '{QuestReferenceIndex.QuestFactStateLabel(qf)}' (self-dependency)", qf, loc);
+            }
+        }
+
+        /// <summary>
+        /// V14–V17 over every memory in the index (not only the ones involved in a quest) — catches a broken
+        /// memory whose last quest link is gone. Sorted Error → Warning.
+        /// </summary>
+        public static List<ValidationIssue> ValidateAllMemories(QuestReferenceIndex index)
+        {
+            var issues = new List<ValidationIssue>();
+            if (index == null) return issues;
+            foreach (var memory in index.AllMemories) ValidateMemory(memory, index, issues);
+            return issues.OrderBy(i => (int)i.Severity).ToList();
+        }
+
+        // V14, V15, V16, V17 — only memories involved in this quest, so they surface in its Issues list.
+        private static void ValidateMemories(QuestSO quest, QuestReferenceIndex index, List<ValidationIssue> issues)
+        {
+            foreach (var im in index.GetInvolvedMemories(quest)) ValidateMemory(im.Memory, index, issues);
+        }
+
+        private static void ValidateMemory(NPCMemoryEntrySO memory, QuestReferenceIndex index, List<ValidationIssue> issues)
+        {
+            var unlock = memory.unlockConditions;
+            if (unlock != null)
+                for (int i = 0; i < unlock.Length; i++)
+                    if (unlock[i] == null)
+                        Add(issues, "V14", IssueSeverity.Error,
+                            $"{memory.name}: unlock condition #{i + 1} is missing — skipped at runtime, so the memory unlocks without it",
+                            memory, null);
+            var invalidation = memory.invalidationConditions;
+            if (invalidation != null)
+                for (int i = 0; i < invalidation.Length; i++)
+                    if (invalidation[i] == null)
+                        Add(issues, "V14", IssueSeverity.Error,
+                            $"{memory.name}: invalidation condition #{i + 1} is missing — skipped at runtime, so it never closes the memory",
+                            memory, null);
+
+            var gates = index.GetGates(memory);
+            if (memory.effects?.startdialog == null && gates.Count == 0)
+                Add(issues, "V15", IssueSeverity.Warning,
+                    $"{memory.name} has no start dialogue and gates no choice — it has no effect", memory, null);
+
+            if (!index.IsOwnedByNpc(memory))
+                Add(issues, "V16", IssueSeverity.Warning,
+                    $"{memory.name} is not listed on any NPC — move it under Data/NPCs/NPC_X/Memories/ (NPCMemoriesAutoSync)",
+                    memory, null);
+
+            foreach (var gate in gates)
+            {
+                if (gate.Npc == null) continue;
+                if (gate.Npc.memories != null && gate.Npc.memories.Contains(memory)) continue;
+                Add(issues, "V17", IssueSeverity.Error,
+                    $"{gate.Label} requires {memory.name}, which {QuestReferenceIndex.NpcDisplayName(gate.Npc)} doesn't have — the choice never shows",
+                    memory, null);
             }
         }
 

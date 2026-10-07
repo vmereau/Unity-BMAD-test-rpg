@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Core;
+using Game.NPC;
 using Game.Quest;
 using Game.UI;
 using Game.World;
@@ -21,6 +22,7 @@ namespace Game.Editor.QuestExplorer
         private const string TAG = "[QuestExplorer]";
         private const string UNDO_PREFIX = "Quest Explorer: ";
         public const string FACTS_FOLDER = "Assets/_Game/Data/Facts";
+        public const string QUESTS_FOLDER = "Assets/_Game/Data/Quests";
         private const string ENEMIES_FOLDER = "Assets/_Game/Data/Enemies";
         private const string NEW_STEP_TITLE = "New step";
         private const int QUEST_STATE_STEP_OFFSET = 3;
@@ -266,6 +268,53 @@ namespace Game.Editor.QuestExplorer
             return fact != null && SetPartFact(quest, loc, fact);
         }
 
+        // ── Headless creation (no dialogs — scripts and Claude via MCP execute_code) ──
+
+        /// <summary>
+        /// Creates <c>Data/Quests/{questId}/Quest_{questId}.asset</c> with its id / title / description, or
+        /// returns the existing one unchanged. The QuestEventsManager auto-sync registers it; this also adds
+        /// it to QuestLogUI. Asset creation is not undoable.
+        /// </summary>
+        public static QuestSO CreateQuest(string questId, string title, string description)
+        {
+            if (string.IsNullOrWhiteSpace(questId)) return null;
+            string id = Sanitize(questId);
+            var quest = LoadOrCreate($"{QUESTS_FOLDER}/{id}/Quest_{id}.asset", () =>
+            {
+                var q = ScriptableObject.CreateInstance<QuestSO>();
+                q.questId = id;
+                q.title = title ?? string.Empty;
+                q.description = description ?? string.Empty;
+                return q;
+            });
+            if (quest != null) AddToQuestLog(quest);
+            return quest;
+        }
+
+        /// <summary><c>Data/Facts/DialogueFact_{nodeId}.asset</c>, created if missing (no prompt).</summary>
+        public static DialogueFact GetOrCreateDialogueFact(string nodeId) =>
+            string.IsNullOrWhiteSpace(nodeId) ? null : LoadOrCreate($"{FACTS_FOLDER}/DialogueFact_{Sanitize(nodeId)}.asset",
+                () => ScriptableObject.CreateInstance<DialogueFact>().Init(nodeId));
+
+        /// <summary><c>Data/Facts/WorldFact_{eventKey}.asset</c>, created if missing (no prompt).</summary>
+        public static WorldFact GetOrCreateWorldFact(string eventKey) =>
+            string.IsNullOrWhiteSpace(eventKey) ? null : LoadOrCreate($"{FACTS_FOLDER}/WorldFact_{Sanitize(eventKey)}.asset",
+                () => ScriptableObject.CreateInstance<WorldFact>().Init(eventKey));
+
+        /// <summary>
+        /// <c>Data/Facts/QuestFact_{questId}_{Started|Completed|Failed|Step{i}}.asset</c>, created if missing.
+        /// <paramref name="stepIndex"/> ≥ 0 makes a step-state fact (0-based step); otherwise <paramref name="state"/> is used.
+        /// </summary>
+        public static QuestFact GetOrCreateQuestFact(QuestSO target, QuestState state, int stepIndex = -1)
+        {
+            if (target == null || string.IsNullOrWhiteSpace(target.questId)) return null;
+            int stateIndex = stepIndex >= 0 ? QUEST_STATE_STEP_OFFSET + stepIndex : (int)state;
+            string path = $"{FACTS_FOLDER}/QuestFact_{Sanitize(target.questId)}_{StateFileSuffix(stateIndex)}.asset";
+            return LoadOrCreate(path, () => stepIndex >= 0
+                ? ScriptableObject.CreateInstance<QuestFact>().InitStep(target, stepIndex)
+                : ScriptableObject.CreateInstance<QuestFact>().Init(target, state));
+        }
+
         /// <summary>Popup labels for a QuestFact state index — same wording as QuestFactEditor.</summary>
         internal static string[] QuestStateLabels(QuestSO quest)
         {
@@ -329,7 +378,70 @@ namespace Game.Editor.QuestExplorer
             }
         }
 
+        // ── NPC memory conditions ─────────────────────────────────────────────
+
+        /// <summary>Appends a fact to a memory's condition list. False if null or already listed.</summary>
+        public static bool AddMemoryCondition(NPCMemoryEntrySO memory, MemoryConditionList list, Fact fact) =>
+            fact != null && Modify(memory, "Add Memory Condition", so =>
+            {
+                var array = ConditionsProp(so, list);
+                if (array == null) return false;
+                for (int i = 0; i < array.arraySize; i++)
+                    if (array.GetArrayElementAtIndex(i).objectReferenceValue == fact) return false;
+                int index = array.arraySize;
+                array.InsertArrayElementAtIndex(index);
+                array.GetArrayElementAtIndex(index).objectReferenceValue = fact;
+                return true;
+            });
+
+        /// <summary>Replaces one condition (null allowed). False if the fact is already listed at another index.</summary>
+        public static bool SetMemoryCondition(NPCMemoryEntrySO memory, MemoryConditionList list, int index, Fact fact) =>
+            Modify(memory, "Set Memory Condition", so =>
+            {
+                var array = ConditionsProp(so, list);
+                if (array == null || index < 0 || index >= array.arraySize) return false;
+                if (fact != null)
+                    for (int i = 0; i < array.arraySize; i++)
+                        if (i != index && array.GetArrayElementAtIndex(i).objectReferenceValue == fact) return false;
+                array.GetArrayElementAtIndex(index).objectReferenceValue = fact;
+                return true;
+            });
+
+        public static bool RemoveMemoryCondition(NPCMemoryEntrySO memory, MemoryConditionList list, int index) =>
+            Modify(memory, "Remove Memory Condition", so =>
+            {
+                var array = ConditionsProp(so, list);
+                if (array == null || index < 0 || index >= array.arraySize) return false;
+                int size = array.arraySize;
+                array.DeleteArrayElementAtIndex(index);
+                // Older Unity versions only null a non-null object reference on the first delete; harmless otherwise.
+                if (array.arraySize == size) array.DeleteArrayElementAtIndex(index);
+                return true;
+            });
+
+        private static SerializedProperty ConditionsProp(SerializedObject so, MemoryConditionList list) =>
+            so.FindProperty(list == MemoryConditionList.Unlock ? "unlockConditions" : "invalidationConditions");
+
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        /// <summary>Non-interactive: returns the asset at <paramref name="path"/>, or creates it. Null if the path holds another type.</summary>
+        private static T LoadOrCreate<T>(string path, Func<T> factory) where T : ScriptableObject
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (existing != null) return existing;
+            if (AssetDatabase.LoadMainAssetAtPath(path) != null)
+            {
+                GameLog.Error(TAG, $"'{path}' exists but is not a {typeof(T).Name}");
+                return null;
+            }
+
+            EnsureFolder(System.IO.Path.GetDirectoryName(path)?.Replace('\\', '/'));
+            var asset = factory();
+            AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
+            GameLog.Info(TAG, $"Created {path}");
+            return asset;
+        }
 
         private static T CreateOrReuse<T>(string path, Func<T> factory) where T : Fact
         {
@@ -354,17 +466,20 @@ namespace Game.Editor.QuestExplorer
             return fact;
         }
 
-        private static bool ModifyQuest(QuestSO quest, string undoName, Func<SerializedObject, bool> edit)
+        private static bool ModifyQuest(QuestSO quest, string undoName, Func<SerializedObject, bool> edit) =>
+            Modify(quest, undoName, edit);
+
+        private static bool Modify(UnityEngine.Object target, string undoName, Func<SerializedObject, bool> edit)
         {
-            if (quest == null) return false;
+            if (target == null) return false;
             bool ok = false;
             InGroup(undoName, () =>
             {
-                using var so = new SerializedObject(quest);
+                using var so = new SerializedObject(target);
                 ok = edit(so);
                 if (ok) so.ApplyModifiedProperties();
             });
-            if (ok) EditorUtility.SetDirty(quest);
+            if (ok) EditorUtility.SetDirty(target);
             return ok;
         }
 

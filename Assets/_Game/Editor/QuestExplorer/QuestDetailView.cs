@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Core;
+using Game.Dialogue;
+using Game.NPC;
 using Game.Quest;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -11,7 +13,10 @@ using Object = UnityEngine.Object;
 
 namespace Game.Editor.QuestExplorer
 {
-    /// <summary>Right pane for a quest: header, issues, Start / Steps / Completed / Failed with part rows and fact links.</summary>
+    /// <summary>
+    /// Right pane for a quest: header, issues, Start / Steps / Completed / Failed with part rows and fact links,
+    /// and the NPC memories that read or set the quest's facts.
+    /// </summary>
     internal sealed class QuestDetailView : VisualElement
     {
         private readonly QuestExplorerWindow _host;
@@ -23,6 +28,11 @@ namespace Game.Editor.QuestExplorer
         private readonly Dictionary<QuestPartLocation, Foldout> _locationFoldouts = new Dictionary<QuestPartLocation, Foldout>();
         private readonly List<LiveFactBadge> _liveBadges = new List<LiveFactBadge>();
         private readonly List<(int stepIndex, Label label)> _stepStates = new List<(int stepIndex, Label label)>();
+        private readonly Dictionary<NPCMemoryEntrySO, VisualElement> _memoryRows = new Dictionary<NPCMemoryEntrySO, VisualElement>();
+        private readonly Dictionary<NPCMemoryEntrySO, Foldout> _memoryFoldouts = new Dictionary<NPCMemoryEntrySO, Foldout>();
+        private readonly List<(NPCMemoryEntrySO memory, Label badge)> _memoryStates = new List<(NPCMemoryEntrySO memory, Label badge)>();
+        private Foldout _memoriesSection;
+        private const long DUPLICATE_NOTICE_MS = 2000;
         private Label _stateTag;
 
         public QuestDetailView(QuestExplorerWindow host, QuestSO quest, List<ValidationIssue> issues)
@@ -105,6 +115,14 @@ namespace Game.Editor.QuestExplorer
         private void OnIssueClicked(ValidationIssue issue)
         {
             if (issue.Context != null) EditorGUIUtility.PingObject(issue.Context);
+            if (issue.Context is NPCMemoryEntrySO memory && _memoryRows.TryGetValue(memory, out var memoryRow))
+            {
+                if (_memoriesSection != null) _memoriesSection.value = true;
+                if (_memoryFoldouts.TryGetValue(memory, out var npcFoldout)) npcFoldout.value = true;
+                _host.ScrollDetailTo(memoryRow);
+                ExplorerStyles.Flash(memoryRow);
+                return;
+            }
             if (!issue.Location.HasValue || !_locationRows.TryGetValue(issue.Location.Value, out var row)) return;
 
             if (_locationFoldouts.TryGetValue(issue.Location.Value, out var foldout)) foldout.value = true;
@@ -129,6 +147,7 @@ namespace Game.Editor.QuestExplorer
 
             Add(PartListSection("Completed", "completed", QuestPartSlot.Completed, _quest.completedParts));
             Add(PartListSection("Failed", "failed", QuestPartSlot.Failed, _quest.failedParts));
+            Add(MemoriesSection());
         }
 
         private Foldout StepSection(int i, QuestStep step, int stepCount)
@@ -269,6 +288,190 @@ namespace Game.Editor.QuestExplorer
             menu.DropDown(anchor.worldBound);
         }
 
+        // ── NPC memories ──────────────────────────────────────────────────────
+
+        private Foldout MemoriesSection()
+        {
+            var memories = MemoriesToShow();
+            _memoriesSection = Section($"NPC Memories ({memories.Count})", "memories");
+            if (memories.Count == 0)
+            {
+                _memoriesSection.Add(new Label("No NPC memory reads or sets this quest's facts.") { style = { color = ExplorerStyles.MutedText } });
+                return _memoriesSection;
+            }
+
+            // Grouped by NPC reference (GroupBy keeps first-appearance order: NPC name, no NPC last).
+            foreach (var group in memories.GroupBy(im => im.Npc))
+            {
+                var npc = group.Key;
+                var npcFoldout = MakeFoldout(QuestReferenceIndex.NpcDisplayName(npc),
+                    $"{_keyPrefix}/memnpc/{(npc != null ? npc.name : "none")}", true);
+                foreach (var go in _index.GetSceneObjectsForNpc(npc))
+                    npcFoldout.Add(LinkRowFactory.BuildSceneObject(go));
+                foreach (var im in group) npcFoldout.Add(MemoryRow(im, npcFoldout));
+                _memoriesSection.Add(npcFoldout);
+            }
+            return _memoriesSection;
+        }
+
+        /// <summary>
+        /// Involved memories, plus memories edited here this session that are no longer involved —
+        /// so an edit that removes the last quest link doesn't make the row vanish mid-edit.
+        /// </summary>
+        private List<InvolvedMemory> MemoriesToShow()
+        {
+            var result = _index.GetInvolvedMemories(_quest).ToList();
+            if (!_host.EditedMemories.TryGetValue(_quest, out var edited)) return result;
+            foreach (var memory in edited)
+            {
+                if (memory == null || result.Any(im => im.Memory == memory)) continue;
+                var stale = new InvolvedMemory { Memory = memory, Npc = _index.GetMemoryOwner(memory) };
+                stale.ReasonLabels.Add("edited — no longer involved");
+                result.Add(stale);
+            }
+            return result;
+        }
+
+        private VisualElement MemoryRow(InvolvedMemory im, Foldout npcFoldout)
+        {
+            var memory = im.Memory;
+            var row = ExplorerStyles.Box();
+            _memoryRows[memory] = row;
+            _memoryFoldouts[memory] = npcFoldout;
+
+            var header = ExplorerStyles.Row();
+            var field = ExplorerStyles.ReadOnlyObjectField(memory, typeof(NPCMemoryEntrySO));
+            field.style.flexGrow = 1;
+            field.style.flexShrink = 1;
+            header.Add(field);
+            foreach (var label in im.ReasonLabels) header.Add(ExplorerStyles.Badge(label));
+            var state = ExplorerStyles.Badge(string.Empty);
+            state.style.display = DisplayStyle.None;
+            _memoryStates.Add((memory, state));
+            header.Add(state);
+            row.Add(header);
+
+            AddConditionList(row, memory, MemoryConditionList.Unlock, "Unlock — all must be true", memory.unlockConditions);
+            AddConditionList(row, memory, MemoryConditionList.Invalidation, "Invalidation — any closes it", memory.invalidationConditions);
+
+            row.Add(SubHeading("Start dialogue"));
+            var startDialog = memory.effects?.startdialog;
+            row.Add(startDialog != null
+                ? (VisualElement)ExplorerStyles.ReadOnlyObjectField(startDialog, typeof(StartDialogueNode))
+                : MutedLabel("none"));
+
+            var gates = _index.GetGates(memory);
+            row.Add(SubHeading($"Gates choices ({gates.Count})"));
+            if (gates.Count == 0) row.Add(MutedLabel("none"));
+            foreach (var gate in gates)
+            {
+                var gateRow = ExplorerStyles.Row();
+                var node = ExplorerStyles.ReadOnlyObjectField(gate.Node, typeof(DialogueNode));
+                node.style.minWidth = 160;
+                gateRow.Add(node);
+                gateRow.Add(new Label(gate.Label) { style = { flexGrow = 1, flexShrink = 1, whiteSpace = WhiteSpace.Normal, marginLeft = 4 } });
+                row.Add(gateRow);
+            }
+            return row;
+        }
+
+        private void AddConditionList(VisualElement row, NPCMemoryEntrySO memory, MemoryConditionList list, string title, Fact[] facts)
+        {
+            row.Add(SubHeading(title));
+            if (facts != null)
+                for (int i = 0; i < facts.Length; i++) row.Add(ConditionRow(row, memory, list, i, facts[i]));
+            row.Add(AddConditionField(row, memory, list));
+        }
+
+        /// <summary>
+        /// After a successful edit, locks the memory row until the debounced rebuild redraws it: its
+        /// controls captured array indices that the edit may have shifted.
+        /// </summary>
+        private bool MemoryEdit(VisualElement row, NPCMemoryEntrySO memory, bool changed)
+        {
+            if (!changed) return false;
+            if (!_host.EditedMemories.TryGetValue(_quest, out var edited))
+                _host.EditedMemories[_quest] = edited = new HashSet<NPCMemoryEntrySO>();
+            edited.Add(memory);
+            row.SetEnabled(false);
+            Edit(true, true);
+            return true;
+        }
+
+        private VisualElement ConditionRow(VisualElement row, NPCMemoryEntrySO memory, MemoryConditionList list, int i, Fact fact)
+        {
+            var line = ExplorerStyles.Row();
+            line.style.paddingLeft = 12;
+
+            var field = new ObjectField { objectType = typeof(Fact), allowSceneObjects = false, value = fact };
+            field.style.flexGrow = 1;
+            field.style.flexShrink = 1;
+            field.RegisterValueChangedCallback(evt =>
+            {
+                // None removes the slot instead of leaving a null (V14); a fact already listed is rejected.
+                bool changed = evt.newValue == null
+                    ? QuestEditActions.RemoveMemoryCondition(memory, list, i)
+                    : QuestEditActions.SetMemoryCondition(memory, list, i, evt.newValue as Fact);
+                if (!MemoryEdit(row, memory, changed)) field.SetValueWithoutNotify(evt.previousValue);
+            });
+            line.Add(field);
+
+            if (fact == null)
+            {
+                line.Add(new Label("missing — skipped at runtime") { style = { color = ExplorerStyles.ErrorColor, marginLeft = 4 } });
+            }
+            else
+            {
+                var loc = QuestLocationOf(fact);
+                line.Add(loc.HasValue ? ExplorerStyles.Badge(loc.Value.ToString()) : MutedLabel("outside quest"));
+
+                var live = new LiveFactBadge(fact, _host);
+                _liveBadges.Add(live);
+                line.Add(live.Badge);
+                line.Add(live.Toggle);
+            }
+
+            line.Add(new Button(() => MemoryEdit(row, memory, QuestEditActions.RemoveMemoryCondition(memory, list, i)))
+            {
+                text = "✕", tooltip = "Remove condition"
+            });
+            return line;
+        }
+
+        /// <summary>Trailing empty field — conditions are appended, never inserted as null slots (V14).</summary>
+        private VisualElement AddConditionField(VisualElement row, NPCMemoryEntrySO memory, MemoryConditionList list)
+        {
+            var line = ExplorerStyles.Row();
+            line.style.paddingLeft = 12;
+            var field = new ObjectField("+ add") { objectType = typeof(Fact), allowSceneObjects = false };
+            field.style.flexGrow = 1;
+            var notice = new Label("already listed") { style = { color = ExplorerStyles.WarnColor, marginLeft = 4, display = DisplayStyle.None } };
+            field.RegisterValueChangedCallback(evt =>
+            {
+                if (!(evt.newValue is Fact fact)) return;
+                if (MemoryEdit(row, memory, QuestEditActions.AddMemoryCondition(memory, list, fact))) return;
+                field.SetValueWithoutNotify(null);
+                notice.style.display = DisplayStyle.Flex;
+                notice.schedule.Execute(() => notice.style.display = DisplayStyle.None).StartingIn(DUPLICATE_NOTICE_MS);
+            });
+            line.Add(field);
+            line.Add(notice);
+            return line;
+        }
+
+        private QuestPartLocation? QuestLocationOf(Fact fact)
+        {
+            foreach (var (loc, part) in QuestReferenceIndex.EnumerateParts(_quest))
+                if (part.fact == fact) return loc;
+            return null;
+        }
+
+        private static Label SubHeading(string text) =>
+            new Label(text) { style = { unityFontStyleAndWeight = FontStyle.Bold, marginTop = 2 } };
+
+        private static Label MutedLabel(string text) =>
+            new Label(text) { style = { color = ExplorerStyles.MutedText, paddingLeft = 12 } };
+
         // ── Shared link rows ──────────────────────────────────────────────────
 
         internal static void AddLinkRows(VisualElement parent, QuestExplorerWindow host,
@@ -300,6 +503,35 @@ namespace Game.Editor.QuestExplorer
                 label.text = state;
                 label.style.color = state == "Done" ? ExplorerStyles.OkColor : state == "Active" ? ExplorerStyles.WarnColor : ExplorerStyles.MutedText;
                 label.style.display = DisplayStyle.Flex;
+            }
+
+            foreach (var (memory, badge) in _memoryStates)
+            {
+                if (memory == null) continue;
+                // Unevaluable facts count as false, so polling never logs warnings.
+                var state = QuestReferenceIndex.EvaluateMemory(memory,
+                    f => QuestValidator.IsEvaluable(f) && wsm.GetFact(f),
+                    d => wsm.IsDialoguePlayed(d));
+                switch (state)
+                {
+                    case MemoryLiveState.Active:
+                        badge.text = "active";
+                        badge.style.backgroundColor = ExplorerStyles.OkColor;
+                        break;
+                    case MemoryLiveState.ActiveDialoguePlayed:
+                        badge.text = "active · dialogue played";
+                        badge.style.backgroundColor = ExplorerStyles.WarnColor;
+                        break;
+                    case MemoryLiveState.Invalidated:
+                        badge.text = "invalidated";
+                        badge.style.backgroundColor = ExplorerStyles.MutedText;
+                        break;
+                    default:
+                        badge.text = "locked";
+                        badge.style.backgroundColor = ExplorerStyles.BadgeBackground;
+                        break;
+                }
+                badge.style.display = DisplayStyle.Flex;
             }
         }
 

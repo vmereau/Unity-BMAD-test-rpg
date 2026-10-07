@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Tests.EditMode
 {
     /// <summary>
-    /// Edit Mode tests for <see cref="QuestValidator"/> (one positive test per rule V1–V13 plus a clean
+    /// Edit Mode tests for <see cref="QuestValidator"/> (one positive test per rule V1–V17 plus a clean
     /// quest) and <see cref="QuestStepRemap"/>. Every test starts from a clean quest and breaks one thing.
     /// </summary>
     public class QuestValidatorTests
@@ -21,6 +21,9 @@ namespace Tests.EditMode
         private IndexSources _sources;
         private KilledFact _killFact;
         private GameObject _spider;
+        private NPCEntity _npc;
+        private NPCMemoryEntrySO _offer;
+        private StartDialogueNode _acceptNode;
 
         [SetUp]
         public void SetUp()
@@ -29,14 +32,14 @@ namespace Tests.EditMode
             var doneFact = Make<DialogueFact>("DialogueFact_TurnIn").Init("TurnIn");
             _killFact = Make<KilledFact>("KilledFact_Spider").Init("guid-spider");
 
-            var acceptNode = Make<StartDialogueNode>();
+            var acceptNode = _acceptNode = Make<StartDialogueNode>();
             acceptNode.dialogueFact = startFact;
             var turnInNode = Make<StartDialogueNode>();
             turnInNode.dialogueFact = doneFact;
 
-            var npc = Make<NPCEntity>("NPC_Guard");
+            var npc = _npc = Make<NPCEntity>("NPC_Guard");
             npc.entityName = "Guard";
-            var offer = Make<NPCMemoryEntrySO>("Mem_Offer");
+            var offer = _offer = Make<NPCMemoryEntrySO>("Mem_Offer");
             offer.effects.startdialog = acceptNode;
             var reward = Make<NPCMemoryEntrySO>("Mem_Reward");
             reward.effects.startdialog = turnInNode;
@@ -262,6 +265,149 @@ namespace Tests.EditMode
             var severities = Validate().Select(i => (int)i.Severity).ToList();
             CollectionAssert.IsOrdered(severities);
             Assert.AreEqual(IssueSeverity.Error, (IssueSeverity)severities[0]);
+        }
+
+        // ── NPC memories (V14–V17) ────────────────────────────────────────────
+
+        /// <summary>A memory reading the quest's step fact, listed on the Guard, with a start dialogue.</summary>
+        private NPCMemoryEntrySO AddInvolvedMemory(string name, bool onNpc = true, bool withDialogue = true)
+        {
+            var memory = Make<NPCMemoryEntrySO>(name);
+            memory.unlockConditions = new Fact[] { _killFact };
+            if (withDialogue) memory.effects.startdialog = Make<StartDialogueNode>();
+            if (onNpc) _npc.memories.Add(memory);
+            else _sources.Memories = _sources.Memories.Append(memory).ToArray();
+            return memory;
+        }
+
+        private ChoiceDialogueNode AddGuardChoiceRequiring(NPCMemoryEntrySO memory)
+        {
+            var choice = Make<ChoiceDialogueNode>("Choice_Guard");
+            choice.choices = new[] { new ChoiceOption { text = "I already did it", requiredMemory = memory } };
+            _acceptNode.nextNode = choice;
+            return choice;
+        }
+
+        [Test]
+        public void V14_NullUnlockCondition_IsError()
+        {
+            _offer.unlockConditions = new Fact[] { _killFact, null };
+            var issue = Single(Validate(), "V14", IssueSeverity.Error);
+            StringAssert.Contains("unlock condition #2", issue.Message);
+            Assert.AreSame(_offer, issue.Context);
+        }
+
+        [Test]
+        public void V14_NullInvalidationCondition_IsError()
+        {
+            _offer.invalidationConditions = new Fact[] { null };
+            StringAssert.Contains("invalidation condition #1", Single(Validate(), "V14", IssueSeverity.Error).Message);
+        }
+
+        [Test]
+        public void V14_MemoryNotInvolvedInQuest_IsNotReported()
+        {
+            var other = Make<NPCMemoryEntrySO>("Mem_Unrelated");
+            other.unlockConditions = new Fact[] { Make<DialogueFact>().Init("Unrelated"), null };
+            _npc.memories.Add(other);
+            Assert.IsFalse(Validate().Any(i => i.Rule == "V14"));
+        }
+
+        [Test]
+        public void V15_MemoryWithoutDialogueOrGate_IsWarning()
+        {
+            var memory = AddInvolvedMemory("Mem_Silent", withDialogue: false);
+            Assert.AreSame(memory, Single(Validate(), "V15", IssueSeverity.Warning).Context);
+        }
+
+        [Test]
+        public void V15_MemoryGatingAChoice_IsFine()
+        {
+            var memory = AddInvolvedMemory("Mem_Gate", withDialogue: false);
+            AddGuardChoiceRequiring(memory);
+            Assert.IsFalse(Validate().Any(i => i.Rule == "V15"));
+        }
+
+        [Test]
+        public void V16_MemoryOnNoNpc_IsWarning()
+        {
+            var memory = AddInvolvedMemory("Mem_Loose", onNpc: false);
+            Assert.AreSame(memory, Single(Validate(), "V16", IssueSeverity.Warning).Context);
+        }
+
+        [Test]
+        public void V17_RequiredMemoryOwnedByAnotherNpc_IsError()
+        {
+            var memory = Make<NPCMemoryEntrySO>("Mem_Other");
+            memory.unlockConditions = new Fact[] { _killFact };
+            var other = Make<NPCEntity>("NPC_Other");
+            other.entityName = "Other";
+            other.memories = new List<NPCMemoryEntrySO> { memory };
+            _sources.Npcs = new[] { _npc, other };
+            AddGuardChoiceRequiring(memory);
+
+            var issue = Single(Validate(), "V17", IssueSeverity.Error);
+            StringAssert.Contains("Choice_Guard", issue.Message);
+            StringAssert.Contains("Guard doesn't have", issue.Message);
+        }
+
+        [Test]
+        public void V17_RequiredMemoryOwnedBySameNpc_IsFine()
+        {
+            var memory = AddInvolvedMemory("Mem_Own", withDialogue: false);
+            AddGuardChoiceRequiring(memory);
+            var issues = Validate();
+            Assert.IsFalse(issues.Any(i => i.Rule == "V17"), string.Join(" | ", issues));
+            Assert.IsEmpty(issues, string.Join(" | ", issues));
+        }
+
+        [Test]
+        public void MemoryIssues_ErrorsBeforeWarnings()
+        {
+            AddInvolvedMemory("Mem_Loose", onNpc: false, withDialogue: false); // V15 + V16 warnings
+            _offer.unlockConditions = new Fact[] { null };                      // V14 error
+            var issues = Validate().Where(i => i.Rule == "V14" || i.Rule == "V15" || i.Rule == "V16").ToList();
+            CollectionAssert.AreEqual(new[] { "V14", "V15", "V16" }, issues.Select(i => i.Rule).ToArray());
+        }
+
+        [Test]
+        public void ValidateAllMemories_ReportsMemoryNotInvolvedInAnyQuest()
+        {
+            var orphan = Make<NPCMemoryEntrySO>("Mem_Broken");
+            orphan.unlockConditions = new Fact[] { null }; // its only quest link was lost
+            orphan.effects.startdialog = Make<StartDialogueNode>();
+            _npc.memories.Add(orphan);
+
+            var index = QuestReferenceIndex.Build(_sources);
+            Assert.IsFalse(QuestValidator.Validate(_quest, index, _sources.Quests).Any(i => i.Rule == "V14"));
+            var issue = QuestValidator.ValidateAllMemories(index).Single();
+            Assert.AreEqual("V14", issue.Rule);
+            Assert.AreSame(orphan, issue.Context);
+        }
+
+        // ── QuestReport ───────────────────────────────────────────────────────
+
+        [Test]
+        public void Report_ResolvesQuestFactMemoryListAndAudit()
+        {
+            var orphan = Make<NPCMemoryEntrySO>("Mem_Broken");
+            orphan.unlockConditions = new Fact[] { null };
+            _npc.memories.Add(orphan);
+            var index = QuestReferenceIndex.Build(_sources);
+
+            string quest = QuestReport.Run("clean", index); // questId, case-insensitive
+            StringAssert.Contains("# Quest: Clean quest (Quest_Clean)", quest);
+            StringAssert.Contains("### Step 1 \"Kill\"", quest);
+            StringAssert.Contains("set by [ScenePersistentID] Spider [Town]", quest);
+            StringAssert.Contains("### Mem_Offer — Guard · dialogue sets Start", quest);
+
+            StringAssert.Contains("# Fact: KilledFact_Spider", QuestReport.Run("KilledFact_Spider", index));
+            StringAssert.Contains("#1 MISSING", QuestReport.Run("mem_broken", index));
+            StringAssert.Contains("| Clean | Quest_Clean |", QuestReport.Run("list", index));
+
+            string audit = QuestReport.Run("audit", index);
+            StringAssert.Contains("**Error V14**", audit);
+            StringAssert.Contains("No quest, fact or memory named 'nope'", QuestReport.Run("nope", index));
         }
 
         // ── QuestStepRemap ────────────────────────────────────────────────────

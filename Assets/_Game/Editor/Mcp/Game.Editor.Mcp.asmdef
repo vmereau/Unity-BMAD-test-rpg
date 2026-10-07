@@ -1,0 +1,28 @@
+{
+    "name": "Game.Editor.Mcp",
+    "rootNamespace": "Game.Editor.Mcp",
+    "references": [
+        "Game",
+        "Game.Editor",
+        "MCPForUnity.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "GAME_UNITY_MCP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.coplaydev.unity-mcp",
+            "expression": "",
+            "define": "GAME_UNITY_MCP"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -46,6 +46,40 @@ namespace Game.Editor.QuestExplorer
         public QuestPartLocation? Location;
     }
 
+    /// <summary>A choice option whose visibility requires a memory (ChoiceOption.requiredMemory).</summary>
+    public sealed class MemoryGateLink
+    {
+        /// <summary>The requiredMemory.</summary>
+        public NPCMemoryEntrySO Memory;
+        /// <summary>ChoiceDialogueNode or TeachChoiceDialogueNode.</summary>
+        public DialogueNode Node;
+        public int ChoiceIndex;
+        public string ChoiceText;
+        /// <summary>Owner of <see cref="Node"/> (null if unreachable from any NPC).</summary>
+        public NPCEntity Npc;
+        /// <summary>Memory whose startdialog chain reaches <see cref="Node"/> (may be null).</summary>
+        public NPCMemoryEntrySO OwnerMemory;
+        /// <summary>e.g. "Guard › Choice_Guard_SpiderOffer › Choice 'I already did it'".</summary>
+        public string Label;
+    }
+
+    [Flags] public enum MemoryInvolvement { None = 0, ReadsQuestFact = 1, SetsQuestFact = 2 }
+
+    /// <summary>A memory involved in a quest, and why.</summary>
+    public sealed class InvolvedMemory
+    {
+        public NPCMemoryEntrySO Memory;
+        /// <summary>First NPC listing the memory; null = on no NPC.</summary>
+        public NPCEntity Npc;
+        public MemoryInvolvement Reasons;
+        /// <summary>"reads Step 1 › Part 1", "dialogue sets Start", ...</summary>
+        public List<string> ReasonLabels = new List<string>();
+    }
+
+    public enum MemoryLiveState { Locked, Active, ActiveDialoguePlayed, Invalidated }
+
+    public enum MemoryConditionList { Unlock, Invalidation }
+
     public enum QuestPartSlot { Start, Step, Completed, Failed }
 
     /// <summary>

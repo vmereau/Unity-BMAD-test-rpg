@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using _Game.ScriptableObjects.Entities;
 using Game.Core;
 using Game.Dialogue;
@@ -12,7 +14,8 @@ namespace Game.Editor.QuestExplorer
 {
     /// <summary>
     /// UI-agnostic reverse index: every <see cref="Fact"/> → its setters and readers, dialogue node →
-    /// owning NPC + memory, NPC → scene objects, quest → registration and targeting QuestFacts.
+    /// owning NPC + memory, NPC → scene objects, quest → registration and targeting QuestFacts,
+    /// memory → gated choices, quest → involved memories.
     /// Pure C# over <see cref="IndexSources"/> — no AssetDatabase, no SerializedObject — so tests and a
     /// future graph view can reuse it.
     /// </summary>
@@ -21,6 +24,8 @@ namespace Game.Editor.QuestExplorer
         private static readonly IReadOnlyList<FactLink> NoLinks = new FactLink[0];
         private static readonly IReadOnlyList<QuestFact> NoQuestFacts = new QuestFact[0];
         private static readonly IReadOnlyList<GameObject> NoObjects = new GameObject[0];
+        private static readonly IReadOnlyList<MemoryGateLink> NoGates = new MemoryGateLink[0];
+        private static readonly IReadOnlyList<InvolvedMemory> NoMemories = new InvolvedMemory[0];
 
         private readonly Dictionary<Fact, List<FactLink>> _setters = new Dictionary<Fact, List<FactLink>>();
         private readonly Dictionary<Fact, List<FactLink>> _readers = new Dictionary<Fact, List<FactLink>>();
@@ -29,13 +34,19 @@ namespace Game.Editor.QuestExplorer
         private readonly Dictionary<NPCMemoryEntrySO, NPCEntity> _memoryOwners = new Dictionary<NPCMemoryEntrySO, NPCEntity>();
         private readonly Dictionary<Entity, List<GameObject>> _sceneObjectsByEntity = new Dictionary<Entity, List<GameObject>>();
         private readonly Dictionary<QuestSO, List<QuestFact>> _questFactsByQuest = new Dictionary<QuestSO, List<QuestFact>>();
+        private readonly Dictionary<NPCMemoryEntrySO, List<MemoryGateLink>> _gatesByMemory = new Dictionary<NPCMemoryEntrySO, List<MemoryGateLink>>();
+        private readonly HashSet<NPCMemoryEntrySO> _ownedMemories = new HashSet<NPCMemoryEntrySO>();
+        private readonly Dictionary<QuestSO, List<InvolvedMemory>> _involvedCache = new Dictionary<QuestSO, List<InvolvedMemory>>();
         private readonly HashSet<QuestSO> _eventsManagerQuests;
         private readonly HashSet<QuestSO> _questLogQuests;
         private readonly List<QuestSO> _quests;
         private readonly List<Fact> _allFacts;
+        private readonly List<NPCMemoryEntrySO> _allMemories = new List<NPCMemoryEntrySO>();
 
         public IReadOnlyList<QuestSO> Quests => _quests;
         public IReadOnlyList<Fact> AllFacts => _allFacts;
+        /// <summary>Every memory asset plus every memory listed on an NPC, ordered by name.</summary>
+        public IReadOnlyList<NPCMemoryEntrySO> AllMemories => _allMemories;
 
         private QuestReferenceIndex(IndexSources s)
         {
@@ -50,6 +61,7 @@ namespace Game.Editor.QuestExplorer
             var index = new QuestReferenceIndex(s);
             index.MapDialogueOwnership(s.Npcs);
             index.MapDialogueSetters(s.DialogueNodes);
+            index.MapMemoryGates(s.DialogueNodes);
             index.MapKilledSetters(s.KilledBindings, s.ClosedSceneRefs);
             index.MapQuestReaders();
             index.MapMemoryReaders(s.Memories);
@@ -84,6 +96,93 @@ namespace Game.Editor.QuestExplorer
         /// <summary>Live scene GameObjects whose PersistentID entity is this NPC (prefab bindings excluded).</summary>
         public IReadOnlyList<GameObject> GetSceneObjectsForNpc(NPCEntity npc) =>
             npc != null && _sceneObjectsByEntity.TryGetValue(npc, out var list) ? list : NoObjects;
+
+        /// <summary>Choice options whose requiredMemory is this memory.</summary>
+        public IReadOnlyList<MemoryGateLink> GetGates(NPCMemoryEntrySO memory) =>
+            memory != null && _gatesByMemory.TryGetValue(memory, out var list) ? list : NoGates;
+
+        /// <summary>True when the memory is listed in any <c>NPCEntity.memories</c>.</summary>
+        public bool IsOwnedByNpc(NPCMemoryEntrySO memory) => memory != null && _ownedMemories.Contains(memory);
+
+        /// <summary>
+        /// Memories whose conditions read one of the quest's part facts (or a QuestFact targeting the quest),
+        /// or whose start dialogue chain sets one of the quest's part facts. Not transitive. Ordered by NPC
+        /// display name (no NPC last), then memory name.
+        /// </summary>
+        public IReadOnlyList<InvolvedMemory> GetInvolvedMemories(QuestSO quest)
+        {
+            if (quest == null) return NoMemories;
+            if (_involvedCache.TryGetValue(quest, out var cached)) return cached;
+
+            var byMemory = new Dictionary<NPCMemoryEntrySO, InvolvedMemory>();
+            void Involve(NPCMemoryEntrySO memory, MemoryInvolvement reason, string label)
+            {
+                if (memory == null) return;
+                if (!byMemory.TryGetValue(memory, out var im))
+                    byMemory[memory] = im = new InvolvedMemory { Memory = memory, Npc = GetMemoryOwner(memory) };
+                im.Reasons |= reason;
+                if (!im.ReasonLabels.Contains(label)) im.ReasonLabels.Add(label);
+            }
+
+            void InvolveReaders(Fact fact, string target)
+            {
+                foreach (var link in GetReaders(fact))
+                {
+                    if (link.Source == FactLinkSource.MemoryUnlock)
+                        Involve(link.Memory, MemoryInvolvement.ReadsQuestFact, $"reads {target}");
+                    else if (link.Source == FactLinkSource.MemoryInvalidation)
+                        Involve(link.Memory, MemoryInvolvement.ReadsQuestFact, $"invalidated by {target}");
+                }
+            }
+
+            foreach (var (loc, part) in EnumerateParts(quest))
+            {
+                if (part.fact == null) continue;
+                // (a) conditions reading the part fact
+                InvolveReaders(part.fact, loc.ToString());
+                // (b) start dialogue chains setting the part fact
+                foreach (var link in GetSetters(part.fact))
+                {
+                    if (link.Memory == null) continue;
+                    if (link.Source != FactLinkSource.StartDialogueNode && link.Source != FactLinkSource.ChoiceOption) continue;
+                    Involve(link.Memory, MemoryInvolvement.SetsQuestFact, $"dialogue sets {loc}");
+                }
+            }
+            // (a) conditions reading a QuestFact that targets the quest
+            foreach (var qf in GetQuestFactsTargeting(quest))
+                InvolveReaders(qf, $"→ {QuestFactStateLabel(qf)}");
+
+            var result = byMemory.Values
+                .OrderBy(im => im.Npc == null ? 1 : 0)
+                .ThenBy(im => NpcDisplayName(im.Npc), StringComparer.Ordinal)
+                .ThenBy(im => im.Memory.name, StringComparer.Ordinal)
+                .ToList();
+            _involvedCache[quest] = result;
+            return result;
+        }
+
+        /// <summary>
+        /// Mirrors NPCMemoryEntrySO.IsActive and NPCMemoryComponent's dialogue-played skip.
+        /// Null conditions are skipped, like TopicUnlockEvaluator.
+        /// </summary>
+        public static MemoryLiveState EvaluateMemory(NPCMemoryEntrySO memory, Func<Fact, bool> getFact,
+            Func<DialogueFact, bool> isDialoguePlayed)
+        {
+            if (memory == null || getFact == null) return MemoryLiveState.Locked;
+
+            if (memory.invalidationConditions != null)
+                foreach (var fact in memory.invalidationConditions)
+                    if (fact != null && getFact(fact)) return MemoryLiveState.Invalidated;
+
+            if (memory.unlockConditions != null)
+                foreach (var fact in memory.unlockConditions)
+                    if (fact != null && !getFact(fact)) return MemoryLiveState.Locked;
+
+            var startFact = memory.effects?.startdialog?.dialogueFact;
+            return startFact != null && isDialoguePlayed != null && isDialoguePlayed(startFact)
+                ? MemoryLiveState.ActiveDialoguePlayed
+                : MemoryLiveState.Active;
+        }
 
         /// <summary>All parts in display order: start, steps/parts, completed, failed.</summary>
         public static IEnumerable<(QuestPartLocation loc, QuestPart part)> EnumerateParts(QuestSO quest)
@@ -130,6 +229,7 @@ namespace Game.Editor.QuestExplorer
                 foreach (var memory in npc.memories)
                 {
                     if (memory == null) continue;
+                    _ownedMemories.Add(memory);
                     if (!_memoryOwners.ContainsKey(memory)) _memoryOwners[memory] = npc;
 
                     var root = memory.effects?.startdialog;
@@ -215,6 +315,40 @@ namespace Game.Editor.QuestExplorer
             }
         }
 
+        private void MapMemoryGates(DialogueNode[] nodes)
+        {
+            // Same node union as MapDialogueSetters.
+            var all = new HashSet<DialogueNode>(_dialogueOwners.Keys);
+            if (nodes != null)
+                foreach (var n in nodes) if (n != null) all.Add(n);
+
+            foreach (var node in all)
+            {
+                IReadOnlyList<ChoiceOption> options = node switch
+                {
+                    ChoiceDialogueNode c => c.choices,
+                    TeachChoiceDialogueNode t => t.choices,
+                    _ => null
+                };
+                if (options == null) continue;
+
+                var owner = GetDialogueOwner(node);
+                for (int i = 0; i < options.Count; i++)
+                {
+                    var option = options[i];
+                    if (option?.requiredMemory == null) continue;
+                    if (!_gatesByMemory.TryGetValue(option.requiredMemory, out var list))
+                        _gatesByMemory[option.requiredMemory] = list = new List<MemoryGateLink>();
+                    list.Add(new MemoryGateLink
+                    {
+                        Memory = option.requiredMemory, Node = node, ChoiceIndex = i, ChoiceText = option.text,
+                        Npc = owner?.npc, OwnerMemory = owner?.memory,
+                        Label = $"{NpcDisplayName(owner?.npc)} › {node.name} › Choice '{Shorten(option.text)}'"
+                    });
+                }
+            }
+        }
+
         private void MapKilledSetters(List<KilledFactBinding> bindings, List<(KilledFact fact, string scenePath)> closed)
         {
             if (bindings != null)
@@ -278,6 +412,7 @@ namespace Game.Editor.QuestExplorer
             var all = new HashSet<NPCMemoryEntrySO>(_memoryOwners.Keys);
             if (memories != null)
                 foreach (var m in memories) if (m != null) all.Add(m);
+            _allMemories.AddRange(all.OrderBy(m => m.name, StringComparer.Ordinal));
 
             foreach (var memory in all)
             {
@@ -376,7 +511,7 @@ namespace Game.Editor.QuestExplorer
             list.Add(link);
         }
 
-        private static List<T> NonNull<T>(T[] items) where T : Object
+        private static List<T> NonNull<T>(T[] items) where T : UnityEngine.Object
         {
             var list = new List<T>();
             if (items == null) return list;

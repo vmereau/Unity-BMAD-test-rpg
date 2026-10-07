@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Core;
+using Game.NPC;
 using Game.Quest;
 using Game.World;
 using UnityEditor;
@@ -51,6 +52,13 @@ namespace Game.Editor.QuestExplorer
 
         internal QuestReferenceIndex Index => _index;
         internal Dictionary<string, bool> FoldoutStates => _foldoutStates;
+
+        /// <summary>
+        /// Memories edited from a quest's NPC Memories section. They stay listed there even if the edit
+        /// makes them no longer involved, so the user can fix or undo it (session only).
+        /// </summary>
+        internal Dictionary<QuestSO, HashSet<NPCMemoryEntrySO>> EditedMemories { get; } =
+            new Dictionary<QuestSO, HashSet<NPCMemoryEntrySO>>();
 
         // ── Entry points ──────────────────────────────────────────────────────
 

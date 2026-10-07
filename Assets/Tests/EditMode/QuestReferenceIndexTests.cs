@@ -327,5 +327,217 @@ namespace Tests.EditMode
 
             CollectionAssert.AreEqual(new[] { sceneGo }, index.GetSceneObjectsForNpc(npc).ToArray());
         }
+
+        // ── NPC memories: gates ───────────────────────────────────────────────
+
+        [Test]
+        public void ChoiceRequiredMemory_ProducesGateAttributedToNpcAndMemory()
+        {
+            var start = Make<StartDialogueNode>();
+            var choice = Make<ChoiceDialogueNode>("Choice_Offer");
+            start.nextNode = choice;
+            var gated = Make<NPCMemoryEntrySO>("Mem_Gated");
+            choice.choices = new[] { new ChoiceOption { text = "I already did it", requiredMemory = gated } };
+            var npc = MakeNpc("Guard", out var owner, start);
+            npc.memories.Add(gated);
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Npcs = new[] { npc } });
+
+            var gate = index.GetGates(gated).Single();
+            Assert.AreSame(npc, gate.Npc);
+            Assert.AreSame(owner, gate.OwnerMemory);
+            Assert.AreSame(choice, gate.Node);
+            Assert.AreEqual(0, gate.ChoiceIndex);
+            StringAssert.Contains("Guard › Choice_Offer › Choice 'I already did it'", gate.Label);
+            Assert.AreEqual(0, index.GetGates(null).Count);
+        }
+
+        [Test]
+        public void TeachChoiceRequiredMemory_ProducesGate()
+        {
+            var teach = Make<TeachChoiceDialogueNode>();
+            var gated = Make<NPCMemoryEntrySO>();
+            teach.choices = new[] { new TeachChoiceOption(), new TeachChoiceOption { requiredMemory = gated } };
+
+            var index = QuestReferenceIndex.Build(new IndexSources { DialogueNodes = new DialogueNode[] { teach } });
+
+            var gate = index.GetGates(gated).Single();
+            Assert.AreEqual(1, gate.ChoiceIndex);
+            Assert.IsNull(gate.Npc);
+        }
+
+        // ── NPC memories: quest involvement ───────────────────────────────────
+
+        private QuestSO MakeQuest(Fact startFact, Fact stepFact)
+        {
+            var quest = Make<QuestSO>("Quest_Test");
+            quest.startPart = Part(startFact);
+            quest.steps.Add(new QuestStep { title = "Kill", parts = new List<QuestPart> { Part(stepFact) } });
+            return quest;
+        }
+
+        [Test]
+        public void MemoryUnlockedByStepFact_IsInvolvedAsReader()
+        {
+            var kill = Make<KilledFact>().Init("guid-m1");
+            var quest = MakeQuest(null, kill);
+            var memory = Make<NPCMemoryEntrySO>("Mem_Done");
+            memory.unlockConditions = new Fact[] { kill };
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Quests = new[] { quest }, Memories = new[] { memory } });
+
+            var im = index.GetInvolvedMemories(quest).Single();
+            Assert.AreSame(memory, im.Memory);
+            Assert.AreEqual(MemoryInvolvement.ReadsQuestFact, im.Reasons);
+            CollectionAssert.Contains(im.ReasonLabels, "reads Step 1 › Part 1");
+        }
+
+        [Test]
+        public void MemoryInvalidatedByTargetingQuestFact_IsInvolved()
+        {
+            var quest = MakeQuest(null, null);
+            var completed = Make<QuestFact>().Init(quest, QuestState.IsCompleted);
+            var memory = Make<NPCMemoryEntrySO>();
+            memory.invalidationConditions = new Fact[] { completed };
+
+            var index = QuestReferenceIndex.Build(new IndexSources
+            {
+                Quests = new[] { quest }, Memories = new[] { memory }, QuestFacts = new[] { completed }
+            });
+
+            var im = index.GetInvolvedMemories(quest).Single();
+            Assert.AreEqual(MemoryInvolvement.ReadsQuestFact, im.Reasons);
+            Assert.IsTrue(im.ReasonLabels.Any(l => l.StartsWith("invalidated by → ")), string.Join(", ", im.ReasonLabels));
+        }
+
+        [Test]
+        public void MemoryWhoseDialogueSetsStartFact_IsInvolvedAsSetter()
+        {
+            var accept = Make<DialogueFact>().Init("Accept");
+            var start = Make<StartDialogueNode>();
+            var choice = Make<ChoiceDialogueNode>();
+            start.nextNode = choice;
+            choice.choices = new[] { new ChoiceOption { text = "Yes", dialogueFact = accept } };
+            var npc = MakeNpc("Guard", out var memory, start);
+            var quest = MakeQuest(accept, null);
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Quests = new[] { quest }, Npcs = new[] { npc } });
+
+            var im = index.GetInvolvedMemories(quest).Single();
+            Assert.AreSame(memory, im.Memory);
+            Assert.AreSame(npc, im.Npc);
+            Assert.AreEqual(MemoryInvolvement.SetsQuestFact, im.Reasons);
+            CollectionAssert.Contains(im.ReasonLabels, "dialogue sets Start");
+        }
+
+        [Test]
+        public void MemoryReadingUnrelatedFacts_IsNotInvolved()
+        {
+            var quest = MakeQuest(Make<DialogueFact>().Init("Start"), null);
+            var memory = Make<NPCMemoryEntrySO>();
+            memory.unlockConditions = new Fact[] { Make<DialogueFact>().Init("Other") };
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Quests = new[] { quest }, Memories = new[] { memory } });
+
+            Assert.AreEqual(0, index.GetInvolvedMemories(quest).Count);
+        }
+
+        [Test]
+        public void MemoryReadingAndSettingQuestFacts_IsListedOnceWithBothFlags()
+        {
+            var accept = Make<DialogueFact>().Init("Accept");
+            var start = Make<StartDialogueNode>();
+            start.dialogueFact = accept;
+            var npc = MakeNpc("Guard", out var memory, start);
+            memory.invalidationConditions = new Fact[] { accept };
+            var quest = MakeQuest(accept, null);
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Quests = new[] { quest }, Npcs = new[] { npc } });
+
+            var im = index.GetInvolvedMemories(quest).Single();
+            Assert.AreEqual(MemoryInvolvement.ReadsQuestFact | MemoryInvolvement.SetsQuestFact, im.Reasons);
+            CollectionAssert.Contains(im.ReasonLabels, "invalidated by Start");
+            CollectionAssert.Contains(im.ReasonLabels, "dialogue sets Start");
+        }
+
+        [Test]
+        public void IsOwnedByNpc_OnlyForMemoriesListedOnAnNpc()
+        {
+            var npc = MakeNpc("Guard", out var owned, null);
+            var loose = Make<NPCMemoryEntrySO>();
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Npcs = new[] { npc }, Memories = new[] { owned, loose } });
+
+            Assert.IsTrue(index.IsOwnedByNpc(owned));
+            Assert.IsFalse(index.IsOwnedByNpc(loose));
+        }
+
+        // ── NPC memories: live state ──────────────────────────────────────────
+
+        [Test]
+        public void EvaluateMemory_MirrorsRuntimeSemantics()
+        {
+            var on = Make<DialogueFact>().Init("On");
+            var off = Make<DialogueFact>().Init("Off");
+            var played = Make<DialogueFact>().Init("Played");
+            var values = new Dictionary<Fact, bool> { { on, true }, { off, false } };
+            bool Get(Fact f) => values.TryGetValue(f, out bool v) && v;
+            bool NotPlayed(DialogueFact _) => false;
+
+            var memory = Make<NPCMemoryEntrySO>();
+            Assert.AreEqual(MemoryLiveState.Active, QuestReferenceIndex.EvaluateMemory(memory, Get, NotPlayed), "empty conditions");
+
+            memory.unlockConditions = new Fact[] { on, off };
+            Assert.AreEqual(MemoryLiveState.Locked, QuestReferenceIndex.EvaluateMemory(memory, Get, NotPlayed), "unlock false");
+
+            memory.unlockConditions = new Fact[] { on };
+            memory.invalidationConditions = new Fact[] { off, on };
+            Assert.AreEqual(MemoryLiveState.Invalidated, QuestReferenceIndex.EvaluateMemory(memory, Get, NotPlayed), "invalidated");
+
+            memory.unlockConditions = new Fact[] { null, on };
+            memory.invalidationConditions = null;
+            Assert.AreEqual(MemoryLiveState.Active, QuestReferenceIndex.EvaluateMemory(memory, Get, NotPlayed), "null skipped");
+
+            var startNode = Make<StartDialogueNode>();
+            startNode.dialogueFact = played;
+            memory.effects.startdialog = startNode;
+            Assert.AreEqual(MemoryLiveState.ActiveDialoguePlayed,
+                QuestReferenceIndex.EvaluateMemory(memory, Get, d => d == played), "dialogue played");
+            Assert.AreEqual(MemoryLiveState.Active,
+                QuestReferenceIndex.EvaluateMemory(memory, Get, null), "null isDialoguePlayed");
+
+            memory.unlockConditions = new Fact[] { off };
+            Assert.AreEqual(MemoryLiveState.Locked,
+                QuestReferenceIndex.EvaluateMemory(memory, Get, d => d == played), "locked, dialogue played");
+
+            memory.invalidationConditions = new Fact[] { on };
+            Assert.AreEqual(MemoryLiveState.Invalidated,
+                QuestReferenceIndex.EvaluateMemory(memory, Get, NotPlayed), "invalidated while locked");
+
+            memory.unlockConditions = null;
+            memory.invalidationConditions = null;
+            startNode.dialogueFact = null;
+            Assert.AreEqual(MemoryLiveState.Active,
+                QuestReferenceIndex.EvaluateMemory(memory, Get, _ => true), "start dialogue without fact");
+        }
+
+        [Test]
+        public void MemoryReadingPartFactAndTargetingQuestFact_IsListedOnceWithBothLabels()
+        {
+            var kill = Make<KilledFact>().Init("guid-m2");
+            var quest = MakeQuest(null, kill);
+            var completed = Make<QuestFact>().Init(quest, QuestState.IsCompleted);
+            var memory = Make<NPCMemoryEntrySO>();
+            memory.unlockConditions = new Fact[] { kill };
+            memory.invalidationConditions = new Fact[] { completed };
+
+            var index = QuestReferenceIndex.Build(new IndexSources
+            {
+                Quests = new[] { quest }, Memories = new[] { memory }, QuestFacts = new[] { completed }
+            });
+
+            var im = index.GetInvolvedMemories(quest).Single();
+            CollectionAssert.AreEqual(new[] { "reads Step 1 › Part 1", "invalidated by → IsCompleted" }, im.ReasonLabels);
+        }
     }
 }
