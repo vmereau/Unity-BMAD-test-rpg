@@ -37,16 +37,20 @@ Player.prefab  (Assets/_Game/Prefabs/Player/)
 ├── UICanvas             (child — nested prefab: Assets/_Game/Prefabs/UI/UICanvas.prefab)
 │   ├── Canvas + GraphicRaycaster + UIScreenManager  (no CanvasScaler — removed story 6-1)
 │   ├── EventSystem      (child of UICanvas with plain Transform — EventSystem + InputSystemUIInputModule)
-│   ├── Crosshair        (Image)
-│   ├── ActionBar        (ActionBarUI — nested within UICanvas.prefab)
-│   │   └── 6x ActionBarSlot  (ActionBarSlotUI, Icon, StackCountText, KeyLabel)
+│   ├── ContainerUI / NPCTradeUI  (nested prefabs, inactive by default)
+│   ├── Menus            (container GO — tab-based screen panels)
+│   │   ├── TabBar            (TabBarUI — nested within UICanvas.prefab)
+│   │   ├── InventoryUI       (inactive by default)
+│   │   ├── QuestLogUI        (inactive by default)
+│   │   ├── CharacterStatsUI  (inactive by default)
+│   │   └── OptionsUI         (inactive by default)
+│   ├── Game             (HUD container — drawn AFTER Menus, i.e. on top of them)
+│   │   ├── Crosshair         (Image)
+│   │   ├── InteractionPrompt (nested prefab: Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup + InteractionPromptUI; hides while the cursor is unlocked)
+│   │   ├── ActionBar         (ActionBarUI)
+│   │   │   └── 6x ActionBarSlot  (ActionBarSlotUI, Icon, StackCountText, KeyLabel)
+│   │   └── HealthBar / StaminaBar / ExperienceBar / NotificationContainer
 │   ├── DialoguePanel    (nested prefab: Assets/_Game/Prefabs/UI/Dialogue/DialoguePanel.prefab)
-│   └── Menus            (container GO — tab-based screen panels)
-│       ├── TabBar            (TabBarUI — nested within UICanvas.prefab)
-│       ├── InventoryUI       (inactive by default)
-│       ├── QuestLogUI        (inactive by default)
-│       ├── CharacterStatsUI  (inactive by default)
-│       └── OptionsUI         (inactive by default)
 ├── CameraTarget         (child — pure Transform pivot, local Y = 1.6; Cinemachine Follow/LookAt target)
 ├── Virtual Camera       (child — CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget; Follow → CameraTarget — see Scripts/Player/CLAUDE.md)
 ├── Camera               (child — Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
@@ -121,6 +125,7 @@ Prefabs assigned to `ItemSO.worldItemPrefab` (used for dropped items) **must** h
 - A **Rigidbody** component — `InventoryUI.DropItem()` calls `AddForce` immediately after `Instantiate`; no Rigidbody causes a `NullReferenceException`
 - **Layer: Interactable (Layer 8)** — so the player can pick it back up via `InteractionSystem`
 - **ItemPickup.cs** component with `_item` pre-assigned in the prefab
+- **InteractionHighlight** on the same root (`_targets` empty = outline all child meshes) — otherwise the focused item gets a prompt card but no outline
 
 **Drop physics pattern:** `DropItem()` in `InventoryUI` instantiates the prefab, then applies impulse:
 ```csharp

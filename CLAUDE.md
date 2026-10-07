@@ -102,6 +102,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
 | World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
+| Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
 | UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`) | Canvas setup, cursor, input, layout; HUD (incl. toasts), screens, dialogue, quest UI |
 | Prefabs | `Prefabs/CLAUDE.md` | Player / Entity hierarchies, layer rules, world-item rules |
