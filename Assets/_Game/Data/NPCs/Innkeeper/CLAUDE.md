@@ -65,7 +65,7 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 
 | Asset | Path |
 |-------|------|
-| NPCDataSO | `Assets/_Game/Data/NPCs/Innkeeper/NPC_Innkeeper.asset` |
+| NPCEntity | `Assets/_Game/Data/NPCs/Innkeeper/NPC_Innkeeper.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/Innkeeper/Dialogues/` |
 | Teachings | `Assets/_Game/Data/NPCs/Innkeeper/Teachings/` |
 | Memories | `Assets/_Game/Data/NPCs/Innkeeper/Memories/` |

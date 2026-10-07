@@ -88,7 +88,7 @@ When creating a new `StartDialogueNode`, always ask:
 > this topic always available."
 
 Wait for confirmation. Then either:
-- **New memory:** Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog`, add to `NPCDataSO.memories`
+- **New memory:** Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog` (auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`))
 - **Existing memory:** Identify the correct `NPCMemoryEntrySO` and set `effects.startdialog` on it
 
 ---
@@ -130,7 +130,7 @@ Work in this order:
 3. Create `ChoiceDialogueNode` assets (after their branch `TextDialogueNode` targets exist)
 4. Create `StartDialogueNode` asset, set `nextNode` to first node in chain
 5. Create or update `NPCMemoryEntrySO`, set `effects.startdialog`
-6. Update `NPCDataSO.memories` list
+6. Check `NPCEntity.memories` picked up the new memory (auto-sync; fallback menu `Game/Dev/Sync All NPC Memories`)
 
 After each asset creation, check Unity console for errors (`read_console`).
 

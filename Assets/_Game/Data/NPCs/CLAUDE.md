@@ -12,7 +12,7 @@ Each NPC must have its own dedicated subfolder:
 Assets/_Game/Data/NPCs/
   <NPCName>/
     CLAUDE.md                  ← NPC identity (instantiated NPC_IDENTITY_TEMPLATE.md) — READ FIRST
-    NPC_<NPCName>.asset        ← NPCDataSO
+    NPC_<NPCName>.asset        ← NPCEntity (menu Game/NPC/NPC Data)
     Dialogues/
       <TopicName>/
         Start_<NPC>_<Topic>.asset
@@ -28,6 +28,10 @@ Assets/_Game/Data/NPCs/
       ...
 ```
 
+`NPCEntity.memories` is **auto-synced** from `<NPCName>/Memories/**` by `NPCMemoriesAutoSync`
+(menu fallback `Game/Dev/Sync All NPC Memories`) — never edit the list by hand; a memory saved
+elsewhere belongs to no NPC (Quest Explorer V16).
+
 **Rule:** If a dedicated NPC folder does not exist, create it before placing any assets.
 
 ---
@@ -38,20 +42,20 @@ When entering any NPC subfolder, immediately check whether a `CLAUDE.md` exists 
 
 - **If `CLAUDE.md` is missing or does not contain an NPC identity section:** ask the user:
   > "No NPC identity found for `<NPCName>`. Would you like me to create the folder and identity
-  > now using `/NPC:create-npc`?"
+  > now using `/NPC:create`?"
   Do not proceed with dialogue or memory work until an identity exists — it is required to write
   consistent dialogue.
 
 - **If `CLAUDE.md` exists:** read it fully before touching any dialogue or memory asset for that NPC.
 
 The identity template is at `Assets/_Game/Data/NPCs/NPC_IDENTITY_TEMPLATE.md`.
-Use `/NPC:create-npc` to scaffold a new NPC folder with identity in one step.
+Use `/NPC:create` to scaffold a new NPC folder with identity in one step.
 
 ---
 
 ## Creating a New NPC
 
-Use the command `/NPC:create-npc` — it handles the full scaffold interactively:
+Use the command `/NPC:create` — it handles the full scaffold interactively:
 1. Asks for the NPC name
 2. Creates `<NPCName>/` folder
 3. Creates `NPC_<NPCName>.asset` (type: `Game/NPC/NPC Data`)

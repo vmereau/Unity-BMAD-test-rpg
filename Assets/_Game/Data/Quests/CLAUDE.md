@@ -3,6 +3,9 @@
 > Quest ScriptableObject assets live here. Full system doc: `docs/World/Quests/Quest.md`.
 > Inspect / validate a quest (setters, readers, orphan facts, registration): `Tools/Quests/Quest Explorer`
 > (see `Assets/_Game/Editor/QuestExplorer/CLAUDE.md`). Fact types: `Assets/_Game/Data/Facts/CLAUDE.md`.
+> **Claude:** read quest data with the MCP `quest_report` tool (`list` / `audit` / quest / fact / memory) instead of
+> parsing `.asset` YAML. Workflow: `/quests:design` → `/quests:implement` → `/quests:audit`. Specs live in
+> `docs/World/Quests/{QuestId}.md`. New quests go in `Data/Quests/{QuestId}/Quest_{QuestId}.asset`.
 
 ---
 

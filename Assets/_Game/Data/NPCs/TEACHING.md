@@ -54,7 +54,7 @@ The custom **`TeachChoiceOptionDrawer`** shows only the fields relevant to the s
 | Field | Type | Purpose |
 |-------|------|---------|
 | `text` | `string` | Button label shown to the player — **see authoring rule below** |
-| `requiredMemory` | `NPCMemoryEntrySO` | If set, option is hidden unless the memory appears in the NPC's active memories list. Null = always shown. **The referenced memory must be in `NPCDataSO.memories`** — the check is `Array.IndexOf(activeMemories, requiredMemory)`, not a standalone `IsActive()` call. |
+| `requiredMemory` | `NPCMemoryEntrySO` | If set, option is hidden unless the memory appears in the NPC's active memories list. Null = always shown. **The referenced memory must be in the owning NPC's `NPCEntity.memories`** (Quest Explorer rule V17) — the check is `Array.IndexOf(activeMemories, requiredMemory)`, not a standalone `IsActive()` call. |
 | `teachingType` | `TeachingType` | `SkillBased` or `StatBased` — controls which fields are shown in the Inspector |
 | `goldCost` | `int` | Gold deducted on selection (0 = free) |
 | `confirmNextNode` | `DialogueNode` | Node to advance to when teaching succeeds — must loop back (see below) |
@@ -185,8 +185,8 @@ Start_Trainer_Teach           isRepeatable=true, text="Teach me something"
 - [ ] `Teachings/` subfolder exists under NPC folder (create if missing)
 - [ ] `Teachings/<TopicName>/` subfolder created
 - [ ] `StartDialogueNode` created and linked to a topic memory (`effects.startdialog`)
-- [ ] Topic memory added to `NPCDataSO.memories` list (or existing memory updated)
-- [ ] Gate memories (for `requiredMemory`) also added to `NPCDataSO.memories`
+- [ ] Topic memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`) (or existing memory updated)
+- [ ] Gate memories (for `requiredMemory`) also saved under the same NPC's `Memories/` folder
 - [ ] `SkillFact` assets created in `Assets/_Game/Data/Player/` if gating by skill learned state
 - [ ] Each `TeachChoiceOption.text` is the name/description only — no LP or gold cost (the game UI generates those)
 - [ ] `teachingType` set correctly on each choice (`SkillBased` or `StatBased`)

@@ -58,11 +58,11 @@ Subscribes to `_onFactChanged`. On every fact write, re-evaluates all registered
 
 ## NPC Memory as World-State Bridge
 
-`Assets/_Game/ScriptableObjects/NPC/`
+`Assets/_Game/ScriptableObjects/Entities/NPC/`
 
 ```
-NPCDataSO
-└── memories: NPCMemoryEntrySO[]
+NPCEntity (NPC_<Name>.asset)
+└── memories: List<NPCMemoryEntrySO>   auto-synced from Data/NPCs/<Name>/Memories/
       ├── unlockConditions: Fact[]        ALL must be true
       ├── invalidationConditions: Fact[]  ANY true → closed
       └── effects: NPCMemoryEffects

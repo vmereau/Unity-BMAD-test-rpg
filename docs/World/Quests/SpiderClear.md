@@ -2,7 +2,7 @@
 
 > Template version: 1.0
 > Status: `implemented`
-> Spec path: `docs/Quests/SpiderClear.md`
+> Spec path: `docs/World/Quests/SpiderClear.md`
 
 ---
 

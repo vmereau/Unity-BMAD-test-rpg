@@ -1,4 +1,4 @@
-Your task is to scaffold a complete new NPC folder, including the NPCDataSO asset and the NPC identity file (CLAUDE.md), by walking the user through an interactive setup.
+Your task is to scaffold a complete new NPC folder, including the NPCEntity asset and the NPC identity file (CLAUDE.md), by walking the user through an interactive setup.
 
 ## Step 0 — Read the identity template
 
@@ -13,20 +13,20 @@ If `$ARGUMENTS` contains a name, use it. Otherwise ask:
 > "What is the NPC's name? (This becomes the folder name and asset prefix. Example: `Blacksmith`, `ElderMira`, `GuardCaptain`)"
 
 - Strip spaces for the folder/asset name (e.g. "Elder Mira" → folder `ElderMira`, asset `NPC_ElderMira.asset`)
-- Keep the display name with spaces for the `npcName` field in `NPCDataSO` and the identity file
+- Keep the display name with spaces for the `entityName` field in `NPCEntity` and the identity file
 
 Check whether `Assets/_Game/Data/NPCs/<NPCName>/` already exists. If it does, warn the user and ask whether to continue (edit existing) or cancel.
 
 ---
 
-## Step 2 — Create the folder and NPCDataSO
+## Step 2 — Create the folder and NPCEntity
 
 Create the following in order:
 
 1. Folder: `Assets/_Game/Data/NPCs/<NPCName>/`
 2. Subfolders: `Dialogues/` and `Memories/` inside the NPC folder
 3. Asset: `NPC_<NPCName>.asset` (type: `Game/NPC/NPC Data`) inside the NPC folder
-   - Set `npcName` to the display name from Step 1
+   - Set `entityName` to the display name from Step 1
    - Leave other fields (`dayState`, `nightState`, `walkSpeed`, `prefab`, `memories`) at defaults for now
 
 After creation, check Unity console for errors (`read_console`).

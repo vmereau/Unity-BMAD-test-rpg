@@ -48,7 +48,7 @@ When the chain ends the fact is written, the memory is invalidated, and the topi
 condition. The topic stays visible for as long as the memory `IsActive()`.
 
 **Important — memory association:**
-`StartDialogueNode` is not directly referenced by `NPCDataSO`. It is exposed to the dialogue
+`StartDialogueNode` is not directly referenced by `NPCEntity`. It is exposed to the dialogue
 system through an `NPCMemoryEntrySO` (via `effects.startdialog`). When creating a new
 `StartDialogueNode`, always ask the user:
 
@@ -57,7 +57,7 @@ system through an `NPCMemoryEntrySO` (via `effects.startdialog`). When creating 
 
 Then either:
 - Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog` to the
-  new `StartDialogueNode`, and add the memory to the `NPCDataSO.memories` list; OR
+  new `StartDialogueNode`, and save the memory under `<NPCName>/Memories/` (auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`)); OR
 - Open the existing `NPCMemoryEntrySO` and set its `effects.startdialog` to the new node.
 
 ---
@@ -147,7 +147,7 @@ Start_Blacksmith_Make         dialogueFact=null (repeatable), text="What can you
 - [ ] NPC subfolder exists (e.g. `Villager/`)
 - [ ] `Dialogues/<TopicName>/` subfolder created
 - [ ] `StartDialogueNode` asset created and linked to a memory (`effects.startdialog`)
-- [ ] Memory added to `NPCDataSO.memories` list (or existing memory updated)
+- [ ] Memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`) (or existing memory updated)
 - [ ] No single `TextDialogueNode.text` exceeds 300 characters
 - [ ] Last node in each chain has `nextNode = null`
 - [ ] `ChoiceDialogueNode` usage confirmed with user if branching is involved

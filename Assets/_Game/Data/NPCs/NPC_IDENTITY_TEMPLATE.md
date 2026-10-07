@@ -65,7 +65,7 @@
 
 | Asset | Path |
 |-------|------|
-| NPCDataSO | `Assets/_Game/Data/NPCs/<NPCName>/NPC_<NPCName>.asset` |
+| NPCEntity | `Assets/_Game/Data/NPCs/<NPCName>/NPC_<NPCName>.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/<NPCName>/Dialogues/` |
 | Memories | `Assets/_Game/Data/NPCs/<NPCName>/Memories/` |
 | Prefab | `Assets/_Game/Prefabs/NPCs/<NPCName>.prefab` *(if exists)* |

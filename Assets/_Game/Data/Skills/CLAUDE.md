@@ -39,7 +39,7 @@ Use `SkillFact` in `NPCMemoryEntrySO.unlockConditions` / `invalidationConditions
 | Show option only after skill X is learned | `unlockConditions` of a gate memory |
 | Hide option once skill X is learned | `invalidationConditions` of a gate memory |
 
-A **gate memory** is an `NPCMemoryEntrySO` with no `effects.startdialog`, used solely as a `TeachChoiceOption.requiredMemory` reference. It must be added to `NPCDataSO.memories` — see `Assets/_Game/Data/NPCs/TEACHING.md` for the full authoring pattern.
+A **gate memory** is an `NPCMemoryEntrySO` with no `effects.startdialog`, used solely as a `TeachChoiceOption.requiredMemory` reference. It must be in the owning NPC's `NPCEntity.memories` (save it under that NPC's `Memories/` folder — auto-synced) — see `Assets/_Game/Data/NPCs/TEACHING.md` for the full authoring pattern.
 
 ---
 

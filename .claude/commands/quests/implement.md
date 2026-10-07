@@ -1,19 +1,42 @@
-Your task is to implement a quest from a confirmed spec file, creating all required Unity assets.
+Your task is to implement a quest from a confirmed spec file, creating all required Unity assets, then prove it is
+wired correctly with the Quest Explorer report.
+
+## Tools you use
+
+- **`quest_report`** (Unity MCP custom tool; same as `Game.Editor.QuestExplorer.QuestReport.Run(target)` via
+  `execute_code` if the tool isn't listed). Targets: `list`, `audit`, a questId / quest asset / title, a fact asset
+  name, a memory asset name. Returns Markdown: parts, who sets / reads each fact, involved NPC memories, gated
+  choices, validator issues (V1–V17, meanings in `Assets/_Game/Editor/QuestExplorer/CLAUDE.md`).
+- **`QuestEditActions`** (`Game.Editor.QuestExplorer`, via `execute_code`) — the same Undo-aware edits the Quest
+  Explorer window uses. Prefer them over raw `manage_scriptable_object` edits on `QuestSO` (its parts are structs):
+  - Create: `CreateQuest(id, title, description)`, `GetOrCreateDialogueFact(nodeId)`, `GetOrCreateWorldFact(key)`,
+    `GetOrCreateQuestFact(quest, QuestState.X)` / `GetOrCreateQuestFact(quest, default, stepIndex)`
+  - Quest structure: `AddStep(quest)`, `SetStepTitle/SetStepDescription(quest, i, text)`,
+    `AddPart(quest, QuestPartSlot.Step|Completed|Failed, stepIndex)`, `SetPartFact(quest, loc, fact)`,
+    `SetPartEntry(quest, loc, text)` with `QuestPartLocation.Start / StepPart(i, j) / Completed(j) / Failed(j)`
+  - KilledFact: set `Selection.activeGameObject` to the enemy, then `AssignKilledFactFromSelection(quest, loc)`
+  - Memories: `AddMemoryCondition / SetMemoryCondition / RemoveMemoryCondition(memory, MemoryConditionList.Unlock|Invalidation, …)`
+  - Registration: `AddToQuestLog(quest)` (QuestEventsManager is auto-synced)
+- In `execute_code`, write `UnityEngine.Object` (plain `Object` is ambiguous) and fully qualify game types
+  (`Game.Quest.QuestSO`, `Game.Core.DialogueFact`, `Game.NPC.NPCMemoryEntrySO`, …). Note `QuestState` is
+  `Game.Core.QuestState` (not `Game.Quest`); `QuestPartLocation`, `QuestPartSlot`, `MemoryConditionList` are in
+  `Game.Editor.QuestExplorer`.
 
 ## Step 0 — Load context
 
 Read these files before doing anything:
-- `docs/Quests/QUEST_SPEC_TEMPLATE.md`
+- `docs/World/Quests/QUEST_SPEC_TEMPLATE.md`
 - `Assets/_Game/Data/Quests/CLAUDE.md`
-- `Assets/_Game/Data/NPCs/DIALOGUE.md`
-- `Assets/_Game/Data/NPCs/MEMORIES.md`
+- `Assets/_Game/Data/Facts/CLAUDE.md`
+- `Assets/_Game/Editor/QuestExplorer/CLAUDE.md`
+- `Assets/_Game/Data/NPCs/CLAUDE.md`, `DIALOGUE.md`, `MEMORIES.md` (and `TEACHING.md` if a teaching chain is involved)
 
 ---
 
 ## Step 1 — Identify the spec
 
-If `$ARGUMENTS` contains a Quest ID, load `docs/Quests/{QuestId}.md`.
-Otherwise list all `.md` files in `docs/Quests/` (excluding `QUEST_SPEC_TEMPLATE.md`) and ask:
+If `$ARGUMENTS` contains a Quest ID, load `docs/World/Quests/{QuestId}.md`.
+Otherwise list all `.md` files in `docs/World/Quests/` (excluding `QUEST_SPEC_TEMPLATE.md` and `Quest.md`) and ask:
 
 > "Which quest would you like to implement? Found: [list]"
 
@@ -29,43 +52,32 @@ If `status: implemented`, warn:
 
 ## Step 2 — Audit what already exists
 
-Before creating anything, scan for existing assets matching the spec:
-- Fact assets in `Assets/_Game/Data/Facts/`
-- `Quest_{QuestId}.asset` in `Assets/_Game/Data/Quests/`
-- NPC folders in `Assets/_Game/Data/NPCs/`
-- Reward assets in `Assets/_Game/Data/Rewards/`
+1. Run `quest_report list`, and `quest_report {QuestId}` if the quest already exists.
+2. Run `quest_report <FactName>` for each fact listed under **Already exists** — confirm who sets it.
+3. Check NPC folders in `Assets/_Game/Data/NPCs/` and rewards in `Assets/_Game/Data/Rewards/`.
 
-Report what exists and what needs to be created. Confirm with the user before proceeding.
-
----
-
-## Step 3 — Create Fact assets
-
-Create all Fact assets listed under **"To create"** in the spec. Facts are dependencies for everything else — create them first.
-
-For each fact:
-- `WorldFact` → `manage_scriptable_object` type `Game/Facts/World Fact`, set `_eventKey`
-- `DialogueFact` → type `Game/Facts/Dialogue Fact`, set `_nodeId` (use the planned `Start_` asset name as the node ID)
-- `KilledFact` → type `Game/Facts/Killed Fact`, use **Generate GUID** context menu after creation
-
-Save all Fact assets to `Assets/_Game/Data/Facts/`.
-
-Check `read_console` after each batch.
+Report what exists and what needs to be created. Flag spec problems before building (e.g. a `WorldFact` part — no
+setter exists in code, V3). Confirm with the user before proceeding.
 
 ---
 
-## Step 4 — Create QuestSO
+## Step 3 — Create the QuestSO
 
-Create `Quest_{QuestId}.asset` in `Assets/_Game/Data/Quests/` (type `Game/Quest/Quest`).
+`QuestEditActions.CreateQuest(id, title, description)` → `Data/Quests/{QuestId}/Quest_{QuestId}.asset`, already
+added to QuestLogUI. Then add the steps (`AddStep`, `SetStepTitle`, `SetStepDescription`) and the parts
+(`AddPart`) — empty for now. Check `read_console`.
 
-Set fields from the spec:
-- `questId`, `title`, `description`
-- `startPart` → wire fact asset + entry text
-- `completedParts[]` → wire fact assets + entry text
-- `failedParts[]` → wire fact assets + entry text (skip if empty)
-- `steps[]` → for each step: title, description, parts (fact + entry)
+---
 
-Check `read_console`.
+## Step 4 — Create and wire facts
+
+Facts are dependencies for parts, memories and rewards.
+- **DialogueFact / WorldFact / QuestFact:** `GetOrCreate…` (folder `Data/Facts/`, naming in `Data/Facts/CLAUDE.md`).
+  The DialogueFact node id is the planned `Start_` / choice name.
+- **KilledFact:** never create one by hand. Per enemy: select it, `AssignKilledFactFromSelection(quest, loc)` (creates
+  or reuses `KilledFact_{GameObject}` and wires its `PersistentID`). For many enemies in the open scene,
+  `Game/World/Generate Missing KilledFacts` first, then wire. One fact per entity (V5).
+- Wire each part: `SetPartFact` + `SetPartEntry`. Check `read_console`.
 
 ---
 
@@ -73,7 +85,8 @@ Check `read_console`.
 
 For each NPC in the spec where `exists: false`:
 
-Follow the scaffold procedure from `.claude/commands/NPC/create.md` **Steps 2–4**, using the `identity_notes` from the spec as inputs in place of the interactive interview. Skip the interview — all answers come from the spec.
+Follow the scaffold procedure from `.claude/commands/NPC/create.md` **Steps 2–4**, using the `identity_notes` from the
+spec as inputs in place of the interactive interview. Skip the interview — all answers come from the spec.
 
 For NPCs that already exist, read their `CLAUDE.md` to confirm the folder structure before proceeding.
 
@@ -81,27 +94,27 @@ For NPCs that already exist, read their `CLAUDE.md` to confirm the folder struct
 
 ## Step 6 — Dialogue chains
 
-For each memory block in the spec:
+For each memory block with a dialogue in the spec:
 
-Follow the execution procedure from `.claude/commands/NPC/dialogue.md` **Steps 6–8**, using the dialogue script from the spec in place of user-provided content. Do not re-ask for content — it is already defined.
+Follow the execution procedure from `.claude/commands/NPC/dialogue.md` **Steps 6–8**, using the dialogue script from
+the spec in place of user-provided content. Do not re-ask for content — it is already defined.
 
 Work order per chain (leaf nodes first):
 1. `TextDialogueNode` assets (NPC speech lines, chained via `nextNode`)
-2. `ChoiceDialogueNode` assets (after their branch targets exist), with `dialogueFact` set on any choice that tracks a played state
+2. `ChoiceDialogueNode` assets (after their branch targets exist), with `dialogueFact` set on any choice that tracks a
+   played state, and `requiredMemory` on gated choices (the gate memory is created in Step 7 — come back to set it)
 3. `StartDialogueNode` asset, with `dialogueFact` set to the `DialogueFact` for this chain
 
 ---
 
 ## Step 7 — NPC Memory entries
 
-For each memory block in the spec, create `Mem_{NPC}_{Topic}.asset` (type `Game/NPC/Memory Entry`) in `Assets/_Game/Data/NPCs/{NPCName}/Memories/`.
+For each memory block in the spec, create `Mem_{NPC}_{Topic}.asset` (type `Game/NPC/Memory Entry`) in
+`Assets/_Game/Data/NPCs/{NPCName}/Memories/` — saving it there auto-adds it to `NPCEntity.memories`
+(`NPCMemoriesAutoSync`; menu fallback `Game/Dev/Sync All NPC Memories`). Never edit that list by hand.
 
-Set:
-- `unlockConditions[]` → wire Fact assets from spec
-- `invalidationConditions[]` → wire Fact assets from spec
-- `effects.startdialog` → wire the `StartDialogueNode` created in Step 6
-
-Add the memory entry to `NPCDataSO.memories[]`.
+Set `effects.startdialog` (none for gate memories), then the conditions with
+`QuestEditActions.AddMemoryCondition`. Wire `requiredMemory` on the gated choices from Step 6.
 
 Check `read_console`.
 
@@ -113,28 +126,29 @@ For each reward block in the spec (onStart, onStepCompleted, onCompleted, onFail
 
 Create `PlayerReward_{QuestId}_{Trigger}.asset` in `Assets/_Game/Data/Rewards/` (type `Game/Rewards/Player Reward`).
 
-Set:
+Set (serialized names):
 - `_factType` = `Quest`
-- `_questFact` → create a `QuestFact` SO referencing this quest + the matching state or step index. Save as `QuestFact_{QuestId}_{State}.asset` in `Assets/_Game/Data/Facts/`.
-- `_xpReward`, `_lpReward`, `_goldReward`, `_statRewards[]` from spec
+- `_questFact` → `GetOrCreateQuestFact(quest, QuestState.IsStarted|IsCompleted|IsFailed)` or the step variant
+- `_xpReward`, `_lpReward`, `_goldReward`, `_statRewards`
 
-Add each reward asset to `PlayerRewards._rewards[]` on the PlayerRewards GameObject in the scene.
-
----
-
-## Step 9 — Register quest
-
-1. Add `Quest_{QuestId}.asset` to `QuestEventsManager._quests[]` in the scene
-2. Add `Quest_{QuestId}.asset` to `QuestLogUI._allQuests[]` in the scene
+`PlayerRewards._rewards` on `Prefabs/Player/Player.prefab` is auto-synced (`Game/Dev/Sync Player Rewards to Prefab`).
 
 ---
 
-## Step 10 — Verify and update spec
+## Step 9 — Verify
 
-Check `read_console` for any remaining errors.
+1. `read_console` — no errors.
+2. `quest_report {QuestId}` — read it fully:
+   - every stored part fact has a setter (no `NEVER SET`), each memory's reasons and gated choices match the spec;
+   - **no Error or Warning**. Fix each one, or explain it to the user (e.g. a WorldFact waiting for a setter).
+3. `quest_report audit` — no new issues on other quests or NPC memories.
+
+---
+
+## Step 10 — Update the spec
 
 List every asset created with its path.
 
-Update `docs/Quests/{QuestId}.md`:
+Update `docs/World/Quests/{QuestId}.md`:
 - Fill in the **Implementation Checklist** with asset paths
 - Set `status: implemented`

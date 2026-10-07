@@ -77,7 +77,7 @@ For each **teaching option**, collect:
 | **Skill choice** | Which `SkillSO` asset? (name / path). The LP cost is read from `SkillSO.lpCost` — do not ask for it separately |
 | **Stat choice** | Which `StatType`? (`Strength`, `Dexterity`, `Endurance`, `Intelligence`, `Defense`) and how many `statPoints`? and what `lpCost`? |
 | `goldCost` | Gold deducted on selection (0 = free) |
-| `requiredMemory` | Is this option memory-gated? (Null = always shown). Gate memories using `SkillFact` conditions are the standard way to show/hide options based on learned skills — see `Assets/_Game/Data/Skills/CLAUDE.md`. Gate memories must be in `NPCDataSO.memories` to function. |
+| `requiredMemory` | Is this option memory-gated? (Null = always shown). Gate memories using `SkillFact` conditions are the standard way to show/hide options based on learned skills — see `Assets/_Game/Data/Skills/CLAUDE.md`. Gate memories must be in the owning NPC's `NPCEntity.memories` to function (save them under that NPC's `Memories/` folder). |
 
 **Stat Defense warning:** If the user requests a Defense stat upgrade, warn them:
 > "Defense has no base value in the stat system — a Defense upgrade logs a warning and does nothing at runtime. Are you sure you want to include it?"
@@ -113,7 +113,7 @@ Present the derived labels with their costs in the plan summary (for the user's 
 > this topic always available."
 
 Wait for confirmation. Then either:
-- **New memory:** Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog`, add to `NPCDataSO.memories`
+- **New memory:** Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog` (auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`))
 - **Existing memory:** Identify the correct `NPCMemoryEntrySO` and set `effects.startdialog` on it
 
 **Gate memories** — for `TeachChoiceOption.requiredMemory`:
@@ -121,7 +121,7 @@ Wait for confirmation. Then either:
 If any choice option needs skill-based visibility (show only if skill learned / hide once learned):
 1. Create a `SkillFact` asset in `Assets/_Game/Data/Player/` referencing the relevant `SkillSO` — see `Assets/_Game/Data/Skills/CLAUDE.md`
 2. Create a gate `NPCMemoryEntrySO` (no `effects.startdialog`) with `unlockConditions` / `invalidationConditions` set to the `SkillFact`
-3. Add the gate memory to `NPCDataSO.memories` — **required**: `requiredMemory` is checked against the NPC's active memories list at runtime; a memory not in this list is never considered active
+3. Save the gate memory under the same NPC's `Memories/` folder so it is auto-added to `NPCEntity.memories` — **required**: `requiredMemory` is checked against the NPC's active memories list at runtime; a memory not in this list is never considered active
 
 ---
 
@@ -169,7 +169,7 @@ Work in this order:
 6. Create intro `TextDialogueNode` asset (if present), set `nextNode` to the `TeachChoiceDialogueNode`
 7. Create `StartDialogueNode` asset, set `nextNode` to the first node in chain
 8. Create topic `NPCMemoryEntrySO`, set `effects.startdialog` to the `StartDialogueNode`
-9. Update `NPCDataSO.memories` — add **all** memories (topic + all gate memories)
+9. Check `NPCEntity.memories` contains **all** memories (topic + all gate memories) — auto-synced from `Memories/`; fallback menu `Game/Dev/Sync All NPC Memories`
 
 **MCP array patching note:** `Array.size` patches are unsupported. Set elements directly with `data[0]`, `data[1]`, etc. — Unity auto-expands the array. Works for `choices`, `unlockConditions`, `invalidationConditions`, and `memories`.
 
