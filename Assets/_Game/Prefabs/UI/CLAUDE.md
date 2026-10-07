@@ -16,7 +16,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 ├── ContainerUI / NPCTradeUI   (nested prefabs, inactive by default)
 ├── Menus                (tab-based screen panels)
 │   ├── TabBar           (TabBarUI)
-│   └── InventoryUI / QuestLogUI / CharacterStatsUI / OptionsUI   (inactive by default)
+│   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI / OptionsUI   (inactive by default)
 ├── Game                 (HUD — drawn AFTER Menus, i.e. on top)
 │   ├── Crosshair        (Image)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)

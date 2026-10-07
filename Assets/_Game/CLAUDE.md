@@ -32,7 +32,7 @@ If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFou
 ### Action Map Layout
 
 - **Player:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, Block, Dodge,
-  InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle, QuestLogToggle —
+  InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle (C), QuestLogToggle (J), SkillsToggle (K) —
   **no Cancel action**.
 - **UI:** Navigate, Submit, **Cancel** (Escape), Point, **Click** (left mouse), RightClick, MiddleClick,
   ScrollWheel, TrackedDevice*, DialogueOption1–9 / DialogueOption0.

@@ -7,7 +7,7 @@
 ## SkillSO
 
 **Type:** `Game.Progression.SkillSO`  
-**Asset menu:** `Game/Progression/Skill` — filename prefix `Skill_`  
+**Asset menu:** `Game/Skills/Skill` — filename prefix `Skill_`  
 **Script:** `Assets/_Game/ScriptableObjects/Skills/SkillSO.cs`
 
 | Field | Serialized name | Purpose |
@@ -15,11 +15,22 @@
 | `skillId` | `_skillId` | Unique string key used by `PlayerSkills.HasSkill()` / `LearnSkill()` |
 | `displayName` | `_displayName` | Human-readable name — shown in UI and used for choice button labels |
 | `description` | `_description` | Flavour text (optional) |
+| `effectDescription` | `_effectDescription` | Player-facing effect text shown in the Skills tab (authored — keep numbers in sync with the real values, e.g. Power Strike ↔ `ProgressionConfig.powerStrikeDamageBonus`) |
 | `lpCost` | `_lpCost` | Learning Points consumed on learn — read by `PlayerSkills.LearnSkill()` and displayed by the teach UI |
 | `statsRequirements` | `_statsRequirements` | `List<StatRequirement>` — checked before allowing the skill to be learned |
 | `skillRequirements` | `_skillRequirements` | `List<SkillSO>` — prerequisite skills; all must be learned first |
 
 **Folder convention:** group skills by category in subfolders, e.g. `Skills/Lockpicking/`, `Skills/Combat/`.
+
+---
+
+## SkillCatalogSO
+
+**Type:** `Game.Progression.SkillCatalogSO` — **Asset menu:** `Game/Skills/Skill Catalog`  
+**Asset:** `Assets/_Game/Data/Skills/SkillCatalog.asset`
+
+Ordered `_skills` list = display order of the Skills tab (`Scripts/UI/Skills/`). **Every new skill must be added to
+`SkillCatalog.asset` or it won't appear in the Skills tab.** Null entries are skipped.
 
 ---
 

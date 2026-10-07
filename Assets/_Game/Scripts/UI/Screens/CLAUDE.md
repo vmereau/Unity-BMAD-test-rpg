@@ -1,6 +1,7 @@
 # CLAUDE.md — Assets/_Game/Scripts/UI/Screens
 
 > Screen management contract and full-screen menu panels (Inventory, Quest Log, Character Stats, Options).
+> The Skills tab panel lives in `Scripts/UI/Skills/`.
 
 ---
 
@@ -8,7 +9,7 @@
 
 | Script | Purpose |
 |--------|---------|
-| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` and `CharacterStatsToggle` input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
+| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (C) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
 | `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
 | `OptionsUI` | Options/settings screen placeholder. Implements `IScreenPanel`. Currently logs open/close only. |
@@ -18,11 +19,12 @@
 ## ScreenTab Enum
 
 ```csharp
-public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Options = 3 }
+public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3, Options = 4 }
 ```
 
 - `_tabPanelRoots[]` and `_tabButtons[]` in `UIScreenManager` are indexed by this enum.
-- Adding a new tab requires: new enum value + new entry in both arrays in the Inspector.
+- Adding a new tab requires: new enum value + new entry in both arrays (on `UICanvas.prefab`) + a `TabButton_*` in
+  `TabBar.prefab`. Inserting before an existing value shifts it — reorder both arrays in the same change.
 
 ---
 

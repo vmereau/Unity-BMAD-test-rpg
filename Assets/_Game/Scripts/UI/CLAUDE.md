@@ -12,6 +12,7 @@
 | `HUD/` | Health / stamina / XP bars, action bar, interaction prompt card, notification toasts |
 | `Inventory/` | Inventory grid, item detail panel + formatter, equipment, container (incl. loot) and trade screens |
 | `Quest/` | Quest log screen, quest list / info panels |
+| `Skills/` | Skills tab: skill list, skill detail panel + formatter |
 | `Dialogue/` | NPC dialogue panel, topic / choice display, keyboard shortcuts |
 | `Screens/` | `UIScreenManager`, `IScreenPanel` contract, character stats, options |
 
