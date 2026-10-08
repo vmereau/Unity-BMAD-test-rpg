@@ -2,8 +2,8 @@
 title: 'Save / Load System'
 slug: 'save-load-system'
 created: '2026-10-07'
-status: 'in-progress'
-stepsCompleted: [1, 2, 3, 4]
+status: 'completed'
+stepsCompleted: [1, 2, 3, 4, 5, 6]
 tech_stack: ['Unity 6000.6.2f1', 'C#', 'URP 17', 'Unity Input System', 'Newtonsoft Json (com.unity.nuget.newtonsoft-json 3.2.1)', 'NUnit EditMode tests']
 files_to_modify: ['Packages/manifest.json', 'Scripts/Core/State/WorldStateManager.cs', 'Scripts/Core/SceneLoader.cs', 'Scripts/Player/PlayerHealth.cs', 'Scripts/Player/PlayerStats.cs', 'Scripts/Combat/StaminaSystem.cs', 'Scripts/Player/Progression/XPSystem.cs', 'Scripts/Player/Progression/LevelSystem.cs', 'Scripts/Player/Progression/LearningPointSystem.cs', 'Scripts/Player/Progression/PlayerSkills.cs', 'Scripts/Inventory/InventorySystem.cs', 'Scripts/Inventory/EquipmentSystem.cs', 'Scripts/Inventory/ActionBarSystem.cs', 'Scripts/Economy/GoldSystem.cs', 'Scripts/World/Lockable.cs', 'Scripts/World/DoorInteractable.cs', 'Scripts/AI/EntityHealth.cs', 'Scripts/World/PersistentID.cs', 'Scripts/Inventory/ItemPickup.cs', 'Scripts/Quest/QuestEventsManager.cs', 'Scripts/Player/PlayerStateManager.cs', 'Scripts/UI/HUD/NotificationToastUI.cs', 'Assets/_Game/InputSystem_Actions.cs + .inputactions', 'Prefabs/Player/Player.prefab', 'Prefabs/Entities/Entity_base.prefab', 'Scenes/StartingTown.unity', 'Scenes/TestScene.unity', 'Scripts/UI/Screens/UIScreenManager.cs', 'ScriptableObjects/Items/ItemSO.cs', 'Prefabs/UI/UICanvas.prefab', 'Scenes/Core.unity', 'NEW Scripts/Core/Save/*', 'NEW Scripts/UI/Screens/GameMenuUI.cs, SaveSlotListUI.cs, SaveSlotEntryUI.cs, ConfirmDialogUI.cs, DeathScreenUI.cs, LoadingOverlayUI.cs', 'NEW Scripts/World/SaveableObject.cs', 'NEW Scripts/Player/PlayerSaveAdapter.cs', 'NEW ScriptableObjects/Items/ItemCatalogSO.cs', 'NEW Editor/Save/*']
 code_patterns: ['Core.unity singletons (WorldStateManager, SaveSystem only)', 'GameEventSO channels, subscribe OnEnable / unsubscribe OnDisable', 'GameLog with TAG, never Debug.Log', 'CursorManager for cursor', 'IScreenPanel OnScreenOpen/OnScreenClose', 'InputSystem_Actions create Awake / Dispose OnDestroy / null-guard OnDisable', 'Catalog SO pattern (SkillCatalogSO)', 'Typed facts in WorldStateManager; quest state derived from facts']
@@ -598,13 +598,13 @@ Deviations / facts for whoever implements Phase C onward:
 
 #### Phase E — UI
 
-- [ ] Task 21: Remove the Options tab
+- [x] Task 21: Remove the Options tab
   - Files: `Scripts/UI/Screens/UIScreenManager.cs` (`ScreenTab` loses `Options = 4`),
     `Prefabs/UI/UICanvas.prefab` (trim `_tabPanelRoots` / `_tabButtons` to 4 entries; reparent the
     `OptionsPanel` root under the new Game Menu, Task 22), `TabBar.prefab` (delete `TabButton_Options`).
   - Notes: last enum value → no index shift. Grep for `ScreenTab.Options` before deleting.
 
-- [ ] Task 22: Game Menu
+- [x] Task 22: Game Menu
   - File (new): `Scripts/UI/Screens/GameMenuUI.cs` (namespace `Game.UI`, implements `IScreenPanel`)
   - Layout (under `UICanvas`, full-screen dim background + centered column, fixed pixel sizes, `TMP_Text`):
     title "Game Menu", buttons **Resume**, **Save Game**, **Load Game**, **Options**, **Quit**; sub-panels
@@ -623,7 +623,7 @@ Deviations / facts for whoever implements Phase C onward:
     the cursor in the same frame) from also opening the menu. Tab toggles (I/J/C/K) are ignored while the
     Game Menu is open.
 
-- [ ] Task 23: Save / Load slot list
+- [x] Task 23: Save / Load slot list
   - File (new): `Scripts/UI/Screens/SaveSlotListUI.cs` (+ a `SaveSlotEntryUI.cs` row component and a
     `SaveSlotEntry.prefab` under `Prefabs/UI/`)
   - Action: `Show(Mode mode)` (`Save` | `Load`) rebuilds rows from `SaveFileStore.ListSlots()`.
@@ -637,7 +637,7 @@ Deviations / facts for whoever implements Phase C onward:
     - Each existing row has a **Delete** button → confirm → `SaveFileStore.TryDelete` → refresh.
   - Notes: shared confirm dialog component (`ConfirmDialogUI`, new, Yes/No + message) used by Tasks 22–24.
 
-- [ ] Task 24: Death screen + loading overlay
+- [x] Task 24: Death screen + loading overlay
   - File (new): `Scripts/UI/Screens/DeathScreenUI.cs` — listens to `_onPlayerDied` (`GameEventSO_Void`)
     in `OnEnable` / `OnDisable`; after a 2 s **realtime** delay (`WaitForSecondsRealtime`, cached) shows
     "You died", sets `Time.timeScale = 0`, `CursorManager.Unlock()`. Buttons: **Load last save**
@@ -652,12 +652,12 @@ Deviations / facts for whoever implements Phase C onward:
 
 #### Phase F — Assets, wiring, docs
 
-- [ ] Task 25: Event channel assets
+- [x] Task 25: Event channel assets
   - Create (same folder as the other event SOs, e.g. `ScriptableObjects/Events/` assets): 
     `OnSaveNotification` (`GameEventSO_String`), `OnLoadStarted` and `OnLoadFinished`
     (`GameEventSO_Void`).
 
-- [ ] Task 26: Scene and prefab wiring
+- [x] Task 26: Scene and prefab wiring
   - `Core.unity`: add `SaveSystem` component to the existing `SaveSystem` GO and wire all refs
     (`SceneLoader`, Player's `PlayerSaveAdapter` / `PlayerStateManager` / `PlayerHealth`, `ContainerUI`,
     `ItemCatalog`, `QuestEventsManager`, quest-completed + notification + load events).
@@ -672,7 +672,7 @@ Deviations / facts for whoever implements Phase C onward:
   - Notes: follow the YAML-edit / `refresh_unity(if_dirty)` rule from the root `CLAUDE.md` if editing
     prefabs on disk.
 
-- [ ] Task 27: Docs and spec bookkeeping
+- [x] Task 27: Docs and spec bookkeeping
   - `Scripts/Core/CLAUDE.md`: add a `Save/` section (SaveSystem flow, restore-without-events rule,
     `SaveFileStore`, slot IDs).
   - `Scripts/World/CLAUDE.md`: `SaveableObject` + key rules (entities use the `KilledFact` GUID, others need
@@ -683,6 +683,49 @@ Deviations / facts for whoever implements Phase C onward:
   - `ScriptableObjects/Items/CLAUDE.md`: `itemId` + `ItemCatalog` sync.
   - `_bmad-output/implementation-artifacts/tech-spec-lockable-persistence-stub.md`: set
     `status: 'superseded'` with a pointer to this spec.
+
+#### Implementation notes — Phases E+F (2026-10-08)
+
+- Screens with listeners that must run while hidden (`GameMenuUI`, `DeathScreenUI`, `LoadingOverlayUI`) sit on an
+  always-active root and toggle a `Panel` child. `ConfirmDialogUI` is a plain inactive GO (`Show` / `Cancel` / `Hide`).
+- `GameMenuUI` hides on `OnLoadStarted` **without** touching timeScale / cursor — a load from the paused menu stays paused
+  while the region reloads (scene loading works at `timeScale = 0`; the player can't fall). `SaveSystem.FailLoad` now also
+  locks the cursor. `SaveSystem._confirmDialog` (new ref) makes F9 a no-op while a confirm dialog is open.
+- `UIScreenManager` gained `_gameMenu`, `_onLoadStarted` (closes tabs) and `_onPlayerDied` (closes tabs); `ContainerUI`
+  gained `_onPlayerDied` (closes the loot window). Without this, Esc on an open tab / loot window after death re-locked
+  the cursor under the death screen, and an open loot window blocked `Load` (`CanLoad`).
+- `NotificationContainer` got its own Canvas (override sorting 50) so save / load toasts draw above the Game Menu;
+  `LoadingOverlay` uses sorting 100.
+- Slot rows: `Prefabs/UI/SaveSlotEntry.prefab`; menu buttons are `Prefabs/UI/Common/ActionButton` instances.
+  `OptionsUI` was reparented under `GameMenu/Panel/Window` with a "coming soon" label. `TabButton_Options` deleted from
+  `TabBar.prefab`; tab arrays trimmed to 4 in `UICanvas.prefab` (no Player.prefab / Core.unity overrides on them).
+- Wiring: `SaveSystem` component added + wired in `Core.unity`; `PlayerSaveAdapter` added to `Player.prefab` (all refs
+  wired), `PlayerHealth._playerStateManager` and `DeathScreenUI._playerStateManager` wired there; `SaveableObject` on
+  `Entity_base.prefab` and on every container / door / authored pickup in StartingTown (8) and TestScene (7 pickups —
+  TestScene has no containers / doors); `Validate Save IDs` assigned the IDs (no duplicates reported).
+- New events: `Data/Events/OnSaveNotification` (`GameEventSO_String`), `OnLoadStarted` / `OnLoadFinished` (`GameEventSO_Void`).
+- Tests: `SaveSlotListFormatTests` (slot label / details / timestamp / playtime); full EditMode suite 539/539.
+- Play-Mode smoke test (StartingTown, driven through code, not real key presses): Game Menu open pauses + unlocks,
+  Options → Back → Resume restores; save to an empty slot writes directly, a used slot asks "Overwrite Slot 1?";
+  `HandleBack` walks confirm → sub-panel → close; death with the inventory open closes it, death screen after 2 s with
+  the world paused; Load last save and Restart (no saves) both revive the player through a region reload; no
+  authored-pickup duplication after load. **Not yet checked by hand:** real Esc / F5 / F9 key presses (incl. Esc
+  closing dialogue / container without opening the menu), autosave after a quest completes in dialogue, corpse / door /
+  chest round-trips (AC 4–9), corrupted / incompatible file rows (AC 17–18).
+
+## Review Notes
+
+- Adversarial review (Phases E+F) done inline: 6 findings — 3 fixed, 3 noise.
+  - F1 (High, fixed): dying with a tab or loot window open — closing it (Esc) re-locked the cursor under the death
+    screen, and an open loot window made every death-screen load fail `CanLoad`. Tabs and `ContainerUI` now close on `OnPlayerDied`.
+  - F2 (Low, fixed): `?.` on serialized Unity component refs in `GameMenuUI` / `DeathScreenUI` (fake-null in the editor)
+    → explicit null checks (`GameMenuUI.Wire`, `SetMainVisible`, `HideSubPanels`, `SetVisible`).
+  - F3 (Low, fixed): duplicated quit code → shared `GameMenuUI.QuitGame`.
+  - F4 (noise): `UIScreenManager.LateUpdate` samples state every frame — prescribed by the spec, allocation-free.
+  - F5 (noise): toasts (sort 50) draw over the confirm dialog — intended so feedback stays visible.
+  - F6 (noise / known limitation): dialogue / trade windows don't close on death; enemies rarely reach the player there.
+    If it happens, Esc closes the window and re-locks the cursor under the death screen.
+- Resolution approach: auto-fix.
 
 ### Acceptance Criteria
 

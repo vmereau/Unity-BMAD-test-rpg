@@ -2,12 +2,16 @@
 title: 'Lockable / Door State Persistence (STUB)'
 slug: 'lockable-persistence'
 created: '2026-05-31'
-status: 'stub'
+status: 'superseded'
+superseded_by: 'tech-spec-save-load-system'
 stepsCompleted: []
 parent_spec: 'tech-spec-door-system'
 ---
 
 # Tech-Spec (STUB): Lockable / Door State Persistence
+
+> **Superseded (2026-10-08)** by `tech-spec-save-load-system.md` — door / container lock and open state are
+> persisted by `SaveableObject` (Phase B Task 15–16, wired in Phase F).
 
 > **This is a deferred stub split out of the Door System spec (`door-system`).** It captures intent so
 > it can be picked up later — it is NOT ready for development and needs its own quick-spec pass.
