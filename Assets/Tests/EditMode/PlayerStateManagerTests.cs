@@ -83,4 +83,20 @@ public class PlayerStateManagerTests
         Assert.That(isBlocking && isAttackingAfterBlockStart, Is.False,
             "IsBlocking and IsAttacking must never both be true simultaneously");
     }
+
+    // Exercises the real gate (PlayerStateManager.CanSneak() delegates to EvaluateCanSneak).
+    [Test]
+    public void CanSneak_ReturnsFalse_WhenBusyAirborneOrDodging()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: true, isAirborne: false, isDodging: false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: false, isAirborne: true, isDodging: false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: false, isAirborne: false, isDodging: true), Is.False);
+    }
+
+    [Test]
+    public void CanSneak_ReturnsTrue_WhenIdleOnGround()
+    {
+        // Attacking and blocking are not inputs of the gate — sneak is allowed (and kept) during both.
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: false, isAirborne: false, isDodging: false), Is.True);
+    }
 }

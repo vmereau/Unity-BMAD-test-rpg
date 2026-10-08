@@ -3,6 +3,7 @@ using System.Reflection;
 using Game.AI;
 using Game.Combat;
 using Game.Factions;
+using Game.Stealth;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -33,6 +34,21 @@ namespace Tests.EditMode
             public bool IsDead { get; set; }
             public void TakeDamage(float amount) { }
             public HitResult TryReceiveHit(GameObject attacker) => HitResult.NotBlocked;
+        }
+
+        private class StubStealthTarget : MonoBehaviour, IStealthTarget
+        {
+            public bool IsSneaking => false;
+            public Vector3 VisibilityPoint => transform.position;
+        }
+
+        private static readonly PropertyInfo s_stealthTarget = typeof(FactionMember).GetProperty("StealthTarget");
+
+        // Marks a member as a stealth target (the player) — FactionMember.Awake would resolve it from the sibling.
+        private static void MakeStealthTarget(FactionMember m)
+        {
+            var stub = m.gameObject.AddComponent<StubStealthTarget>();
+            s_stealthTarget.SetValue(m, stub);
         }
 
         private FactionMember MakeMember(string name, FactionSO faction, Vector3 position, bool dead = false)
@@ -144,6 +160,49 @@ namespace Tests.EditMode
             Assert.That(TargetRegistry.FindClosestHostile(fA, Vector3.zero, 10f), Is.Not.Null); // registered
             TargetRegistry.Unregister(m);
             Assert.That(TargetRegistry.FindClosestHostile(fA, Vector3.zero, 10f), Is.Null);
+        }
+
+        [Test]
+        public void FindClosestHostile_SkipStealthTargets_IgnoresStealthMembers()
+        {
+            var fA = MakeFaction("A");
+            var fB = MakeFaction("B");
+            fA.InitForTest(new List<FactionSO> { fB });
+            var player = MakeMember("Player", fB, new Vector3(1, 0, 0));
+            MakeStealthTarget(player);
+            var npc = MakeMember("Npc", fB, new Vector3(5, 0, 0));
+
+            Assert.That(TargetRegistry.FindClosestHostile(fA, Vector3.zero, 10f), Is.EqualTo(player));
+            Assert.That(TargetRegistry.FindClosestHostile(fA, Vector3.zero, 10f, skipStealthTargets: true), Is.EqualTo(npc));
+        }
+
+        [Test]
+        public void FindClosestHostileStealthTarget_ReturnsOnlyStealthMembers()
+        {
+            var fA = MakeFaction("A");
+            var fB = MakeFaction("B");
+            fA.InitForTest(new List<FactionSO> { fB });
+            MakeMember("Npc", fB, new Vector3(1, 0, 0));
+            var player = MakeMember("Player", fB, new Vector3(5, 0, 0));
+            MakeStealthTarget(player);
+
+            Assert.That(TargetRegistry.FindClosestHostileStealthTarget(fA, Vector3.zero, 10f), Is.EqualTo(player));
+            Assert.That(TargetRegistry.FindClosestHostileStealthTarget(fA, Vector3.zero, 4f), Is.Null);
+        }
+
+        [Test]
+        public void FindClosestHostileStealthTarget_SkipsDeadAndNonHostile()
+        {
+            var fA = MakeFaction("A");
+            var fB = MakeFaction("B");
+            var fC = MakeFaction("C");
+            fA.InitForTest(new List<FactionSO> { fB });
+            var dead = MakeMember("DeadPlayer", fB, new Vector3(1, 0, 0), dead: true);
+            MakeStealthTarget(dead);
+            var friendly = MakeMember("FriendlyPlayer", fC, new Vector3(2, 0, 0));
+            MakeStealthTarget(friendly);
+
+            Assert.That(TargetRegistry.FindClosestHostileStealthTarget(fA, Vector3.zero, 10f), Is.Null);
         }
     }
 }

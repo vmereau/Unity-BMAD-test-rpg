@@ -11,6 +11,8 @@ namespace Game.Player
     {
         [SerializeField] public float walkSpeed = 3f;
         [SerializeField] public float runSpeed = 6f;
+        [Tooltip("Sneak locomotion speed. Sneak blend-tree positions sit at sneakSpeed / runSpeed — update the controller if you change either.")]
+        [SerializeField] public float sneakSpeed = 1.5f;
         [SerializeField] public float rotationSpeed = 10f;
 
         [Header("Jump")]

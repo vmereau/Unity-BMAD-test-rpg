@@ -5,7 +5,8 @@ namespace Game.Player
 {
     /// <summary>
     /// Handles player movement relative to the main camera using CharacterController.
-    /// Supports walk speed (default) and run speed (Sprint held) configurable via PlayerConfigSO.
+    /// Supports walk speed (default), run speed (Sprint held) and sneak speed (PlayerStateManager.IsSneaking),
+    /// configurable via PlayerConfigSO.
     /// Uses the new Input System via the generated InputSystem_Actions wrapper.
     /// Manual gravity is applied each frame — CharacterController does not apply it automatically.
     /// </summary>
@@ -166,7 +167,10 @@ namespace Game.Player
             }
 
             bool isSprinting = _input.Player.Sprint.IsPressed();
-            float currentSpeed = isSprinting ? _config.runSpeed : _config.walkSpeed;
+            // Sneak overrides both; PlayerSneak ends sneak as soon as Sprint is held while moving.
+            float currentSpeed = (_stateManager != null && _stateManager.IsSneaking)
+                ? _config.sneakSpeed
+                : (isSprinting ? _config.runSpeed : _config.walkSpeed);
             Vector3 velocity = moveDir * currentSpeed + Vector3.up * _verticalVelocity;
             _characterController.Move(velocity * Time.deltaTime);
         }

@@ -23,6 +23,8 @@ namespace Game.Animations
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
         private static readonly int Attack2Hash = Animator.StringToHash("Attack_2");
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
+        private static readonly int IsSneakingHash = Animator.StringToHash("IsSneaking");
+        private static readonly int SneakToSprintHash = Animator.StringToHash("SneakToSprint");
 
         [SerializeField] private Animator _animator;
 
@@ -42,6 +44,20 @@ namespace Game.Animations
         public void SetRising(bool value) => _animator?.SetBool(IsRisingHash, value);
         public void SetBlocking(bool value) => _animator?.SetBool(IsBlockingHash, value);
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
+
+        /// <summary>
+        /// Sets the IsSneaking bool. Entering sneak also clears a pending SneakToSprint trigger so a stale one
+        /// can't fire on the next sneak exit.
+        /// </summary>
+        public void SetSneaking(bool value)
+        {
+            if (_animator == null) return;
+            _animator.SetBool(IsSneakingHash, value);
+            if (value) _animator.ResetTrigger(SneakToSprintHash);
+        }
+
+        /// <summary>Fires SneakToSprint (sneak → sprint transition clip). Call after <see cref="SetSneaking"/>(false).</summary>
+        public void TriggerSneakToSprint() => _animator?.SetTrigger(SneakToSprintHash);
 
         public void PlayAttack(int triggerHash)
         {

@@ -5,8 +5,8 @@ namespace Game.Player
 {
     /// <summary>
     /// Single source of truth for player action gating and state.
-    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat, IsDead.
-    /// All Can-do queries (CanAttack, CanBlock, CanDodge, CanJump, CanMove) live here.
+    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat, IsSneaking, IsDead.
+    /// All Can-do queries (CanAttack, CanBlock, CanDodge, CanJump, CanMove, CanSneak) live here.
     /// Animation side-effects are delegated to PlayerAnimator — this class never touches the Animator directly.
     /// State is written by PlayerCombat and DodgeController; state is read by any system needing action gates.
     /// Story 2.6: Initial implementation.
@@ -58,6 +58,7 @@ namespace Game.Player
         public void NotifyJumpStarted()
         {
             _lastGroundedTime = float.MinValue;
+            SetSneaking(false);
         }
 
         /// <summary>True when the player cannot perform any action (dead, or cursor unlocked).</summary>
@@ -71,6 +72,12 @@ namespace Game.Player
         public bool IsAttacking { get; private set; }
         public bool IsDodging { get; private set; }
         public bool IsInCombat { get; private set; }
+
+        /// <summary>
+        /// True while in sneak stance. Written by <c>PlayerSneak</c>; cleared by dodge, jump, death and sprint
+        /// (<see cref="ExitSneakToSprint"/>). Attacking and blocking keep it.
+        /// </summary>
+        public bool IsSneaking { get; private set; }
 
         /// <summary>True while the player is in an active dialogue conversation.</summary>
         public bool IsInDialogue { get; private set; }
@@ -121,7 +128,10 @@ namespace Game.Player
         {
             IsDodging = value;
             if (value)
+            {
+                SetSneaking(false);
                 _playerAnimator.PlayDodge(isBackwardRoll);
+            }
         }
 
         /// <summary>Sets the InCombat state and drives the IsInCombat animator bool via PlayerAnimator.</summary>
@@ -130,6 +140,24 @@ namespace Game.Player
             IsInCombat = value;
             _playerAnimator.SetInCombat(value);
             GameLog.Info(TAG, $"Combat stance: {(value ? "DRAWN" : "sheathed")}");
+        }
+
+        /// <summary>Enters or leaves sneak stance and drives the IsSneaking animator bool. Called by PlayerSneak.</summary>
+        public void SetSneaking(bool value)
+        {
+            if (IsSneaking == value) return;
+            IsSneaking = value;
+            if (_playerAnimator != null) _playerAnimator.SetSneaking(value);
+            GameLog.Info(TAG, $"Sneak: {value}");
+        }
+
+        /// <summary>Leaves sneak because the player started running — plays the sneak-to-sprint clip.</summary>
+        public void ExitSneakToSprint()
+        {
+            if (!IsSneaking) return;
+            IsSneaking = false;
+            if (_playerAnimator != null) _playerAnimator.PlaySneakToSprint();
+            GameLog.Info(TAG, "Sneak: false (sprint)");
         }
 
         /// <summary>Sets the IsInDialogue state. Called by DialogueSystem on open/close.</summary>
@@ -153,12 +181,14 @@ namespace Game.Player
                 IsBlocking = false;
                 IsAttacking = false;
                 IsDodging = false;
+                IsSneaking = false;
             }
             if (_playerAnimator == null) return;
 
             if (value)
             {
                 _playerAnimator.SetBlocking(false);
+                _playerAnimator.SetSneaking(false);
                 _playerAnimator.PlayDeath();
             }
             else
@@ -185,6 +215,13 @@ namespace Game.Player
 
         /// <summary>True when the player is allowed to jump (state gates only; isGrounded not checked here).</summary>
         public bool CanJump() => !IsBusy && !IsAirborne && !IsDodging && !IsBlocking && !IsAttacking;
+
+        /// <summary>True when the player may enter sneak stance. Attacking and blocking are allowed.</summary>
+        public bool CanSneak() => EvaluateCanSneak(IsBusy, IsAirborne, IsDodging);
+
+        /// <summary>Pure sneak gate (tested in PlayerStateManagerTests). Attacking / blocking are deliberately not inputs.</summary>
+        public static bool EvaluateCanSneak(bool isBusy, bool isAirborne, bool isDodging) =>
+            !isBusy && !isAirborne && !isDodging;
 
         /// <summary>True when the player is allowed to move.</summary>
         public bool CanMove() => !IsBusy;

@@ -139,6 +139,8 @@ namespace Game.Player
             _health?.RestoreHealth(d.health);
             _stamina?.RefillToMax();
             _stateManager?.SetDead(false);
+            // Sneak isn't saved — every load starts standing.
+            _stateManager?.SetSneaking(false);
             // The drawn / sheathed stance isn't saved — every load starts sheathed.
             if (_stateManager != null && _stateManager.IsInCombat)
             {

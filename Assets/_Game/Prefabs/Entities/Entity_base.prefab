@@ -316,6 +316,7 @@ GameObject:
   - component: {fileID: 6326516008175686655}
   - component: {fileID: 7887146153611111599}
   - component: {fileID: 3775384477627673643}
+  - component: {fileID: 2190632274172687002}
   m_Layer: 6
   m_Name: Entity_base
   m_TagString: Untagged
@@ -405,6 +406,8 @@ MonoBehaviour:
   _engageImmediately: 0
   _selfFactionMember: {fileID: 0}
   _targetScanInterval: 0.25
+  _perception: {fileID: 2190632274172687002}
+  _stealthConfig: {fileID: 11400000, guid: 8aac64038e94dd3449a649763e165653, type: 2}
 --- !u!195 &3257318164010893370
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -510,6 +513,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.SaveableObject
   _saveId: 
+--- !u!114 &2190632274172687002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8283577674775524483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2471a4faa987e3498b5dffc9f9d4207, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityPerception
+  _persistentID: {fileID: 1186952831256218892}
+  _selfFactionMember: {fileID: 3156794405520552273}
+  _config: {fileID: 11400000, guid: 8aac64038e94dd3449a649763e165653, type: 2}
 --- !u!1 &8934368094500991404
 GameObject:
   m_ObjectHideFlags: 0

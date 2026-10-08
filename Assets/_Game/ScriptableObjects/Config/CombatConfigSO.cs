@@ -42,6 +42,10 @@ namespace Game.Combat
         [Tooltip("Radius of the sphere overlap used for player attack hit detection.")]
         public float attackHitRange = 2f;
 
+        [Header("Sneak Attack")]
+        [Tooltip("Damage multiplier on a player hit against an entity that has not detected the player.")]
+        [Min(1f)] public float sneakAttackDamageMultiplier = 2f;
+
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;

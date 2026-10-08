@@ -229,6 +229,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleStealthDebug",
+                    "type": "Button",
+                    "id": "57ea1d01-57ea-47ea-87ea-57ea1d0157ea",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -719,7 +728,7 @@
                 {
                     "name": "",
                     "id": "cc02cc02-cc02-cc02-cc02-cc02cc02cc02",
-                    "path": "<Keyboard>/c",
+                    "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -768,6 +777,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "QuickLoad",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "57ea1d02-57ea-47ea-87ea-57ea1d0257ea",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleStealthDebug",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -32,8 +32,22 @@ namespace Game.AI
         /// <summary>
         /// Returns the closest live member whose faction is hostile to <paramref name="myFaction"/>
         /// and within <paramref name="maxRange"/> of <paramref name="origin"/>, or null.
+        /// With <paramref name="skipStealthTargets"/>, members with a <see cref="FactionMember.StealthTarget"/>
+        /// (the player) are ignored — they are acquired through EntityPerception instead.
         /// </summary>
-        public static FactionMember FindClosestHostile(FactionSO myFaction, Vector3 origin, float maxRange)
+        public static FactionMember FindClosestHostile(FactionSO myFaction, Vector3 origin, float maxRange,
+            bool skipStealthTargets = false) =>
+            FindClosest(myFaction, origin, maxRange, skipStealthTargets ? StealthFilter.Exclude : StealthFilter.Any);
+
+        /// <summary>
+        /// Like <see cref="FindClosestHostile"/>, but only members with a <see cref="FactionMember.StealthTarget"/>.
+        /// </summary>
+        public static FactionMember FindClosestHostileStealthTarget(FactionSO myFaction, Vector3 origin, float maxRange) =>
+            FindClosest(myFaction, origin, maxRange, StealthFilter.Only);
+
+        private enum StealthFilter { Any, Exclude, Only }
+
+        private static FactionMember FindClosest(FactionSO myFaction, Vector3 origin, float maxRange, StealthFilter filter)
         {
             if (myFaction == null) return null;
             float bestSqr = maxRange * maxRange;
@@ -42,6 +56,9 @@ namespace Game.AI
             {
                 if (m == null) continue;
                 if (m.Faction == null) continue;
+                bool isStealthTarget = m.StealthTarget != null;
+                if (filter == StealthFilter.Exclude && isStealthTarget) continue;
+                if (filter == StealthFilter.Only && !isStealthTarget) continue;
                 if (!myFaction.IsHostileTo(m.Faction)) continue;
                 // m.Damageable is an interface ref — cast to Object so the null check honors Unity's
                 // destroyed-object semantics (a destroyed health component is not C#-null but is Unity-null).

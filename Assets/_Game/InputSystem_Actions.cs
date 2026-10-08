@@ -316,6 +316,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleStealthDebug"",
+                    ""type"": ""Button"",
+                    ""id"": ""57ea1d01-57ea-47ea-87ea-57ea1d0157ea"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -806,7 +815,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""cc02cc02-cc02-cc02-cc02-cc02cc02cc02"",
-                    ""path"": ""<Keyboard>/c"",
+                    ""path"": ""<Keyboard>/p"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -855,6 +864,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""QuickLoad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""57ea1d02-57ea-47ea-87ea-57ea1d0257ea"",
+                    ""path"": ""<Keyboard>/f3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""ToggleStealthDebug"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1667,6 +1687,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_SkillsToggle = m_Player.FindAction("SkillsToggle", throwIfNotFound: true);
         m_Player_QuickSave = m_Player.FindAction("QuickSave", throwIfNotFound: true);
         m_Player_QuickLoad = m_Player.FindAction("QuickLoad", throwIfNotFound: true);
+        m_Player_ToggleStealthDebug = m_Player.FindAction("ToggleStealthDebug", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1795,6 +1816,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SkillsToggle;
     private readonly InputAction m_Player_QuickSave;
     private readonly InputAction m_Player_QuickLoad;
+    private readonly InputAction m_Player_ToggleStealthDebug;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1874,6 +1896,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @QuickSave => m_Wrapper.m_Player_QuickSave;
         /// <summary>Provides access to the underlying input action "Player/QuickLoad".</summary>
         public InputAction @QuickLoad => m_Wrapper.m_Player_QuickLoad;
+        /// <summary>Provides access to the underlying input action "Player/ToggleStealthDebug".</summary>
+        public InputAction @ToggleStealthDebug => m_Wrapper.m_Player_ToggleStealthDebug;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>

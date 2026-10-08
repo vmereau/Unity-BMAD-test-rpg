@@ -229,6 +229,10 @@ namespace Game.AI
                     GameLog.Info(TAG, $"{gameObject.name} attack dodged — no damage");
                     break;
                 case HitResult.NotBlocked:
+                    // Tell the victim's brain who hit it, so its damage reaction engages us, not a bystander.
+                    if (target is Component targetComponent &&
+                        targetComponent.TryGetComponent(out ISneakAttackTarget victim))
+                        victim.NotifyHitBy(gameObject);
                     target.TakeDamage(CurrentDamage);
                     GameLog.Info(TAG, $"{gameObject.name} hit landed at {hitPoint}");
                     break;

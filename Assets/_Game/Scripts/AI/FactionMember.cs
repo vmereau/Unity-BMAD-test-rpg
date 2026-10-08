@@ -1,6 +1,7 @@
 using Game.Combat;
 using Game.Core;
 using Game.Factions;
+using Game.Stealth;
 using Game.World;
 using UnityEngine;
 
@@ -29,8 +30,27 @@ namespace Game.AI
         public IDamageable Damageable => _damageable;
         public Transform Transform => transform;
 
+        private IStealthTarget _stealthTarget;
+
+        /// <summary>
+        /// Non-null when this member is detected through the vision cone (the player, via PlayerSneak) instead of
+        /// the plain detection radius. Resolved once in Awake. A disabled stealth-target component (e.g. PlayerSneak
+        /// missing its config) reads as null, so the member falls back to plain radius detection.
+        /// </summary>
+        public IStealthTarget StealthTarget
+        {
+            get
+            {
+                if (_stealthTarget is Behaviour behaviour && (behaviour == null || !behaviour.enabled)) return null;
+                return _stealthTarget;
+            }
+            private set => _stealthTarget = value;
+        }
+
         private void Awake()
         {
+            if (TryGetComponent(out IStealthTarget stealthTarget)) StealthTarget = stealthTarget;
+
             _damageable = GetComponent<IDamageable>();
             if (_damageable == null)
             {

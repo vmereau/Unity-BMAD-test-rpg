@@ -382,8 +382,21 @@ namespace Game.Combat
                 GameLog.Info(TAG, $"Weapon hit {result} at {hitPoint}");
                 return;
             }
-            target.TakeDamage(ComputeEffectiveDamage());
-            GameLog.Info(TAG, $"Weapon hit landed at {hitPoint}");
+            float damage = ComputeEffectiveDamage();
+            // Sneak attack: an entity that hasn't noticed the player takes bonus damage. The hit itself alerts it
+            // (engage, or a damage-alert window for passive / neutral entities), so only the opening hit gets it.
+            if (target is Component targetComponent &&
+                targetComponent.TryGetComponent(out ISneakAttackTarget sneakTarget))
+            {
+                if (sneakTarget.IsUnawareOf(gameObject))
+                {
+                    damage *= _config.sneakAttackDamageMultiplier;
+                    GameLog.Info(TAG, $"Sneak attack x{_config.sneakAttackDamageMultiplier}");
+                }
+                sneakTarget.NotifyHitBy(gameObject);
+            }
+            target.TakeDamage(damage);
+            GameLog.Info(TAG, $"Weapon hit landed at {hitPoint} ({damage} dmg)");
         }
 
         // Story 7.10: public methods called by AnimationEventReceiver ----------------
