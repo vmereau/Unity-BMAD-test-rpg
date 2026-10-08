@@ -16,6 +16,9 @@ namespace Game.Stealth
         private static readonly Color AwareColorMid = Color.yellow;
         private static readonly Color AwareColorHigh = Color.red;
 
+        /// <summary>Witness cone colour (non-hostile sneaking detection) while not witnessing anyone.</summary>
+        public static readonly Color WitnessConeColor = new Color(0f, 0.8f, 1f, 0.6f);
+
         /// <summary>
         /// Fills <paramref name="buffer"/> with the cone outline: two side edges plus the arc
         /// (<paramref name="arcSegments"/> segments). <paramref name="viewAngle"/> ≥ 360 → a full circle without

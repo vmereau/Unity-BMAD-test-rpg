@@ -56,6 +56,18 @@ namespace Game.Stealth
         [Tooltip("Degrees/second a searching entity rotates in place at the last seen point.")]
         public float searchTurnSpeed = 90f;
 
+        [Header("Witness (non-hostile NPCs)")]
+        [Tooltip("Degrees/second a watching witness turns to face the player.")]
+        public float witnessTurnSpeed = 240f;
+        [Tooltip("Seconds without line of sight before a watching witness gives up and resumes its routine.")]
+        public float witnessLoseSightTime = 1.5f;
+        [Tooltip("Seconds between two warnings (speech bubbles) from the same NPC. Detections inside it watch silently.")]
+        public float witnessWarnCooldown = 20f;
+        [Tooltip("Seconds the warning bubble stays fully visible.")]
+        public float witnessBubbleDuration = 3f;
+        [Tooltip("Speech bubble priority of witness warnings (higher replaces lower).")]
+        public int witnessBubblePriority = 0;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -66,6 +78,10 @@ namespace Game.Stealth
             sneakSightRangeMultiplier = Mathf.Max(0f, sneakSightRangeMultiplier);
             sneakProximityMultiplier  = Mathf.Max(0f, sneakProximityMultiplier);
             sneakFillRateMultiplier   = Mathf.Max(0f, sneakFillRateMultiplier);
+            witnessTurnSpeed          = Mathf.Max(0f, witnessTurnSpeed);
+            witnessLoseSightTime      = Mathf.Max(0f, witnessLoseSightTime);
+            witnessWarnCooldown       = Mathf.Max(0f, witnessWarnCooldown);
+            witnessBubbleDuration     = Mathf.Max(0f, witnessBubbleDuration);
         }
 #endif
     }

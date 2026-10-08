@@ -43,6 +43,17 @@ namespace Game.Stealth
             return distanceFactor * angleFactor;
         }
 
+        /// <summary>
+        /// Visibility for a non-hostile witness: <see cref="ComputeVisibility"/> while the target sneaks, 0 otherwise
+        /// (witnesses only care about a sneaking player).
+        /// </summary>
+        public static float ComputeWitnessVisibility(bool targetSneaking, float distance, float angleDeg, float witnessRange,
+            float viewAngle, float proximityRadius, float edgeDistanceFactor, float peripheralAngleFactor) =>
+            targetSneaking
+                ? ComputeVisibility(distance, angleDeg, witnessRange, viewAngle, proximityRadius, edgeDistanceFactor,
+                    peripheralAngleFactor)
+                : 0f;
+
         /// <summary>Awareness gained per second at the given visibility. 0 when <paramref name="fillTime"/> ≤ 0.</summary>
         public static float FillPerSecond(float visibility, float fillTime, bool sneaking, float sneakFillMultiplier)
         {

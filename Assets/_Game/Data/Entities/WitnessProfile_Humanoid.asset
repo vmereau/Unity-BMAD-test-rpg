@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21a0dec65f27a6f47bcd95ae990985d9, type: 3}
+  m_Name: WitnessProfile_Humanoid
+  m_EditorClassIdentifier: Game::Game.NPC.WitnessProfileSO
+  _witnessRange: 6
+  _watchRange: 9
+  _barks: {fileID: 11400000, guid: b2f50313ad0f1cf468c55805e8450099, type: 2}

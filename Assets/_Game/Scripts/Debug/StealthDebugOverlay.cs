@@ -148,6 +148,7 @@ namespace Game.DevTools
         private void BuildLabel(EntityPerception p)
         {
             _sb.Clear();
+            if (p.IsWitnessing) _sb.Append("Witness · ");
             AppendState(p);
             _sb.Append('\n');
             AppendPercent(p.Awareness);
@@ -163,7 +164,7 @@ namespace Game.DevTools
             _sb.Append("STEALTH DEBUG (F3)\n");
             if (player == null || top == null)
             {
-                _sb.Append("no hostile perceiving");
+                _sb.Append("no entity perceiving the player");
                 return;
             }
             _sb.Append("Player sneaking: ").Append(player.IsSneaking ? "yes" : "no");
@@ -236,15 +237,23 @@ namespace Game.DevTools
             Transform t = p.transform;
             Vector3 eye = p.EyePosition;
             Vector3 ground = t.position + Vector3.up * 0.05f;
-            float sight = p.SightRange;
             float proximity = p.ProximityRadius;
+            float sneakProximity = proximity * config.sneakProximityMultiplier;
 
-            DrawSegments(StealthDebugGeometry.BuildConeOutline(eye, t.forward, sight, p.ViewAngle, ARC_SEGMENTS, _buffer), color);
-            DrawSegments(StealthDebugGeometry.BuildConeOutline(
-                eye, t.forward, sight * config.sneakSightRangeMultiplier, p.ViewAngle, ARC_SEGMENTS, _buffer), dim);
-            DrawSegments(StealthDebugGeometry.BuildCircle(ground, proximity, ARC_SEGMENTS, _buffer), color);
-            DrawSegments(StealthDebugGeometry.BuildCircle(
-                ground, proximity * config.sneakProximityMultiplier, ARC_SEGMENTS, _buffer), dim);
+            if (p.SightRange > 0f)
+            {
+                DrawSegments(StealthDebugGeometry.BuildConeOutline(eye, t.forward, p.SightRange, p.ViewAngle, ARC_SEGMENTS, _buffer), color);
+                DrawSegments(StealthDebugGeometry.BuildConeOutline(
+                    eye, t.forward, p.SneakingSightRange, p.ViewAngle, ARC_SEGMENTS, _buffer), dim);
+                DrawSegments(StealthDebugGeometry.BuildCircle(ground, proximity, ARC_SEGMENTS, _buffer), color);
+            }
+            DrawSegments(StealthDebugGeometry.BuildCircle(ground, sneakProximity, ARC_SEGMENTS, _buffer), dim);
+            if (p.CanWitness)
+            {
+                // Witness cone (non-hostile sneaking player): fixed colour, awareness colour while witnessing.
+                DrawSegments(StealthDebugGeometry.BuildConeOutline(eye, t.forward, p.WitnessRange, p.ViewAngle, ARC_SEGMENTS, _buffer),
+                    p.IsWitnessing ? color : StealthDebugGeometry.WitnessConeColor);
+            }
 
             if (p.Target != null && p.Target.StealthTarget != null)
             {

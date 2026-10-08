@@ -2,7 +2,9 @@ using _Game.ScriptableObjects.Entities;
 using Game.Animations;
 using Game.Combat;
 using Game.Core;
+using Game.Dialogue;
 using Game.Factions;
+using Game.NPC;
 using Game.Stealth;
 using Game.World;
 using UnityEngine;
@@ -19,13 +21,17 @@ namespace Game.AI
     /// active perception, every hostile is acquired by radius and Suspicious / Searching never happen.
     /// Taking damage while not engaged makes the entity engage the closest hostile. Implements
     /// <see cref="ISneakAttackTarget"/> (unaware = Idle / Patrolling / Suspicious and not fully aware).
+    /// A non-hostile stealth target perceived in witness mode (neutral NPC with a <see cref="WitnessProfileSO"/>
+    /// spotting the sneaking player) leads to Idle / Patrolling → (Suspicious) → Watching (stop, face the player, one
+    /// warning speech bubble per cooldown) → back to Idle / Patrolling. Watching is neither combat nor unaware; a
+    /// hostile spotted (radius scan) or a hostile hit while watching still triggers the normal combat reaction.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EntityBrain : MonoBehaviour, ICombatStateProvider, ISneakAttackTarget
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Dead }
+        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Dead }
 
         private static readonly string[] STATE_NAMES = System.Enum.GetNames(typeof(EntityState));
 
@@ -66,6 +72,14 @@ namespace Game.AI
         [Tooltip("Suspicious / searching tuning. Falls back to the perception's config when null.")]
         [SerializeField] private StealthConfigSO _stealthConfig;
 
+        [Header("Witness")]
+        [Tooltip("Raised when a non-hostile witness warns the player (speech bubble).")]
+        [SerializeField] private GameEventSO_SpeechBubbleRequest _onSpeechBubbleRequested;
+        [Tooltip("Point the speech bubble anchors to (above the name tag).")]
+        [SerializeField] private Transform _speechAnchor;
+        [Tooltip("Height above the root used when _speechAnchor is unassigned.")]
+        [SerializeField] private float _speechAnchorFallbackHeight = 2.8f;
+
         private NavMeshAgent _agent;
         private EntityHealth _entityHealth;
         private FactionMember _currentTarget;
@@ -87,6 +101,14 @@ namespace Game.AI
 
         private Vector3 _idleOrigin;
         private EntityState _disengageState = EntityState.Patrolling;
+
+        private float _watchLostTimer;
+        private float _lastWarnTime = float.NegativeInfinity;
+        private int _lastBarkIndex = -1;
+        private bool _warnedMissingBark;
+
+        /// <summary>Warnings given to the player by this witness (runtime only, not saved) — hook for escalation.</summary>
+        public int WarnedCount { get; private set; }
 
         private bool PerceptionActive => _perception != null && _perception.IsActive;
         private StealthConfigSO StealthConfig => _stealthConfig != null ? _stealthConfig : _perception.Config;
@@ -147,6 +169,10 @@ namespace Game.AI
                 GameLog.Error(TAG, $"{gameObject.name}: no EntityMeleeAttacker — attacks will deal no damage");
 
             if (_perception == null) _perception = GetComponent<EntityPerception>();
+
+            if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
+            if (_speechAnchor == null && WitnessProfileSO.IsEnabled(_persistentID.Entity.WitnessProfile))
+                GameLog.Warn(TAG, $"{gameObject.name}: no SpeechAnchor child — witness bubbles use the {_speechAnchorFallbackHeight} m fallback height");
         }
 
         private void OnEnable()
@@ -223,6 +249,7 @@ namespace Game.AI
                 case EntityState.Engaging:   HandleEngage();     break;
                 case EntityState.Attacking:  HandleAttack();     break;
                 case EntityState.Searching:  HandleSearching();  break;
+                case EntityState.Watching:   HandleWatching();   break;
                 case EntityState.Dead:       HandleDead();       break;
             }
 
@@ -286,9 +313,10 @@ namespace Game.AI
         private bool IsAlertedState() =>
             _state == EntityState.Warning || _state == EntityState.Engaging || _state == EntityState.Attacking;
 
-        // True while alerted on a stealth target: perception tracks it 360° and holds awareness at 1.
+        // True while alerted on (or watching) a stealth target: perception tracks it 360° and holds awareness at 1.
         private bool IsAlertedOnStealthTarget() =>
-            IsAlertedState() && _currentTarget != null && _currentTarget.StealthTarget != null;
+            (IsAlertedState() || _state == EntityState.Watching) &&
+            _currentTarget != null && _currentTarget.StealthTarget != null;
 
         private bool IsTrackingPerceptionTarget() =>
             PerceptionActive && _currentTarget != null && _currentTarget == _perception.Target;
@@ -327,9 +355,11 @@ namespace Game.AI
             }
         }
 
-        // Decide how to react to first contact: instant engage, cross-inner-ring engage, or warn.
+        // Decide how to react to first contact: watch (non-hostile witness), instant engage,
+        // cross-inner-ring engage, or warn.
         private void RespondToDetectedTarget()
         {
+            if (IsWitnessTarget()) { TransitionToWatching(); return; }
             if (_engageImmediately) { TransitionToEngaging(); return; }
             float dist = Vector3.Distance(transform.position, _currentTarget.Transform.position);
             if (dist <= _persistentID.Entity.WarningRange) TransitionToEngaging();
@@ -472,6 +502,82 @@ namespace Game.AI
             ResumeNonCombat();
         }
 
+        // The current target is the non-hostile stealth target the perception is witnessing.
+        private bool IsWitnessTarget() =>
+            PerceptionActive && _perception.IsWitnessing && _currentTarget != null && _currentTarget == _perception.Target;
+
+        // Witness: stand still facing the player until they leave WitnessWatchRange or stay out of sight too long.
+        private void HandleWatching()
+        {
+            if (!PerceptionActive || !IsLive(_currentTarget) || !_perception.IsWitnessing) { EndWatching(); return; }
+
+            // A hostile (non-stealth, radius scan) showing up takes over: normal warning / engage reaction.
+            FactionMember watched = _currentTarget;
+            if (TryAcquireTargetThrottled())
+            {
+                GameLog.Info(TAG, $"{gameObject.name} stops watching — hostile {_currentTarget.Transform.name} spotted");
+                _perception.ResetPerception();
+                RespondToDetectedTarget();
+                return;
+            }
+            _currentTarget = watched; // TryAcquireTarget clears it when nothing is found
+
+            Vector3 toTarget = _currentTarget.Transform.position - transform.position;
+            toTarget.y = 0f;
+            float watchRange = _perception.WitnessWatchRange;
+            if (toTarget.sqrMagnitude > watchRange * watchRange) { EndWatching(); return; }
+
+            if (_perception.CanSeeTarget)
+            {
+                _watchLostTimer = 0f;
+            }
+            else
+            {
+                _watchLostTimer += Time.deltaTime;
+                if (_watchLostTimer >= StealthConfig.witnessLoseSightTime) { EndWatching(); return; }
+            }
+            FacePoint(_currentTarget.Transform.position, StealthConfig.witnessTurnSpeed);
+        }
+
+        private void EndWatching()
+        {
+            _currentTarget = null;
+            if (_perception != null) _perception.ResetPerception();
+            GameLog.Info(TAG, $"{gameObject.name} stops watching — resuming");
+            ResumeNonCombat();
+        }
+
+        // One warning bubble per witnessWarnCooldown; detections inside the cooldown watch silently.
+        private void TryWarn()
+        {
+            if (Time.time - _lastWarnTime < StealthConfig.witnessWarnCooldown) return;
+            _lastWarnTime = Time.time;
+
+            WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+            BarkSetSO barks = profile != null ? profile.Barks : null;
+            string line = barks != null ? barks.GetRandomLine(ref _lastBarkIndex) : null;
+            if (string.IsNullOrEmpty(line) || _onSpeechBubbleRequested == null)
+            {
+                if (!_warnedMissingBark)
+                {
+                    _warnedMissingBark = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: witness warning has no bark line or no speech bubble channel — watching silently");
+                }
+                return;
+            }
+
+            WarnedCount++; // only warnings the player actually saw count toward escalation
+            _onSpeechBubbleRequested.Raise(new SpeechBubbleRequest
+            {
+                speaker = _speechAnchor != null ? _speechAnchor : transform,
+                text = line,
+                duration = StealthConfig.witnessBubbleDuration,
+                priority = StealthConfig.witnessBubblePriority,
+                anchorHeight = _speechAnchor != null ? 0f : _speechAnchorFallbackHeight,
+            });
+            GameLog.Info(TAG, $"{gameObject.name} warns the player (#{WarnedCount})");
+        }
+
         private void HandleDead()
         {
             // No-op: death animation and ragdoll handled by the AIAnimationDriver.
@@ -493,7 +599,7 @@ namespace Game.AI
 
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
-                _state != EntityState.Searching && _state != EntityState.Warning) return;
+                _state != EntityState.Searching && _state != EntityState.Warning && _state != EntityState.Watching) return;
             FactionSO faction = _selfFactionMember.Faction;
             if (faction == null) return;
 
@@ -506,8 +612,9 @@ namespace Game.AI
             }
             else
             {
-                // Unknown source: the stealth target only if it is in sight, else the closest radius hostile.
-                candidate = PerceptionActive && _perception.CanSeeTarget && IsLive(_perception.Target)
+                // Unknown source: the hostile stealth target only if it is in sight (never a witnessed, non-hostile
+                // one), else the closest radius hostile.
+                candidate = PerceptionActive && !_perception.IsWitnessing && _perception.CanSeeTarget && IsLive(_perception.Target)
                     ? _perception.Target
                     : TargetRegistry.FindClosestHostile(faction, transform.position,
                         _persistentID.Entity.DisengageRange, skipStealthTargets: PerceptionActive);
@@ -636,6 +743,18 @@ namespace Game.AI
             _state = EntityState.Suspicious;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} is suspicious ({_perception.Awareness * 100f:0}% aware)");
+        }
+
+        // Non-hostile witness spotted the sneaking player: stop and watch. No combat state (dialogue stays open).
+        private void TransitionToWatching()
+        {
+            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
+                _disengageState = _state;
+            _state = EntityState.Watching;
+            _agent.isStopped = true;
+            _watchLostTimer = 0f;
+            GameLog.Info(TAG, $"{gameObject.name} is watching {_currentTarget.Transform.name}");
+            TryWarn();
         }
 
         private void TransitionToSearching()

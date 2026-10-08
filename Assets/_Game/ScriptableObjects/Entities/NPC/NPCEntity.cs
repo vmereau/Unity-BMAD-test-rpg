@@ -13,5 +13,27 @@ namespace Game.NPC
         public GameObject prefab;
 
         public List<NPCMemoryEntrySO>  memories;
+
+        [Header("Witness")]
+        [Tooltip("Reaction to a sneaking, non-hostile player (WitnessProfile_Humanoid for every humanoid). Swap the profile to tune one NPC. Null = never reacts.")]
+        [SerializeField] private WitnessProfileSO _witnessProfile;
+
+        public override WitnessProfileSO WitnessProfile => _witnessProfile;
+
+#if UNITY_EDITOR
+        private const string DEFAULT_WITNESS_PROFILE = "WitnessProfile_Humanoid";
+
+        // New NPC assets start with the shared humanoid witness profile.
+        private void Reset()
+        {
+            foreach (string guid in UnityEditor.AssetDatabase.FindAssets($"{DEFAULT_WITNESS_PROFILE} t:{nameof(WitnessProfileSO)}"))
+            {
+                var profile = UnityEditor.AssetDatabase.LoadAssetAtPath<WitnessProfileSO>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+                if (profile == null || profile.name != DEFAULT_WITNESS_PROFILE) continue;
+                _witnessProfile = profile;
+                return;
+            }
+        }
+#endif
     }
 }

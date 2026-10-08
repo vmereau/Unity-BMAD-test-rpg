@@ -30,3 +30,8 @@ MonoBehaviour:
   sneakingVisibilityHeight: 0.9
   suspiciousTurnSpeed: 180
   searchTurnSpeed: 90
+  witnessTurnSpeed: 240
+  witnessLoseSightTime: 1.5
+  witnessWarnCooldown: 20
+  witnessBubbleDuration: 3
+  witnessBubblePriority: 0

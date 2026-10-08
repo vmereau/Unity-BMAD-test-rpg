@@ -160,9 +160,14 @@ namespace Game.Player
             GameLog.Info(TAG, "Sneak: false (sprint)");
         }
 
-        /// <summary>Sets the IsInDialogue state. Called by DialogueSystem on open/close.</summary>
+        /// <summary>
+        /// Sets the IsInDialogue state. Called by DialogueSystem on open/close. Opening a conversation stands the
+        /// player up (no sneaking while talking — neutral witnesses would otherwise react mid-dialogue). Other
+        /// interactions (pickups, doors, containers) keep the sneak stance.
+        /// </summary>
         public void SetInDialogue(bool value)
         {
+            if (value) SetSneaking(false);
             IsInDialogue = value;
             GameLog.Info(TAG, $"IsInDialogue: {value}");
         }

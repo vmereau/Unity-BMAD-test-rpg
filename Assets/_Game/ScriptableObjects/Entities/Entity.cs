@@ -1,5 +1,6 @@
 ﻿using Game.Core;
 using Game.Factions;
+using Game.NPC;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -98,6 +99,12 @@ namespace _Game.ScriptableObjects.Entities
         public int ComboHitsMax               => _comboHitsMax;
         
         public AnimatorOverrideController AnimatorOverride => _animatorOverride;
+
+        /// <summary>
+        /// Witness behaviour against a sneaking, non-hostile player. Null for plain entities and monsters;
+        /// <see cref="NPCEntity"/> returns its assigned profile.
+        /// </summary>
+        public virtual WitnessProfileSO WitnessProfile => null;
 
         /// <summary>
         /// Called by EntityBrain each frame when idle and not pathfinding.

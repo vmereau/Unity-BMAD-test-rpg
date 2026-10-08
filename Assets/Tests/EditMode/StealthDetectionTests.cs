@@ -153,5 +153,26 @@ namespace Tests.EditMode
             Assert.That(Vis(6f, 0f, sight: sneakSight, prox: sneakProx), Is.EqualTo(0f));
             Assert.That(Vis(6f, 0f), Is.GreaterThan(0f));
         }
+
+        // --- ComputeWitnessVisibility ---
+
+        private const float WITNESS = 6f;
+
+        private static float WitnessVis(bool sneaking, float distance, float angle) =>
+            StealthDetection.ComputeWitnessVisibility(sneaking, distance, angle, WITNESS, VIEW, PROX, EDGE, PERIPH);
+
+        [Test]
+        public void WitnessVisibility_NotSneaking_IsZero()
+        {
+            Assert.That(WitnessVis(false, 3f, 0f), Is.EqualTo(0f));
+            Assert.That(WitnessVis(false, 0.5f, 180f), Is.EqualTo(0f)); // even inside the proximity radius
+        }
+
+        [Test]
+        public void WitnessVisibility_Sneaking_EqualsComputeVisibility()
+        {
+            foreach (var (d, a) in new[] { (0.5f, 180f), (3f, 0f), (5f, 40f), (7f, 0f), (3f, 70f) })
+                Assert.That(WitnessVis(true, d, a), Is.EqualTo(Vis(d, a, sight: WITNESS)).Within(EPS), $"d {d}, a {a}");
+        }
     }
 }

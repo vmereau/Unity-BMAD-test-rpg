@@ -37,17 +37,25 @@ namespace Game.AI
         /// </summary>
         public static FactionMember FindClosestHostile(FactionSO myFaction, Vector3 origin, float maxRange,
             bool skipStealthTargets = false) =>
-            FindClosest(myFaction, origin, maxRange, skipStealthTargets ? StealthFilter.Exclude : StealthFilter.Any);
+            FindClosest(myFaction, origin, maxRange, skipStealthTargets ? StealthFilter.Exclude : StealthFilter.Any, true);
 
         /// <summary>
         /// Like <see cref="FindClosestHostile"/>, but only members with a <see cref="FactionMember.StealthTarget"/>.
         /// </summary>
         public static FactionMember FindClosestHostileStealthTarget(FactionSO myFaction, Vector3 origin, float maxRange) =>
-            FindClosest(myFaction, origin, maxRange, StealthFilter.Only);
+            FindClosest(myFaction, origin, maxRange, StealthFilter.Only, true);
+
+        /// <summary>
+        /// Closest live stealth target whose faction is <b>not</b> hostile to <paramref name="myFaction"/> — used by
+        /// non-hostile witnesses (EntityPerception witness mode).
+        /// </summary>
+        public static FactionMember FindClosestNonHostileStealthTarget(FactionSO myFaction, Vector3 origin, float maxRange) =>
+            FindClosest(myFaction, origin, maxRange, StealthFilter.Only, false);
 
         private enum StealthFilter { Any, Exclude, Only }
 
-        private static FactionMember FindClosest(FactionSO myFaction, Vector3 origin, float maxRange, StealthFilter filter)
+        private static FactionMember FindClosest(FactionSO myFaction, Vector3 origin, float maxRange, StealthFilter filter,
+            bool wantHostile)
         {
             if (myFaction == null) return null;
             float bestSqr = maxRange * maxRange;
@@ -59,7 +67,7 @@ namespace Game.AI
                 bool isStealthTarget = m.StealthTarget != null;
                 if (filter == StealthFilter.Exclude && isStealthTarget) continue;
                 if (filter == StealthFilter.Only && !isStealthTarget) continue;
-                if (!myFaction.IsHostileTo(m.Faction)) continue;
+                if (myFaction.IsHostileTo(m.Faction) != wantHostile) continue;
                 // m.Damageable is an interface ref — cast to Object so the null check honors Unity's
                 // destroyed-object semantics (a destroyed health component is not C#-null but is Unity-null).
                 if (m.Damageable == null || (Object)m.Damageable == null || m.Damageable.IsDead) continue;
