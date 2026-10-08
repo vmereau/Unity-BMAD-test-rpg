@@ -31,6 +31,8 @@ Create the following in order:
      sneaking player). Created from the Unity menu it is auto-assigned by `NPCEntity.Reset()`, but assets created
      through MCP / `CreateInstance` skip `Reset()` — always set it explicitly. Use another `WitnessProfile_*`
      asset only if the user wants this NPC to react differently.
+   - `_killedFact`: once the NPC is placed in a scene with a `PersistentID`, set it to the **same** `KilledFact` as that
+     `PersistentID` (ownership liveness; `PersistentID.Awake` warns on a mismatch). Leave empty until then.
    - Leave other fields (`dayState`, `nightState`, `walkSpeed`, `prefab`, `memories`) at defaults for now
 
 After creation, check Unity console for errors (`read_console`).

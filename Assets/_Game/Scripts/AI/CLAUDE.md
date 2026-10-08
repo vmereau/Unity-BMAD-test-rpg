@@ -12,10 +12,11 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (the Player — no PersistentID). |
+| `TheftPursuitRegistry` | **Static** claim set of theft ids (reset on play). `TryClaim(id)` — first catcher wins; `IsClaimed(id)` tells the other pursuers to give up. `TheftPursuitRegistryTests`. |
 | `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget` / `FindClosestNonHostileStealthTarget` (witnesses). |
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
@@ -80,6 +81,22 @@
   Opening a dialogue stands the player up, so a witness never starts watching mid-conversation. Watching is **not combat**
   (`IsInCombat` false → dialogue still opens) and **not unaware** (no sneak-attack bonus). Passive NPCs still
   never fight back (`HandleHealthChanged` early return) and never reach Warning / Searching.
+- **Theft witnesses (Pursuing / Confronting):** every brain listens to `OnTheftCommitted` (wired on `Entity_base`
+  with `_onDialogueRequested`). It reacts only while Idle / Patrolling / Suspicious / Watching / Pursuing, with an
+  active perception that `CanWitness`, a live thief **not hostile** to it (bandit / spiders ignore thefts), and
+  `EntityPerception.CanSeeTheft` (cone at profile `TheftSightRange`, sneak-shortened, or the sneak-adjusted proximity
+  radius, + immediate LOS raycast). **Every** seeing witness goes **Pursuing** (non-combat — `IsInCombat` false; agent
+  at `EngageSpeed`, `stoppingDistance = 0.8 × theftCatchDistance`), shouts one `TheftAlertBarks` bubble and increments
+  `TheftsWitnessed` (runtime, escalation hook). A new theft while Pursuing adopts the new id and restarts the timers.
+  Give up (`TheftDetection.ShouldGiveUp`): no LOS for `theftChaseLoseSightTime`, beyond `theftChaseMaxDistance`, after
+  `theftChaseMaxDuration`, thief dead, or the incident claimed by another witness. A hostile found by the throttled
+  radius scan while Pursuing takes over (normal Warning / Engaging reaction, like Watching). Catch (`CanCatch`: flat distance ≤
+  `theftCatchDistance` **and the cursor locked** — waits while a menu is open) + `TheftPursuitRegistry.TryClaim` →
+  **Confronting**: stops, faces the thief, raises `OnNPCDialogueRequested` with `forcedLine` (item thefts use
+  `ItemTheftScoldBarks`, else `TheftScoldBarks`, else a default line); resumes its routine when the dialogue closes
+  (cursor locked again) or after `theftConfrontOpenTimeout` if it never opened. A hostile hit while Pursuing /
+  Confronting triggers the normal combat reaction. Known gap: the player can still talk to a chasing NPC normally —
+  it scolds right after.
 - **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
   `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
   bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.

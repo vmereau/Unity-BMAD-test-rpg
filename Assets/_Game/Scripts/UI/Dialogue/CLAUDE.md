@@ -19,6 +19,7 @@
 - `_input` is initialized in `Awake` — the `OnDisable` null guard is **required** (see root `CLAUDE.md`).
 - Topic buttons are instantiated from `_topicButtonPrefab` into `_topicsContainer`; destroyed and recreated each time the topic list refreshes.
 - Keyboard slots 1–9 and 0 map to choices via `_slotCallbacks[1..10]`; index 0 is unused.
+- **Forced line** (`OpenLine(npcName, line)`, NPC-initiated, e.g. a theft scold): opens straight in `Text` with no topic list; `_forcedLine` makes click, slot 1, `_nextNodeButton` and Escape all call `DialogueSystem.Close()`. Reset by `Open()` / `Close()`.
 
 ## Cursor
 
