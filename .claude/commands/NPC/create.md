@@ -27,6 +27,10 @@ Create the following in order:
 2. Subfolders: `Dialogues/` and `Memories/` inside the NPC folder
 3. Asset: `NPC_<NPCName>.asset` (type: `Game/NPC/NPC Data`) inside the NPC folder
    - Set `entityName` to the display name from Step 1
+   - Set `_witnessProfile` to `Assets/_Game/Data/Entities/WitnessProfile_Humanoid.asset` (shared reaction to a
+     sneaking player). Created from the Unity menu it is auto-assigned by `NPCEntity.Reset()`, but assets created
+     through MCP / `CreateInstance` skip `Reset()` — always set it explicitly. Use another `WitnessProfile_*`
+     asset only if the user wants this NPC to react differently.
    - Leave other fields (`dayState`, `nightState`, `walkSpeed`, `prefab`, `memories`) at defaults for now
 
 After creation, check Unity console for errors (`read_console`).

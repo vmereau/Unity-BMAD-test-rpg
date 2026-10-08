@@ -30,6 +30,10 @@ fill/s = visibility / Entity.AwarenessFillTime × (sneaking ? sneakFillRateMulti
 awareness += fill × dt while visible (and LOS clear), else −= awarenessDrainPerSecond × dt; clamp 0..1
 ```
 
+Witness (non-hostile target, `NPCEntity.WitnessProfile`): `ComputeWitnessVisibility(sneaking, …)` =
+`ComputeVisibility(…)` with sight range = profile `WitnessRange` while the target sneaks, **0 otherwise**;
+proximity radius is always the sneaking one.
+
 Sneaking multiplies sight range and proximity radius (`sneakSightRangeMultiplier`, `sneakProximityMultiplier`).
 Distance and angle are flat (XZ). Line of sight is a single `Physics.Raycast` from the entity's eye
 (`Entity.EyeHeight`) to `VisibilityPoint` against `lineOfSightMask` (Default), every `losCheckInterval`.
@@ -37,7 +41,8 @@ Distance and angle are flat (XZ). Line of sight is a single `Physics.Raycast` fr
 | Where | Values |
 |-------|--------|
 | `Entity` SO (per entity) | `ViewAngle` 110, `EyeHeight` 1.6 (spider 0.4), `ProximityRadius` 2, `AwarenessFillTime` 1 s, `LoseSightTime` 2 s, `SearchDuration` 6 s; sight range = `DetectionRange` |
-| `StealthConfigSO` (global) | sneak ×0.6 sight / ×0.35 proximity / ×0.5 fill, edge 0.2, peripheral 0.5, drain 0.25/s, suspicion 0.5 (clamped > 0 — 0 makes Idle/Suspicious flip-flop), search start 0.5, damage alert 10 s, visibility heights 1.4 / 0.9, turn speeds 180 / 90 |
+| `StealthConfigSO` (global) | sneak ×0.6 sight / ×0.35 proximity / ×0.5 fill, edge 0.2, peripheral 0.5, drain 0.25/s, suspicion 0.5 (clamped > 0 — 0 makes Idle/Suspicious flip-flop), search start 0.5, damage alert 10 s, visibility heights 1.4 / 0.9, turn speeds 180 / 90; witness: turn 240, lose sight 1.5 s, warn cooldown 20 s, bubble 3 s / priority 0 |
+| `WitnessProfileSO` (`Game.NPC`, `Data/Entities/WitnessProfile_Humanoid`) | `WitnessRange` 6 (0 = off), `WatchRange` 9 (never below the range), `Barks` (`Barks_SneakWarning`). Referenced by every `NPCEntity` (`_witnessProfile`); `Entity.WitnessProfile` is virtual, null for plain entities / monsters. Tune one NPC by swapping its profile. |
 
 Tuning start points: standing in front at 8 m fills in ≈ 5 s, sneaking can't be seen past 4.8 m and fills at
 half rate; sneaking behind an entity is only noticed inside 0.7 m.
@@ -52,5 +57,9 @@ half rate; sneaking behind an entity is only noticed inside 0.7 m.
   fill/s, distance, LOS, time since seen).
 - **F3 overlay** (`Scripts/Debug/StealthDebugOverlay`, `Core.unity`, editor + development builds): same lines
   drawn with GL, a label per entity within 40 m and a summary panel. Use it for tuning.
+- Entities with a witness profile also draw the witness cone (`WitnessRange`) in cyan
+  (`StealthDebugGeometry.WitnessConeColor`), awareness-coloured while `IsWitnessing`; labels prefixed `Witness · `.
+  Use `SightRange` / `SneakingSightRange` / `WitnessRange` from `EntityPerception` — never recompute
+  `DetectionRange × multiplier` in debug code.
 - New debug read-outs belong on `EntityPerception` (read-only properties updated in `Tick`), so the gizmos and
   the overlay stay in sync.

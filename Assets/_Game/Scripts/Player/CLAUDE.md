@@ -31,7 +31,7 @@
 reads Sprint/Move: Sprint held while moving → `ExitSneakToSprint()` (clears `IsSneaking`, fires
 `SneakToSprint` → `sneak to sprint` clip into running). `CanSneak() = !IsBusy && !IsAirborne && !IsDodging`
 — attacking and blocking are allowed and **never** clear sneak. The other exits live in
-`PlayerStateManager`: `SetDodging(true)`, `NotifyJumpStarted()` and `SetDead(true)` clear `IsSneaking`
+`PlayerStateManager`: `SetDodging(true)`, `NotifyJumpStarted()`, `SetDead(true)` and `SetInDialogue(true)` (NPC conversations only — pickups, doors and containers keep the stance) clear `IsSneaking`
 without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking off a ledge). `PlayerController` uses `PlayerConfigSO.sneakSpeed` while sneaking.
 `PlayerSaveAdapter.Restore` forces `SetSneaking(false)` (sneak is not saved). `VisibilityPoint` = feet +
 `StealthConfigSO.standing/sneakingVisibilityHeight` (the AI line-of-sight aim point).

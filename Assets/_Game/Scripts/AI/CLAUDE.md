@@ -12,11 +12,11 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (the Player — no PersistentID). |
-| `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget`. |
+| `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget` / `FindClosestNonHostileStealthTarget` (witnesses). |
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
 | `AttackComboPlan` | Pure combo bookkeeping (`Begin`, `TryAdvance`, `Reset`) for `EntityMeleeAttacker`. `AttackComboPlanTests`. |
@@ -63,6 +63,23 @@
   then engages **that attacker** if it is hostile (never a bystander), while Idle/Patrolling/Suspicious/
   Searching/Warning. Unknown source → the stealth target only if in sight, else the closest radius hostile.
   Skipped for passive entities. **Any new damage source must call `NotifyHitBy`.**
+- **Witness mode is per target, not per entity.** Every StartingTown NPC uses its own `NPCEntity` asset with
+  `DetectionRange 8` (they fight monsters) — never gate witnessing on `DetectionRange <= 0`. `ScanForTarget`:
+  closest **hostile** stealth target first (`DetectionRange > 0`); none and `CanWitness` (enabled
+  `WitnessProfileSO` on the `NPCEntity`) → closest **non-hostile** one, `IsWitnessing = true`. Witnessing only
+  counts while the target **sneaks** (walking drains awareness); sight range = profile `WitnessRange` (no sneak
+  multiplier), proximity = the sneaking one. The bandit references the same profile harmlessly — the player is
+  hostile to it, so the hostile branch always wins. Brain: `RespondToDetectedTarget` routes a witnessed target
+  (`IsWitnessTarget()`) to **Watching** (agent stopped, faces the player at `witnessTurnSpeed`, ticked with
+  `engaged = true` → tracks 360° within `WitnessWatchRange` even if the player stands up), a hostile one to
+  Warning / Engaging. Exit: flat distance > `WitnessWatchRange`, no LOS for `witnessLoseSightTime`, or a hostile
+  found by the throttled radius scan (→ normal reaction) → perception reset + `ResumeNonCombat()`. Being hit
+  while Watching fights back like Idle; an unknown-source hit never picks the witnessed (non-hostile) target. Entry raises one speech bubble (`OnSpeechBubbleRequested`, anchored on the
+  `SpeechAnchor` child of `Entity_base`, y 2.8 — above `EntityUICanvas`) unless inside `witnessWarnCooldown`;
+  `WarnedCount` (runtime only, not saved; counts only bubbles actually raised) is the hook for future escalation.
+  Opening a dialogue stands the player up, so a witness never starts watching mid-conversation. Watching is **not combat**
+  (`IsInCombat` false → dialogue still opens) and **not unaware** (no sneak-attack bonus). Passive NPCs still
+  never fight back (`HandleHealthChanged` early return) and never reach Warning / Searching.
 - **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
   `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
   bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.
@@ -94,7 +111,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `GetComponent`; use a `GameEventSO<T>` channel if push is ever needed.
 - `EntityHealth.MaxHealth` = `PersistentID.Entity.BaseHealth`, fallback `100f`.
 - `PersistentID`, `AIAnimationDriver` and `NavMeshAgent` are **optional** — guard every access.
-- **Passive entities** (e.g. `Entity_HumanoidNPC`) have `_detectionRange = 0`. Any `WarningRange` vs
+- **Passive entities** (e.g. `Entity_HumanoidNPC` — only the `NPC_base Variant` default; every scene NPC overrides
+  it with its own `NPCEntity` asset, `DetectionRange 8`) have `_detectionRange = 0`. Any `WarningRange` vs
   `DetectionRange` check (`Entity.OnValidate`, `EntityBrain` guard) must skip when `DetectionRange <= 0`.
 - **AI damage flows only through `EntityMeleeAttacker` hit windows — `EntityBrain` never calls `TakeDamage`.**
   `ExecuteAttack` = `BeginAttack(Entity.AttackDamage, hits)` (hits rolled in `[ComboHitsMin, ComboHitsMax]`,

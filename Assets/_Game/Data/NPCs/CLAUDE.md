@@ -28,6 +28,14 @@ Assets/_Game/Data/NPCs/
       ...
 ```
 
+Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dialogue/Bark Set`, name
+`Barks_<Purpose>`) — one-liners said in speech bubbles, e.g. `Barks_SneakWarning` (referenced by
+`Data/Entities/WitnessProfile_Humanoid`). Lines never repeat twice in a row.
+
+Every `NPC_<Name>.asset` references `WitnessProfile_Humanoid` in `_witnessProfile` (reaction to a sneaking player;
+auto-assigned by `NPCEntity.Reset()` from the Create menu, **not** when created through MCP / `CreateInstance` — set
+it explicitly). Swap to another `WitnessProfile_*` to make one NPC react differently; null = never reacts.
+
 `NPCEntity.memories` is **auto-synced** from `<NPCName>/Memories/**` by `NPCMemoriesAutoSync`
 (menu fallback `Game/Dev/Sync All NPC Memories`) — never edit the list by hand; a memory saved
 elsewhere belongs to no NPC (Quest Explorer V16).

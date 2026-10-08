@@ -19,6 +19,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 │   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI   (inactive by default)
 ├── Game                 (HUD — drawn AFTER Menus, i.e. on top)
 │   ├── Crosshair        (Image)
+│   ├── SpeechBubbleLayer   (stretch, own Canvas, SpeechBubbleUI — pools Prefabs/UI/SpeechBubble.prefab; before the prompt)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)
 │   ├── ActionBar        (ActionBarUI → 6× ActionBarSlot)
 │   └── HealthBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50)
