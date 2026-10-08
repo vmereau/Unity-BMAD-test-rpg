@@ -14,7 +14,7 @@
 | `Quest/` | Quest log screen, quest list / info panels |
 | `Skills/` | Skills tab: skill list, skill detail panel + formatter |
 | `Dialogue/` | NPC dialogue panel, topic / choice display, keyboard shortcuts |
-| `Screens/` | `UIScreenManager`, `IScreenPanel` contract, character stats, options |
+| `Screens/` | `UIScreenManager`, `IScreenPanel` contract, character stats, Game Menu (save / load / options), death screen, loading overlay |
 
 `EntityUI` (this folder) is the world-space name / HP display shown when an entity is hovered.
 

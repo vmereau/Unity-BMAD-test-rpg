@@ -13,7 +13,8 @@ Manager GameObjects in `Core.unity`:
 |----|--------|
 | `WorldStateManager` | Scripted — `Game.Core.State.WorldStateManager` |
 | `SceneLoader` | Scripted — `Game.Core.SceneLoader` |
-| `GameEventBus`, `SaveSystem`, `DayNightController`, `AudioManager` | Empty stubs — scripts arrive with their epics (save/load = story 9-5, day/night = story 5-6) |
+| `SaveSystem` | Scripted — `Game.Core.SaveSystem` (refs wired to the Player instance's components and `UICanvas/ConfirmDialog`; see `Scripts/Core/CLAUDE.md` → Save) |
+| `GameEventBus`, `DayNightController`, `AudioManager` | Empty stubs — scripts arrive with their epics (day/night = story 5-6) |
 
 `Core.unity` also contains a `Player.prefab` instance — the `PlayerStats` / `PlayerSkills` references in
 the scene YAML are that instance's components, not separate scene components.

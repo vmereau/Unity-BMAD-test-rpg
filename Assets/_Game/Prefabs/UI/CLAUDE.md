@@ -16,13 +16,17 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 ├── ContainerUI / NPCTradeUI   (nested prefabs, inactive by default)
 ├── Menus                (tab-based screen panels)
 │   ├── TabBar           (TabBarUI)
-│   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI / OptionsUI   (inactive by default)
+│   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI   (inactive by default)
 ├── Game                 (HUD — drawn AFTER Menus, i.e. on top)
 │   ├── Crosshair        (Image)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)
 │   ├── ActionBar        (ActionBarUI → 6× ActionBarSlot)
-│   └── HealthBar / StaminaBar / ExperienceBar / NotificationContainer
-└── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
+│   └── HealthBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50)
+├── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
+├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList / OptionsUI / BackButton
+├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
+├── ConfirmDialog        (ConfirmDialogUI, inactive — shared Yes/No)
+└── LoadingOverlay       (LoadingOverlayUI, own Canvas sort 100) → Panel (toggled)
 ```
 
 ---
@@ -34,5 +38,8 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
   and a second root breaks Prefab Mode. It lives here so it always ships with the Player.
 - `DialoguePanel` is a nested `PrefabInstance`; `DialogueUI._dialogueSystem` ↔ `DialogueSystem._dialogueUI`
   are cross-wired via **Player.prefab** overrides — don't try to wire them inside `UICanvas.prefab` alone.
+- Screens that must hear events while hidden (`GameMenu`, `DeathScreen`, `LoadingOverlay`) keep their component on an
+  always-active root and toggle a `Panel` child. `DeathScreenUI._playerStateManager` is wired as a Player.prefab override.
+  Save-slot rows are `Prefabs/UI/SaveSlotEntry.prefab` (`SaveSlotEntryUI`); menu buttons are `Common/ActionButton` instances.
 - `ItemDetailPanel` nesting rules (host prefabs override only the root, `ActionsContainer` never recreated):
   `Scripts/UI/Inventory/CLAUDE.md`.

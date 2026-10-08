@@ -20,6 +20,7 @@
 | `Lockable` | Reusable lock-data holder (`IsLocked`, `RequiredSkillId`, `LockedPrompt`) + `Unlock()`. Single source of lock truth shared by doors and containers via `GetComponent`; absence = never locked. |
 | `DoorInteractable` / `DoorSystem` | `IInteractable` door that rotates its `Visual` child open/closed (re-closeable). Unlocked doors toggle locally; locked doors raise `OnDoorOpenRequested` to the player-side `DoorSystem`, which owns `PlayerSkills` and unlocks+opens on a passing skill check. |
 | `PersistentID` | Marks an entity as permanently tracked by `WorldStateManager`. On `Awake` deactivates silently if its `KilledFact` is already set. Call `RegisterDeath()` before death effects. |
+| `SaveableObject` | Save participant (`ISaveable`): captures / restores whichever siblings exist (`InventorySystem`, `GoldSystem`, `Lockable`, `DoorInteractable`, `EntityHealth`). Killed entity with saved loot → restored as a ragdoll corpse; empty → stays hidden. Alive entities restore inventory / gold only (they reset to spawn). |
 | `TopicUnlockEvaluator` | **Static, pure.** Evaluates memory unlock/invalidation by querying `WorldStateManager` world facts. No instance state. |
 
 ---
@@ -31,4 +32,11 @@
 - New interactables implement `IInteractable` and are discovered by `InteractionSystem`'s raycast — no manual registration.
 - **Outline is opt-in:** add `InteractionHighlight` to an interactable root; list only the meshes to outline (e.g. a door handle); no component = prompt-only. Every world item pickup carries one. The outline layer bit comes from `InteractionConfig.outlineRenderingLayer` and must match `InteractionOutlineFeature.outlineLayer` on `PC_Renderer` (both = `Outline`, bit 2) — see `Scripts/Rendering/CLAUDE.md`.
 - **Lock pattern:** `Lockable` is the data; a locked interactable routes a `GameEventSO` to a player-side system that owns `PlayerSkills` (`DoorInteractable`→`DoorSystem`, `ContainerInteractable`→`ContainerSystem`) for the skill check. Never read `PlayerSkills` directly from an interactable — keep the cross-system touch in the player-side resolver (the `Interact()` signature stays parameterless).
-- Persisting unlocked/open state across save & scene reload is **not yet implemented** — deferred to `_bmad-output/implementation-artifacts/tech-spec-lockable-persistence-stub.md`.
+- **Every container, door and scene-authored `ItemPickup` needs a `SaveableObject`** (otherwise its state isn't
+  saved, and an authored pickup is captured as a runtime drop and duplicates on load). Entities get it from
+  `Entity_base.prefab` and use their `PersistentID` `KilledFact` GUID as key — no `_saveId`. Everything else needs a
+  **scene-instance** `_saveId` (never set it on a prefab asset — every instance would share it): run
+  `Tools/Save/Validate Save IDs` after adding / duplicating objects (assigns missing IDs, reports duplicates; also runs
+  report-only on scene save).
+- `ItemPickup.Interact()` marks a saveable pickup consumed (`SaveSystem.MarkConsumed`) so it isn't respawned on load;
+  runtime drops (no `SaveableObject`) are saved as `{itemId, position, rotation}`.

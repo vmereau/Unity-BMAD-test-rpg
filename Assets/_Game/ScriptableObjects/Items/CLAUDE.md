@@ -147,6 +147,16 @@ the description and a price, all computed by `ItemDetailFormatter`. Action butto
 
 ---
 
+## Save IDs — `itemId` + `ItemCatalog`
+
+- `ItemSO.itemId` is the stable save ID (GUID, auto-filled in `OnValidate`) — **never edit it**. Subclasses that
+  need `OnValidate` must `override` and call `base.OnValidate()`.
+- `Data/Items/ItemCatalog.asset` (`ItemCatalogSO`, `FindById`) lists every item; `Editor/Save/ItemCatalogAutoSync`
+  keeps it in sync on item import / move / delete (or `Tools/Save/Sync Item Catalog`). A duplicated item asset keeps
+  the original's `itemId` → the sync logs an error naming both paths: clear the copy's `itemId` so it regenerates.
+
+---
+
 ## Drop Behaviour
 
 **Every item that should be droppable must have `worldItemPrefab` assigned** — otherwise the drop is

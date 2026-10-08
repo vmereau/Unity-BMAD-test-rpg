@@ -1,6 +1,7 @@
 # CLAUDE.md — Assets/_Game/Scripts/UI/Screens
 
-> Screen management contract and full-screen menu panels (Inventory, Quest Log, Character Stats, Options).
+> Screen management contract, full-screen tab panels, the Esc Game Menu (save / load / options / quit), death screen
+> and loading overlay.
 > The Skills tab panel lives in `Scripts/UI/Skills/`.
 
 ---
@@ -12,14 +13,19 @@
 | `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (C) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
 | `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
-| `OptionsUI` | Options/settings screen placeholder. Implements `IScreenPanel`. Currently logs open/close only. |
+| `OptionsUI` | Options placeholder, now a Game Menu sub-panel (not a tab). Implements `IScreenPanel`; logs open/close only. |
+| `GameMenuUI` | Esc menu: Resume / Save Game / Load Game / Options / Quit (confirm). Pauses (`timeScale = 0`) + unlocks cursor; Close restores both. Save button disabled with `SaveSystem.CanSave` reason. Hides (without touching timeScale / cursor) on `OnLoadStarted`. |
+| `SaveSlotListUI` / `SaveSlotEntryUI` | Slot list sub-panel. Save mode: manual slots only, overwrite confirm. Load mode: all slots, valid rows clickable, load confirm. Delete on every existing row. Static `FormatSlotLabel` / `FormatDetails` / `FormatTimestamp` / `FormatPlaytime` (tested by `SaveSlotListFormatTests`). |
+| `ConfirmDialogUI` | Shared Yes / No modal (`Show(message, onYes, onNo)`, `Cancel`, `Hide`, `IsOpen`). `SaveSystem` ignores F9 while it's open. |
+| `DeathScreenUI` | On `OnPlayerDied` waits 2 s (realtime), pauses, unlocks the cursor: Load last save (newest valid slot) / Load quicksave (if valid) / Restart (only with no valid save → `SaveSystem.RestartNewGame`) / Quit. Re-shows if a load finishes with the player still dead. |
+| `LoadingOverlayUI` | Black "Loading…" panel on its own Canvas (sort 100), driven by `OnLoadStarted` / `OnLoadFinished`. |
 
 ---
 
 ## ScreenTab Enum
 
 ```csharp
-public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3, Options = 4 }
+public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3 }
 ```
 
 - `_tabPanelRoots[]` and `_tabButtons[]` in `UIScreenManager` are indexed by this enum.
@@ -68,7 +74,20 @@ public interface IScreenPanel
 
 - `UIScreenManager` owns the `InputSystem_Actions` instance for menu toggles.
 - `_input` is initialized in `Awake` — the `OnDisable` null guard is mandatory (see root `CLAUDE.md`).
-- `UI.Cancel` closes the active tab (same as pressing the active tab button again).
+- `UI.Cancel` (Esc) routing in `UIScreenManager.HandleCancel`: open tab → close it; Game Menu open →
+  `GameMenuUI.HandleBack()` (confirm → sub-panel → Resume); otherwise open the Game Menu **only if**
+  `_wasGameplayLastFrame` (sampled in `LateUpdate`: cursor locked, not dead, not loading). The previous-frame sample is
+  what stops the Esc that closes dialogue / container / trade (their own Cancel handlers re-lock the cursor in the same
+  frame, in undefined order) from also opening the menu.
+- Tab toggles and `OpenTab` are ignored while the Game Menu is open or the player is dead / in dialogue.
+- `OnLoadStarted` closes every tab.
+
+---
+
+## Pause Rule
+
+Only the Game Menu and the death screen set `Time.timeScale = 0`; character tabs never pause. Every exit path restores
+it (Resume / Esc, load finish / fail). Coroutines and fades used while paused must use realtime waits.
 
 ---
 
