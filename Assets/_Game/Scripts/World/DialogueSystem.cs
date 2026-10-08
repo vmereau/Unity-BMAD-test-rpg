@@ -57,6 +57,29 @@ namespace Game.World
                 return;
             }
 
+            if (IsOpen)
+            {
+                GameLog.Warn(TAG, $"Dialogue request from {data.npcName} ignored — a dialogue is already open");
+                return;
+            }
+
+            // NPC-initiated (e.g. a witness scolding a thief): one line, no topics, the player closes it.
+            if (!string.IsNullOrEmpty(data.forcedLine))
+            {
+                _currentNPCMemory = null;
+                _currentGraph = null;
+                _currentNPCInventory = null;
+                _currentNPCGoldSystem = null;
+                _currentStartNode = null;
+                _dialogueUI.OpenLine(data.npcName, data.forcedLine);
+                IsOpen = true;
+                if (_playerStateManager != null)
+                    _playerStateManager.SetInDialogue(true);
+                CursorManager.Unlock();
+                GameLog.Info(TAG, $"{data.npcName} confronts the player");
+                return;
+            }
+
             _currentNPCMemory = data.memories;
             _currentGraph = data.graph;
             _currentNPCInventory = data.npcInventory;

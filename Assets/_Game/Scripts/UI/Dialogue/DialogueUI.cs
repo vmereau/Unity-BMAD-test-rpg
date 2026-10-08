@@ -33,6 +33,7 @@ namespace Game.UI
         private DisplayState _state = DisplayState.Topics;
         private DialogueNode _pendingNextNode;
         private StartDialogueNode[] _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
+        private bool _forcedLine; // NPC-initiated single line: any advance / Escape closes the dialogue
 
         private void Awake()
         {
@@ -103,6 +104,7 @@ namespace Game.UI
                 return;
             }
 
+            _forcedLine = false;
             _cachedStartNodes = startNodes;
 
             _panel.SetActive(true);
@@ -112,6 +114,47 @@ namespace Game.UI
 
             RestoreTopics();
             GameLog.Info(TAG, $"DialogueUI opened with {startNodes.Length} topic(s)");
+        }
+
+        /// <summary>
+        /// Opens the panel on a single NPC-initiated line (no topic list). Click, slot 1, the next button or Escape
+        /// closes the dialogue.
+        /// </summary>
+        public void OpenLine(string npcName, string line)
+        {
+            if (_panel == null)
+            {
+                GameLog.Error(TAG, "Panel not assigned — cannot open dialogue UI");
+                return;
+            }
+
+            _forcedLine = true;
+            _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
+            _panel.SetActive(true);
+
+            if (_npcNameText != null)
+                _npcNameText.text = npcName;
+
+            ClearContents();
+            _pendingNextNode = null;
+            if (_responseText != null)
+                _responseText.text = line;
+
+            System.Action closeAction = () =>
+            {
+                if (_dialogueSystem != null)
+                    _dialogueSystem.Close();
+            };
+
+            if (_nextNodeButton != null)
+            {
+                _nextNodeButton.onClick.RemoveAllListeners();
+                _nextNodeButton.onClick.AddListener(() => closeAction());
+            }
+            _slotCallbacks[1] = closeAction;
+
+            SetState(DisplayState.Text);
+            GameLog.Info(TAG, "DialogueUI opened on a forced line");
         }
 
         /// <summary>Displays a TextDialogueNode: shows text and waits for key/click to advance.</summary>
@@ -219,6 +262,7 @@ namespace Game.UI
 
             _pendingNextNode = null;
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
+            _forcedLine = false;
             SetState(DisplayState.Topics);
 
             GameLog.Info(TAG, "DialogueUI closed");
@@ -228,6 +272,12 @@ namespace Game.UI
         {
             if (_state != DisplayState.Text) return;
             if (_dialogueSystem == null) return;
+
+            if (_forcedLine)
+            {
+                _dialogueSystem.Close();
+                return;
+            }
 
             if (_pendingNextNode != null)
                 _dialogueSystem.AdvanceToNode(_pendingNextNode);
@@ -455,7 +505,7 @@ namespace Game.UI
 
         private void HandleCancel(InputAction.CallbackContext ctx)
         {
-            if (_state != DisplayState.Topics) return;
+            if (_state != DisplayState.Topics && !_forcedLine) return;
             if (_dialogueSystem != null)
                 _dialogueSystem.Close();
         }

@@ -14,6 +14,8 @@ namespace Game.World
         [Header("Highlight")]
         [Tooltip("Default outline color of the focused interactable (InteractionHighlight can override it).")]
         public Color outlineColor = new Color(1f, 0.85f, 0.45f, 1f);
+        [Tooltip("Outline color of a focused interactable the player may not take / open (owned by a living NPC). Overrides InteractionHighlight's colour.")]
+        public Color illegalOutlineColor = new Color(1f, 0.25f, 0.2f, 1f);
         [Tooltip("Rendering layer drawn by InteractionOutlineFeature. Must match the feature's outlineLayer.")]
         public RenderingLayerMask outlineRenderingLayer;
     }

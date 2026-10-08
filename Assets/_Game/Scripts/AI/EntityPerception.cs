@@ -280,6 +280,37 @@ namespace Game.AI
             CurrentProximityRadius = ProximityRadius;
         }
 
+        /// <summary>Immediate line-of-sight raycast from the eye to <paramref name="point"/> (blocked by lineOfSightMask).</summary>
+        public bool HasLineOfSightTo(Vector3 point) => _config != null && CheckLineOfSight(EyePosition, point);
+
+        /// <summary>Point a witness aims its line-of-sight ray at on <paramref name="target"/> (its visibility point if it has one).</summary>
+        public Vector3 GetVisibilityPoint(FactionMember target) =>
+            target.StealthTarget != null
+                ? target.StealthTarget.VisibilityPoint
+                : target.Transform.position + Vector3.up * (_config != null ? _config.standingVisibilityHeight : 0f);
+
+        /// <summary>
+        /// True when this witness sees <paramref name="thief"/> right now: inside the view cone at the profile's
+        /// TheftSightRange (sneak-shortened) or the (sneak-adjusted) proximity radius, with clear line of sight.
+        /// </summary>
+        public bool CanSeeTheft(FactionMember thief)
+        {
+            if (!IsActive || !CanWitness || thief == null) return false;
+            WitnessProfileSO profile = WitnessProfile;
+            if (profile.TheftSightRange <= 0f) return false;
+
+            Entity entity = Entity;
+            bool sneaking = thief.StealthTarget != null && thief.StealthTarget.IsSneaking;
+            Vector3 point = GetVisibilityPoint(thief);
+            Vector3 toTarget = thief.Transform.position - transform.position;
+            toTarget.y = 0f;
+            float distance = toTarget.magnitude;
+            float angle = StealthDetection.AngleToTarget(transform.forward, toTarget);
+            float range = TheftDetection.EffectiveTheftRange(profile.TheftSightRange, sneaking, _config.sneakSightRangeMultiplier);
+            float proximity = StealthDetection.EffectiveProximityRadius(entity.ProximityRadius, sneaking, _config.sneakProximityMultiplier);
+            return TheftDetection.IsInView(distance, angle, range, entity.ViewAngle, proximity) && HasLineOfSightTo(point);
+        }
+
         private bool HasLiveTarget() =>
             Target != null && Target.Damageable != null && (Object)Target.Damageable != null && !Target.Damageable.IsDead;
 

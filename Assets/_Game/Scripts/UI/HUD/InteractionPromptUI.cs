@@ -9,7 +9,8 @@ namespace Game.UI
     /// HUD prompt card ("[E] Verb / Name") anchored on screen above the focused interactable.
     /// Driven by <c>OnInteractionFocusChanged</c> (raised by InteractionSystem): texts are set only when
     /// the focus event fires; LateUpdate just tracks the target's screen position and fades the card.
-    /// Hidden while the cursor is unlocked (menus / inventory open).
+    /// Hidden while the cursor is unlocked (menus / inventory open). An illegal (theft) focus draws the verb and name in
+    /// <c>_illegalColor</c>; the key label keeps its colour.
     /// </summary>
     public class InteractionPromptUI : MonoBehaviour
     {
@@ -29,10 +30,16 @@ namespace Game.UI
         [SerializeField] private float _screenMargin = 16f;
         [SerializeField] private float _fadeSpeed = 10f;
 
+        [Header("Style")]
+        [Tooltip("Verb / name colour when the focused interaction is a theft (owned by a living NPC).")]
+        [SerializeField] private Color _illegalColor = new Color(1f, 0.35f, 0.3f, 1f);
+
         private Camera _camera;
         private RectTransform _parentRect;
         private Component _target;
         private Collider _anchorCollider;
+        private Color _verbDefaultColor;
+        private Color _nameDefaultColor;
 
         private void Awake()
         {
@@ -42,6 +49,9 @@ namespace Game.UI
                 enabled = false;
                 return;
             }
+
+            _verbDefaultColor = _verbText.color;
+            _nameDefaultColor = _nameText.color;
 
             _camera = Camera.main;
             if (_camera == null)
@@ -85,6 +95,8 @@ namespace Game.UI
 
             _verbText.text = data.verb;
             _nameText.text = data.name;
+            _verbText.color = data.illegal ? _illegalColor : _verbDefaultColor;
+            _nameText.color = data.illegal ? _illegalColor : _nameDefaultColor;
             _nameText.gameObject.SetActive(!string.IsNullOrEmpty(data.name));
             // Resize now (event-time only) so this frame's screen clamp uses the new card width.
             LayoutRebuilder.ForceRebuildLayoutImmediate(_card);

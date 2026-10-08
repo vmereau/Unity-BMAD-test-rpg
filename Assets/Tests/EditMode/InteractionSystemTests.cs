@@ -37,7 +37,7 @@ namespace Tests.EditMode
             interactable != null && interactable.CanInteract;
 
         private static bool TargetChanged(IInteractable previous, IInteractable next) =>
-            InteractionFocus.HasFocusChanged(previous, "", "", next, "", "");
+            InteractionFocus.HasFocusChanged(previous, "", "", false, next, "", "", false);
 
         // ── Crosshair color tests ──────────────────────────────────────────────
 
@@ -141,21 +141,36 @@ namespace Tests.EditMode
         {
             // e.g. a door's lock prompt changing after it is unlocked while focused
             var stub = new StubInteractable();
-            Assert.IsTrue(InteractionFocus.HasFocusChanged(stub, "", "Spider", stub, "Loot", "Spider"));
+            Assert.IsTrue(InteractionFocus.HasFocusChanged(stub, "", "Spider", false, stub, "Loot", "Spider", false));
         }
 
         [Test]
         public void FocusChange_SameTargetNameChanged_Changed()
         {
             var stub = new StubInteractable();
-            Assert.IsTrue(InteractionFocus.HasFocusChanged(stub, "Pick Up", "A", stub, "Pick Up", "B"));
+            Assert.IsTrue(InteractionFocus.HasFocusChanged(stub, "Pick Up", "A", false, stub, "Pick Up", "B", false));
         }
 
         [Test]
         public void FocusChange_SameTargetSameText_NoChange()
         {
             var stub = new StubInteractable();
-            Assert.IsFalse(InteractionFocus.HasFocusChanged(stub, "Pick Up", "Potion", stub, "Pick Up", "Potion"));
+            Assert.IsFalse(InteractionFocus.HasFocusChanged(stub, "Pick Up", "Potion", false, stub, "Pick Up", "Potion", false));
+        }
+
+        [Test]
+        public void FocusChange_SameTargetIllegalChanged_Changed()
+        {
+            // e.g. the owner of a focused object dies → prompt and outline turn back to normal
+            var stub = new StubInteractable();
+            Assert.IsTrue(InteractionFocus.HasFocusChanged(stub, "Steal", "Potion", true, stub, "Steal", "Potion", false));
+        }
+
+        [Test]
+        public void FocusChange_SameTargetSameIllegal_NoChange()
+        {
+            var stub = new StubInteractable();
+            Assert.IsFalse(InteractionFocus.HasFocusChanged(stub, "Open", "Chest", true, stub, "Open", "Chest", true));
         }
 
         // ── Liveness ───────────────────────────────────────────────────────────
@@ -253,6 +268,19 @@ namespace Tests.EditMode
         {
             var stub = new StubInteractable();
             Assert.DoesNotThrow(() => stub.Interact());
+        }
+
+        [Test]
+        public void OutlineColor_Illegal_WinsOverOverride()
+        {
+            Assert.AreEqual(Color.magenta, InteractionFocus.ResolveOutlineColor(true, Color.magenta, true, Color.red, Color.yellow));
+        }
+
+        [Test]
+        public void OutlineColor_Legal_FallsBackToOverrideRule()
+        {
+            Assert.AreEqual(Color.red, InteractionFocus.ResolveOutlineColor(false, Color.magenta, true, Color.red, Color.yellow));
+            Assert.AreEqual(Color.yellow, InteractionFocus.ResolveOutlineColor(false, Color.magenta, false, Color.red, Color.yellow));
         }
     }
 }

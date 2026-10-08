@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Game.ScriptableObjects.Entities;
+using Game.Core;
 using UnityEngine;
 
 namespace Game.NPC
@@ -13,6 +14,12 @@ namespace Game.NPC
         public GameObject prefab;
 
         public List<NPCMemoryEntrySO>  memories;
+
+        [Header("Identity")]
+        [Tooltip("This NPC's KilledFact (same asset as its PersistentID). Owned objects become free to take once it is set.")]
+        [SerializeField] private KilledFact _killedFact;
+
+        public KilledFact KilledFact => _killedFact;
 
         [Header("Witness")]
         [Tooltip("Reaction to a sneaking, non-hostile player (WitnessProfile_Humanoid for every humanoid). Swap the profile to tune one NPC. Null = never reacts.")]

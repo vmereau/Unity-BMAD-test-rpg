@@ -443,6 +443,8 @@ MonoBehaviour:
   _onSpeechBubbleRequested: {fileID: 11400000, guid: 47221ad18d0b95f4c95a6572f2df5034, type: 2}
   _speechAnchor: {fileID: 1252270631210325721}
   _speechAnchorFallbackHeight: 2.8
+  _onTheftCommitted: {fileID: 11400000, guid: 1aee6a9c3167ca8489f9d05b1e0d66a4, type: 2}
+  _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
 --- !u!195 &3257318164010893370
 NavMeshAgent:
   m_ObjectHideFlags: 0

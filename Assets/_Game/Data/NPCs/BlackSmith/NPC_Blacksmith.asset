@@ -48,4 +48,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fb6aecfc1770a0f4abed930295f06a29, type: 2}
   - {fileID: 11400000, guid: e99c8accce6ee2f48b05dc57ee42e895, type: 2}
   - {fileID: 11400000, guid: 9391a4d8662e3d748b2b8aa3213924b8, type: 2}
+  _killedFact: {fileID: 11400000, guid: f7d32f87c84865448aa2d57d1602c517, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}

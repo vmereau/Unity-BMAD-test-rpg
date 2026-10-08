@@ -4113,6 +4113,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5273174817731578079, guid: 3369ecd03d9c07142ba5e2cbca261f2b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1366022032}
+    - targetCorrespondingSourceObject: {fileID: 5273174817731578079, guid: 3369ecd03d9c07142ba5e2cbca261f2b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1366022038}
   m_SourcePrefab: {fileID: 100100000, guid: 3369ecd03d9c07142ba5e2cbca261f2b, type: 3}
 --- !u!1 &1366022031 stripped
 GameObject:
@@ -4132,6 +4135,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.SaveableObject
   _saveId: 7db1d9351e284e71a9a6c76f9afc5d15
+--- !u!114 &1366022038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366022031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124f120e603b9af4a9a06cdca7e5d6f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Ownership
+  _owner: {fileID: 11400000, guid: 021b6cc87a072854e9915f26c271643c, type: 2}
 --- !u!1001 &1370582406
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6791,6 +6807,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 871528207220645180, guid: a94b10553cd3eb14fb173a9a0f1b381f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1591806552735499790}
+    - targetCorrespondingSourceObject: {fileID: 871528207220645180, guid: a94b10553cd3eb14fb173a9a0f1b381f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1591806552735499795}
   m_SourcePrefab: {fileID: 100100000, guid: a94b10553cd3eb14fb173a9a0f1b381f, type: 3}
 --- !u!1 &1591806552735499789 stripped
 GameObject:
@@ -6810,6 +6829,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.SaveableObject
   _saveId: 68109d4c02f448f8a788f1486287e690
+--- !u!114 &1591806552735499795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1591806552735499789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124f120e603b9af4a9a06cdca7e5d6f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Ownership
+  _owner: {fileID: 11400000, guid: 555f185113a4121449d9ad8548f57170, type: 2}
 --- !u!1001 &3285381338490741133
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6937,6 +6969,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1280416023167433960, guid: b0f92e08e9aa49545874fcb1a4f9d8c6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3802479221858683807}
+    - targetCorrespondingSourceObject: {fileID: 1280416023167433960, guid: b0f92e08e9aa49545874fcb1a4f9d8c6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3802479221858683812}
   m_SourcePrefab: {fileID: 100100000, guid: b0f92e08e9aa49545874fcb1a4f9d8c6, type: 3}
 --- !u!1 &3802479221858683805 stripped
 GameObject:
@@ -6974,6 +7009,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.World.SaveableObject
   _saveId: ce4a8a7e2066463c83ca734785514567
+--- !u!114 &3802479221858683812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3802479221858683805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124f120e603b9af4a9a06cdca7e5d6f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Ownership
+  _owner: {fileID: 11400000, guid: b354dcb1cf7c3584589f417dad6e1f95, type: 2}
 --- !u!1001 &4831094059895954154
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -35,3 +35,10 @@ MonoBehaviour:
   witnessWarnCooldown: 20
   witnessBubbleDuration: 3
   witnessBubblePriority: 0
+  theftCatchDistance: 1.8
+  theftChaseLoseSightTime: 4
+  theftChaseMaxDistance: 20
+  theftChaseMaxDuration: 30
+  theftConfrontOpenTimeout: 0.5
+  theftBubbleDuration: 2.5
+  theftAlertBubblePriority: 1

@@ -42,4 +42,5 @@ MonoBehaviour:
   nightState: 2
   prefab: {fileID: 0}
   memories: []
+  _killedFact: {fileID: 11400000, guid: d110c30c11113d34fb9ef2708c4e5384, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}

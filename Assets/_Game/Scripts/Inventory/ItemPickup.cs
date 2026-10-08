@@ -7,18 +7,24 @@ namespace Game.Inventory
     public class ItemPickup : MonoBehaviour, IInteractable
     {
         private const string TAG = "[ItemPickup]";
+        private const string PICK_UP_PROMPT = "Pick Up";
+        private const string STEAL_PROMPT = "Steal";
 
         [SerializeField] private ItemSO _item;
         [SerializeField] private string _promptOverride = "";
 
         private InventorySystem _inventory;
+        private Ownership _ownership; // optional sibling — owned by a living NPC → "Steal"
 
         public string InteractPrompt =>
-            string.IsNullOrEmpty(_promptOverride) ? "Pick Up" : _promptOverride;
+            _ownership != null && _ownership.IsIllegal
+                ? STEAL_PROMPT
+                : string.IsNullOrEmpty(_promptOverride) ? PICK_UP_PROMPT : _promptOverride;
 
         public string NameTag => _item?.itemName ?? "item";
 
-        public bool CanInteract => true;
+        // Disabled by Awake / Start when it can't work (no item / no player inventory) → no prompt, no theft.
+        public bool CanInteract => enabled;
 
         public ItemSO Item => _item;
 
@@ -29,6 +35,7 @@ namespace Game.Inventory
 
         private void Awake()
         {
+            TryGetComponent(out _ownership);
             if (_item == null)
             {
                 GameLog.Error(TAG, "_item not assigned — ItemPickup disabled");

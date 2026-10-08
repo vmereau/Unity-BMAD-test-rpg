@@ -20,6 +20,8 @@ namespace Game.World
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_InteractionFocus _onFocusChanged;
+        [Tooltip("Raised before an illegal interaction (owned object, owner alive) — NPC witnesses listen to it.")]
+        [SerializeField] private GameEventSO_TheftCommitted _onTheftCommitted;
 
         private static readonly int OutlineColorId =
             Shader.PropertyToID(GameConstants.INTERACTION_OUTLINE_COLOR_PROPERTY);
@@ -42,6 +44,13 @@ namespace Game.World
         private string _focusedVerb = "";
         private string _focusedName = "";
         private uint _outlineBits;
+        private Ownership _focusedOwnership;
+        private bool _focusedIllegal;
+
+        private static int s_nextTheftId;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnPlay() => s_nextTheftId = 0;
 
         public IInteractable CurrentInteractable { get; private set; }
 
@@ -100,6 +109,9 @@ namespace Game.World
             if (_onFocusChanged == null)
                 GameLog.Warn(TAG, "_onFocusChanged is null — outline still works but no prompt card will be shown");
 
+            if (_onTheftCommitted == null)
+                GameLog.Warn(TAG, "_onTheftCommitted is null — thefts go unnoticed by NPCs");
+
             _outlineBits = _config.outlineRenderingLayer.value;
             if (_outlineBits == 0)
                 GameLog.Warn(TAG, "InteractionConfig.outlineRenderingLayer is Nothing — outline disabled");
@@ -139,12 +151,16 @@ namespace Game.World
             // Menus / dialogue / containers open: no focus, so the outline and crosshair tint match the hidden card.
             if (!CursorManager.IsLocked || IsPlayerDead) best = null;
 
-            // Also fires when the same target's verb/name changes (e.g. a door's lock prompt after unlocking).
+            // Also fires when the same target's verb/name/legality changes (e.g. a door's lock prompt after
+            // unlocking, or an owner dying while its object is focused).
             string verb = InteractionFocus.ResolveVerb(best);
             string targetName = InteractionFocus.ResolveName(best);
-            if (InteractionFocus.HasFocusChanged(_previousInteractable, _focusedVerb, _focusedName,
-                                                 best, verb, targetName))
-                ApplyFocus(best, verb, targetName);
+            // TryGetComponent only when the target changes.
+            Ownership ownership = ReferenceEquals(best, _previousInteractable) ? _focusedOwnership : GetOwnership(best);
+            bool illegal = ownership != null && ownership.IsIllegal;
+            if (InteractionFocus.HasFocusChanged(_previousInteractable, _focusedVerb, _focusedName, _focusedIllegal,
+                                                 best, verb, targetName, illegal))
+                ApplyFocus(best, verb, targetName, illegal, ownership);
 
             // 2. Name-range scan (Show World-Space UI)
             _uiToHide.Clear();
@@ -193,13 +209,42 @@ namespace Game.World
             if (InteractionFocus.IsAlive(CurrentInteractable) && CurrentInteractable.CanInteract
                 && _input.Player.Interact.WasPressedThisFrame())
             {
+                // Before Interact(): a picked-up item destroys itself. Legality re-evaluated at press time.
+                if (_focusedOwnership != null && _focusedOwnership.IsIllegal)
+                    RaiseTheft(_focusedOwnership);
                 CurrentInteractable.Interact();
                 // Force a rescan next frame so a destroyed target is dropped before another [E] press.
                 _scanTimer = _config.scanInterval;
             }
         }
 
-        private void ApplyFocus(IInteractable next, string verb, string targetName)
+        private static Ownership GetOwnership(IInteractable interactable)
+        {
+            if (interactable is Component component && component != null &&
+                component.TryGetComponent(out Ownership ownership))
+                return ownership;
+            return null;
+        }
+
+        private void RaiseTheft(Ownership ownership)
+        {
+            int id = ++s_nextTheftId;
+            string objectName = InteractionFocus.ResolveName(CurrentInteractable);
+            if (string.IsNullOrEmpty(objectName)) objectName = ownership.gameObject.name; // doors have no name tag
+            string ownerName = ownership.Owner != null ? ownership.Owner.name : "nobody";
+            GameLog.Info(TAG, $"Theft #{id}: {ownership.Kind} '{objectName}' owned by {ownerName}");
+            _onTheftCommitted?.Raise(new TheftCommittedData
+            {
+                theftId = id,
+                thief = _playerState != null ? _playerState.transform : transform.root,
+                position = ownership.transform.position,
+                owner = ownership.Owner,
+                kind = ownership.Kind,
+                objectName = objectName,
+            });
+        }
+
+        private void ApplyFocus(IInteractable next, string verb, string targetName, bool illegal, Ownership ownership)
         {
             if (_focusedHighlight != null) _focusedHighlight.SetHighlighted(false, _outlineBits);
 
@@ -213,8 +258,9 @@ namespace Game.World
 
             if (_focusedHighlight != null)
             {
-                Shader.SetGlobalColor(OutlineColorId, InteractionFocus.ResolveOutlineColor(
-                    _focusedHighlight.HasColorOverride, _focusedHighlight.ColorOverride, _config.outlineColor));
+                Shader.SetGlobalColor(OutlineColorId, InteractionFocus.ResolveOutlineColor(illegal,
+                    _config.illegalOutlineColor, _focusedHighlight.HasColorOverride, _focusedHighlight.ColorOverride,
+                    _config.outlineColor));
                 _focusedHighlight.SetHighlighted(true, _outlineBits);
             }
 
@@ -222,6 +268,8 @@ namespace Game.World
             _previousInteractable = next;
             _focusedVerb = verb;
             _focusedName = targetName;
+            _focusedOwnership = ownership;
+            _focusedIllegal = illegal;
             if (_crosshairImage != null)
                 _crosshairImage.color = InteractionFocus.SelectCrosshairColor(next != null, _defaultColor, _highlightColor);
 
@@ -229,14 +277,15 @@ namespace Game.World
             {
                 target = next as Component,
                 verb = verb,
-                name = targetName
+                name = targetName,
+                illegal = illegal
             });
         }
 
         private void ClearFocus()
         {
             if (CurrentInteractable == null && _focusedHighlight == null) return;
-            ApplyFocus(null, "", "");
+            ApplyFocus(null, "", "", false, null);
         }
 
         private void OnDrawGizmos()

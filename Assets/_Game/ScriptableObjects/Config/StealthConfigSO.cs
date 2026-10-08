@@ -68,6 +68,22 @@ namespace Game.Stealth
         [Tooltip("Speech bubble priority of witness warnings (higher replaces lower).")]
         public int witnessBubblePriority = 0;
 
+        [Header("Theft Chase")]
+        [Tooltip("Flat distance (m) at which a chasing witness catches the thief and confronts them.")]
+        public float theftCatchDistance = 1.8f;
+        [Tooltip("Seconds without line of sight before a chasing witness gives up.")]
+        public float theftChaseLoseSightTime = 4f;
+        [Tooltip("Flat distance (m) to the thief beyond which a chasing witness gives up.")]
+        public float theftChaseMaxDistance = 20f;
+        [Tooltip("Seconds after which a chasing witness gives up.")]
+        public float theftChaseMaxDuration = 30f;
+        [Tooltip("Seconds a confronting NPC waits for the scold dialogue to open before resuming its routine.")]
+        public float theftConfrontOpenTimeout = 0.5f;
+        [Tooltip("Seconds the theft alert bubble stays fully visible.")]
+        public float theftBubbleDuration = 2.5f;
+        [Tooltip("Speech bubble priority of theft alerts (above witness warnings).")]
+        public int theftAlertBubblePriority = 1;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -82,6 +98,12 @@ namespace Game.Stealth
             witnessLoseSightTime      = Mathf.Max(0f, witnessLoseSightTime);
             witnessWarnCooldown       = Mathf.Max(0f, witnessWarnCooldown);
             witnessBubbleDuration     = Mathf.Max(0f, witnessBubbleDuration);
+            theftCatchDistance        = Mathf.Max(0.5f, theftCatchDistance);
+            theftChaseLoseSightTime   = Mathf.Max(0f, theftChaseLoseSightTime);
+            theftChaseMaxDistance     = Mathf.Max(0f, theftChaseMaxDistance);
+            theftChaseMaxDuration     = Mathf.Max(0f, theftChaseMaxDuration);
+            theftConfrontOpenTimeout  = Mathf.Max(0f, theftConfrontOpenTimeout);
+            theftBubbleDuration       = Mathf.Max(0f, theftBubbleDuration);
         }
 #endif
     }

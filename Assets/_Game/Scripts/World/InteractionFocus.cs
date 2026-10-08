@@ -16,10 +16,11 @@ namespace Game.World
         public static bool IsAlive(IInteractable interactable) =>
             interactable is Object unityObject ? unityObject != null : interactable != null;
 
-        /// <summary>True when the focused target changed, or its verb / name changed in place.</summary>
-        public static bool HasFocusChanged(IInteractable previous, string previousVerb, string previousName,
-                                           IInteractable next, string nextVerb, string nextName) =>
-            !ReferenceEquals(previous, next) || previousVerb != nextVerb || previousName != nextName;
+        /// <summary>True when the focused target changed, or its verb / name / legality changed in place.</summary>
+        public static bool HasFocusChanged(IInteractable previous, string previousVerb, string previousName, bool previousIllegal,
+                                           IInteractable next, string nextVerb, string nextName, bool nextIllegal) =>
+            !ReferenceEquals(previous, next) || previousVerb != nextVerb || previousName != nextName ||
+            previousIllegal != nextIllegal;
 
         public static string ResolveVerb(IInteractable interactable) =>
             IsAlive(interactable) ? interactable.InteractPrompt ?? "" : "";
@@ -33,6 +34,11 @@ namespace Game.World
 
         public static Color ResolveOutlineColor(bool hasOverride, Color overrideColor, Color defaultColor) =>
             hasOverride ? overrideColor : defaultColor;
+
+        /// <summary>An illegal (theft) interaction always shows <paramref name="illegalColor"/>, even over a per-object override.</summary>
+        public static Color ResolveOutlineColor(bool illegal, Color illegalColor, bool hasOverride, Color overrideColor,
+                                                Color defaultColor) =>
+            illegal ? illegalColor : ResolveOutlineColor(hasOverride, overrideColor, defaultColor);
 
         public static Color SelectCrosshairColor(bool hasTarget, Color defaultColor, Color highlightColor) =>
             hasTarget ? highlightColor : defaultColor;

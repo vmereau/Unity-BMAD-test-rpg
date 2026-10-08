@@ -30,6 +30,9 @@ namespace Game.World
                 GameLog.Error(TAG, $"PersistentID on {gameObject.name} has no KilledFact assigned — entity will not be tracked");
                 return;
             }
+
+            if (entityType is Game.NPC.NPCEntity npc && npc.KilledFact != _killedFact)
+                GameLog.Warn(TAG, $"{gameObject.name}: NPCEntity '{npc.name}' KilledFact ({(npc.KilledFact != null ? npc.KilledFact.name : "none")}) differs from PersistentID ({_killedFact.name}) — ownership liveness will be wrong");
         }
 
 		private void Start()

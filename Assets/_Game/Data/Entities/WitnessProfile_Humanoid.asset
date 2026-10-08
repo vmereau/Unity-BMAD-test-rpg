@@ -15,3 +15,7 @@ MonoBehaviour:
   _witnessRange: 6
   _watchRange: 9
   _barks: {fileID: 11400000, guid: b2f50313ad0f1cf468c55805e8450099, type: 2}
+  _theftSightRange: 10
+  _theftAlertBarks: {fileID: 11400000, guid: 61bed8b396de8604e935438049584205, type: 2}
+  _theftScoldBarks: {fileID: 11400000, guid: 9a9fc741d81a3f84988be10284f6b571, type: 2}
+  _itemTheftScoldBarks: {fileID: 11400000, guid: e57344993bef6694b8e9d374469da4da, type: 2}

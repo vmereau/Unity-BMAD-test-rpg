@@ -17,6 +17,7 @@ MonoBehaviour:
   scanRadius: 0.5
   scanInterval: 0.2
   outlineColor: {r: 1, g: 0.85, b: 0.45, a: 1}
+  illegalOutlineColor: {r: 1, g: 0.25, b: 0.2, a: 1}
   outlineRenderingLayer:
     serializedVersion: 0
     m_Bits: 2

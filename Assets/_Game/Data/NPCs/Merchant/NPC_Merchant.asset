@@ -43,4 +43,5 @@ MonoBehaviour:
   prefab: {fileID: 0}
   memories:
   - {fileID: 11400000, guid: cb4aa7dcd84ffd94f961ee61e8c3286f, type: 2}
+  _killedFact: {fileID: 11400000, guid: 893c689712a996c43b95908a7f02d3c5, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}

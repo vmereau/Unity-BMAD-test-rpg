@@ -25,13 +25,19 @@ namespace Game.AI
     /// spotting the sneaking player) leads to Idle / Patrolling → (Suspicious) → Watching (stop, face the player, one
     /// warning speech bubble per cooldown) → back to Idle / Patrolling. Watching is neither combat nor unaware; a
     /// hostile spotted (radius scan) or a hostile hit while watching still triggers the normal combat reaction.
+    /// Theft: a non-hostile witness that sees the player steal (<c>OnTheftCommitted</c>, cone + LOS) shouts an alert
+    /// and goes Pursuing (non-combat chase); the first witness to catch the thief claims the incident
+    /// (<see cref="TheftPursuitRegistry"/>) and goes Confronting (forced scold dialogue), the others give up. Escape
+    /// (no LOS / too far / too long) → back to Idle / Patrolling.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EntityBrain : MonoBehaviour, ICombatStateProvider, ISneakAttackTarget
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Dead }
+        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Dead }
+
+        private const string DEFAULT_SCOLD_LINE = "Hey! What do you think you're doing?";
 
         private static readonly string[] STATE_NAMES = System.Enum.GetNames(typeof(EntityState));
 
@@ -80,6 +86,12 @@ namespace Game.AI
         [Tooltip("Height above the root used when _speechAnchor is unassigned.")]
         [SerializeField] private float _speechAnchorFallbackHeight = 2.8f;
 
+        [Header("Theft")]
+        [Tooltip("Listened to — every NPC that sees a theft chases the thief.")]
+        [SerializeField] private GameEventSO_TheftCommitted _onTheftCommitted;
+        [Tooltip("Raised to confront a caught thief (forced dialogue).")]
+        [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
+
         private NavMeshAgent _agent;
         private EntityHealth _entityHealth;
         private FactionMember _currentTarget;
@@ -109,6 +121,22 @@ namespace Game.AI
 
         /// <summary>Warnings given to the player by this witness (runtime only, not saved) — hook for escalation.</summary>
         public int WarnedCount { get; private set; }
+
+        private int _pursuitTheftId;
+        private TheftKind _pursuitKind;
+        private float _pursuitElapsed;
+        private float _pursuitNoSightTimer;
+        private float _pursuitLosTimer;
+        private bool _pursuitHasLos;
+        private Vector3 _pursuitLastSeen;
+        private float _confrontTimer;
+        private bool _confrontOpened;
+        private int _lastAlertBarkIndex = -1;
+        private int _lastScoldBarkIndex = -1;
+        private bool _warnedMissingScold;
+
+        /// <summary>Thefts this NPC saw and chased (runtime only, not saved) — hook for future consequences.</summary>
+        public int TheftsWitnessed { get; private set; }
 
         private bool PerceptionActive => _perception != null && _perception.IsActive;
         private StealthConfigSO StealthConfig => _stealthConfig != null ? _stealthConfig : _perception.Config;
@@ -177,6 +205,7 @@ namespace Game.AI
 
         private void OnEnable()
         {
+            if (_onTheftCommitted != null) _onTheftCommitted.AddListener(HandleTheftCommitted);
             if (_entityHealth == null) return; // Awake failed before resolving it
             _previousHealth = _entityHealth.CurrentHealth;
             _entityHealth.HealthChanged += HandleHealthChanged;
@@ -185,6 +214,7 @@ namespace Game.AI
 
         private void OnDisable()
         {
+            if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
             _healthSubscribed = false;
@@ -250,6 +280,8 @@ namespace Game.AI
                 case EntityState.Attacking:  HandleAttack();     break;
                 case EntityState.Searching:  HandleSearching();  break;
                 case EntityState.Watching:   HandleWatching();   break;
+                case EntityState.Pursuing:   HandlePursuing();   break;
+                case EntityState.Confronting: HandleConfronting(); break;
                 case EntityState.Dead:       HandleDead();       break;
             }
 
@@ -567,15 +599,201 @@ namespace Game.AI
             }
 
             WarnedCount++; // only warnings the player actually saw count toward escalation
+            RaiseSpeechBubble(line, StealthConfig.witnessBubbleDuration, StealthConfig.witnessBubblePriority);
+            GameLog.Info(TAG, $"{gameObject.name} warns the player (#{WarnedCount})");
+        }
+
+        private void RaiseSpeechBubble(string line, float duration, int priority)
+        {
             _onSpeechBubbleRequested.Raise(new SpeechBubbleRequest
             {
                 speaker = _speechAnchor != null ? _speechAnchor : transform,
                 text = line,
-                duration = StealthConfig.witnessBubbleDuration,
-                priority = StealthConfig.witnessBubblePriority,
+                duration = duration,
+                priority = priority,
                 anchorHeight = _speechAnchor != null ? 0f : _speechAnchorFallbackHeight,
             });
-            GameLog.Info(TAG, $"{gameObject.name} warns the player (#{WarnedCount})");
+        }
+
+        // --- Theft ---
+
+        // Every NPC with a witness profile that sees the theft right now chases the thief (non-combat).
+        private void HandleTheftCommitted(TheftCommittedData data)
+        {
+            if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
+                _state != EntityState.Watching && _state != EntityState.Pursuing) return;
+            if (!PerceptionActive || !_perception.CanWitness) return;
+
+            FactionMember thief = data.thief != null ? data.thief.GetComponentInParent<FactionMember>() : null;
+            if (!IsLive(thief)) return;
+            // Hostiles don't police theft (their own hostile behaviour already applies).
+            if (_selfFactionMember.Faction != null && thief.Faction != null &&
+                _selfFactionMember.Faction.IsHostileTo(thief.Faction)) return;
+            if (!_perception.CanSeeTheft(thief)) return;
+
+            if (_state == EntityState.Pursuing)
+            {
+                // Already chasing: follow the newest incident and restart the give-up timers.
+                TheftsWitnessed++;
+                StartPursuitTimers(thief, data);
+                GameLog.Info(TAG, $"{gameObject.name} saw theft #{data.theftId} — still chasing");
+                return;
+            }
+            TransitionToPursuing(thief, data);
+        }
+
+        private void StartPursuitTimers(FactionMember thief, TheftCommittedData data)
+        {
+            _currentTarget = thief;
+            _pursuitTheftId = data.theftId;
+            _pursuitKind = data.kind;
+            _pursuitElapsed = 0f;
+            _pursuitNoSightTimer = 0f;
+            _pursuitLosTimer = 0f;
+            _pursuitHasLos = true;
+            _pursuitLastSeen = thief.Transform.position;
+        }
+
+        private void TransitionToPursuing(FactionMember thief, TheftCommittedData data)
+        {
+            // Suspicious / Watching already captured the state to resume.
+            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
+                _disengageState = _state;
+            _state = EntityState.Pursuing;
+            _perception.ResetPerception();
+            StartPursuitTimers(thief, data);
+            _agent.isStopped = false;
+            _agent.speed = _persistentID.Entity.EngageSpeed;
+            _agent.stoppingDistance = StealthConfig.theftCatchDistance * 0.8f;
+            _agent.SetDestination(thief.Transform.position);
+            TheftsWitnessed++;
+            // No SetCombatState: chasing a thief is not combat (dialogue stays possible).
+
+            WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+            BarkSetSO barks = profile != null ? profile.TheftAlertBarks : null;
+            string line = barks != null ? barks.GetRandomLine(ref _lastAlertBarkIndex) : null;
+            if (!string.IsNullOrEmpty(line) && _onSpeechBubbleRequested != null)
+                RaiseSpeechBubble(line, StealthConfig.theftBubbleDuration, StealthConfig.theftAlertBubblePriority);
+
+            GameLog.Info(TAG, $"{gameObject.name} saw theft #{data.theftId} — chasing (#{TheftsWitnessed})");
+        }
+
+        private void HandlePursuing()
+        {
+            if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
+            if (TheftPursuitRegistry.IsClaimed(_pursuitTheftId)) { EndPursuit("another witness caught the thief"); return; }
+
+            // A hostile (non-stealth, radius scan) showing up takes over: normal warning / engage reaction.
+            FactionMember thief = _currentTarget;
+            if (TryAcquireTargetThrottled())
+            {
+                GameLog.Info(TAG, $"{gameObject.name} stops chasing the thief — hostile {_currentTarget.Transform.name} spotted");
+                _perception.ResetPerception();
+                RespondToDetectedTarget();
+                return;
+            }
+            _currentTarget = thief; // TryAcquireTarget clears it when nothing is found
+
+            StealthConfigSO config = StealthConfig;
+            float dt = Time.deltaTime;
+            Vector3 targetPos = _currentTarget.Transform.position;
+
+            _pursuitLosTimer -= dt;
+            if (_pursuitLosTimer <= 0f)
+            {
+                _pursuitLosTimer = config.losCheckInterval;
+                _pursuitHasLos = _perception.HasLineOfSightTo(_perception.GetVisibilityPoint(_currentTarget));
+            }
+            if (_pursuitHasLos)
+            {
+                _pursuitNoSightTimer = 0f;
+                _pursuitLastSeen = targetPos;
+            }
+            else
+            {
+                _pursuitNoSightTimer += dt;
+            }
+            _pursuitElapsed += dt;
+
+            Vector3 toTarget = targetPos - transform.position;
+            toTarget.y = 0f;
+            float distance = toTarget.magnitude;
+
+            if (TheftDetection.ShouldGiveUp(_pursuitNoSightTimer, config.theftChaseLoseSightTime, distance,
+                    config.theftChaseMaxDistance, _pursuitElapsed, config.theftChaseMaxDuration))
+            {
+                EndPursuit("thief escaped");
+                return;
+            }
+
+            if (TheftDetection.CanCatch(distance, config.theftCatchDistance, CursorManager.IsLocked) &&
+                TheftPursuitRegistry.TryClaim(_pursuitTheftId))
+            {
+                TransitionToConfronting();
+                return;
+            }
+
+            _agent.SetDestination(_pursuitHasLos ? targetPos : _pursuitLastSeen);
+        }
+
+        private void TransitionToConfronting()
+        {
+            _state = EntityState.Confronting;
+            _agent.isStopped = true;
+            _confrontTimer = 0f;
+            _confrontOpened = false;
+
+            WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+            BarkSetSO set = null;
+            if (profile != null)
+                set = _pursuitKind == TheftKind.Item && profile.ItemTheftScoldBarks != null
+                    ? profile.ItemTheftScoldBarks
+                    : profile.TheftScoldBarks;
+            string line = set != null ? set.GetRandomLine(ref _lastScoldBarkIndex) : null;
+            if (string.IsNullOrEmpty(line))
+            {
+                if (!_warnedMissingScold)
+                {
+                    _warnedMissingScold = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: no theft scold line on the witness profile — using the default line");
+                }
+                line = DEFAULT_SCOLD_LINE;
+            }
+
+            if (_onDialogueRequested == null)
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: _onDialogueRequested not assigned — cannot confront the thief");
+                EndPursuit("no dialogue channel");
+                return;
+            }
+
+            GameLog.Info(TAG, $"{gameObject.name} caught the thief (theft #{_pursuitTheftId}) — confronting");
+            _onDialogueRequested.Raise(new NPCDialogueRequestData
+            {
+                npcName = _persistentID.Entity.entityName,
+                forcedLine = line,
+            });
+        }
+
+        // Stands facing the thief while the scold dialogue is open; resumes once it closes (cursor locked again),
+        // or after theftConfrontOpenTimeout if it never opened (e.g. another dialogue was already open).
+        private void HandleConfronting()
+        {
+            if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
+            FacePoint(_currentTarget.Transform.position, StealthConfig.witnessTurnSpeed);
+            _confrontTimer += Time.deltaTime;
+            if (!CursorManager.IsLocked)
+                _confrontOpened = true;
+            else if (_confrontOpened || _confrontTimer >= StealthConfig.theftConfrontOpenTimeout)
+                EndPursuit("scolded the thief");
+        }
+
+        private void EndPursuit(string reason)
+        {
+            _currentTarget = null;
+            if (_perception != null) _perception.ResetPerception();
+            GameLog.Info(TAG, $"{gameObject.name} ends the theft chase — {reason}");
+            ResumeNonCombat();
         }
 
         private void HandleDead()
@@ -599,7 +817,8 @@ namespace Game.AI
 
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
-                _state != EntityState.Searching && _state != EntityState.Warning && _state != EntityState.Watching) return;
+                _state != EntityState.Searching && _state != EntityState.Warning && _state != EntityState.Watching &&
+                _state != EntityState.Pursuing && _state != EntityState.Confronting) return;
             FactionSO faction = _selfFactionMember.Faction;
             if (faction == null) return;
 
