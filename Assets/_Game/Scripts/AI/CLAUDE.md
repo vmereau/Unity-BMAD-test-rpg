@@ -12,10 +12,11 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle → Patrolling → (Engaging → Attacking) → Dead. Implements `ICombatStateProvider`. Targets from `TargetRegistry`. |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
+| `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (the Player — no PersistentID). |
-| `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). |
+| `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget`. |
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
 | `AttackComboPlan` | Pure combo bookkeeping (`Begin`, `TryAdvance`, `Reset`) for `EntityMeleeAttacker`. `AttackComboPlanTests`. |
@@ -41,6 +42,30 @@
 - **Attack-state counter:** SMB enter/exit count active attack states; reaching 0 calls `EndAttack()`.
   `IsInAttackState => count > 0`. `EndAttack()` never touches the counter (it mirrors the animator) and calls
   `AIAnimationDriver.CancelAttack()` to drop queued triggers; `OnDisable` resets the counter.
+
+---
+
+## Perception & stealth (EntityBrain + EntityPerception)
+
+- **Perception is optional:** null or inactive (`DetectionRange <= 0`, no config) → exactly the old radius
+  behaviour, no Suspicious / Searching. With it active, stealth targets (`FactionMember.StealthTarget != null`
+  — the player) are skipped by the radius scan and acquired only through awareness; NPC-vs-NPC keeps the radius.
+- Idle/Patrol: full awareness → `RespondToDetectedTarget()` (Warning/Engaging rules unchanged); awareness ≥
+  `suspicionThreshold` → **Suspicious** (stopped, turns to `LastSeenPosition`, back to the same waypoint when
+  awareness drains to 0). Alerted states tick perception with `engaged = true`: 360° tracking within
+  `DisengageRange`, awareness held at 1.
+- Warning/Engaging/Attacking: `TimeSinceSeen >= Entity.LoseSightTime` → **Searching** (walk to last seen,
+  rotate in place `SearchDuration`, then resume). Engaging chases `LastSeenPosition` while out of sight.
+  Re-sighted during search → Engaging with no warning. `CancelWarning`, `DisengageFromCombat` and death reset
+  perception (otherwise the held awareness of 1 re-detects instantly).
+- **Damage reaction:** every damage source (`PlayerCombat`, `EntityMeleeAttacker`) calls
+  `ISneakAttackTarget.NotifyHitBy(attacker)` right before `TakeDamage`; `EntityHealth.HealthChanged` (same GO)
+  then engages **that attacker** if it is hostile (never a bystander), while Idle/Patrolling/Suspicious/
+  Searching/Warning. Unknown source → the stealth target only if in sight, else the closest radius hostile.
+  Skipped for passive entities. **Any new damage source must call `NotifyHitBy`.**
+- **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
+  `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
+  bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.
 
 ---
 

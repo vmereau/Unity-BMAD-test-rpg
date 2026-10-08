@@ -31,9 +31,11 @@ If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFou
 
 ### Action Map Layout
 
-- **Player:** Move, Look, Attack, Interact, Crouch, Jump, Previous, Next, Sprint, Block, Dodge,
-  InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle (C), QuestLogToggle (J), SkillsToggle (K), QuickSave (F5), QuickLoad (F9) —
-  **no Cancel action**.
+- **Player:** Move, Look, Attack, Interact, Crouch (C — sneak toggle, `PlayerSneak`), Jump, Previous, Next,
+  Sprint, Block, Dodge, InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle (P),
+  QuestLogToggle (J), SkillsToggle (K), QuickSave (F5), QuickLoad (F9), ToggleStealthDebug (F3,
+  `StealthDebugOverlay`) — **no Cancel action**. Hand-added actions (QuickSave onward) have no
+  `IPlayerActions` callback entries — read them through `_input.Player.<Action>`.
 - **UI:** Navigate, Submit, **Cancel** (Escape), Point, **Click** (left mouse), RightClick, MiddleClick,
   ScrollWheel, TrackedDevice*, DialogueOption1–9 / DialogueOption0.
 

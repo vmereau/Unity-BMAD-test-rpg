@@ -16,6 +16,7 @@
 | Jump   | `CanJump()`   | — (read-only gate) |
 | Move   | `CanMove()`   | — (read-only gate) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
+| Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
@@ -23,6 +24,17 @@
 - `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
+
+### Sneak — PlayerSneak
+
+`PlayerSneak` (Player root, implements `Game.Stealth.IStealthTarget`) owns the **Crouch (C)** toggle and
+reads Sprint/Move: Sprint held while moving → `ExitSneakToSprint()` (clears `IsSneaking`, fires
+`SneakToSprint` → `sneak to sprint` clip into running). `CanSneak() = !IsBusy && !IsAirborne && !IsDodging`
+— attacking and blocking are allowed and **never** clear sneak. The other exits live in
+`PlayerStateManager`: `SetDodging(true)`, `NotifyJumpStarted()` and `SetDead(true)` clear `IsSneaking`
+without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking off a ledge). `PlayerController` uses `PlayerConfigSO.sneakSpeed` while sneaking.
+`PlayerSaveAdapter.Restore` forces `SetSneaking(false)` (sneak is not saved). `VisibilityPoint` = feet +
+`StealthConfigSO.standing/sneakingVisibilityHeight` (the AI line-of-sight aim point).
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
 
@@ -70,7 +82,9 @@ _humanoidBridge.SetMovement(normX, normZ);
 | `SetBlocking(bool)` | `HumanoidAnimationBridge.SetBlocking` | Sets `IsBlocking` bool |
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
-| `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (also weights the `Attack` layer) |
+| `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (Attack layer: `LockOn Locomotion` ⇄ `CombatIdle`; the layer's weight is a constant 1) |
+| `SetSneaking(bool)` | `HumanoidAnimationBridge.SetSneaking` | Sets `IsSneaking` bool (entering also resets `SneakToSprint`) |
+| `PlaySneakToSprint()` | `SetSneaking(false)` + `TriggerSneakToSprint` | Leaves sneak through the `sneak to sprint` clip |
 
 **Consequence:** When adding new player animations, add a public method to `HumanoidAnimationBridge` (the actual Animator owner), expose a player-facing wrapper on `PlayerAnimationDriver`, and call it from `PlayerStateManager`. Never add `Animator.SetTrigger/SetBool` calls outside `HumanoidAnimationBridge`.
 

@@ -10,7 +10,7 @@
 
 | Script | Purpose |
 |--------|---------|
-| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (C) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
+| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (P) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
 | `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
 | `OptionsUI` | Options placeholder, now a Game Menu sub-panel (not a tab). Implements `IScreenPanel`; logs open/close only. |

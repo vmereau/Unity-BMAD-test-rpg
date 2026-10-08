@@ -104,6 +104,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
 | World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
+| Stealth | `Scripts/Stealth/CLAUDE.md` | `IStealthTarget`, `StealthDetection` formula, `StealthConfigSO`, detection gizmos + F3 overlay |
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
 | UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`, `Skills/`) | Canvas, cursor, UI input lifecycle; HUD (incl. toasts), screens, dialogue, quest UI, skills tab |
