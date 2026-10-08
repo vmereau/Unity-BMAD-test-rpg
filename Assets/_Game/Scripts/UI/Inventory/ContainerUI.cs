@@ -24,6 +24,9 @@ namespace Game.UI
         [SerializeField] private GameObject _contextMenuPrefab;
         [SerializeField] private Canvas _canvas;
 
+        // Closes on death: an open loot window would block loading and its Esc would re-lock the death screen's cursor.
+        [SerializeField] private GameEventSO_Void _onPlayerDied;
+
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
         private int _contextMenuSlotIndex = -1;
@@ -44,6 +47,7 @@ namespace Game.UI
             if (_input == null) return;
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
+            _onPlayerDied?.AddListener(HandlePlayerDied);
         }
 
         private void OnDisable()
@@ -51,6 +55,7 @@ namespace Game.UI
             if (_input == null) return;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
+            _onPlayerDied?.RemoveListener(HandlePlayerDied);
         }
 
         private void OnDestroy()
@@ -62,6 +67,11 @@ namespace Game.UI
         {
             if (gameObject.activeInHierarchy)
                 Close();
+        }
+
+        private void HandlePlayerDied(bool _)
+        {
+            if (IsOpen) Close();
         }
 
         public void Open(InventorySystem containerInventory, bool takeOnly = false)

@@ -6,8 +6,15 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3, Options = 4 }
+    public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3 }
 
+    /// <summary>
+    /// Opens / closes the character tabs (I / J / C / K, tab buttons) and routes Esc:
+    /// open tab → close it; Game Menu open → <see cref="GameMenuUI.HandleBack"/>; plain gameplay → open the Game Menu.
+    /// "Plain gameplay" is sampled in LateUpdate (previous frame), so the Esc press that closes a dialogue /
+    /// container / trade window (whose own Cancel handlers re-lock the cursor this frame) never also opens the menu.
+    /// Closes every tab when a load starts or the player dies.
+    /// </summary>
     public class UIScreenManager : MonoBehaviour
     {
         private const string TAG = "[UIScreenManager]";
@@ -16,17 +23,27 @@ namespace Game.UI
         [SerializeField] private GameObject[] _tabPanelRoots; // indexed by ScreenTab
         [SerializeField] private Button[] _tabButtons;        // indexed by ScreenTab
         [SerializeField] private PlayerStateManager _playerStateManager;
+        [SerializeField] private GameMenuUI _gameMenu;
+
+        [Header("Event Channels")]
+        [SerializeField] private GameEventSO_Void _onLoadStarted;
+        [SerializeField] private GameEventSO_Void _onPlayerDied;
 
         private InputSystem_Actions _input;
         private ScreenTab? _activeTab = null;
+        private bool _wasGameplayLastFrame;
+
+        private bool IsGameMenuOpen => _gameMenu != null && _gameMenu.IsOpen;
 
         private void Awake()
         {
             _input = new InputSystem_Actions();
+            if (_gameMenu == null) GameLog.Warn(TAG, "_gameMenu not assigned — Esc won't open the Game Menu");
         }
 
         private void OnEnable()
         {
+            if (_input == null) return;
             _input.Player.Enable();
             _input.UI.Enable();
             _input.Player.InventoryToggle.performed += HandleInventoryToggle;
@@ -35,6 +52,8 @@ namespace Game.UI
             _input.Player.SkillsToggle.performed += HandleSkillsToggle;
             _input.UI.Cancel.performed += HandleCancel;
             WireTabButtons();
+            _onLoadStarted?.AddListener(HandleLoadStarted);
+            _onPlayerDied?.AddListener(HandlePlayerDied);
         }
 
         private void OnDisable()
@@ -47,6 +66,15 @@ namespace Game.UI
             _input.UI.Cancel.performed -= HandleCancel;
             _input.Player.Disable();
             _input.UI.Disable();
+            _onLoadStarted?.RemoveListener(HandleLoadStarted);
+            _onPlayerDied?.RemoveListener(HandlePlayerDied);
+        }
+
+        private void LateUpdate()
+        {
+            _wasGameplayLastFrame = CursorManager.IsLocked
+                && (_playerStateManager == null || !_playerStateManager.IsDead)
+                && (SaveSystem.Instance == null || !SaveSystem.Instance.IsLoading);
         }
 
         private void OnDestroy()
@@ -75,6 +103,7 @@ namespace Game.UI
         public void OpenTab(ScreenTab tab)
         {
             if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.IsDead)) return;
+            if (IsGameMenuOpen) return;
             if (_activeTab == tab) return;
 
             // Close current tab content if switching
@@ -171,6 +200,15 @@ namespace Game.UI
         {
             if (_activeTab.HasValue)
                 CloseAll();
+            else if (IsGameMenuOpen)
+                _gameMenu.HandleBack();
+            else if (_wasGameplayLastFrame && _gameMenu != null)
+                _gameMenu.Open();
         }
+
+        private void HandleLoadStarted(bool _) => CloseAll();
+
+        // Close tabs on death so a later Esc can't re-lock the cursor under the death screen (tabs can't reopen while dead).
+        private void HandlePlayerDied(bool _) => CloseAll();
     }
 }

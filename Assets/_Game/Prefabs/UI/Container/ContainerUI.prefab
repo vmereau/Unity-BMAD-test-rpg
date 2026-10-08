@@ -621,6 +621,7 @@ MonoBehaviour:
   _containerActions: {fileID: 4912593227203832945}
   _contextMenuPrefab: {fileID: 1111111111111111111, guid: c9d8487016dc8a141b636991fa649b74, type: 3}
   _canvas: {fileID: 0}
+  _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
 --- !u!1001 &1143651390968009489
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -35,6 +35,7 @@ namespace Game.Core
         [SerializeField] private PlayerHealth _playerHealth;
         [SerializeField] private ContainerUI _containerUI;
         [SerializeField] private QuestEventsManager _questEvents;
+        [SerializeField] private ConfirmDialogUI _confirmDialog; // F9 is ignored while a Game Menu confirm is open
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_Quest _onQuestCompleted;
@@ -379,6 +380,7 @@ namespace Game.Core
         private void FailLoad(string region)
         {
             Time.timeScale = 1f;
+            CursorManager.Lock(); // every menu was closed by the load start
             IsLoading = false;
             _onLoadFinished?.Raise(true);
             Notify($"Loading failed: region '{region}' could not be loaded");
@@ -399,7 +401,11 @@ namespace Game.Core
 
         private void HandleQuickSave(InputAction.CallbackContext _) => Save(GameConstants.SAVE_SLOT_QUICK);
 
-        private void HandleQuickLoad(InputAction.CallbackContext _) => Load(GameConstants.SAVE_SLOT_QUICK);
+        private void HandleQuickLoad(InputAction.CallbackContext _)
+        {
+            if (_confirmDialog != null && _confirmDialog.IsOpen) return;
+            Load(GameConstants.SAVE_SLOT_QUICK);
+        }
 
         private void Notify(string message)
         {
