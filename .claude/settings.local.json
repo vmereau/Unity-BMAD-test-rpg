@@ -35,7 +35,8 @@
       "mcp__UnityMCP__get_sha",
       "mcp__unity-mcp__Unity_GetConsoleLogs",
       "mcp__UnityMCP__manage_ui",
-      "PowerShell(Get-Content *)"
+      "PowerShell(Get-Content *)",
+      "Bash(gh api *)"
     ]
   }
 }

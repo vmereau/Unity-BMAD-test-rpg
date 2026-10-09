@@ -59,6 +59,7 @@ same session the feature ships.
 | `gds-code-review` | Adversarial review after a feature is complete |
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
+| `items:icon-prompt <item>` | Build a Gothic-style icon prompt + `generate_image` call from the `Art/UI/Items` template |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
 | `perso:claude-md-audit` | Periodic doc maintenance — find oversized, misplaced, duplicated or stale CLAUDE.md content and restructure it (one commit per part) |
@@ -116,6 +117,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
+| Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
