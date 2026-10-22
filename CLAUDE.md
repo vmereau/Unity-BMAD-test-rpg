@@ -60,6 +60,7 @@ same session the feature ships.
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
 | `items:icon-prompt <item>` | Build a Gothic-style icon prompt + `generate_image` call from the `Art/UI/Items` template |
+| `characters:concept-prompt <outfit>` | Build a T-pose character concept prompt (base hero + outfit) for Meshy image-to-3D, from the `Art/Characters/Humanoids` template |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
 | `perso:claude-md-audit` | Periodic doc maintenance — find oversized, misplaced, duplicated or stale CLAUDE.md content and restructure it (one commit per part) |
@@ -122,6 +123,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
+| Character models | `Art/Characters/Humanoids/CLAUDE.md` | Character concept prompt template, Meshy → Mixamo → Unity import pipeline, player body swap, head/body split |
 | Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Attack clip events, per-clip hit/combo timings |
 | Humanoid controller | `Art/Characters/Humanoids/Controllers/CLAUDE.md` | `Humanoid_Template` layers/params, SMB wiring, combo transition rules |
 
