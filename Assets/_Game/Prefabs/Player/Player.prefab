@@ -573,6 +573,9 @@ MonoBehaviour:
   _containerUI: {fileID: 576199237022889503}
   _playerSkills: {fileID: 660869248586365014}
   _onLockUnlocked: {fileID: 11400000, guid: 8a856103c5402f04dbf632c42f186a1c, type: 2}
+  _playerInventory: {fileID: 1994668802294238475}
+  _lockpickItem: {fileID: 11400000, guid: 9eae15620ab2b624d87cba7f0ae3923c, type: 2}
+  _onLockpickFailed: {fileID: 11400000, guid: b7d8d6bc2ea66b241aced47b0e256b89, type: 2}
 --- !u!114 &4694893551373556916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -615,6 +618,9 @@ MonoBehaviour:
   _onDoorOpenRequested: {fileID: 11400000, guid: 4c888dc2346f98b44b5854259110af7f, type: 2}
   _playerSkills: {fileID: 660869248586365014}
   _onLockUnlocked: {fileID: 11400000, guid: 8a856103c5402f04dbf632c42f186a1c, type: 2}
+  _playerInventory: {fileID: 1994668802294238475}
+  _lockpickItem: {fileID: 11400000, guid: 9eae15620ab2b624d87cba7f0ae3923c, type: 2}
+  _onLockpickFailed: {fileID: 11400000, guid: b7d8d6bc2ea66b241aced47b0e256b89, type: 2}
 --- !u!114 &914494134842668152
 MonoBehaviour:
   m_ObjectHideFlags: 0

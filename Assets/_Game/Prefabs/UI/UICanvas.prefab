@@ -1456,6 +1456,7 @@ MonoBehaviour:
   _onLevelUp: {fileID: 11400000, guid: a4c30ecc3cf57304e8adb0bf2cab1630, type: 2}
   _onLockUnlocked: {fileID: 11400000, guid: 8a856103c5402f04dbf632c42f186a1c, type: 2}
   _onSaveNotification: {fileID: 11400000, guid: 4511348bce05d4c4f941e70490e40704, type: 2}
+  _onLockpickFailed: {fileID: 11400000, guid: b7d8d6bc2ea66b241aced47b0e256b89, type: 2}
   _container: {fileID: 6661398786721482297}
   _toastEntryPrefab: {fileID: 7453757669003199702, guid: ca8bcdf22402c1144805bf7061b1a764, type: 3}
   _maxVisible: 5

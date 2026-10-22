@@ -9,3 +9,13 @@
 - **`NpcShopEditor` scene path untested** (from spec-npc-shop-dialogue-command review) — only the pure
   `ApplyStockChange` is covered. `SetStock` / `FindInstances` / dirty-scene + Play-mode refusal / `SerializedProperty`
   write-back have no automated test; would need a temp scene with an `Entity_base` instance in an EditMode test.
+
+## From spec-lockpick-consumable-requirement (2026-10-22)
+
+- **Action-bar HUD not refreshed after a non-UI inventory change** — `InventorySystem` raises no change event, so
+  consuming a lockpick (`DoorSystem` / `ContainerSystem`) leaves `ActionBarUI` showing a stale stack count / stale
+  slot until the next `OnActionBarUsed`. Hotkey use is safe (`HandleHotkeyPressed` now re-validates indices); a proper
+  fix is an inventory-changed `GameEventSO` that `ActionBarUI` listens to.
+- **Failed-lock toast spam** — each E press on a locked door raises a new "You need a lockpick" / skill toast; five
+  presses fill the toast stack and evict XP / save toasts. Consider de-duplicating identical consecutive toasts in
+  `NotificationToastUI`.

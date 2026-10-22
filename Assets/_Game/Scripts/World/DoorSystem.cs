@@ -1,13 +1,15 @@
 using Game.Core;
+using Game.Inventory;
 using Game.Progression;
 using UnityEngine;
 
 namespace Game.World
 {
     /// <summary>
-    /// Player-side resolver for locked-door open requests. Owns PlayerSkills, listens for
-    /// GameEventSO_DoorOpenRequest, runs the skill gate, and (on success) unlocks + opens the
-    /// specific door. Structurally identical to ContainerSystem.
+    /// Player-side resolver for locked-door open requests. Owns PlayerSkills + the player
+    /// InventorySystem, listens for GameEventSO_DoorOpenRequest, runs LockpickRules (skill + one
+    /// lockpick), and on success consumes a lockpick, unlocks + opens the specific door.
+    /// Structurally identical to ContainerSystem.
     /// </summary>
     public class DoorSystem : MonoBehaviour
     {
@@ -16,6 +18,11 @@ namespace Game.World
         [SerializeField] private GameEventSO_DoorOpenRequest _onDoorOpenRequested;
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private GameEventSO_String _onLockUnlocked;
+
+        [Header("Lockpicking")]
+        [SerializeField] private InventorySystem _playerInventory;
+        [SerializeField] private ItemSO _lockpickItem;
+        [SerializeField] private GameEventSO_String _onLockpickFailed;
 
         private void OnEnable()
         {
@@ -37,25 +44,36 @@ namespace Game.World
         {
             if (data.door == null) return;
 
-            if (data.isLocked && !string.IsNullOrEmpty(data.requiredSkillId))
+            if (data.isLocked)
             {
-                if (_playerSkills == null)
+                if (_playerSkills == null || _playerInventory == null || _lockpickItem == null)
                 {
-                    GameLog.Warn(TAG, "PlayerSkills not assigned — cannot check door skill");
+                    GameLog.Warn(TAG, "PlayerSkills / player InventorySystem / lockpick item not assigned — cannot pick door lock");
                     return;
                 }
-                if (!_playerSkills.HasSkill(data.requiredSkillId))
+
+                // Empty skill id = misconfigured lock (Lockable warns) — only the lockpick is required.
+                bool hasSkill = string.IsNullOrEmpty(data.requiredSkillId) || _playerSkills.HasSkill(data.requiredSkillId);
+                LockpickResult result = LockpickRules.Evaluate(hasSkill, _playerInventory.CountOf(_lockpickItem));
+                if (result != LockpickResult.Success)
                 {
-                    GameLog.Info(TAG, $"Door locked — player lacks skill '{data.requiredSkillId}'");
+                    GameLog.Info(TAG, $"Door stays locked — {result} (skill '{data.requiredSkillId}')");
+                    _onLockpickFailed?.Raise(LockpickRules.FailureMessage(result));
                     return;
                 }
+
+                // Consume before unlocking so a failed consume never opens the lock for free.
+                if (!_playerInventory.TryConsume(_lockpickItem))
+                {
+                    GameLog.Warn(TAG, "Lockpick count passed but consume failed — door stays locked");
+                    return;
+                }
+
+                // DoorSystem and DoorInteractable are both Game.World → same-system direct call is allowed.
+                data.door.Unlock();
+                _onLockUnlocked?.Raise("Door");
             }
 
-            // DoorSystem and DoorInteractable are both Game.World → same-system direct call is allowed.
-            data.door.Unlock();
-            // Only locked doors reach this system (unlocked ones toggle locally in DoorInteractable),
-            // and we are past the skill gate — so this is the unlock success path.
-            _onLockUnlocked?.Raise("Door");
             data.door.ToggleOpen();
         }
     }

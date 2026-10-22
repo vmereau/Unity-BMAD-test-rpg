@@ -131,6 +131,32 @@ namespace Game.Inventory
             return existing.Item;
         }
 
+        /// <summary>Total count of the given item across all slots (0 for null or absent).</summary>
+        public int CountOf(ItemSO item)
+        {
+            if (item == null) return 0;
+            int total = 0;
+            for (int i = 0; i < _slots.Count; i++)
+                if (_slots[i].Item == item) total += _slots[i].Count;
+            return total;
+        }
+
+        /// <summary>
+        /// Consumes one unit of the given item from the first slot holding it (via DecrementStack).
+        /// Returns false if the item is null or not in the inventory.
+        /// </summary>
+        public bool TryConsume(ItemSO item)
+        {
+            if (item == null) return false;
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].Item != item) continue;
+                DecrementStack(i);
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Save/load: replaces every slot, one slot per entry in order (no re-stacking, so indices the
         /// action bar relies on are preserved). Counts are clamped to [1, item.maxStacks]; null items skipped.

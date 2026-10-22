@@ -21,6 +21,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_Int _onLevelUp;
         [SerializeField] private GameEventSO_String _onLockUnlocked;
         [SerializeField] private GameEventSO_String _onSaveNotification;
+        [SerializeField] private GameEventSO_String _onLockpickFailed;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -67,6 +68,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onLockUnlocked not assigned — unlock toasts disabled");
             if (_onSaveNotification == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onSaveNotification not assigned — save / load toasts disabled");
+            if (_onLockpickFailed == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onLockpickFailed not assigned — lockpick failure toasts disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -80,6 +83,7 @@ namespace Game.UI
             _onLevelUp?.AddListener(HandleLevelUp);
             _onLockUnlocked?.AddListener(HandleUnlocked);
             _onSaveNotification?.AddListener(Show);
+            _onLockpickFailed?.AddListener(Show);
         }
 
         private void OnDisable()
@@ -88,6 +92,7 @@ namespace Game.UI
             _onLevelUp?.RemoveListener(HandleLevelUp);
             _onLockUnlocked?.RemoveListener(HandleUnlocked);
             _onSaveNotification?.RemoveListener(Show);
+            _onLockpickFailed?.RemoveListener(Show);
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");

@@ -176,6 +176,11 @@ namespace Game.Inventory
 
         private void HandleHotkeyPressed(int slotIndex)
         {
+            // Inventory raises no change event — re-sync indices first in case slots shifted since the
+            // last HUD refresh (e.g. a lockpick consumed by DoorSystem / ContainerSystem).
+            if (_inventorySystem == null) return;
+            ValidateSlots();
+
             if (_slots[slotIndex] == null)
             {
                 GameLog.Warn(TAG, $"Action bar slot {slotIndex + 1} is empty.");

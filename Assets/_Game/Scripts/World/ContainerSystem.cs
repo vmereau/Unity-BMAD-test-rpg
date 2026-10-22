@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Inventory;
 using Game.Progression;
 using Game.UI;
 using UnityEngine;
@@ -13,6 +14,11 @@ namespace Game.World
         [SerializeField] private ContainerUI _containerUI;
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private GameEventSO_String _onLockUnlocked;
+
+        [Header("Lockpicking")]
+        [SerializeField] private InventorySystem _playerInventory;
+        [SerializeField] private ItemSO _lockpickItem;
+        [SerializeField] private GameEventSO_String _onLockpickFailed;
 
         private void OnEnable()
         {
@@ -38,23 +44,40 @@ namespace Game.World
                 return;
             }
 
-            bool wasLocked = data.isLocked && !string.IsNullOrEmpty(data.requiredSkillId);
-            if (wasLocked)
+            if (data.isLocked)
             {
-                if (_playerSkills == null)
+                if (data.container == null)
                 {
-                    GameLog.Warn(TAG, "PlayerSkills not assigned — cannot check lockpicking skill");
+                    GameLog.Warn(TAG, "Locked open request without a container — cannot pick lock");
                     return;
                 }
-                if (!_playerSkills.HasSkill(data.requiredSkillId))
+                if (_playerSkills == null || _playerInventory == null || _lockpickItem == null)
                 {
-                    GameLog.Info(TAG, $"Container locked — player lacks skill '{data.requiredSkillId}'");
+                    GameLog.Warn(TAG, "PlayerSkills / player InventorySystem / lockpick item not assigned — cannot pick container lock");
                     return;
                 }
-                // Skill gate passed on a locked container — this is the "unlocked" moment.
+
+                // Empty skill id = misconfigured lock (Lockable warns) — only the lockpick is required.
+                bool hasSkill = string.IsNullOrEmpty(data.requiredSkillId) || _playerSkills.HasSkill(data.requiredSkillId);
+                LockpickResult result = LockpickRules.Evaluate(hasSkill, _playerInventory.CountOf(_lockpickItem));
+                if (result != LockpickResult.Success)
+                {
+                    GameLog.Info(TAG, $"Container stays locked — {result} (skill '{data.requiredSkillId}')");
+                    _onLockpickFailed?.Raise(LockpickRules.FailureMessage(result));
+                    return;
+                }
+
+                // Consume before unlocking so a failed consume never opens the lock for free.
+                if (!_playerInventory.TryConsume(_lockpickItem))
+                {
+                    GameLog.Warn(TAG, "Lockpick count passed but consume failed — container stays locked");
+                    return;
+                }
+
+                // Lockpick gate passed on a locked container — this is the "unlocked" moment.
                 // ContainerSystem and ContainerInteractable are both Game.World → same-system direct
                 // call is allowed. Unlock() persists the open state so this fires only once per chest.
-                data.container?.Unlock();
+                data.container.Unlock();
                 _onLockUnlocked?.Raise("Chest");
             }
 

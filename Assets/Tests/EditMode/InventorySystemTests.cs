@@ -425,5 +425,56 @@ namespace Tests.EditMode
             Object.DestroyImmediate(invGo);
             Object.DestroyImmediate(item);
         }
+
+        // ── CountOf / TryConsume (lockpick consumption) ──
+
+        [Test]
+        public void CountOf_SumsAcrossStacks()
+        {
+            var potion = CreateTestPotion(maxStacks: 2);
+            for (int i = 0; i < 3; i++) _inventory.AddItem(potion); // 2 + 1 → two slots
+            _inventory.AddItem(CreateTestItem("Other"));
+
+            Assert.AreEqual(3, _inventory.Count); // two potion slots + "Other"
+            Assert.AreEqual(3, _inventory.CountOf(potion));
+        }
+
+        [Test]
+        public void CountOf_AbsentOrNull_ReturnsZero()
+        {
+            Assert.AreEqual(0, _inventory.CountOf(CreateTestItem()));
+            Assert.AreEqual(0, _inventory.CountOf(null));
+        }
+
+        [Test]
+        public void TryConsume_DecrementsOneUnit()
+        {
+            var potion = CreateTestPotion();
+            for (int i = 0; i < 3; i++) _inventory.AddItem(potion);
+
+            Assert.IsTrue(_inventory.TryConsume(potion));
+            Assert.AreEqual(2, _inventory.CountOf(potion));
+            Assert.AreEqual(1, _inventory.Count);
+        }
+
+        [Test]
+        public void TryConsume_LastUnit_RemovesSlot()
+        {
+            var potion = CreateTestPotion();
+            _inventory.AddItem(potion);
+
+            Assert.IsTrue(_inventory.TryConsume(potion));
+            Assert.AreEqual(0, _inventory.Count);
+        }
+
+        [Test]
+        public void TryConsume_AbsentOrNull_ReturnsFalse()
+        {
+            _inventory.AddItem(CreateTestItem("Other"));
+
+            Assert.IsFalse(_inventory.TryConsume(CreateTestItem()));
+            Assert.IsFalse(_inventory.TryConsume(null));
+            Assert.AreEqual(1, _inventory.Count);
+        }
     }
 }
