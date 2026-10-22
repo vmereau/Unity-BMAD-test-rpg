@@ -65,8 +65,13 @@ namespace Game.Editor
         [MenuItem("Game/Dev/Sync All NPC Memories")]
         public static void SyncAllNpcMemories()
         {
-            foreach (var folder in AssetDatabase.GetSubFolders(NPC_DATA_ROOT))
+            // GetSubFolders returns nothing for a path with a trailing slash.
+            foreach (var folder in AssetDatabase.GetSubFolders(NPC_DATA_ROOT.TrimEnd('/')))
+            {
+                // Shared folders (e.g. Barks/) hold no NPCEntity — skip them quietly.
+                if (AssetDatabase.FindAssets("t:NPCEntity", new[] { folder }).Length == 0) continue;
                 SyncMemoriesForNpc(folder);
+            }
         }
 
         private static void SyncMemoriesForNpc(string npcFolder)
