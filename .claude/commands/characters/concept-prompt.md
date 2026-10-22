@@ -8,7 +8,8 @@ the project's template. Do **not** generate the image unless the user asks — j
 
 ## Step 1 — Load the template
 
-Read `Assets/_Game/Art/Characters/Humanoids/CLAUDE.md` in full. Its *Prompt template*, slot table,
+Read `Assets/_Game/Art/ART_DIRECTION.md` (character direction, materials, banned words), then
+`Assets/_Game/Art/Characters/Humanoids/CLAUDE.md` in full. Its *Prompt template*, slot table,
 *Writing `{OUTFIT}`* rules and outfit examples are the single source of truth — never restate the
 template from memory.
 

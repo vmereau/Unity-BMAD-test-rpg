@@ -21,6 +21,7 @@
 | What | Path |
 |------|------|
 | **Authoritative coding rules** | `_bmad-output/project-context.md` |
+| **Art direction (all visual assets)** | `Assets/_Game/Art/ART_DIRECTION.md` |
 | **GDD / architecture / narrative** | `_bmad-output/gdd.md`, `game-architecture.md`, `narrative-design.md` |
 | **Obsolete plan (history only)** | `_bmad-output/epics.md`, `implementation-artifacts/sprint-status.yaml` |
 | **Story files + tech specs** | `_bmad-output/implementation-artifacts/*.md` |
@@ -69,6 +70,7 @@ The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
 | `items:create <folder> [Name]` | Build a generic pickable item (`ItemSO` + world prefab + URP material + icon) from a Meshy FBX/texture folder via `Editor/Items/ItemAssetBuilder` |
 | `items:icon-prompt <item>` | Build a Gothic-style icon prompt + `generate_image` call from the `Art/UI/Items` template |
+| `ui:create <element\|screen> [state]` | Build prompts for implementable UI sprites (full-bleed, 9-slice, shared across screens) from the `Art/UI` sprite catalog, with `generate_image` calls and Unity import settings |
 | `characters:concept-prompt <outfit>` | Build a T-pose character concept prompt (base hero + outfit) for Meshy image-to-3D, from the `Art/Characters/Humanoids` template |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
@@ -127,6 +129,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
+| Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
+| UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |

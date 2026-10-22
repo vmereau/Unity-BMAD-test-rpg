@@ -10,7 +10,7 @@
 ## Character Concept Prompt (image → Meshy image-to-3D)
 
 The concept image is the input for Meshy image-to-3D, so it is written for **geometry and rigging**,
-not for beauty. Art direction comes from `_bmad-output/gdd.md` → *Art Style* (realistic, dark medieval,
+not for beauty. Art direction comes from `Art/ART_DIRECTION.md` (realistic, dark medieval,
 muted earthy palette, grounded and worn). Keep every line **verbatim** — only `{VIEW}`, `{OUTFIT}`
 and the optional reference line change.
 

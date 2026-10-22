@@ -6,11 +6,15 @@ argument-hint: <item description, e.g. "lockpicking set">
 Your task is to turn an item name into a ready-to-use icon generation prompt that follows the
 project's icon template. Do **not** generate the image unless the user asks — just return the prompt.
 
-## Step 1 — Load the template
+## Step 1 — Load the art direction and the template
 
-Read `Assets/_Game/Art/UI/Items/CLAUDE.md` in full. Its *Prompt template*, `{BACKGROUND}` table,
-*Writing `{ITEM}`* rules and *Call parameters* are the single source of truth — never restate the
-template from memory.
+Read in full:
+
+1. `Assets/_Game/Art/ART_DIRECTION.md` — palette, *Materials Vocabulary*, banned words, icon lighting.
+2. `Assets/_Game/Art/UI/Items/CLAUDE.md` — its *Prompt template*, `{BACKGROUND}` table,
+   *Writing `{ITEM}`* rules and *Call parameters*.
+
+These are the single source of truth — never restate the template or the art direction from memory.
 
 ## Step 2 — Identify the item
 
@@ -21,8 +25,8 @@ name), read its display name / description and use them for detail cues.
 
 ## Step 3 — Write `{ITEM}`
 
-Follow the *Writing `{ITEM}`* rules: one phrase, concrete materials + form + one or two wear cues,
-no "magical / legendary / epic" wording. If the examples table already covers the item, reuse
+Follow the *Writing `{ITEM}`* rules: one phrase, concrete materials + form + one or two wear cues
+from the *Materials Vocabulary*, none of the `ART_DIRECTION.md` banned words. If the examples table already covers the item, reuse
 that line verbatim.
 
 Derive `<Name>` in PascalCase for the asset name (`lockpicking set` → `Lockpick`, keeping it short

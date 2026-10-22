@@ -39,8 +39,8 @@ Then poll `action: status` with the returned `job_id`.
 
 ### Prompt template
 
-Art direction comes from `_bmad-output/gdd.md` → *Art Style* (Gothic 1 & 2, muted earthy palette,
-grounded and worn, no glowing items). Keep every line **verbatim** across icons — consistency of
+Art direction (palette, materials vocabulary, banned words, icon lighting) comes from
+`Art/ART_DIRECTION.md`. Keep every line **verbatim** across icons — consistency of
 angle, light and wording is what makes the set read as one family. Only `{ITEM}` changes.
 
 ```
@@ -64,9 +64,8 @@ Soft warm light from the upper left, like torchlight, with subtle shadows on the
 
 ### Writing `{ITEM}`
 
-One phrase: **material + form + one or two wear/detail cues**. Name concrete materials, never
-qualities like "magical", "legendary" or "epic" (they trigger glow and ornament). Magic items get a
-physical cue instead (dull-blue ore, faded runes scratched into wood).
+One phrase: **material + form + one or two wear/detail cues**, using the *Materials Vocabulary* and
+avoiding the *banned words* of `Art/ART_DIRECTION.md` (magic items get a physical cue instead).
 
 | Item | `{ITEM}` |
 |------|----------|
