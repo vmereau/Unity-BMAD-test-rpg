@@ -61,8 +61,10 @@ namespace Game.Player
             SetSneaking(false);
         }
 
-        /// <summary>True when the player cannot perform any action (dead, or cursor unlocked).</summary>
-        public bool IsBusy => IsDead || !CursorManager.IsLocked;
+        /// <summary>
+        /// True when the player cannot perform any action (dead, cursor unlocked, or a dialogue closed this frame).
+        /// </summary>
+        public bool IsBusy => IsDead || !CursorManager.IsLocked || DialogueEndedThisFrame;
 
         /// <summary>True from death until a save is loaded. Blocks every action through IsBusy.</summary>
         public bool IsDead { get; private set; }
@@ -81,6 +83,14 @@ namespace Game.Player
 
         /// <summary>True while the player is in an active dialogue conversation.</summary>
         public bool IsInDialogue { get; private set; }
+
+        /// <summary>
+        /// True on the frame a dialogue closed. Dialogue keys fire in input callbacks before Update, so the key
+        /// that closed it (E / Space / click) would otherwise also interact, jump or attack once the cursor relocks.
+        /// </summary>
+        public bool DialogueEndedThisFrame => _dialogueEndedFrame == Time.frameCount;
+
+        private int _dialogueEndedFrame = -1;
 
         private void Awake()
         {
@@ -168,6 +178,7 @@ namespace Game.Player
         public void SetInDialogue(bool value)
         {
             if (value) SetSneaking(false);
+            else if (IsInDialogue) _dialogueEndedFrame = Time.frameCount;
             IsInDialogue = value;
             GameLog.Info(TAG, $"IsInDialogue: {value}");
         }

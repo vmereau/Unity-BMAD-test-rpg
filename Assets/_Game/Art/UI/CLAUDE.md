@@ -47,7 +47,7 @@ the border thickness wanted in game; the import step converts it.
 | Sprite | Used by (prefab → `Image`) | In-game sizes | On-screen border | Image type | States |
 |--------|---------------------------|---------------|------------------|------------|--------|
 | `SlotWell` ✅ | `ActionBarSlot` background, `ItemSlot` background (wired 2026-10-22, border 128/134 src px); `EquipmentSlot` not yet | 64×64, 80×80, 200×64 | 6 (action bar, icon 52), 4 (item slot, icon 72) | Sliced | Tint — `_normalColor` 0.85 gray, `_hoverColor` warm (1, .95, .85), `_selectedColor` brass (1, .82, .5); optional `SlotWell_Selected` |
-| `Panel` | Inventory / detail / quest / skills / stats panels, container & trade columns, dialogue band, game-menu window, confirm window | 384×800 … 1536×216 | 16 | Sliced | — |
+| `Panel` | Inventory / detail / quest / skills / stats panels, container & trade columns, dialogue band, game-menu window, confirm window | 384×800 … 1100×300 | 16 | Sliced | — |
 | `Card` | Interaction prompt card, notification toast, speech bubble | ~147×61, toast rows | 6 | Sliced | — |
 | `Button` | `Common/ActionButton` (menus, death screen, confirm, detail actions) | 420×72, 220×72, 160×80 | 8 | Sliced | Tint (`ActionButton` uses Color Tint) |
 | `Tab` | `TabBar` buttons, quest-log Started / Completed / Failed | 243×100, 160×80 | 8 | Sliced | Tint; optional `Tab_Active` |
@@ -185,7 +185,7 @@ Re-measure with `UILayoutCapture.Measure` after any layout change and update thi
 | Quest log | Info | 672, 140, 1152×800 | Header 160 |
 | Character | Panel | 660, 140, 600×800 | Single centred column |
 | Skills | Panel | 660, 190, 600×700 | List 220 wide · detail 332 wide |
-| Dialogue | Panel | 192, 702, 1536×216 | Bottom band, 80 % width; name font 28, text font 25 |
+| Dialogue | Panel | 410, 618, 1100×300 | Bottom band (bottom edge y 918); content column ~1034; name font 28 (torch), history 22, text 25 (parchment), advance button 36 tall |
 | Game menu | Window | 460, 80, 1000×920 | Centred column of 5 buttons 420×72 |
 | Death screen | Column | centred | Title font 96, 4 buttons 420×72, gap 18 |
 | Confirm dialog | Window | 600, 380, 720×320 | Message font 32, Yes / No 220×72 |
@@ -208,7 +208,7 @@ re-check the owning file before relying on a count.
 | **Quest log** | J | Started / Completed / Failed tabs, quest list, quest info (`Quest/`) | `Panel`, `Tab`, `Button` |
 | **Character** | P | Level, XP, learning points, HP, stamina, base stats (`Screens/`) | `Panel` |
 | **Skills** | K | Skill list rows, detail panel with requirement rows (`Skills/`) | `Panel`, `Button`, `SlotWell` |
-| **Dialogue** | — | NPC name, response text, numbered topics (1–9, 0), choices (`Dialogue/`) | `Panel`, `Button` |
+| **Dialogue** | — | NPC name, faded history, response text, Continue / End / Trade button, numbered topics (1–9, 0), choices (`Dialogue/`) | `Panel`, `Button` |
 | **Game menu** | Esc | Resume / Save / Load / Options / Quit, save-slot list, confirm dialog (`Screens/`) | `Panel`, `Button` |
 | **Death screen** | — | Title, Load last save / Load quicksave / Restart / Quit (`Screens/`) | `Button` |
 | **Loading** | — | Black overlay "Loading…" (`Screens/`) | none |

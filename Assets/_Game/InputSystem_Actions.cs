@@ -1063,6 +1063,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DialogueAdvance"",
+                    ""type"": ""Button"",
+                    ""id"": ""d0c00000-d0c0-d0c0-d0c0-d0c0d0c0d0c0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1593,6 +1602,50 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""DialogueOption0"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0d00000-d0d0-d0d0-d0d0-d0d0d0d0d0d0"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0d00001-d0d0-d0d0-d0d0-d0d0d0d0d0d1"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0d00002-d0d0-d0d0-d0d0-d0d0d0d0d0d2"",
+                    ""path"": ""<Keyboard>/numpadEnter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d0d00003-d0d0-d0d0-d0d0-d0d0d0d0d0d3"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DialogueAdvance"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1710,6 +1763,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_UI_DialogueOption8 = m_UI.FindAction("DialogueOption8", throwIfNotFound: true);
         m_UI_DialogueOption9 = m_UI.FindAction("DialogueOption9", throwIfNotFound: true);
         m_UI_DialogueOption0 = m_UI.FindAction("DialogueOption0", throwIfNotFound: true);
+        m_UI_DialogueAdvance = m_UI.FindAction("DialogueAdvance", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -2046,6 +2100,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_DialogueOption8;
     private readonly InputAction m_UI_DialogueOption9;
     private readonly InputAction m_UI_DialogueOption0;
+    private readonly InputAction m_UI_DialogueAdvance;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -2107,6 +2162,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @DialogueOption8 => m_Wrapper.m_UI_DialogueOption8;
         public InputAction @DialogueOption9 => m_Wrapper.m_UI_DialogueOption9;
         public InputAction @DialogueOption0 => m_Wrapper.m_UI_DialogueOption0;
+        /// <summary>Provides access to the underlying input action "UI/DialogueAdvance" (hand-added, no IUIActions callback).</summary>
+        public InputAction @DialogueAdvance => m_Wrapper.m_UI_DialogueAdvance;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>

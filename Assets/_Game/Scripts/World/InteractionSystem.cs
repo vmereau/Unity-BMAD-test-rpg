@@ -203,6 +203,8 @@ namespace Game.World
         private void LateUpdate()
         {
             if (!CursorManager.IsLocked || IsPlayerDead) return;
+            // The [E] that closed a dialogue this frame must not re-open it.
+            if (_playerState != null && _playerState.DialogueEndedThisFrame) return;
             // Re-check CanInteract: the scan is throttled by _config.scanInterval, so combat could have
             // started on the cached target since the last scan.
             // IsAlive: the target may have been destroyed (e.g. picked up) since the last scan.

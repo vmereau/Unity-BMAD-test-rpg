@@ -2827,15 +2827,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1310610085135399649, guid: deb2cc074a40aad4ab9b49cfc1734470, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.9
+      value: 0.7865
       objectReference: {fileID: 0}
     - target: {fileID: 1310610085135399649, guid: deb2cc074a40aad4ab9b49cfc1734470, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.35
+      value: 0.4278
       objectReference: {fileID: 0}
     - target: {fileID: 1310610085135399649, guid: deb2cc074a40aad4ab9b49cfc1734470, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.1
+      value: 0.2135
       objectReference: {fileID: 0}
     - target: {fileID: 1310610085135399649, guid: deb2cc074a40aad4ab9b49cfc1734470, type: 3}
       propertyPath: m_AnchorMin.y

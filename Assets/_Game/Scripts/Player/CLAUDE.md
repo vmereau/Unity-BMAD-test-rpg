@@ -21,7 +21,7 @@
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
-- `IsBusy` is `true` when the cursor is unlocked — all `Can*` methods return `false` while busy.
+- `IsBusy` is `true` when the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 

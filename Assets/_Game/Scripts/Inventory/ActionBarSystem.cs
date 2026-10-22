@@ -170,7 +170,8 @@ namespace Game.Inventory
         /// </summary>
         public void TryUseSlot(int slotIndex)
         {
-            if (_playerStateManager != null && _playerStateManager.IsInDialogue) return;
+            // DialogueEndedThisFrame: the number key that closed a dialogue (Farewell / forced line) is also ActionBarN.
+            if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.DialogueEndedThisFrame)) return;
             HandleHotkeyPressed(slotIndex);
         }
 

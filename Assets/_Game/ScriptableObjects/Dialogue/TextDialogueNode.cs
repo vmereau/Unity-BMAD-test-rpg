@@ -6,6 +6,6 @@ namespace Game.Dialogue
     public class TextDialogueNode : DialogueNode
     {
         // Inherits: text (NPC line), nextNode (next in chain), IsEndNode()
-        // nextNode == null → UI shows "Farewell." button; non-null → "Continue..."
+        // DialogueUI labels its advance button "Continue" when nextNode is set, "End" when null (ends the topic)
     }
 }
