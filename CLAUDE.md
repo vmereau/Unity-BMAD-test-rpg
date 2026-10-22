@@ -39,7 +39,7 @@
 ## Before Writing Any Game Code
 
 1. Read `_bmad-output/project-context.md` — its rules are mandatory
-2. Check the `status:` of existing `tech-spec-*.md` files for current state
+2. Check the `status:` of existing specs (`spec-*.md`, older `tech-spec-*.md`) for current state
 3. If a story file or tech spec exists for the task, read it fully before implementing
 4. Read the folder `CLAUDE.md` for every folder you touch (index below)
 
@@ -48,14 +48,21 @@
 ## Development Workflow
 
 Epics 1–4 were delivered as BMAD stories. Since mid-April 2026, work is done **only** as quick
-tech specs (`tech-spec-*.md` in `implementation-artifacts/`) via `gds-quick-spec` → `gds-quick-dev`.
-`epics.md` and `sprint-status.yaml` are **obsolete** (marked 2026-09-28) — don't update them or
-plan from them. Each spec's `status:` field is the source of truth: set it to `completed` in the
-same session the feature ships.
+specs in `implementation-artifacts/` via `gds-quick-dev`, which clarifies, writes the spec
+(`spec-<slug>.md`), implements and reviews in one flow (`gds-quick-spec` was removed in the
+2026-10-22 BMAD upgrade). `epics.md` and `sprint-status.yaml` are **obsolete** (marked 2026-09-28)
+— don't update them or plan from them. Each spec's `status:` field is the source of truth: it
+must be `done` in the same session the feature ships. Older `tech-spec-*.md` files use
+`completed` — leave them as-is.
+
+BMAD (core 6.12.4 + GDS 0.7.2; `_bmad/` is gitignored, only `.claude/skills/` is committed) must be
+upgraded **with shims**, or GDS review steps call skills that no longer exist:
+`npx bmad-method@latest install --directory . --action quick-update --modules core,gds --tools claude-code --user-name Valentin --shims -y`.
+The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 
 | Skill / command | When to use |
 |-----------------|-------------|
-| `gds-quick-spec` → `gds-quick-dev` | Spec and implement a feature (current default flow) |
+| `gds-quick-dev` | Spec and implement a feature (current default flow) |
 | `gds-code-review` | Adversarial review after a feature is complete |
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
