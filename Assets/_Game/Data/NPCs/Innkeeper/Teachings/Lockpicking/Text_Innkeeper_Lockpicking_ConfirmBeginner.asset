@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_Innkeeper_Lockpicking_ConfirmBeginner
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: "Good. Practise on your own doors first. And when your picks snap \u2014 they will \u2014 come see me. I keep a few behind the bar."
+  nextNode: {fileID: 11400000, guid: 2f4a8145cc875e64aa3af44ea2874172, type: 2}

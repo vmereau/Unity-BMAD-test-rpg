@@ -69,4 +69,5 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 | Dialogues | `Assets/_Game/Data/NPCs/Innkeeper/Dialogues/` |
 | Teachings | `Assets/_Game/Data/NPCs/Innkeeper/Teachings/` |
 | Memories | `Assets/_Game/Data/NPCs/Innkeeper/Memories/` |
+| Shop | `Dialogues/Shop/` ("I need lockpicks") + `Mem_Innkeeper_Shop` — unlocked by `SkillFact_BeginnerLockpicking_Learned`; stock (`Item_Lockpick` ×10) on the `Innkeeper` instance in `StartingTown.unity` |
 | Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

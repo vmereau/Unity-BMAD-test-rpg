@@ -89,6 +89,8 @@ Read **`DIALOGUE.md`** in this folder. It describes:
 - `StartDialogueNode`, `TextDialogueNode`, `ChoiceDialogueNode` usage
 - Text length limits and chaining rules
 - Naming conventions and folder layout
+- Shop topics (`ShopDialogueNode`, scene-instance stock, topic-level visibility) — author them with
+  `/NPC:shop-dialogue`
 
 ---
 

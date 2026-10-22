@@ -118,6 +118,34 @@ response (branching). If it is just sequential NPC speech, use chained `TextDial
 
 ---
 
+### ShopDialogueNode
+`CreateAssetMenu: Game/Dialogue/Shop Node` — filename prefix `Shop_`
+
+Shows its `text` (NPC line), then opens the trade window on the NPC's `InventorySystem`
+(`nextNode` unused — the trade window closes the dialogue). No `InventorySystem` → shown as plain text.
+
+---
+
+## Shop Topics
+
+Use **`/NPC:shop-dialogue`** to create or edit a shop (topic, stock, conditions).
+
+```
+<NPCName>/Dialogues/Shop/
+  Start_<NPC>_Shop.asset   ← topic button, dialogueFact null (repeatable)
+  Shop_<NPC>.asset         ← ShopDialogueNode
+<NPCName>/Memories/Mem_<NPC>_Shop.asset   ← effects.startdialog + visibility conditions
+```
+
+- **Stock** is not in the NPC folder: it is `InventorySystem._startingItems` on the NPC's **scene instance**
+  (prefab override), edited with `NpcShopEditor` (`Assets/_Game/Editor/NPCs/`). The trade window lists the whole
+  inventory at each item's `buyValue` / `sellValue`; there is no restocking.
+- **Visibility** is per topic only — the shop memory's `unlockConditions` / `invalidationConditions`. Individual
+  items can't be hidden, and there are no price modifiers.
+- `Merchant/` predates the convention (`Start_Merchant`, `Shop_Merchant`, `Mem_Merchant_shop`).
+
+---
+
 ## Dialogue Chain Example
 
 ```

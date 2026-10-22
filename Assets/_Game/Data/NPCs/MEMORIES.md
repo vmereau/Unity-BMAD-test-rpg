@@ -52,12 +52,10 @@ For gating dialogue choices by skill learned state, use `SkillFact` — see `Ass
 | Field | Type | Purpose |
 |-------|------|---------|
 | `effects.startdialog` | `StartDialogueNode` | Topic entry point exposed while this memory is active |
-| `effects.choicesDialogues` | `ChoiceDialogueNode[]` | Choice nodes whose available options may be gated by this memory |
-| `effects.shopPriceModifier` | `float [-1, 1]` | Price modifier (0 = no effect, -0.1 = 10% discount) |
-| `effects.shopRevealDialogueLine` | `string` | One-shot line on first shop open while active |
-| `effects.routineOverride` | `NPCState` | Overrides the NPC's schedule while active |
-| `effects.overrideRoutine` | `bool` | Must be `true` for `routineOverride` to apply |
-| `effects.questDialogueKey` | `string` | Dialogue key for quest initiation (future system) |
+
+`startdialog` is the only effect that exists. Shops have no memory effect (no price modifier / reveal line):
+a shop is a topic like any other, so its visibility is controlled by this memory's conditions — see
+`DIALOGUE.md` → Shop Topics and `/NPC:shop-dialogue`.
 
 ---
 
@@ -79,9 +77,8 @@ panel or shop, the system re-evaluates all memories at that moment.
 Only memories whose `IsActive()` returns `true` contribute topics. The `StartDialogueNode`
 linked in `effects.startdialog` is added to the topic list if:
 
-- The memory `IsActive()`, **and**
-- The node's `isRepeatable == true`, **or** the node has not been recorded as played in
-  `WorldStateManager` (key: `Dialogue.<nodeName>`)
+- The memory `IsActive()`. One-shot topics hide themselves by setting `StartDialogueNode.dialogueFact` and
+  listing that fact in the memory's `invalidationConditions` (see `DIALOGUE.md`).
 
 `ChoiceOption.requiredMemory` on a `ChoiceDialogueNode` hides individual choice buttons
 unless the referenced memory `IsActive()`.

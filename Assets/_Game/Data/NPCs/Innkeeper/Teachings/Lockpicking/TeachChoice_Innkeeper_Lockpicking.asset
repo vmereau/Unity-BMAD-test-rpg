@@ -25,7 +25,7 @@ MonoBehaviour:
     statToUpgrade: 0
     statPoints: 0
     limitStat: 0
-    confirmNextNode: {fileID: 11400000, guid: e3afbd85b346cc5408d5cbad41c767e8, type: 2}
+    confirmNextNode: {fileID: 11400000, guid: 7acc57b1404406049bd659ec0d7d6253, type: 2}
     denyNextNode: {fileID: 0}
   - text: Expert Lockpicking
     requiredMemory: {fileID: 11400000, guid: a5c52f98db7262343ac86071c0395df5, type: 2}

@@ -65,6 +65,7 @@ The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 | `gds-quick-dev` | Spec and implement a feature (current default flow) |
 | `gds-code-review` | Adversarial review after a feature is complete |
 | `NPC:create`, `NPC:dialogue`, `NPC:teach-dialogue` | NPC data + dialogue authoring |
+| `NPC:shop-dialogue` | Create / edit an NPC shop: topic, stock (scene `InventorySystem` via `Editor/NPCs/NpcShopEditor`), visibility conditions |
 | `quests:design` → `quests:implement` → `quests:audit` | Quest spec, Unity assets, then validation (all use the MCP `quest_report` tool) |
 | `items:create <folder> [Name]` | Build a generic pickable item (`ItemSO` + world prefab + URP material + icon) from a Meshy FBX/texture folder via `Editor/Items/ItemAssetBuilder` |
 | `items:icon-prompt <item>` | Build a Gothic-style icon prompt + `generate_image` call from the `Art/UI/Items` template |
