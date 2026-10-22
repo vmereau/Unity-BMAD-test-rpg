@@ -2,6 +2,8 @@
 
 > Item icon textures used by `ItemSO` icons (inventory, action bar, loot UI). Covers naming and the
 > AI-generation prompt template. Use `/items:icon-prompt <item>` to get a ready-to-use prompt.
+> **Icons only** — item models and their textures live in `Art/Items/<Name>/` (`/items:create` moves them
+> there). Without a source icon, `Tools/Items/Generate Missing Icons` renders one from the world prefab.
 
 ---
 

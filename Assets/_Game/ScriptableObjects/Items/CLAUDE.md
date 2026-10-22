@@ -1,6 +1,9 @@
 # CLAUDE.md — Assets/_Game/ScriptableObjects/Items
 
 > Loaded when Claude accesses files in this folder. Covers the Item SO hierarchy, how to create new item types, and integration points.
+> **New generic item from a model folder:** `/items:create <folder> [Name]` (`Editor/Items/ItemAssetBuilder`) —
+> creates `Data/Items/Item_<Name>.asset`, `Prefabs/Items/Item_<Name>.prefab`, `Art/Items/<Name>/` (FBX, maps,
+> `M_<Name>.mat`) and the icon, then syncs `ItemCatalog`. Weapons use the Weapon Creator instead.
 
 ---
 
