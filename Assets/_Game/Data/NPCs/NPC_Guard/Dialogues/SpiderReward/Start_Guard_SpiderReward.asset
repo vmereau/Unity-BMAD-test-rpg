@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: I've killed all the spiders.
   nextNode: {fileID: 11400000, guid: 83094b374f4678c4e8677a77618f7e9d, type: 2}
+  _id: 626722f24f129bf4b8ac2e7d2f604be7
   dialogueFact: {fileID: 11400000, guid: d526339be257ec5469d28593abdacafa, type: 2}

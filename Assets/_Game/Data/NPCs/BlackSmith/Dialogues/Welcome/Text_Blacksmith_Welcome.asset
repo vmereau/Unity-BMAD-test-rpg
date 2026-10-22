@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Blacksmith_Welcome
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: "Stranger. Name's Edric \u2014 blacksmith. If you need iron worked, you've
-    found your man, Aye."
+  text: "Stranger. Name's Edric \u2014 blacksmith. If you need iron worked, you've found your man, Aye."
   nextNode: {fileID: 11400000, guid: f8983b74c8bcaa849a8407649a6eb54f, type: 2}
+  _id: e124060c0e21b2b4bac93759b72c9909

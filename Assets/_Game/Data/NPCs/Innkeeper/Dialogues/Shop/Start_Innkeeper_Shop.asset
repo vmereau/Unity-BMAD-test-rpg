@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: I need lockpicks
   nextNode: {fileID: 11400000, guid: 6ebb85c1a872c9a40b71b6a01b091f4d, type: 2}
+  _id: 1415096162d61224c838f86b6b515c3e
   dialogueFact: {fileID: 0}

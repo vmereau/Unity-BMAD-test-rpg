@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: Any news on the spiders?
   nextNode: {fileID: 11400000, guid: 58177b2b24d241943b895376f68ae033, type: 2}
+  _id: 47343125f22e3214798195fb87da8777
   dialogueFact: {fileID: 0}

@@ -126,6 +126,20 @@ Shows its `text` (NPC line), then opens the trade window on the NPC's `Inventory
 
 ---
 
+## Seen State, Tags & Order (player-facing)
+
+- **Node id:** every `DialogueNode` has a hidden `_id` synced to its asset GUID by `OnValidate` (duplicates get
+  their own). Nothing to author — but the id is only written to disk on **Save Project**: after creating
+  nodes by script / MCP, save (`AssetDatabase.SaveAssets()`) and check the `.asset` has an `_id:` line before
+  committing. A node with no id is never tracked (`DialogueSystem` warns once).
+- **Seen:** picking a topic or a choice marks it seen (persisted with the save, no fact event). Seen options are
+  drawn dimmed; seen topics sort below unseen ones (`[Farewell]` stays last). A choice is keyed by
+  `{nodeId}.{index}` — **reordering a node's `choices` moves their seen state** to whatever lands on that index.
+- **Tags:** an option whose chain reaches a `ShopDialogueNode` shows `[Trade]`, a `TeachChoiceDialogueNode`
+  `[Teach]` (walk follows `nextNode` through text nodes, stops at a choice node). Tagged options are never dimmed
+  — they are services the player returns to. There is no quest tag.
+- Teach costs: the part the player can't pay (LP / gold / stat requirements) is shown in red.
+
 ## Shop Topics
 
 Use **`/NPC:shop-dialogue`** to create or edit a shop (topic, stock, conditions).

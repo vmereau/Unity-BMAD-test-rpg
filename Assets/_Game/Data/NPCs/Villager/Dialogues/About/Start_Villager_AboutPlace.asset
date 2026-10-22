@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: What is this place ?
   nextNode: {fileID: 11400000, guid: fc5569bf229cd5142844d5e391edc8d0, type: 2}
+  _id: 455d1be2d47a1344691f01dfee989287
+  dialogueFact: {fileID: 0}

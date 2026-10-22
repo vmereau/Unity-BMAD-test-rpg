@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: But seriously... what about those frogs?
   nextNode: {fileID: 11400000, guid: 231ea7e09f6a4676926664e862fb94fb, type: 2}
-  isRepeatable: 0
+  _id: bbfd482bc273467ca5a288ae9e2604d6
   dialogueFact: {fileID: 11400000, guid: cf9c4565dd2c48da94bd3b0fd1b8f583, type: 2}

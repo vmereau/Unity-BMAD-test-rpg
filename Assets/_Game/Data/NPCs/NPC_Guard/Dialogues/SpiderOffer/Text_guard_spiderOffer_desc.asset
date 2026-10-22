@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_guard_spiderOffer_desc
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: "Adventurer! We've got a problem. Darkness Spiders have been spotted near
-    the edge of town \u2014 five of them. Left unchecked, they'll be a real danger.
-    Would you be willing to deal with them?"
+  text: "Adventurer! We've got a problem. Darkness Spiders have been spotted near the edge of town \u2014 five of them. Left unchecked, they'll be a real danger. Would you be willing to deal with them?"
   nextNode: {fileID: 11400000, guid: ec2caeecb910e7f47ab8b73aeeac5ad6, type: 2}
+  _id: eee0bb3499007c0468ced7abef1160e7

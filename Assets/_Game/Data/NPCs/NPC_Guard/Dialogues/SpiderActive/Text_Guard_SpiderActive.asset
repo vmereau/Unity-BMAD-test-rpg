@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Guard_SpiderActive
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: "The spiders are still out there. Stay sharp \u2014 don't let them get the
-    better of you."
+  text: "The spiders are still out there. Stay sharp \u2014 don't let them get the better of you."
   nextNode: {fileID: 0}
+  _id: 58177b2b24d241943b895376f68ae033

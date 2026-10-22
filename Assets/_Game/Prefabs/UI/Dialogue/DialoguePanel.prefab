@@ -601,6 +601,7 @@ MonoBehaviour:
   _historyText: {fileID: 5515387088159398835}
   _nextNodeLabel: {fileID: 6266672782574545393}
   _historyCapacity: 3
+  _historyLineMaxChars: 90
   _charsPerSecond: 60
   _inputGrace: 0.2
 --- !u!1 &3751804007092279168
@@ -662,11 +663,11 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 4
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 0
+  m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0

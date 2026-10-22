@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: Look at you. Already sturdier. Keep at it, Aye.
   nextNode: {fileID: 11400000, guid: fb58cda07a50d9d449aeaa9901b501ff, type: 2}
+  _id: 39cf917287e497d43b62022063c4ed0d

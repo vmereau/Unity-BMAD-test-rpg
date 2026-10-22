@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: I need your help
   nextNode: {fileID: 11400000, guid: a6fac8eb5b28f4a4babc939f8b835af1, type: 2}
+  _id: 74d2347f87e80584e83e028eb9eef8b7
   dialogueFact: {fileID: 0}

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: What can you teach me?
   nextNode: {fileID: 11400000, guid: c5d7436fd3f14b94fbdce2aeab788cb3, type: 2}
-  isRepeatable: 1
+  _id: 2086907fdf7a8b04db3d5296daad71a3
   dialogueFact: {fileID: 0}

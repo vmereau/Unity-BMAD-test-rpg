@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: I will make the strongest sword you'll ever seen
   nextNode: {fileID: 0}
+  _id: 744bdd092cd6cea4e80610f4ac7bcabb

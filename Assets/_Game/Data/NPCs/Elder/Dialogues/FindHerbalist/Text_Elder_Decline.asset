@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: I understand. Come find me if you change your mind.
   nextNode: {fileID: 0}
+  _id: 0ae16a0c8b8aecf44a072a43eb0f20c7

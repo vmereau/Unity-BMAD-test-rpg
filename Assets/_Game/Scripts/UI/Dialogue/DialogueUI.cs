@@ -273,7 +273,7 @@ namespace Game.UI
             foreach (var choice in availableChoices)
             {
                 if (choice == null) continue;
-                AddChoiceButton(choice, slot++);
+                AddChoiceButton(node, choice, slot++);
             }
             // Every option filtered out (memory gates): without a way out the player would be stuck (Escape only
             // works on the topic list).
@@ -405,10 +405,11 @@ namespace Game.UI
             if (_dialogueSystem != null)
                 _cachedStartNodes = _dialogueSystem.GetCurrentStartNodes();
 
+            // Unseen topics first, then the ones already picked (dimmed); numbered in display order.
             int nextSlot = 1;
             if (_cachedStartNodes != null)
             {
-                foreach (var node in _cachedStartNodes)
+                foreach (var node in DialogueOptionFormat.OrderUnseenFirst(_cachedStartNodes, IsTopicDimmed))
                 {
                     if (node == null) continue;
                     AddStartNodeButton(node, nextSlot++);
@@ -419,16 +420,19 @@ namespace Game.UI
         }
 
         /// <summary>
-        /// Instantiates an option button labelled with its number key (none past slot 10), wires the click and,
-        /// when a key exists, the slot. Null <paramref name="action"/> = disabled button.
+        /// Instantiates an option button labelled with its number key (none past slot 10), its Trade / Teach tag and,
+        /// when <paramref name="seen"/>, dimmed text; wires the click and, when a key exists, the slot.
+        /// Null <paramref name="action"/> = disabled button. <paramref name="richSuffix"/> is appended unescaped.
         /// </summary>
-        private void AddOptionButton(string text, int slot, System.Action action)
+        private void AddOptionButton(string text, int slot, System.Action action,
+            DialogueOptionTag tag = DialogueOptionTag.None, bool seen = false, string richSuffix = null)
         {
             if (_topicsContainer == null || _topicButtonPrefab == null) return;
 
             var btnGO = Instantiate(_topicButtonPrefab, _topicsContainer);
             var label = btnGO.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = slot <= MAX_SLOTS ? $"{SlotLabel(slot)}. {text}" : text;
+            if (label != null)
+                label.text = DialogueOptionFormat.Label(slot <= MAX_SLOTS ? SlotLabel(slot) : null, text, tag, seen, richSuffix);
 
             var btn = btnGO.GetComponent<Button>();
             if (btn != null)
@@ -448,6 +452,7 @@ namespace Game.UI
         private void AddStartNodeButton(StartDialogueNode node, int slot)
         {
             var captured = node;
+            DialogueOptionTag tag = DialogueOptionFormat.Classify(node);
             AddOptionButton(node.text, slot, () =>
             {
                 if (captured.nextNode == null)
@@ -457,8 +462,14 @@ namespace Game.UI
                 }
                 RecordPlayerLine(captured.text);
                 _dialogueSystem.StartTopic(captured);
-            });
+            }, tag, IsTopicDimmed(node));
         }
+
+        // Trade / Teach topics are services the player comes back for: never dimmed or sorted down.
+        private bool IsTopicDimmed(StartDialogueNode node) =>
+            node != null && _dialogueSystem != null
+            && DialogueOptionFormat.Classify(node) == DialogueOptionTag.None
+            && _dialogueSystem.IsTopicSeen(node);
 
         // Always added (even past slot 10, then without a number key) so the player can never be trapped.
         private void AddFarewellButton(int slot)
@@ -470,21 +481,26 @@ namespace Game.UI
             });
         }
 
-        private void AddChoiceButton(ChoiceOption choice, int slot)
+        private void AddChoiceButton(ChoiceDialogueNode node, ChoiceOption choice, int slot)
         {
             var captured = choice;
+            DialogueOptionTag tag = DialogueOptionFormat.Classify(choice.nextNode);
+            bool seen = tag == DialogueOptionTag.None && _dialogueSystem != null && _dialogueSystem.IsChoiceSeen(node, choice);
             AddOptionButton(choice.text, slot, () =>
             {
                 RecordPlayerLine(captured.text);
-                _dialogueSystem.SelectChoice(captured);
+                _dialogueSystem.SelectChoice(captured, node);
                 if (captured.nextNode == null)
                     RestoreTopics();
-            });
+            }, tag, seen);
         }
 
         private void AddTeachChoiceButton(TeachChoiceOption choice, int slot)
         {
-            bool canAfford = _dialogueSystem != null && _dialogueSystem.CanAffordTeachChoice(choice);
+            TeachCostShortfall shortfall = _dialogueSystem != null
+                ? _dialogueSystem.GetTeachCostShortfall(choice)
+                : TeachCostShortfall.Gold | TeachCostShortfall.LearningPoints | TeachCostShortfall.Stats;
+            bool canAfford = shortfall == TeachCostShortfall.None;
 
             // Unaffordable choices are shown disabled and have no slot callback (pressing their key does nothing).
             System.Action action = null;
@@ -498,7 +514,10 @@ namespace Game.UI
                     _dialogueSystem.ApplyTeachChoice(captured);
                 };
             }
-            AddOptionButton($"{choice.text}{BuildCostLabel(choice)}", slot, action);
+            // Teach choices are repeatable purchases: never dimmed as seen. An unaffordable one is drawn dimmed (the
+            // row has no disabled tint) with the unpayable cost parts in red.
+            AddOptionButton(choice.text, slot, action, seen: !canAfford,
+                richSuffix: DialogueOptionFormat.CostLabel(choice, shortfall));
         }
 
         // Teach nodes (always, even past slot 10) and choice nodes left with no option. Plays exitNode — the teach
@@ -516,40 +535,6 @@ namespace Game.UI
                 _dialogueSystem.NotifyTopicCompleted();
                 RestoreTopics();
             });
-        }
-
-        private static string BuildCostLabel(TeachChoiceOption choice)
-        {
-            int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.statPoints;
-            int gold = choice.goldCost;
-            bool hasStatReqs = choice.skill != null && choice.skill.statsRequirements.Count > 0;
-
-            if (effectiveLpCost <= 0 && gold <= 0 && !hasStatReqs) return string.Empty;
-
-            var sb = new System.Text.StringBuilder(" (");
-            bool first = true;
-            if (effectiveLpCost > 0)
-            {
-                sb.Append($"{effectiveLpCost} LP");
-                first = false;
-            }
-            if (gold > 0)
-            {
-                if (!first) sb.Append(", ");
-                sb.Append($"{gold}g");
-                first = false;
-            }
-            if (hasStatReqs)
-            {
-                foreach (var req in choice.skill.statsRequirements)
-                {
-                    if (!first) sb.Append(", ");
-                    sb.Append($"{req.statType}: {req.value}");
-                    first = false;
-                }
-            }
-            sb.Append(')');
-            return sb.ToString();
         }
 
         /// <summary>

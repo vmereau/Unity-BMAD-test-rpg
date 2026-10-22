@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: You're too strong for me now. You should find another trainer.
   nextNode: {fileID: 11400000, guid: fb58cda07a50d9d449aeaa9901b501ff, type: 2}
+  _id: 5f9018e3a5fda4c4e818d2bbb0522e4c

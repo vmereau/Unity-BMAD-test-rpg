@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: I can craft either a sword, an axe or a hammer. What do you want ?
   nextNode: {fileID: 11400000, guid: 1c43bcd2ebbbbfb4bb89ccfdc640f405, type: 2}
+  _id: 8e43f7b4d5be23d439dcade8e0bb0c4a

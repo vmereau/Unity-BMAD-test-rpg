@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.ShopDialogueNode
   text: "Keep your voice down. Picks are behind the bar \u2014 and you didn't get them here."
   nextNode: {fileID: 0}
+  _id: 6ebb85c1a872c9a40b71b6a01b091f4d

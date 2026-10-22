@@ -25,5 +25,16 @@ namespace Game.Dialogue
         public ChoiceOption[] choices;
 
         public override bool IsEndNode() => false;
+
+        /// <summary>
+        /// Persisted "seen" key of <paramref name="choice"/>: <c>{Id}.{index in choices}</c>. Empty when this node
+        /// has no id or the choice isn't one of its options. Reordering choices reassigns their seen state.
+        /// </summary>
+        public string ChoiceSeenId(ChoiceOption choice)
+        {
+            if (string.IsNullOrEmpty(Id) || choice == null || choices == null) return string.Empty;
+            int index = System.Array.IndexOf(choices, choice);
+            return index < 0 ? string.Empty : $"{Id}.{index}";
+        }
     }
 }

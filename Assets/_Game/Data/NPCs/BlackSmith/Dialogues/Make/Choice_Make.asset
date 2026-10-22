@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
   text: 
   nextNode: {fileID: 0}
+  _id: 1c43bcd2ebbbbfb4bb89ccfdc640f405
   choices:
   - text: What about a sword ?
     requiredMemory: {fileID: 0}

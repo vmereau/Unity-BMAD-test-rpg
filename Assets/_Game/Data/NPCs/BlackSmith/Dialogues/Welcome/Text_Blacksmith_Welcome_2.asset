@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Blacksmith_Welcome_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: It's hard work. Smoke, heat, aching hands from dawn to dusk. But when a blade
-    comes out right... there's nothing better, Aye.
+  text: It's hard work. Smoke, heat, aching hands from dawn to dusk. But when a blade comes out right... there's nothing better, Aye.
   nextNode: {fileID: 0}
+  _id: f8983b74c8bcaa849a8407649a6eb54f

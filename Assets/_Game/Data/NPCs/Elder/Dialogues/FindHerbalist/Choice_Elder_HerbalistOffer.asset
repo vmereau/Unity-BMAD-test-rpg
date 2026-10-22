@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_Elder_HerbalistOffer
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: Our herbalist Mira has gone missing. The village is running low on medicine.
-    Will you look for her?
+  text: Our herbalist Mira has gone missing. The village is running low on medicine. Will you look for her?
   nextNode: {fileID: 0}
+  _id: a6fac8eb5b28f4a4babc939f8b835af1
   choices:
   - text: I'll look for her.
     requiredMemory: {fileID: 0}

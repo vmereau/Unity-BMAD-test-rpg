@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: Thank you. She was last seen heading east into the forest. Please hurry.
   nextNode: {fileID: 0}
+  _id: fa2e20adc5cbbbc49b7ea350995a17f7

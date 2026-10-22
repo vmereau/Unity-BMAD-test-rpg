@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: "This is Alderath, a quiet town \u2014 or it was, before the troubles began."
   nextNode: {fileID: 0}
+  _id: fc5569bf229cd5142844d5e391edc8d0

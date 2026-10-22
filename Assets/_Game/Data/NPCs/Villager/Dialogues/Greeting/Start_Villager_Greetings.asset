@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: Greetings
   nextNode: {fileID: 11400000, guid: 35856bd21dd0e7745b2dae69f69c99d0, type: 2}
-  isRepeatable: 0
+  _id: f3efdf084f29cdb4498a09a295515b60
+  dialogueFact: {fileID: 0}

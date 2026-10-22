@@ -338,6 +338,43 @@ namespace Tests.EditMode
             Assert.That(_wsm.CaptureFacts(), Is.Empty);
         }
 
+        // ── Dialogue seen markers ─────────────────────────────────────────────
+
+        [Test]
+        public void MarkDialogueSeen_IsSeen_AndRaisesNoEvent()
+        {
+            var eventSO = WireFactChangedEvent();
+            int raised = 0;
+            eventSO.AddListener(_ => raised++);
+
+            _wsm.MarkDialogueSeen("abc.1");
+
+            Assert.That(_wsm.IsDialogueSeen("abc.1"), Is.True);
+            Assert.That(_wsm.IsDialogueSeen("abc.0"), Is.False);
+            Assert.That(raised, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void MarkDialogueSeen_SurvivesCaptureRestore()
+        {
+            _wsm.MarkDialogueSeen("node");
+            var snapshot = _wsm.CaptureFacts();
+            _wsm.RestoreFacts(null);
+            Assert.That(_wsm.IsDialogueSeen("node"), Is.False);
+
+            _wsm.RestoreFacts(snapshot);
+            Assert.That(_wsm.IsDialogueSeen("node"), Is.True);
+        }
+
+        [Test]
+        public void DialogueSeen_EmptyId_IsIgnored()
+        {
+            _wsm.MarkDialogueSeen(string.Empty);
+            _wsm.MarkDialogueSeen(null);
+            Assert.That(_wsm.IsDialogueSeen(null), Is.False);
+            Assert.That(_wsm.CaptureFacts(), Is.Empty);
+        }
+
         // ── QuestEventsManager.ReseedState after a load ───────────────────────
 
         private (QuestEventsManager qem, System.Func<int> completedCount) MakeQuestEventsManager(WorldFact completeFact)

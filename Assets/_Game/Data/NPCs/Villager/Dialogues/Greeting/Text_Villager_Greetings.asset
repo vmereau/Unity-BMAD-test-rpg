@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: Good day, traveller. These are troubled times.
   nextNode: {fileID: 0}
+  _id: 35856bd21dd0e7745b2dae69f69c99d0

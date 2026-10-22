@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.ShopDialogueNode
   text: You're free to look at my wares
   nextNode: {fileID: 0}
+  _id: 57a92d3b95bc2a54ba02c0bd042d6d35

@@ -32,6 +32,7 @@ namespace Game.World
         private InventorySystem _currentNPCInventory;
         private GoldSystem _currentNPCGoldSystem;
         private StartDialogueNode _currentStartNode;
+        private readonly System.Collections.Generic.HashSet<DialogueNode> _warnedNoId = new();
 
         private void OnEnable()
         {
@@ -168,6 +169,8 @@ namespace Game.World
         public void StartTopic(StartDialogueNode startNode)
         {
             _currentStartNode = startNode;
+            if (startNode != null)
+                MarkSeen(startNode, startNode.Id);
             if (startNode.nextNode == null)
             {
                 GameLog.Warn(TAG, $"StartDialogueNode '{startNode.name}' has no nextNode — cannot start topic");
@@ -204,11 +207,14 @@ namespace Game.World
 
         /// <summary>
         /// Called by DialogueUI when the player selects a regular choice option.
-        /// Records the choice's dialogueFact as played (if assigned), then advances the chain.
+        /// Marks the choice seen, records its dialogueFact as played (if assigned), then advances the chain.
+        /// <paramref name="node"/> = the choice node that offered it (null = not tracked as seen).
         /// </summary>
-        public void SelectChoice(ChoiceOption choice)
+        public void SelectChoice(ChoiceOption choice, ChoiceDialogueNode node = null)
         {
             if (choice == null) return;
+            if (node != null)
+                MarkSeen(node, node.ChoiceSeenId(choice));
 
             if (choice.dialogueFact && WorldStateManager.Instance != null)
             {
@@ -238,25 +244,60 @@ namespace Game.World
         /// Called by DialogueUI to set button interactable state.
         /// Does NOT check whether a skill is already learned — use requiredMemory authoring for that.
         /// </summary>
-        public bool CanAffordTeachChoice(TeachChoiceOption choice)
+        public bool CanAffordTeachChoice(TeachChoiceOption choice) =>
+            choice != null && GetTeachCostShortfall(choice) == TeachCostShortfall.None;
+
+        /// <summary>Which of the choice's costs (gold / LP / stat requirements) the player can't currently meet.</summary>
+        public TeachCostShortfall GetTeachCostShortfall(TeachChoiceOption choice)
         {
-            if (choice == null) return false;
+            var shortfall = TeachCostShortfall.None;
+            if (choice == null) return shortfall;
 
             if (choice.goldCost > 0 && (_goldSystem == null || _goldSystem.Gold < choice.goldCost))
-                return false;
+                shortfall |= TeachCostShortfall.Gold;
 
             int effectiveLpCost = choice.skill != null ? choice.skill.lpCost : choice.statPoints;
             if (effectiveLpCost > 0 && (_lpSystem == null || _lpSystem.CurrentLP < effectiveLpCost))
-                return false;
+                shortfall |= TeachCostShortfall.LearningPoints;
 
             // Stat requirements only apply to skill choices (stat path has no prerequisites).
             if (choice.skill != null && choice.skill.statsRequirements.Count > 0)
             {
                 if (_playerStats == null || !_playerStats.ValidateStats(choice.skill.statsRequirements))
-                    return false;
+                    shortfall |= TeachCostShortfall.Stats;
             }
 
-            return true;
+            return shortfall;
+        }
+
+        // ── Seen state (persisted, no events) ────────────────────────────────
+
+        /// <summary>True once the player has picked this topic (in any session of this save).</summary>
+        public bool IsTopicSeen(StartDialogueNode node) => node != null && IsSeen(node, node.Id);
+
+        /// <summary>True once the player has picked this choice of <paramref name="node"/>.</summary>
+        public bool IsChoiceSeen(ChoiceDialogueNode node, ChoiceOption choice) =>
+            node != null && IsSeen(node, node.ChoiceSeenId(choice));
+
+        private bool IsSeen(DialogueNode node, string id)
+        {
+            if (!HasId(node, id)) return false;
+            return WorldStateManager.Instance != null && WorldStateManager.Instance.IsDialogueSeen(id);
+        }
+
+        private void MarkSeen(DialogueNode node, string id)
+        {
+            if (!HasId(node, id) || WorldStateManager.Instance == null) return;
+            WorldStateManager.Instance.MarkDialogueSeen(id);
+        }
+
+        // Empty id = asset never validated in the editor (or choice not part of the node): not tracked, warned once.
+        private bool HasId(DialogueNode node, string id)
+        {
+            if (!string.IsNullOrEmpty(id)) return true;
+            if (_warnedNoId.Add(node))
+                GameLog.Warn(TAG, $"Dialogue node '{node.name}' has no id — seen state not tracked (reimport / validate the asset)");
+            return false;
         }
 
         /// <summary>

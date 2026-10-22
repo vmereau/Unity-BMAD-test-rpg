@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: What can you craft with you skills ?
   nextNode: {fileID: 11400000, guid: 8e43f7b4d5be23d439dcade8e0bb0c4a, type: 2}
-  isRepeatable: 1
+  _id: 65850525d2296364c979da037a2a1384
+  dialogueFact: {fileID: 0}

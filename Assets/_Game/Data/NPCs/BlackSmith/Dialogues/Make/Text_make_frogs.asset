@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: Hammer is best for smashing these fuckers.
   nextNode: {fileID: 0}
+  _id: 8c40ab63aa9c45f46bafe75b1fbb41d6

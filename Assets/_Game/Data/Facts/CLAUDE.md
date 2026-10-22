@@ -17,6 +17,11 @@
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |
 | `StatFact` | `Stat.Requirements(n)` | computed | `PlayerStats` thresholds | memory conditions |
 
+**Seen markers** (`Dialogue.Seen.{nodeId}` / `Dialogue.Seen.{nodeId}.{choiceIndex}`) also live in
+`_worldFacts` so they are saved, but they are **not facts**: written only by
+`WorldStateManager.MarkDialogueSeen` (from `DialogueSystem` when a topic / choice is picked), raise **no**
+event, and must never be used as quest / memory conditions. UI-only (`DialogueUI` dimming).
+
 Computed facts are never written to `WorldStateManager._worldFacts` and cannot be toggled.
 Never build a fact key by hand — always go through the typed `WorldStateManager` API.
 

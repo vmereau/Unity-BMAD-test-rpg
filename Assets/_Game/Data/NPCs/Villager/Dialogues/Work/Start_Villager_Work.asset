@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: What do you do?
   nextNode: {fileID: 11400000, guid: bb5b3a29370018343b67ab3bd76b2ff0, type: 2}
-  isRepeatable: 0
+  _id: f083e168525ea8a40abc34677c3f2adc
+  dialogueFact: {fileID: 0}

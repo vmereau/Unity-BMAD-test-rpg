@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: I tend the fields. Not much else left to do around here.
   nextNode: {fileID: 0}
+  _id: bb5b3a29370018343b67ab3bd76b2ff0

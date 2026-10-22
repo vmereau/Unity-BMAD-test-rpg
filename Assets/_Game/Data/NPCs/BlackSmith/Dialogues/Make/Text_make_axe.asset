@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: This axe will fell trees like nothing !
   nextNode: {fileID: 0}
+  _id: a1b05a86777bd7e4d994398c2a2eed65

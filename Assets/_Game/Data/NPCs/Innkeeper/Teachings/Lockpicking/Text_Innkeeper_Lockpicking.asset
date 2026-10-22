@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Innkeeper_Lockpicking
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Locks have a language. Once you hear it, you never forget. What do you want
-    to learn?
+  text: Locks have a language. Once you hear it, you never forget. What do you want to learn?
   nextNode: {fileID: 11400000, guid: 2f4a8145cc875e64aa3af44ea2874172, type: 2}
+  _id: 012e8431e9ecc1f4b9d7cfea0e5f363b

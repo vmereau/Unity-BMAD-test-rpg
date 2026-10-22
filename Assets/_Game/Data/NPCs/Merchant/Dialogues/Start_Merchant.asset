@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: What do you have in stock ?
   nextNode: {fileID: 11400000, guid: 57a92d3b95bc2a54ba02c0bd042d6d35, type: 2}
+  _id: 4ae368f9da2e61b4caf9b27304121469
   dialogueFact: {fileID: 0}

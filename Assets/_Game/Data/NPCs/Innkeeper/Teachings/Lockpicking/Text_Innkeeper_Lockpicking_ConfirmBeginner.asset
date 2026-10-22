@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: "Good. Practise on your own doors first. And when your picks snap \u2014 they will \u2014 come see me. I keep a few behind the bar."
   nextNode: {fileID: 11400000, guid: 2f4a8145cc875e64aa3af44ea2874172, type: 2}
+  _id: 7acc57b1404406049bd659ec0d7d6253

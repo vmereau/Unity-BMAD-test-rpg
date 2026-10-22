@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
   text: Do you accept to kill them ?
   nextNode: {fileID: 0}
+  _id: ec2caeecb910e7f47ab8b73aeeac5ad6
   choices:
   - text: I'll take care of it.
     requiredMemory: {fileID: 11400000, guid: c263f9948d5385747a1bb258857923ed, type: 2}

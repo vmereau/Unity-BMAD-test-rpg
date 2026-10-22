@@ -6,6 +6,16 @@ namespace Game.Dialogue
 {
     public enum TeachingType { SkillBased, StatBased }
 
+    /// <summary>Costs of a teach choice the player can't currently meet (flags).</summary>
+    [System.Flags]
+    public enum TeachCostShortfall
+    {
+        None = 0,
+        Gold = 1 << 0,
+        LearningPoints = 1 << 1,
+        Stats = 1 << 2,
+    }
+
     [System.Serializable]
     public class TeachChoiceOption : ChoiceOption
     {

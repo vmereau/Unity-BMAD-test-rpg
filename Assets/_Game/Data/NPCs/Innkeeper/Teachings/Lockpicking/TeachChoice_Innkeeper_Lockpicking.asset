@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TeachChoiceDialogueNode
   text: 
   nextNode: {fileID: 0}
+  _id: 2f4a8145cc875e64aa3af44ea2874172
   choices:
   - text: Beginner Lockpicking
     requiredMemory: {fileID: 11400000, guid: 2338257acb257044bbe09e5d59a9c854, type: 2}

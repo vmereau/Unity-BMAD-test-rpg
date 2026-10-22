@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: ...Don't. Don't ask me that. Aye.
   nextNode: {fileID: 11400000, guid: c57924ac0f312da4e8b9df670499d34a, type: 2}
+  _id: 1dc0669e893ad8b439e9beb07a4259a2

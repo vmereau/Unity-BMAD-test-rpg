@@ -116,6 +116,22 @@ namespace Game.Core
             return GetFact(fact);
         }
 
+        /// <summary>
+        /// Records that the player picked a dialogue topic / choice (<paramref name="id"/> from
+        /// <c>DialogueNode.Id</c>). Stored with the facts so it is saved, but raises no event —
+        /// quests and memories must never react to it.
+        /// </summary>
+        public void MarkDialogueSeen(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            _worldFacts[SeenKey(id)] = true;
+        }
+
+        public bool IsDialogueSeen(string id) =>
+            !string.IsNullOrEmpty(id) && _worldFacts.TryGetValue(SeenKey(id), out var v) && v;
+
+        private static string SeenKey(string id) => $"{WorldFactPrefix.Dialogue}.Seen.{id}";
+
         // ── Player checks ─────────────────────────────────────────────────────
 
         /// <summary>Returns true if the player has learned the skill referenced by this fact.

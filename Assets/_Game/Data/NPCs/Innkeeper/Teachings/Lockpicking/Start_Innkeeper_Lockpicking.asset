@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: Teach me to pick locks
   nextNode: {fileID: 11400000, guid: 012e8431e9ecc1f4b9d7cfea0e5f363b, type: 2}
+  _id: 43919d08bd0426e42bc7b009676b846f
   dialogueFact: {fileID: 0}
