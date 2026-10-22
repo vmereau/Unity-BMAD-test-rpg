@@ -43,7 +43,8 @@ take once that fact is set; a missing fact keeps them owned forever.
 
 `NPCEntity.memories` is **auto-synced** from `<NPCName>/Memories/**` by `NPCMemoriesAutoSync`
 (menu fallback `Game/Dev/Sync All NPC Memories`) — never edit the list by hand; a memory saved
-elsewhere belongs to no NPC (Quest Explorer V16).
+elsewhere belongs to no NPC (Quest Explorer V16). The auto-sync doesn't reliably fire for memories created
+through MCP `execute_code` (`AssetDatabase.CreateAsset`) — afterwards run the menu and check `NPCEntity.memories`.
 
 **Rule:** If a dedicated NPC folder does not exist, create it before placing any assets.
 
