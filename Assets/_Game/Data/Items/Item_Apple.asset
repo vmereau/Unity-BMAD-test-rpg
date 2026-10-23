@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 2fecc4f48dac4b1a9a8cde3fdcc58353
   itemName: Apple
   description: A crisp, slightly sour apple.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0d10c5cba90c3d245ac333811bb383ce, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 5485741357191693851, guid: 4a9a08c0c40d59d418b3e7d26a1453ae, type: 3}
   buyValue: 3

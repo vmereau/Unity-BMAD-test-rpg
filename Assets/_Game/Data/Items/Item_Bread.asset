@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 5210dccb816f4597964ea36cc9092cd0
   itemName: Bread
   description: A dense loaf of dark bread.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: d765f8cf8a88cb74182f4a67c15a0d7c, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 2099488183994456773, guid: 135d27e4bc26f2543a8ab15194483404, type: 3}
   buyValue: 4

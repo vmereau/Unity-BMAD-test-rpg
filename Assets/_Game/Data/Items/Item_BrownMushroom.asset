@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 811a4ba462374f4a8e2159253ffd3baf
   itemName: Brown Mushroom
   description: "An earthy forest mushroom. Safe to eat \u2014 mostly."
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5240e65affc3db0499309a8446959bcc, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 7639371090736176695, guid: 6932fdb0997b4f54daea37c17dc1cf20, type: 3}
   buyValue: 3

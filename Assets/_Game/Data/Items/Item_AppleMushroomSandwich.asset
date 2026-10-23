@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 13ea6e76e63843f0aeefbc3bcbb5b1d4
   itemName: Apple Mushroom Sandwich
   description: Sweet apple and earthy mushroom between two slices of bread.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f7b8392a6306ad04e959b403e417cc35, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 1280785023966555819, guid: 6b17134cbb3a3b04b967bd5f54439e21, type: 3}
   buyValue: 15
