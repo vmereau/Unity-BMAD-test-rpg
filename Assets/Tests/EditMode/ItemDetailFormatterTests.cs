@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Core;
+using Game.Crafting;
 using Game.Inventory;
 using Game.Progression;
 using Game.UI;
@@ -301,6 +303,66 @@ namespace Tests.EditMode
 
             Assert.AreEqual(1, _lines.Count);
             AssertLine(_lines[0], "Stack", "up to 50", StatPolarity.Neutral);
+        }
+
+        private RecipeItemSO CreateRecipeItem(string outputName)
+        {
+            var fact = Create<RecipeFact>();
+            fact.Init(outputName);
+            var recipe = Create<RecipeSO>();
+            recipe.knownFact = fact;
+            recipe.ingredients = new[] { Create<ItemSO>() };
+            recipe.output = Create<ItemSO>();
+            recipe.output.itemName = outputName;
+            var item = Create<RecipeItemSO>();
+            item.consumable = true;
+            SetSerialized(item, "_recipe", p => p.objectReferenceValue = recipe);
+            return item;
+        }
+
+        [Test]
+        public void RecipeItem_Category()
+        {
+            Assert.AreEqual("Recipe", ItemDetailFormatter.GetCategory(CreateRecipeItem("Sandwich")));
+        }
+
+        [Test]
+        public void RecipeItem_NotLearned_ShowsTeachesAndPositiveStatus()
+        {
+            ItemDetailFormatter.BuildStatLines(CreateRecipeItem("Sandwich"), _lines, _ => false);
+
+            AssertLine(_lines[0], "Teaches", "Sandwich", StatPolarity.Neutral);
+            AssertLine(_lines[1], "Status", "Not learned", StatPolarity.Positive);
+            AssertLine(_lines[2], "Consumable", "", StatPolarity.Neutral);
+        }
+
+        [Test]
+        public void RecipeItem_Known_ShowsNegativeStatus()
+        {
+            ItemDetailFormatter.BuildStatLines(CreateRecipeItem("Sandwich"), _lines, _ => true);
+
+            AssertLine(_lines[1], "Status", "Already known", StatPolarity.Negative);
+        }
+
+        [Test]
+        public void RecipeItem_NoKnownCheck_OmitsStatus()
+        {
+            ItemDetailFormatter.BuildStatLines(CreateRecipeItem("Sandwich"), _lines);
+
+            Assert.AreEqual(2, _lines.Count);
+            AssertLine(_lines[0], "Teaches", "Sandwich", StatPolarity.Neutral);
+        }
+
+        [Test]
+        public void RecipeItem_Misconfigured_OnlyGenericRows()
+        {
+            var item = Create<RecipeItemSO>();
+            item.consumable = true;
+
+            ItemDetailFormatter.BuildStatLines(item, _lines, _ => true);
+
+            Assert.AreEqual(1, _lines.Count);
+            AssertLine(_lines[0], "Consumable", "", StatPolarity.Neutral);
         }
     }
 }

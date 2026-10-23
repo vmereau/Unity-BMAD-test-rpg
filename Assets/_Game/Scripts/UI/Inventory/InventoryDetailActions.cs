@@ -48,9 +48,10 @@ namespace Game.UI
             if (_useButton == null) return;
             _useButton.onClick.RemoveAllListeners();
 
-            if (item is not UsableItemSO) { _useButton.gameObject.SetActive(false); return; }
+            if (item is not UsableItemSO usable) { _useButton.gameObject.SetActive(false); return; }
 
             _useButton.gameObject.SetActive(true);
+            _useButton.interactable = usable.CanUse();
             _useButton.onClick.AddListener(() => owner.UseItem(slotIndex));
         }
 

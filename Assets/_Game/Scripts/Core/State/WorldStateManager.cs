@@ -27,6 +27,8 @@ namespace Game.Core
         [SerializeField] private PlayerStats _playerStats;
 
         private readonly Dictionary<string, bool> _worldFacts = new Dictionary<string, bool>();
+        /// <summary>Times each recipe was cooked, keyed by its <see cref="RecipeFact"/> key. Kept apart so facts stay bool-only.</summary>
+        private readonly Dictionary<string, int> _recipeCrafts = new Dictionary<string, int>();
 
         private void Awake()
         {
@@ -128,6 +130,20 @@ namespace Game.Core
             return GetFact(fact);
         }
 
+        /// <summary>Counts one successful cook of the recipe identified by <paramref name="fact"/>. Raises no event.</summary>
+        public void AddRecipeCraft(RecipeFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "AddRecipeCraft called with null fact"); return; }
+            string key = fact.ToString();
+            _recipeCrafts[key] = GetRecipeCraftCount(fact) + 1;
+        }
+
+        public int GetRecipeCraftCount(RecipeFact fact)
+        {
+            if (fact == null) return 0;
+            return _recipeCrafts.TryGetValue(fact.ToString(), out int count) ? count : 0;
+        }
+
         /// <summary>
         /// Records that the player picked a dialogue topic / choice (<paramref name="id"/> from
         /// <c>DialogueNode.Id</c>). Stored with the facts so it is saved, but raises no event —
@@ -201,6 +217,18 @@ namespace Game.Core
                 foreach (var pair in facts)
                     _worldFacts[pair.Key] = pair.Value;
             GameLog.Info(TAG, $"Restored {_worldFacts.Count} world fact(s)");
+        }
+
+        /// <summary>Copy of every recipe craft count.</summary>
+        public Dictionary<string, int> CaptureRecipeCrafts() => new Dictionary<string, int>(_recipeCrafts);
+
+        /// <summary>Replaces every recipe craft count with <paramref name="crafts"/> (null → empty, e.g. older saves). Raises no events.</summary>
+        public void RestoreRecipeCrafts(Dictionary<string, int> crafts)
+        {
+            _recipeCrafts.Clear();
+            if (crafts != null)
+                foreach (var pair in crafts)
+                    if (pair.Value > 0) _recipeCrafts[pair.Key] = pair.Value;
         }
 
         // ── Internal ──────────────────────────────────────────────────────────

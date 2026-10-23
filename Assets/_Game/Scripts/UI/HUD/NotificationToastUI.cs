@@ -22,6 +22,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_String _onLockUnlocked;
         [SerializeField] private GameEventSO_String _onSaveNotification;
         [SerializeField] private GameEventSO_String _onLockpickFailed;
+        [SerializeField] private GameEventSO_String _onRecipeLearned;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -70,6 +71,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onSaveNotification not assigned — save / load toasts disabled");
             if (_onLockpickFailed == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onLockpickFailed not assigned — lockpick failure toasts disabled");
+            if (_onRecipeLearned == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onRecipeLearned not assigned — recipe toasts disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -84,6 +87,7 @@ namespace Game.UI
             _onLockUnlocked?.AddListener(HandleUnlocked);
             _onSaveNotification?.AddListener(Show);
             _onLockpickFailed?.AddListener(Show);
+            _onRecipeLearned?.AddListener(HandleRecipeLearned);
         }
 
         private void OnDisable()
@@ -93,6 +97,7 @@ namespace Game.UI
             _onLockUnlocked?.RemoveListener(HandleUnlocked);
             _onSaveNotification?.RemoveListener(Show);
             _onLockpickFailed?.RemoveListener(Show);
+            _onRecipeLearned?.RemoveListener(HandleRecipeLearned);
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");
@@ -100,6 +105,8 @@ namespace Game.UI
         private void HandleLevelUp(int _) => Show("Level up!");
 
         private void HandleUnlocked(string noun) => Show($"{noun} unlocked!");
+
+        private void HandleRecipeLearned(string dishName) => Show($"Recipe learned: {dishName}");
 
         private void Show(string message)
         {

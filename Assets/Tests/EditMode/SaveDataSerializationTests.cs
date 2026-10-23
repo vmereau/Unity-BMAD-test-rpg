@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace Tests.EditMode
             meta = new SaveMeta { slotId = "slot_1", savedAtUtc = "2026-10-07T12:34:56.0000000Z", region = "StartingTown", playerLevel = 3, playtimeSeconds = 123.5f },
             region = "StartingTown",
             worldFacts = new Dictionary<string, bool> { { "Killed.abc", true }, { "World.gate", false } },
+            recipeCrafts = new Dictionary<string, int> { { "Recipe.Known.Sandwich", 2 } },
             player = new PlayerSaveData
             {
                 position = SVector3.From(new Vector3(1f, 2f, 3f)),
@@ -50,6 +52,20 @@ namespace Tests.EditMode
             Assert.AreEqual(new Vector3(1f, 2f, 3f), copy.player.position.To());
             Assert.AreEqual(77, copy.player.gold);
             Assert.AreEqual("sword", copy.player.equipped["Weapon"]);
+            Assert.AreEqual(2, copy.recipeCrafts["Recipe.Known.Sandwich"]);
+        }
+
+        [Test]
+        public void OlderSave_WithoutRecipeCrafts_LoadsNull()
+        {
+            var obj = JObject.FromObject(BuildFull());
+            Assert.IsTrue(obj.Remove("recipeCrafts"));
+            string json = obj.ToString();
+
+            var copy = JsonConvert.DeserializeObject<SaveData>(json);
+
+            Assert.IsNull(copy.recipeCrafts);
+            Assert.AreEqual(true, copy.worldFacts["Killed.abc"]);
         }
 
         [Test]

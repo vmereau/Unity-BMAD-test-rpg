@@ -26,6 +26,8 @@ namespace Game.UI
         private const string UNKNOWN_RESULT_HINT = "Unknown result";
         private const string NO_KNOWN_RECIPES_HINT = "No known recipes";
         private const string MISSING_COLOR = "#C06050";
+        private const string NEVER_COOKED = "Never cooked";
+        private const string COOKED_ONCE = "Cooked once";
 
         [SerializeField] private InventorySystem _playerInventory;
         [SerializeField] private Transform _playerContentRoot;
@@ -57,6 +59,8 @@ namespace Game.UI
         [SerializeField] private TMP_Text _recipeNameText;
         [SerializeField] private TMP_Text _recipeIngredientsText;
         [SerializeField] private Button _recipeCookButton;
+        [Tooltip("\"Cooked N times\" under the selected recipe (WorldStateManager craft count, saved).")]
+        [SerializeField] private TMP_Text _recipeCraftCountText;
 
         // Closes on death: an open screen would block loading and its Esc would re-lock the death screen's cursor.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
@@ -248,6 +252,7 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"No WorldStateManager (Core not loaded?) — {recipe.name} can't be learned");
             bool learned = recipe != null && recipe.knownFact != null && WorldStateManager.Instance != null && !IsKnown(recipe);
             if (learned) WorldStateManager.Instance.SetRecipeKnown(recipe.knownFact);
+            if (recipe != null) CountCraft(recipe);
             SetResult(learned ? $"New recipe: {result.itemName}" : $"Cooked {result.itemName}");
             GameLog.Info(TAG, $"Experiment → {result.itemName}{(learned ? " (recipe learned)" : string.Empty)}");
 
@@ -262,6 +267,7 @@ namespace Game.UI
             if (!CookingRules.HasIngredients(_selectedRecipe.ingredients, CountOf)) return;
             if (!TryCraft(_selectedRecipe.ingredients, _selectedRecipe.output)) return;
 
+            CountCraft(_selectedRecipe);
             GameLog.Info(TAG, $"Cooked recipe {_selectedRecipe.name} → {_selectedRecipe.output.itemName}");
             NotifyInventoryChanged();
         }
@@ -408,7 +414,17 @@ namespace Game.UI
             if (_recipeIngredientsText != null) _recipeIngredientsText.text = FormatIngredients(_selectedRecipe.ingredients);
             if (_recipeCookButton != null)
                 _recipeCookButton.interactable = CookingRules.HasIngredients(_selectedRecipe.ingredients, CountOf);
+            if (_recipeCraftCountText != null)
+                _recipeCraftCountText.text = FormatCraftCount(CraftCount(_selectedRecipe));
         }
+
+        /// <summary>"Never cooked" / "Cooked once" / "Cooked N times".</summary>
+        public static string FormatCraftCount(int count) => count switch
+        {
+            <= 0 => NEVER_COOKED,
+            1 => COOKED_ONCE,
+            _ => $"Cooked {count} times"
+        };
 
         public void SelectRecipe(RecipeSO recipe)
         {
@@ -439,6 +455,17 @@ namespace Game.UI
 
         private int CountOf(ItemSO item) =>
             _playerInventory != null && item != null ? _playerInventory.CountOf(item) : 0;
+
+        /// <summary>Counts a successful cook of <paramref name="recipe"/> (no fact or no WorldStateManager → not counted).</summary>
+        private static void CountCraft(RecipeSO recipe)
+        {
+            if (recipe.knownFact == null || WorldStateManager.Instance == null) return;
+            WorldStateManager.Instance.AddRecipeCraft(recipe.knownFact);
+        }
+
+        private static int CraftCount(RecipeSO recipe) =>
+            recipe.knownFact != null && WorldStateManager.Instance != null
+                ? WorldStateManager.Instance.GetRecipeCraftCount(recipe.knownFact) : 0;
 
         private static bool IsKnown(RecipeSO recipe) =>
             recipe.knownFact != null && WorldStateManager.Instance != null && WorldStateManager.Instance.IsRecipeKnown(recipe.knownFact);

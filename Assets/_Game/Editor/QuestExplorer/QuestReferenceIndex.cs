@@ -439,7 +439,7 @@ namespace Game.Editor.QuestExplorer
             }
         }
 
-        /// <summary>A recipe sets its <c>knownFact</c> when the player first cooks it in the Experiment tab.</summary>
+        /// <summary>A recipe sets its <c>knownFact</c> when the player first cooks it in the Experiment tab or reads a recipe item.</summary>
         private void MapRecipeSetters(RecipeSO[] recipes)
         {
             if (recipes == null) return;
@@ -449,7 +449,7 @@ namespace Game.Editor.QuestExplorer
                 AddLink(_setters, new FactLink
                 {
                     Fact = recipe.knownFact, Kind = FactLinkKind.Setter, Source = FactLinkSource.Recipe,
-                    Owner = recipe, Label = $"Recipe {recipe.name} (discovered by cooking)"
+                    Owner = recipe, Label = $"Recipe {recipe.name} (discovered by cooking or a recipe item)"
                 });
             }
         }

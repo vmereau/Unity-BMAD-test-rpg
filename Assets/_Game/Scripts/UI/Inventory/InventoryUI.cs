@@ -226,12 +226,12 @@ namespace Game.UI
             var dropBtn = _activeContextMenu.transform.Find("DropButton").GetComponent<Button>();
             dropBtn.onClick.AddListener(() => { DropItem(_contextMenuSlotIndex); HideContextMenu(); });
 
-            // Use button — always present; enabled only for UsableItemSO
+            // Use button — shown only for UsableItemSO; disabled when the use would be rejected (e.g. recipe known)
             var useBtn = _activeContextMenu.transform.Find("UseButton").GetComponent<Button>();
             if (item is UsableItemSO usable)
             {
                 useBtn.gameObject.SetActive(true);
-                useBtn.interactable = true;
+                useBtn.interactable = usable.CanUse();
                 useBtn.onClick.AddListener(() => { UseItem(_contextMenuSlotIndex); HideContextMenu(); });
             }
             else

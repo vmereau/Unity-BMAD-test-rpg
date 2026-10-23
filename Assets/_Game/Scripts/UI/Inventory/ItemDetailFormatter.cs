@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Core;
 using Game.Inventory;
@@ -17,6 +18,7 @@ namespace Game.UI
         private const string CATEGORY_ARMOR_PREFIX = "Armor · ";
         private const string CATEGORY_POTION = "Potion";
         private const string CATEGORY_SKILL_TOME = "Skill Tome";
+        private const string CATEGORY_RECIPE = "Recipe";
         private const string CATEGORY_USABLE = "Usable";
         private const string CATEGORY_EQUIPMENT = "Equipment";
         private const string CATEGORY_MISC = "Miscellaneous";
@@ -25,6 +27,9 @@ namespace Game.UI
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
         private const string LABEL_TEACHES = "Teaches";
         private const string LABEL_LP_COST = "LP Cost";
+        private const string LABEL_STATUS = "Status";
+        private const string STATUS_ALREADY_KNOWN = "Already known";
+        private const string STATUS_NOT_LEARNED = "Not learned";
         private const string LABEL_STRENGTH = "Strength";
         private const string LABEL_DEXTERITY = "Dexterity";
         private const string LABEL_ENDURANCE = "Endurance";
@@ -46,13 +51,17 @@ namespace Game.UI
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
             PotionItemSO => CATEGORY_POTION,
             SkillItemSO => CATEGORY_SKILL_TOME,
+            RecipeItemSO => CATEGORY_RECIPE,
             UsableItemSO => CATEGORY_USABLE,
             EquipableItemSO => CATEGORY_EQUIPMENT,
             _ => CATEGORY_MISC
         };
 
-        /// <summary>Clears <paramref name="into"/> and fills it with the item's stat rows, in display order.</summary>
-        public static void BuildStatLines(ItemSO item, List<ItemStatLine> into)
+        /// <summary>
+        /// Clears <paramref name="into"/> and fills it with the item's stat rows, in display order.
+        /// <paramref name="isRecipeKnown"/> answers the recipe status row; null = no status row.
+        /// </summary>
+        public static void BuildStatLines(ItemSO item, List<ItemStatLine> into, Func<RecipeFact, bool> isRecipeKnown = null)
         {
             if (into == null) { GameLog.Warn(TAG, "BuildStatLines: target list is null"); return; }
             into.Clear();
@@ -70,6 +79,13 @@ namespace Game.UI
                 case SkillItemSO skillItem when skillItem.Skill != null:
                     into.Add(new ItemStatLine(LABEL_TEACHES, skillItem.Skill.displayName));
                     into.Add(new ItemStatLine(LABEL_LP_COST, skillItem.Skill.lpCost.ToString()));
+                    break;
+                case RecipeItemSO recipeItem when recipeItem.IsConfigured:
+                    into.Add(new ItemStatLine(LABEL_TEACHES, recipeItem.Recipe.output.itemName));
+                    if (isRecipeKnown != null)
+                        into.Add(isRecipeKnown(recipeItem.Recipe.knownFact)
+                            ? new ItemStatLine(LABEL_STATUS, STATUS_ALREADY_KNOWN, StatPolarity.Negative)
+                            : new ItemStatLine(LABEL_STATUS, STATUS_NOT_LEARNED, StatPolarity.Positive));
                     break;
             }
 

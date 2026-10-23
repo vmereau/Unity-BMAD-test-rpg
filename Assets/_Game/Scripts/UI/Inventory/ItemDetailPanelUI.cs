@@ -116,7 +116,8 @@ namespace Game.UI
                 return;
             }
 
-            ItemDetailFormatter.BuildStatLines(item, _lines);
+            // No WorldStateManager (Core not loaded) → no status row rather than a wrong "Not learned".
+            ItemDetailFormatter.BuildStatLines(item, _lines, WorldStateManager.Instance != null ? RecipeKnownCheck : null);
 
             while (_rows.Count < _lines.Count)
                 _rows.Add(Instantiate(_statRowPrefab, _statRowsRoot));
@@ -152,6 +153,10 @@ namespace Game.UI
             _priceValueText.text = $"{ItemDetailFormatter.GetPrice(item, context)}g";
             _priceValueText.color = _priceColor;
         }
+
+        private static readonly System.Func<RecipeFact, bool> RecipeKnownCheck = IsRecipeKnown;
+
+        private static bool IsRecipeKnown(RecipeFact fact) => WorldStateManager.Instance.IsRecipeKnown(fact);
 
         private Color ColorFor(StatPolarity polarity) => polarity switch
         {

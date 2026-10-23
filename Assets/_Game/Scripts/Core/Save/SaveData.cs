@@ -96,6 +96,8 @@ namespace Game.Core
         public string region;
         // worldFacts / player are left null by default so a file missing them is detected as corrupted.
         public Dictionary<string, bool> worldFacts;
+        /// <summary>RecipeFact key → times cooked. Optional: null in saves made before it existed (= nothing cooked).</summary>
+        public Dictionary<string, int> recipeCrafts;
         public PlayerSaveData player;
         public Dictionary<string, ObjectSaveData> objects = new Dictionary<string, ObjectSaveData>();
         /// <summary>Save keys of scene-authored objects removed from the world (e.g. picked-up items).</summary>

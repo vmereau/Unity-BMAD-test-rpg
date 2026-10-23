@@ -191,6 +191,9 @@ namespace Game.Core
                 worldFacts = WorldStateManager.Instance != null
                     ? WorldStateManager.Instance.CaptureFacts()
                     : new Dictionary<string, bool>(),
+                recipeCrafts = WorldStateManager.Instance != null
+                    ? WorldStateManager.Instance.CaptureRecipeCrafts()
+                    : new Dictionary<string, int>(),
                 player = player,
                 objects = new Dictionary<string, ObjectSaveData>(_objectStates),
                 consumedObjects = new List<string>(_consumed),
@@ -364,6 +367,7 @@ namespace Game.Core
             _onLoadStarted?.Raise(true);
 
             WorldStateManager.Instance?.RestoreFacts(data.worldFacts);
+            WorldStateManager.Instance?.RestoreRecipeCrafts(data.recipeCrafts);
             // Copies: later captures must never mutate the loaded data (the new-game snapshot is reused).
             _objectStates = new Dictionary<string, ObjectSaveData>(data.objects ?? new Dictionary<string, ObjectSaveData>());
             _consumed = new HashSet<string>(data.consumedObjects ?? new List<string>());
