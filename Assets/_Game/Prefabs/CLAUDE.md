@@ -15,6 +15,7 @@
 | `Entities/Monsters/` | Monster hierarchy, hit-detection contract, monster attack recipe |
 | `Items/` | World-item (drop / pickup) prefab requirements |
 | `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes, Weapon Creator |
+| `Harvestables/` | Fixed world resources (plants…) — contract below |
 
 ---
 
@@ -25,7 +26,22 @@
 | **Characters (6)** | Root of every entity | `LockOnSystem` (`m_Bits: 64`) |
 | **CharacterHitbox (7)** | Hurtboxes: trigger collider on a child (`Hitbox` / `HitBox`) | `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`) |
 | **Interactable (8)** | World item roots, entity `InteractionCollider` children, containers/doors | `InteractionSystem` raycast |
+| **Harvestable (9)** | Harvestable roots (plants, …) | `InteractionSystem` raycast (Player `_raycastMask` = 768: layers 8 + 9) |
 | Default (0) | Attacker-side `WeaponHitbox` GOs, weapon `_Visual` prefabs | — (explicit-mask queries) |
 
 - Hurtboxes and interaction colliders are **triggers** so they never block movement or ragdolls.
 - `WeaponHitbox` GOs need no Rigidbody, and anything under a ragdoll Animator must not have one.
+
+---
+
+## Harvestables (`Harvestables/`)
+
+- New type = **prefab variant of `Harvestable_Base`** (root: layer Harvestable, `Harvestable`, trigger
+  `BoxCollider`, `InteractionHighlight`, `SaveableObject` with empty id) + the model as a nested child, collider
+  refit to the model, `Harvestable._item` set. No Rigidbody — plants hold their place.
+- The yield `ItemSO.worldItemPrefab` is a **separate** drop prefab in `Items/` (variant of `Base Item`, Rigidbody,
+  layer 8) — never the harvestable itself. `Item_HealingPlant` is a placeholder (scaled carrot mesh).
+- Scene instances need a save ID — re-run `Tools/Save/Validate Save IDs` after placing **or duplicating**
+  (Ctrl+D copies the ID; harvesting one would remove both on load); add `Ownership` for a garden plant (→ "Steal").
+- `Tools/Items/Generate Missing Icons` renders a yield item's icon from its harvestable prefab (real model), not
+  from the placeholder drop.
