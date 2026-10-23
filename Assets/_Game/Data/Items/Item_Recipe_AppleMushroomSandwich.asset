@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 96e71e5d63484f8494beb05969a0749b
   itemName: 'Recipe: Apple Mushroom Sandwich'
   description: 'A cook''s note on stained parchment: an apple, a slice of bread and a brown mushroom, pressed together while warm.'
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 6fe1bab54adb58a47a29b1d5ed1158cb, type: 3}
   maxStacks: 10
   worldItemPrefab: {fileID: 7801363158571449870, guid: c4b7cb7e5d63a904f9dcbc81f54cf868, type: 3}
   buyValue: 40
