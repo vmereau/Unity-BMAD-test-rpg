@@ -47,3 +47,11 @@
   Fix: an "any world screen open" gate in `OpenTab` (or close the world screen first).
 - **`ItemSlotUI` drag ghost leaks when its panel closes mid-drag** (pre-existing) — `OnEndDrag` isn't delivered to an
   inactive slot, so a ghost on the root canvas stays forever. Add `OnDisable` → `RemoveGhostImage()` in `ItemSlotUI`.
+
+## From spec-cooking-experiment-and-recipes (2026-10-23)
+
+- `CookingUI.RefreshRecipes` destroys / re-instantiates every recipe row on each refresh (incl. hotkey presses) — fine at 2 recipes, pool rows if the list grows.
+- Quest Explorer counts a `RecipeSO` as its fact's setter even when no `CookingStation` lists it — a quest gated on it could never progress without a validator warning.
+- Two station recipes with the same ingredient multiset: the first always wins, the second can never be discovered; no warning yet.
+- `PlayerRewardSO.RewardFactType` has no Recipe entry — recipe discovery can't trigger a reward yet.
+- `Item_AppleMushroomSandwich` reuses the bread model (`SM_FoodKitBread_01a`); the 5 new foods have no icons (gray placeholders).
