@@ -38,3 +38,12 @@
 - **Late combo press consumes stamina** — a press during the uninterruptible blend-out to `CombatIdle` is dropped cleanly but its stamina is spent. Options: retime `ComboWindowClose` to ≤ the exit time (clip events), or refund on a dropped queued step.
 - **Stall watchdog vs `Animator.speed`** — `attackStallTimeout` uses scaled time; a future hit-stop / attack-speed modifier (animator speed ≠ 1) could false-trigger it. Scale or skip the check when the player Animator speed changes.
 - **Dodge during a combo blend** — both combo transitions use `interruptionSource = None`; verify AnyState → Dodging still cuts in mid-blend (otherwise the roll animation lags the dodge movement by up to the 0.42 s blend).
+
+## From spec-cooking-stations (2026-10-23 review)
+
+- **Character tabs open over world screens** (pre-existing, `ContainerUI` too) — `UIScreenManager.OpenTab` doesn't check
+  `ContainerUI` / `CookingUI` `IsOpen`; I / J / K / P opens a tab over them and closing it re-locks the cursor while the
+  world screen stays visible (camera turns, player can walk away, the next Esc both closes it and opens the Game Menu).
+  Fix: an "any world screen open" gate in `OpenTab` (or close the world screen first).
+- **`ItemSlotUI` drag ghost leaks when its panel closes mid-drag** (pre-existing) — `OnEndDrag` isn't delivered to an
+  inactive slot, so a ghost on the root canvas stays forever. Add `OnDisable` → `RemoveGhostImage()` in `ItemSlotUI`.
