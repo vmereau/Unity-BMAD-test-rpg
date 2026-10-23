@@ -21,9 +21,21 @@
 - Knowing a recipe is the stored `RecipeFact` (`Recipe.Known.{recipeId}`) in `WorldStateManager` — no player-side list,
   no recipe catalog, no `SaveData` field: facts are already saved / restored, and quest parts, memory conditions and dialogue
   read it like any `Fact` (`PlayerRewardSO` does not — its `RewardFactType` has no Recipe entry yet). Write it only through `WorldStateManager.SetRecipeKnown`; read with `IsRecipeKnown`.
-- The only setter today is the Experiment tab's first successful cook of a recipe (Quest Explorer shows the recipe as
-  the fact's `[Recipe]` setter). Future learning sources (books, NPCs) call `SetRecipeKnown` with the same fact.
-- `RecipeFact._recipeId` is the save key — never rename it once shipped.
+- Setters: the Experiment tab's first successful cook of a recipe (Quest Explorer shows the recipe as the fact's
+  `[Recipe]` setter) and **recipe items** (`RecipeItemSO`, e.g. `Item_Recipe_AppleMushroomSandwich` sold by the
+  Merchant): `OnUse` sets the fact, raises `OnRecipeLearned` (toast "Recipe learned: …") and is consumed; it is
+  rejected (`CanUse()` false → Use disabled, item kept, only sellable) once the recipe is known. Quest Explorer
+  doesn't list recipe items as setters yet (the recipe is enough to avoid "never set").
+- `RecipeFact._recipeId` is the save key — never rename it once shipped. It also keys the craft count.
+
+## Craft count (saved, not a fact)
+
+- `WorldStateManager.AddRecipeCraft` / `GetRecipeCraftCount` (keyed by `RecipeFact.ToString()`), a separate int store
+  so facts stay bool-only. Saved as the optional `SaveData.recipeCrafts` (`CaptureRecipeCrafts` / `RestoreRecipeCrafts`;
+  null in older saves → all 0, no version bump). No event.
+- `CookingUI` counts every successful cook of a recipe's output (Recipes tab **or** a matching Experiment cook — not
+  the failed dish, not a refunded craft) and shows `FormatCraftCount` ("Never cooked" / "Cooked once" / "Cooked N
+  times") in `_recipeCraftCountText` under the recipe detail.
 
 ---
 

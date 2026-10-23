@@ -13,6 +13,7 @@
 ItemSO                              (base — any item in the inventory)
 ├── UsableItemSO  (abstract)        (items that can be "used" from the context menu)
 │   ├── SkillItemSO                 (teaches a SkillSO to the player on use)
+│   ├── RecipeItemSO                (teaches a cooking RecipeSO on use — sets its RecipeFact)
 │   └── PotionItemSO                (restores player health when used; stackable)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
@@ -116,13 +117,24 @@ Create via **Assets → Create → Items → Skill Item**.
 
 ---
 
+## RecipeItemSO (concrete)
+
+`Assets/_Game/ScriptableObjects/Items/RecipeItemSO.cs` — fields `_recipe` (`RecipeSO`, needs `output` + `knownFact`),
+`_onRecipeLearned` (`OnRecipeLearned` toast channel). `OnUse` → `WorldStateManager.SetRecipeKnown`; returns false when
+the recipe is already known, misconfigured, or Core isn't loaded. Assets: `Data/Items/Item_Recipe_<Output>.asset`,
+consumable. Create via **Assets → Create → Items → Recipe Item**. Details: `Scripts/Crafting/CLAUDE.md`.
+
+---
+
 ## Adding a New Item Type
 
 ### Usable item (context menu "Use")
 1. Extend `UsableItemSO` (abstract), override `OnUse(GameObject user)`.
 2. Add `[CreateAssetMenu]`.
 3. If it has numeric effects, add its rows (and category) in `ItemDetailFormatter` + `ItemDetailFormatterTests`. The Consumable/Reusable tag row is automatic.
-4. The context menu **Use** button enables automatically (checks `item is UsableItemSO`).
+4. The context menu **Use** button and the detail **Use** button appear automatically (`item is UsableItemSO`);
+   they are interactable only while `CanUse()` is true (virtual, default true — override it when a use would surely be
+   rejected, e.g. `RecipeItemSO` when known). `OnUse` must still reject by itself: action bar / double-click skip `CanUse`.
 
 ### Equippable item (wearable gear)
 1. Extend `EquipableItemSO` (abstract), override `CanEquip() => true`.
