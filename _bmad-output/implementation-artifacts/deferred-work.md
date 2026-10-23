@@ -55,3 +55,8 @@
 - Two station recipes with the same ingredient multiset: the first always wins, the second can never be discovered; no warning yet.
 - `PlayerRewardSO.RewardFactType` has no Recipe entry — recipe discovery can't trigger a reward yet.
 - `Item_AppleMushroomSandwich` reuses the bread model (`SM_FoodKitBread_01a`); the 5 new foods have no icons (gray placeholders).
+
+## From spec-recipe-items-and-craft-count (2026-10-23 review)
+
+- **Recipe item for a recipe no station lists** — `RecipeItemSO` sets the fact even when no `CookingStation._recipes` contains its `RecipeSO`; the player pays for a recipe that never shows in any Recipes tab. Add a validator (Quest Explorer or `ItemCatalog` sync) that every recipe-item recipe is cooked somewhere.
+- **Inventory selection after the last unit is used** (pre-existing, `InventoryUI.RefreshSlots`) — using a stack of 1 keeps `_selectedSlotIndex`, so the detail panel jumps to whichever item shifted into that index. Clear or re-target the selection when the selected slot's item changes.
