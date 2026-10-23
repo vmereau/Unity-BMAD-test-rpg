@@ -23,6 +23,11 @@
 `WorldStateManager.MarkDialogueSeen` (from `DialogueSystem` when a topic / choice is picked), raise **no**
 event, and must never be used as quest / memory conditions. UI-only (`DialogueUI` dimming).
 
+**Meal bonus claims** (`Meal.BonusClaimed.{itemId}`) follow the same rule: saved in `_worldFacts`, written only by
+`WorldStateManager.ClaimMealBonus` (first eat of a `PotionItemSO` with a permanent bonus), read by
+`IsMealBonusClaimed`, no event, not a fact. The max-HP part of the bonus is saved separately
+(`PlayerSaveData.bonusMaxHealth`); stat bonuses are in the saved base stats.
+
 Computed facts are never written to `WorldStateManager._worldFacts` and cannot be toggled.
 Never build a fact key by hand — always go through the typed `WorldStateManager` API.
 

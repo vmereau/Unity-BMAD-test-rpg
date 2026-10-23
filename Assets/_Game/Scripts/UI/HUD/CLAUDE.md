@@ -8,7 +8,7 @@
 
 | Script | Purpose |
 |--------|---------|
-| `HealthBarUI` | Horizontal fill bar showing player current/max HP. Subscribes to `GameEventSO_Float _onPlayerHealthChanged`; reads max from `CombatConfigSO`. |
+| `HealthBarUI` | Horizontal fill bar showing player current/max HP. Subscribes to `GameEventSO_Float _onPlayerHealthChanged`; reads max from `_playerHealth.MaxHealth` (base + first-meal bonuses; wired as a `Player.prefab` override), falling back to `CombatConfigSO.baseHealth`. |
 | `StaminaBarUI` | Horizontal fill bar showing player stamina. Subscribes to `GameEventSO_Float _onPlayerStaminaChanged` (value is already a normalized 0–1 ratio — no config reference needed). |
 | `ExperienceBarUI` | Thin bar (`ExperienceBar.prefab`, anchors y 0.08–0.086) under the StaminaBar showing progress toward the next level. Subscribes to `GameEventSO_Float _onPlayerXPProgressChanged` (normalized 0–1 within the current level, raised by `LevelSystem`). Fill is authored at `localScale.x = 0` because the bar starts empty. No text label. |
 | `ActionBarUI` | Manages 6 `ActionBarSlotUI` children. Subscribes to `GameEventSO_Int _onActionBarUsed`. Requires exactly 6 slots wired in Inspector. |

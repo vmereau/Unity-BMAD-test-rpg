@@ -14,7 +14,7 @@ ItemSO                              (base — any item in the inventory)
 ├── UsableItemSO  (abstract)        (items that can be "used" from the context menu)
 │   ├── SkillItemSO                 (teaches a SkillSO to the player on use)
 │   ├── RecipeItemSO                (teaches a cooking RecipeSO on use — sets its RecipeFact)
-│   └── PotionItemSO                (restores player health when used; stackable)
+│   └── PotionItemSO                (restores player health when used; stackable; optional first-meal permanent bonus)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
     │   └── SwordSO                 (Assets/_Game/ScriptableObjects/Items/Weapons/SwordSO.cs — used for all current weapons)
@@ -95,6 +95,14 @@ Adds to `UsableItemSO`:
 | `HealAmount` (property) | `float` | Public read accessor |
 
 `OnUse` calls `PlayerHealth.Heal(_healAmount)`. Returns false (and keeps the item) if `PlayerHealth` is missing or the player is dead.
+
+**First-meal bonus** (food only): `_permanentBonuses` (`List<MealBonus>` — `MealBonusStat` MaxHealth / Strength /
+Dexterity / Endurance / Intelligence + `amount`, ≤ 0 ignored) and `_onMealBonusGained` (`OnMealBonusGained` toast,
+"Permanent bonus: +5 Max HP"). The first eat (after the heal) applies each bonus — MaxHealth →
+`PlayerHealth.AddMaxHealthBonus` (max **and** current), stats → `PlayerStats.UpgradeStat` — then
+`WorldStateManager.ClaimMealBonus(item)`; later eats only heal. No Core → heal only, nothing claimed. Text:
+`MealBonusText.Format` (`MealBonus.cs`), shared by the toast and the detail "First meal" row (grayed "(gained)" once
+claimed). Example: `Item_AppleMushroomSandwich` +5 Max HP.
 
 Create via **Assets → Create → Items → Potion Item**.
 

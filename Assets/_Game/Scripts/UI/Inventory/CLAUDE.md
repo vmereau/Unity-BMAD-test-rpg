@@ -11,9 +11,9 @@
 | `InventoryUI` | Root inventory panel. Spawns `ItemSlotUI` from prefab, manages context menu, selection state, and wires `EquipmentUI` + `ActionBarUI`. Implements `IScreenPanel`. |
 | `ItemSlotUI` | Single inventory slot. Supports drag-and-drop, hover highlight, selection, stack count display. Notifies parent `InventoryUI` on click/drag events. |
 | `ItemDetailPanelUI` | Shared display-only detail panel (header / stats / description / price). Call `Show(ItemSO, ItemPriceContext = Value)` / `Hide()`. Paints only. |
-| `ItemDetailFormatter` | Pure static display logic for the panel: category line, stat rows, skill description (tome: taught skill's description + effect text), price label/value. Player-dependent rows get their state injected (`BuildStatLines(item, into, isRecipeKnown)` → recipe "Status: Already known / Not learned"; the panel passes a `WorldStateManager` check) so it stays pure. Covered by `ItemDetailFormatterTests`. |
+| `ItemDetailFormatter` | Pure static display logic for the panel: category line, stat rows, skill description (tome: taught skill's description + effect text), price label/value. Player-dependent rows get their state injected (`BuildStatLines(item, into, isRecipeKnown, isMealBonusClaimed)` → recipe "Status: Already known / Not learned", food "First meal: +5 Max HP" / Muted "… (gained)"; the panel passes `WorldStateManager` checks) so it stays pure. Covered by `ItemDetailFormatterTests`. |
 | `ItemStatRowUI` | One label/value stat row (`ItemStatRow.prefab`). Hides the value for tag rows (empty value). |
-| `ItemStatLine` / `StatPolarity` | Row data (label, value, polarity → green/red/neutral). |
+| `ItemStatLine` / `StatPolarity` | Row data (label, value, polarity → green/red/neutral/muted gray). |
 | `ItemPriceContext` | `Value` ("Value", sellValue) / `Buy` ("Price", buyValue) / `Sell` ("Sells for", sellValue). |
 | `EquipmentUI` | Equipment panel with 6 named slots (weapon, helmet, armor, ring×2, necklace). Subscribes to `GameEventSO_Void _onEquipmentChanged`. |
 | `EquipmentSlotUI` | Single equipment slot. Detects double-click (threshold = 0.3 s) to unequip; single-click on occupied slot shows detail. Notifies parent `EquipmentUI`. |

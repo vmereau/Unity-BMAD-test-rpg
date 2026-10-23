@@ -37,6 +37,12 @@
   the failed dish, not a refunded craft) and shows `FormatCraftCount` ("Never cooked" / "Cooked once" / "Cooked N
   times") in `_recipeCraftCountText` under the recipe detail.
 
+## First-meal bonus
+
+A cooked food can grant a one-time permanent bonus (e.g. the sandwich: +5 Max HP) the first time it is eaten — data on
+the food item, not on the recipe, so a bought / looted copy counts too. Details: `ScriptableObjects/Items/CLAUDE.md`
+(`PotionItemSO`); claim key in `Data/Facts/CLAUDE.md`.
+
 ---
 
 ## Cooking screen (`Scripts/UI/Crafting/`)
