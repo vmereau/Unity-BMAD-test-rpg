@@ -60,3 +60,8 @@
 
 - **Recipe item for a recipe no station lists** — `RecipeItemSO` sets the fact even when no `CookingStation._recipes` contains its `RecipeSO`; the player pays for a recipe that never shows in any Recipes tab. Add a validator (Quest Explorer or `ItemCatalog` sync) that every recipe-item recipe is cooked somewhere.
 - **Inventory selection after the last unit is used** (pre-existing, `InventoryUI.RefreshSlots`) — using a stack of 1 keeps `_selectedSlotIndex`, so the detail panel jumps to whichever item shifted into that index. Clear or re-target the selection when the selected slot's item changes.
+
+## From spec-meal-permanent-stat-bonus (2026-10-23 review)
+
+- **Meal claim vs max-HP bonus restore in two load phases** — `SaveSystem.BeginLoad` restores facts (incl. `Meal.BonusClaimed.*`) before the region reload, `PlayerSaveAdapter` restores `bonusMaxHealth` after. If the reload fails (`FailLoad`), facts are already replaced while the player keeps its bonus → the meal can be claimed again. Pre-existing atomicity gap of facts vs player state; restore facts on `FailLoad` or apply both together.
+- **Detail panel stale after an action-bar use while the inventory is open** (pre-existing for recipe items too) — `ActionBarSystem` use doesn't repaint `InventoryUI`'s detail, so a just-claimed "First meal" row stays green until reselect.
