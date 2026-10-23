@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Game.Core;
+using Game.Crafting;
 using Game.Dialogue;
 using Game.NPC;
 using Game.Progression;
@@ -43,6 +44,7 @@ namespace Game.Editor.QuestExplorer
                 Memories = LoadAll<NPCMemoryEntrySO>("t:NPCMemoryEntrySO"),
                 DialogueNodes = LoadAll<DialogueNode>("t:DialogueNode"),
                 Rewards = LoadAll<PlayerRewardSO>("t:PlayerRewardSO"),
+                Recipes = LoadAll<RecipeSO>("t:RecipeSO"),
                 AllFacts = LoadAll<Fact>("t:Fact")
             };
             s.QuestFacts = s.AllFacts.OfType<QuestFact>().ToArray();

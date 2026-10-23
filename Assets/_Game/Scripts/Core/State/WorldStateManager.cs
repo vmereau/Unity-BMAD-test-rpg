@@ -116,6 +116,18 @@ namespace Game.Core
             return GetFact(fact);
         }
 
+        public void SetRecipeKnown(RecipeFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "SetRecipeKnown called with null fact"); return; }
+            SetFact(fact, true);
+        }
+
+        public bool IsRecipeKnown(RecipeFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "IsRecipeKnown called with null fact"); return false; }
+            return GetFact(fact);
+        }
+
         /// <summary>
         /// Records that the player picked a dialogue topic / choice (<paramref name="id"/> from
         /// <c>DialogueNode.Id</c>). Stored with the facts so it is saved, but raises no event —

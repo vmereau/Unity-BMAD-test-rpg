@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Core;
+using Game.Crafting;
 using Game.Dialogue;
 using Game.Editor.QuestExplorer;
 using Game.NPC;
@@ -220,6 +221,23 @@ namespace Tests.EditMode
             var reader = index.GetReaders(fact).Single();
             Assert.AreEqual(FactLinkSource.MemoryInvalidation, reader.Source);
             Assert.AreSame(npc, reader.Npc);
+        }
+
+        [Test]
+        public void Recipe_KnownFactIsSetterAndStored()
+        {
+            var fact = Make<RecipeFact>().Init("Sandwich");
+            var recipe = Make<RecipeSO>("Recipe_Sandwich");
+            recipe.knownFact = fact;
+
+            var index = QuestReferenceIndex.Build(new IndexSources { Recipes = new[] { recipe, Make<RecipeSO>() } });
+
+            var setters = index.GetSetters(fact);
+            Assert.AreEqual(1, setters.Count);
+            Assert.AreEqual(FactLinkSource.Recipe, setters[0].Source);
+            Assert.AreSame(recipe, setters[0].Owner);
+            Assert.IsTrue(QuestValidator.IsStored(fact));
+            Assert.AreEqual("Recipe.Known.Sandwich", fact.ToString());
         }
 
         [Test]

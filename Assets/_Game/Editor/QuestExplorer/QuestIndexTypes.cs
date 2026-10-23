@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using _Game.ScriptableObjects.Entities;
 using Game.Core;
+using Game.Crafting;
 using Game.Dialogue;
 using Game.NPC;
 using Game.Progression;
@@ -25,7 +26,8 @@ namespace Game.Editor.QuestExplorer
         MemoryUnlock,
         MemoryInvalidation,
         PlayerReward,
-        QuestFactTarget
+        QuestFactTarget,
+        Recipe
     }
 
     /// <summary>One edge between a <see cref="Fact"/> and the asset / scene object that sets or reads it.</summary>
@@ -150,6 +152,7 @@ namespace Game.Editor.QuestExplorer
         public NPCMemoryEntrySO[] Memories = Array.Empty<NPCMemoryEntrySO>();
         public DialogueNode[] DialogueNodes = Array.Empty<DialogueNode>();
         public PlayerRewardSO[] Rewards = Array.Empty<PlayerRewardSO>();
+        public RecipeSO[] Recipes = Array.Empty<RecipeSO>();
         public QuestFact[] QuestFacts = Array.Empty<QuestFact>();
         public Fact[] AllFacts = Array.Empty<Fact>();
         public List<KilledFactBinding> KilledBindings = new List<KilledFactBinding>();

@@ -15,6 +15,8 @@ namespace Game.Inventory
         public GameObject worldItemPrefab;
         public int buyValue = 1;
         public int sellValue = 1;
+        [Tooltip("Can be placed in a cooking station's Experiment slots.")]
+        public bool isIngredient;
 
 #if UNITY_EDITOR
         protected virtual void OnValidate()

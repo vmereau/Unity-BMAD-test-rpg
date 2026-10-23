@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 991ec0725183bca4eb0e6f6e4aff6645, type: 3}
+  m_Name: Item_AppleMushroomSandwich
+  m_EditorClassIdentifier: Game::Game.Inventory.PotionItemSO
+  itemId: 13ea6e76e63843f0aeefbc3bcbb5b1d4
+  itemName: Apple Mushroom Sandwich
+  description: Sweet apple and earthy mushroom between two slices of bread.
+  icon: {fileID: 0}
+  maxStacks: 20
+  worldItemPrefab: {fileID: 1280785023966555819, guid: 6b17134cbb3a3b04b967bd5f54439e21, type: 3}
+  buyValue: 15
+  sellValue: 7
+  isIngredient: 1
+  consumable: 1
+  _healAmount: 35

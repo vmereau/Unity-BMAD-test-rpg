@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using _Game.ScriptableObjects.Entities;
 using Game.Core;
+using Game.Crafting;
 using Game.Dialogue;
 using Game.NPC;
 using Game.Progression;
@@ -63,6 +64,7 @@ namespace Game.Editor.QuestExplorer
             index.MapDialogueSetters(s.DialogueNodes);
             index.MapMemoryGates(s.DialogueNodes);
             index.MapKilledSetters(s.KilledBindings, s.ClosedSceneRefs);
+            index.MapRecipeSetters(s.Recipes);
             index.MapQuestReaders();
             index.MapMemoryReaders(s.Memories);
             index.MapRewardReaders(s.Rewards);
@@ -433,6 +435,21 @@ namespace Game.Editor.QuestExplorer
                     Fact = fact, Kind = FactLinkKind.Reader, Source = source,
                     Owner = memory, Npc = npc, Memory = memory,
                     Label = $"{NpcDisplayName(npc)} › {memory.name} ({what})"
+                });
+            }
+        }
+
+        /// <summary>A recipe sets its <c>knownFact</c> when the player first cooks it in the Experiment tab.</summary>
+        private void MapRecipeSetters(RecipeSO[] recipes)
+        {
+            if (recipes == null) return;
+            foreach (var recipe in recipes)
+            {
+                if (recipe == null || recipe.knownFact == null) continue;
+                AddLink(_setters, new FactLink
+                {
+                    Fact = recipe.knownFact, Kind = FactLinkKind.Setter, Source = FactLinkSource.Recipe,
+                    Owner = recipe, Label = $"Recipe {recipe.name} (discovered by cooking)"
                 });
             }
         }

@@ -26,6 +26,25 @@ namespace Game.Crafting
         {
             if (_recipes == null || _recipes.Length == 0)
                 GameLog.Warn(TAG, $"{gameObject.name}: no recipes assigned — nothing can be cooked here");
+            else
+                foreach (RecipeSO recipe in _recipes)
+                {
+                    if (recipe == null) continue;
+                    if (!recipe.IsComplete)
+                        GameLog.Warn(TAG, $"{gameObject.name}: recipe {recipe.name} needs an output and 1–{RecipeSO.MAX_INGREDIENTS} ingredients — skipped");
+                    else if (recipe.knownFact == null)
+                        GameLog.Warn(TAG, $"{gameObject.name}: recipe {recipe.name} has no knownFact — it can never be learned");
+                    else if (System.Array.Exists(recipe.ingredients, item => !item.isIngredient))
+                        GameLog.Warn(TAG, $"{gameObject.name}: recipe {recipe.name} uses an item without isIngredient — it can't be discovered");
+                    else if (!recipe.knownFact.HasRecipeId)
+                        GameLog.Warn(TAG, $"{gameObject.name}: {recipe.knownFact.name} has an empty recipe id — every such recipe shares one known key");
+                }
+            if (_recipes != null)
+                for (int i = 0; i < _recipes.Length; i++)
+                    for (int j = i + 1; j < _recipes.Length; j++)
+                        if (_recipes[i] != null && _recipes[j] != null && _recipes[i] != _recipes[j]
+                            && _recipes[i].knownFact != null && _recipes[i].knownFact.ToString() == _recipes[j].knownFact?.ToString())
+                            GameLog.Warn(TAG, $"{gameObject.name}: {_recipes[i].name} and {_recipes[j].name} share the known key {_recipes[i].knownFact} — learning one learns both");
             if (_onOpenRequested == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: no open event assigned — Interact() will do nothing");
         }

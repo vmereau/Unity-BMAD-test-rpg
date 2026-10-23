@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2e7cea596a82b34baf0cc82ee4968cf, type: 3}
   m_Name: Recipe_HealthPotion
   m_EditorClassIdentifier: Game::Game.Crafting.RecipeSO
-  input: {fileID: 11400000, guid: 3d73b6416ab7abc4089ff16a2f44bb39, type: 2}
+  ingredients:
+  - {fileID: 11400000, guid: 3d73b6416ab7abc4089ff16a2f44bb39, type: 2}
   output: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+  knownFact: {fileID: 11400000, guid: 6e63a4e3627d90748a2522ad94e1e7b0, type: 2}

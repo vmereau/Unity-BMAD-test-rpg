@@ -260,7 +260,7 @@ namespace Game.Editor.QuestExplorer
             }
         }
 
-        public static bool IsStored(Fact fact) => fact is KilledFact || fact is DialogueFact || fact is WorldFact;
+        public static bool IsStored(Fact fact) => fact is KilledFact || fact is DialogueFact || fact is WorldFact || fact is RecipeFact;
 
         /// <summary>
         /// False for computed facts missing their target (WorldStateManager would log a warning on every

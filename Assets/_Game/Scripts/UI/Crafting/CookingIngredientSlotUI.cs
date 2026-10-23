@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Game.UI
 {
     /// <summary>
-    /// The cooking screen's ingredient slot. Holds a <b>reference</b> to an inventory item (like an action bar slot):
+    /// One of the cooking screen's Experiment ingredient slots (<see cref="_slotIndex"/>). Holds a <b>reference</b> to an inventory item (like an action bar slot):
     /// dropping an inventory <see cref="ItemSlotUI"/> sets it; right-click or dragging it out clears it. Nothing is
     /// moved out of the inventory — <see cref="CookingUI"/> consumes on Cook.
     /// </summary>
@@ -16,6 +16,8 @@ namespace Game.UI
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TMP_Text _countText;
+        [Tooltip("Index in CookingUI's experiment slots (0-based).")]
+        [SerializeField] private int _slotIndex;
 
         private CookingUI _owner;
         private Canvas _canvas;
@@ -56,7 +58,15 @@ namespace Game.UI
             {
                 abSource.NotifyDropHandled();
                 abSource.RemoveGhostImage();
-                if (abSource.Item != null) _owner?.SetIngredient(abSource.Item);
+                if (abSource.Item != null) _owner?.SetIngredient(_slotIndex, abSource.Item);
+                return;
+            }
+
+            // ingredient slot → ingredient slot: copy here; the source's OnEndDrag (pointer not over itself) clears it → a move
+            var slotSource = eventData.pointerDrag.GetComponent<CookingIngredientSlotUI>();
+            if (slotSource != null)
+            {
+                if (slotSource != this && slotSource.Item != null) _owner?.SetIngredient(_slotIndex, slotSource.Item);
                 return;
             }
 
@@ -64,13 +74,13 @@ namespace Game.UI
             var invSource = eventData.pointerDrag.GetComponent<ItemSlotUI>();
             if (invSource == null || invSource.Item == null) return;
             invSource.RemoveGhostImage();
-            _owner?.SetIngredient(invSource.Item);
+            _owner?.SetIngredient(_slotIndex, invSource.Item);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Right && Item != null)
-                _owner?.ClearIngredient();
+                _owner?.ClearIngredient(_slotIndex);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -108,7 +118,7 @@ namespace Game.UI
             GameObject over = eventData.pointerCurrentRaycast.gameObject;
             bool overSelf = over != null && over.transform.IsChildOf(transform);
             if (!overSelf && Item != null)
-                _owner?.ClearIngredient();
+                _owner?.ClearIngredient(_slotIndex);
         }
 
         private void OnDisable()

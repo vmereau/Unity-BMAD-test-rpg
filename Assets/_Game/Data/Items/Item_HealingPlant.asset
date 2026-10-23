@@ -20,5 +20,6 @@ MonoBehaviour:
   worldItemPrefab: {fileID: 3991782174172011905, guid: 2500689c38c5e4d4baf665d1a537ead8, type: 3}
   buyValue: 4
   sellValue: 2
+  isIngredient: 1
   consumable: 1
   _healAmount: 12

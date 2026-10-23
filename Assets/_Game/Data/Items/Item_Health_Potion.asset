@@ -21,4 +21,4 @@ MonoBehaviour:
   buyValue: 10
   sellValue: 5
   consumable: 1
-  _healAmount: 30
+  _healAmount: 50

@@ -749,6 +749,7 @@ namespace Game.Editor.QuestExplorer
             FactLinkSource.MemoryInvalidation => "[Invalid.]",
             FactLinkSource.PlayerReward => "[Reward]",
             FactLinkSource.QuestFactTarget => "[Target]",
+            FactLinkSource.Recipe => "[Recipe]",
             _ => source.ToString()
         };
     }
@@ -826,6 +827,7 @@ namespace Game.Editor.QuestExplorer
             KilledFact => "Killed",
             DialogueFact => "Dialogue",
             WorldFact => "World",
+            RecipeFact => "Recipe",
             QuestFact => "Quest",
             SkillFact => "Skill",
             StatFact => "Stat",

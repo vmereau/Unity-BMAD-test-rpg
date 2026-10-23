@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game.UI
 {
     /// <summary>
-    /// <see cref="IItemSlotContainer"/> adapter for the cooking screen's player grid: double-click sets the ingredient;
+    /// <see cref="IItemSlotContainer"/> adapter for the cooking screen's player grid: double-click fills the first empty Experiment slot;
     /// selection, context menu and reorder are not used here.
     /// </summary>
     public class CookingInventorySideUI : MonoBehaviour, IItemSlotContainer
