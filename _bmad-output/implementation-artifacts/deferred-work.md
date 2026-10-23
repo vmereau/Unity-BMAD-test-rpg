@@ -19,3 +19,6 @@
 - **Failed-lock toast spam** — each E press on a locked door raises a new "You need a lockpick" / skill toast; five
   presses fill the toast stack and evict XP / save toasts. Consider de-duplicating identical consecutive toasts in
   `NotificationToastUI`.
+- **Quest log "new entry" marker** (from `spec-quest-log-info-panel-redesign`, 2026-10-23) — flag a quest row when
+  a part / step became active since the player last viewed it. Needs a persisted per-quest "last seen" snapshot (save
+  system) — out of scope for the redesign.
