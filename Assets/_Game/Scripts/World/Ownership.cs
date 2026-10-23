@@ -29,7 +29,8 @@ namespace Game.World
 
         private void Awake()
         {
-            if (TryGetComponent(out ItemPickup _)) Kind = TheftKind.Item;
+            // Harvesting an owned plant takes an item → item-theft scolds.
+            if (TryGetComponent(out ItemPickup _) || TryGetComponent(out Harvestable _)) Kind = TheftKind.Item;
             else if (TryGetComponent(out ContainerInteractable _)) Kind = TheftKind.Container;
             else if (TryGetComponent(out _door)) Kind = TheftKind.Door;
             else Kind = TheftKind.Other;

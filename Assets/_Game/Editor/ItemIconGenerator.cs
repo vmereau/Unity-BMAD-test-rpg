@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.Inventory;
+using Game.World;
 
 namespace Game.Editor
 {
@@ -13,9 +14,12 @@ namespace Game.Editor
     {
         private const string IconsPath = "Assets/_Game/Art/UI/Items";
         private const string ItemsPath = "Assets/_Game/Data/Items";
+        private const string HarvestablesPath = "Assets/_Game/Prefabs/Harvestables";
         private const string SessionRunningKey = "ItemIconGenerator.IsRunning";
 
         private static readonly List<ItemSO> _pendingItems = new();
+        // Prefab each pending item is rendered from: its harvestable (real model) or else its worldItemPrefab.
+        private static readonly Dictionary<ItemSO, GameObject> _sources = new();
         private static bool _isRunning;
 
         private static readonly Regex _invalidChars = new(
@@ -42,6 +46,8 @@ namespace Game.Editor
             }
 
             _pendingItems.Clear();
+            _sources.Clear();
+            Dictionary<ItemSO, GameObject> harvestSources = CollectHarvestableSources();
 
             string[] guids = AssetDatabase.FindAssets("t:ItemSO", new[] { ItemsPath });
 
@@ -50,8 +56,9 @@ namespace Game.Editor
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 ItemSO item = AssetDatabase.LoadAssetAtPath<ItemSO>(path);
 
-                if (item == null || item.worldItemPrefab == null)
-                    continue;
+                if (item == null) continue;
+                GameObject source = harvestSources.TryGetValue(item, out GameObject plant) ? plant : item.worldItemPrefab;
+                if (source == null) continue;
 
                 if (item.icon != null)
                 {
@@ -80,7 +87,8 @@ namespace Game.Editor
                 }
 
                 // Warm up the async preview, queue for deferred processing
-                AssetPreview.GetAssetPreview(item.worldItemPrefab);
+                AssetPreview.GetAssetPreview(source);
+                _sources[item] = source;
                 _pendingItems.Add(item);
             }
 
@@ -104,7 +112,7 @@ namespace Game.Editor
             // Check per-item rather than the global IsLoadingAssetPreviews (which covers unrelated assets)
             foreach (ItemSO item in _pendingItems)
             {
-                if (AssetPreview.GetAssetPreview(item.worldItemPrefab) == null)
+                if (AssetPreview.GetAssetPreview(_sources[item]) == null)
                     return;
             }
 
@@ -144,6 +152,7 @@ namespace Game.Editor
             {
                 EditorUtility.ClearProgressBar();
                 _pendingItems.Clear();
+                _sources.Clear();
                 _isRunning = false;
                 SessionState.EraseBool(SessionRunningKey);
             }
@@ -159,10 +168,11 @@ namespace Game.Editor
 
         private static bool GenerateIconForItem(ItemSO item)
         {
-            Texture2D preview = AssetPreview.GetAssetPreview(item.worldItemPrefab);
+            GameObject source = _sources[item];
+            Texture2D preview = AssetPreview.GetAssetPreview(source);
             if (preview == null)
             {
-                Debug.LogWarning($"[ItemIconGenerator] Preview still null for '{item.worldItemPrefab.name}'. Skipping.");
+                Debug.LogWarning($"[ItemIconGenerator] Preview still null for '{source.name}'. Skipping.");
                 return false;
             }
 
@@ -220,6 +230,22 @@ namespace Game.Editor
             item.icon = sprite;
             EditorUtility.SetDirty(item);
             return true;
+        }
+
+        // Harvestable prefabs show the real model; an item's worldItemPrefab may be a generic placeholder drop.
+        private static Dictionary<ItemSO, GameObject> CollectHarvestableSources()
+        {
+            var result = new Dictionary<ItemSO, GameObject>();
+            if (!AssetDatabase.IsValidFolder(HarvestablesPath)) return result;
+
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { HarvestablesPath }))
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+                if (prefab == null || !prefab.TryGetComponent(out Harvestable harvestable)) continue;
+                if (harvestable.Item != null && !result.ContainsKey(harvestable.Item))
+                    result.Add(harvestable.Item, prefab);
+            }
+            return result;
         }
 
         private static Sprite LoadSpriteAtPath(string path)
