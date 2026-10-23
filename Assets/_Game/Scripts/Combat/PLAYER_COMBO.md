@@ -34,8 +34,9 @@ Attack input → TryAttack() → ExecuteAttack() (SetAttacking + animator trigge
   → HitboxDisable event → _activeHitbox.Disable()
   → ComboWindowOpen event → next press accepted
   → SMB OnStateExit → OnAttackStateExited()
-        _IsComboAttacking ? consume flag, return (chain in flight)
-                          : ResetAttackCombo() + ExitAttack()   (interrupt / finisher cleanup)
+        attack states still active ? return (chain in flight)
+                                   : EndAttack() = ResetAttackCombo() + ExitAttack()
+  Update: no attack callback / clip event for attackStallTimeout while IsAttacking → forced EndAttack()
 ```
 
 `ExecuteAttack()` never enables the hitbox itself — the hit window is entirely event/SMB-driven.
@@ -51,19 +52,33 @@ Attack input → TryAttack() → ExecuteAttack() (SetAttacking + animator trigge
 3. `IsAttacking && !_comboWindowOpen` → ignore (prevents re-triggering Attack_1 before the window opens).
 4. Stamina: not enough → `ResetAttackCombo()`; `Consume()` failing after `HasEnough()` → `ExitAttack()`.
 
+A press only *requests* a step: the Animator can ignore the trigger (e.g. a press after `Attack_n → CombatIdle`
+started at exit time — that blend is uninterruptible, but `ComboWindowClose` fires later). Such a press is
+dropped cleanly: the outgoing exit ends the attack and `SetAttacking(false)` clears the latched trigger.
+
 ---
 
-## `_IsComboAttacking` — Combo Chain Guard
+## `PlayerAttackTracker` — Attack Lifecycle
 
 Unity fires `OnStateEnter(next)` at transition **start** and `OnStateExit(previous)` at transition **end**,
-so the outgoing state's exit would otherwise tear down a chain in flight.
+so the outgoing state's exit would otherwise tear down a chain in flight. `PlayerAttackTracker` (pure,
+`Tests/EditMode/PlayerAttackTrackerTests`) follows what the Animator actually plays:
 
-- Set `true` only in `ManageComboStep()`, when `_comboStep > 1` after incrementing.
-- Consumed (set `false`) by `OnAttackStateExited()`, which then returns early — once per transition.
-- First-hit interrupts (dodge/stagger/death) never set it → full cleanup runs.
-- `OnComboWindowClose()` is **ignored while `_IsComboAttacking`**: the outgoing clip can fire its close
-  event during the crossfade (Uppercut's 0.93 lands inside the 0.63 → 0.95 `Attack_2 → Attack_3` blend).
-  Resetting there zeroed `_comboStep` mid-chain and looped Attack_1 instead of the finisher.
+- **Active attack states** — `Enter` +1, `Exit` −1 (clamped at 0). The attack ends (`EndAttack()`) only when
+  the count returns to 0 — same model as the AI's `EntityMeleeAttacker`. Never end on input.
+- **Queued step** — set by a combo press (`Press(isChainStep: true)`), cleared when the next state enters.
+- **Resync** — a fresh Attack_1 press zeroes the count (no attack state can be active then), repairing drift
+  from an `OnStateExit` Unity never delivered.
+- `OnHitboxEnable()` / `OnComboWindowOpen()` are ignored while `!IsAttacking` — a cancelled / force-ended attack
+  still blending out keeps firing clip events.
+- `OnComboWindowClose()` is ignored while `ShouldIgnoreWindowClose` (step queued **or** 2 states active): the
+  outgoing clip fires its close event during the crossfade (Uppercut's 0.93 inside the `Attack_2 → Attack_3`
+  blend). Resetting there zeroed `_comboStep` mid-chain and looped Attack_1 instead of the finisher.
+- **Stall watchdog** — every enter/exit/clip event refreshes the activity time; `IsAttacking` with no activity
+  for `CombatConfigSO.attackStallTimeout` (1.5 s) force-ends the attack (trigger never taken, lost exit).
+- **Dodge** calls `PlayerCombat.CancelAttack()` (full reset), never `SetAttacking(false)` alone — a leftover
+  `_comboStep` made the next press fire `Attack_2/3` from `CombatIdle`, which has no such transition.
+- `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
 - **Never detect chains with `GetNextAnimatorStateInfo(layer).IsTag(...)` in `OnStateExit`** — the
   transition may already be complete, so it returns an empty state.
 
@@ -86,6 +101,8 @@ leaves phantom hits after the animation.
 | HIGH | New attack-ending path that neither reaches `ExitAttack()` nor relies on an `SMB_AttackState` exit — hitbox stays open (phantom hits) |
 | HIGH | Player attack state in the Animator without `SMB_AttackState` — no interrupt cleanup; `IsAttacking` and the hitbox stay on |
 | HIGH | `AnimationEventReceiver` method renamed / event `functionName` typo — silent no-op |
-| HIGH | `GetNextAnimatorStateInfo(...).IsTag(...)` used in `SMB_AttackState.OnStateExit` — use the `_IsComboAttacking` flag |
-| MEDIUM | `_IsComboAttacking` set anywhere but `ManageComboStep()` |
-| MEDIUM | `OnComboWindowClose()` losing its `_IsComboAttacking` early return — finisher loops back to Attack_1 |
+| HIGH | `GetNextAnimatorStateInfo(...).IsTag(...)` used in `SMB_AttackState.OnStateExit` — use `PlayerAttackTracker`'s state count |
+| HIGH | Attack ended on input or by a one-shot flag instead of the tracker's active-state count — a trigger the Animator ignores locks `IsAttacking` |
+| HIGH | Code clearing `IsAttacking` without resetting the combo (`SetAttacking(false)` from outside `PlayerCombat`) — use `CancelAttack()` |
+| MEDIUM | `OnComboWindowClose()` losing its `ShouldIgnoreWindowClose` early return — finisher loops back to Attack_1 |
+| MEDIUM | New attack clip event handler that doesn't call `_attackTracker.Event(...)` — long clips trip the stall watchdog |

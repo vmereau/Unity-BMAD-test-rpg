@@ -16,6 +16,7 @@ namespace Game.Combat
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(StaminaSystem))]
     [RequireComponent(typeof(PlayerStateManager))]
+    [RequireComponent(typeof(PlayerCombat))]
     public class DodgeController : MonoBehaviour
     {
         private const string TAG = "[Combat]";
@@ -27,6 +28,7 @@ namespace Game.Combat
         private CharacterController _characterController;
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
+        private PlayerCombat _combat;
         private Camera _mainCamera;
         private InputSystem_Actions _input;
 
@@ -63,6 +65,14 @@ namespace Game.Combat
             if (_stateManager == null)
             {
                 GameLog.Error(TAG, "PlayerStateManager not found — DodgeController disabled");
+                enabled = false;
+                return;
+            }
+
+            _combat = GetComponent<PlayerCombat>();
+            if (_combat == null)
+            {
+                GameLog.Error(TAG, "PlayerCombat not found — DodgeController disabled");
                 enabled = false;
                 return;
             }
@@ -176,12 +186,11 @@ namespace Game.Combat
             _dodgeTimer = _config.dodgeDuration;
             _dodgeVerticalVelocity = GROUNDED_VELOCITY; // start with ground-snap velocity
 
-            // Cancel any in-progress attack so combo state is cleared
+            // Cancel any in-progress attack — full combo reset, not just IsAttacking, or the next press would
+            // fire Attack_2/3 from CombatIdle (no such transition) and lock the combo
             if (_stateManager.IsAttacking)
-            {
-                _stateManager.SetAttacking(false);
                 GameLog.Info(TAG, "Dodge cancelled active attack");
-            }
+            _combat.CancelAttack();
 
             _stateManager.SetDodging(true, isBackwardRoll);
             GameLog.Info(TAG, $"Dodge roll started: dir={_dodgeDirection}, dur={_config.dodgeDuration}s");

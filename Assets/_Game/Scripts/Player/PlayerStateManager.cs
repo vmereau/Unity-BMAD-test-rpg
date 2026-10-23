@@ -125,12 +125,16 @@ namespace Game.Player
         /// <summary>
         /// Sets attacking state. When transitioning to true, optionally fires an animator trigger via PlayerAnimator.
         /// Pass the precomputed trigger hash to play the animation; pass 0 to update state only.
+        /// Ending an attack also clears pending Attack_1/2/3 triggers — a trigger the Animator never took
+        /// would otherwise stay latched and auto-chain (or misfire) the next attack.
         /// </summary>
         public void SetAttacking(bool value, int triggerHash = 0)
         {
             IsAttacking = value;
             if (value && triggerHash != 0)
                 _playerAnimator.PlayAttack(triggerHash);
+            else if (!value)
+                _playerAnimator.ResetAttackTriggers();
         }
 
         /// <summary>Sets dodging state and fires the dodge animator trigger via PlayerAnimator.</summary>

@@ -65,5 +65,65 @@ namespace Tests.EditMode
             float[] distances = { 10f, 3f, 7f };
             Assert.AreEqual(1, GetNearestIndex(distances));
         }
+
+        // --- LockOnSystem.IsInCone (real code) ---
+
+        [Test]
+        public void SystemIsInCone_IgnoresTargetHeight()
+        {
+            // A low spider root or a tall NPC ahead must both count — the cone is horizontal
+            Assert.IsTrue(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.forward, new Vector3(0f, -3f, 5f), 60f));
+            Assert.IsTrue(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.forward, new Vector3(0f, 4f, 5f), 60f));
+        }
+
+        [Test]
+        public void SystemIsInCone_RejectsTargetOutsideHalfAngle()
+        {
+            Vector3 at61 = Quaternion.AngleAxis(61f, Vector3.up) * Vector3.forward * 5f;
+            Assert.IsFalse(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.forward, at61, 60f));
+        }
+
+        [Test]
+        public void SystemIsInCone_ZeroForward_RejectsEverything()
+        {
+            Assert.IsFalse(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.up, Vector3.forward * 5f, 60f),
+                "Camera looking straight down flattens to zero — must not accept every target");
+        }
+
+        [Test]
+        public void SelectNearestInCone_PicksNearestInsideConeAndRange()
+        {
+            var candidates = new[]
+            {
+                new Vector3(0f, 0f, 8f),   // in cone, far
+                new Vector3(0f, 0f, -2f),  // behind
+                new Vector3(1f, -0.5f, 4f),// in cone, nearest (low spider root)
+                new Vector3(0f, 0f, 30f),  // in cone, beyond range
+            };
+            Assert.AreEqual(2, Game.Player.LockOnSystem.SelectNearestInCone(
+                Vector3.zero, Vector3.forward, candidates, 60f, 15f));
+        }
+
+        [Test]
+        public void SelectNearestInCone_RejectsCandidateBeyondRange()
+        {
+            // A trigger collider can reach into the overlap sphere while its entity root is far away
+            var candidates = new[] { new Vector3(0f, 0f, 20f) };
+            Assert.AreEqual(-1, Game.Player.LockOnSystem.SelectNearestInCone(
+                Vector3.zero, Vector3.forward, candidates, 60f, 15f));
+        }
+
+        [Test]
+        public void SelectNearestInCone_NoCandidates_ReturnsMinusOne()
+        {
+            Assert.AreEqual(-1, Game.Player.LockOnSystem.SelectNearestInCone(
+                Vector3.zero, Vector3.forward, new Vector3[0], 60f, 15f));
+        }
+
+        [Test]
+        public void SystemIsInCone_RejectsTargetDirectlyAboveOrigin()
+        {
+            Assert.IsFalse(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.forward, Vector3.up * 2f, 60f));
+        }
     }
 }

@@ -69,6 +69,7 @@ namespace Game.Player
 
         public void SetBlocking(bool value) => _humanoidBridge.SetBlocking(value);
         public void PlayAttack(int triggerHash) => _humanoidBridge.PlayAttack(triggerHash);
+        public void ResetAttackTriggers() => _humanoidBridge.ResetAttackTriggers();
         public void PlayDodge(bool isBackwardRoll = false) => _humanoidBridge.PlayDodge(isBackwardRoll);
         public void SetInCombat(bool value) => _humanoidBridge.SetInCombat(value);
         public void SetSneaking(bool value) => _humanoidBridge.SetSneaking(value);

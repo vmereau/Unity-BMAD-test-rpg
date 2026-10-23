@@ -25,6 +25,7 @@ MonoBehaviour:
   attackDamage: 25
   attackHitRange: 2
   unarmedComboSteps: 3
+  attackStallTimeout: 1.5
   lockOnRange: 15
   lockOnFOV: 60
   lockOnLerpSpeed: 5

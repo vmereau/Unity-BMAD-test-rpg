@@ -54,8 +54,8 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
 
 ## Transition Rules
 
-- **Combo transitions must not be interruptible by the source state's exit** — `Attack_2 → Attack_3` uses
-  `interruptionSource = None`. With `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
+- **Combo transitions must not be interruptible by the source state's exit** — `Attack_1 → Attack_2` and
+  `Attack_2 → Attack_3` both use `interruptionSource = None`. With `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
   ComboWindowOpen (0.63), was cancelled by `Attack_2 → CombatIdle` at exit time 0.89, so step 3 never
   played. When adding/retiming combo clips, check `requestTime + blendDuration < exitTime` (normalized),
   or keep the combo transition at `None`.

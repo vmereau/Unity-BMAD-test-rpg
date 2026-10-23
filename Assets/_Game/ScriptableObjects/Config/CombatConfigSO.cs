@@ -49,6 +49,9 @@ namespace Game.Combat
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;
+        [Tooltip("Watchdog: seconds an attack may go without any attack state enter/exit or clip event before it is " +
+                 "force-ended. Must exceed the longest gap between attack callbacks of any attack clip.")]
+        [Min(0.1f)] public float attackStallTimeout = 1.5f;
 
         [Header("Lock-On")]
         [Tooltip("Max acquisition distance in metres.")]

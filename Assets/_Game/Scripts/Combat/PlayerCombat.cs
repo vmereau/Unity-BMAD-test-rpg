@@ -58,7 +58,9 @@ namespace Game.Combat
         // Combo state
         private int _comboStep = 0;            // 0 = ready, 1 = after hit 1, 2 = after hit 2
         private bool _comboWindowOpen = false;
-        private bool _IsComboAttacking = false; // true from ExecuteAttack until SMB OnStateEnter — combo chain guard
+
+        // Attack lifecycle as the Animator plays it (active attack states, queued step, stall watchdog)
+        private readonly PlayerAttackTracker _attackTracker = new();
 
         // Story 7.10: cached weapon SO — set when visuals refresh, cleared on unequip
         private WeaponSO _currentWeaponSO;
@@ -161,6 +163,15 @@ namespace Game.Combat
             // Story 7.10: Combo window open/close is now driven by Animation Events via
             // AnimationEventReceiver → OnComboWindowOpen() / OnComboWindowClose().
             // No timer phases needed here.
+
+            // Watchdog: an attack trigger the Animator never took (or a lost OnStateExit) leaves IsAttacking on
+            // with no callback ever arriving — force the end instead of locking every further attack.
+            if (_attackTracker.IsStalled(_stateManager.IsAttacking, Time.time, _config.attackStallTimeout))
+            {
+                GameLog.Warn(TAG, $"Attack stalled ({_config.attackStallTimeout:F2}s without attack state or event) — forcing end");
+                _attackTracker.Reset();
+                EndAttack();
+            }
         }
 
         private void OnAttackStarted(InputAction.CallbackContext ctx)
@@ -247,12 +258,13 @@ namespace Game.Combat
             if (!consumed)
             {
                 GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
-                ExitAttack();
+                EndAttack();
                 return;
             }
 
             ExecuteAttack();
             ManageComboStep();
+            _attackTracker.Press(Time.time, isChainStep: _comboStep > 1);
         }
 
         private void ExecuteAttack()
@@ -288,10 +300,6 @@ namespace Game.Combat
             }
             
             IncreaseAttackCombo();
-            if (_comboStep > 1)
-            {
-                _IsComboAttacking = true;
-            }
         }
 
         private void IncreaseAttackCombo()
@@ -309,8 +317,26 @@ namespace Game.Combat
 
         private void ExitAttack()
         {
-            _stateManager.SetAttacking(false);
+            _stateManager.SetAttacking(false); // also clears pending Attack_1/2/3 triggers
             _activeHitbox?.Disable();
+        }
+
+        // Full end of an attack: combo reset, IsAttacking off, hitbox closed, queued step forgotten.
+        private void EndAttack()
+        {
+            _attackTracker.ClearQueue();
+            ResetAttackCombo();
+            ExitAttack();
+        }
+
+        /// <summary>
+        /// Cancels any attack in progress (dodge). The attack states still exit on their own through the SMB;
+        /// those exits are then harmless no-ops.
+        /// </summary>
+        public void CancelAttack()
+        {
+            if (!_stateManager.IsAttacking && _comboStep == 0) return;
+            EndAttack();
         }
 
         // Story 7.9: weapon hitbox helpers -------------------------------------------
@@ -403,10 +429,10 @@ namespace Game.Combat
 
         public void OnComboWindowOpen()
         {
-            // Guard: finisher calls ResetAttackCombo() (SetAttacking(false)) before the animation
-            // completes. The stale ComboWindowOpen event at ~50% of the finisher clip must be
-            // ignored, otherwise _comboWindowOpen becomes true while IsAttacking is false,
-            // allowing TryAttack() to start a new chain mid-finisher animation.
+            // Guard: after a cancel (dodge) or a forced end, the outgoing clip keeps firing events while it
+            // blends out. A stale ComboWindowOpen must be ignored, otherwise _comboWindowOpen becomes true
+            // while IsAttacking is false, allowing TryAttack() to start a new chain mid-animation.
+            _attackTracker.Event(Time.time);
             if (!_stateManager.IsAttacking) return;
             _comboWindowOpen = true;
             GameLog.Info(TAG, $"Combo window opened — step {_comboStep} ready");
@@ -414,48 +440,52 @@ namespace Game.Combat
 
         public void OnComboWindowClose()
         {
-            // The next step is already queued: this is the OUTGOING clip's close event firing during the
-            // crossfade (e.g. Uppercut's 0.93 inside the Attack_2 → Attack_3 blend) — not an expired window.
-            if (_IsComboAttacking) return;
+            _attackTracker.Event(Time.time);
+            // Next step queued, or this is the OUTGOING clip's close event firing during the crossfade
+            // (e.g. Uppercut's 0.93 inside the Attack_2 → Attack_3 blend) — not an expired window.
+            if (_attackTracker.ShouldIgnoreWindowClose) return;
             ResetAttackCombo();
             GameLog.Info(TAG, "Combo window closed");
         }
 
         public void OnHitboxEnable()
         {
+            _attackTracker.Event(Time.time);
+            // Same guard as OnComboWindowOpen: a cancelled / force-ended attack still blending out must not
+            // reopen the hit window (phantom hits during the dodge).
+            if (!_stateManager.IsAttacking) return;
             _activeHitbox?.Enable();
         }
-        public void OnHitboxDisable() => _activeHitbox?.Disable();  // Story 7.11
+
+        public void OnHitboxDisable()  // Story 7.11
+        {
+            _attackTracker.Event(Time.time);
+            _activeHitbox?.Disable();
+        }
 
         /// <summary>
         /// Called by SMB_AttackState.OnStateEnter — animator confirmed this attack state started.
         /// Guarantees hitbox is disabled at state entry (safety net for back-to-back attacks
         /// where the exit cleanup was skipped because we transitioned directly to this state).
-        /// Does NOT set IsAttacking — that is owned by input (ExecuteAttack) and the
-        /// finisher path intentionally clears it via ResetAttackCombo before the clip ends.
+        /// Does NOT set IsAttacking — that is owned by input (ExecuteAttack).
         /// </summary>
         public void OnAttackStateEntered(int attackIndex)
         {
-            // this attack state started — safe to allow exit cleanup again
+            _attackTracker.Enter(Time.time);
             _activeHitbox?.Disable();
             _comboWindowOpen = false;
         }
 
         /// <summary>
-        /// Called by SMB_AttackState.OnStateExit when NOT transitioning to another attack state.
-        /// Guarantees hitbox off and combo state reset for interrupt cases (dodge/stagger/death)
-        /// where ComboWindowClose animation event never fired.
+        /// Called by SMB_AttackState.OnStateExit for every attack state. The attack ends only when no attack
+        /// state is left (a combo crossfade enters the next state before the previous one exits). Guarantees
+        /// hitbox off and combo reset for interrupts (dodge/stagger/death) and for presses the Animator
+        /// never took (e.g. during the uninterruptible blend-out to CombatIdle).
         /// </summary>
         public void OnAttackStateExited()
         {
-            if (_IsComboAttacking)
-            {
-                _IsComboAttacking = false;
-                return;
-            }
-
-            ResetAttackCombo();
-            ExitAttack();
+            if (!_attackTracker.Exit(Time.time)) return; // chain in flight
+            EndAttack();
         }
 
         // ----------------------------------------------------------------------------

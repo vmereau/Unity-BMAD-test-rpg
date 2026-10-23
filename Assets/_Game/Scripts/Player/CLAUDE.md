@@ -81,6 +81,7 @@ _humanoidBridge.SetMovement(normX, normZ);
 |--------------------------------|-------------|-----------------|
 | `SetBlocking(bool)` | `HumanoidAnimationBridge.SetBlocking` | Sets `IsBlocking` bool |
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
+| `ResetAttackTriggers()` | `HumanoidAnimationBridge.ResetAttackTriggers` | Clears `Attack_1/2/3` — called by `PlayerStateManager.SetAttacking(false)` so an untaken trigger can't stay latched |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
 | `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (Attack layer: `LockOn Locomotion` ⇄ `CombatIdle`; the layer's weight is a constant 1) |
 | `SetSneaking(bool)` | `HumanoidAnimationBridge.SetSneaking` | Sets `IsSneaking` bool (entering also resets `SneakToSprint`) |
@@ -140,6 +141,16 @@ Cinemachine reads `CameraTarget` passively — it never takes direct input.
 Escape unlocks via `_input.UI.Cancel.WasPressedThisFrame()`, left-click re-locks via
 `_input.UI.Click.WasPressedThisFrame()` — the Player map has no Cancel action, so `CameraController` enables /
 disables the **UI** map alongside the Player map. Full action list: `Assets/_Game/CLAUDE.md`.
+
+---
+
+## LockOnSystem — Target Acquisition
+
+`OverlapSphereNonAlloc` on `_lockOnLayerMask` (layer 6 Characters, triggers included) into a **64-slot** buffer —
+one entity contributes many colliders there (spider ragdoll bones ≈ 13), and a 10-slot buffer truncated the
+aimed target out. Hits collapse to **one candidate per `EntityHealth`** (dead skipped), measured at the health
+transform; `SelectNearestInCone` (pure, `LockOnTests`) picks the nearest within `lockOnFOV` (**half-angle**) and
+re-checks `lockOnRange` against the root. A full buffer logs a warning.
 
 ---
 

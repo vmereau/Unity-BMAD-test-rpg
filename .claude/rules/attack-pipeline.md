@@ -43,7 +43,7 @@ WeaponHitbox.OnHit ─→ owner: TryReceiveHit → TakeDamage only on NotBlocked
 Unity fires `OnStateEnter(next)` at transition **start** and `OnStateExit(previous)` at transition **end**.
 An exit-only "attack ended" signal therefore fires mid-chain on every `Attack_1 → Attack_2` blend.
 
-- Player: `_IsComboAttacking` flag consumed by the next exit (`PLAYER_COMBO.md`).
+- Player: `PlayerAttackTracker` counts active attack states, plus a stall watchdog (`PLAYER_COMBO.md`).
 - AI: `EntityMeleeAttacker` counts active attack states; the attack ends when the count returns to 0.
 - **Never** use `GetNextAnimatorStateInfo(layer)` in `OnStateExit` to detect a chain — the transition may
   already be finished and it returns an empty state.
