@@ -30,14 +30,8 @@ namespace Game.UI
         [SerializeField] private Button _nextNodeButton;
 
         [Header("Readability")]
-        [Tooltip("Faded lines of the current topic shown above the NPC line (Text state only).")]
-        [SerializeField] private TMP_Text _historyText;
         [Tooltip("Label of _nextNodeButton: Continue / End / Trade.")]
         [SerializeField] private TMP_Text _nextNodeLabel;
-        [Tooltip("History rows kept above the current NPC line.")]
-        [SerializeField, Min(1)] private int _historyCapacity = 3;
-        [Tooltip("History lines longer than this are cropped with an ellipsis (keeps each row to ~1 line). 0 = no limit.")]
-        [SerializeField, Min(0)] private int _historyLineMaxChars = 90;
         [Tooltip("Typewriter speed for NPC lines (unscaled time). 0 = instant.")]
         [SerializeField, Min(0f)] private float _charsPerSecond = 60f;
         [Tooltip("Seconds after new content appears during which keys / clicks are ignored (Escape excepted).")]
@@ -55,8 +49,6 @@ namespace Game.UI
         private StartDialogueNode[] _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
         private bool _forcedLine; // NPC-initiated single line: any advance / Escape closes the dialogue
 
-        private DialogueTranscript _transcript;
-        private string _npcName = string.Empty;
         private float _shownAt;
         private bool _revealing;
         private float _revealStart;
@@ -72,7 +64,6 @@ namespace Game.UI
                 _input.UI.DialogueOption7, _input.UI.DialogueOption8, _input.UI.DialogueOption9,
                 _input.UI.DialogueOption0,
             };
-            _transcript = new DialogueTranscript(_historyCapacity, _historyLineMaxChars);
 
             if (_nextNodeButton != null)
             {
@@ -83,8 +74,6 @@ namespace Game.UI
                 nav.mode = Navigation.Mode.None;
                 _nextNodeButton.navigation = nav;
             }
-            if (_historyText == null)
-                GameLog.Warn(TAG, "_historyText not assigned — dialogue history will not be shown");
             if (_panel != null)
                 _panel.SetActive(false);
         }
@@ -189,7 +178,6 @@ namespace Game.UI
 
             _forcedLine = false;
             _cachedStartNodes = startNodes;
-            _npcName = npcName ?? string.Empty;
 
             _panel.SetActive(true);
 
@@ -214,14 +202,12 @@ namespace Game.UI
 
             _forcedLine = true;
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
-            _npcName = npcName ?? string.Empty;
             _panel.SetActive(true);
 
             if (_npcNameText != null)
                 _npcNameText.text = npcName;
 
             ClearContents();
-            _transcript.Clear();
             _pendingNextNode = null;
 
             _slotCallbacks[1] = () =>
@@ -309,8 +295,6 @@ namespace Game.UI
                 _panel.SetActive(false);
 
             ClearContents();
-            _transcript.Clear();
-            RefreshHistory();
 
             _pendingNextNode = null;
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
@@ -338,40 +322,22 @@ namespace Game.UI
             MarkShown();
         }
 
-        /// <summary>
-        /// Text state: renders the history (lines before this one), starts revealing <paramref name="line"/>,
-        /// then records it so it becomes history for the next line.
-        /// </summary>
+        /// <summary>Text state: shows only this node's <paramref name="line"/> and starts revealing it.</summary>
         private void ShowNpcLine(string line, string advanceLabel)
         {
-            RefreshHistory();
             if (_nextNodeLabel != null)
                 _nextNodeLabel.text = advanceLabel;
 
             SetState(DisplayState.Text);
             StartReveal(line);
-            _transcript.Add(_npcName, line, false);
         }
 
-        /// <summary>Choices state: NPC prompt above the options (no history). Recorded for the next Text state.</summary>
+        /// <summary>Choices state: NPC prompt above the options.</summary>
         private void ShowChoicePrompt(string text)
         {
-            if (_choiceNodeText != null)
-            {
-                _choiceNodeText.text = text;
-                _choiceNodeText.gameObject.SetActive(!string.IsNullOrEmpty(text));
-            }
-            _transcript.Add(_npcName, text, false);
-        }
-
-        private void RecordPlayerLine(string text) => _transcript.Add(DialogueTranscript.PLAYER_SPEAKER, text, true);
-
-        private void RefreshHistory()
-        {
-            if (_historyText == null) return;
-            bool hasHistory = _transcript.Count > 0;
-            _historyText.text = hasHistory ? _transcript.BuildRichText() : string.Empty;
-            _historyText.gameObject.SetActive(hasHistory);
+            if (_choiceNodeText == null) return;
+            _choiceNodeText.text = text;
+            _choiceNodeText.gameObject.SetActive(!string.IsNullOrEmpty(text));
         }
 
         private void StartReveal(string line)
@@ -397,8 +363,6 @@ namespace Game.UI
         private void RestoreTopics()
         {
             ClearContents();
-            _transcript.Clear();
-            RefreshHistory();
             _pendingNextNode = null;
 
             // Re-query to pick up played-state changes that occurred within this session
@@ -460,7 +424,6 @@ namespace Game.UI
                     GameLog.Warn(TAG, $"StartDialogueNode '{captured.text}' has no nextNode — ignoring click");
                     return;
                 }
-                RecordPlayerLine(captured.text);
                 _dialogueSystem.StartTopic(captured);
             }, tag, IsTopicDimmed(node));
         }
@@ -488,7 +451,6 @@ namespace Game.UI
             bool seen = tag == DialogueOptionTag.None && _dialogueSystem != null && _dialogueSystem.IsChoiceSeen(node, choice);
             AddOptionButton(choice.text, slot, () =>
             {
-                RecordPlayerLine(captured.text);
                 _dialogueSystem.SelectChoice(captured, node);
                 if (captured.nextNode == null)
                     RestoreTopics();
@@ -510,7 +472,6 @@ namespace Game.UI
                 action = () =>
                 {
                     if (_dialogueSystem == null) return;
-                    RecordPlayerLine(captured.text);
                     _dialogueSystem.ApplyTeachChoice(captured);
                 };
             }

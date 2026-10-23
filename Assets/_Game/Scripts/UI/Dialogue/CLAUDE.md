@@ -8,8 +8,7 @@
 
 | Script | Purpose |
 |--------|---------|
-| `DialogueUI` | Full dialogue panel: NPC name, history + response text, scrollable topic list, choice buttons, and keyboard shortcuts (1–9, 0). Implements `IPointerClickHandler` to advance text on click. |
-| `DialogueTranscript` | Plain class: capped rolling history of the current topic ("You: …" / "<NPC>: …"), built as faded TMP rich text (palette colours). EditMode-tested. |
+| `DialogueUI` | Full dialogue panel: NPC name, response text (one node per window, no history), scrollable topic list, choice buttons, and keyboard shortcuts (1–9, 0). Implements `IPointerClickHandler` to advance text on click. |
 | `DialogueReveal` | Static pacing rules: typewriter `VisibleCount` and the post-show `IsInputAllowed` grace. EditMode-tested. |
 | `DialogueOptionFormat` | Static option-row rules: `Classify` (Trade / Teach by walking `nextNode`, ≤ 32 steps), `Label` (dim number key, tag, dimmed seen text, `<noparse>` text + raw rich suffix), `CostLabel` (unpayable parts red), `OrderUnseenFirst`. EditMode-tested. |
 
@@ -25,7 +24,7 @@
 - **Single advance path (Text state):** click, key 1, `UI/DialogueAdvance` (Space / Enter / Numpad Enter / E) and `_nextNodeButton` all go through `TryAdvance()` — first press completes a running typewriter reveal, the next runs `_slotCallbacks[1]` (the per-node advance action). Don't wire per-node listeners on `_nextNodeButton`; set `_slotCallbacks[1]`.
 - **Input grace:** `SetState` (and completing a reveal) stamps `_shownAt`; keys, clicks and option buttons are ignored for `_inputGrace` (0.2 s, unscaled) after it. Escape is not gated.
 - `_nextNodeButton` navigation is forced to **None** in `Awake`: a selected button would get the UI module's Submit (Enter) in the same frame as `DialogueAdvance` and skip a line.
-- **History:** the player's pick is recorded as "You: …" before calling `DialogueSystem`; NPC lines and choice prompts are recorded after display. `_historyText` (inside `ResponseWrapper`) shows the lines **before** the current one — Text state only; Choices / Teach show just the prompt. Cleared by `RestoreTopics()` / `Close()` / `OpenLine()`. Entries are cropped to `_historyLineMaxChars` (90 ≈ one row) and wrapped in `<noparse>`; an exact repeat of the newest line is skipped. `ResponseText` keeps a 100 px min height so history can't squeeze the current line.
+- **One node = one window:** Text state shows only the current node's line in `ResponseText` (no history, no echo of the player's pick — a faded history was tried and removed as hard to read). Choices / Teach show the NPC prompt above the options.
 - **Option rows:** every label goes through `DialogueOptionFormat.Label`. Topics are ordered unseen → seen (`OrderUnseenFirst`), numbered in display order; choices keep authored order. Seen = `DialogueSystem.IsTopicSeen` / `IsChoiceSeen` (persisted, set on **pick** in `StartTopic` / `SelectChoice(choice, node)` — always pass the node). Trade / Teach-tagged options and teach choices are never dimmed. Teach rows use `GetTeachCostShortfall` for the red cost parts.
 - **Row prefab** `TopicButtonPrefab`: `HorizontalLayoutGroup` (padding 16/16/6/6, controls child size) so rows grow with wrapped text; label parchment `#D8CCB0`, `raycastTarget` off; Button Color Tint normal transparent, highlighted brass α .35, pressed / selected α .5 (plain white `Image`, no sprite yet). `TopicsContent` VLG controls child height, spacing 4.
 - **Advance label** `_nextNodeLabel`: "Continue" (more nodes), "End" (last node / forced line), "Trade" (shop node).

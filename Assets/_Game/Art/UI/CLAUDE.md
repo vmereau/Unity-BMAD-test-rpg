@@ -185,7 +185,7 @@ Re-measure with `UILayoutCapture.Measure` after any layout change and update thi
 | Quest log | Info | 672, 140, 1152×800 | Header 160 |
 | Character | Panel | 660, 140, 600×800 | Single centred column |
 | Skills | Panel | 660, 190, 600×700 | List 220 wide · detail 332 wide |
-| Dialogue | Panel | 410, 618, 1100×300 | Bottom band (bottom edge y 918); content column ~1034; name font 28 (torch), history 22, text 25 (parchment), advance button 36 tall |
+| Dialogue | Panel | 410, 618, 1100×300 | Bottom band (bottom edge y 918); content column ~1034; name font 28 (torch), text 25 (parchment), advance button 36 tall |
 | Game menu | Window | 460, 80, 1000×920 | Centred column of 5 buttons 420×72 |
 | Death screen | Column | centred | Title font 96, 4 buttons 420×72, gap 18 |
 | Confirm dialog | Window | 600, 380, 720×320 | Message font 32, Yes / No 220×72 |
@@ -208,7 +208,7 @@ re-check the owning file before relying on a count.
 | **Quest log** | J | Started / Completed / Failed tabs, quest list, quest info (`Quest/`) | `Panel`, `Tab`, `Button` |
 | **Character** | P | Level, XP, learning points, HP, stamina, base stats (`Screens/`) | `Panel` |
 | **Skills** | K | Skill list rows, detail panel with requirement rows (`Skills/`) | `Panel`, `Button`, `SlotWell` |
-| **Dialogue** | — | NPC name, faded history, response text, Continue / End / Trade button, numbered topics (1–9, 0), choices (`Dialogue/`) | `Panel`, `Button` |
+| **Dialogue** | — | NPC name, response text, Continue / End / Trade button, numbered topics (1–9, 0), choices (`Dialogue/`) | `Panel`, `Button` |
 | **Game menu** | Esc | Resume / Save / Load / Options / Quit, save-slot list, confirm dialog (`Screens/`) | `Panel`, `Button` |
 | **Death screen** | — | Title, Load last save / Load quicksave / Restart / Quit (`Screens/`) | `Button` |
 | **Loading** | — | Black overlay "Loading…" (`Screens/`) | none |
