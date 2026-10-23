@@ -34,6 +34,7 @@ namespace Game.Core
         [SerializeField] private PlayerStateManager _playerState;
         [SerializeField] private PlayerHealth _playerHealth;
         [SerializeField] private ContainerUI _containerUI;
+        [SerializeField] private CookingUI _cookingUI;
         [SerializeField] private QuestEventsManager _questEvents;
         [SerializeField] private ConfirmDialogUI _confirmDialog; // F9 is ignored while a Game Menu confirm is open
 
@@ -142,6 +143,7 @@ namespace Game.Core
                 reason = "Can't save while dead";
             else if (_playerState != null && _playerState.IsInDialogue) reason = "Can't save during a conversation";
             else if (_containerUI != null && _containerUI.IsOpen) reason = "Can't save while looting";
+            else if (_cookingUI != null && _cookingUI.IsOpen) reason = "Can't save while cooking";
             return reason == null;
         }
 
@@ -345,6 +347,7 @@ namespace Game.Core
             reason = null;
             if (_playerState != null && _playerState.IsInDialogue) reason = "Can't load during a conversation";
             else if (_containerUI != null && _containerUI.IsOpen) reason = "Can't load while looting";
+            else if (_cookingUI != null && _cookingUI.IsOpen) reason = "Can't load while cooking";
             return reason == null;
         }
 

@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 8176500476053113911}
   - component: {fileID: 914494134842668152}
   - component: {fileID: 464579833497779598}
+  - component: {fileID: 8712925390410062336}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -661,6 +662,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Player.PlayerSneak
   _stealthConfig: {fileID: 11400000, guid: 8aac64038e94dd3449a649763e165653, type: 2}
+--- !u!114 &8712925390410062336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b9de7d74a780b44b2ba17fb34adba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Crafting.CookingSystem
+  _onOpenRequested: {fileID: 11400000, guid: 72e52cc6667a03e4cacda9553ee920b9, type: 2}
+  _cookingUI: {fileID: 874663416753351339}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1853,6 +1868,10 @@ PrefabInstance:
       propertyPath: _inventorySystem
       value: 
       objectReference: {fileID: 1994668802294238475}
+    - target: {fileID: 5906198643158806154, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerInventory
+      value: 
+      objectReference: {fileID: 1994668802294238475}
     - target: {fileID: 6379699551145700745, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2068,6 +2087,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2a5f969f42a9c44fbc437a5804bd203, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.ContainerUI
+--- !u!114 &874663416753351339 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5906198643158806154, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+  m_PrefabInstance: {fileID: 6761140961654539297}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602fcae58a7a0b14a85d6f24b389697b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.CookingUI
 --- !u!114 &1651187422288820590 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5421867585498856783, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}

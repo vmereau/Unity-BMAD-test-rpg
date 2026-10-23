@@ -493,12 +493,24 @@ MonoBehaviour:
   _playerState: {fileID: 1467251770}
   _playerHealth: {fileID: 1467251771}
   _containerUI: {fileID: 1467251768}
+  _cookingUI: {fileID: 866296164}
   _questEvents: {fileID: 3496145756361601552}
   _confirmDialog: {fileID: 1467251769}
   _onQuestCompleted: {fileID: 11400000, guid: daa28683af9d08841ace38e079c87b14, type: 2}
   _onSaveNotification: {fileID: 11400000, guid: 4511348bce05d4c4f941e70490e40704, type: 2}
   _onLoadStarted: {fileID: 11400000, guid: 1ff9a30a7364fed40ae365d87646d6a7, type: 2}
   _onLoadFinished: {fileID: 11400000, guid: 3b627391e83418d4abfc43225702db88, type: 2}
+--- !u!114 &866296164 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 874663416753351339, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
+  m_PrefabInstance: {fileID: 1467251764}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602fcae58a7a0b14a85d6f24b389697b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.CookingUI
 --- !u!1 &1049357961
 GameObject:
   m_ObjectHideFlags: 0
