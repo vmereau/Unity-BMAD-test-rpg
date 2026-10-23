@@ -11,6 +11,7 @@
 |--------|--------------|
 | `HUD/` | Health / stamina / XP bars, action bar, interaction prompt card, notification toasts |
 | `Inventory/` | Inventory grid, item detail panel + formatter, equipment, container (incl. loot) and trade screens |
+| `Crafting/` | Cooking screen (`CookingUI`, ingredient reference slot, inventory-grid adapter) — see `Scripts/Crafting/CLAUDE.md` |
 | `Quest/` | Quest log screen, quest list / info panels |
 | `Skills/` | Skills tab: skill list, skill detail panel + formatter |
 | `Dialogue/` | NPC dialogue panel, topic / choice display, keyboard shortcuts |
@@ -40,7 +41,7 @@ Never touch `Cursor.lockState` / `Cursor.visible` / `CursorLockMode` — use `Cu
 ## Input
 
 UI scripts that own an `InputSystem_Actions` (`UIScreenManager`, `DialogueUI`, `ContainerUI`,
-`NPCTradeUI`) follow one lifecycle:
+`NPCTradeUI`, `CookingUI`) follow one lifecycle:
 
 - create it in `Awake`; enable maps + subscribe in `OnEnable`; unsubscribe in `OnDisable`;
   **`Dispose()` in `OnDestroy`** so input survives disable/re-enable cycles;

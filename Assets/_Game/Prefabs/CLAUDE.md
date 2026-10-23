@@ -16,6 +16,7 @@
 | `Items/` | World-item (drop / pickup) prefab requirements |
 | `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes, Weapon Creator |
 | `Harvestables/` | Fixed world resources (plants…) — contract below |
+| `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 
 ---
 
@@ -45,3 +46,12 @@
   (Ctrl+D copies the ID; harvesting one would remove both on load); add `Ownership` for a garden plant (→ "Steal").
 - `Tools/Items/Generate Missing Icons` renders a yield item's icon from its harvestable prefab (real model), not
   from the placeholder drop.
+
+## Cooking stations (`World/CookingStations/`)
+
+- New look = **prefab variant of `CookingStation_Base`** (root: layer Interactable (8), `CookingStation`, trigger
+  `BoxCollider`, `InteractionHighlight`; empty `Model` child) with the model nested under `Model` and the root
+  collider refit to it. The model keeps its own solid collider (Default layer) for physical blocking.
+- `_recipes` is set on the base, so every look inherits it; override it on a variant only for a different station
+  type. Stations are stateless — no `SaveableObject` / save ID.
+- `CookingStation_Fireplace` = `SM_Fireplace2` (Hivemind, URP-compatible materials).

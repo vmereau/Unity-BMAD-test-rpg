@@ -13,7 +13,7 @@ on `Player.prefab`.
 ```
 UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO CanvasScaler)
 ├── EventSystem          (EventSystem + InputSystemUIInputModule, plain Transform)
-├── ContainerUI / NPCTradeUI   (nested prefabs, inactive by default)
+├── ContainerUI / NPCTradeUI / CookingUI   (nested prefabs, inactive by default; CookingUI._playerInventory is a Player.prefab override)
 ├── Menus                (tab-based screen panels)
 │   ├── TabBar           (TabBarUI)
 │   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI   (inactive by default)
