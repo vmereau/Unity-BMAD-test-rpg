@@ -15,7 +15,7 @@
 | `SceneLoader` | Scene/additive-scene loading. |
 | `State/WorldStateManager` | Central runtime state singleton (on the `WorldStateManager` GO in `Core.unity`). Kill tracking + flat key/bool world-fact store backed by typed Fact SOs. `CaptureFacts` / `RestoreFacts` for save / load. |
 | `Save/` | Save / load — see below. |
-| `State/WorldFactPrefix` | Canonical key prefixes (`enum`). Use the typed setters (`RegisterKill`, `SetQuestStep`, `SetWorldEvent`) — never build fact-key strings by hand at call sites. |
+| `State/WorldFactPrefix` | Canonical key prefixes (`enum`). Use the typed setters (`RegisterKill`, `SetWorldEvent`, `SetDialoguePlayed`, `SetRecipeKnown`) — never build fact-key strings by hand at call sites. |
 
 ---
 

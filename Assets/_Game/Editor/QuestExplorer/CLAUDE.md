@@ -82,7 +82,7 @@ Claude can't click the window — it reads the same data as text:
   QuestFacts are written **before** the quest because `QuestFact.OnValidate` clamps `_questState`
   against the quest's current step count (undo replays in reverse, so the order stays safe).
 - Play-mode **Toggle** = raw `WorldStateManager.SetFact` (fires `OnFactChanged`, no XP / rewards, no
-  despawn). Only stored facts (Killed / Dialogue / World) get a toggle.
+  despawn). Only stored facts (Killed / Dialogue / World / Recipe) get a toggle.
 - Asset creation (KilledFact / DialogueFact / WorldFact / QuestFact) is not undoable — only the
   assignment is. Created files must be deleted by hand.
 - In the editor, `GetComponent<T>()` returns a *fake null* when missing — `??` does not catch it; use

@@ -53,6 +53,7 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 | `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
+| `isIngredient` | `bool` | Accepted by the cooking Experiment slots (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (food `PotionItemSO`, future non-edible ingredients) can be one |
 
 Create via **Assets → Create → Items → Item**.
 

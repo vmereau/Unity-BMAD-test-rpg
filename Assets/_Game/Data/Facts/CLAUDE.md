@@ -13,6 +13,7 @@
 | `KilledFact` | `Killed.{guid}` | stored | `PersistentID.RegisterDeath()` → `WorldStateManager.RegisterKill` | quest steps, memory conditions, `PlayerRewardSO` |
 | `DialogueFact` | `Dialogue.Played.{nodeId}` | stored | `DialogueSystem` when a `StartDialogueNode.dialogueFact` plays or a `ChoiceOption.dialogueFact` is picked | quest start/completed parts, memory conditions, rewards |
 | `WorldFact` | `World.{eventKey}` | stored | **nothing yet** — `SetWorldEvent` has no callers | quest parts (always reported "never set") |
+| `RecipeFact` | `Recipe.Known.{recipeId}` | stored | `CookingUI` Experiment tab on first discovery → `WorldStateManager.SetRecipeKnown` (setter shown as the `RecipeSO` in Quest Explorer) | cooking Recipes tab, quest parts, memory conditions |
 | `QuestFact` | `Quest.{questId}.{State\|StepN}` | computed | derived from the quest's parts | memory conditions, other quests, rewards |
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |
 | `StatFact` | `Stat.Requirements(n)` | computed | `PlayerStats` thresholds | memory conditions |
@@ -54,6 +55,7 @@ play-mode **Toggle** uses the raw `SetFact`.
 |---|---|---|
 | DialogueFact | `DialogueFact_{NPC}_{Name}` | `Data/Facts/` |
 | WorldFact | `WorldFact_{eventKey}` | `Data/Facts/` |
+| RecipeFact | `RecipeFact_{RecipeOutput}` (`_recipeId` = same, never renamed) | `Data/Facts/` |
 | QuestFact | `QuestFact_{QuestId}_{State}` (`Started` / `Completed` / `Failed` / `Step{i}`) | `Data/Facts/` |
 | KilledFact | `KilledFact_{GameObjectName}` | `Data/Enemies/{Scene}/Generic/` (`Game/World/Generate Missing KilledFacts`) |
 
