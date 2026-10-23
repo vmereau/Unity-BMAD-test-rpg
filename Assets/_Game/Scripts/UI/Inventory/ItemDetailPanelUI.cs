@@ -40,6 +40,8 @@ namespace Game.UI
         [SerializeField] private Color _positiveColor = new(0.49f, 0.80f, 0.42f);
         [SerializeField] private Color _negativeColor = new(0.88f, 0.42f, 0.42f);
         [SerializeField] private Color _neutralColor = new(0.88f, 0.88f, 0.88f);
+        [Tooltip("Already-claimed info, e.g. a gained first-meal bonus.")]
+        [SerializeField] private Color _mutedColor = new(0.50f, 0.50f, 0.50f);
         [SerializeField] private Color _priceColor = new(0.90f, 0.76f, 0.36f);
 
         private readonly List<ItemStatLine> _lines = new();
@@ -117,7 +119,8 @@ namespace Game.UI
             }
 
             // No WorldStateManager (Core not loaded) → no status row rather than a wrong "Not learned".
-            ItemDetailFormatter.BuildStatLines(item, _lines, WorldStateManager.Instance != null ? RecipeKnownCheck : null);
+            bool hasCore = WorldStateManager.Instance != null;
+            ItemDetailFormatter.BuildStatLines(item, _lines, hasCore ? RecipeKnownCheck : null, hasCore ? MealBonusClaimedCheck : null);
 
             while (_rows.Count < _lines.Count)
                 _rows.Add(Instantiate(_statRowPrefab, _statRowsRoot));
@@ -158,10 +161,15 @@ namespace Game.UI
 
         private static bool IsRecipeKnown(RecipeFact fact) => WorldStateManager.Instance.IsRecipeKnown(fact);
 
+        private static readonly System.Func<ItemSO, bool> MealBonusClaimedCheck = IsMealBonusClaimed;
+
+        private static bool IsMealBonusClaimed(ItemSO meal) => WorldStateManager.Instance.IsMealBonusClaimed(meal);
+
         private Color ColorFor(StatPolarity polarity) => polarity switch
         {
             StatPolarity.Positive => _positiveColor,
             StatPolarity.Negative => _negativeColor,
+            StatPolarity.Muted => _mutedColor,
             _ => _neutralColor
         };
     }

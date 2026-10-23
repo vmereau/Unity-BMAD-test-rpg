@@ -1,5 +1,6 @@
 using Game.Combat;
 using Game.Core;
+using Game.Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,8 +9,8 @@ namespace Game.UI
 {
     /// <summary>
     /// Displays the player's current and max health above the ActionBar.
-    /// Subscribes to OnPlayerHealthChanged (float = current health) and reads
-    /// max health from CombatConfigSO to avoid cross-system MonoBehaviour coupling.
+    /// Subscribes to OnPlayerHealthChanged (float = current health). Max health comes from PlayerHealth
+    /// (base + permanent first-meal bonuses) when wired, else from CombatConfigSO's base health.
     /// </summary>
     public class HealthBarUI : MonoBehaviour
     {
@@ -18,6 +19,8 @@ namespace Game.UI
         [SerializeField] private Image _fillImage;
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Float _onPlayerHealthChanged;
+        // Cross-system read (like CharacterStatsUI): the health event carries only the current value.
+        [SerializeField] private PlayerHealth _playerHealth;
 
         private void Awake()
         {
@@ -35,6 +38,8 @@ namespace Game.UI
             }
             if (_onPlayerHealthChanged == null)
                 GameLog.Warn(TAG, "HealthBarUI: _onPlayerHealthChanged not assigned — bar will not update");
+            if (_playerHealth == null)
+                GameLog.Warn(TAG, "HealthBarUI: _playerHealth not assigned — bar ignores max-health bonuses");
         }
 
         private void OnEnable()
@@ -50,8 +55,8 @@ namespace Game.UI
         private void HandleHealthChanged(float currentHealth)
         {
             GameLog.Info(TAG, $"HandleHealthChanged: {currentHealth}");
-            float max = _config.baseHealth;
-            float ratio = max > 0f ? currentHealth / max : 0f;
+            float max = _playerHealth != null ? _playerHealth.MaxHealth : _config.baseHealth;
+            float ratio = max > 0f ? Mathf.Clamp01(currentHealth / max) : 0f;
             _fillImage.fillAmount = ratio;
         }
     }

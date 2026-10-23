@@ -140,6 +140,11 @@ namespace Game.UI
                 RefreshSlots();
                 GameLog.Info(TAG, $"Consumed: {item.itemName}");
             }
+            else if (used)
+            {
+                // Reusable item: nothing left the grid, but its detail rows may have changed (e.g. a claimed first-meal bonus).
+                RefreshSlots();
+            }
         }
 
         public void PrimaryAction(int slotIndex, IItemSlotContainer source)

@@ -1872,6 +1872,10 @@ PrefabInstance:
       propertyPath: _playerInventory
       value: 
       objectReference: {fileID: 1994668802294238475}
+    - target: {fileID: 5949940221769850009, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerHealth
+      value: 
+      objectReference: {fileID: 6838483035695751856}
     - target: {fileID: 6379699551145700745, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

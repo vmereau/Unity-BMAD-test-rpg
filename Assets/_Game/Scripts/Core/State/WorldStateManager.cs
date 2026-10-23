@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _Game.ScriptableObjects.Entities;
+using Game.Inventory;
 using Game.Player;
 using Game.Progression;
 using Game.Quest;
@@ -159,6 +160,21 @@ namespace Game.Core
             !string.IsNullOrEmpty(id) && _worldFacts.TryGetValue(SeenKey(id), out var v) && v;
 
         private static string SeenKey(string id) => $"{WorldFactPrefix.Dialogue}.Seen.{id}";
+
+        /// <summary>
+        /// Records that the first-meal bonus of <paramref name="meal"/> was granted (key <c>Meal.BonusClaimed.{itemId}</c>).
+        /// Stored with the facts so it is saved, but raises no event — not a quest / memory condition.
+        /// </summary>
+        public void ClaimMealBonus(ItemSO meal)
+        {
+            if (meal == null || string.IsNullOrEmpty(meal.itemId)) { GameLog.Warn(TAG, "ClaimMealBonus called with a null meal or an empty itemId"); return; }
+            _worldFacts[MealBonusKey(meal.itemId)] = true;
+        }
+
+        public bool IsMealBonusClaimed(ItemSO meal) =>
+            meal != null && !string.IsNullOrEmpty(meal.itemId) && _worldFacts.TryGetValue(MealBonusKey(meal.itemId), out var v) && v;
+
+        private static string MealBonusKey(string itemId) => $"{WorldFactPrefix.Meal}.BonusClaimed.{itemId}";
 
         // ── Player checks ─────────────────────────────────────────────────────
 

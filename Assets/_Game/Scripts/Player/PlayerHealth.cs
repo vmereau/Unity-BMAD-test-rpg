@@ -30,8 +30,13 @@ namespace Game.Player
         // Same-system reference — marks the player dead so every action gate closes.
         [SerializeField] private PlayerStateManager _playerStateManager;
 
+        private int _bonusMaxHealth;
+
         public float CurrentHealth { get; private set; }
-        public float MaxHealth => _config != null ? _config.baseHealth : 0f;
+        /// <summary>Config base health + permanent bonuses (first-meal bonuses), which are saved.</summary>
+        public float MaxHealth => _config != null ? _config.baseHealth + _bonusMaxHealth : 0f;
+        /// <summary>Permanent max-health bonus on top of the config base (saved by PlayerSaveAdapter).</summary>
+        public int BonusMaxHealth => _bonusMaxHealth;
         public bool IsDead { get; private set; }
 
         private void Awake()
@@ -78,7 +83,7 @@ namespace Game.Player
             float effective = Mathf.Max(1f, amount - defense);
             CurrentHealth -= effective;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
-            GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+            GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
             _onPlayerHealthChanged?.Raise(CurrentHealth);
             if (CurrentHealth <= 0f) Die();
         }
@@ -94,15 +99,47 @@ namespace Game.Player
         }
 
         /// <summary>
-        /// Restores health by the given amount, capped at baseHealth. Ignored if dead.
+        /// Restores health by the given amount, capped at MaxHealth. Ignored if dead.
         /// Story 4.10: Added to support PotionItemSO.OnUse.
         /// </summary>
         public void Heal(float amount)
         {
-            if (IsDead) return;
-            CurrentHealth = Mathf.Min(CurrentHealth + amount, _config.baseHealth);
+            if (_config == null || IsDead) return;
+            CurrentHealth = Mathf.Min(CurrentHealth + amount, MaxHealth);
             _onPlayerHealthChanged?.Raise(CurrentHealth);
-            GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{_config.baseHealth:F0}");
+            GameLog.Info(TAG, $"Player healed {amount} HP — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+        }
+
+        /// <summary>
+        /// Permanently raises max health by <paramref name="amount"/> and current health by the same amount
+        /// (first-meal bonus). Ignored if dead or the amount isn't positive.
+        /// </summary>
+        public void AddMaxHealthBonus(int amount)
+        {
+            if (_config == null)
+            {
+                GameLog.Warn(TAG, "AddMaxHealthBonus: CombatConfigSO not assigned — bonus ignored");
+                return;
+            }
+            if (IsDead) return;
+            if (amount <= 0)
+            {
+                GameLog.Warn(TAG, $"AddMaxHealthBonus called with non-positive amount ({amount}) — ignored");
+                return;
+            }
+            _bonusMaxHealth += amount;
+            CurrentHealth = Mathf.Min(CurrentHealth + amount, MaxHealth);
+            _onPlayerHealthChanged?.Raise(CurrentHealth);
+            GameLog.Info(TAG, $"Max health +{amount} — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+        }
+
+        /// <summary>
+        /// Save/load: replaces the permanent max-health bonus (negative → 0). Raises nothing — call before
+        /// <see cref="RestoreHealth"/>, which clamps to the new max and raises the health event.
+        /// </summary>
+        public void RestoreMaxHealthBonus(int bonus)
+        {
+            _bonusMaxHealth = Mathf.Max(0, bonus);
         }
 
         /// <summary>
@@ -137,7 +174,7 @@ namespace Game.Player
             if (_config == null) return;
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             GUI.Label(new Rect(10, 250, 400, 26),
-                $"PlayerHP: {CurrentHealth:F0}/{_config.baseHealth:F0} | Dead:{IsDead}",
+                $"PlayerHP: {CurrentHealth:F0}/{MaxHealth:F0} | Dead:{IsDead}",
                 _guiStyle);
         }
 #endif

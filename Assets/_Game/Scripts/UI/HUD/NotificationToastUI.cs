@@ -23,6 +23,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_String _onSaveNotification;
         [SerializeField] private GameEventSO_String _onLockpickFailed;
         [SerializeField] private GameEventSO_String _onRecipeLearned;
+        [SerializeField] private GameEventSO_String _onMealBonusGained;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -73,6 +74,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onLockpickFailed not assigned — lockpick failure toasts disabled");
             if (_onRecipeLearned == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onRecipeLearned not assigned — recipe toasts disabled");
+            if (_onMealBonusGained == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onMealBonusGained not assigned — first-meal bonus toasts disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -88,6 +91,7 @@ namespace Game.UI
             _onSaveNotification?.AddListener(Show);
             _onLockpickFailed?.AddListener(Show);
             _onRecipeLearned?.AddListener(HandleRecipeLearned);
+            _onMealBonusGained?.AddListener(HandleMealBonusGained);
         }
 
         private void OnDisable()
@@ -98,6 +102,7 @@ namespace Game.UI
             _onSaveNotification?.RemoveListener(Show);
             _onLockpickFailed?.RemoveListener(Show);
             _onRecipeLearned?.RemoveListener(HandleRecipeLearned);
+            _onMealBonusGained?.RemoveListener(HandleMealBonusGained);
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");
@@ -107,6 +112,11 @@ namespace Game.UI
         private void HandleUnlocked(string noun) => Show($"{noun} unlocked!");
 
         private void HandleRecipeLearned(string dishName) => Show($"Recipe learned: {dishName}");
+
+        private void HandleMealBonusGained(string bonusText) => Show(FormatMealBonus(bonusText));
+
+        /// <summary>Toast text for a first-meal bonus, e.g. "Permanent bonus: +5 Max HP".</summary>
+        public static string FormatMealBonus(string bonusText) => $"Permanent bonus: {bonusText}";
 
         private void Show(string message)
         {

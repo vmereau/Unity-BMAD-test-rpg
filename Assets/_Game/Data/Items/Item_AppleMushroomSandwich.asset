@@ -23,3 +23,7 @@ MonoBehaviour:
   isIngredient: 1
   consumable: 1
   _healAmount: 35
+  _permanentBonuses:
+  - stat: 0
+    amount: 5
+  _onMealBonusGained: {fileID: 11400000, guid: 62972e1b68bace445993f5fa732ea740, type: 2}

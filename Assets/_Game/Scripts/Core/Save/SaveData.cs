@@ -52,6 +52,8 @@ namespace Game.Core
         public SVector3 position;
         public SQuaternion rotation;
         public float health;
+        /// <summary>Permanent max-health bonus (first-meal bonuses). Missing in older saves → 0.</summary>
+        public int bonusMaxHealth;
         public int baseStrength, baseDexterity, baseEndurance, baseIntelligence;
         public int xp;
         public int totalKills;

@@ -30,6 +30,8 @@ namespace Game.UI
         private const string LABEL_STATUS = "Status";
         private const string STATUS_ALREADY_KNOWN = "Already known";
         private const string STATUS_NOT_LEARNED = "Not learned";
+        private const string LABEL_FIRST_MEAL = "First meal";
+        private const string FIRST_MEAL_GAINED_SUFFIX = " (gained)";
         private const string LABEL_STRENGTH = "Strength";
         private const string LABEL_DEXTERITY = "Dexterity";
         private const string LABEL_ENDURANCE = "Endurance";
@@ -60,8 +62,10 @@ namespace Game.UI
         /// <summary>
         /// Clears <paramref name="into"/> and fills it with the item's stat rows, in display order.
         /// <paramref name="isRecipeKnown"/> answers the recipe status row; null = no status row.
+        /// <paramref name="isMealBonusClaimed"/> grays out a food's "First meal" bonus row once claimed; null = shown unclaimed.
         /// </summary>
-        public static void BuildStatLines(ItemSO item, List<ItemStatLine> into, Func<RecipeFact, bool> isRecipeKnown = null)
+        public static void BuildStatLines(ItemSO item, List<ItemStatLine> into, Func<RecipeFact, bool> isRecipeKnown = null,
+            Func<ItemSO, bool> isMealBonusClaimed = null)
         {
             if (into == null) { GameLog.Warn(TAG, "BuildStatLines: target list is null"); return; }
             into.Clear();
@@ -88,6 +92,9 @@ namespace Game.UI
                             : new ItemStatLine(LABEL_STATUS, STATUS_NOT_LEARNED, StatPolarity.Positive));
                     break;
             }
+
+            if (item is PotionItemSO meal && meal.HasPermanentBonus)
+                into.Add(FirstMealLine(meal, isMealBonusClaimed != null && isMealBonusClaimed(meal)));
 
             if (item is EquipableItemSO equipable)
             {
@@ -130,6 +137,14 @@ namespace Game.UI
         {
             if (item == null) return 0;
             return context == ItemPriceContext.Buy ? item.buyValue : item.sellValue;
+        }
+
+        private static ItemStatLine FirstMealLine(PotionItemSO meal, bool claimed)
+        {
+            string text = MealBonusText.Format(meal.PermanentBonuses);
+            return claimed
+                ? new ItemStatLine(LABEL_FIRST_MEAL, text + FIRST_MEAL_GAINED_SUFFIX, StatPolarity.Muted)
+                : new ItemStatLine(LABEL_FIRST_MEAL, text, StatPolarity.Positive);
         }
 
         private static void AddBonus(List<ItemStatLine> into, string label, int value)

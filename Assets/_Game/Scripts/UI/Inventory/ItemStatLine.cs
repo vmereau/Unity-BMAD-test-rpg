@@ -1,7 +1,7 @@
 namespace Game.UI
 {
     /// <summary>How a stat value is tinted in the item detail panel.</summary>
-    public enum StatPolarity { Neutral, Positive, Negative }
+    public enum StatPolarity { Neutral, Positive, Negative, Muted }
 
     /// <summary>One label/value row shown in the item detail panel's stats block.</summary>
     public readonly struct ItemStatLine

@@ -1458,6 +1458,7 @@ MonoBehaviour:
   _onSaveNotification: {fileID: 11400000, guid: 4511348bce05d4c4f941e70490e40704, type: 2}
   _onLockpickFailed: {fileID: 11400000, guid: b7d8d6bc2ea66b241aced47b0e256b89, type: 2}
   _onRecipeLearned: {fileID: 11400000, guid: f84e23471acfc4e46a8b00cda909214c, type: 2}
+  _onMealBonusGained: {fileID: 11400000, guid: 62972e1b68bace445993f5fa732ea740, type: 2}
   _container: {fileID: 6661398786721482297}
   _toastEntryPrefab: {fileID: 7453757669003199702, guid: ca8bcdf22402c1144805bf7061b1a764, type: 3}
   _maxVisible: 5

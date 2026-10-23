@@ -71,7 +71,11 @@ namespace Game.Player
                 rotation = SQuaternion.From(transform.rotation)
             };
 
-            if (_health != null) d.health = _health.CurrentHealth;
+            if (_health != null)
+            {
+                d.health = _health.CurrentHealth;
+                d.bonusMaxHealth = _health.BonusMaxHealth;
+            }
             if (_stats != null)
             {
                 d.baseStrength = _stats.GetBaseStat(StatType.Strength);
@@ -136,6 +140,8 @@ namespace Game.Player
             _equipment?.RestoreEquipped(ResolveEquipped(d.equipped, catalog));
             _actionBar?.RestoreSlots(ResolveActionBar(d.actionBar, catalog));
             _gold?.RestoreGold(d.gold);
+            // Max-health bonus first so the restored health isn't clamped to the base max.
+            _health?.RestoreMaxHealthBonus(d.bonusMaxHealth);
             _health?.RestoreHealth(d.health);
             _stamina?.RefillToMax();
             _stateManager?.SetDead(false);
