@@ -246,7 +246,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **Interaction System Patterns (Epic 4):**
 - `IInteractable` interface (in `Game.World`) — implement for any world object the player can interact with
 - `IInteractable` exact signature: `string InteractPrompt { get; }` and `void Interact()` — **no parameters on `Interact()`**; story templates sometimes show `Interact(GameObject interactor)` which is wrong and will not compile
-- `InteractionSystem` raycasts from center-screen with `ViewportPointToRay(0.5, 0.5, 0)` against **Layer 8 only**
+- `InteractionSystem` raycasts from center-screen with `ViewportPointToRay(0.5, 0.5, 0)` against **Layers 8 (Interactable) + 9 (Harvestable)** (`_raycastMask` 768)
 - Hit detection uses `GetComponentInParent<IInteractable>()` — collider may be on a child GameObject
 - Interaction prompt is uGUI (`InteractionPromptUI`) driven by `OnInteractionFocusChanged` — no `OnGUI` in gameplay code
 

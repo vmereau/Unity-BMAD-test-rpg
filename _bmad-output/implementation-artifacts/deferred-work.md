@@ -23,6 +23,15 @@
   a part / step became active since the player last viewed it. Needs a persisted per-quest "last seen" snapshot (save
   system) — out of scope for the redesign.
 
+## From spec-harvestable-plants (2026-10-23 review)
+
+- **Interaction cast buffers vs dense plant patches** — `InteractionSystem` sphere casts use 16-entry NonAlloc
+  buffers on layers 8 + 9; a dense patch of harvestable triggers in `nameRange` can push NPCs / items out of the
+  focus candidates and flicker name tags. Enlarge the buffers or cast layer 9 separately when patches get dense.
+- **`ItemIconGenerator` preview wait has no timeout** (pre-existing) — if `AssetPreview` never returns a texture for
+  one source, `EditorApplication.update` polls forever and later runs report "Already running" until a domain
+  reload. Add a frame cap that skips items whose preview stays null.
+
 ## From spec-combo-lock-and-lock-on-fixes (2026-10-23 review)
 
 - **Lock-on collider layout** — ragdoll bone colliders sit on layer 6 (Characters), the lock-on layer. The 64-slot buffer covers ~5 spiders; a dense fight could still truncate. Proper fix: one dedicated lock-on collider per entity, ragdoll bones on another layer.
