@@ -24,7 +24,7 @@ LevelSystem → OnPlayerXPProgressChanged  (0–1 in-level progress, raised in S
 | `LevelSystem` | Subscribes to `OnXPGained`, fires `OnLevelUp` on threshold crossings, then raises `OnPlayerXPProgressChanged`. `CalculateLevelProgress(xp, level, thresholds)` is the public static, tested progress formula. |
 | `LearningPointSystem` | Subscribes to `OnLevelUp`, grants Learning Points (LP). |
 | `PlayerSkills` | Set of learned skills (learned via tome pickup / other sources). |
-| `PlayerRewards` | Per-enemy-type XP/reward lookup; auto-synced by an Editor tool. |
+| `PlayerRewards` | Per-enemy-type XP/reward lookup; auto-synced by an Editor tool. Applies a `PlayerRewardSO` (XP, LP, gold, stats, then **items** `_itemRewards` = `ItemReward { item, count }` → `InventorySystem.AddItem`, bad entries skipped with a warning). Raises `OnRewardGoldGained` (int) and `OnRewardItemReceived` (pre-formatted `PlayerRewardSO.FormatItemReceived`: "Received: X" / "Received: X ×N") for HUD toasts — reward-only, never for trade / pickups. |
 
 ---
 
