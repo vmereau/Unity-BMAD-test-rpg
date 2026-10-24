@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 4144a13873514418af5af5d397d23a84
   itemName: 'Recipe: Apple Trout Sandwich'
   description: 'The town guard''s own recipe, scrawled on a scrap of parchment: a river trout, an apple and good bread. "Eat it and you''ll swing that blade harder."'
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f0196f5ff122a7b49b3a5ca12e564608, type: 3}
   maxStacks: 10
   worldItemPrefab: {fileID: 7801363158571449870, guid: 7dd8d4afad88d854e95446fa743d3418, type: 3}
   buyValue: 60

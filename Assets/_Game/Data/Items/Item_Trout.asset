@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 0f863f327a0a464299297fa64d25b49a
   itemName: Trout
   description: A fresh river trout, still smelling of cold water.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9b514b36cd3134448936eba8d8b7dd1f, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 1280785023966555819, guid: 31da5ba4c1e47d64fa8da8ac90fcfa46, type: 3}
   buyValue: 6

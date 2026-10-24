@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: f4e44c2b75454a49aa27cb94ca66a379
   itemName: Apple Trout Sandwich
   description: 'The guard''s own creation: grilled trout and sweet apple on good bread. Hearty enough to put strength in your arm.'
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9f79d2ba7a52d094eb1a9a52b9e01c73, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 1280785023966555819, guid: b50624628fd9019479c641a9590ccf27, type: 3}
   buyValue: 18
