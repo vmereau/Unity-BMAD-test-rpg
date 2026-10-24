@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Core;
 using Game.Economy;
+using Game.Inventory;
 using Game.Player;
 using Game.Quest;
 using UnityEngine;
@@ -28,6 +29,11 @@ namespace Game.Progression
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private PlayerStats         _playerStats;
         [SerializeField] private GoldSystem          _goldSystem;
+        [SerializeField] private InventorySystem     _inventory;
+
+        // ── Reward notification channels (HUD toasts) ─────────────────────────
+        [SerializeField] private GameEventSO_Int    _onRewardGoldGained;
+        [SerializeField] private GameEventSO_String _onRewardItemReceived;
 
         // ── Reward definitions ────────────────────────────────────────────────
         [SerializeField] private List<PlayerRewardSO> _rewards = new List<PlayerRewardSO>();
@@ -49,6 +55,9 @@ namespace Game.Progression
             if (_lpSystem             == null) GameLog.Warn(TAG, "LearningPointSystem not assigned — LP rewards skipped.");
             if (_playerStats          == null) GameLog.Warn(TAG, "PlayerStats not assigned — stat rewards skipped.");
             if (_goldSystem           == null) GameLog.Warn(TAG, "GoldSystem not assigned — gold rewards skipped.");
+            if (_inventory            == null) GameLog.Warn(TAG, "InventorySystem not assigned — item rewards skipped.");
+            if (_onRewardGoldGained   == null) GameLog.Warn(TAG, "OnRewardGoldGained not assigned — reward gold toasts disabled.");
+            if (_onRewardItemReceived == null) GameLog.Warn(TAG, "OnRewardItemReceived not assigned — reward item toasts disabled.");
         }
 
         private void OnEnable()
@@ -150,7 +159,13 @@ namespace Game.Progression
                 _lpSystem.GiveLp(reward.LpReward);
 
             if (reward.GoldReward > 0 && _goldSystem != null)
+            {
                 _goldSystem.Add(reward.GoldReward);
+                _onRewardGoldGained?.Raise(reward.GoldReward);
+            }
+
+            if (_inventory != null)
+                ApplyItemRewards(reward);
 
             if (_playerStats != null)
             {
@@ -159,6 +174,25 @@ namespace Game.Progression
                     if (statReward.points > 0)
                         _playerStats.UpgradeStat(statReward.statType, statReward.points);
                 }
+            }
+        }
+
+        private void ApplyItemRewards(PlayerRewardSO reward)
+        {
+            foreach (var itemReward in reward.ItemRewards)
+            {
+                if (itemReward.item == null || itemReward.count <= 0)
+                {
+                    GameLog.Warn(TAG, $"{reward.name}: item reward with no item or count <= 0 — skipped.");
+                    continue;
+                }
+
+                int added = 0;
+                for (int i = 0; i < itemReward.count; i++)
+                    if (_inventory.AddItem(itemReward.item)) added++;
+
+                if (added > 0)
+                    _onRewardItemReceived?.Raise(PlayerRewardSO.FormatItemReceived(itemReward.item.itemName, added));
             }
         }
     }

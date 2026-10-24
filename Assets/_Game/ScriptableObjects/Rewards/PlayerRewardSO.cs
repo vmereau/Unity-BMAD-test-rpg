@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Inventory;
 using Game.Player;
 using Game.Quest;
 using UnityEngine;
@@ -13,6 +14,13 @@ namespace Game.Progression
     {
         public StatType statType;
         public int points;
+    }
+
+    [Serializable]
+    public struct ItemReward
+    {
+        public ItemSO item;
+        public int count;
     }
 
     [CreateAssetMenu(menuName = "Game/Rewards/Player Reward", fileName = "PlayerReward_")]
@@ -29,6 +37,7 @@ namespace Game.Progression
         [SerializeField] private int _lpReward;
         [SerializeField] private int _goldReward;
         [SerializeField] private List<StatReward> _statRewards = new List<StatReward>();
+        [SerializeField] private List<ItemReward> _itemRewards = new List<ItemReward>();
 
         public RewardFactType           FactType     => _factType;
         public Game.Core.KilledFact   KilledFact   => _killedFact;
@@ -38,6 +47,11 @@ namespace Game.Progression
         public int LpReward   => _lpReward;
         public int GoldReward => _goldReward;
         public IReadOnlyList<StatReward> StatRewards => _statRewards;
+        public IReadOnlyList<ItemReward> ItemRewards => _itemRewards;
+
+        /// <summary>Toast text for a reward item, e.g. "Received: Trout ×3" ("×N" only when N > 1).</summary>
+        public static string FormatItemReceived(string itemName, int count) =>
+            count > 1 ? $"Received: {itemName} ×{count}" : $"Received: {itemName}";
 
         public bool MatchesKilledFact(Game.Core.KilledFact fact) =>
             _factType == RewardFactType.Killed && _killedFact == fact;

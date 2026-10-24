@@ -20,3 +20,6 @@ MonoBehaviour:
   _lpReward: 0
   _goldReward: 100
   _statRewards: []
+  _itemRewards:
+  - item: {fileID: 11400000, guid: f1fc26d4b9d049a4e82e9d845fa281ac, type: 2}
+    count: 1

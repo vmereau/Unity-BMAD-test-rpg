@@ -24,6 +24,8 @@ namespace Game.UI
         [SerializeField] private GameEventSO_String _onLockpickFailed;
         [SerializeField] private GameEventSO_String _onRecipeLearned;
         [SerializeField] private GameEventSO_String _onMealBonusGained;
+        [SerializeField] private GameEventSO_Int _onRewardGoldGained;
+        [SerializeField] private GameEventSO_String _onRewardItemReceived;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -76,6 +78,10 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onRecipeLearned not assigned — recipe toasts disabled");
             if (_onMealBonusGained == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onMealBonusGained not assigned — first-meal bonus toasts disabled");
+            if (_onRewardGoldGained == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onRewardGoldGained not assigned — reward gold toasts disabled");
+            if (_onRewardItemReceived == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onRewardItemReceived not assigned — reward item toasts disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -92,6 +98,8 @@ namespace Game.UI
             _onLockpickFailed?.AddListener(Show);
             _onRecipeLearned?.AddListener(HandleRecipeLearned);
             _onMealBonusGained?.AddListener(HandleMealBonusGained);
+            _onRewardGoldGained?.AddListener(HandleRewardGoldGained);
+            _onRewardItemReceived?.AddListener(Show);
         }
 
         private void OnDisable()
@@ -103,6 +111,8 @@ namespace Game.UI
             _onLockpickFailed?.RemoveListener(Show);
             _onRecipeLearned?.RemoveListener(HandleRecipeLearned);
             _onMealBonusGained?.RemoveListener(HandleMealBonusGained);
+            _onRewardGoldGained?.RemoveListener(HandleRewardGoldGained);
+            _onRewardItemReceived?.RemoveListener(Show);
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");
@@ -114,6 +124,11 @@ namespace Game.UI
         private void HandleRecipeLearned(string dishName) => Show($"Recipe learned: {dishName}");
 
         private void HandleMealBonusGained(string bonusText) => Show(FormatMealBonus(bonusText));
+
+        private void HandleRewardGoldGained(int amount) => Show(FormatGold(amount));
+
+        /// <summary>Toast text for reward gold, e.g. "Gold +100".</summary>
+        public static string FormatGold(int amount) => $"Gold +{amount}";
 
         /// <summary>Toast text for a first-meal bonus, e.g. "Permanent bonus: +5 Max HP".</summary>
         public static string FormatMealBonus(string bonusText) => $"Permanent bonus: {bonusText}";

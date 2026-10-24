@@ -32,6 +32,11 @@ namespace Game.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_lpReward"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_goldReward"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_statRewards"), true);
+            var itemRewardsProp = serializedObject.FindProperty("_itemRewards");
+            EditorGUILayout.PropertyField(itemRewardsProp, true);
+            // Dialogue facts are raised on every replay of their node — an item there can be farmed.
+            if (itemRewardsProp.arraySize > 0 && (RewardFactType)factTypeProp.intValue == RewardFactType.Dialogue)
+                EditorGUILayout.HelpBox("Dialogue rewards fire every time the node plays — item rewards here can be granted repeatedly. Prefer a Quest reward.", MessageType.Warning);
 
             serializedObject.ApplyModifiedProperties();
         }

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Guard_SpiderReward
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: "All five? You actually did it. The town owes you one, adventurer. Here's your reward \u2014 well earned."
-  nextNode: {fileID: 0}
+  text: "All five? You actually did it. The town owes you one, adventurer. Here's your coin \u2014 well earned."
+  nextNode: {fileID: 11400000, guid: 928678606a9ccba4085f15d1ef56d562, type: 2}
   _id: 83094b374f4678c4e8677a77618f7e9d

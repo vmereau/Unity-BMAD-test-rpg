@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 991ec0725183bca4eb0e6f6e4aff6645, type: 3}
+  m_Name: Item_AppleTroutSandwich
+  m_EditorClassIdentifier: Game::Game.Inventory.PotionItemSO
+  itemId: f4e44c2b75454a49aa27cb94ca66a379
+  itemName: Apple Trout Sandwich
+  description: 'The guard''s own creation: grilled trout and sweet apple on good bread. Hearty enough to put strength in your arm.'
+  icon: {fileID: 0}
+  maxStacks: 20
+  worldItemPrefab: {fileID: 1280785023966555819, guid: b50624628fd9019479c641a9590ccf27, type: 3}
+  buyValue: 18
+  sellValue: 8
+  isIngredient: 1
+  consumable: 1
+  _healAmount: 40
+  _permanentBonuses:
+  - stat: 1
+    amount: 1
+  _onMealBonusGained: {fileID: 11400000, guid: 62972e1b68bace445993f5fa732ea740, type: 2}

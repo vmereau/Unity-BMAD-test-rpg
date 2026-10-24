@@ -443,6 +443,9 @@ MonoBehaviour:
   _lpSystem: {fileID: 7805096736339071647}
   _playerStats: {fileID: 5748466653404673820}
   _goldSystem: {fileID: 8568453877098799715}
+  _inventory: {fileID: 1994668802294238475}
+  _onRewardGoldGained: {fileID: 11400000, guid: 82b103c2ddf191049b54f09b345720aa, type: 2}
+  _onRewardItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
   _rewards:
   - {fileID: 11400000, guid: b4d5d64640d9ae9478d3f8f92fdfdbf3, type: 2}
   - {fileID: 11400000, guid: d3160e4e25d4d6d4eba7b6c84b81ec03, type: 2}
