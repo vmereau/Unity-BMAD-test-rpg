@@ -39,6 +39,9 @@ Spec: `_bmad-output/implementation-artifacts/tech-spec-save-load-system.md`.
 - World time: optional `SaveData.worldTimeSeconds` (`double?`, null in older saves → no version bump), captured in
   `BuildSaveData`, restored with the facts in `BeginLoad` (`GameClock.Restore`, no events). Save / load are refused while
   `SleepUI.IsOpen` (panel or fade).
+- Status effects: `PlayerSaveData.statusEffects` (`StatusEffectSaveData`: effectId, absolute appliedAt / expiresAt,
+  total, paid; missing in older saves → none), restored by `PlayerSaveAdapter` after `RestoreHealth` via
+  `StatusEffectHost.Restore` — they resume from the clock restored in `BeginLoad`. See `Scripts/StatusEffects/CLAUDE.md`.
 - `SaveData` — plain classes, no Unity types (`SVector3` / `SQuaternion`); Newtonsoft Json.
 - **Restore without events:** restore methods set state directly and raise only value-changed events — never
   `_onLevelUp`, `_onSkillLearned`, `_onXPGained`, `RegisterKill` / `RegisterDeath` (they grant LP / XP / toasts).

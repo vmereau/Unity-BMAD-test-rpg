@@ -94,7 +94,10 @@ Adds to `UsableItemSO`:
 | `_healAmount` | `float` | HP restored on use (default 30) |
 | `HealAmount` (property) | `float` | Public read accessor |
 
-`OnUse` calls `PlayerHealth.Heal(_healAmount)`. Returns false (and keeps the item) if `PlayerHealth` is missing or the player is dead.
+`OnUse` heals `_healAmount`: **instantly** (potions, `Item_HealingPlant`) or, when `_overTimeEffect` + `_durationMinutes`
+(game minutes) are both set (food), **over time** through the player's `StatusEffectHost` (`SE_WellFed`, see
+`Scripts/StatusEffects/CLAUDE.md`). No host / clock → instant heal + warning. Returns false (and keeps the item) if
+`PlayerHealth` is missing or the player is dead. The detail row reads "+8 over 20 min".
 
 **First-meal bonus** (food only): `_permanentBonuses` (`List<MealBonus>` — `MealBonusStat` MaxHealth / Strength /
 Dexterity / Endurance / Intelligence + `amount`, ≤ 0 ignored) and `_onMealBonusGained` (`OnMealBonusGained` toast,

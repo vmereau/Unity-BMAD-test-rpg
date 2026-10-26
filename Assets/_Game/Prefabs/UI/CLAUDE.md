@@ -22,7 +22,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 │   ├── SpeechBubbleLayer   (stretch, own Canvas, SpeechBubbleUI — pools Prefabs/UI/SpeechBubble.prefab; before the prompt)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)
 │   ├── ActionBar        (ActionBarUI → 6× ActionBarSlot)
-│   └── HealthBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50)
+│   └── HealthBar (Fill + PendingFill) / StatusEffectBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50)
 ├── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
 ├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList / OptionsUI / BackButton
 ├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
