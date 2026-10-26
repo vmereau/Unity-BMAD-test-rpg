@@ -15,6 +15,8 @@
 | `SceneLoader` | Scene/additive-scene loading. |
 | `State/WorldStateManager` | Central runtime state singleton (on the `WorldStateManager` GO in `Core.unity`). Kill tracking + flat key/bool world-fact store backed by typed Fact SOs. `CaptureFacts` / `RestoreFacts` for save / load. |
 | `Save/` | Save / load — see below. |
+| `Time/GameClock` | The single world clock (GO `GameClock` in `Core.unity`) — **not** a singleton (only `WorldStateManager` / `SaveSystem` are): readers hold a serialized ref (scene override on the Core `Player` instance) or listen to its events. `Now` = absolute game seconds since day 1 00:00 (`double`), advanced by scaled `deltaTime` × `GameTime.Rate` (`TimeConfigSO.realMinutesPerGameDay`, 48 → 1 h = 2 real min), so pausing stops it; frozen while `SaveSystem.IsLoading` (restore happens before the async reload). Raises `OnHourChanged` (`GameEventSO_Int`, 0–23) per crossed hour; `bool SkipTo(target)` (false = not in the future, nothing changes) raises `OnTimeSkipped` (`GameEventSO_Float`, seconds) then one `OnHourChanged`. `Restore(double?)` (null / NaN / negative → `startHour`) raises nothing — hour listeners must re-read the time on `OnLoadFinished`. `[ContextMenu] Skip 1 hour` for dev. |
+| `Time/GameTime` | **Static, pure.** Day / hour / minute derived from world seconds, `NextHour(now, hour)` (exact HH:00, target = now → +24 h), `CrossedHours` (per-frame hour events, capped at a day), `Format` ("Day 4, 06:00"), `Rate`. Tested by `GameTimeTests`. |
 | `State/WorldFactPrefix` | Canonical key prefixes (`enum`). Use the typed setters (`RegisterKill`, `SetWorldEvent`, `SetDialoguePlayed`, `SetRecipeKnown`, `ClaimMealBonus`) — never build fact-key strings by hand at call sites. |
 
 ---
@@ -34,6 +36,9 @@ Spec: `_bmad-output/implementation-artifacts/tech-spec-save-load-system.md`.
   while dead but not in dialogue / trade / looting.
 - `SaveFileStore` — static, synchronous, never throws. Files `Application.persistentDataPath/Saves/save_{slot}.json`
   (slots `quick`, `auto`, `slot_1..10`), written to `*.tmp` then replaced. Error strings are public constants.
+- World time: optional `SaveData.worldTimeSeconds` (`double?`, null in older saves → no version bump), captured in
+  `BuildSaveData`, restored with the facts in `BeginLoad` (`GameClock.Restore`, no events). Save / load are refused while
+  `SleepUI.IsOpen` (panel or fade).
 - `SaveData` — plain classes, no Unity types (`SVector3` / `SQuaternion`); Newtonsoft Json.
 - **Restore without events:** restore methods set state directly and raise only value-changed events — never
   `_onLevelUp`, `_onSkillLearned`, `_onXPGained`, `RegisterKill` / `RegisterDeath` (they grant LP / XP / toasts).

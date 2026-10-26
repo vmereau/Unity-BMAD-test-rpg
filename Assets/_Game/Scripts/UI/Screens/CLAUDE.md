@@ -18,6 +18,7 @@
 | `SaveSlotListUI` / `SaveSlotEntryUI` | Slot list sub-panel. Save mode: manual slots only, overwrite confirm. Load mode: all slots, valid rows clickable, load confirm. Delete on every existing row. Static `FormatSlotLabel` / `FormatDetails` / `FormatTimestamp` / `FormatPlaytime` (tested by `SaveSlotListFormatTests`). |
 | `ConfirmDialogUI` | Shared Yes / No modal (`Show(message, onYes, onNo)`, `Cancel`, `Hide`, `IsOpen`). `SaveSystem` ignores F9 while it's open. |
 | `DeathScreenUI` | On `OnPlayerDied` waits 2 s (realtime), pauses, unlocks the cursor: Load last save (newest valid slot) / Load quicksave (if valid) / Restart (only with no valid save → `SaveSystem.RestartNewGame`) / Quit. Re-shows if a load finishes with the player still dead. |
+| `SleepUI` | Bed sleep panel (`SleepScreen`, always active): `Open(header, onChoice)`, `PlaySleep(atBlack)` (unscaled fade out → callback → fade in → `Close`), `Cancel` (Esc, ignored mid-fade), closes on `OnPlayerDied`. `IsOpen` covers the fade (cursor stays unlocked = player busy). Driven by `World/SleepSystem`. |
 | `LoadingOverlayUI` | Black "Loading…" panel on its own Canvas (sort 100), driven by `OnLoadStarted` / `OnLoadFinished`. |
 
 ---

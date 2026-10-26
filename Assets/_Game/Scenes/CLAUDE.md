@@ -14,6 +14,7 @@ Manager GameObjects in `Core.unity`:
 | `WorldStateManager` | Scripted — `Game.Core.State.WorldStateManager` |
 | `SceneLoader` | Scripted — `Game.Core.SceneLoader` |
 | `SaveSystem` | Scripted — `Game.Core.SaveSystem` (refs wired to the Player instance's components and `UICanvas/ConfirmDialog`; see `Scripts/Core/CLAUDE.md` → Save) |
+| `GameClock` | Scripted — `Game.Core.GameClock` (world time; `TimeConfig`, `OnHourChanged`, `OnTimeSkipped`). Referenced by `SaveSystem` and the Player instance's `SleepSystem` (scene overrides — `Player.prefab` itself has no clock, so beds refuse with a warning in scenes without one, e.g. `TestScene`) |
 | `GameEventBus`, `DayNightController`, `AudioManager` | Empty stubs — scripts arrive with their epics (day/night = story 5-6) |
 
 `Core.unity` also contains a `Player.prefab` instance — the `PlayerStats` / `PlayerSkills` references in

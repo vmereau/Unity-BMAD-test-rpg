@@ -27,6 +27,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 ├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList / OptionsUI / BackButton
 ├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
 ├── ConfirmDialog        (ConfirmDialogUI, inactive — shared Yes/No)
+├── SleepScreen          (SleepUI, always active) → Panel (toggled: Window → Buttons: Title, TimeText, 4 durations, Cancel) + Fade (own Canvas sort 90, black CanvasGroup)
 └── LoadingOverlay       (LoadingOverlayUI, own Canvas sort 100) → Panel (toggled)
 ```
 
