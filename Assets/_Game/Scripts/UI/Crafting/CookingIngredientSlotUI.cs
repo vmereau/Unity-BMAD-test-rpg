@@ -8,7 +8,7 @@ namespace Game.UI
 {
     /// <summary>
     /// One of the cooking screen's Experiment ingredient slots (<see cref="_slotIndex"/>). Holds a <b>reference</b> to an inventory item (like an action bar slot):
-    /// dropping an inventory <see cref="ItemSlotUI"/> sets it; right-click or dragging it out clears it. Nothing is
+    /// dropping an inventory <see cref="ItemSlotUI"/> sets it; right-click, double-click or dragging it out clears it. Nothing is
     /// moved out of the inventory — <see cref="CookingUI"/> consumes on Cook.
     /// </summary>
     public class CookingIngredientSlotUI : MonoBehaviour,
@@ -32,7 +32,8 @@ namespace Game.UI
             _canvas = canvas != null ? canvas.rootCanvas : null;
         }
 
-        public void Bind(ItemSO item, int count)
+        /// <summary>Shows the icon only: a cook uses one unit per slot, so the stack count would mislead.</summary>
+        public void Bind(ItemSO item)
         {
             Item = item;
             if (_iconImage != null)
@@ -41,11 +42,7 @@ namespace Game.UI
                 _iconImage.color = item != null && item.icon == null ? Color.gray : Color.white; // like ItemSlotUI
                 _iconImage.enabled = item != null;
             }
-            if (_countText != null)
-            {
-                _countText.text = count.ToString();
-                _countText.gameObject.SetActive(item != null && count > 1);
-            }
+            if (_countText != null) _countText.gameObject.SetActive(false);
         }
 
         public void OnDrop(PointerEventData eventData)
@@ -79,7 +76,10 @@ namespace Game.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (eventData.button == PointerEventData.InputButton.Right && Item != null)
+            if (Item == null) return;
+            bool rightClick = eventData.button == PointerEventData.InputButton.Right;
+            bool doubleClick = eventData.button == PointerEventData.InputButton.Left && eventData.clickCount >= 2;
+            if (rightClick || doubleClick)
                 _owner?.ClearIngredient(_slotIndex);
         }
 

@@ -210,12 +210,21 @@ namespace Game.UI
         {
             if (_recipesTabActive) return; // double-click only fills experiment slots
             // Read the item the player sees on the clicked slot, not Items[index] — the grid may lag the inventory.
-            if (_playerContentRoot == null || index < 0 || index >= _playerContentRoot.childCount) return;
-            var slot = _playerContentRoot.GetChild(index).GetComponent<ItemSlotUI>();
+            ItemSlotUI slot = FindGridSlot(index);
             if (slot == null || slot.Item == null) return;
-            if (!slot.Item.isIngredient) { SetIngredient(0, slot.Item); return; } // shows the "isn't an ingredient" hint
+            if (!slot.Item.isIngredient) return; // the grid lists ingredients only — defensive
             int empty = System.Array.IndexOf(_slots, null);
             if (empty >= 0) SetIngredient(empty, slot.Item);
+        }
+
+        // The grid lists ingredients only, so a child's position isn't its inventory index — match SlotIndex instead.
+        private ItemSlotUI FindGridSlot(int inventoryIndex)
+        {
+            if (_playerContentRoot == null || inventoryIndex < 0) return null;
+            foreach (Transform child in _playerContentRoot)
+                if (child.TryGetComponent(out ItemSlotUI slot) && slot.SlotIndex == inventoryIndex)
+                    return slot;
+            return null;
         }
 
         public void ClearIngredient(int slotIndex)
@@ -345,9 +354,11 @@ namespace Game.UI
 
             if (_playerInventory == null || _itemSlotPrefab == null) return;
 
+            // Only ingredients are listed; each slot keeps its inventory index (double-click resolves it by SlotIndex).
             var items = _playerInventory.Items;
             for (int i = 0; i < items.Count; i++)
             {
+                if (items[i].Item == null || !items[i].Item.isIngredient) continue;
                 var go = Instantiate(_itemSlotPrefab, _playerContentRoot);
                 go.GetComponent<ItemSlotUI>()?.Bind(items[i].Item, i, items[i].Count);
             }
@@ -359,7 +370,7 @@ namespace Game.UI
             for (int i = 0; i < _slots.Length; i++)
             {
                 if (_slots[i] != null && CountOf(_slots[i]) <= 0) _slots[i] = null; // item gone → slot clears
-                _ingredientSlots[i]?.Bind(_slots[i], CountOf(_slots[i]));
+                _ingredientSlots[i]?.Bind(_slots[i]);
             }
 
             ExperimentState state = CookingRules.EvaluateExperiment(_slots, CountOf);

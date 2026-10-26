@@ -20,8 +20,9 @@ MonoBehaviour:
   worldItemPrefab: {fileID: 6583291676696942107, guid: 3fb97729cc2e10c4db331f4b5b0b2469, type: 3}
   buyValue: 6
   sellValue: 3
-  isIngredient: 1
+  isIngredient: 0
   consumable: 1
+  _kind: 1
   _healAmount: 15
   _overTimeEffect: {fileID: 11400000, guid: 2278b93e14adaae479eafb9a84a50639, type: 2}
   _durationMinutes: 60

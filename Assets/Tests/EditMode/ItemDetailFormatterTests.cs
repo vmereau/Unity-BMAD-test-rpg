@@ -166,6 +166,43 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Meal_CategoryIsMeal()
+        {
+            var meal = CreatePotion(35f);
+            SetSerialized(meal, "_kind", p => p.enumValueIndex = (int)ConsumableKind.Meal);
+
+            Assert.AreEqual("Meal", ItemDetailFormatter.GetCategory(meal));
+        }
+
+        [Test]
+        public void IngredientFood_CategoryIsIngredient()
+        {
+            var apple = CreatePotion(8f);
+            apple.isIngredient = true;
+
+            Assert.AreEqual("Ingredient", ItemDetailFormatter.GetCategory(apple));
+        }
+
+        [Test]
+        public void MealFlaggedIngredient_IngredientWins()
+        {
+            var meal = CreatePotion(35f);
+            SetSerialized(meal, "_kind", p => p.enumValueIndex = (int)ConsumableKind.Meal);
+            meal.isIngredient = true;
+
+            Assert.AreEqual("Ingredient", ItemDetailFormatter.GetCategory(meal));
+        }
+
+        [Test]
+        public void IngredientPlainItem_CategoryIsIngredient()
+        {
+            var salt = Create<ItemSO>();
+            salt.isIngredient = true;
+
+            Assert.AreEqual("Ingredient", ItemDetailFormatter.GetCategory(salt));
+        }
+
+        [Test]
         public void Food_HealOverTime_ShowsDuration()
         {
             var food = CreatePotion(8f);

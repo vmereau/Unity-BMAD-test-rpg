@@ -18,6 +18,8 @@ namespace Game.UI
         private const string CATEGORY_WEAPON = "Weapon";
         private const string CATEGORY_ARMOR_PREFIX = "Armor · ";
         private const string CATEGORY_POTION = "Potion";
+        private const string CATEGORY_MEAL = "Meal";
+        private const string CATEGORY_INGREDIENT = "Ingredient";
         private const string CATEGORY_SKILL_TOME = "Skill Tome";
         private const string CATEGORY_RECIPE = "Recipe";
         private const string CATEGORY_USABLE = "Usable";
@@ -51,8 +53,11 @@ namespace Game.UI
         public static string GetCategory(ItemSO item) => item switch
         {
             null => "",
+            // Any item type can be a cooking ingredient (raw food is a PotionItemSO): the flag wins over the class.
+            { isIngredient: true } => CATEGORY_INGREDIENT,
             WeaponSO => CATEGORY_WEAPON,
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
+            PotionItemSO { Kind: ConsumableKind.Meal } => CATEGORY_MEAL,
             PotionItemSO => CATEGORY_POTION,
             SkillItemSO => CATEGORY_SKILL_TOME,
             RecipeItemSO => CATEGORY_RECIPE,

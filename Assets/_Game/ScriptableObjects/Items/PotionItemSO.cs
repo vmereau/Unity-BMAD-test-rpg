@@ -6,6 +6,14 @@ using UnityEngine;
 
 namespace Game.Inventory
 {
+    /// <summary>What a <see cref="PotionItemSO"/> is shown as. Raw food is flagged <see cref="ItemSO.isIngredient"/> instead.</summary>
+    // Serialized as int: only append new values, never reorder.
+    public enum ConsumableKind
+    {
+        Potion = 0,
+        Meal = 1
+    }
+
     /// <summary>
     /// A consumable potion / food that restores player health when used from the inventory: instantly (potions), or
     /// over <see cref="DurationMinutes"/> game minutes through a <see cref="StatusEffectSO"/> on the player's
@@ -19,6 +27,8 @@ namespace Game.Inventory
     {
         private const string TAG = "[Inventory]";
 
+        [Tooltip("Meal = cooked food (never an ingredient). Raw food is flagged isIngredient and shown as Ingredient.")]
+        [SerializeField] private ConsumableKind _kind = ConsumableKind.Potion;
         [SerializeField] private float _healAmount = 30f;
 
         [Header("Heal over time (food)")]
@@ -36,6 +46,7 @@ namespace Game.Inventory
         // Runtime only: the missing-host warning is logged once per item.
         [System.NonSerialized] private bool _warnedNoHost;
 
+        public ConsumableKind Kind => _kind;
         public float HealAmount => _healAmount;
 
         /// <summary>True when the heal is delivered over time instead of instantly.</summary>
@@ -164,6 +175,8 @@ namespace Game.Inventory
         protected override void OnValidate()
         {
             base.OnValidate();
+            if (_kind == ConsumableKind.Meal && isIngredient)
+                GameLog.Warn(TAG, $"{name}: a Meal is flagged isIngredient — cooked meals shouldn't be cooking ingredients");
             if ((_overTimeEffect != null) != (_durationMinutes > 0f))
                 GameLog.Warn(TAG, $"{name}: heal over time needs both an effect and a duration — it heals instantly");
             if (_permanentBonuses == null) return;
