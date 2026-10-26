@@ -50,9 +50,12 @@ the food item, not on the recipe, so a bought / looted copy counts too. Details:
 - `CookingUI` (`IScreenPanel`, nested in `UICanvas`, inactive): shared player grid + **Experiment** / **Recipes** tabs
   (opens on Experiment, inactive tab tinted). Same lifecycle as `ContainerUI` (Esc / `OnPlayerDied` close, input
   disposed in `OnDestroy`); `SaveSystem` refuses save / load while `IsOpen`.
-- **Experiment:** only `ItemSO.isIngredient` items are accepted (others show "<name> isn't an ingredient"). 3 `CookingIngredientSlotUI` (`_slotIndex` 0–2) **references** (`ItemSO`, like action bar slots), reset
-  on every open. Set by dropping an inventory / action bar slot or double-clicking a grid slot (first empty slot);
-  cleared by right-click or dragging out. Cook consumes one unit per filled slot → the matching station recipe's output
+- **Player grid lists ingredients only** (both tabs). Each `ItemSlotUI` keeps its real inventory index as `SlotIndex`, so
+  grid child position ≠ inventory index — resolve a clicked slot with `FindGridSlot(SlotIndex)`, never `GetChild(index)`.
+- **Experiment:** only `ItemSO.isIngredient` items are accepted (others, e.g. a meal dragged from the action bar,
+  show "<name> isn't an ingredient"). Cooked meals (`PotionItemSO` `Meal`) are never ingredients. 3
+  `CookingIngredientSlotUI` (`_slotIndex` 0–2) **references** (`ItemSO`, like action bar slots), reset on every open. Set by dropping an inventory / action bar slot or double-clicking a grid slot (first empty slot);
+  cleared by right-click, double-click or dragging out. Slots show the icon only — no stack count (a cook uses one unit). Cook consumes one unit per filled slot → the matching station recipe's output
   (learning it the first time: "New recipe: …") or `_failedDish` (`Item_ReplenishingStew`). The preview never reveals
   an unknown recipe ("Unknown result"). After a cook, slots whose item ran short clear.
 - **Recipes:** station recipes ∩ known, as `CookingRecipeRowUI` rows (`Prefabs/UI/Cooking/CookingRecipeRow.prefab`);

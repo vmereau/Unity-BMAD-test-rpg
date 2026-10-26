@@ -54,7 +54,7 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 | `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
-| `isIngredient` | `bool` | Accepted by the cooking Experiment slots (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (food `PotionItemSO`, future non-edible ingredients) can be one |
+| `isIngredient` | `bool` | Accepted by the cooking Experiment slots and the only items the cooking grid lists (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (raw food `PotionItemSO`, future non-edible ingredients) can be one. Its detail category is **Ingredient**, whatever the class. Never set it on a cooked meal |
 
 Create via **Assets → Create → Items → Item**.
 
@@ -91,6 +91,7 @@ Adds to `UsableItemSO`:
 
 | Field | Type | Purpose |
 |---|---|---|
+| `_kind` / `Kind` | `ConsumableKind` | `Potion` (default) or `Meal` (cooked food) — the detail category. Raw food stays `Potion` but is `isIngredient`, so it shows "Ingredient". `OnValidate` warns on `Meal` + `isIngredient` |
 | `_healAmount` | `float` | HP restored on use (default 30) |
 | `HealAmount` (property) | `float` | Public read accessor |
 
