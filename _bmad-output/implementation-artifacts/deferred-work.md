@@ -71,3 +71,39 @@
 - **Dialogue-type rewards re-fire on every node replay** (pre-existing; worse with item rewards) — `WorldStateManager.SetFact` raises `OnDialoguePlayed` even when the fact is already true, so `PlayerRewards.HandleDialoguePlayed` re-applies XP / gold / items. Only an inspector warning guards item rewards for now; apply Dialogue rewards on the false→true transition (or a claim key).
 - **Spider quest tracks 2 spiders, text says "All five"** (pre-existing, Quest Explorer V13) — `Mem_Guard_Spiders_Already_Killed` / step 1 use two `KilledFact`s; the "I've already killed the spiders" path completes the quest without it being started. Align facts and text.
 - **Quest reward race during load** — `RestoreFacts` (`BeginLoad`) runs before `QuestEventsManager.ReseedState` (`FinishLoad`); a fact change during the async region reload could fire `OnQuestCompleted` and its rewards / toasts. Reseed right after `RestoreFacts` or ignore fact changes while loading.
+
+## From spec-game-clock-and-bed-sleep (2026-10-26)
+
+Follow-up features built on `GameClock` (split out of the time-tracking request):
+
+- **Status effects (over-time)** — `StatusEffectSO` (duration, tick interval, per-tick heal / damage, stat modifiers,
+  icon, tags, stacking policy: refresh / extend / stack-to-N / keep-stronger) + runtime instance (`appliedAt`,
+  `expiresAt` on the `GameClock` timeline, never countdowns) + an effect host component that ticks from the clock,
+  resolves `OnTimeSkipped` in one `AdvanceTo(t)` pass (sleep pays out / expires effects), saves and raises HUD events.
+  Decisions so far: **food is always over time** (today `PotionItemSO` heals food instantly — migrate it);
+  **healing potions stay instant**; regen potions maybe later; magic undecided; whether NPCs / enemies host effects
+  (poisoned weapons) undecided.
+- **NPC routines** — stateless `NpcScheduleSO` blocks (`start → end : activity @ waypoint`, Gothic daily-routine style)
+  evaluated from the time of day; NPCs re-evaluate on `OnHourChanged` / `OnTimeSkipped` and snap to their block on region
+  load (no off-screen simulation). Gating (asleep trainer can't teach) reads the current activity. Region-scene NPCs can't
+  serialize a ref to Core's `GameClock` — they need the time from the events or a new read path (decide then).
+  Supersedes the `bool isDay` / `OnDayNightChanged` plan in `game-architecture.md`.
+- **Day/night lighting** — sun / ambient driven by `GameClock` time of day (the empty `DayNightController` stub GO in
+  Core.unity).
+- **Wait anywhere** — explicitly not wanted for now (beds only); revisit if needed.
+- `SleepUI` is a world screen like `CookingUI`: the pre-existing "character tabs open over world screens" gap applies
+  (I / J / K / P during the sleep panel or fade).
+
+### Review findings deferred (spec-game-clock-and-bed-sleep, 2026-10-26)
+
+- **Hour listeners after a load / skip** — `GameClock.Restore` raises nothing and `SkipTo` raises only the final hour, so
+  future hour consumers (routines, lighting) must re-evaluate from `Now` on `OnLoadFinished` / `OnTimeSkipped` instead of
+  relying on every `OnHourChanged`; hour-specific triggers inside a skipped span are not delivered. Decide when the first
+  listener lands.
+- **Failed load leaves the restored clock** — `BeginLoad` restores the time before the region reload and `FailLoad`
+  doesn't roll it back (same pre-existing gap as facts / recipe crafts).
+- **Sleep hostile gate is distance-only** — no line of sight / awareness: a hostile behind a wall or a passive
+  hostile-faction animal within `sleepHostileRadius` blocks the bed. Revisit with real bed placements.
+- **World keeps running under the sleep panel and fade** — the player is busy (cursor unlocked) but enemies still act;
+  the header time is captured at open and goes stale; a hostile arriving during the 0.5 s fade isn't re-checked at the skip.
+  Same pattern as cooking / containers; consider pausing gameplay (or the clock) while `SleepUI.IsOpen`.
