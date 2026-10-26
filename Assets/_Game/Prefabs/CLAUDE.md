@@ -17,6 +17,7 @@
 | `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes, Weapon Creator |
 | `Harvestables/` | Fixed world resources (plants…) — contract below |
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
+| `World/Beds/` | Beds (multi-look) — contract below |
 
 ---
 
@@ -55,3 +56,13 @@
 - `_recipes` is set on the base, so every look inherits it; override it on a variant only for a different station
   type. Stations are stateless — no `SaveableObject` / save ID.
 - `CookingStation_Fireplace` = `SM_Fireplace2` (Hivemind, URP-compatible materials).
+
+## Beds (`World/Beds/`)
+
+- Same multi-look contract as cooking stations: new look = **prefab variant of `Bed_Base`** (root: layer Interactable (8),
+  `Bed`, trigger `BoxCollider`, `InteractionHighlight`; empty `Model` child — never put a model on the base) with the
+  model prefab nested under `Model` and the root collider refit to its bounds. The model keeps its own solid colliders.
+- `_onSleepRequested` (`OnBedSleepRequested`) is set on the base, so every look inherits it. Beds are stateless — no
+  `SaveableObject` / save ID.
+- `Bed_WoodBed_01a` = HouseForge `SM_WoodBed_01a` (in the `HDRP (Default)` folder, but `S_MasterORM` has a URP target;
+  long axis = local X). Instance `Bed` in StartingTown next to the fireplace.
