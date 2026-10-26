@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fc72a5fd4614454592bcc2fe583a69a, type: 3}
   m_Name: TimeConfig
   m_EditorClassIdentifier: Game::Game.Core.TimeConfigSO
-  realMinutesPerGameDay: 96
+  realMinutesPerGameDay: 180
   startHour: 8
   morningHour: 6
   eveningHour: 18
