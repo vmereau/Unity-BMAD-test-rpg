@@ -108,9 +108,18 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   policies (extend / keep-stronger), effect tags, NPC / enemy hosts (poisoned weapons). Regen potions maybe later;
   magic undecided.
 - **`SE_WellFed` has no icon** — HUD shows an amber square; needs an icon prompt (`ui:create` / `items:icon-prompt`).
-- **Food still reads "Potion"** in the item detail category — a `Food` label (or a split item class) would read better.
+- ~~**Food still reads "Potion"**~~ — resolved by spec-cooking-ingredient-categories (Ingredient / Meal / Potion).
 - **Failed load leaves restored state** — same `FailLoad` gap as the clock: effects aren't touched by `BeginLoad`, but
   the clock is, so a failed load can make current effects catch up / pay against the restored time.
 - **No host-level tests** (from review) — `StatusEffectHost` Capture → Restore round-trip, invalid / unknown entry
   rejection, clear on death and the `IsLoading` skip are covered by a manual play smoke test only; an EditMode test with
   a stub catalog + clock would lock them in.
+
+## From spec-cooking-ingredient-categories (2026-10-26)
+
+- **Short-slot cue lost** — Experiment slots no longer show a count; when the same item fills more slots than the
+  player owns, nothing marks which slot is short (only "Not enough ingredients"). Tint the short slot instead.
+- **Recipe input without `isIngredient`** — hidden from the cooking grid but still cookable from the Recipes tab;
+  `CookingStation` only warns. Consider a validator error (Quest Explorer-style) for such recipes.
+- **Stale grid child on same-frame refresh** — `RefreshGrid` uses `Destroy` (end of frame), so a hotkey refresh and a
+  double-click in one frame can resolve an old slot (pre-existing with the old `GetChild`). Unparent before destroy.
