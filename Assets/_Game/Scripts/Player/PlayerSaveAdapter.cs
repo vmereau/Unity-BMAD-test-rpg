@@ -5,6 +5,7 @@ using Game.Core;
 using Game.Economy;
 using Game.Inventory;
 using Game.Progression;
+using Game.StatusEffects;
 using UnityEngine;
 
 namespace Game.Player
@@ -36,6 +37,7 @@ namespace Game.Player
         [SerializeField] private PlayerController _playerController;
         // Lives on a child of the Player rig — falls back to GetComponentInChildren.
         [SerializeField] private EquipmentVisuals _equipmentVisuals;
+        [SerializeField] private StatusEffectHost _statusEffects;
 
         private void Awake()
         {
@@ -53,6 +55,7 @@ namespace Game.Player
             Fallback(ref _stateManager);
             Fallback(ref _characterController);
             Fallback(ref _playerController);
+            Fallback(ref _statusEffects);
             if (_equipmentVisuals == null) _equipmentVisuals = GetComponentInChildren<EquipmentVisuals>(true);
             if (_equipmentVisuals == null) GameLog.Warn(TAG, "PlayerSaveAdapter: EquipmentVisuals not found — weapon may stay drawn after a load");
         }
@@ -115,6 +118,7 @@ namespace Game.Player
                 }
             }
             if (_gold != null) d.gold = _gold.Gold;
+            if (_statusEffects != null) d.statusEffects = _statusEffects.Capture();
             return d;
         }
 
@@ -143,6 +147,8 @@ namespace Game.Player
             // Max-health bonus first so the restored health isn't clamped to the base max.
             _health?.RestoreMaxHealthBonus(d.bonusMaxHealth);
             _health?.RestoreHealth(d.health);
+            // After the revive: effects resume from the (already restored) clock without re-applying item side effects.
+            _statusEffects?.Restore(d.statusEffects);
             _stamina?.RefillToMax();
             _stateManager?.SetDead(false);
             // Sneak isn't saved — every load starts standing.

@@ -3,6 +3,7 @@ using Game.Core;
 using Game.Crafting;
 using Game.Inventory;
 using Game.Progression;
+using Game.StatusEffects;
 using Game.UI;
 using NUnit.Framework;
 using UnityEditor;
@@ -162,6 +163,30 @@ namespace Tests.EditMode
             AssertLine(_lines[0], "Restores Health", "+30", StatPolarity.Positive);
             AssertLine(_lines[1], "Consumable", "", StatPolarity.Neutral);
             AssertLine(_lines[2], "Stack", "up to 10", StatPolarity.Neutral);
+        }
+
+        [Test]
+        public void Food_HealOverTime_ShowsDuration()
+        {
+            var food = CreatePotion(8f);
+            var effect = Create<StatusEffectSO>();
+            SetSerialized(food, "_overTimeEffect", p => p.objectReferenceValue = effect);
+            SetSerialized(food, "_durationMinutes", p => p.floatValue = 90f);
+
+            ItemDetailFormatter.BuildStatLines(food, _lines);
+
+            AssertLine(_lines[0], "Restores Health", "+8 over 1 h 30 min", StatPolarity.Positive);
+        }
+
+        [Test]
+        public void Food_EffectWithoutDuration_ShowsInstantHeal()
+        {
+            var food = CreatePotion(8f);
+            SetSerialized(food, "_overTimeEffect", p => p.objectReferenceValue = Create<StatusEffectSO>());
+
+            ItemDetailFormatter.BuildStatLines(food, _lines);
+
+            AssertLine(_lines[0], "Restores Health", "+8", StatPolarity.Positive);
         }
 
         [Test]

@@ -23,3 +23,7 @@ MonoBehaviour:
   isIngredient: 1
   consumable: 1
   _healAmount: 15
+  _overTimeEffect: {fileID: 11400000, guid: 2278b93e14adaae479eafb9a84a50639, type: 2}
+  _durationMinutes: 60
+  _permanentBonuses: []
+  _onMealBonusGained: {fileID: 0}

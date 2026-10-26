@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 464579833497779598}
   - component: {fileID: 8712925390410062336}
   - component: {fileID: 1465710742913293695}
+  - component: {fileID: 4294196649070488938}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -653,6 +654,7 @@ MonoBehaviour:
   _characterController: {fileID: 2359178426121249023}
   _playerController: {fileID: 1472347261729272162}
   _equipmentVisuals: {fileID: 3975145126963483010}
+  _statusEffects: {fileID: 4294196649070488938}
 --- !u!114 &464579833497779598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -699,6 +701,22 @@ MonoBehaviour:
   _sleepUI: {fileID: 1308075166766243545}
   _onSleepRequested: {fileID: 11400000, guid: dc1b856880c48da49b4c520be307df17, type: 2}
   _onSleepRefused: {fileID: 11400000, guid: 78c9d8ed88772cd4f8658d3e4fb6dccd, type: 2}
+--- !u!114 &4294196649070488938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a15bb1148d2fc0498e0a85340bafcc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.StatusEffects.StatusEffectHost
+  _gameClock: {fileID: 0}
+  _playerHealth: {fileID: 6838483035695751856}
+  _catalog: {fileID: 11400000, guid: dfceae58cb261cc4fa9de45633747b46, type: 2}
+  _onStatusEffectsChanged: {fileID: 11400000, guid: e4617c202cbf64040ab13d2bafb53ccd, type: 2}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1623,6 +1641,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -50
       objectReference: {fileID: 0}
+    - target: {fileID: 2443036651925414638, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _host
+      value: 
+      objectReference: {fileID: 4294196649070488938}
     - target: {fileID: 2564636402463475811, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1899,6 +1921,10 @@ PrefabInstance:
       propertyPath: _playerHealth
       value: 
       objectReference: {fileID: 6838483035695751856}
+    - target: {fileID: 5949940221769850009, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _statusEffects
+      value: 
+      objectReference: {fileID: 4294196649070488938}
     - target: {fileID: 6379699551145700745, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

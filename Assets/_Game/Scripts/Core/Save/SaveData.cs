@@ -36,6 +36,16 @@ namespace Game.Core
         public string itemId;
     }
 
+    /// <summary>One active status effect instance — absolute <c>GameClock</c> times, so it resumes from the restored clock.</summary>
+    public class StatusEffectSaveData
+    {
+        public string effectId;
+        public double appliedAt;
+        public double expiresAt;
+        public float totalAmount;
+        public float paidAmount;
+    }
+
     /// <summary>Header shown in the slot list without interpreting the rest of the file.</summary>
     public class SaveMeta
     {
@@ -65,6 +75,8 @@ namespace Game.Core
         public Dictionary<string, string> equipped = new Dictionary<string, string>();
         public List<ActionBarSlotSaveData> actionBar = new List<ActionBarSlotSaveData>();
         public int gold;
+        /// <summary>Active status effects (food heal over time). Missing in older saves → none.</summary>
+        public List<StatusEffectSaveData> statusEffects = new List<StatusEffectSaveData>();
     }
 
     /// <summary>

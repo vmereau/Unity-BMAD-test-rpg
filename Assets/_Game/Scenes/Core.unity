@@ -1159,6 +1159,10 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
+    - target: {fileID: 4294196649070488938, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
+      propertyPath: _gameClock
+      value: 
+      objectReference: {fileID: 377510055}
     - target: {fileID: 4611910828656956525, guid: cd76728c1fb075549ac8f31a5e727fe5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

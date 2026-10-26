@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Core;
 using Game.Inventory;
+using Game.StatusEffects;
 using UnityEngine;
 
 namespace Game.UI
@@ -25,6 +26,7 @@ namespace Game.UI
 
         private const string LABEL_DAMAGE = "Damage";
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
+        private const string OVER_TIME_PREFIX = " over ";
         private const string LABEL_TEACHES = "Teaches";
         private const string LABEL_LP_COST = "LP Cost";
         private const string LABEL_STATUS = "Status";
@@ -78,7 +80,12 @@ namespace Game.UI
                     AddBonus(into, LABEL_DAMAGE, Mathf.RoundToInt(weapon.damageBonus));
                     break;
                 case PotionItemSO potion when Mathf.RoundToInt(potion.HealAmount) > 0:
-                    AddBonus(into, LABEL_RESTORES_HEALTH, Mathf.RoundToInt(potion.HealAmount));
+                    int heal = Mathf.RoundToInt(potion.HealAmount);
+                    if (potion.HealsOverTime)
+                        into.Add(new ItemStatLine(LABEL_RESTORES_HEALTH,
+                            Signed(heal) + OVER_TIME_PREFIX + StatusEffectMath.FormatDuration(potion.DurationMinutes), StatPolarity.Positive));
+                    else
+                        AddBonus(into, LABEL_RESTORES_HEALTH, heal);
                     break;
                 case SkillItemSO skillItem when skillItem.Skill != null:
                     into.Add(new ItemStatLine(LABEL_TEACHES, skillItem.Skill.displayName));
