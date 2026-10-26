@@ -123,3 +123,13 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   `CookingStation` only warns. Consider a validator error (Quest Explorer-style) for such recipes.
 - **Stale grid child on same-frame refresh** — `RefreshGrid` uses `Destroy` (end of frame), so a hotkey refresh and a
   double-click in one frame can resolve an old slot (pre-existing with the old `GetChild`). Unparent before destroy.
+
+## From spec-day-night-cycle (2026-10-26)
+
+- **Region scene played alone has no light** — StartingTown's directional light moved to Core; nothing bootstraps
+  Core when a region is played on its own. Add an editor play-mode bootstrap (or an editor-only preview light).
+- **Editor vs build sky differ** — builds keep Core active (built-in Default-Skybox); the editor often runs with
+  StartingTown active (`SkyboxLite`). Pick the intended skybox and set it on Core (or `SetActiveScene(region)`).
+- **Reflection cubemap not re-rendered** — night only scales `reflectionIntensity`; a `DynamicGI.UpdateEnvironment`
+  on daylight steps (or a custom night cubemap) would tint reflections properly.
+- **No day/night event** — `OnDayNightChanged` (`GameEventSO_Bool`) for NPC schedules / torches when they arrive.
