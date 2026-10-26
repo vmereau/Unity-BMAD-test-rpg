@@ -16,6 +16,7 @@ namespace Tests.EditMode
             region = "StartingTown",
             worldFacts = new Dictionary<string, bool> { { "Killed.abc", true }, { "World.gate", false } },
             recipeCrafts = new Dictionary<string, int> { { "Recipe.Known.Sandwich", 2 } },
+            worldTimeSeconds = 2 * 86400d + 6 * 3600d,
             player = new PlayerSaveData
             {
                 position = SVector3.From(new Vector3(1f, 2f, 3f)),
@@ -53,6 +54,7 @@ namespace Tests.EditMode
             Assert.AreEqual(77, copy.player.gold);
             Assert.AreEqual("sword", copy.player.equipped["Weapon"]);
             Assert.AreEqual(2, copy.recipeCrafts["Recipe.Known.Sandwich"]);
+            Assert.AreEqual(2 * 86400d + 6 * 3600d, copy.worldTimeSeconds);
         }
 
         [Test]
@@ -65,6 +67,18 @@ namespace Tests.EditMode
             var copy = JsonConvert.DeserializeObject<SaveData>(json);
 
             Assert.IsNull(copy.recipeCrafts);
+            Assert.AreEqual(true, copy.worldFacts["Killed.abc"]);
+        }
+
+        [Test]
+        public void OlderSave_WithoutWorldTime_LoadsNull()
+        {
+            var obj = JObject.FromObject(BuildFull());
+            Assert.IsTrue(obj.Remove("worldTimeSeconds"));
+
+            var copy = JsonConvert.DeserializeObject<SaveData>(obj.ToString());
+
+            Assert.IsNull(copy.worldTimeSeconds);
             Assert.AreEqual(true, copy.worldFacts["Killed.abc"]);
         }
 

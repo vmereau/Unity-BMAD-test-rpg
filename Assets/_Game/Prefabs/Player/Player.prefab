@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 914494134842668152}
   - component: {fileID: 464579833497779598}
   - component: {fileID: 8712925390410062336}
+  - component: {fileID: 1465710742913293695}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -679,6 +680,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Crafting.CookingSystem
   _onOpenRequested: {fileID: 11400000, guid: 72e52cc6667a03e4cacda9553ee920b9, type: 2}
   _cookingUI: {fileID: 874663416753351339}
+--- !u!114 &1465710742913293695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22ce09fa83fc8bb4a955dac8aba363f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.SleepSystem
+  _config: {fileID: 11400000, guid: a2213bbf30bcbe64fb1580c2e07727c2, type: 2}
+  _gameClock: {fileID: 0}
+  _playerHealth: {fileID: 6838483035695751856}
+  _factionMember: {fileID: 2891873373869844298}
+  _sleepUI: {fileID: 1308075166766243545}
+  _onSleepRequested: {fileID: 11400000, guid: dc1b856880c48da49b4c520be307df17, type: 2}
+  _onSleepRefused: {fileID: 11400000, guid: 78c9d8ed88772cd4f8658d3e4fb6dccd, type: 2}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -2105,6 +2125,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602fcae58a7a0b14a85d6f24b389697b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.CookingUI
+--- !u!114 &1308075166766243545 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5761039122091186936, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+  m_PrefabInstance: {fileID: 6761140961654539297}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf2944721847b4419b67ac6133e78e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.SleepUI
 --- !u!114 &1651187422288820590 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5421867585498856783, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}

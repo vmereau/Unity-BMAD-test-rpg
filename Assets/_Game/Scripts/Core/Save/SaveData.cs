@@ -100,6 +100,8 @@ namespace Game.Core
         public Dictionary<string, bool> worldFacts;
         /// <summary>RecipeFact key → times cooked. Optional: null in saves made before it existed (= nothing cooked).</summary>
         public Dictionary<string, int> recipeCrafts;
+        /// <summary>GameClock world time (game seconds). Optional: null in saves made before the clock existed (= new-game start).</summary>
+        public double? worldTimeSeconds;
         public PlayerSaveData player;
         public Dictionary<string, ObjectSaveData> objects = new Dictionary<string, ObjectSaveData>();
         /// <summary>Save keys of scene-authored objects removed from the world (e.g. picked-up items).</summary>

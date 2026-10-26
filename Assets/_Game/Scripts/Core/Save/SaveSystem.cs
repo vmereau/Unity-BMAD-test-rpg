@@ -35,6 +35,8 @@ namespace Game.Core
         [SerializeField] private PlayerHealth _playerHealth;
         [SerializeField] private ContainerUI _containerUI;
         [SerializeField] private CookingUI _cookingUI;
+        [SerializeField] private SleepUI _sleepUI;
+        [SerializeField] private GameClock _gameClock;
         [SerializeField] private QuestEventsManager _questEvents;
         [SerializeField] private ConfirmDialogUI _confirmDialog; // F9 is ignored while a Game Menu confirm is open
 
@@ -73,6 +75,8 @@ namespace Game.Core
             if (_sceneLoader == null) GameLog.Error(TAG, "SceneLoader not assigned — saving and loading are disabled");
             if (_player == null) GameLog.Error(TAG, "PlayerSaveAdapter not assigned — saving and loading are disabled");
             if (_onSaveNotification == null) GameLog.Warn(TAG, "OnSaveNotification not assigned — save feedback will only be logged");
+            if (_gameClock == null) GameLog.Warn(TAG, "GameClock not assigned — world time is not saved");
+            if (_sleepUI == null) GameLog.Warn(TAG, "SleepUI not assigned — saving / loading isn't blocked while sleeping");
 
             _input = new InputSystem_Actions();
         }
@@ -144,6 +148,7 @@ namespace Game.Core
             else if (_playerState != null && _playerState.IsInDialogue) reason = "Can't save during a conversation";
             else if (_containerUI != null && _containerUI.IsOpen) reason = "Can't save while looting";
             else if (_cookingUI != null && _cookingUI.IsOpen) reason = "Can't save while cooking";
+            else if (_sleepUI != null && _sleepUI.IsOpen) reason = "Can't save while sleeping";
             return reason == null;
         }
 
@@ -194,6 +199,7 @@ namespace Game.Core
                 recipeCrafts = WorldStateManager.Instance != null
                     ? WorldStateManager.Instance.CaptureRecipeCrafts()
                     : new Dictionary<string, int>(),
+                worldTimeSeconds = _gameClock != null ? _gameClock.Now : (double?)null,
                 player = player,
                 objects = new Dictionary<string, ObjectSaveData>(_objectStates),
                 consumedObjects = new List<string>(_consumed),
@@ -351,6 +357,7 @@ namespace Game.Core
             if (_playerState != null && _playerState.IsInDialogue) reason = "Can't load during a conversation";
             else if (_containerUI != null && _containerUI.IsOpen) reason = "Can't load while looting";
             else if (_cookingUI != null && _cookingUI.IsOpen) reason = "Can't load while cooking";
+            else if (_sleepUI != null && _sleepUI.IsOpen) reason = "Can't load while sleeping";
             return reason == null;
         }
 
@@ -368,6 +375,7 @@ namespace Game.Core
 
             WorldStateManager.Instance?.RestoreFacts(data.worldFacts);
             WorldStateManager.Instance?.RestoreRecipeCrafts(data.recipeCrafts);
+            if (_gameClock != null) _gameClock.Restore(data.worldTimeSeconds);
             // Copies: later captures must never mutate the loaded data (the new-game snapshot is reused).
             _objectStates = new Dictionary<string, ObjectSaveData>(data.objects ?? new Dictionary<string, ObjectSaveData>());
             _consumed = new HashSet<string>(data.consumedObjects ?? new List<string>());

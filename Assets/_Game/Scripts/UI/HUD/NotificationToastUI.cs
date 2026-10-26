@@ -26,6 +26,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_String _onMealBonusGained;
         [SerializeField] private GameEventSO_Int _onRewardGoldGained;
         [SerializeField] private GameEventSO_String _onRewardItemReceived;
+        [SerializeField] private GameEventSO_String _onSleepRefused;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -82,6 +83,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onRewardGoldGained not assigned — reward gold toasts disabled");
             if (_onRewardItemReceived == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onRewardItemReceived not assigned — reward item toasts disabled");
+            if (_onSleepRefused == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onSleepRefused not assigned — sleep refusal toasts disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -100,6 +103,7 @@ namespace Game.UI
             _onMealBonusGained?.AddListener(HandleMealBonusGained);
             _onRewardGoldGained?.AddListener(HandleRewardGoldGained);
             _onRewardItemReceived?.AddListener(Show);
+            _onSleepRefused?.AddListener(Show);
         }
 
         private void OnDisable()
@@ -113,6 +117,7 @@ namespace Game.UI
             _onMealBonusGained?.RemoveListener(HandleMealBonusGained);
             _onRewardGoldGained?.RemoveListener(HandleRewardGoldGained);
             _onRewardItemReceived?.RemoveListener(Show);
+            _onSleepRefused?.RemoveListener(Show);
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");
