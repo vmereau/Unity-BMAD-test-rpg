@@ -6,7 +6,7 @@ namespace Game.Core
     public class TimeConfigSO : ScriptableObject
     {
         [Header("Clock")]
-        [Tooltip("Real minutes one game day lasts (48 → 1 game hour = 2 real minutes).")]
+        [Tooltip("Real minutes one game day lasts (96 → 1 game hour = 4 real minutes).")]
         [Min(1f)] public float realMinutesPerGameDay = 48f;
         [Tooltip("Hour of day 1 when a new game starts.")]
         [Range(0, 23)] public int startHour = 8;

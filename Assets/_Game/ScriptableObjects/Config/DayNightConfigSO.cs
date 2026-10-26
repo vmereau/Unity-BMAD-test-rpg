@@ -7,7 +7,7 @@ namespace Game.Core
     public class DayNightConfigSO : ScriptableObject
     {
         [Header("Day")]
-        [Tooltip("Hour the sun rises (06 → with sunset 22 and a 48 min game day: 32 real min of day, 16 of night).")]
+        [Tooltip("Hour the sun rises (with sunset 22: day = 16 / 24 of TimeConfig.realMinutesPerGameDay, night = 8 / 24).")]
         [Range(0f, 23.99f)] public float sunriseHour = 6f;
         [Tooltip("Hour the sun sets. Must be after sunrise.")]
         [Range(0f, 23.99f)] public float sunsetHour = 22f;

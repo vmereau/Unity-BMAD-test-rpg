@@ -34,7 +34,7 @@ namespace Game.Inventory
         [Header("Heal over time (food)")]
         [Tooltip("Status effect that delivers the heal over time. Empty = instant heal (potions).")]
         [SerializeField] private StatusEffectSO _overTimeEffect;
-        [Tooltip("Game minutes over which the heal is delivered (1 game hour = 2 real minutes). 0 = instant.")]
+        [Tooltip("Game minutes over which the heal is delivered (real length: TimeConfig.realMinutesPerGameDay / 24 per game hour). 0 = instant.")]
         [SerializeField, Min(0f)] private float _durationMinutes;
 
         [Header("First meal bonus")]
