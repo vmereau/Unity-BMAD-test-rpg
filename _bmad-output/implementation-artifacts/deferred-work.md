@@ -76,13 +76,7 @@
 
 Follow-up features built on `GameClock` (split out of the time-tracking request):
 
-- **Status effects (over-time)** — `StatusEffectSO` (duration, tick interval, per-tick heal / damage, stat modifiers,
-  icon, tags, stacking policy: refresh / extend / stack-to-N / keep-stronger) + runtime instance (`appliedAt`,
-  `expiresAt` on the `GameClock` timeline, never countdowns) + an effect host component that ticks from the clock,
-  resolves `OnTimeSkipped` in one `AdvanceTo(t)` pass (sleep pays out / expires effects), saves and raises HUD events.
-  Decisions so far: **food is always over time** (today `PotionItemSO` heals food instantly — migrate it);
-  **healing potions stay instant**; regen potions maybe later; magic undecided; whether NPCs / enemies host effects
-  (poisoned weapons) undecided.
+- **Status effects** — shipped as `spec-status-effects-food-regen` (2026-10-26); follow-ups in its section below.
 - **NPC routines** — stateless `NpcScheduleSO` blocks (`start → end : activity @ waypoint`, Gothic daily-routine style)
   evaluated from the time of day; NPCs re-evaluate on `OnHourChanged` / `OnTimeSkipped` and snap to their block on region
   load (no off-screen simulation). Gating (asleep trainer can't teach) reads the current activity. Region-scene NPCs can't
@@ -107,3 +101,16 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **World keeps running under the sleep panel and fade** — the player is busy (cursor unlocked) but enemies still act;
   the header time is captured at open and goes stale; a hostile arriving during the 0.5 s fade isn't re-checked at the skip.
   Same pattern as cooking / containers; consider pausing gameplay (or the clock) while `SleepUI.IsOpen`.
+
+## From spec-status-effects-food-regen (2026-10-26)
+
+- **Effect scope not built yet** — stat modifiers, a damage kind (poison: should it bypass Defense?), more stacking
+  policies (extend / keep-stronger), effect tags, NPC / enemy hosts (poisoned weapons). Regen potions maybe later;
+  magic undecided.
+- **`SE_WellFed` has no icon** — HUD shows an amber square; needs an icon prompt (`ui:create` / `items:icon-prompt`).
+- **Food still reads "Potion"** in the item detail category — a `Food` label (or a split item class) would read better.
+- **Failed load leaves restored state** — same `FailLoad` gap as the clock: effects aren't touched by `BeginLoad`, but
+  the clock is, so a failed load can make current effects catch up / pay against the restored time.
+- **No host-level tests** (from review) — `StatusEffectHost` Capture → Restore round-trip, invalid / unknown entry
+  rejection, clear on death and the `IsLoading` skip are covered by a manual play smoke test only; an EditMode test with
+  a stub catalog + clock would lock them in.
