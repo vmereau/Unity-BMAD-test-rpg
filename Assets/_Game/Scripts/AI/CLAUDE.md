@@ -27,6 +27,32 @@
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
+| `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine — see below. `NpcRoutineSchedule.FindBlock` is pure (`NpcRoutineScheduleTests`). |
+
+---
+
+## NPC routines (NpcRoutine → EntityBrain)
+
+- `NpcRoutine` (scene component on the NPC instance, `[DefaultExecutionOrder(100)]` → after `EntityBrain.Start`) holds
+  `NpcRoutineBlock`s: `startHour` (incl.) → `endHour` (excl., wraps midnight, start == end = all day), `NpcActivity`
+  (only `Stand`), `spot` (Transform; **empty = home behaviour**: patrol waypoints, else the spawn spot). First match wins;
+  no match = home. **Stateless, not saved** — the block is derived from `GameClock.Active.Hour`, polled every
+  `_pollInterval` (1 s).
+- Block change → `EntityBrain.SetRoutineSpot(spot, snap)`; the brain stays the only mover. Snap (agent `Warp`) on the
+  first evaluation (region load) and on `OnTimeSkipped` (sleep); otherwise walk. Applied at once while Idle / Patrolling,
+  else on the next non-combat return (`ResumeNonCombat`, `CancelWarning`, `DisengageFromCombat`) — so combat / witness /
+  theft flows need no routine checks. Once routine-driven, a brain always returns to its routine target after a fight
+  (non-routine entities keep the old `_disengageState` behaviour). Idle on a routine target walks there, stops within
+  `WaypointArrivalThreshold`, then turns to the spot's yaw.
+- Walking changes wait while `CursorManager.IsLocked` is false (dialogue / trade / menus — the NPC never walks off
+  mid-conversation); snaps don't. A snap while Suspicious / Watching drops the witness flow (perception reset) and warps;
+  combat / Pursuing / Confronting keep the target for their exit (walk). Requests before `Start` completed, on a disabled
+  brain or a corpse (`EntityHealth.IsDead`, incl. save-restored ones) are stored only. Pushed > 2× the arrival threshold
+  off the spot → walks back; a partial path logs one warning.
+- No clock (region played without Core) → home behaviour, one info log.
+- `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
+- StartingTown: Blacksmith, Elder, Merchant, Villager sleep in `Village house (1)`, the Innkeeper in `Village house`
+  (spots under `NpcRoutineSpots`), 06–21 home / 21–06 house. The Guard has no routine.
 
 ---
 
