@@ -77,13 +77,8 @@
 Follow-up features built on `GameClock` (split out of the time-tracking request):
 
 - **Status effects** — shipped as `spec-status-effects-food-regen` (2026-10-26); follow-ups in its section below.
-- **NPC routines** — stateless `NpcScheduleSO` blocks (`start → end : activity @ waypoint`, Gothic daily-routine style)
-  evaluated from the time of day; NPCs re-evaluate on `OnHourChanged` / `OnTimeSkipped` and snap to their block on region
-  load (no off-screen simulation). Gating (asleep trainer can't teach) reads the current activity. Region-scene NPCs can't
-  serialize a ref to Core's `GameClock` — they need the time from the events or a new read path (decide then).
-  Supersedes the `bool isDay` / `OnDayNightChanged` plan in `game-architecture.md`.
-- **Day/night lighting** — sun / ambient driven by `GameClock` time of day (the empty `DayNightController` stub GO in
-  Core.unity).
+- **NPC routines** — shipped as `spec-npc-routines-day-night` (2026-10-27); follow-ups in its section below.
+- ~~**Day/night lighting**~~ — shipped as `spec-day-night-cycle` (2026-10-26).
 - **Wait anywhere** — explicitly not wanted for now (beds only); revisit if needed.
 - `SleepUI` is a world screen like `CookingUI`: the pre-existing "character tabs open over world screens" gap applies
   (I / J / K / P during the sleep panel or fade).
@@ -133,3 +128,15 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **Reflection cubemap not re-rendered** — night only scales `reflectionIntensity`; a `DynamicGI.UpdateEnvironment`
   on daylight steps (or a custom night cubemap) would tint reflections properly.
 - **No day/night event** — `OnDayNightChanged` (`GameEventSO_Bool`) for NPC schedules / torches when they arrive.
+
+## From spec-npc-routines-day-night (2026-10-27)
+
+- **Activities** — only `NpcActivity.Stand`; forging / eating / sleeping need animations (driver hook) and spot props.
+- **Dialogue / trade gating by activity** — read `NpcRoutine.CurrentActivity` (a sleeping trainer can't teach; "come
+  back in the morning"). Today NPCs can be talked to anywhere, any time.
+- **Doors** — NPCs can't open doors; only the two door-less village houses are used. `DoorInteractable` houses
+  (`House`) need NPCs to open / close (and ignore their own lock) on the way.
+- **`OnDayNightChanged`** (`GameEventSO_Bool`) still not built — routines poll the hour; torches / audio may want it.
+- **Snap is visible** — after a sleep skip or a load, NPCs in view teleport. Acceptable for now (Gothic does the same).
+- **Hour granularity** — blocks are whole hours; minute precision or per-NPC jitter (not all leaving at 21:00 sharp)
+  would look more natural.
