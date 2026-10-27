@@ -7,7 +7,8 @@ namespace Game.Core
     /// seconds and advances it by scaled delta time, so pausing menus (<c>timeScale = 0</c>) stop it.
     /// Raises <c>OnHourChanged</c> (hour 0–23) per crossed hour, and on <see cref="SkipTo"/> raises <c>OnTimeSkipped</c>
     /// (skipped seconds) then one <c>OnHourChanged</c> with the final hour. Saved by <c>SaveSystem</c>
-    /// (<see cref="Restore"/> raises nothing). Not a singleton: readers hold a serialized reference or listen to the events.
+    /// (<see cref="Restore"/> raises nothing). Not a singleton: Core readers hold a serialized reference or listen to the
+    /// events; region-scene readers (which can't reference Core) read the time through <see cref="Active"/>.
     /// </summary>
     public class GameClock : MonoBehaviour
     {
@@ -18,6 +19,12 @@ namespace Game.Core
         [SerializeField] private GameEventSO_Float _onTimeSkipped;
 
         private double _rate;
+
+        /// <summary>Read path for region-scene objects. Null when no running clock is loaded (e.g. a region played alone).</summary>
+        public static GameClock Active { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnPlay() => Active = null;
 
         /// <summary>Absolute world time in game seconds since day 1 00:00.</summary>
         public double Now { get; private set; }
@@ -34,8 +41,15 @@ namespace Game.Core
             }
             _rate = GameTime.Rate(_config.realMinutesPerGameDay);
             Now = GameTime.StartTime(_config.startHour);
+            if (Active != null && Active != this) GameLog.Warn(TAG, "A second GameClock awoke — it replaces the active one");
+            Active = this;
             if (_onHourChanged == null) GameLog.Warn(TAG, "_onHourChanged not assigned — hour listeners won't be notified");
             if (_onTimeSkipped == null) GameLog.Warn(TAG, "_onTimeSkipped not assigned — skip listeners won't be notified");
+        }
+
+        private void OnDestroy()
+        {
+            if (Active == this) Active = null;
         }
 
         private void Update()

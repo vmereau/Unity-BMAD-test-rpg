@@ -114,6 +114,15 @@ namespace Game.AI
         private Vector3 _idleOrigin;
         private EntityState _disengageState = EntityState.Patrolling;
 
+        // Routine (NpcRoutine): once driven, every non-combat return goes to the routine target instead of _disengageState.
+        private bool _hasRoutine;
+        private Transform _routineSpot;
+        private Vector3 _spawnPosition;
+        private Quaternion _spawnRotation;
+        private bool _routineWalk; // Idle anchored on a routine target: walk there, then face its rotation
+        private bool _warnedPartialRoutinePath;
+        private bool _started; // Start completed — routine requests before that (or after a failed setup) are stored only
+
         private float _watchLostTimer;
         private float _lastWarnTime = float.NegativeInfinity;
         private int _lastBarkIndex = -1;
@@ -222,6 +231,9 @@ namespace Game.AI
 
         private void Start()
         {
+            _spawnPosition = transform.position;
+            _spawnRotation = transform.rotation;
+
             // FactionMember.Awake has run by now (all Awakes precede any Start). If it failed to resolve a
             // faction it disabled itself but GetComponent still found it, leaving the brain silently passive —
             // surface that here instead of running forever with no possible target.
@@ -251,12 +263,14 @@ namespace Game.AI
             {
                 GameLog.Info(TAG, $"{gameObject.name}: No waypoints assigned — entering Idle wander");
                 TransitionToIdle(transform.position);
+                _started = true;
                 return;
             }
             // Initialize to last index so the first AdvanceToNextWaypoint() lands at index 0.
             _currentWaypoint = _waypoints.Length - 1;
             AdvanceToNextWaypoint();
             _state = EntityState.Patrolling;
+            _started = true;
         }
 
         private void Update()
@@ -368,7 +382,39 @@ namespace Game.AI
 
             if (_agent.pathPending) return;
 
+            if (_routineWalk) { HandleRoutineArrival(); return; }
+
             _persistentID.Entity.ExecuteIdle(_agent, _idleOrigin, ref _waitTimer);
+        }
+
+        // Walking to (or standing at) the routine target: stop on arrival, then turn to the target's facing.
+        private void HandleRoutineArrival()
+        {
+            float threshold = _persistentID.Entity.WaypointArrivalThreshold;
+            if (_agent.isStopped)
+            {
+                // Pushed off the spot after arriving (player, avoidance) → walk back.
+                Vector3 offset = _idleOrigin - transform.position;
+                offset.y = 0f;
+                if (offset.magnitude > threshold * 2f && _agent.isOnNavMesh)
+                {
+                    _agent.isStopped = false;
+                    _agent.SetDestination(_idleOrigin);
+                    return;
+                }
+            }
+            else if (_agent.remainingDistance > threshold) return;
+
+            if (_agent.pathStatus != NavMeshPathStatus.PathComplete && !_warnedPartialRoutinePath)
+            {
+                _warnedPartialRoutinePath = true;
+                GameLog.Warn(TAG, $"{gameObject.name}: routine spot {_idleOrigin} only partly reachable — stopped at {transform.position}");
+            }
+            _agent.isStopped = true;
+            Quaternion facing = _routineSpot != null ? _routineSpot.rotation : _spawnRotation;
+            facing = Quaternion.Euler(0f, facing.eulerAngles.y, 0f);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, facing,
+                _persistentID.Entity.WarningTurnSpeed * Time.deltaTime);
         }
 
         private void HandlePatrol()
@@ -894,12 +940,72 @@ namespace Game.AI
             _waitTimer = _persistentID.Entity.PatrolWaitTime;
         }
 
+        // --- Routine ---
+
+        /// <summary>
+        /// Routine target from <see cref="NpcRoutine"/>: <paramref name="spot"/> = stand there (position + facing),
+        /// null = home behaviour (patrol waypoints, else the spawn spot). Applied now while Idle / Patrolling, otherwise on
+        /// the next non-combat return. <paramref name="snap"/> warps there instead of walking (load / time skip).
+        /// </summary>
+        public void SetRoutineSpot(Transform spot, bool snap)
+        {
+            _hasRoutine = true;
+            _routineSpot = spot;
+            // Store only: setup failed / brain disabled (Awake, Start, death components) or a corpse (incl. restored ones).
+            if (!_started || !isActiveAndEnabled || _entityHealth.IsDead || _state == EntityState.Dead) return;
+
+            // A time skip outlasts a witness flow: drop it and warp. Combat / theft flows apply the target on their exit.
+            if (snap && (_state == EntityState.Suspicious || _state == EntityState.Watching))
+            {
+                _currentTarget = null;
+                if (_perception != null) _perception.ResetPerception();
+                _state = EntityState.Idle;
+            }
+            if (_state != EntityState.Idle && _state != EntityState.Patrolling) return;
+            if (snap) SnapToRoutineTarget();
+            ApplyRoutineTarget();
+        }
+
+        private void SnapToRoutineTarget()
+        {
+            Vector3 position = _routineSpot != null ? _routineSpot.position : _spawnPosition;
+            Quaternion rotation = _routineSpot != null ? _routineSpot.rotation : _spawnRotation;
+            if (!_agent.isActiveAndEnabled || !_agent.Warp(position))
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: could not warp to its routine spot {position} — walking instead");
+                return;
+            }
+            transform.rotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
+        }
+
+        // Non-combat state for the current routine target: patrol (home with waypoints) or Idle walking to the target.
+        private void ApplyRoutineTarget()
+        {
+            SetCombatState(false);
+            if (_routineSpot == null && _waypoints != null && _waypoints.Length > 0)
+            {
+                _state = EntityState.Patrolling;
+                _agent.isStopped = false;
+                _agent.stoppingDistance = 0f;
+                _agent.speed = _persistentID.Entity.BaseSpeed;
+                _agent.SetDestination(_waypoints[_currentWaypoint].position);
+                _waitTimer = _persistentID.Entity.PatrolWaitTime;
+                return;
+            }
+            Vector3 target = _routineSpot != null ? _routineSpot.position : _spawnPosition;
+            TransitionToIdle(target);
+            _routineWalk = true;
+            if (_agent.isOnNavMesh && !_agent.SetDestination(target))
+                GameLog.Warn(TAG, $"{gameObject.name}: routine spot {target} is unreachable");
+        }
+
         // --- State transitions ---
 
         private void TransitionToIdle(Vector3 origin)
         {
             _state = EntityState.Idle;
             _idleOrigin = origin;
+            _routineWalk = false;
             _waitTimer = 0f; // pick a wander target immediately on first HandleIdle tick
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
@@ -927,7 +1033,8 @@ namespace Game.AI
             // Target escaped the detection range: drop the held awareness, otherwise Idle would re-detect at once.
             if (_perception != null) _perception.ResetPerception();
             GameLog.Info(TAG, $"{gameObject.name} lost target during warning — standing down");
-            if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
+            if (_hasRoutine) ApplyRoutineTarget();
+            else if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
             else TransitionToPatrol();
         }
 
@@ -999,6 +1106,7 @@ namespace Game.AI
         private void ResumeNonCombat()
         {
             SetCombatState(false);
+            if (_hasRoutine) { ApplyRoutineTarget(); return; }
             if (_disengageState == EntityState.Idle || _waypoints == null || _waypoints.Length == 0)
             {
                 TransitionToIdle(_idleOrigin);
@@ -1039,7 +1147,12 @@ namespace Game.AI
             SetCombatState(false);
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             if (_perception != null) _perception.ResetPerception();
-            if (_disengageState == EntityState.Idle)
+            if (_hasRoutine)
+            {
+                GameLog.Info(TAG, $"{gameObject.name} disengaged — returning to its routine");
+                ApplyRoutineTarget();
+            }
+            else if (_disengageState == EntityState.Idle)
             {
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");
                 TransitionToIdle(_idleOrigin);
