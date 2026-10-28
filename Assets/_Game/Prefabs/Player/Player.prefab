@@ -273,6 +273,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
   _startingItems: []
+  _onInventoryChanged: {fileID: 11400000, guid: 7dd357d00fe84c4a9633e30300ef0bb0, type: 2}
 --- !u!114 &3975145126963483010
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -12,13 +12,8 @@
 
 ## From spec-lockpick-consumable-requirement (2026-10-22)
 
-- **Action-bar HUD not refreshed after a non-UI inventory change** — `InventorySystem` raises no change event, so
-  consuming a lockpick (`DoorSystem` / `ContainerSystem`) leaves `ActionBarUI` showing a stale stack count / stale
-  slot until the next `OnActionBarUsed`. Hotkey use is safe (`HandleHotkeyPressed` now re-validates indices); a proper
-  fix is an inventory-changed `GameEventSO` that `ActionBarUI` listens to.
-- **Failed-lock toast spam** — each E press on a locked door raises a new "You need a lockpick" / skill toast; five
-  presses fill the toast stack and evict XP / save toasts. Consider de-duplicating identical consecutive toasts in
-  `NotificationToastUI`.
+- ~~**Action-bar HUD not refreshed after a non-UI inventory change**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
+- ~~**Failed-lock toast spam**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
 - **Quest log "new entry" marker** (from `spec-quest-log-info-panel-redesign`, 2026-10-23) — flag a quest row when
   a part / step became active since the player last viewed it. Needs a persisted per-quest "last seen" snapshot (save
   system) — out of scope for the redesign.
@@ -41,12 +36,8 @@
 
 ## From spec-cooking-stations (2026-10-23 review)
 
-- **Character tabs open over world screens** (pre-existing, `ContainerUI` too) — `UIScreenManager.OpenTab` doesn't check
-  `ContainerUI` / `CookingUI` `IsOpen`; I / J / K / P opens a tab over them and closing it re-locks the cursor while the
-  world screen stays visible (camera turns, player can walk away, the next Esc both closes it and opens the Game Menu).
-  Fix: an "any world screen open" gate in `OpenTab` (or close the world screen first).
-- **`ItemSlotUI` drag ghost leaks when its panel closes mid-drag** (pre-existing) — `OnEndDrag` isn't delivered to an
-  inactive slot, so a ghost on the root canvas stays forever. Add `OnDisable` → `RemoveGhostImage()` in `ItemSlotUI`.
+- ~~**Character tabs open over world screens**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
+- ~~**`ItemSlotUI` drag ghost leaks when its panel closes mid-drag**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
 
 ## From spec-cooking-experiment-and-recipes (2026-10-23)
 
@@ -59,12 +50,12 @@
 ## From spec-recipe-items-and-craft-count (2026-10-23 review)
 
 - **Recipe item for a recipe no station lists** — `RecipeItemSO` sets the fact even when no `CookingStation._recipes` contains its `RecipeSO`; the player pays for a recipe that never shows in any Recipes tab. Add a validator (Quest Explorer or `ItemCatalog` sync) that every recipe-item recipe is cooked somewhere.
-- **Inventory selection after the last unit is used** (pre-existing, `InventoryUI.RefreshSlots`) — using a stack of 1 keeps `_selectedSlotIndex`, so the detail panel jumps to whichever item shifted into that index. Clear or re-target the selection when the selected slot's item changes.
+- ~~**Inventory selection after the last unit is used**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
 
 ## From spec-meal-permanent-stat-bonus (2026-10-23 review)
 
 - **Meal claim vs max-HP bonus restore in two load phases** — `SaveSystem.BeginLoad` restores facts (incl. `Meal.BonusClaimed.*`) before the region reload, `PlayerSaveAdapter` restores `bonusMaxHealth` after. If the reload fails (`FailLoad`), facts are already replaced while the player keeps its bonus → the meal can be claimed again. Pre-existing atomicity gap of facts vs player state; restore facts on `FailLoad` or apply both together.
-- **Detail panel stale after an action-bar use while the inventory is open** (pre-existing for recipe items too) — `ActionBarSystem` use doesn't repaint `InventoryUI`'s detail, so a just-claimed "First meal" row stays green until reselect.
+- ~~**Detail panel stale after an action-bar use while the inventory is open**~~ — resolved by spec-ui-state-hygiene (2026-10-28).
 
 ## From spec-quest-item-rewards-trout-recipe (2026-10-24 review)
 
@@ -80,8 +71,7 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **NPC routines** — shipped as `spec-npc-routines-day-night` (2026-10-27); follow-ups in its section below.
 - ~~**Day/night lighting**~~ — shipped as `spec-day-night-cycle` (2026-10-26).
 - **Wait anywhere** — explicitly not wanted for now (beds only); revisit if needed.
-- `SleepUI` is a world screen like `CookingUI`: the pre-existing "character tabs open over world screens" gap applies
-  (I / J / K / P during the sleep panel or fade).
+- ~~`SleepUI` tabs-over-world-screen gap~~ — resolved by spec-ui-state-hygiene (2026-10-28).
 
 ### Review findings deferred (spec-game-clock-and-bed-sleep, 2026-10-26)
 
@@ -149,3 +139,20 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **Camera vs body line of sight:** occlusion is tested from the OTS camera, so items round a doorframe corner the camera sees past are reachable. Consider a second probe from the player's chest.
 - **Interactables never occlude:** closed doors (Interactable layer) don't hide loot behind them (Default-only mask chosen 2026-10-28).
 - **PlayMode coverage:** no PlayMode test drives `IsOccluded` with real colliders (wall, trigger wall, self collider).
+
+## From spec-ui-state-hygiene (2026-10-28 review)
+
+- **Inventory grid rebuilt several times per action** — `OnPlayerInventoryChanged` fires per mutation, so an equip from the
+  open grid rebuilds it 3× (AddItem, RemoveItem, `OnEquipmentChanged`) and a hotkey consume 2× (channel + `OnActionBarUsed`);
+  each rebuild destroys / re-instantiates every slot. Coalesce (dirty flag consumed once per frame) or pool slot rows.
+- **Listener exception mid-transfer** — `GameEventSO.Raise` has no try/catch and now runs between the two halves of
+  `ContainerUI.PutItem` / `NPCTradeUI.SellItem` / `EquipmentSystem.Equip`; a throwing listener (only on misconfigured
+  prefabs today) would skip the second half (item lost / duplicated). Isolate listener invokes in `Raise` or raise once
+  after the whole operation.
+- **Cooking refund vs action-bar binding** — `CookingUI.TryCraft` consumes per ingredient; each consume now re-validates
+  the bar, so a failed craft that refunds an action-bar-bound last unit leaves that bar slot cleared. Rare (`HasIngredients`
+  is checked first). `CookingUI.NotifyInventoryChanged`'s `REFRESH_ONLY` raise is now partly redundant with the channel.
+- **Tab gate trusts the raw cursor state** — `UIScreenManager.OpenTab` ignores I/J/K/P whenever no tab is open and the
+  cursor is unlocked; an unlock not owned by a screen (Editor Esc / focus loss, `CameraController` disabled before its
+  `Lock()`) would block tabs. Same assumption as `PlayerStateManager.IsBusy` / `_wasGameplayLastFrame`; playtest, and
+  switch to an explicit "world screen open" counter if it bites.

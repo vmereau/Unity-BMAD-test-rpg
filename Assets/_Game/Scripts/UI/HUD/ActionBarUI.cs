@@ -12,6 +12,7 @@ namespace Game.UI
         [SerializeField] private ActionBarSlotUI[] _slotUIs;
         [SerializeField] private InventorySystem _inventorySystem;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
+        [SerializeField] private GameEventSO_Void _onInventoryChanged;
 
         private void Awake()
         {
@@ -38,14 +39,22 @@ namespace Game.UI
         private void OnEnable()
         {
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
+            _onInventoryChanged?.AddListener(HandleInventoryChanged);
         }
 
         private void OnDisable()
         {
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
+            _onInventoryChanged?.RemoveListener(HandleInventoryChanged);
         }
 
         private void HandleActionBarUsed(int _)
+        {
+            Refresh();
+        }
+
+        // Non-UI changes too (lockpick consumed by DoorSystem / ContainerSystem, pickups, loot).
+        private void HandleInventoryChanged(bool _)
         {
             Refresh();
         }

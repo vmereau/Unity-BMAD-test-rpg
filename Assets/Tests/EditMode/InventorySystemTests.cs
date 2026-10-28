@@ -476,5 +476,84 @@ namespace Tests.EditMode
             Assert.IsFalse(_inventory.TryConsume(null));
             Assert.AreEqual(1, _inventory.Count);
         }
+
+        // ── OnPlayerInventoryChanged channel ─────────────────────────────────
+
+        private void WireChangedChannel()
+        {
+            var channel = ScriptableObject.CreateInstance<Game.Core.GameEventSO_Void>();
+            _createdChannels.Add(channel);
+            typeof(InventorySystem)
+                .GetField("_onInventoryChanged", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(_inventory, channel);
+            _raiseCount = 0;
+            channel.AddListener(_ => _raiseCount++);
+        }
+
+        private int _raiseCount;
+        private readonly List<Object> _createdChannels = new List<Object>();
+
+        [TearDown]
+        public void TearDownChannels()
+        {
+            foreach (var c in _createdChannels) Object.DestroyImmediate(c);
+            _createdChannels.Clear();
+        }
+
+        [Test]
+        public void Changed_RaisedByEveryMutation()
+        {
+            WireChangedChannel();
+            var potion = CreateTestPotion();
+            var key = CreateTestItem("Key");
+
+            _inventory.AddItem(potion);      // new slot
+            _inventory.AddItem(potion);      // stacked
+            _inventory.AddItem(key);
+            Assert.AreEqual(3, _raiseCount);
+
+            _inventory.MoveItem(0, 1);
+            _inventory.DecrementStack(1);    // potion 2 → 1
+            _inventory.TryConsume(potion);   // last unit → slot removed
+            _inventory.RemoveItem(0);
+            Assert.AreEqual(7, _raiseCount);
+
+            _inventory.RestoreSlots(new[] { ((ItemSO)key, 1) });
+            Assert.AreEqual(8, _raiseCount);
+        }
+
+        [Test]
+        public void Changed_NotRaisedOnFailedCalls()
+        {
+            WireChangedChannel();
+            _inventory.AddItem(null);
+            _inventory.RemoveItem(0);
+            _inventory.DecrementStack(3);
+            _inventory.MoveItem(0, 1);
+            _inventory.TryConsume(CreateTestItem());
+            Assert.AreEqual(0, _raiseCount);
+        }
+
+        [Test]
+        public void Changed_NotRaisedOnSameSlotMove()
+        {
+            _inventory.AddItem(CreateTestItem());
+            WireChangedChannel();
+            _inventory.MoveItem(0, 0);
+            Assert.AreEqual(0, _raiseCount);
+        }
+
+        [Test]
+        public void Changed_NoChannel_MutationsStillWork()
+        {
+            var potion = CreateTestPotion();
+            Assert.DoesNotThrow(() =>
+            {
+                _inventory.AddItem(potion);
+                _inventory.DecrementStack(0);
+                _inventory.RestoreSlots(null);
+            });
+            Assert.AreEqual(0, _inventory.Count);
+        }
     }
 }

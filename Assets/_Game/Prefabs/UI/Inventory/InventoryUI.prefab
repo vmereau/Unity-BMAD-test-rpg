@@ -65,6 +65,7 @@ MonoBehaviour:
   _actionBarUI: {fileID: 0}
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
+  _onInventoryChanged: {fileID: 11400000, guid: 7dd357d00fe84c4a9633e30300ef0bb0, type: 2}
   _equipmentSystem: {fileID: 0}
   _equipmentUI: {fileID: 3423425567139468230}
   _onEquipmentChanged: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}

@@ -16,7 +16,7 @@ namespace Game.UI
         [SerializeField] private GoldSystem _goldSystem;
         [SerializeField] private TMP_Text _goldText;
         [SerializeField] private GameObject _panelRoot;
-[SerializeField] private Transform _contentRoot;
+        [SerializeField] private Transform _contentRoot;
         [SerializeField] private GameObject _itemSlotPrefab;
         [SerializeField] private Canvas _canvas;
         [SerializeField] private Transform _playerTransform;
@@ -28,6 +28,7 @@ namespace Game.UI
         [SerializeField] private ActionBarUI _actionBarUI;
         [SerializeField] private GameEventSO_Int _onGoldChanged;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
+        [SerializeField] private GameEventSO_Void _onInventoryChanged;
 
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private EquipmentUI _equipmentUI;
@@ -39,12 +40,18 @@ namespace Game.UI
 
         private int _selectedSlotIndex = -1;
         private ItemSlotUI _selectedSlotUI = null;
+        private ItemSO _selectedItem = null; // selection follows the item, not the index
+        private bool _isOpen;
+        private readonly System.Collections.Generic.List<Transform> _staleSlots = new System.Collections.Generic.List<Transform>();
 
         private void Awake()
         {
             // Close context menu on any click over the panel background (not a slot)
             var panelClickHandler = _panelRoot.AddComponent<AnyButtonClickListener>();
             panelClickHandler.callback = (_) => HideContextMenu();
+
+            if (_onInventoryChanged == null)
+                GameLog.Warn(TAG, "_onInventoryChanged not assigned — grid won't repaint on inventory changes");
         }
 
         private void OnEnable()
@@ -52,6 +59,7 @@ namespace Game.UI
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
             _onEquipmentChanged?.AddListener(HandleEquipmentSlotsChange);
             _onGoldChanged?.AddListener(HandleGoldChanged);
+            _onInventoryChanged?.AddListener(HandleInventoryChanged);
             UpdateGoldDisplay();
         }
 
@@ -60,12 +68,14 @@ namespace Game.UI
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
             _onEquipmentChanged?.RemoveListener(HandleEquipmentSlotsChange);
             _onGoldChanged?.RemoveListener(HandleGoldChanged);
+            _onInventoryChanged?.RemoveListener(HandleInventoryChanged);
         }
 
         private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
 
         public void OnScreenOpen()
         {
+            _isOpen = true;
             RefreshSlots();
             _equipmentUI?.Refresh();
             _equipmentUI?.gameObject.SetActive(true);
@@ -75,6 +85,7 @@ namespace Game.UI
 
         public void OnScreenClose()
         {
+            _isOpen = false;
             HideContextMenu();
             ClearSelection();
             _equipmentUI?.gameObject.SetActive(false);
@@ -87,8 +98,22 @@ namespace Game.UI
                 _goldText.text = $"{_goldSystem.Gold}g";
         }
 
-        private void HandleActionBarUsed(int _) => RefreshSlots(false);
-        private void HandleEquipmentSlotsChange(bool _) => RefreshSlots();
+        private void HandleActionBarUsed(int _) { if (_isOpen) RefreshSlots(false); }
+        private void HandleEquipmentSlotsChange(bool _) { if (_isOpen) RefreshSlots(); }
+        // ActionBarUI listens to the same channel, so the bar isn't refreshed from here. An outside change (hotkey,
+        // loot) can shift slots under an open context menu → close it so Drop / Use can't hit the wrong item.
+        private void HandleInventoryChanged(bool _)
+        {
+            if (!_isOpen) return;
+            HideContextMenu();
+            RefreshSlots(false);
+        }
+
+        // Own mutations repaint through _onInventoryChanged; only repaint by hand when it isn't wired.
+        private void RefreshIfUnwired()
+        {
+            if (_onInventoryChanged == null) RefreshSlots();
+        }
 
         public void DropItem(int slotIndex)
         {
@@ -113,7 +138,7 @@ namespace Game.UI
             var dropPos = _playerTransform.position + _playerTransform.forward * 1.5f + Vector3.up * 0.5f;
             var go = Instantiate(item.worldItemPrefab, dropPos, Quaternion.identity);
             go.GetComponent<Rigidbody>().AddForce(_playerTransform.forward * 2f + Vector3.up * 1f, ForceMode.Impulse);
-            RefreshSlots();
+            RefreshIfUnwired();
             GameLog.Info(TAG, $"Dropped: {item.itemName}");
         }
 
@@ -137,7 +162,7 @@ namespace Game.UI
             if (used && usable.consumable)
             {
                 _inventorySystem.DecrementStack(slotIndex);
-                RefreshSlots();
+                RefreshIfUnwired();
                 GameLog.Info(TAG, $"Consumed: {item.itemName}");
             }
             else if (used)
@@ -165,7 +190,7 @@ namespace Game.UI
                     return;
                 }
                 _equipmentSystem.Equip(slotIndex);
-                RefreshSlots();
+                RefreshIfUnwired();
             }
             else if (item is UsableItemSO)
             {
@@ -180,7 +205,7 @@ namespace Game.UI
         public void SwapSlots(int a, int b, IItemSlotContainer source)
         {
             _inventorySystem.MoveItem(a, b);
-            RefreshSlots();
+            RefreshIfUnwired();
         }
 
         public void ShowContextMenu(int slotIndex, Vector2 screenPos, IItemSlotContainer source)
@@ -258,7 +283,7 @@ namespace Game.UI
                     bool canEquip = _equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item);
                     equipBtnTransform.gameObject.SetActive(canEquip);
                     if (canEquip)
-                        equipBtn.onClick.AddListener(() => { _equipmentSystem.Equip(_contextMenuSlotIndex); RefreshSlots(); HideContextMenu(); });
+                        equipBtn.onClick.AddListener(() => { _equipmentSystem.Equip(_contextMenuSlotIndex); RefreshIfUnwired(); HideContextMenu(); });
                 }
             }
         }
@@ -278,6 +303,7 @@ namespace Game.UI
             newSlot.SetSelected(true);
             _selectedSlotIndex = slotIndex;
             _selectedSlotUI = newSlot;
+            _selectedItem = _inventorySystem.Items[slotIndex].Item;
             UpdateDetailPanel(_inventorySystem.Items[slotIndex].Item, slotIndex);
         }
 
@@ -292,6 +318,7 @@ namespace Game.UI
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotIndex = -1;
             _selectedSlotUI = null;
+            _selectedItem = null;
             _detailPanelUI?.Hide();
         }
 
@@ -300,8 +327,16 @@ namespace Game.UI
             // Null out stale UI reference before destroying slot GameObjects
             _selectedSlotUI = null;
 
+            // Unparent before Destroy (end of frame) so GetChild below — and a same-frame SelectSlot — hit the new slots.
+            _staleSlots.Clear();
             foreach (Transform child in _contentRoot)
+                _staleSlots.Add(child);
+            foreach (var child in _staleSlots)
+            {
+                child.SetParent(null, false);
                 Destroy(child.gameObject);
+            }
+            _staleSlots.Clear();
 
             var items = _inventorySystem.Items;
             for (int i = 0; i < items.Count; i++)
@@ -311,23 +346,36 @@ namespace Game.UI
                 slotUI.Bind(items[i].Item, i, items[i].Count);
             }
 
-            // Restore selection if selected slot index is still valid after refresh
-            if (_selectedSlotIndex >= 0 && _selectedSlotIndex < items.Count)
+            // Selection follows its item: same index if it still holds it, else the first slot holding it, else cleared.
+            int newIndex = FindSelectedItemIndex(items);
+            if (newIndex >= 0)
             {
-                var slot = _contentRoot.GetChild(_selectedSlotIndex).GetComponent<ItemSlotUI>();
+                _selectedSlotIndex = newIndex;
+                var slot = _contentRoot.GetChild(newIndex).GetComponent<ItemSlotUI>();
                 _selectedSlotUI = slot;
                 slot.SetSelected(true);
-                UpdateDetailPanel(items[_selectedSlotIndex].Item, _selectedSlotIndex);
+                UpdateDetailPanel(items[newIndex].Item, newIndex);
             }
             else
             {
                 _selectedSlotIndex = -1;
+                _selectedItem = null;
                 _detailPanelUI?.Hide();
             }
 
             // refresh action bar if any item was binded to it.
             if (!refreshActionBar) return;
             _actionBarUI?.Refresh();
-            }
-            }
-            }
+        }
+
+        private int FindSelectedItemIndex(System.Collections.Generic.IReadOnlyList<InventorySlot> items)
+        {
+            if (_selectedItem == null) return -1;
+            if (_selectedSlotIndex >= 0 && _selectedSlotIndex < items.Count && items[_selectedSlotIndex].Item == _selectedItem)
+                return _selectedSlotIndex;
+            for (int i = 0; i < items.Count; i++)
+                if (items[i].Item == _selectedItem) return i;
+            return -1;
+        }
+    }
+}

@@ -177,8 +177,8 @@ namespace Game.Inventory
 
         private void HandleHotkeyPressed(int slotIndex)
         {
-            // Inventory raises no change event — re-sync indices first in case slots shifted since the
-            // last HUD refresh (e.g. a lockpick consumed by DoorSystem / ContainerSystem).
+            // Re-sync indices first in case slots shifted since the last refresh (cheap; the HUD also
+            // re-validates on OnPlayerInventoryChanged).
             if (_inventorySystem == null) return;
             ValidateSlots();
 

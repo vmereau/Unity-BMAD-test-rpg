@@ -80,7 +80,9 @@ public interface IScreenPanel
   `_wasGameplayLastFrame` (sampled in `LateUpdate`: cursor locked, not dead, not loading). The previous-frame sample is
   what stops the Esc that closes dialogue / container / trade (their own Cancel handlers re-lock the cursor in the same
   frame, in undefined order) from also opening the menu.
-- Tab toggles and `OpenTab` are ignored while the Game Menu is open or the player is dead / in dialogue.
+- Tab toggles and `OpenTab` are ignored while the Game Menu is open or the player is dead / in dialogue, and **whenever no
+  tab is open but the cursor is already unlocked** — a world screen (container, cooking, sleep incl. fade, trade) owns it.
+  This gate is generic: a new world screen needs no wiring as long as it unlocks the cursor while open.
 - `OnLoadStarted` closes every tab.
 
 ---

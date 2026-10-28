@@ -13,7 +13,7 @@ namespace Game.UI
     /// open tab → close it; Game Menu open → <see cref="GameMenuUI.HandleBack"/>; plain gameplay → open the Game Menu.
     /// "Plain gameplay" is sampled in LateUpdate (previous frame), so the Esc press that closes a dialogue /
     /// container / trade window (whose own Cancel handlers re-lock the cursor this frame) never also opens the menu.
-    /// Closes every tab when a load starts or the player dies.
+    /// Closes every tab when a load starts or the player dies. Tabs never open over a world screen (cursor already unlocked).
     /// </summary>
     public class UIScreenManager : MonoBehaviour
     {
@@ -105,6 +105,12 @@ namespace Game.UI
             if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.IsDead)) return;
             if (IsGameMenuOpen) return;
             if (_activeTab == tab) return;
+            // No tab open but the cursor is unlocked → a world screen (container, cooking, sleep, trade) owns it.
+            if (!_activeTab.HasValue && !CursorManager.IsLocked)
+            {
+                GameLog.Info(TAG, $"OpenTab({tab}) ignored — cursor unlocked by another screen");
+                return;
+            }
 
             // Close current tab content if switching
             if (_activeTab.HasValue && _activeTab.Value != tab)

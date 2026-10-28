@@ -11,6 +11,7 @@ namespace Game.UI
     /// message per event, and shows a vertical stack of fading toasts (FIFO, capped at _maxVisible).
     /// Lives on the UICanvas Game/HUD layer alongside HealthBarUI / StaminaBarUI.
     /// Each toast fades in, holds for _holdSeconds, then fades out and is destroyed.
+    /// A message identical to the newest visible toast restarts that toast's hold instead of stacking a new one.
     /// </summary>
     public class NotificationToastUI : MonoBehaviour
     {
@@ -39,12 +40,13 @@ namespace Game.UI
         [SerializeField] private float _fadeOutSeconds = 0.3f;
 
         private readonly List<ActiveToast> _active = new List<ActiveToast>();
-        private WaitForSecondsRealtime _holdWait;
 
         private class ActiveToast
         {
             public GameObject Go;
             public Coroutine Routine;
+            public string Message;
+            public CanvasGroup Group;
         }
 
         private void Awake()
@@ -88,8 +90,6 @@ namespace Game.UI
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
-            // Realtime hold so toasts still expire while the game is paused (timeScale = 0).
-            _holdWait = new WaitForSecondsRealtime(_holdSeconds);
         }
 
         private void OnEnable()
@@ -118,6 +118,12 @@ namespace Game.UI
             _onRewardGoldGained?.RemoveListener(HandleRewardGoldGained);
             _onRewardItemReceived?.RemoveListener(Show);
             _onSleepRefused?.RemoveListener(Show);
+
+            // Disabling kills the coroutines — drop their toasts too, or they'd stay frozen on screen (and a matching
+            // message would revive one through the dedup).
+            foreach (var toast in _active)
+                if (toast.Go != null) Destroy(toast.Go);
+            _active.Clear();
         }
 
         private void HandleXPGained(int amount) => Show($"Experience +{amount}");
@@ -143,6 +149,19 @@ namespace Game.UI
             // Coroutines silently stop while inactive — don't queue toasts we can't animate.
             if (!gameObject.activeInHierarchy) return;
 
+            // Dedup: same text as the newest visible toast → keep it on screen and restart its hold.
+            if (_active.Count > 0)
+            {
+                ActiveToast newest = _active[_active.Count - 1];
+                if (newest.Go != null && newest.Message == message)
+                {
+                    if (newest.Routine != null) StopCoroutine(newest.Routine);
+                    if (newest.Group != null) newest.Group.alpha = 1f;
+                    newest.Routine = StartCoroutine(RunToast(newest, newest.Group, skipFadeIn: true));
+                    return;
+                }
+            }
+
             // FIFO eviction: drop the oldest toast immediately when at capacity.
             while (_active.Count >= _maxVisible)
             {
@@ -160,15 +179,15 @@ namespace Game.UI
             var canvasGroup = go.GetComponent<CanvasGroup>();
             if (canvasGroup != null) canvasGroup.alpha = 0f;
 
-            var toast = new ActiveToast { Go = go };
+            var toast = new ActiveToast { Go = go, Message = message, Group = canvasGroup };
             _active.Add(toast);
-            toast.Routine = StartCoroutine(RunToast(toast, canvasGroup));
+            toast.Routine = StartCoroutine(RunToast(toast, canvasGroup, skipFadeIn: false));
         }
 
-        private IEnumerator RunToast(ActiveToast toast, CanvasGroup canvasGroup)
+        private IEnumerator RunToast(ActiveToast toast, CanvasGroup canvasGroup, bool skipFadeIn)
         {
             // Fade in
-            if (canvasGroup != null && _fadeInSeconds > 0f)
+            if (!skipFadeIn && canvasGroup != null && _fadeInSeconds > 0f)
             {
                 float t = 0f;
                 while (t < _fadeInSeconds)
@@ -180,8 +199,14 @@ namespace Game.UI
             }
             if (canvasGroup != null) canvasGroup.alpha = 1f;
 
-            // Hold
-            yield return _holdWait;
+            // Hold — unscaled timer (not a shared WaitForSecondsRealtime: its deadline would be shared by every
+            // toast and survive a dedup restart), so toasts still expire while paused (timeScale = 0).
+            float held = 0f;
+            while (held < _holdSeconds)
+            {
+                held += Time.unscaledDeltaTime;
+                yield return null;
+            }
 
             // Fade out
             if (canvasGroup != null && _fadeOutSeconds > 0f)

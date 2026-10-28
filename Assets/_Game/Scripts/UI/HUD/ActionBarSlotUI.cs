@@ -159,6 +159,12 @@ namespace Game.UI
             }
         }
 
+        // OnEndDrag is never delivered to a slot disabled mid-drag — drop the ghost here.
+        private void OnDisable()
+        {
+            RemoveGhostImage();
+        }
+
         public void RemoveGhostImage()
         {
             if (_ghostImage != null)

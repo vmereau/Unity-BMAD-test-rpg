@@ -57,7 +57,8 @@ Action names (Cancel, Click, DialogueOption*, toggles): `Assets/_Game/CLAUDE.md`
 - Subscribe to `GameEventSO<T>` channels in `OnEnable` / unsubscribe in `OnDisable` — never in `Start`
   (missed first raises) and never poll game state in `Update`.
 - Drag & drop ghosts are parented to the root Canvas with `raycastTarget = false` (otherwise they block the
-  drop target) and destroyed by whichever of `OnEndDrag` / `OnDrop` runs, null-guarded.
+  drop target) and destroyed by whichever of `OnEndDrag` / `OnDrop` runs, null-guarded — **and in the slot's `OnDisable`**
+  (`OnEndDrag` never reaches a slot disabled / destroyed mid-drag, so the ghost would leak).
 - Text is `TMP_Text` only.
 
 ---

@@ -34,6 +34,11 @@ namespace Game.Inventory
 
         [SerializeField] private List<StartingItem> _startingItems = new List<StartingItem>();
 
+        [Tooltip("Optional. Raised after every successful change (not for starting items). Wire on the player only — NPC / monster inventories stay silent.")]
+        [SerializeField] private GameEventSO_Void _onInventoryChanged;
+
+        private bool _isInitializing;
+
         private readonly List<InventorySlot> _slots = new List<InventorySlot>();
 
         public IReadOnlyList<InventorySlot> Items => _slots;
@@ -42,17 +47,28 @@ namespace Game.Inventory
 
         private void Awake()
         {
-            foreach (var starting in _startingItems)
+            _isInitializing = true;
+            try
             {
-                if (starting.item == null) continue;
-                
-                // Use AddItem logic to handle stacking if necessary, 
-                // but since we might want specific stack counts from the start:
-                for (int i = 0; i < starting.count; i++)
+                foreach (var starting in _startingItems)
                 {
-                    AddItem(starting.item);
+                    if (starting.item == null) continue;
+                
+                    // Use AddItem logic to handle stacking if necessary, 
+                    // but since we might want specific stack counts from the start:
+                    for (int i = 0; i < starting.count; i++)
+                    {
+                        AddItem(starting.item);
+                    }
                 }
             }
+            finally { _isInitializing = false; }
+        }
+
+        private void RaiseChanged()
+        {
+            if (_isInitializing) return;
+            _onInventoryChanged?.Raise(true);
         }
 
         /// <summary>
@@ -75,6 +91,7 @@ namespace Game.Inventory
                     {
                         _slots[i] = new InventorySlot(item, _slots[i].Count + 1);
                         GameLog.Info(TAG, $"Stacked: {item.itemName} (slot {i}, count={_slots[i].Count})");
+                        RaiseChanged();
                         return true;
                     }
                 }
@@ -82,6 +99,7 @@ namespace Game.Inventory
 
             _slots.Add(new InventorySlot(item, 1));
             GameLog.Info(TAG, $"Picked up: {item.itemName} (total slots: {_slots.Count})");
+            RaiseChanged();
             return true;
         }
 
@@ -100,6 +118,7 @@ namespace Game.Inventory
             var item = _slots[index].Item;
             _slots.RemoveAt(index);
             GameLog.Info(TAG, $"Removed slot: {item.itemName} (total slots: {_slots.Count})");
+            RaiseChanged();
             return item;
         }
 
@@ -128,6 +147,7 @@ namespace Game.Inventory
                 GameLog.Info(TAG, $"Consumed last: {existing.Item.itemName} (total slots: {_slots.Count})");
             }
 
+            RaiseChanged();
             return existing.Item;
         }
 
@@ -165,12 +185,15 @@ namespace Game.Inventory
         public void RestoreSlots(IEnumerable<(ItemSO item, int count)> slots)
         {
             _slots.Clear();
-            if (slots == null) return;
-            foreach (var (item, count) in slots)
+            if (slots != null)
             {
-                if (item == null) continue;
-                _slots.Add(new InventorySlot(item, Mathf.Clamp(count, 1, Mathf.Max(1, item.maxStacks))));
+                foreach (var (item, count) in slots)
+                {
+                    if (item == null) continue;
+                    _slots.Add(new InventorySlot(item, Mathf.Clamp(count, 1, Mathf.Max(1, item.maxStacks))));
+                }
             }
+            RaiseChanged();
         }
 
         public void MoveItem(int fromIndex, int toIndex)
@@ -180,7 +203,9 @@ namespace Game.Inventory
                 GameLog.Warn(TAG, $"MoveItem: index out of range (from={fromIndex}, to={toIndex}, count={_slots.Count})");
                 return;
             }
+            if (fromIndex == toIndex) return;
             (_slots[fromIndex], _slots[toIndex]) = (_slots[toIndex], _slots[fromIndex]);
+            RaiseChanged();
         }
     }
 }

@@ -28,6 +28,12 @@ namespace Game.UI
             _canvas = GetComponentInParent<Canvas>();
         }
 
+        // OnEndDrag is never delivered to a slot disabled / destroyed mid-drag — drop the ghost here.
+        private void OnDisable()
+        {
+            RemoveGhostImage();
+        }
+
         public void Bind(ItemSO item, int index, int stackCount = 1)
         {
             Item = item;
