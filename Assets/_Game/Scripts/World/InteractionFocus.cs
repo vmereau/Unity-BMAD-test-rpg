@@ -28,6 +28,14 @@ namespace Game.World
         public static string ResolveName(IInteractable interactable) =>
             IsAlive(interactable) ? interactable.NameTag ?? "" : "";
 
+        /// <summary>
+        /// Length of the occlusion probe from the camera to a sphere-cast hit point, stopped
+        /// <paramref name="backoff"/> short so the surface the target rests on doesn't block it.
+        /// 0 = skip the probe: a hit at distance 0 means the cast started inside the target.
+        /// </summary>
+        public static float OcclusionProbeLength(float hitDistance, float distanceToPoint, float backoff) =>
+            hitDistance <= 0f ? 0f : Mathf.Max(0f, distanceToPoint - backoff);
+
         public static uint WithLayer(uint mask, uint bits) => mask | bits;
 
         public static uint WithoutLayer(uint mask, uint bits) => mask & ~bits;

@@ -282,5 +282,25 @@ namespace Tests.EditMode
             Assert.AreEqual(Color.red, InteractionFocus.ResolveOutlineColor(false, Color.magenta, true, Color.red, Color.yellow));
             Assert.AreEqual(Color.yellow, InteractionFocus.ResolveOutlineColor(false, Color.magenta, false, Color.red, Color.yellow));
         }
+
+        // ── Occlusion probe ────────────────────────────────────────────────────
+
+        [Test]
+        public void OcclusionProbe_InitialOverlap_SkipsProbe()
+        {
+            Assert.AreEqual(0f, InteractionFocus.OcclusionProbeLength(0f, 3f, 0.05f));
+        }
+
+        [Test]
+        public void OcclusionProbe_NormalHit_StopsShortOfPoint()
+        {
+            Assert.AreEqual(2.95f, InteractionFocus.OcclusionProbeLength(2.5f, 3f, 0.05f), 1e-5f);
+        }
+
+        [Test]
+        public void OcclusionProbe_PointCloserThanBackoff_ClampsToZero()
+        {
+            Assert.AreEqual(0f, InteractionFocus.OcclusionProbeLength(0.01f, 0.02f, 0.05f));
+        }
     }
 }

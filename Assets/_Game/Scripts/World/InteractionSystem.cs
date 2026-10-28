@@ -17,6 +17,8 @@ namespace Game.World
         [SerializeField] private Color _highlightColor = Color.yellow;
 
         [SerializeField] private LayerMask _raycastMask;
+        [Tooltip("Layers that hide an interactable behind them (walls, floors, terrain).")]
+        [SerializeField] private LayerMask _occlusionMask = 1; // Default
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_InteractionFocus _onFocusChanged;
@@ -48,6 +50,9 @@ namespace Game.World
         private bool _focusedIllegal;
 
         private static int s_nextTheftId;
+
+        // Occlusion probe stops this short of the hit point (target resting on a floor).
+        private const float OCCLUSION_BACKOFF = 0.05f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnPlay() => s_nextTheftId = 0;
@@ -106,6 +111,9 @@ namespace Game.World
             if (_raycastMask == 0)
                 GameLog.Warn(TAG, "_raycastMask is 0 (Nothing) — no interactables will be detected. Assign the Interactable layer in Inspector.");
 
+            if (_occlusionMask == 0)
+                GameLog.Warn(TAG, "_occlusionMask is 0 (Nothing) — interactables can be reached through walls");
+
             if (_onFocusChanged == null)
                 GameLog.Warn(TAG, "_onFocusChanged is null — outline still works but no prompt card will be shown");
 
@@ -138,6 +146,7 @@ namespace Game.World
                 var candidate = _sphereHitBuffer[i].collider.GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
                 if (!candidate.CanInteract) continue; // in-combat NPCs (or dead) offer no prompt/interaction
+                if (IsOccluded(ray.origin, _sphereHitBuffer[i], candidate)) continue;
 
                 Vector3 toCollider = (_sphereHitBuffer[i].collider.bounds.center - ray.origin).normalized;
                 float angle = Vector3.Angle(ray.direction, toCollider);
@@ -177,6 +186,7 @@ namespace Game.World
             {
                 var candidate = _nameTagHitBuffer[i].collider.GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
+                if (IsOccluded(ray.origin, _nameTagHitBuffer[i], candidate)) continue;
                 if (!_nameTagSeen.Add(candidate)) continue; // dedup
 
                 var comp = (Component)candidate;
@@ -218,6 +228,23 @@ namespace Game.World
                 // Force a rescan next frame so a destroyed target is dropped before another [E] press.
                 _scanTimer = _config.scanInterval;
             }
+        }
+
+        /// <summary>
+        /// True when a collider on <see cref="_occlusionMask"/> sits between the camera and the hit point.
+        /// Probes toward hit.point, not along the centre ray: sphere-cast hits are offset by up to scanRadius.
+        /// A nearest blocker that belongs to the candidate (e.g. its Default-layer model collider) means the
+        /// candidate itself is in front, so it counts as visible.
+        /// </summary>
+        private bool IsOccluded(Vector3 origin, RaycastHit hit, IInteractable candidate)
+        {
+            Vector3 toPoint = hit.point - origin;
+            float length = InteractionFocus.OcclusionProbeLength(hit.distance, toPoint.magnitude, OCCLUSION_BACKOFF);
+            if (length <= 0f) return false;
+            if (!Physics.Raycast(origin, toPoint, out RaycastHit blocker, length, _occlusionMask,
+                                 QueryTriggerInteraction.Ignore))
+                return false;
+            return !ReferenceEquals(blocker.collider.GetComponentInParent<IInteractable>(), candidate);
         }
 
         private static Ownership GetOwnership(IInteractable interactable)

@@ -140,3 +140,12 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **Snap is visible** — after a sleep skip or a load, NPCs in view teleport. Acceptable for now (Gothic does the same).
 - **Hour granularity** — blocks are whole hours; minute precision or per-NPC jitter (not all leaving at 21:00 sharp)
   would look more natural.
+
+## From spec-interaction-wall-occlusion (2026-10-28)
+
+- **Initial-overlap bypass:** a sphere-cast hit with distance 0 skips the occlusion probe, so with the camera pushed against a thin wall an interactable within `scanRadius` (0.5 m) on the far side is still usable. Fix: probe toward `collider.ClosestPoint(origin)` / `bounds.center` for distance-0 hits (spec I/O row currently says "visible").
+- **Self-exemption through walls:** a candidate whose own Default collider crosses a wall (e.g. `CookingStation_Fireplace` convex hull poking out of the house wall) counts as visible from outside. Playtest; fix with non-convex / trimmed colliders on such props.
+- **Convex prop hulls hide contents:** items placed inside a convex-`MeshCollider` prop (shelf, open crate, barrel) are permanently occluded. Audit StartingTown item placements.
+- **Camera vs body line of sight:** occlusion is tested from the OTS camera, so items round a doorframe corner the camera sees past are reachable. Consider a second probe from the player's chest.
+- **Interactables never occlude:** closed doors (Interactable layer) don't hide loot behind them (Default-only mask chosen 2026-10-28).
+- **PlayMode coverage:** no PlayMode test drives `IsOccluded` with real colliders (wall, trigger wall, self collider).
