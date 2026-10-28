@@ -317,6 +317,8 @@ MonoBehaviour:
   _equipmentVisuals: {fileID: 3975145126963483010}
   _onVisualsRefreshed: {fileID: 11400000, guid: 2360a371ed2298b42981d2b6ed275384, type: 2}
   _unarmedHitbox: {fileID: 2908738489711061366}
+  _inventory: {fileID: 1994668802294238475}
+  _onCombatNotification: {fileID: 11400000, guid: 9378fcbf7485c534dabd2a7076b500fc, type: 2}
 --- !u!114 &4959302933258015613
 MonoBehaviour:
   m_ObjectHideFlags: 0

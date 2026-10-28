@@ -156,3 +156,9 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   cursor is unlocked; an unlock not owned by a screen (Editor Esc / focus loss, `CameraController` disabled before its
   `Lock()`) would block tabs. Same assumption as `PlayerStateManager.IsBusy` / `_wasGameplayLastFrame`; playtest, and
   switch to an explicit "world screen open" counter if it bites.
+
+## From spec-bow-ranged-weapon (2026-10-29 review)
+
+- Bow launch origin can sit inside a wall when the player hugs it; a sweep starting inside a non-convex MeshCollider / terrain reports nothing → the arrow passes through. Fall back to a chest/camera point when line of sight to the bow is blocked.
+- Stuck arrows aren't parented to what they hit — an arrow in a door / moving object floats when it moves.
+- In-flight projectiles live in the active scene (Core) and survive a quickload / region change (lifetime ≤ 5 s).

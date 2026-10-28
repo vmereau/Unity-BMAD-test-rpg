@@ -51,6 +51,12 @@ namespace Game.Combat
 
         [SerializeField] private GameObject _unarmedHitbox;
 
+        // TODO(Epic7-tech-debt): Cross-system direct ref (Game.Combat → Game.Inventory) — bow ammo is consumed from the
+        // player inventory. Same prototype exception as _equipmentSystem.
+        [SerializeField] private InventorySystem _inventory;
+        [Tooltip("Toast channel for combat feedback (e.g. \"Out of arrows\").")]
+        [SerializeField] private GameEventSO_String _onCombatNotification;
+
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
         private InputSystem_Actions _input;
@@ -71,6 +77,16 @@ namespace Game.Combat
 
         // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
         private readonly Collider[] _hitBuffer = new Collider[10];
+
+        // Bow aiming / firing
+        private const string OUT_OF_AMMO_MESSAGE = "Out of arrows";
+        private const float FALLBACK_LAUNCH_HEIGHT = 1.4f; // chest height when no bow visual / camera exists
+        private const float MIN_AIM_DIRECTION_SQR = 0.0001f;
+        private readonly RaycastHit[] _aimBuffer = new RaycastHit[32];
+        private int _aimLayers;
+        private int _hurtboxLayer;
+        private Camera _camera;           // crosshair ray (cached — Camera.main is a lookup)
+        private float _nextBowShotTime;   // fire cooldown
 
         private WeaponHitbox _activeHitbox;
 
@@ -111,6 +127,16 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "EquipmentVisuals not assigned — draw/sheathe will have no visual effect");
             if (_unarmedHitbox == null)
                 GameLog.Warn(TAG, "Unarmed hitbox not assigned — unarmed attacks cannot hit");
+            if (_inventory == null)
+                GameLog.Warn(TAG, "InventorySystem not assigned — bows cannot fire");
+            if (_onCombatNotification == null)
+                GameLog.Warn(TAG, "_onCombatNotification not assigned — 'Out of arrows' will only be logged");
+
+            _aimLayers = LayerMask.GetMask(GameConstants.DEFAULT_LAYER_NAME, GameConstants.CHARACTER_HITBOX_LAYER_NAME);
+            _hurtboxLayer = LayerMask.NameToLayer(GameConstants.CHARACTER_HITBOX_LAYER_NAME);
+            _camera = Camera.main;
+            if (_camera == null)
+                GameLog.Warn(TAG, "Camera.main not found — bows aim along the player's forward");
 
             _input = new InputSystem_Actions();
         }
@@ -229,6 +255,16 @@ namespace Game.Combat
             if (!_stateManager.CanAttack())
             {
                 GameLog.Warn(TAG, "Cannot attack — airborne or blocking");
+                return;
+            }
+
+            // Ranged weapon: no combo, no melee hitbox, no attack animation (for now). Read from the equipment, not
+            // _currentWeaponSO: that cache is only set by OnVisualsRefreshed and is null after a disable/enable.
+            if (_equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is BowSO bow)
+            {
+                // A melee swing still playing (weapon swapped mid-combo) finishes first.
+                if (_stateManager.IsAttacking) return;
+                TryFireBow(bow);
                 return;
             }
 
@@ -398,9 +434,16 @@ namespace Game.Combat
             _activeHitbox = null;
         }
 
-        // Mirrors EntityBrain.ExecuteAttack: TryReceiveHit first, damage only when NotBlocked.
         private void OnWeaponHit(IDamageable target, Vector3 hitPoint)
         {
+            ResolveHit(target, hitPoint, ComputeEffectiveDamage());
+        }
+
+        // Mirrors EntityBrain.ExecuteAttack: TryReceiveHit first, damage only when NotBlocked.
+        // Shared by melee hitboxes and arrows (arrow damage is snapshotted at fire time).
+        private void ResolveHit(IDamageable target, Vector3 hitPoint, float damage)
+        {
+            if (this == null) return; // arrow landing after the player was destroyed
             if (target == null || target.IsDead) return;
             HitResult result = target.TryReceiveHit(gameObject);
             if (result != HitResult.NotBlocked)
@@ -408,7 +451,6 @@ namespace Game.Combat
                 GameLog.Info(TAG, $"Weapon hit {result} at {hitPoint}");
                 return;
             }
-            float damage = ComputeEffectiveDamage();
             // Sneak attack: an entity that hasn't noticed the player takes bonus damage. The hit itself alerts it
             // (engage, or a damage-alert window for passive / neutral entities), so only the opening hit gets it.
             if (target is Component targetComponent &&
@@ -423,6 +465,109 @@ namespace Game.Combat
             }
             target.TakeDamage(damage);
             GameLog.Info(TAG, $"Weapon hit landed at {hitPoint} ({damage} dmg)");
+        }
+
+        // Bow ------------------------------------------------------------------------
+
+        // Gate order: cooldown → stamina → ammo → consume stamina → consume ammo → fire. Nothing is spent on a
+        // refused shot (ammo is checked before stamina is consumed, and consumed only after it succeeded).
+        private void TryFireBow(BowSO bow)
+        {
+            if (Time.time < _nextBowShotTime) return;
+
+            if (!bow.IsConfigured)
+            {
+                GameLog.Error(TAG, $"Bow '{bow.name}' has no ammoItem or projectilePrefab — cannot fire");
+                return;
+            }
+            if (_inventory == null)
+            {
+                GameLog.Error(TAG, "InventorySystem not assigned — bow cannot fire");
+                return;
+            }
+
+            if (!_staminaSystem.HasEnough(_config.attackStaminaCost))
+            {
+                GameLog.Warn(TAG, "Cannot fire: insufficient stamina");
+                return;
+            }
+
+            if (_inventory.CountOf(bow.ammoItem) <= 0)
+            {
+                GameLog.Info(TAG, "Cannot fire: out of ammo");
+                _onCombatNotification?.Raise(OUT_OF_AMMO_MESSAGE);
+                return;
+            }
+
+            if (!_staminaSystem.Consume(_config.attackStaminaCost))
+            {
+                GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
+                return;
+            }
+            _inventory.TryConsume(bow.ammoItem);
+            _nextBowShotTime = Time.time + bow.fireCooldown;
+            FireArrow(bow);
+        }
+
+        private void FireArrow(BowSO bow)
+        {
+            Vector3 origin = GetLaunchOrigin();
+            Vector3 direction = GetAimPoint(bow.maxAimDistance) - origin;
+            if (direction.sqrMagnitude < MIN_AIM_DIRECTION_SQR) direction = transform.forward;
+
+            GameObject go = Instantiate(bow.projectilePrefab, origin, Quaternion.LookRotation(direction));
+            if (!go.TryGetComponent(out ArrowProjectile projectile))
+            {
+                GameLog.Error(TAG, $"Projectile prefab '{bow.projectilePrefab.name}' has no ArrowProjectile");
+                Destroy(go);
+                return;
+            }
+
+            float damage = ComputeRangedDamage(bow);
+            projectile.Launch(transform, direction, bow.projectileSpeed, bow.projectileLifetime,
+                (target, point) => ResolveHit(target, point, damage),
+                bow.ammoItem.worldItemPrefab);
+            GameLog.Info(TAG, $"Arrow fired ({damage} dmg), {_inventory.CountOf(bow.ammoItem)} left");
+        }
+
+        // Equipped bow (hand socket while drawn); falls back to chest height in front of the player.
+        private Vector3 GetLaunchOrigin()
+        {
+            GameObject weapon = _equipmentVisuals != null ? _equipmentVisuals.ActiveWeaponGO : null;
+            return weapon != null ? weapon.transform.position : transform.position + Vector3.up * FALLBACK_LAUNCH_HEIGHT;
+        }
+
+        // Crosshair (viewport centre) ray, skipping the player's own colliders and everything between the camera and
+        // the player (a wall behind the OTS camera, an NPC behind the player); nothing hit → max range.
+        private Vector3 GetAimPoint(float maxDistance)
+        {
+            if (_camera == null)
+                return transform.position + Vector3.up * FALLBACK_LAUNCH_HEIGHT + transform.forward * maxDistance;
+
+            Ray ray = _camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            float minDistance = Mathf.Max(0f, Vector3.Dot(transform.position - ray.origin, ray.direction));
+            int count = Physics.RaycastNonAlloc(ray, _aimBuffer, maxDistance, _aimLayers,
+                QueryTriggerInteraction.Collide);
+            float best = maxDistance;
+            for (int i = 0; i < count; i++)
+            {
+                Collider col = _aimBuffer[i].collider;
+                if (col.transform.IsChildOf(transform)) continue;
+                if (_aimBuffer[i].distance < minDistance) continue;
+                // Zones / interaction triggers don't stop the aim — only solid colliders and hurtboxes do.
+                if (col.isTrigger && col.gameObject.layer != _hurtboxLayer) continue;
+                if (_aimBuffer[i].distance < best) best = _aimBuffer[i].distance;
+            }
+            return ray.GetPoint(best);
+        }
+
+        /// <summary>Bow damage: base + Dexterity bonus + bow damageBonus (no Strength, no Power Strike).</summary>
+        private float ComputeRangedDamage(BowSO bow)
+        {
+            int dexterity = _playerStats != null ? _playerStats.Dexterity : 0;
+            int baseDexterity = _progressionConfig != null ? _progressionConfig.baseDexterity : dexterity;
+            float perDex = _progressionConfig != null ? _progressionConfig.damagePerDexterity : 0f;
+            return RangedDamage.Compute(_config.attackDamage, dexterity, baseDexterity, perDex, bow.damageBonus);
         }
 
         // Story 7.10: public methods called by AnimationEventReceiver ----------------

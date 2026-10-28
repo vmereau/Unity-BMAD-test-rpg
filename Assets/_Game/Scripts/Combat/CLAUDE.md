@@ -87,6 +87,29 @@ bool) and `EquipmentVisuals.SetCombatState(...)` (reparents the weapon visual to
 
 ---
 
+## Ranged — Bow (`BowSO` → `ArrowProjectile`)
+
+With a `BowSO` equipped, `TryAttack` skips the combo/hitbox path and calls `TryFireBow` (no attack animation yet).
+The bow is read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` (only set by `OnVisualsRefreshed`,
+null after a disable/enable). Ignored while a melee swing is still playing (`IsAttacking`).
+Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` → ammo `CountOf > 0` (else `OnCombatNotification`
+"Out of arrows" toast) → `Consume` stamina (checked) → `TryConsume` ammo → fire. A refused shot spends nothing.
+
+- Aim = crosshair ray (`ViewportPointToRay(0.5, 0.5)`) on Default + CharacterHitbox, skipping the player's own colliders,
+  hits closer than the player along the ray (wall behind the OTS camera) and non-hurtbox triggers; no hit → `maxAimDistance`.
+  Launch origin = `EquipmentVisuals.ActiveWeaponGO`.
+- **Triggers count only on the CharacterHitbox layer** (aim and arrow) — `GetComponentInParent<IDamageable>()` on any trigger
+  would let an NPC's perception / interaction sphere take the hit.
+- Damage is snapshotted at fire time: `RangedDamage.Compute` = `attackDamage` + max(0, (Dex − baseDex) × `damagePerDexterity`)
+  + bow `damageBonus` (no Strength, no Power Strike) — `RangedDamageTests`.
+- `ArrowProjectile`: straight line, no Rigidbody, per-frame `SphereCastNonAlloc` (closest valid hit — results are unsorted).
+  `IDamageable` → `PlayerCombat.ResolveHit` (same `TryReceiveHit` / sneak rule as melee), destroyed. Solid collider →
+  spawns `ammoItem.worldItemPrefab` kinematic at the impact pose (a normal pickup, not saved), **moved into the hit
+  collider's scene** — `Instantiate` targets the active scene (Core), where a reload would leave a duplicate arrow. **Prefab frame: root = arrow
+  tip, shaft along −Z** — `Projectile_Arrow` and `Item_Arrow` share it so the stuck arrow lines up.
+
+---
+
 ## Code Review Checklist — Combat Scripts
 
 | Severity | Pattern |

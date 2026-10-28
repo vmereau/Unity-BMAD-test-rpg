@@ -2092,6 +2092,7 @@ MonoBehaviour:
   _onRewardGoldGained: {fileID: 11400000, guid: 82b103c2ddf191049b54f09b345720aa, type: 2}
   _onRewardItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
   _onSleepRefused: {fileID: 11400000, guid: 78c9d8ed88772cd4f8658d3e4fb6dccd, type: 2}
+  _onCombatNotification: {fileID: 11400000, guid: 9378fcbf7485c534dabd2a7076b500fc, type: 2}
   _container: {fileID: 6661398786721482297}
   _toastEntryPrefab: {fileID: 7453757669003199702, guid: ca8bcdf22402c1144805bf7061b1a764, type: 3}
   _maxVisible: 5

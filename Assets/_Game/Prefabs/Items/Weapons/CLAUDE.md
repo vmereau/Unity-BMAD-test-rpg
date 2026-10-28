@@ -76,6 +76,7 @@ Measured art-pack frames (mesh-local):
 |------|------|-----------|-----------|-------|
 | `SM_Sword_1` | `(0, 0.35, 0)` | `NegY` | `NegX` | bounds centred at origin, size `0.1455×0.8451×0.0289`; leading edge in the sword clips = −X |
 | `SM_Axe_01` | `(0, 0.08, 0)` | `PosY` | `PosZ` | pivot at the handle end; head y≈0.39–0.58, edge z≈0.19 |
+| `SM_WeaponBow_01a` | `(0, 0, 0)` | `PosY` | `PosZ` | recurve, limbs ±0.65 Y; "edge" = belly / target side (+Z), string and tips at −Z |
 
 Per-weapon fine-tuning (a slightly different grip) goes into the `Mesh` child, never into `Drawn`/`Sheathed`.
 
@@ -94,7 +95,9 @@ Per-weapon fine-tuning (a slightly different grip) goes into the `Mesh` child, n
 - **Back socket:** `BackWeaponSocket` under `mixamorig:Spine2` (placement `(0, 0.05, -0.15)` is a first guess;
   tune it when the first Back weapon exists). If the archetype asks for Back but the socket is unassigned,
   `EquipmentVisuals` warns once and falls back to the hip.
-- Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`).
+- Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`),
+  `Archetype_Bow` (Back socket; drawn pose copied from the sword, sheathed pose a guess — tune in play mode).
+- **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
 
 ---

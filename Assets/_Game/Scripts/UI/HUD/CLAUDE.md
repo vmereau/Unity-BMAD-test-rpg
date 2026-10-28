@@ -34,6 +34,7 @@
 - `GameEventSO_SpeechBubbleRequest` — `OnSpeechBubbleRequested` (payload `speaker` runtime Transform + `text`, `duration` (≤ 0 = default 3 s), `priority`, `anchorHeight`; raised by `EntityBrain` witness warnings and theft alerts — consumed by `SpeechBubbleUI`)
 - `GameEventSO_String` — `OnLockUnlocked` (payload is the noun `"Door"`/`"Chest"`; raised by `DoorSystem` after `Unlock()`, and by `ContainerSystem` only on the **locked-container success path** — never for an already-unlocked container)
 - `GameEventSO_Int` / `GameEventSO_String` — `OnRewardGoldGained` / `OnRewardItemReceived` (raised by `PlayerRewards` when a `PlayerRewardSO` grants gold / items; reward-only — other gold changes have no toast)
+- `GameEventSO_String` — `OnCombatNotification` (verbatim toast text, e.g. "Out of arrows"; raised by `PlayerCombat` — wired on `Player.prefab` and `UICanvas.prefab`)
 - `GameEventSO_String` — `OnLockpickFailed` (payload is the full toast text from `LockpickRules.FailureMessage`; raised by `DoorSystem` / `ContainerSystem` when a locked attempt lacks the skill or a lockpick)
 
 ---
