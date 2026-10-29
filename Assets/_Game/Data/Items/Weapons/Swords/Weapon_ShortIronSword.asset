@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c74775224fcfbc4e9dad8ee64eaad95, type: 3}
+  m_Name: Weapon_ShortIronSword
+  m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
+  itemId: b9a2430077e043a1836f06ab188df0f6
+  itemName: Short Iron Sword
+  description: A plain iron blade, short and serviceable. Common village work.
+  icon: {fileID: 21300000, guid: 671de81176c75b64b9d0703cbb13ec5e, type: 3}
+  maxStacks: 1
+  worldItemPrefab: {fileID: 5285350837759528750, guid: 67330615e5244f740a7cca3c502c79c3, type: 3}
+  buyValue: 60
+  sellValue: 15
+  isIngredient: 0
+  isCraftingMaterial: 0
+  equipVisualPrefab: {fileID: 100000000, guid: d5e6f7a8b9c0d1e2f3a4b5c6d7e8f901, type: 3}
+  strengthBonus: 0
+  dexterityBonus: 0
+  enduranceBonus: 0
+  intelligenceBonus: 0
+  defenseBonus: 0
+  archetype: {fileID: 11400000, guid: fc2dbd72d1523f6469137c51246c5a15, type: 2}
+  damageBonus: 10
+  baseWeapon: {fileID: 0}
+  comboSteps: 0
+  animatorOverrideController: {fileID: 0}

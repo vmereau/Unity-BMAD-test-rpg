@@ -13,6 +13,13 @@ namespace Game.Inventory
         [Header("Combat")]
         public float damageBonus;
 
+        [Header("Forging")]
+        [Tooltip("Standard counterpart of a forged weapon (the detail panel shows the bonus over it). Null = not forged.")]
+        public WeaponSO baseWeapon;
+
+        /// <summary>True for a forged weapon (crafted at an anvil) — it names its standard counterpart.</summary>
+        public bool IsForged => baseWeapon != null && baseWeapon != this;
+
         [Header("Combo")]
         [Tooltip("Total number of attacks in the combo chain (e.g. 2 = Attack_1 → finisher). 0 = use archetype default")]
         [Min(0)] public int comboSteps = 0;

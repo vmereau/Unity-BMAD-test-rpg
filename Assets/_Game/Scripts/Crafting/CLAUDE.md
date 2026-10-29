@@ -1,6 +1,6 @@
 # CLAUDE.md — Assets/_Game/Scripts/Crafting
 
-> Loaded when Claude accesses files in this folder. Recipes and cooking stations. Namespace: `Game.Crafting`.
+> Loaded when Claude accesses files in this folder. Recipes and crafting stations (cooking, smithing). Namespace: `Game.Crafting`.
 > The cooking screen lives in `Scripts/UI/Crafting/` (`Game.UI`); the station prefab contract in `Prefabs/CLAUDE.md`.
 
 ---
@@ -11,8 +11,9 @@
 |------|------|
 | `RecipeSO` (`ScriptableObjects/Crafting/`) | 1–3 `ingredients` (order-free; repeat an item to need several) → one `output`, plus `knownFact` (`RecipeFact`). Assets in `Data/Recipes/` (`Recipe_<Output>`), facts in `Data/Facts/` (`RecipeFact_<Output>`). |
 | `CookingRules` | **Static, pure.** `FindRecipe(recipes, slots)` (exact multiset match, empty slots / null / incomplete recipes skipped), `HasIngredients(needs, countOf)` (duplicates counted), `EvaluateExperiment(slots, countOf)` → `ExperimentState` `Empty` / `NotEnough` / `Ready`. Tested by `CookingRulesTests`. |
-| `CookingStation` | `IInteractable` on the station root: prompt `Cook`, name tag `Cooking station`, `_recipes` (`RecipeSO[]` = what can be cooked here; `Awake` warns on incomplete recipes / missing `knownFact`). `Interact()` raises `OnCookingStationOpenRequested` (`GameEventSO_CookingStationOpenRequest { recipes, stationName }`). Behaviour only — the look is the prefab's `Model` child. |
-| `CookingSystem` | Player-side listener on `Player.prefab` (next to `ContainerSystem`) → `CookingUI.Open(recipes, name)`. Future gates (skills, tools) go here, not on the station. |
+| `CraftingKind` | `Cooking` / `Smithing` — the station's mode. `CookingRules.IsMaterialFor(kind, item)`: cooking → `isIngredient`, smithing → `isCraftingMaterial` (grid filter + station warnings). |
+| `CookingStation` | `IInteractable` on the station root (cooking **and** smithing — the `Cooking*` names are kept so `m_Script` refs survive): prompt, name tag, `_recipes` (`RecipeSO[]` = what can be crafted here; `Awake` warns on incomplete recipes / missing `knownFact` / a material without the kind's flag), `_kind`, `_requiredSkill` (`SkillFact`, null = anyone). `Interact()` raises `OnCookingStationOpenRequested` (`GameEventSO_CookingStationOpenRequest { recipes, stationName, kind, requiredSkill }`). Behaviour only — the look is the prefab's `Model` child. |
+| `CookingSystem` | Player-side listener on `Player.prefab` (next to `ContainerSystem`) → `CookingUI.Open(recipes, name, kind)`. Station gates live here: a `requiredSkill` the player lacks (`WorldStateManager.PlayerHasSkill`, no Core → refused) raises `OnCraftingRefused` ("You need the Smithing skill", `FormatSkillRequired`) and the screen stays closed. |
 
 ---
 
@@ -37,6 +38,17 @@
   the failed dish, not a refunded craft) and shows `FormatCraftCount` ("Never cooked" / "Cooked once" / "Cooked N
   times") in `_recipeCraftCountText` under the recipe detail.
 
+## Smithing (anvil)
+
+- `SmithingStation_Anvil` (`Prefabs/World/SmithingStations/`, by Edric in `StartingTown`): `CookingStation` with
+  `_kind = Smithing`, `_requiredSkill = SkillFact_Smithing_Learned`, prompt "Forge", name "Anvil".
+- Smithing = **Recipes tab only** (Experiment tab button hidden, experiment input rejected), grid lists
+  `isCraftingMaterial` items, button "Forge", count "Never forged / Forged once / Forged N times".
+- Recipes are learned only from recipe items (`Item_Recipe_ShortIronSword`, given once by Edric after Smithing is
+  learned — `Data/NPCs/BlackSmith/CLAUDE.md`). Ingots: Edric's shop.
+- **Crafted bonus = a forged asset**, not instance data: the recipe outputs `Weapon_<Name>_Forged` (higher stats,
+  `baseWeapon` → the standard `Weapon_<Name>`). Details: `ScriptableObjects/Items/CLAUDE.md`.
+
 ## First-meal bonus
 
 A cooked food can grant a one-time permanent bonus (e.g. Apple Mushroom Sandwich: +5 Max HP; Apple Trout Sandwich — Bread + Apple + Trout, Trout sold by the Merchant: +1 Strength) the first time it is eaten — data on
@@ -48,9 +60,9 @@ the food item, not on the recipe, so a bought / looted copy counts too. Details:
 ## Cooking screen (`Scripts/UI/Crafting/`)
 
 - `CookingUI` (`IScreenPanel`, nested in `UICanvas`, inactive): shared player grid + **Experiment** / **Recipes** tabs
-  (opens on Experiment, inactive tab tinted). Same lifecycle as `ContainerUI` (Esc / `OnPlayerDied` close, input
+  (cooking opens on Experiment, inactive tab tinted; smithing — see above — has Recipes only). Same lifecycle as `ContainerUI` (Esc / `OnPlayerDied` close, input
   disposed in `OnDestroy`); `SaveSystem` refuses save / load while `IsOpen`.
-- **Player grid lists ingredients only** (both tabs). Each `ItemSlotUI` keeps its real inventory index as `SlotIndex`, so
+- **Player grid lists the station's materials only** (both tabs; `CookingRules.IsMaterialFor` — ingredients for cooking, `isCraftingMaterial` for smithing). Each `ItemSlotUI` keeps its real inventory index as `SlotIndex`, so
   grid child position ≠ inventory index — resolve a clicked slot with `FindGridSlot(SlotIndex)`, never `GetChild(index)`.
 - **Experiment:** only `ItemSO.isIngredient` items are accepted (others, e.g. a meal dragged from the action bar,
   show "<name> isn't an ingredient"). Cooked meals (`PotionItemSO` `Meal`) are never ingredients. 3

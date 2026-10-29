@@ -14,6 +14,16 @@ namespace Game.Crafting
     public static class CookingRules
     {
         /// <summary>
+        /// True when <paramref name="item"/> is a material of a <paramref name="kind"/> station: cooking takes
+        /// <see cref="ItemSO.isIngredient"/> items, smithing takes <see cref="ItemSO.isCraftingMaterial"/> items.
+        /// </summary>
+        public static bool IsMaterialFor(CraftingKind kind, ItemSO item) => item != null && kind switch
+        {
+            CraftingKind.Smithing => item.isCraftingMaterial,
+            _ => item.isIngredient
+        };
+
+        /// <summary>
         /// First complete recipe whose ingredients exactly match the filled <paramref name="slots"/> (same items,
         /// same counts, any order); null entries and incomplete recipes are skipped. Null when nothing matches.
         /// </summary>

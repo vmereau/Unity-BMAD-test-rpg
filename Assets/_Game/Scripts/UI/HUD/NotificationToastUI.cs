@@ -29,6 +29,7 @@ namespace Game.UI
         [SerializeField] private GameEventSO_String _onRewardItemReceived;
         [SerializeField] private GameEventSO_String _onSleepRefused;
         [SerializeField] private GameEventSO_String _onCombatNotification;
+        [SerializeField] private GameEventSO_String _onCraftingRefused;
 
         [Header("UI References")]
         [SerializeField] private RectTransform _container;
@@ -90,6 +91,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, "NotificationToastUI: _onSleepRefused not assigned — sleep refusal toasts disabled");
             if (_onCombatNotification == null)
                 GameLog.Warn(TAG, "NotificationToastUI: _onCombatNotification not assigned — combat toasts (out of arrows) disabled");
+            if (_onCraftingRefused == null)
+                GameLog.Warn(TAG, "NotificationToastUI: _onCraftingRefused not assigned — station refusal toasts (missing skill) disabled");
 
             // Clamp so the FIFO eviction loop can never index an empty list (a stack of 0 is nonsensical).
             if (_maxVisible < 1) _maxVisible = 1;
@@ -108,6 +111,7 @@ namespace Game.UI
             _onRewardItemReceived?.AddListener(Show);
             _onSleepRefused?.AddListener(Show);
             _onCombatNotification?.AddListener(Show);
+            _onCraftingRefused?.AddListener(Show);
         }
 
         private void OnDisable()
@@ -123,6 +127,7 @@ namespace Game.UI
             _onRewardItemReceived?.RemoveListener(Show);
             _onSleepRefused?.RemoveListener(Show);
             _onCombatNotification?.RemoveListener(Show);
+            _onCraftingRefused?.RemoveListener(Show);
 
             // Disabling kills the coroutines — drop their toasts too, or they'd stay frozen on screen (and a matching
             // message would revive one through the dedup).

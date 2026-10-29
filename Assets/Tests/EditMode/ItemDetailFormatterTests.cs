@@ -175,6 +175,49 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void CraftingMaterial_CategoryIsCraftingMaterial()
+        {
+            var ingot = Create<ItemSO>();
+            ingot.isCraftingMaterial = true;
+
+            Assert.AreEqual("Crafting Material", ItemDetailFormatter.GetCategory(ingot));
+        }
+
+        [Test]
+        public void ForgedWeapon_CategoryAndBonusOverBase()
+        {
+            var standard = Create<SwordSO>();
+            standard.itemName = "Short Iron Sword";
+            standard.damageBonus = 10f;
+            var forged = Create<SwordSO>();
+            forged.damageBonus = 14f;
+            forged.baseWeapon = standard;
+
+            ItemDetailFormatter.BuildStatLines(forged, _lines);
+
+            Assert.AreEqual("Weapon · Forged", ItemDetailFormatter.GetCategory(forged));
+            Assert.AreEqual(2, _lines.Count);
+            AssertLine(_lines[0], "Damage", "+14", StatPolarity.Positive);
+            AssertLine(_lines[1], "Forged", "+4 over Short Iron Sword", StatPolarity.Positive);
+            Assert.AreEqual("Weapon", ItemDetailFormatter.GetCategory(standard));
+        }
+
+        [Test]
+        public void ForgedWeapon_NoGainOverBase_NoForgedRow()
+        {
+            var standard = Create<SwordSO>();
+            standard.damageBonus = 10f;
+            var forged = Create<SwordSO>();
+            forged.damageBonus = 10f;
+            forged.baseWeapon = standard;
+
+            ItemDetailFormatter.BuildStatLines(forged, _lines);
+
+            Assert.AreEqual(1, _lines.Count);
+            AssertLine(_lines[0], "Damage", "+10", StatPolarity.Positive);
+        }
+
+        [Test]
         public void IngredientFood_CategoryIsIngredient()
         {
             var apple = CreatePotion(8f);

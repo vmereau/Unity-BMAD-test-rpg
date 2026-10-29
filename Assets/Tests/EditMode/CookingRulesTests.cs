@@ -137,5 +137,26 @@ namespace Tests.EditMode
             Assert.AreEqual(ExperimentState.NotEnough, CookingRules.EvaluateExperiment(new[] { _apple, _apple, null }, CountOf));
             Assert.AreEqual(ExperimentState.NotEnough, CookingRules.EvaluateExperiment(new[] { _bread, null, null }, CountOf));
         }
+
+        [Test]
+        public void IsMaterialFor_CookingTakesIngredients_SmithingTakesCraftingMaterials()
+        {
+            _apple.isIngredient = true;
+            var ingot = ScriptableObject.CreateInstance<ItemSO>();
+            ingot.isCraftingMaterial = true;
+            try
+            {
+                Assert.IsTrue(CookingRules.IsMaterialFor(CraftingKind.Cooking, _apple));
+                Assert.IsFalse(CookingRules.IsMaterialFor(CraftingKind.Smithing, _apple));
+                Assert.IsTrue(CookingRules.IsMaterialFor(CraftingKind.Smithing, ingot));
+                Assert.IsFalse(CookingRules.IsMaterialFor(CraftingKind.Cooking, ingot));
+                Assert.IsFalse(CookingRules.IsMaterialFor(CraftingKind.Cooking, _bread)); // plain item
+                Assert.IsFalse(CookingRules.IsMaterialFor(CraftingKind.Smithing, null));
+            }
+            finally
+            {
+                Object.DestroyImmediate(ingot);
+            }
+        }
     }
 }

@@ -8,6 +8,8 @@ namespace Game.Core
     {
         public RecipeSO[] recipes;  // the station's recipe list (asset refs)
         public string stationName;  // shown as the cooking screen title
+        public CraftingKind kind;   // screen mode + which items are materials
+        public SkillFact requiredSkill; // null = anyone can use the station
     }
 
     [CreateAssetMenu(menuName = "Game/Events/Cooking Station Open Request", fileName = "NewCookingStationOpenRequestEvent")]

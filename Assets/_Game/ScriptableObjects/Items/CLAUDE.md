@@ -34,6 +34,13 @@ sheath socket, animator override, default combo steps) — no code. Add a new `X
 the family needs new **fields**. `SwordSO` is kept (renaming would break asset `m_Script` refs) even though the
 class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
 
+**Forged weapons (crafted bonus):** an inventory slot is `(ItemSO, Count)` and saves store `itemId`, so a copy can't carry
+"was crafted". A crafted weapon is its **own asset** `Weapon_<Name>_Forged` with better stats, its `WeaponSO.baseWeapon` →
+the standard `Weapon_<Name>` (bought / looted). `IsForged` → detail category "Weapon · Forged" + row "Forged" "+4 over
+Short Iron Sword" (damage delta, omitted ≤ 0). The smithing recipe outputs the forged one. Both share the `_Visual`
+prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (10) /
+`Weapon_ShortIronSword_Forged` (14), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
+
 **Weapon-level overrides win over the archetype:**
 - `ResolvedComboSteps` = `comboSteps` if > 0, else `archetype.defaultComboSteps` (min 1), else `WeaponSO.DEFAULT_COMBO_STEPS` (2).
 - `ResolvedAnimatorOverride` = `animatorOverrideController` if set, else `archetype.animatorOverrideController`, else null (default controller).
@@ -55,6 +62,7 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 | `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
+| `isCraftingMaterial` | `bool` | Smithing material (`Item_IronIngot`): the only items an anvil's grid lists. Detail category **Crafting Material** (after the ingredient rule) |
 | `isIngredient` | `bool` | Accepted by the cooking Experiment slots and the only items the cooking grid lists (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (raw food `PotionItemSO`, future non-edible ingredients) can be one. Its detail category is **Ingredient**, whatever the class. Never set it on a cooked meal |
 
 Create via **Assets → Create → Items → Item**.

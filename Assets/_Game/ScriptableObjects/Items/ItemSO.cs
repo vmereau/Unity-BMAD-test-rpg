@@ -17,6 +17,8 @@ namespace Game.Inventory
         public int sellValue = 1;
         [Tooltip("Can be placed in a cooking station's Experiment slots.")]
         public bool isIngredient;
+        [Tooltip("Smithing material (ore, ingots…): listed by an anvil's screen.")]
+        public bool isCraftingMaterial;
 
 #if UNITY_EDITOR
         protected virtual void OnValidate()

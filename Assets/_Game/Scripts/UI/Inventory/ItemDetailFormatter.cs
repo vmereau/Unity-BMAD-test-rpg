@@ -20,6 +20,8 @@ namespace Game.UI
         private const string CATEGORY_POTION = "Potion";
         private const string CATEGORY_MEAL = "Meal";
         private const string CATEGORY_INGREDIENT = "Ingredient";
+        private const string CATEGORY_CRAFTING_MATERIAL = "Crafting Material";
+        private const string CATEGORY_FORGED_WEAPON = "Weapon · Forged";
         private const string CATEGORY_SKILL_TOME = "Skill Tome";
         private const string CATEGORY_RECIPE = "Recipe";
         private const string CATEGORY_USABLE = "Usable";
@@ -27,6 +29,8 @@ namespace Game.UI
         private const string CATEGORY_MISC = "Miscellaneous";
 
         private const string LABEL_DAMAGE = "Damage";
+        private const string LABEL_FORGED = "Forged";
+        private const string FORGED_OVER = " over ";
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
         private const string OVER_TIME_PREFIX = " over ";
         private const string LABEL_TEACHES = "Teaches";
@@ -55,6 +59,8 @@ namespace Game.UI
             null => "",
             // Any item type can be a cooking ingredient (raw food is a PotionItemSO): the flag wins over the class.
             { isIngredient: true } => CATEGORY_INGREDIENT,
+            { isCraftingMaterial: true } => CATEGORY_CRAFTING_MATERIAL,
+            WeaponSO { IsForged: true } => CATEGORY_FORGED_WEAPON,
             WeaponSO => CATEGORY_WEAPON,
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
             PotionItemSO { Kind: ConsumableKind.Meal } => CATEGORY_MEAL,
@@ -83,6 +89,14 @@ namespace Game.UI
                 // Floats are rounded first so the shown value, the polarity and the omission rule agree.
                 case WeaponSO weapon:
                     AddBonus(into, LABEL_DAMAGE, Mathf.RoundToInt(weapon.damageBonus));
+                    if (weapon.IsForged)
+                    {
+                        // Forged bonus = damage over the standard counterpart, e.g. "+4 over Short Iron Sword".
+                        int delta = Mathf.RoundToInt(weapon.damageBonus) - Mathf.RoundToInt(weapon.baseWeapon.damageBonus);
+                        if (delta > 0)
+                            into.Add(new ItemStatLine(LABEL_FORGED, Signed(delta) + FORGED_OVER + (string.IsNullOrEmpty(weapon.baseWeapon.itemName) ? weapon.baseWeapon.name : weapon.baseWeapon.itemName),
+                                StatPolarity.Positive));
+                    }
                     break;
                 case PotionItemSO potion when Mathf.RoundToInt(potion.HealAmount) > 0:
                     int heal = Mathf.RoundToInt(potion.HealAmount);

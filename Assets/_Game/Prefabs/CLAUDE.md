@@ -17,6 +17,7 @@
 | `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes, Weapon Creator |
 | `Harvestables/` | Fixed world resources (plants…) — contract below |
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
+| `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
 
 ---
@@ -56,6 +57,9 @@
 - `_recipes` is set on the base, so every look inherits it; override it on a variant only for a different station
   type. Stations are stateless — no `SaveableObject` / save ID.
 - `CookingStation_Fireplace` = `SM_Fireplace2` (Hivemind, URP-compatible materials).
+- Smithing: `SmithingStation_Anvil` (`World/SmithingStations/`) = variant of `CookingStation_Base` overriding `_kind`
+  Smithing, `_requiredSkill`, prompt / name and `_recipes`; `SM_Anvil` (Hivemind BanditVillage) lifted so its base sits
+  at y 0 (pivot is mid-mesh). Behaviour: `Scripts/Crafting/CLAUDE.md`.
 
 ## Beds (`World/Beds/`)
 

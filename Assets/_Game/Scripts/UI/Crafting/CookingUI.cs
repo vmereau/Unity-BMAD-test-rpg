@@ -12,7 +12,9 @@ using UnityEngine.UI;
 namespace Game.UI
 {
     /// <summary>
-    /// Cooking screen opened by <see cref="CookingSystem"/>: player inventory grid + two tabs.
+    /// Crafting screen opened by <see cref="CookingSystem"/>: player inventory grid + two tabs.
+    /// A <see cref="CraftingKind.Smithing"/> station (anvil) shows the Recipes tab only and lists crafting materials;
+    /// cooking lists ingredients.
     /// <b>Experiment</b>: up to 3 ingredient reference slots; Cook gives the matching station recipe's output (and
     /// teaches the recipe the first time, via its <see cref="RecipeFact"/>) or the failed dish.
     /// <b>Recipes</b>: the station's recipes the player knows; select one and cook it if the inventory holds its ingredients.
@@ -28,6 +30,10 @@ namespace Game.UI
         private const string MISSING_COLOR = "#C06050";
         private const string NEVER_COOKED = "Never cooked";
         private const string COOKED_ONCE = "Cooked once";
+        private const string NEVER_FORGED = "Never forged";
+        private const string FORGED_ONCE = "Forged once";
+        private const string COOK_LABEL = "Cook";
+        private const string FORGE_LABEL = "Forge";
 
         [SerializeField] private InventorySystem _playerInventory;
         [SerializeField] private Transform _playerContentRoot;
@@ -59,6 +65,8 @@ namespace Game.UI
         [SerializeField] private TMP_Text _recipeNameText;
         [SerializeField] private TMP_Text _recipeIngredientsText;
         [SerializeField] private Button _recipeCookButton;
+        [Tooltip("Label of the Recipes Cook button — \"Cook\" or \"Forge\" per station kind.")]
+        [SerializeField] private TMP_Text _recipeCookLabel;
         [Tooltip("\"Cooked N times\" under the selected recipe (WorldStateManager craft count, saved).")]
         [SerializeField] private TMP_Text _recipeCraftCountText;
 
@@ -74,6 +82,7 @@ namespace Game.UI
         private ItemSO[] _slots;
         private RecipeSO _selectedRecipe;
         private bool _recipesTabActive;
+        private CraftingKind _kind;
         private InputSystem_Actions _input;
 
         public bool IsOpen { get; private set; }
@@ -135,9 +144,10 @@ namespace Game.UI
             if (IsOpen) Refresh(); // a hotkey consumed an item → grid and counts follow
         }
 
-        public void Open(RecipeSO[] recipes, string stationName)
+        public void Open(RecipeSO[] recipes, string stationName, CraftingKind kind = CraftingKind.Cooking)
         {
             _recipes = recipes;
+            _kind = kind;
             if (_titleText != null) _titleText.text = stationName;
             gameObject.SetActive(true);
             OnScreenOpen();
@@ -154,10 +164,13 @@ namespace Game.UI
             ClearSlots(); // the slots are references — always empty on open
             _selectedRecipe = null;
             SetResult(null);
-            SetTab(false);
+            // Smithing has no Experiment tab: only known recipes can be forged.
+            if (_experimentTabButton != null) _experimentTabButton.gameObject.SetActive(HasExperiment);
+            if (_recipeCookLabel != null) _recipeCookLabel.text = _kind == CraftingKind.Smithing ? FORGE_LABEL : COOK_LABEL;
+            SetTab(!HasExperiment);
             CursorManager.Unlock();
             IsOpen = true;
-            GameLog.Info(TAG, "Cooking UI opened");
+            GameLog.Info(TAG, $"Crafting UI opened ({_kind})");
         }
 
         public void OnScreenClose()
@@ -165,12 +178,17 @@ namespace Game.UI
             ClearSlots();
             CursorManager.Lock();
             IsOpen = false;
-            GameLog.Info(TAG, "Cooking UI closed");
+            GameLog.Info(TAG, $"Crafting UI closed ({_kind})");
         }
 
         // ── Tabs ──────────────────────────────────────────────────────────────
 
-        public void ShowExperimentTab() => SetTab(false);
+        public void ShowExperimentTab()
+        {
+            if (HasExperiment) SetTab(false);
+        }
+
+        private bool HasExperiment => _kind == CraftingKind.Cooking;
 
         public void ShowRecipesTab() => SetTab(true);
 
@@ -196,6 +214,7 @@ namespace Game.UI
         public void SetIngredient(int slotIndex, ItemSO item)
         {
             if (item == null || _slots == null || slotIndex < 0 || slotIndex >= _slots.Length) return;
+            if (!HasExperiment) return; // smithing: no experiment slots
             if (!item.isIngredient)
             {
                 SetResult($"{item.itemName} isn't an ingredient");
@@ -244,7 +263,7 @@ namespace Game.UI
 
         public void CookExperiment()
         {
-            if (_playerInventory == null) return;
+            if (_playerInventory == null || !HasExperiment) return;
             EventSystem.current?.SetSelectedGameObject(null); // Submit (Enter / Space) must not repeat the cook
             if (CookingRules.EvaluateExperiment(_slots, CountOf) != ExperimentState.Ready) return;
 
@@ -277,7 +296,7 @@ namespace Game.UI
             if (!TryCraft(_selectedRecipe.ingredients, _selectedRecipe.output)) return;
 
             CountCraft(_selectedRecipe);
-            GameLog.Info(TAG, $"Cooked recipe {_selectedRecipe.name} → {_selectedRecipe.output.itemName}");
+            GameLog.Info(TAG, $"Crafted recipe {_selectedRecipe.name} ({_kind}) → {_selectedRecipe.output.itemName}");
             NotifyInventoryChanged();
         }
 
@@ -354,11 +373,12 @@ namespace Game.UI
 
             if (_playerInventory == null || _itemSlotPrefab == null) return;
 
-            // Only ingredients are listed; each slot keeps its inventory index (double-click resolves it by SlotIndex).
+            // Only the station's materials are listed (ingredients / crafting materials); each slot keeps its inventory
+            // index (double-click resolves it by SlotIndex).
             var items = _playerInventory.Items;
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].Item == null || !items[i].Item.isIngredient) continue;
+                if (!CookingRules.IsMaterialFor(_kind, items[i].Item)) continue;
                 var go = Instantiate(_itemSlotPrefab, _playerContentRoot);
                 go.GetComponent<ItemSlotUI>()?.Bind(items[i].Item, i, items[i].Count);
             }
@@ -426,15 +446,24 @@ namespace Game.UI
             if (_recipeCookButton != null)
                 _recipeCookButton.interactable = CookingRules.HasIngredients(_selectedRecipe.ingredients, CountOf);
             if (_recipeCraftCountText != null)
-                _recipeCraftCountText.text = FormatCraftCount(CraftCount(_selectedRecipe));
+                _recipeCraftCountText.text = FormatCraftCount(CraftCount(_selectedRecipe), _kind);
         }
 
-        /// <summary>"Never cooked" / "Cooked once" / "Cooked N times".</summary>
-        public static string FormatCraftCount(int count) => count switch
+        /// <summary>"Never cooked" / "Cooked once" / "Cooked N times" (smithing: "forged").</summary>
+        public static string FormatCraftCount(int count, CraftingKind kind = CraftingKind.Cooking) => kind switch
         {
-            <= 0 => NEVER_COOKED,
-            1 => COOKED_ONCE,
-            _ => $"Cooked {count} times"
+            CraftingKind.Smithing => count switch
+            {
+                <= 0 => NEVER_FORGED,
+                1 => FORGED_ONCE,
+                _ => $"Forged {count} times"
+            },
+            _ => count switch
+            {
+                <= 0 => NEVER_COOKED,
+                1 => COOKED_ONCE,
+                _ => $"Cooked {count} times"
+            }
         };
 
         public void SelectRecipe(RecipeSO recipe)

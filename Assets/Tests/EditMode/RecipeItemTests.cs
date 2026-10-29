@@ -180,5 +180,19 @@ namespace Tests.EditMode
         {
             Assert.AreEqual(expected, CookingUI.FormatCraftCount(count));
         }
+
+        [TestCase(0, "Never forged")]
+        [TestCase(1, "Forged once")]
+        [TestCase(3, "Forged 3 times")]
+        public void FormatCraftCount_Smithing_Text(int count, string expected)
+        {
+            Assert.AreEqual(expected, CookingUI.FormatCraftCount(count, CraftingKind.Smithing));
+        }
+
+        [Test]
+        public void FormatSkillRequired_NamesSkill()
+        {
+            Assert.AreEqual("You need the Smithing skill", CookingSystem.FormatSkillRequired("Smithing"));
+        }
     }
 }

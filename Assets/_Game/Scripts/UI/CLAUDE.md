@@ -11,7 +11,7 @@
 |--------|--------------|
 | `HUD/` | Health / stamina / XP bars, action bar, interaction prompt card, notification toasts |
 | `Inventory/` | Inventory grid, item detail panel + formatter, equipment, container (incl. loot) and trade screens |
-| `Crafting/` | Cooking screen (`CookingUI` Experiment / Recipes tabs, ingredient reference slots, recipe rows, inventory-grid adapter) — see `Scripts/Crafting/CLAUDE.md` |
+| `Crafting/` | Cooking / smithing screen (`CookingUI` Experiment / Recipes tabs, smithing = Recipes only, ingredient reference slots, recipe rows, inventory-grid adapter) — see `Scripts/Crafting/CLAUDE.md` |
 | `Quest/` | Quest log screen, quest list / info panels |
 | `Skills/` | Skills tab: skill list, skill detail panel + formatter |
 | `Dialogue/` | NPC dialogue panel, topic / choice display, keyboard shortcuts |

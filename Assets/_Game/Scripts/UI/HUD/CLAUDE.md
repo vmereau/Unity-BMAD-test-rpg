@@ -36,6 +36,7 @@
 - `GameEventSO_String` — `OnLockUnlocked` (payload is the noun `"Door"`/`"Chest"`; raised by `DoorSystem` after `Unlock()`, and by `ContainerSystem` only on the **locked-container success path** — never for an already-unlocked container)
 - `GameEventSO_Int` / `GameEventSO_String` — `OnRewardGoldGained` / `OnRewardItemReceived` (raised by `PlayerRewards` when a `PlayerRewardSO` grants gold / items; reward-only — other gold changes have no toast)
 - `GameEventSO_String` — `OnCombatNotification` (verbatim toast text, e.g. "Out of arrows"; raised by `PlayerCombat` — wired on `Player.prefab` and `UICanvas.prefab`)
+- `GameEventSO_String` — `OnCraftingRefused` (verbatim, "You need the Smithing skill"; raised by `CookingSystem` when a station's required skill is missing — wired on `Player.prefab` and `UICanvas.prefab`)
 - `GameEventSO_String` — `OnLockpickFailed` (payload is the full toast text from `LockpickRules.FailureMessage`; raised by `DoorSystem` / `ContainerSystem` when a locked attempt lacks the skill or a lockpick)
 
 ---

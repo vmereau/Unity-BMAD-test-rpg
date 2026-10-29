@@ -491,6 +491,7 @@ MonoBehaviour:
   _onRewardItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
   _rewards:
   - {fileID: 11400000, guid: b4d5d64640d9ae9478d3f8f92fdfdbf3, type: 2}
+  - {fileID: 11400000, guid: abcc43408fb7d4848a323285fc7e4181, type: 2}
   - {fileID: 11400000, guid: d3160e4e25d4d6d4eba7b6c84b81ec03, type: 2}
   - {fileID: 11400000, guid: a78a8477861ed6a4da4bce53b45e6540, type: 2}
 --- !u!114 &1472871286454628577
@@ -723,6 +724,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Crafting.CookingSystem
   _onOpenRequested: {fileID: 11400000, guid: 72e52cc6667a03e4cacda9553ee920b9, type: 2}
   _cookingUI: {fileID: 874663416753351339}
+  _onCraftingRefused: {fileID: 11400000, guid: 63aaf589b59f002448c2868a38e375a0, type: 2}
 --- !u!114 &1465710742913293695
 MonoBehaviour:
   m_ObjectHideFlags: 0
