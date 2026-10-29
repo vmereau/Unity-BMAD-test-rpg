@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: a28bef48e4b0493da9e3d9ecae3f31bd
   itemName: Replenishing Stew
   description: Whatever went into the pot, it is warm and it fills the belly.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4a8e26231ef2b6044a32b857d2db91c9, type: 3}
   maxStacks: 20
   worldItemPrefab: {fileID: 6583291676696942107, guid: 3fb97729cc2e10c4db331f4b5b0b2469, type: 3}
   buyValue: 6
