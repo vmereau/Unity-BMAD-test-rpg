@@ -46,8 +46,8 @@
   `isCraftingMaterial` items, button "Forge", count "Never forged / Forged once / Forged N times".
 - Recipes are learned only from recipe items (`Item_Recipe_ShortIronSword`, given once by Edric after Smithing is
   learned — `Data/NPCs/BlackSmith/CLAUDE.md`). Ingots: Edric's shop.
-- **Crafted bonus = a forged asset**, not instance data: the recipe outputs `Weapon_<Name>_Forged` (higher stats,
-  `baseWeapon` → the standard `Weapon_<Name>`). Details: `ScriptableObjects/Items/CLAUDE.md`.
+- **Crafted bonus = a forged asset**, not instance data: the recipe outputs `Weapon_<Name>_Forged` (same name, higher stats,
+  `baseWeapon` → the standard `Weapon_<Name>`; detail category "Weapon · Forged"). Details: `ScriptableObjects/Items/CLAUDE.md`.
 
 ## First-meal bonus
 

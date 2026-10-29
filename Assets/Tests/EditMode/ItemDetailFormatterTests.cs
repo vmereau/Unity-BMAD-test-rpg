@@ -184,10 +184,9 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ForgedWeapon_CategoryAndBonusOverBase()
+        public void ForgedWeapon_CategoryForged_DamageRowOnly()
         {
             var standard = Create<SwordSO>();
-            standard.itemName = "Short Iron Sword";
             standard.damageBonus = 10f;
             var forged = Create<SwordSO>();
             forged.damageBonus = 14f;
@@ -196,25 +195,9 @@ namespace Tests.EditMode
             ItemDetailFormatter.BuildStatLines(forged, _lines);
 
             Assert.AreEqual("Weapon · Forged", ItemDetailFormatter.GetCategory(forged));
-            Assert.AreEqual(2, _lines.Count);
+            Assert.AreEqual(1, _lines.Count); // the forged bonus is already in the damage value
             AssertLine(_lines[0], "Damage", "+14", StatPolarity.Positive);
-            AssertLine(_lines[1], "Forged", "+4 over Short Iron Sword", StatPolarity.Positive);
             Assert.AreEqual("Weapon", ItemDetailFormatter.GetCategory(standard));
-        }
-
-        [Test]
-        public void ForgedWeapon_NoGainOverBase_NoForgedRow()
-        {
-            var standard = Create<SwordSO>();
-            standard.damageBonus = 10f;
-            var forged = Create<SwordSO>();
-            forged.damageBonus = 10f;
-            forged.baseWeapon = standard;
-
-            ItemDetailFormatter.BuildStatLines(forged, _lines);
-
-            Assert.AreEqual(1, _lines.Count);
-            AssertLine(_lines[0], "Damage", "+10", StatPolarity.Positive);
         }
 
         [Test]

@@ -36,8 +36,9 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 
 **Forged weapons (crafted bonus):** an inventory slot is `(ItemSO, Count)` and saves store `itemId`, so a copy can't carry
 "was crafted". A crafted weapon is its **own asset** `Weapon_<Name>_Forged` with better stats, its `WeaponSO.baseWeapon` →
-the standard `Weapon_<Name>` (bought / looted). `IsForged` → detail category "Weapon · Forged" + row "Forged" "+4 over
-Short Iron Sword" (damage delta, omitted ≤ 0). The smithing recipe outputs the forged one. Both share the `_Visual`
+the standard `Weapon_<Name>` (bought / looted). Both keep the **same `itemName`** — `IsForged` → detail category
+"Weapon · Forged" tells them apart, and the bonus is simply the higher Damage value (no extra comparison row). The
+smithing recipe outputs the forged one. Both share the `_Visual`
 prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (10) /
 `Weapon_ShortIronSword_Forged` (14), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
 

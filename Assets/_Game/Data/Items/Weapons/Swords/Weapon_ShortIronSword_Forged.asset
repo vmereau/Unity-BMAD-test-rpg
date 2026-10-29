@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Weapon_ShortIronSword_Forged
   m_EditorClassIdentifier: Game::Game.Inventory.SwordSO
   itemId: 34c53d4217e04f5d96dd1f4236a290a4
-  itemName: Forged Short Iron Sword
+  itemName: Short Iron Sword
   description: A short iron sword you hammered out yourself. Better balanced and keener than any shop blade.
   icon: {fileID: 21300000, guid: 671de81176c75b64b9d0703cbb13ec5e, type: 3}
   maxStacks: 1

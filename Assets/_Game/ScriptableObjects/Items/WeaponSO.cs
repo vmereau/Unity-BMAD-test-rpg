@@ -14,7 +14,7 @@ namespace Game.Inventory
         public float damageBonus;
 
         [Header("Forging")]
-        [Tooltip("Standard counterpart of a forged weapon (the detail panel shows the bonus over it). Null = not forged.")]
+        [Tooltip("Standard counterpart of a forged weapon (detail category \"Weapon · Forged\"). Null = not forged.")]
         public WeaponSO baseWeapon;
 
         /// <summary>True for a forged weapon (crafted at an anvil) — it names its standard counterpart.</summary>
