@@ -75,6 +75,9 @@ namespace Game.Player
         public void PlayWeaponSwitch(bool draw, float speed) => _humanoidBridge.PlayWeaponSwitch(draw, speed);
         public void ResetWeaponSwitchTriggers() => _humanoidBridge.ResetWeaponSwitchTriggers();
         public void SetSneaking(bool value) => _humanoidBridge.SetSneaking(value);
+        public void SetAiming(bool value) => _humanoidBridge.SetAiming(value);
+        public void PlayBowFire() => _humanoidBridge.PlayBowFire();
+        public void ResetBowFireTrigger() => _humanoidBridge.ResetBowFireTrigger();
 
         /// <summary>Leaves sneak through the <c>sneak to sprint</c> clip instead of <c>sneak to stand</c>.</summary>
         public void PlaySneakToSprint()

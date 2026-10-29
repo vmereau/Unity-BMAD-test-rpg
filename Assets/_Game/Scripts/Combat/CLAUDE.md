@@ -107,9 +107,22 @@ sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 
 ## Ranged — Bow (`BowSO` → `ArrowProjectile`)
 
-With a `BowSO` equipped, `TryAttack` skips the combo/hitbox path and calls `TryFireBow` (no attack animation yet).
-The bow is read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` (only set by `OnVisualsRefreshed`,
-null after a disable/enable). Ignored while a melee swing is still playing (`IsAttacking`).
+With a `BowSO` equipped (`EquippedBow`, read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` —
+only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't block and has no hip-fire:
+
+- **Aim (spec `spec-bow-aim-draw-fire.md`):** Block started / canceled (right click) → `StartAim` / `StopAim`
+  (`PlayerStateManager.SetAiming` → `IsAiming` bool → Attack layer `BowDrawArrow_State` → looping `BowAim_State`).
+  `StartAim` is gated by `CanAim()`. `UpdateBowAim` ends the aim as soon as `CanAim()` fails or the bow is unequipped
+  (dodge, jump, R, menu, death, sheathed). `StopAim` also runs on an unblocked hit (`TryReceiveHit`),
+  `HandleVisualsRefreshed`, `OnDisable` and at the top of `OnDrawWeaponStarted` (R ends the aim, then switches;
+  `CanSwitchWeapon` / `CanAim` also exclude each other and a still-raised block). A held right click never resumes the
+  aim (only `Block.started` starts it).
+- **Nock:** `SMB_BowAimState.OnStateEnter` → `OnBowAimEntered()` sets `_arrowNocked` (ignored when not aiming).
+  The `bowNockTimeout` watchdog forces it if that enter is lost — a shot on a **forced** nock skips `PlayBowFire`
+  (the layer isn't in `BowAim_State`, so `BowFire` would latch and replay the release + re-nock on the next enter).
+- **Shot:** `TryAttack` requires `IsAiming && _arrowNocked`, then `TryFireBow` (returns bool). Success clears the nock
+  and fires `BowFire` (`BowFire_State` → `BowDrawArrow_State` → re-nock at the aim enter). A refused shot keeps the nock.
+  Ignored while a melee swing is still playing (`IsAttacking`).
 Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` → ammo `CountOf > 0` (else `OnCombatNotification`
 "Out of arrows" toast) → `Consume` stamina (checked) → `TryConsume` ammo → fire. A refused shot spends nothing.
 

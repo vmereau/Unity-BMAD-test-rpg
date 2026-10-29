@@ -17,6 +17,7 @@
 | Move   | `CanMove()`   | — (read-only gate) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
+| Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimBodyYawOffset` with no sprint; `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 
 **Rules:**

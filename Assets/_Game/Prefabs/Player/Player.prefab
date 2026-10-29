@@ -229,6 +229,8 @@ MonoBehaviour:
   _cinemachineFollow: {fileID: 3745674045955421043}
   _lockOnSystem: {fileID: 8613668570026627261}
   _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _stateManager: {fileID: 212298241250081144}
+  _cinemachineCamera: {fileID: 5643702231325100526}
 --- !u!114 &8924309687103124940
 MonoBehaviour:
   m_ObjectHideFlags: 0

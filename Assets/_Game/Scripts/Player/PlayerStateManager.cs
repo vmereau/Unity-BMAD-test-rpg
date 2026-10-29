@@ -82,6 +82,12 @@ namespace Game.Player
         public bool IsSwitchingWeapon { get; private set; }
 
         /// <summary>
+        /// True while the bow aim is held (right click with a bow drawn). Written by PlayerCombat via <see cref="SetAiming"/>.
+        /// Read by PlayerController (face the camera, walk speed) and CameraController (OTS zoom).
+        /// </summary>
+        public bool IsAiming { get; private set; }
+
+        /// <summary>
         /// True while in sneak stance. Written by <c>PlayerSneak</c>; cleared by dodge, jump, death and sprint
         /// (<see cref="ExitSneakToSprint"/>). Attacking and blocking keep it.
         /// </summary>
@@ -176,6 +182,21 @@ namespace Game.Player
             if (_playerAnimator != null) _playerAnimator.ResetWeaponSwitchTriggers();
         }
 
+        /// <summary>Starts / ends the bow aim and drives the IsAiming animator bool. Ending also clears a pending BowFire.</summary>
+        public void SetAiming(bool value)
+        {
+            IsAiming = value;
+            if (_playerAnimator == null) return;
+            _playerAnimator.SetAiming(value);
+            if (!value) _playerAnimator.ResetBowFireTrigger();
+        }
+
+        /// <summary>Plays the bow release clip (BowAim_State → BowFire_State → BowDrawArrow_State).</summary>
+        public void PlayBowFire()
+        {
+            if (_playerAnimator != null) _playerAnimator.PlayBowFire();
+        }
+
         /// <summary>Enters or leaves sneak stance and drives the IsSneaking animator bool. Called by PlayerSneak.</summary>
         public void SetSneaking(bool value)
         {
@@ -222,6 +243,7 @@ namespace Game.Player
                 IsAttacking = false;
                 IsDodging = false;
                 IsSneaking = false;
+                IsAiming = false;
                 // IsSwitchingWeapon is kept: IsBusy already blocks R, and the PlayerCombat watchdog (or the load) still
                 // has to move the weapon visual to match IsInCombat.
             }
@@ -231,6 +253,7 @@ namespace Game.Player
             {
                 _playerAnimator.SetBlocking(false);
                 _playerAnimator.SetSneaking(false);
+                _playerAnimator.SetAiming(false);
                 _playerAnimator.PlayDeath();
             }
             else
@@ -254,15 +277,28 @@ namespace Game.Player
 
         /// <summary>True when R may start a draw / sheathe.</summary>
         public bool CanSwitchWeapon() =>
-            EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon);
+            EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon, IsAiming);
 
         /// <summary>
         /// Pure draw / sheathe gate (tested in WeaponSwitchGateTests). Blocking, dodging and airborne are excluded because
-        /// their Attack-layer AnyState transitions are held bools that would immediately pull the layer out of the clip.
+        /// their Attack-layer AnyState transitions are held bools that would immediately pull the layer out of the clip;
+        /// aiming because the bow aim states would fight the draw / sheathe clip (release the aim first).
         /// </summary>
         public static bool EvaluateCanSwitchWeapon(bool isBusy, bool isAttacking, bool isBlocking, bool isDodging,
-            bool isAirborne, bool isSwitchingWeapon) =>
-            !isBusy && !isAttacking && !isBlocking && !isDodging && !isAirborne && !isSwitchingWeapon;
+            bool isAirborne, bool isSwitchingWeapon, bool isAiming) =>
+            !isBusy && !isAttacking && !isBlocking && !isDodging && !isAirborne && !isSwitchingWeapon && !isAiming;
+
+        /// <summary>True when the player may start (or keep) a bow aim. Bow equipped is checked by PlayerCombat.</summary>
+        public bool CanAim() =>
+            EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);
+
+        /// <summary>
+        /// Pure bow-aim gate (tested in BowAimGateTests). Same exclusions as blocking: drawn and on the ground. A block still
+        /// raised (sword swapped for a bow mid-block) must be lowered first — Block_State would fight the aim states.
+        /// </summary>
+        public static bool EvaluateCanAim(bool isBusy, bool isAirborne, bool isDodging, bool isAttacking,
+            bool isBlocking, bool isSwitchingWeapon, bool isInCombat) =>
+            !isBusy && !isAirborne && !isDodging && !isAttacking && !isBlocking && !isSwitchingWeapon && isInCombat;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
         public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;

@@ -14,6 +14,8 @@ namespace Game.Player
         [Tooltip("Sneak locomotion speed. Sneak blend-tree positions sit at sneakSpeed / runSpeed — update the controller if you change either.")]
         [SerializeField] public float sneakSpeed = 1.5f;
         [SerializeField] public float rotationSpeed = 10f;
+        [Tooltip("Bow aim: extra body yaw (degrees) added to the camera yaw, to line the aim pose up with the crosshair.")]
+        [SerializeField] public float aimBodyYawOffset = 0f;
 
         [Header("Jump")]
         [SerializeField] public float jumpForce = 5f;

@@ -28,6 +28,8 @@ namespace Game.Animations
         private static readonly int DrawWeaponHash = Animator.StringToHash("DrawWeapon");
         private static readonly int SheatheWeaponHash = Animator.StringToHash("SheatheWeapon");
         private static readonly int WeaponSwitchSpeedHash = Animator.StringToHash("WeaponSwitchSpeed");
+        private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
+        private static readonly int BowFireHash = Animator.StringToHash("BowFire");
 
         [SerializeField] private Animator _animator;
 
@@ -103,6 +105,24 @@ namespace Game.Animations
             if (_animator == null) return;
             _animator.ResetTrigger(DrawWeaponHash);
             _animator.ResetTrigger(SheatheWeaponHash);
+        }
+
+        /// <summary>Sets the IsAiming bool (bow aim: Attack layer CombatIdle ⇄ BowDrawArrow / BowAim / BowFire).</summary>
+        public void SetAiming(bool value)
+        {
+            if (_animator != null) _animator.SetBool(IsAimingHash, value);
+        }
+
+        /// <summary>Fires BowFire (BowAim_State → BowFire_State → BowDrawArrow_State).</summary>
+        public void PlayBowFire()
+        {
+            if (_animator != null) _animator.SetTrigger(BowFireHash);
+        }
+
+        /// <summary>Clears a pending BowFire trigger so a stale one can't fire on the next aim.</summary>
+        public void ResetBowFireTrigger()
+        {
+            if (_animator != null) _animator.ResetTrigger(BowFireHash);
         }
 
         public void PlayDodge(bool isBackwardRoll = false)

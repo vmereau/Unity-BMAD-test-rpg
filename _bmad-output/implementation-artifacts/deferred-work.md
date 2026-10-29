@@ -169,3 +169,17 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   only the death path rebinds the Animator, so the leftover draw clip finishes (cosmetic), and an R pressed within
   ~0.4 s can latch `DrawWeapon` (AnyState → `Draw_State` has no self-transition) and be completed early by the leftover
   `WeaponSwap` event. Fix idea: play the Attack layer's locomotion state on load (bridge method), or rebind.
+
+## From spec-bow-aim-draw-fire (2026-10-29 review)
+
+- **Release + re-press within one animator update loses the nock** — `StartAim` clears `_arrowNocked`, but the Attack
+  layer never leaves `BowAim_State`, so no new enter arrives; shots wait for the `bowNockTimeout` watchdog (2.5 s). Fix:
+  track `BowAim_State` enter/exit in the SMB and keep the nock when the layer is still in it.
+- **F9 quickload while aiming** — `IsBusy` doesn't cover `SaveSystem.IsLoading` (pre-existing for every action); aim and
+  shots stay live during the async reload until `Restore` sheathes. Add `IsLoading` to `IsBusy` or stop the aim on
+  `OnLoadStarted`.
+- **Lock-on + aim** — the lock-on branch keeps facing the target (no `aimBodyYawOffset`) and `TrackLockedTarget` ignores
+  the mouse, so aim sensitivity / pose correction have no effect while locked on. Decide: block lock-on while aiming, or
+  apply the offset there.
+- **No shot buffering** — a click during `Draw arrow` / `Fire arrow` is dropped (by design for now); consider buffering one
+  shot until the nock if play tests feel unresponsive.

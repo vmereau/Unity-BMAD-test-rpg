@@ -11,7 +11,9 @@
 ```
 Combat/
 ├── Sword/      — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
-├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride
+├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
+│                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
+│                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
 ├── Unarmed/    — Jab, Uppercut Jab + Unarmed Idle
 ├── Block Idle.fbx
 ├── dodge roll.fbx

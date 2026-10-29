@@ -61,6 +61,19 @@ namespace Game.Combat
                  "draw / sheathe clip at speed 1 (Sheath Sword ≈ 1.3 s).")]
         [Min(0.1f)] public float weaponSwitchTimeout = 2f;
 
+        [Header("Bow Aim")]
+        [Tooltip("Camera vertical field of view while aiming (the default lens FOV is restored when the aim ends).")]
+        [Range(10f, 90f)] public float aimFieldOfView = 30f;
+        [Tooltip("CinemachineFollow offset while aiming — closer, over the right shoulder.")]
+        public Vector3 aimFollowOffset = new Vector3(0.6f, 0.3f, -1.8f);
+        [Tooltip("Mouse look sensitivity multiplier while aiming.")]
+        [Range(0.05f, 1f)] public float aimSensitivityMultiplier = 0.5f;
+        [Tooltip("Aim camera blend speed (1 / seconds): 8 ≈ 0.12 s in or out.")]
+        [Min(0.1f)] public float aimBlendSpeed = 8f;
+        [Tooltip("Watchdog: seconds an aim may wait for the nocked aim pose (BowAim_State enter) before the arrow is " +
+                 "forced nocked. Must exceed Draw arrow (+ Fire arrow) at speed 1 (≈ 1.8 s).")]
+        [Min(0.1f)] public float bowNockTimeout = 2.5f;
+
         [Header("Lock-On")]
         [Tooltip("Max acquisition distance in metres.")]
         public float lockOnRange = 15f;

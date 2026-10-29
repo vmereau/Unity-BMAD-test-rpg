@@ -157,8 +157,17 @@ namespace Game.Player
                     moveDir = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
                 }
 
+                // Bow aim: always face the camera yaw (strafe), like lock-on faces its target
+                bool isAiming = _stateManager != null && _stateManager.IsAiming;
+                if (isAiming && _mainCamera != null)
+                {
+                    Quaternion targetRot = Quaternion.Euler(0f,
+                        _mainCamera.transform.eulerAngles.y + _config.aimBodyYawOffset, 0f);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
+                        _config.rotationSpeed * Time.deltaTime);
+                }
                 // Rotate body to face movement direction
-                if (moveDir.sqrMagnitude > 0.01f)
+                else if (moveDir.sqrMagnitude > 0.01f)
                 {
                     Quaternion targetRot = Quaternion.LookRotation(moveDir);
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
@@ -166,7 +175,8 @@ namespace Game.Player
                 }
             }
 
-            bool isSprinting = _input.Player.Sprint.IsPressed();
+            // No sprint while aiming the bow (walk speed max; sneak speed still applies)
+            bool isSprinting = _input.Player.Sprint.IsPressed() && (_stateManager == null || !_stateManager.IsAiming);
             // Sneak overrides both; PlayerSneak ends sneak as soon as Sprint is held while moving.
             float currentSpeed = (_stateManager != null && _stateManager.IsSneaking)
                 ? _config.sneakSpeed

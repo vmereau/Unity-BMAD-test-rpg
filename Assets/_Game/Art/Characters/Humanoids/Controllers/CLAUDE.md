@@ -19,7 +19,8 @@ Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Wea
   locomotion over the new legs.
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
-  `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`).
+  `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
+  `IsAiming` (bool), `BowFire` (trigger).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -33,6 +34,14 @@ AnyState transitions are evaluated before `LockOn Locomotion → CombatIdle (IsI
 `IsInCombat` flips. Base clips = `draw sword` / `sheath sword` (also the unarmed placeholder); `Sword_AnimatorOverride`
 lists them explicitly (self-mapped) so an unarmed clip only replaces the base-state motion; `Bow_AnimatorOverride`
 (→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`. NPCs never set the triggers.
+
+### Bow aim states (Attack layer, player only)
+
+`CombatIdle → BowDrawArrow_State` (`Draw arrow`, IsAiming, 0.15 s) `→ BowAim_State` (`Aim Overdraw`, looping, exit 0.9)
+`→ BowFire_State` (`Fire arrow`, BowFire trigger) `→ BowDrawArrow_State` (exit 0.85, IsAiming). Each of the three states
+also has `→ CombatIdle` (IsAiming false, 0.15 s), listed **first**. `BowAim_State` carries `SMB_BowAimState`: its enter =
+arrow nocked. The bow clips sit directly in the base controller (not in an override): only a bow sets `IsAiming`, and NPCs
+never do. The AnyState dodge / jump / fall transitions pull the layer out; `PlayerCombat` then clears `IsAiming`.
 
 ### Sneak states (both layers)
 

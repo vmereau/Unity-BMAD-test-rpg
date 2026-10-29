@@ -87,6 +87,11 @@ namespace Game.Combat
         private int _hurtboxLayer;
         private Camera _camera;           // crosshair ray (cached — Camera.main is a lookup)
         private float _nextBowShotTime;   // fire cooldown
+        // Bow aim (PlayerStateManager.IsAiming): a shot needs the arrow nocked — set when BowAim_State is entered
+        // (SMB_BowAimState), cleared by a shot (Fire arrow → Draw arrow play before the next one) and on aim start.
+        private bool _arrowNocked;
+        private float _nockWaitStartTime; // nock watchdog
+        private bool _nockForced;         // nocked by the watchdog, not by the aim state
 
         private WeaponHitbox _activeHitbox;
 
@@ -165,6 +170,7 @@ namespace Game.Combat
             // Story 7.9: clean up hitbox binding before input
             _onVisualsRefreshed?.RemoveListener(HandleVisualsRefreshed);
             CompleteWeaponSwitch(); // no Update watchdog while disabled
+            StopAim();
             UnbindWeaponHitbox();
             if (_input == null) return; // Guard: Awake may disable before OnEnable runs
             _input.Player.Attack.started -= OnAttackStarted;
@@ -204,6 +210,8 @@ namespace Game.Combat
                 EndAttack();
             }
 
+            UpdateBowAim();
+
             if (_stateManager.IsSwitchingWeapon)
             {
                 // A dodge / jump taken on the same frame as R wins the Attack layer's AnyState order: Draw_State is
@@ -235,6 +243,8 @@ namespace Game.Combat
         // event (or the state-exit / watchdog safety nets) — see CompleteWeaponSwitch.
         private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
         {
+            // R ends a bow aim, then draws / sheathes (the switch gate itself refuses while aiming).
+            StopAim();
             if (!_stateManager.CanSwitchWeapon()) return;
             bool entering = !_stateManager.IsInCombat;
             _pendingDraw = entering;
@@ -245,6 +255,13 @@ namespace Game.Combat
 
         private void OnBlockStarted(InputAction.CallbackContext ctx)
         {
+            // A bow can't block: the Block input (right click) is hold-to-aim instead.
+            if (EquippedBow != null)
+            {
+                StartAim();
+                return;
+            }
+
             if (!_stateManager.CanBlock())
             {
                 GameLog.Warn(TAG, "Cannot block — airborne, dodging, drawing / sheathing, or weapon sheathed");
@@ -272,6 +289,7 @@ namespace Game.Combat
 
         private void OnBlockCanceled(InputAction.CallbackContext ctx)
         {
+            StopAim(); // no-op unless aiming; a block raised before a bow was equipped still lowers below
             if (!_stateManager.IsBlocking) return; // Block was never raised (stamina denied entry)
             _stateManager.SetBlocking(false); // also drives animator IsBlocking bool
             _isPerfectBlockWindowOpen = false;
@@ -287,13 +305,20 @@ namespace Game.Combat
                 return;
             }
 
-            // Ranged weapon: no combo, no melee hitbox, no attack animation (for now). Read from the equipment, not
-            // _currentWeaponSO: that cache is only set by OnVisualsRefreshed and is null after a disable/enable.
-            if (_equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is BowSO bow)
+            // Ranged weapon: no combo, no melee hitbox. A shot needs the aim held and the arrow nocked (no hip-fire).
+            BowSO bow = EquippedBow;
+            if (bow != null)
             {
                 // A melee swing still playing (weapon swapped mid-combo) finishes first.
                 if (_stateManager.IsAttacking) return;
-                TryFireBow(bow);
+                if (!_stateManager.IsAiming || !_arrowNocked) return;
+                if (!TryFireBow(bow)) return; // refused shot: nothing spent, arrow stays nocked
+                _arrowNocked = false;
+                _nockWaitStartTime = Time.time;
+                // Fire arrow → Draw arrow → BowAim_State re-nocks. A watchdog-forced nock means the layer is not in
+                // BowAim_State: a BowFire set now would latch and replay the release (and re-nock) on its next enter.
+                if (!_nockForced) _stateManager.PlayBowFire();
+                _nockForced = false;
                 return;
             }
 
@@ -412,6 +437,8 @@ namespace Game.Combat
         {
             // Equipment changed mid draw / sheathe: the new visual (and animator override) replace the clip in flight.
             CompleteWeaponSwitch();
+            // The controller reset below drops the aim states; the player presses aim again.
+            StopAim();
             // Refresh() reassigns runtimeAnimatorController, which resets every animator parameter — re-push the
             // stance, or a drawn player stays in LockOn Locomotion and Attack_1 (only taken from CombatIdle) latches.
             if (_stateManager != null) _stateManager.SetInCombat(_stateManager.IsInCombat);
@@ -505,42 +532,87 @@ namespace Game.Combat
 
         // Gate order: cooldown → stamina → ammo → consume stamina → consume ammo → fire. Nothing is spent on a
         // refused shot (ammo is checked before stamina is consumed, and consumed only after it succeeded).
-        private void TryFireBow(BowSO bow)
+        // Returns true when an arrow was fired.
+        private bool TryFireBow(BowSO bow)
         {
-            if (Time.time < _nextBowShotTime) return;
+            if (Time.time < _nextBowShotTime) return false;
 
             if (!bow.IsConfigured)
             {
                 GameLog.Error(TAG, $"Bow '{bow.name}' has no ammoItem or projectilePrefab — cannot fire");
-                return;
+                return false;
             }
             if (_inventory == null)
             {
                 GameLog.Error(TAG, "InventorySystem not assigned — bow cannot fire");
-                return;
+                return false;
             }
 
             if (!_staminaSystem.HasEnough(_config.attackStaminaCost))
             {
                 GameLog.Warn(TAG, "Cannot fire: insufficient stamina");
-                return;
+                return false;
             }
 
             if (_inventory.CountOf(bow.ammoItem) <= 0)
             {
                 GameLog.Info(TAG, "Cannot fire: out of ammo");
                 _onCombatNotification?.Raise(OUT_OF_AMMO_MESSAGE);
-                return;
+                return false;
             }
 
             if (!_staminaSystem.Consume(_config.attackStaminaCost))
             {
                 GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
-                return;
+                return false;
             }
             _inventory.TryConsume(bow.ammoItem);
             _nextBowShotTime = Time.time + bow.fireCooldown;
             FireArrow(bow);
+            return true;
+        }
+
+        // Equipped bow — read from the equipment, not _currentWeaponSO (that cache is only set by OnVisualsRefreshed and
+        // is null after a disable/enable). Null for melee / unarmed.
+        private BowSO EquippedBow =>
+            _equipmentSystem != null ? _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as BowSO : null;
+
+        // Right click with a bow drawn: Draw arrow → Aim Overdraw (loop); the arrow is nocked at BowAim_State enter.
+        private void StartAim()
+        {
+            if (_stateManager.IsAiming || !_stateManager.CanAim()) return;
+            _arrowNocked = false;
+            _nockForced = false;
+            _nockWaitStartTime = Time.time;
+            _stateManager.SetAiming(true);
+            GameLog.Info(TAG, "Bow aim started");
+        }
+
+        private void StopAim()
+        {
+            if (_stateManager == null || !_stateManager.IsAiming) return;
+            _stateManager.SetAiming(false);
+            _arrowNocked = false;
+            GameLog.Info(TAG, "Bow aim ended");
+        }
+
+        // Any interrupt (dodge, jump, R, menu / dialogue, death, sheathed, bow unequipped) ends the aim for good: a
+        // still-held right click does not resume it (Block.started only fires on a new press).
+        private void UpdateBowAim()
+        {
+            if (!_stateManager.IsAiming) return;
+            if (!_stateManager.CanAim() || EquippedBow == null)
+            {
+                StopAim();
+                return;
+            }
+            // Watchdog: a lost BowAim_State enter (trigger not taken, controller swapped) would lock every shot.
+            if (!_arrowNocked && Time.time - _nockWaitStartTime > _config.bowNockTimeout)
+            {
+                GameLog.Warn(TAG, $"Bow nock stalled ({_config.bowNockTimeout:F2}s without BowAim_State enter) — forcing nock");
+                _arrowNocked = true;
+                _nockForced = true;
+            }
         }
 
         private void FireArrow(BowSO bow)
@@ -670,6 +742,14 @@ namespace Game.Combat
         /// <summary>WeaponSwap clip event — the hand reached the hilt / sheath: move the weapon visual now.</summary>
         public void OnWeaponSwapEvent() => CompleteWeaponSwitch();
 
+        /// <summary>Called by SMB_BowAimState.OnStateEnter — the aim pose is reached: the arrow is nocked.</summary>
+        public void OnBowAimEntered()
+        {
+            if (_stateManager == null || !_stateManager.IsAiming) return; // stale enter after a release
+            _arrowNocked = true;
+            _nockForced = false;
+        }
+
         /// <summary>
         /// Called by SMB_WeaponSwitchState.OnStateExit — safety net when the clip was interrupted before its event.
         /// Only the state matching the switch in flight completes it: after R is re-pressed, the previous state still
@@ -733,6 +813,7 @@ namespace Game.Combat
             if (!_stateManager.IsBlocking)
             {
                 GameLog.Info(TAG, "Hit received — not blocking");
+                StopAim(); // a landed hit breaks the bow aim
                 return HitResult.NotBlocked;
             }
 

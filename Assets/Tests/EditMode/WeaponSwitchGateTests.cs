@@ -7,8 +7,8 @@ using NUnit.Framework;
 public class WeaponSwitchGateTests
 {
     private static bool Can(bool busy = false, bool attacking = false, bool blocking = false, bool dodging = false,
-                            bool airborne = false, bool switching = false)
-        => PlayerStateManager.EvaluateCanSwitchWeapon(busy, attacking, blocking, dodging, airborne, switching);
+                            bool airborne = false, bool switching = false, bool aiming = false)
+        => PlayerStateManager.EvaluateCanSwitchWeapon(busy, attacking, blocking, dodging, airborne, switching, aiming);
 
     [Test]
     public void CanSwitch_ReturnsTrue_WhenIdle() => Assert.That(Can(), Is.True);
@@ -30,4 +30,7 @@ public class WeaponSwitchGateTests
 
     [Test]
     public void CanSwitch_ReturnsFalse_WhileSwitchInFlight() => Assert.That(Can(switching: true), Is.False);
+
+    [Test]
+    public void CanSwitch_ReturnsFalse_WhileAiming() => Assert.That(Can(aiming: true), Is.False);
 }

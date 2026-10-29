@@ -25,6 +25,10 @@ namespace Game.Player
         [SerializeField] private CinemachineFollow _cinemachineFollow;
         [SerializeField] private LockOnSystem _lockOnSystem;
         [SerializeField] private CombatConfigSO _combatConfig;
+        [Tooltip("Bow aim zoom: reads IsAiming. Optional — no aim camera without it.")]
+        [SerializeField] private PlayerStateManager _stateManager;
+        [Tooltip("Lens owner for the bow aim FOV. Optional — no FOV change without it.")]
+        [SerializeField] private CinemachineCamera _cinemachineCamera;
 
         private InputSystem_Actions _input;
         private float _yaw;
@@ -32,6 +36,9 @@ namespace Game.Player
         private float _defaultCameraTargetLocalY;
         private float _defaultFollowOffsetZ;
         private float _defaultFollowOffsetY;
+        private float _defaultFollowOffsetX;
+        private float _defaultFieldOfView;
+        private float _aimBlend; // 0 = normal camera, 1 = full bow aim (blended at CombatConfigSO.aimBlendSpeed)
 
         private void Awake()
         {
@@ -60,7 +67,12 @@ namespace Game.Player
             {
                 _defaultFollowOffsetZ = _cinemachineFollow.FollowOffset.z;
                 _defaultFollowOffsetY = _cinemachineFollow.FollowOffset.y;
+                _defaultFollowOffsetX = _cinemachineFollow.FollowOffset.x;
             }
+            if (_cinemachineCamera != null)
+                _defaultFieldOfView = _cinemachineCamera.Lens.FieldOfView;
+            if (_stateManager == null)
+                GameLog.Warn(TAG, "CameraController: _stateManager not assigned — no bow aim zoom");
         }
 
         private void OnEnable()
@@ -80,9 +92,14 @@ namespace Game.Player
 
         private void LateUpdate()
         {
-            // Only rotate camera when cursor is locked
+            UpdateAimBlend();
+
+            // Only rotate camera when cursor is locked (the aim blend still eases back while a menu is open)
             if (!CursorManager.IsLocked)
+            {
+                UpdateCameraTargetHeight();
                 return;
+            }
 
             if (_lockOnSystem != null && _lockOnSystem.IsLockedOn)
                 TrackLockedTarget();
@@ -93,10 +110,12 @@ namespace Game.Player
         private void RotateCamera()
         {
             Vector2 lookDelta = _input.Player.Look.ReadValue<Vector2>();
+            float aimMultiplier = _combatConfig != null ? _combatConfig.aimSensitivityMultiplier : 1f;
+            float sensitivity = _mouseSensitivity * Mathf.Lerp(1f, aimMultiplier, _aimBlend);
 
-            _yaw   += lookDelta.x * _mouseSensitivity;
+            _yaw   += lookDelta.x * sensitivity;
             _yaw   %= 360f; // Prevent float precision loss over extended play sessions
-            _pitch -= lookDelta.y * _mouseSensitivity; // inverted: mouse up = look up
+            _pitch -= lookDelta.y * sensitivity; // inverted: mouse up = look up
             _pitch  = Mathf.Clamp(_pitch, _pitchMin, _pitchMax);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
@@ -155,8 +174,37 @@ namespace Game.Player
                 // Apply the height adjustment to the camera offset instead
                 offset.y = _defaultFollowOffsetY + (heightSign * t * _lookDownHeightRise);
                 offset.z = _defaultFollowOffsetZ + (t * _lookDownZoomIn);
+                // Bow aim: shift towards the aim offset on top of the look-down adjustment (the two compose)
+                if (_aimBlend > 0f && _combatConfig != null)
+                {
+                    Vector3 aim = _combatConfig.aimFollowOffset;
+                    offset.x = Mathf.Lerp(_defaultFollowOffsetX, aim.x, _aimBlend);
+                    offset.y += (aim.y - _defaultFollowOffsetY) * _aimBlend;
+                    offset.z += (aim.z - _defaultFollowOffsetZ) * _aimBlend;
+                }
+                else
+                {
+                    offset.x = _defaultFollowOffsetX;
+                }
                 _cinemachineFollow.FollowOffset = offset;
             }
+        }
+
+        // Eases _aimBlend towards IsAiming and applies the aim FOV.
+        private void UpdateAimBlend()
+        {
+            bool aiming = _stateManager != null && _stateManager.IsAiming;
+            float speed = _combatConfig != null ? _combatConfig.aimBlendSpeed : 8f;
+            float previous = _aimBlend;
+            // Unscaled: the game menu / death screen set timeScale = 0 and the zoom must still ease out behind them.
+            _aimBlend = Mathf.MoveTowards(_aimBlend, aiming ? 1f : 0f, speed * Time.unscaledDeltaTime);
+
+            // Only touch the lens while blending or zoomed, so other lens writers keep control at rest.
+            if (_aimBlend <= 0f && previous <= 0f) return;
+            if (_cinemachineCamera == null || _combatConfig == null) return;
+            LensSettings lens = _cinemachineCamera.Lens;
+            lens.FieldOfView = Mathf.Lerp(_defaultFieldOfView, _combatConfig.aimFieldOfView, _aimBlend);
+            _cinemachineCamera.Lens = lens;
         }
     }
 }

@@ -45,5 +45,8 @@ namespace Game.Combat
 
         // Called by SMB_WeaponSwitchState.OnStateExit — draw (true) or sheathe (false) state exited
         public void NotifyWeaponSwitchExited(bool drawState) => _combat?.OnWeaponSwitchStateExited(drawState);
+
+        // Called by SMB_BowAimState.OnStateEnter — the aim pose is reached, the arrow is nocked
+        public void NotifyBowAimEntered() => _combat?.OnBowAimEntered();
     }
 }
