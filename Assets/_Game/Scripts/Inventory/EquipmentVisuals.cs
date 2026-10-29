@@ -10,6 +10,7 @@ namespace Game.Inventory
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
         [SerializeField] private Transform _weaponSocket;
+        [SerializeField] private Transform _leftWeaponSocket;
         [SerializeField] private Transform _undrawnWeaponSocket;
         [SerializeField] private Transform _backWeaponSocket;
         [SerializeField] private Transform _helmetSocket;
@@ -23,6 +24,7 @@ namespace Game.Inventory
         private GameObject _weaponVisual;
         private WeaponArchetypeSO _currentArchetype;
         private bool _backSocketWarned; // warn once per equipped weapon, not on every sheathe
+        private bool _leftSocketWarned; // warn once per equipped weapon, not on every draw
         private GameObject _helmetVisual;
         private Material _originalBodyMaterial;
         private bool _isInCombat = false;
@@ -68,7 +70,7 @@ namespace Game.Inventory
         {
             _isInCombat = isInCombat;
             if (_weaponVisual == null) return;
-            var targetSocket = isInCombat ? _weaponSocket : CurrentSheathSocket();
+            var targetSocket = isInCombat ? CurrentDrawnSocket() : CurrentSheathSocket();
             if (targetSocket == null)
             {
                 GameLog.Warn(TAG, $"SetCombatState({isInCombat}): target socket is null — weapon visual not moved. Check socket assignments on EquipmentVisuals.");
@@ -97,6 +99,7 @@ namespace Game.Inventory
             _weaponVisual = null;
             _currentArchetype = null;
             _backSocketWarned = false;
+            _leftSocketWarned = false;
             ApplyAnimatorOverride(null); // Restore default controller when weapon removed
 
             var weapon = _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as EquipableItemSO;
@@ -104,7 +107,7 @@ namespace Game.Inventory
 
             _currentArchetype = (weapon as WeaponSO)?.archetype;
             var sheathSocket = _isInCombat ? null : CurrentSheathSocket();
-            var targetSocket = sheathSocket != null ? sheathSocket : _weaponSocket;
+            var targetSocket = sheathSocket != null ? sheathSocket : CurrentDrawnSocket();
             if (weapon.equipVisualPrefab != null)
             {
                 _weaponVisual = Instantiate(weapon.equipVisualPrefab, targetSocket);
@@ -162,6 +165,24 @@ namespace Game.Inventory
             _animator.runtimeAnimatorController = overrideController != null
                 ? overrideController
                 : _defaultAnimatorController;
+        }
+
+        private Transform CurrentDrawnSocket()
+        {
+            if (!_leftSocketWarned && _currentArchetype != null && _currentArchetype.drawnHand == WeaponHand.Left && _leftWeaponSocket == null)
+            {
+                _leftSocketWarned = true;
+                GameLog.Warn(TAG, $"Archetype '{_currentArchetype.name}' requests the Left hand socket but _leftWeaponSocket is not assigned — falling back to the right hand");
+            }
+            return ResolveDrawnSocket(_currentArchetype, _weaponSocket, _leftWeaponSocket);
+        }
+
+        /// <summary>Left hand socket when the archetype asks for it and it exists; right hand socket otherwise (incl. null archetype).</summary>
+        public static Transform ResolveDrawnSocket(WeaponArchetypeSO archetype, Transform rightSocket, Transform leftSocket)
+        {
+            if (archetype != null && archetype.drawnHand == WeaponHand.Left && leftSocket != null)
+                return leftSocket;
+            return rightSocket;
         }
 
         private Transform CurrentSheathSocket()

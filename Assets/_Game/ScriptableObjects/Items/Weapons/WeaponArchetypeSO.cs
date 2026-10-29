@@ -10,7 +10,9 @@ namespace Game.Inventory
     public class WeaponArchetypeSO : ScriptableObject
     {
         [Header("Grip")]
-        [Tooltip("Pose of the Drawn child in WeaponSocket (hand) space. Assumes a normalized mesh: grip at origin, blade +Y, edge +Z.")]
+        [Tooltip("Hand socket the drawn weapon is held in (bows: Left).")]
+        public WeaponHand drawnHand = WeaponHand.Right;
+        [Tooltip("Pose of the Drawn child in the drawn-hand socket space. Assumes a normalized mesh: grip at origin, blade +Y, edge +Z.")]
         public WeaponPose drawnPose;
         [Tooltip("Pose of the Sheathed child in sheath-socket space. Assumes a normalized mesh: grip at origin, blade +Y, edge +Z.")]
         public WeaponPose sheathedPose;

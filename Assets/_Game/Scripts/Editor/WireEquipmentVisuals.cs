@@ -40,6 +40,25 @@ namespace Game.Editor
             var weaponSocket = root.transform.Find("Character/mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2/mixamorig:RightShoulder/mixamorig:RightArm/mixamorig:RightForeArm/mixamorig:RightHand/WeaponSocket");
             so.FindProperty("_weaponSocket").objectReferenceValue = weaponSocket;
 
+            // _leftWeaponSocket — find or create under LeftHand, mirroring the right-hand socket offset (bows)
+            var leftHand = root.transform.Find("Character/mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2/mixamorig:LeftShoulder/mixamorig:LeftArm/mixamorig:LeftForeArm/mixamorig:LeftHand");
+            Transform leftSocket = null;
+            if (leftHand == null)
+                GameLog.Warn(TAG, "mixamorig:LeftHand not found — _leftWeaponSocket left unassigned");
+            else
+            {
+                leftSocket = leftHand.Find("LeftWeaponSocket");
+                if (leftSocket == null)
+                {
+                    var go = new GameObject("LeftWeaponSocket") { layer = 3 };
+                    leftSocket = go.transform;
+                    leftSocket.SetParent(leftHand, worldPositionStays: false);
+                    leftSocket.localPosition = new Vector3(-0.002f, 0.092f, 0.011f);
+                    leftSocket.localRotation = Quaternion.identity;
+                }
+            }
+            so.FindProperty("_leftWeaponSocket").objectReferenceValue = leftSocket;
+
             // _backWeaponSocket — find or create under Spine2 (starting placement; tune when the first Back weapon exists)
             var spine2 = root.transform.Find("Character/mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2");
             Transform backSocket = null;
@@ -74,7 +93,15 @@ namespace Game.Editor
                     break;
                 }
             }
-            so.FindProperty("_bodyRenderer").objectReferenceValue = bodyRenderer;
+            // Keep the current reference when Beta_Surface is gone (swapped body model) — don't wipe a hand-wired renderer
+            var bodyProp = so.FindProperty("_bodyRenderer");
+            if (bodyRenderer != null)
+                bodyProp.objectReferenceValue = bodyRenderer;
+            else
+            {
+                bodyRenderer = bodyProp.objectReferenceValue as Renderer;
+                GameLog.Warn(TAG, $"Beta_Surface not found — keeping the current _bodyRenderer ({(bodyRenderer != null ? bodyRenderer.name : "none")})");
+            }
 
             // _armorPlaceholderMaterial
             var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
@@ -91,7 +118,7 @@ namespace Game.Editor
 
             so.ApplyModifiedProperties();
 
-            GameLog.Info(TAG, $"Done. equipSys={equipSys != null}, evSO={evSO != null}, weaponSocket={weaponSocket != null}, backSocket={backSocket != null}, helmetSocket={helmetSocket != null}, bodyRenderer={bodyRenderer != null}, mat={mat != null}, animator={animator != null}, defaultController={defaultController != null}");
+            GameLog.Info(TAG, $"Done. equipSys={equipSys != null}, evSO={evSO != null}, weaponSocket={weaponSocket != null}, leftSocket={leftSocket != null}, backSocket={backSocket != null}, helmetSocket={helmetSocket != null}, bodyRenderer={bodyRenderer != null}, mat={mat != null}, animator={animator != null}, defaultController={defaultController != null}");
         }
     }
 }

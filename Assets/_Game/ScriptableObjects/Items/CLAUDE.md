@@ -22,14 +22,14 @@ ItemSO                              (base — any item in the inventory)
     └── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
-  + WeaponPose (struct), WeaponSheathSocket (Hip/Back), SignedAxis, WeaponGripMath (static) — all in Weapons/
+  + WeaponPose (struct), WeaponSheathSocket (Hip/Back), WeaponHand (Right/Left), SignedAxis, WeaponGripMath (static) — all in Weapons/
 ```
 
 All types live in namespace `Game.Inventory`.
 
 **`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
 
-**New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (grip poses, Hip/Back
+**New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (drawn hand, grip poses, Hip/Back
 sheath socket, animator override, default combo steps) — no code. Add a new `XxxSO : WeaponSO` class only when
 the family needs new **fields**. `SwordSO` is kept (renaming would break asset `m_Script` refs) even though the
 class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.

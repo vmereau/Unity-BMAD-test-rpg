@@ -191,3 +191,7 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   calibrate button that stores the source clip + avatar and a validator that flags a mismatch.
 - **Lock-on + aim** (see the bow-aim entry above) — the correction still aims the chest at the crosshair while locked on,
   but the body keeps facing the target without the stance yaw, so large yaw deltas may hit the clamp.
+
+## From spec-bow-left-hand-socket (2026-10-29)
+
+- **Arrow spawn inside close walls** — `PlayerCombat.GetLaunchOrigin` = `ActiveWeaponGO`, now the left-hand bow grip (~0.85 m ahead of the draw hand). Against a wall the spawn point can already be inside the collider, so the arrow's first `SphereCast` misses it. Consider sweeping from the chest/right hand to the bow on fire, or a backed-off origin.

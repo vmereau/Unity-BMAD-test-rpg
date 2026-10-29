@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80e02bdb20716234fbc7e887920b1eb3, type: 3}
   m_Name: Archetype_Bow
   m_EditorClassIdentifier: Game::Game.Inventory.WeaponArchetypeSO
+  drawnHand: 1
   drawnPose:
-    localPosition: {x: 0.011257708, y: 0.013294995, z: 0.013848245}
-    localEulerAngles: {x: 293.1189, y: 318.97446, z: 107.92484}
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 298.92, y: 293.9, z: 31.67}
   sheathedPose:
     localPosition: {x: 0, y: 0, z: 0}
     localEulerAngles: {x: 0, y: 0, z: 45}

@@ -32,7 +32,7 @@ Swords/SwordBase/
 
 | State | Root parented to | `Drawn` | `Sheathed` |
 |-------|-----------------|---------|------------|
-| Drawn (IsInCombat = true) | `WeaponSocket` (hand) | active | inactive |
+| Drawn (IsInCombat = true) | `WeaponSocket` (right hand) or `LeftWeaponSocket` (archetype `drawnHand = Left`) | active | inactive |
 | Sheathed (IsInCombat = false) | `UndrawnWeaponSocket` (hip) or `BackWeaponSocket` (archetype `sheathSocket = Back`) | inactive | active |
 
 **Rules:**
@@ -84,19 +84,22 @@ Per-weapon fine-tuning (a slightly different grip) goes into the `Mesh` child, n
 
 ## Weapon Archetypes (Grip Alignment)
 
-`WeaponSO.archetype` → `WeaponArchetypeSO` (`Data/Items/Weapons/Archetypes/`) holds the `drawnPose` /
-`sheathedPose`, the `sheathSocket` (Hip / Back), the family's animator override and default combo steps.
+`WeaponSO.archetype` → `WeaponArchetypeSO` (`Data/Items/Weapons/Archetypes/`) holds the `drawnHand` (Right / Left),
+the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocket` (Hip / Back), the family's animator override and default combo steps.
 `EquipmentVisuals.RefreshWeapon` instantiates the `_Visual` prefab and calls
 `ApplyArchetypePoses(visual, archetype)`, which overwrites `Drawn` / `Sheathed` local transforms at runtime.
 
 - **Once a weapon has an archetype, editing its prefab's `Drawn`/`Sheathed` transforms has no in-game effect.**
   Tune the archetype (affects the whole family) or the `Mesh` child (this weapon only).
 - **Null archetype** → prefab poses are used unchanged and the weapon sheathes on `UndrawnWeaponSocket` (legacy path).
+- **Drawn hand:** `drawnHand = Left` → `LeftWeaponSocket` under `mixamorig:LeftHand` (mirror of the right socket offset).
+  Left asked for but `_leftWeaponSocket` unassigned → right hand + one warning (`ResolveDrawnSocket`).
 - **Back socket:** `BackWeaponSocket` under `mixamorig:Spine2` (placement `(0, 0.05, -0.15)` is a first guess;
   tune it when the first Back weapon exists). If the archetype asks for Back but the socket is unassigned,
   `EquipmentVisuals` warns once and falls back to the hip.
 - Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`),
-  `Archetype_Bow` (Back socket; drawn pose copied from the sword, sheathed pose a guess — tune in play mode;
+  `Archetype_Bow` (**Left** hand; Back socket; drawn pose derived from `Aim Overdraw` at 50 % — belly (+Z) along the
+  right-hand → left-hand line, limbs (+Y) along UpperChest up — sheathed pose a guess, tune in play mode;
   `Bow_AnimatorOverride` swaps only the draw / sheathe clips).
 - **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.

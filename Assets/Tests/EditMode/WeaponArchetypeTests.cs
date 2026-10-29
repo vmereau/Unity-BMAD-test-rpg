@@ -37,11 +37,13 @@ namespace Tests.EditMode
             return w;
         }
 
-        private WeaponArchetypeSO CreateArchetype(int defaultComboSteps = 2, WeaponSheathSocket socket = WeaponSheathSocket.Hip)
+        private WeaponArchetypeSO CreateArchetype(int defaultComboSteps = 2, WeaponSheathSocket socket = WeaponSheathSocket.Hip, WeaponHand? hand = null)
         {
             var a = Track(ScriptableObject.CreateInstance<WeaponArchetypeSO>());
             a.defaultComboSteps = defaultComboSteps;
             a.sheathSocket = socket;
+            if (hand.HasValue)
+                a.drawnHand = hand.Value;
             return a;
         }
 
@@ -135,6 +137,43 @@ namespace Tests.EditMode
             var hip = CreateTransform("Hip");
             Assert.That(EquipmentVisuals.ResolveSheathSocket(CreateArchetype(socket: WeaponSheathSocket.Back), hip, null), Is.SameAs(hip));
         }
+
+        // ── EquipmentVisuals.ResolveDrawnSocket ─────────────────────────────
+
+        [Test]
+        public void ResolveDrawnSocket_NullArchetype_ReturnsRight()
+        {
+            var right = CreateTransform("Right");
+            var left = CreateTransform("Left");
+            Assert.That(EquipmentVisuals.ResolveDrawnSocket(null, right, left), Is.SameAs(right));
+        }
+
+        [Test]
+        public void ResolveDrawnSocket_RightHandArchetype_ReturnsRight()
+        {
+            var right = CreateTransform("Right");
+            var left = CreateTransform("Left");
+            Assert.That(EquipmentVisuals.ResolveDrawnSocket(CreateArchetype(hand: WeaponHand.Right), right, left), Is.SameAs(right));
+        }
+
+        [Test]
+        public void ResolveDrawnSocket_LeftHandArchetype_ReturnsLeft()
+        {
+            var right = CreateTransform("Right");
+            var left = CreateTransform("Left");
+            Assert.That(EquipmentVisuals.ResolveDrawnSocket(CreateArchetype(hand: WeaponHand.Left), right, left), Is.SameAs(left));
+        }
+
+        [Test]
+        public void ResolveDrawnSocket_LeftHandArchetypeWithoutLeftSocket_FallsBackToRight()
+        {
+            var right = CreateTransform("Right");
+            Assert.That(EquipmentVisuals.ResolveDrawnSocket(CreateArchetype(hand: WeaponHand.Left), right, null), Is.SameAs(right));
+        }
+
+        [Test]
+        public void NewArchetype_DefaultsToRightHand()
+            => Assert.That(CreateArchetype().drawnHand, Is.EqualTo(WeaponHand.Right));
 
         // ── EquipmentVisuals.ApplyArchetypePoses ────────────────────────────
 
