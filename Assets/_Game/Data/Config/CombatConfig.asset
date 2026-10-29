@@ -34,6 +34,10 @@ MonoBehaviour:
   aimSensitivityMultiplier: 0.5
   aimBlendSpeed: 8
   bowNockTimeout: 2.5
+  aimSpreadMaxAngle: 4
+  aimSpreadShrinkDuration: 1.5
+  aimMoveSpeedThreshold: 0.5
+  aimMoveWidenMultiplier: 1
   aimCorrectionEnabled: 1
   aimCorrectionMaxAnglePerBone: 35
   aimCorrectionMinDistance: 2
