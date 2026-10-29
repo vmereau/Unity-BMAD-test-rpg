@@ -18,6 +18,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 │   ├── TabBar           (TabBarUI)
 │   └── InventoryUI / QuestLogUI / CharacterStatsUI / SkillsUI   (inactive by default)
 ├── Game                 (HUD — drawn AFTER Menus, i.e. on top)
+│   ├── AimSpreadRing    (own Canvas, AimSpreadRingGraphic + AimSpreadUI — bow accuracy ring, centred, before Crosshair; _playerCombat is a Player.prefab override)
 │   ├── Crosshair        (Image)
 │   ├── SpeechBubbleLayer   (stretch, own Canvas, SpeechBubbleUI — pools Prefabs/UI/SpeechBubble.prefab; before the prompt)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)

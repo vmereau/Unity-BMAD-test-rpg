@@ -147,6 +147,14 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
   - Stance: `PlayerController` faces camera yaw + `PlayerConfigSO.aimStanceYaw` (45°, was `aimBodyYawOffset`); the
     correction makes up the rest.
 
+- **Spread (spec `spec-bow-aim-spread-arrow-drop.md`):** `_aimProgress` 0 (cone `aimSpreadMaxAngle`, 5°) → 1 (0°, perfect).
+  Full until the nock; then `BowSpreadMath.StepProgress` shrinks it over `aimSpreadShrinkDuration` (1.5 s) while still, or
+  widens it back (`aimMoveWidenMultiplier` × that rate) while the CharacterController's horizontal speed >
+  `aimMoveSpeedThreshold`. Reset on `StartAim` and after every shot. Scaled time. The shot ray = `SampleCone` (uniform
+  over the disk) around the crosshair ray, through `GetAimPoint(maxDistance, spreadDeg)`, then `ClampToCone` around bow → centre point (a sampled ray grazing a near
+  edge would otherwise bend the shot far past the cone); `TryGetAimPoint` (spine correction) keeps the centre ray. The
+  camera (`AimCamera`, shared with the ring) is re-resolved lazily after a reload. `TryGetAimSpread` feeds the HUD ring (`AimSpreadUI`). Math: `BowSpreadMathTests`.
+
 Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` → ammo `CountOf > 0` (else `OnCombatNotification`
 "Out of arrows" toast) → `Consume` stamina (checked) → `TryConsume` ammo → fire. A refused shot spends nothing.
 
@@ -157,7 +165,10 @@ Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` →
   would let an NPC's perception / interaction sphere take the hit.
 - Damage is snapshotted at fire time: `RangedDamage.Compute` = `attackDamage` + max(0, (Dex − baseDex) × `damagePerDexterity`)
   + bow `damageBonus` (no Strength, no Power Strike) — `RangedDamageTests`.
-- `ArrowProjectile`: straight line, no Rigidbody, per-frame `SphereCastNonAlloc` (closest valid hit — results are unsorted).
+- `ArrowProjectile`: no Rigidbody; integrates its own velocity. Straight for `BowSO.gravityDelay` (0.25 s), then
+  `ArrowFlightMath.GravityFactor` ramps `Physics.gravity × gravityScale` (0.5) in over `gravityRampTime` (0.5 s) — at
+  40 m/s ≈ 0 m drop at 10 m, 0.03 m at 20 m, 0.65 m at 40 m, 2.5 m at 60 m. Faces its velocity every frame; per-frame `SphereCastNonAlloc`
+  along this frame's displacement (closest valid hit — results are unsorted).
   `IDamageable` → `PlayerCombat.ResolveHit` (same `TryReceiveHit` / sneak rule as melee), destroyed. Solid collider →
   spawns `ammoItem.worldItemPrefab` kinematic at the impact pose (a normal pickup, not saved), **moved into the hit
   collider's scene** — `Instantiate` targets the active scene (Core), where a reload would leave a duplicate arrow. **Prefab frame: root = arrow

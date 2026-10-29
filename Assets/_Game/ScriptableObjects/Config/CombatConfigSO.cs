@@ -74,6 +74,16 @@ namespace Game.Combat
                  "forced nocked. Must exceed Draw arrow (+ Fire arrow) at speed 1 (≈ 1.8 s).")]
         [Min(0.1f)] public float bowNockTimeout = 2.5f;
 
+        [Header("Bow Aim Spread")]
+        [Tooltip("Accuracy cone half-angle (degrees) when the arrow is nocked; shrinks to 0 while holding still.")]
+        [Range(0f, 30f)] public float aimSpreadMaxAngle = 5f;
+        [Tooltip("Seconds of still aim (from the nock) for the cone to shrink from max to 0 — a perfect shot.")]
+        [Min(0.05f)] public float aimSpreadShrinkDuration = 1.5f;
+        [Tooltip("Horizontal speed (m/s) above which the player counts as moving: the cone widens back instead.")]
+        [Min(0f)] public float aimMoveSpeedThreshold = 0.5f;
+        [Tooltip("Widen rate while moving, as a multiple of the shrink rate.")]
+        [Min(0f)] public float aimMoveWidenMultiplier = 1f;
+
         [Header("Bow Aim Correction")]
         [Tooltip("Post-animation spine correction toward the crosshair while aiming (BowAimCorrection).")]
         public bool aimCorrectionEnabled = true;

@@ -6,7 +6,9 @@ using UnityEngine.SceneManagement;
 namespace Game.Combat
 {
     /// <summary>
-    /// Straight-line projectile (no gravity, no Rigidbody). Each frame it sphere-casts the distance it travels:
+    /// Arrow projectile (no Rigidbody): flies straight for its gravity delay, then gravity eases in
+    /// (<see cref="ArrowFlightMath.GravityFactor"/>) and the arrow tilts along its velocity. Each frame it sphere-casts
+    /// this frame's displacement:
     /// a collider resolving to a living <see cref="IDamageable"/> → <c>onHit</c> callback, projectile destroyed;
     /// any other solid collider → the projectile is replaced by its stuck prefab (a kinematic pickable item) at
     /// the impact pose, in the hit collider's scene (region, so save / load and region unloads own it). Triggers
@@ -20,6 +22,7 @@ namespace Game.Combat
         private const int HIT_BUFFER_SIZE = 32;
         // Safety net for an instance never launched (spawner failed) — Launch() overrides it.
         private const float UNLAUNCHED_LIFETIME = 10f;
+        private const float MIN_STEP_DISTANCE = 1e-5f;
 
         [Tooltip("Sweep radius — small forgiveness around the tip.")]
         [SerializeField, Min(0.001f)] private float _radius = 0.05f;
@@ -31,8 +34,11 @@ namespace Game.Combat
         private readonly RaycastHit[] _hitBuffer = new RaycastHit[HIT_BUFFER_SIZE];
 
         private Transform _owner;
-        private Vector3 _direction;
-        private float _speed;
+        private Vector3 _velocity;
+        private Vector3 _gravity;         // full gravity (Physics.gravity × scale), eased in after the delay
+        private float _gravityDelay;
+        private float _gravityRampTime;
+        private float _launchTime;
         private float _expireTime;
         private Action<IDamageable, Vector3> _onHit;
         private GameObject _stuckPrefab;
@@ -51,16 +57,23 @@ namespace Game.Combat
         /// <param name="owner">Shooter — its colliders and its own IDamageable are ignored.</param>
         /// <param name="onHit">Hit resolution (TryReceiveHit → TakeDamage), owned by the shooter.</param>
         /// <param name="stuckPrefab">Spawned where the arrow sticks in the world (null = just destroyed).</param>
+        /// <param name="gravityScale">Share of <c>Physics.gravity</c> once fully ramped in (0 = straight line).</param>
+        /// <param name="gravityDelay">Seconds of dead-straight flight before gravity starts.</param>
+        /// <param name="gravityRampTime">Seconds for gravity to ramp from 0 to full after the delay.</param>
         public void Launch(Transform owner, Vector3 direction, float speed, float lifetime,
-            Action<IDamageable, Vector3> onHit, GameObject stuckPrefab)
+            Action<IDamageable, Vector3> onHit, GameObject stuckPrefab,
+            float gravityScale, float gravityDelay, float gravityRampTime)
         {
             _owner = owner;
-            _direction = direction.normalized;
-            _speed = speed;
+            _velocity = direction.normalized * speed;
+            _gravity = Physics.gravity * Mathf.Max(0f, gravityScale);
+            _gravityDelay = gravityDelay;
+            _gravityRampTime = gravityRampTime;
+            _launchTime = Time.time;
             _expireTime = Time.time + lifetime;
             _onHit = onHit;
             _stuckPrefab = stuckPrefab;
-            transform.rotation = Quaternion.LookRotation(_direction);
+            transform.rotation = Quaternion.LookRotation(_velocity);
             _launched = true;
         }
 
@@ -73,9 +86,19 @@ namespace Game.Combat
             }
             if (!_launched) return;
 
-            float distance = _speed * Time.deltaTime;
+            float dt = Time.deltaTime;
+            // Gravity sampled mid-step and applied as v·dt + ½·a·dt², so the drop barely depends on the frame rate.
+            float midTime = Time.time - _launchTime - dt * 0.5f;
+            Vector3 acceleration = _gravity * ArrowFlightMath.GravityFactor(midTime, _gravityDelay, _gravityRampTime);
+            Vector3 displacement = _velocity * dt + acceleration * (0.5f * dt * dt);
+            _velocity += acceleration * dt;
+            float distance = displacement.magnitude;
+            if (distance < MIN_STEP_DISTANCE) return; // paused (dt 0) — nothing to sweep
+            Vector3 direction = displacement / distance;
+            transform.rotation = Quaternion.LookRotation(direction);
+
             Vector3 origin = transform.position;
-            int count = Physics.SphereCastNonAlloc(origin, _radius, _direction, _hitBuffer, distance,
+            int count = Physics.SphereCastNonAlloc(origin, _radius, direction, _hitBuffer, distance,
                 _hitLayers, QueryTriggerInteraction.Collide);
 
             if (TryFindFirstHit(count, out RaycastHit hit, out IDamageable target))
@@ -85,11 +108,11 @@ namespace Game.Combat
                     HitTarget(target, hit);
                     return;
                 }
-                Stick(hit, origin);
+                Stick(hit, origin, direction);
                 return;
             }
 
-            transform.position = origin + _direction * distance;
+            transform.position = origin + displacement;
         }
 
         // Closest valid hit: skips the owner, dead targets and non-hurtbox triggers (zones). Results are unsorted.
@@ -135,12 +158,12 @@ namespace Game.Combat
             Destroy(gameObject);
         }
 
-        private void Stick(RaycastHit hit, Vector3 origin)
+        private void Stick(RaycastHit hit, Vector3 origin, Vector3 direction)
         {
             if (_stuckPrefab != null)
             {
                 // Tip = root: travel to the impact, then sink a little along the flight direction.
-                Vector3 tip = origin + _direction * (hit.distance + _stickDepth);
+                Vector3 tip = origin + direction * (hit.distance + _stickDepth);
                 GameObject stuck = Instantiate(_stuckPrefab, tip, transform.rotation);
                 if (stuck.TryGetComponent(out Rigidbody body))
                     body.isKinematic = true;

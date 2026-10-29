@@ -85,13 +85,17 @@ namespace Game.Combat
         private readonly RaycastHit[] _aimBuffer = new RaycastHit[32];
         private int _aimLayers;
         private int _hurtboxLayer;
-        private Camera _camera;           // crosshair ray (cached — Camera.main is a lookup)
+        private Camera _cachedCamera;     // crosshair ray (cached — Camera.main is a lookup; re-resolved if destroyed)
         private float _nextBowShotTime;   // fire cooldown
         // Bow aim (PlayerStateManager.IsAiming): a shot needs the arrow nocked — set when BowAim_State is entered
         // (SMB_BowAimState), cleared by a shot (Fire arrow → Draw arrow play before the next one) and on aim start.
         private bool _arrowNocked;
         private float _nockWaitStartTime; // nock watchdog
         private bool _nockForced;         // nocked by the watchdog, not by the aim state
+        // Aim spread: 0 = full cone (aimSpreadMaxAngle), 1 = perfect shot. Shrinks only while nocked and still, widens
+        // back while moving; reset on aim start and after every shot.
+        private float _aimProgress;
+        private CharacterController _characterController; // movement check for the spread (optional)
 
         private WeaponHitbox _activeHitbox;
 
@@ -143,9 +147,13 @@ namespace Game.Combat
 
             _aimLayers = LayerMask.GetMask(GameConstants.DEFAULT_LAYER_NAME, GameConstants.CHARACTER_HITBOX_LAYER_NAME);
             _hurtboxLayer = LayerMask.NameToLayer(GameConstants.CHARACTER_HITBOX_LAYER_NAME);
-            _camera = Camera.main;
-            if (_camera == null)
+            _cachedCamera = Camera.main;
+            if (_cachedCamera == null)
                 GameLog.Warn(TAG, "Camera.main not found — bows aim along the player's forward");
+
+            _characterController = GetComponent<CharacterController>();
+            if (_characterController == null)
+                GameLog.Warn(TAG, "CharacterController not found — moving won't widen the bow aim spread");
 
             _input = new InputSystem_Actions();
         }
@@ -314,6 +322,7 @@ namespace Game.Combat
                 if (!_stateManager.IsAiming || !_arrowNocked) return;
                 if (!TryFireBow(bow)) return; // refused shot: nothing spent, arrow stays nocked
                 _arrowNocked = false;
+                _aimProgress = 0f;
                 _nockWaitStartTime = Time.time;
                 // Fire arrow → Draw arrow → BowAim_State re-nocks. A watchdog-forced nock means the layer is not in
                 // BowAim_State: a BowFire set now would latch and replay the release (and re-nock) on its next enter.
@@ -583,6 +592,7 @@ namespace Game.Combat
             if (_stateManager.IsAiming || !_stateManager.CanAim()) return;
             _arrowNocked = false;
             _nockForced = false;
+            _aimProgress = 0f;
             _nockWaitStartTime = Time.time;
             _stateManager.SetAiming(true);
             GameLog.Info(TAG, "Bow aim started");
@@ -613,13 +623,62 @@ namespace Game.Combat
                 _arrowNocked = true;
                 _nockForced = true;
             }
+            // Spread: full until the nock, then shrinks while still / widens back while moving.
+            if (_arrowNocked)
+                _aimProgress = BowSpreadMath.StepProgress(_aimProgress, Time.deltaTime, _config.aimSpreadShrinkDuration,
+                    IsMovingForSpread(), _config.aimMoveWidenMultiplier);
+        }
+
+        private bool IsMovingForSpread()
+        {
+            if (_characterController == null) return false;
+            Vector3 velocity = _characterController.velocity;
+            velocity.y = 0f;
+            float threshold = _config.aimMoveSpeedThreshold;
+            return velocity.sqrMagnitude > threshold * threshold;
+        }
+
+        // Crosshair camera, re-resolved after a reload (the camera may also appear after this Awake).
+        private Camera _camera
+        {
+            get
+            {
+                if (_cachedCamera == null) _cachedCamera = Camera.main;
+                return _cachedCamera;
+            }
+        }
+
+        /// <summary>The camera the crosshair ray (and so the spread cone) is cast from; null when there is none.</summary>
+        public Camera AimCamera => _camera;
+
+        /// <summary>
+        /// Current aim spread cone half-angle (degrees) for the HUD ring. False when not aiming a bow or without a
+        /// camera (the ring is hidden).
+        /// </summary>
+        public bool TryGetAimSpread(out float angleDeg)
+        {
+            angleDeg = 0f;
+            if (_config == null || _stateManager == null || !_stateManager.IsAiming || _camera == null) return false;
+            if (EquippedBow == null) return false;
+            angleDeg = BowSpreadMath.SpreadAngle(_arrowNocked ? _aimProgress : 0f, _config.aimSpreadMaxAngle);
+            return true;
         }
 
         private void FireArrow(BowSO bow)
         {
             Vector3 origin = GetLaunchOrigin();
-            Vector3 direction = GetAimPoint(bow.maxAimDistance) - origin;
+            // The shot goes through a uniformly random point of the current spread cone around the crosshair ray.
+            float spread = BowSpreadMath.SpreadAngle(_aimProgress, _config.aimSpreadMaxAngle);
+            Vector3 direction = GetAimPoint(bow.maxAimDistance, spread) - origin;
             if (direction.sqrMagnitude < MIN_AIM_DIRECTION_SQR) direction = transform.forward;
+            if (spread > 0f)
+            {
+                // A sampled ray grazing a near edge the centre ray missed would bend the shot (bow → near point) far
+                // beyond the cone: keep it within the spread of the bow → crosshair point direction.
+                Vector3 centre = GetAimPoint(bow.maxAimDistance) - origin;
+                if (centre.sqrMagnitude >= MIN_AIM_DIRECTION_SQR)
+                    direction = BowSpreadMath.ClampToCone(centre, direction, spread);
+            }
 
             GameObject go = Instantiate(bow.projectilePrefab, origin, Quaternion.LookRotation(direction));
             if (!go.TryGetComponent(out ArrowProjectile projectile))
@@ -632,8 +691,8 @@ namespace Game.Combat
             float damage = ComputeRangedDamage(bow);
             projectile.Launch(transform, direction, bow.projectileSpeed, bow.projectileLifetime,
                 (target, point) => ResolveHit(target, point, damage),
-                bow.ammoItem.worldItemPrefab);
-            GameLog.Info(TAG, $"Arrow fired ({damage} dmg), {_inventory.CountOf(bow.ammoItem)} left");
+                bow.ammoItem.worldItemPrefab, bow.gravityScale, bow.gravityDelay, bow.gravityRampTime);
+            GameLog.Info(TAG, $"Arrow fired ({damage} dmg, spread {spread:F1}°), {_inventory.CountOf(bow.ammoItem)} left");
         }
 
         // Equipped bow (hand socket while drawn); falls back to chest height in front of the player.
@@ -661,12 +720,21 @@ namespace Game.Combat
 
         // Crosshair (viewport centre) ray, skipping the player's own colliders and everything between the camera and
         // the player (a wall behind the OTS camera, an NPC behind the player); nothing hit → max range.
-        private Vector3 GetAimPoint(float maxDistance)
+        // spreadDeg > 0 → the ray goes through a uniformly random point of that cone around the crosshair ray.
+        private Vector3 GetAimPoint(float maxDistance, float spreadDeg = 0f)
         {
-            if (_camera == null)
-                return transform.position + Vector3.up * FALLBACK_LAUNCH_HEIGHT + transform.forward * maxDistance;
+            Camera cam = _camera;
+            if (cam == null)
+            {
+                Vector3 forward = spreadDeg > 0f
+                    ? BowSpreadMath.SampleCone(transform.forward, spreadDeg, Random.value, Random.value)
+                    : transform.forward;
+                return transform.position + Vector3.up * FALLBACK_LAUNCH_HEIGHT + forward * maxDistance;
+            }
 
-            Ray ray = _camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            if (spreadDeg > 0f)
+                ray.direction = BowSpreadMath.SampleCone(ray.direction, spreadDeg, Random.value, Random.value);
             float minDistance = Mathf.Max(0f, Vector3.Dot(transform.position - ray.origin, ray.direction));
             int count = Physics.RaycastNonAlloc(ray, _aimBuffer, maxDistance, _aimLayers,
                 QueryTriggerInteraction.Collide);
