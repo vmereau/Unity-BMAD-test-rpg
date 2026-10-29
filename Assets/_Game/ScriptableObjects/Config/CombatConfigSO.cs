@@ -53,6 +53,14 @@ namespace Game.Combat
                  "force-ended. Must exceed the longest gap between attack callbacks of any attack clip.")]
         [Min(0.1f)] public float attackStallTimeout = 1.5f;
 
+        [Header("Draw / Sheathe")]
+        [Tooltip("Playback speed of the draw / sheathe clips (Humanoid_Template WeaponSwitchSpeed).")]
+        [Min(0.1f)] public float weaponSwitchAnimSpeed = 1.5f;
+        [Tooltip("Watchdog: seconds (at speed 1 — divided by weaponSwitchAnimSpeed at runtime) a draw / sheathe may run " +
+                 "without its WeaponSwap event or state exit before the weapon swap is forced. Must exceed the longest " +
+                 "draw / sheathe clip at speed 1 (Sheath Sword ≈ 1.3 s).")]
+        [Min(0.1f)] public float weaponSwitchTimeout = 2f;
+
         [Header("Lock-On")]
         [Tooltip("Max acquisition distance in metres.")]
         public float lockOnRange = 15f;

@@ -10,9 +10,9 @@
 
 ```
 Combat/
-├── attacks/
-│   ├── Sword/      — AttackLeft, AttackOverhead, AttackThrust + SwordIdle + Sword_AnimatorOverride
-│   └── Unarmed/    — Jab, Uppercut Jab + Unarmed Idle
+├── Sword/      — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
+├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride
+├── Unarmed/    — Jab, Uppercut Jab + Unarmed Idle
 ├── Block Idle.fbx
 ├── dodge roll.fbx
 └── Dodge back.fbx
@@ -30,7 +30,7 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 `ModelImporter.clipAnimations`. If editing the `.meta` by hand, copy an existing event block (all fields:
 `time`, `functionName`, `data`, `objectReferenceParameter`, `floatParameter`, `intParameter`, `messageOptions`).
 
-### Sword (`attacks/Sword/`)
+### Sword (`Sword/`)
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
@@ -40,7 +40,7 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 
 `HitboxDisable` and `ComboWindowOpen` share 0.50 — they are independent, so dispatch order is irrelevant.
 
-### Unarmed (`attacks/Unarmed/`)
+### Unarmed (`Unarmed/`)
 
 Custom timings tuned to each arc (faster connect, different wind-up) — **never copy the sword timings**.
 
@@ -53,6 +53,22 @@ Custom timings tuned to each arc (faster connect, different wind-up) — **never
 retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than overhead swings. Retiming
 `ComboWindowOpen` also moves the combo blend start — re-check the transition rule in
 `../../Controllers/CLAUDE.md`.
+
+---
+
+## Draw / Sheathe Clip Events
+
+Each draw / sheathe clip carries **one** `WeaponSwap` event (normalized, FBX importer) — the frame the hand reaches the
+hilt / sheath; the weapon visual changes socket there. First guesses, tune in play mode:
+
+| Clip | State | WeaponSwap |
+|------|-------|-----------|
+| `Sword/Draw Sword.fbx` (`draw sword`) | Draw_State | 0.40 |
+| `Sword/Sheath Sword.fbx` (`sheath sword`) | Sheathe_State | 0.65 |
+| `Bow/Standing Equip Bow.fbx` (`Draw Bow`) | Draw_State (bow override) | 0.45 |
+| `Bow/Standing Disarm Bow.fbx` (`Sheathe Bow`) | Sheathe_State (bow override) | 0.65 |
+
+A missing event is not fatal — the state exit completes the swap, just late (end of clip).
 
 ---
 

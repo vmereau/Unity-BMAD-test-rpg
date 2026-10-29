@@ -39,5 +39,11 @@ namespace Game.Combat
         // Called by SMB_AttackState.OnStateExit — animator confirmed this attack state exited
         // (only when NOT transitioning to another attack state)
         public void NotifyAttackExited() => _combat?.OnAttackStateExited();
+
+        // Called from draw / sheathe clips at the frame the weapon changes hand / sheath
+        public void WeaponSwap() => _combat?.OnWeaponSwapEvent();
+
+        // Called by SMB_WeaponSwitchState.OnStateExit — draw (true) or sheathe (false) state exited
+        public void NotifyWeaponSwitchExited(bool drawState) => _combat?.OnWeaponSwitchStateExited(drawState);
     }
 }

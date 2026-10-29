@@ -74,11 +74,29 @@ Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` 
 
 ## Draw / Sheathe (R — `DrawWeapon` action)
 
-`PlayerCombat.OnDrawWeaponStarted` toggles `PlayerStateManager.SetInCombat(...)` (state + animator
-bool) and `EquipmentVisuals.SetCombatState(...)` (reparents the weapon visual to hand / sheath socket).
+Spec: `spec-player-draw-sheathe-animations.md`. `PlayerCombat.OnDrawWeaponStarted` flips
+`PlayerStateManager.SetInCombat(...)` (state + animator bool) **immediately** and calls `BeginWeaponSwitch(draw, speed)`
+(`IsSwitchingWeapon` + `DrawWeapon` / `SheatheWeapon` trigger, `WeaponSwitchSpeed` = `CombatConfigSO.weaponSwitchAnimSpeed`).
+The weapon visual moves (`EquipmentVisuals.SetCombatState(IsInCombat)`) only in `CompleteWeaponSwitch()`, reached from:
 
-- Ignored while `IsBusy` (cursor unlocked) **or** `IsAttacking` — drawing mid-combo would deactivate
-  `Drawn` mid-swing and silence that swing's hit window.
+| Path | Why |
+|------|-----|
+| `WeaponSwap` clip event → `AnimationEventReceiver.WeaponSwap` | timing (hand at the hilt / sheath) |
+| `SMB_WeaponSwitchState.OnStateExit` → `OnWeaponSwitchStateExited(drawState)` | interrupt net (dodge / jump before the event) — **only if `drawState == _pendingDraw`**, or the previous state blending out after a quick re-press finishes the new switch early |
+| `Update`: `IsDodging` / `IsAirborne` while switching | a dodge / jump on the same frame as R wins the AnyState order — `Draw_State` is never entered, so no exit net |
+| `Update` watchdog (`weaponSwitchTimeout / weaponSwitchAnimSpeed`) | trigger never taken / controller swapped mid-clip |
+| `HandleVisualsRefreshed`, `OnDisable` | equip change mid-clip; no watchdog while disabled |
+
+`HandleVisualsRefreshed` also re-pushes `SetInCombat(IsInCombat)`: `Refresh()` reassigns `runtimeAnimatorController`,
+which resets **every** animator parameter (a drawn player would sit in `LockOn Locomotion` and latch `Attack_1`).
+
+`CompleteWeaponSwitch` no-ops unless `IsSwitchingWeapon`. Unarmed runs the same flow (base-controller clips, no visual).
+`SetDead(true)` keeps `IsSwitchingWeapon` (IsBusy blocks R; watchdog / load fix the visual). `PlayerSaveAdapter` forces the
+sheathed stance when `IsInCombat || IsSwitchingWeapon`.
+
+- R is gated by `CanSwitchWeapon()`: not busy, attacking, blocking, dodging, airborne, or already switching — the
+  Attack-layer AnyState transitions for block / dodge / jump / fall are held bools that would yank the layer out of the
+  clip. `CanAttack()` / `CanBlock()` also require `!IsSwitchingWeapon`.
 - `CanAttack()` / `CanBlock()` require `IsInCombat` (gated in `PlayerStateManager`, see
   `Scripts/Player/CLAUDE.md`); `CanDodge()` does not. `IsInCombat` starts `false` (sheathed).
 - The `DrawWeapon.started` unsubscribe goes inside the `if (_input == null) return;` guarded block of
@@ -121,7 +139,8 @@ Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` →
 | MEDIUM | Hitbox shape collider left enabled, not Box/Sphere/Capsule, or on a child instead of the hitbox GO itself |
 | MEDIUM | Low-target misses "fixed" by inflating the target's hurtbox — tune the attacker's `_verticalReach` / `_reachPadding` |
 | MEDIUM | Weapon hit applied with `TakeDamage` directly — always `TryReceiveHit` first, damage only on `NotBlocked` |
-| MEDIUM | `OnDrawWeaponStarted` missing the `IsAttacking` guard |
+| MEDIUM | `OnDrawWeaponStarted` not gated by `CanSwitchWeapon()` (attacking / blocking / airborne / switching) |
+| MEDIUM | Code moving the weapon visual on R directly instead of through `CompleteWeaponSwitch` — breaks the event timing and the switch lock |
 
 Combo/animation-event checklist rows: `PLAYER_COMBO.md`. `WeaponSO` subclassing rules:
 `ScriptableObjects/Items/CLAUDE.md`.

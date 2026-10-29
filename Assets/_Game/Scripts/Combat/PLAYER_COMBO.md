@@ -18,6 +18,8 @@ clip events there) and forwards to `PlayerCombat`:
 | `HitboxDisable()` | `OnHitboxDisable()` | clip event |
 | `NotifyAttackEntered(int)` | `OnAttackStateEntered(int)` | `SMB_AttackState.OnStateEnter` |
 | `NotifyAttackExited()` | `OnAttackStateExited()` | `SMB_AttackState.OnStateExit` |
+| `WeaponSwap()` | `OnWeaponSwapEvent()` | draw / sheathe clip event (see `CLAUDE.md` → Draw / Sheathe) |
+| `NotifyWeaponSwitchExited(bool)` | `OnWeaponSwitchStateExited(bool)` | `SMB_WeaponSwitchState.OnStateExit` |
 
 Clip events handle **timing**; the SMB callbacks are **guaranteed** (they fire even when the clip is
 interrupted before its events ran). Unity matches event receivers by exact method name — a typo compiles

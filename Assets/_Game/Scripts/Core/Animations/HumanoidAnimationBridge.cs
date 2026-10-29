@@ -25,6 +25,9 @@ namespace Game.Animations
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
         private static readonly int IsSneakingHash = Animator.StringToHash("IsSneaking");
         private static readonly int SneakToSprintHash = Animator.StringToHash("SneakToSprint");
+        private static readonly int DrawWeaponHash = Animator.StringToHash("DrawWeapon");
+        private static readonly int SheatheWeaponHash = Animator.StringToHash("SheatheWeapon");
+        private static readonly int WeaponSwitchSpeedHash = Animator.StringToHash("WeaponSwitchSpeed");
 
         [SerializeField] private Animator _animator;
 
@@ -83,6 +86,23 @@ namespace Game.Animations
             _animator.ResetTrigger(Attack1Hash);
             _animator.ResetTrigger(Attack2Hash);
             _animator.ResetTrigger(Attack3Hash);
+        }
+
+        /// <summary>Plays the draw (true) or sheathe (false) clip at <paramref name="speed"/> (WeaponSwitchSpeed).</summary>
+        public void PlayWeaponSwitch(bool draw, float speed)
+        {
+            if (_animator == null) return;
+            _animator.SetFloat(WeaponSwitchSpeedHash, speed);
+            _animator.ResetTrigger(draw ? SheatheWeaponHash : DrawWeaponHash);
+            _animator.SetTrigger(draw ? DrawWeaponHash : SheatheWeaponHash);
+        }
+
+        /// <summary>Clears pending DrawWeapon / SheatheWeapon triggers so a stale one can't replay the clip.</summary>
+        public void ResetWeaponSwitchTriggers()
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(DrawWeaponHash);
+            _animator.ResetTrigger(SheatheWeaponHash);
         }
 
         public void PlayDodge(bool isBackwardRoll = false)

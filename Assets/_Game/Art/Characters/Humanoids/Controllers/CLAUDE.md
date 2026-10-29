@@ -18,9 +18,21 @@ Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Wea
   combat — **any new Base locomotion state needs an Attack-layer twin**, or the torso plays standing
   locomotion over the new legs.
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
-  `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`.
+  `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
+  `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
+
+### Draw / sheathe states (Attack layer, player only)
+
+AnyState → `Draw_State` (`DrawWeapon`) / `Sheathe_State` (`SheatheWeapon`), 0.1 s, no self-transition; speed multiplier
+`WeaponSwitchSpeed`; each carries `SMB_WeaponSwitchState` (`drawState` true / false). `Draw_State → CombatIdle` and
+`Sheathe_State → LockOn Locomotion` (IsSneaking false) / `→ Sneak Locomotion` (IsSneaking true), exit time 0.85.
+`Draw_State → Attack_1_State` (Attack_1, interruption Source) — attacks unlock at the `WeaponSwap` event, before the clip ends.
+AnyState transitions are evaluated before `LockOn Locomotion → CombatIdle (IsInCombat)`, so the draw wins the frame
+`IsInCombat` flips. Base clips = `draw sword` / `sheath sword` (also the unarmed placeholder); `Sword_AnimatorOverride`
+lists them explicitly (self-mapped) so an unarmed clip only replaces the base-state motion; `Bow_AnimatorOverride`
+(→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`. NPCs never set the triggers.
 
 ### Sneak states (both layers)
 

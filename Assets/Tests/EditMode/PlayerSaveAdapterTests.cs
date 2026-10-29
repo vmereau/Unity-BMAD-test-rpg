@@ -202,6 +202,20 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Restore_EndsSheatheInFlight()
+        {
+            var p = CreatePlayer();
+            // Sheathe in flight: stance already false, weapon still in hand until the WeaponSwap event.
+            p.State.BeginWeaponSwitch(false, 1f);
+            Assert.IsTrue(p.State.IsSwitchingWeapon);
+
+            p.Adapter.Restore(p.Adapter.Capture(), Catalog());
+
+            Assert.IsFalse(p.State.IsSwitchingWeapon);
+            Assert.IsFalse(p.State.IsInCombat);
+        }
+
+        [Test]
         public void Restore_ResetsFallVelocity()
         {
             var p = CreatePlayer();

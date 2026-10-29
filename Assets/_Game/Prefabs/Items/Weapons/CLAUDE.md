@@ -96,7 +96,8 @@ Per-weapon fine-tuning (a slightly different grip) goes into the `Mesh` child, n
   tune it when the first Back weapon exists). If the archetype asks for Back but the socket is unassigned,
   `EquipmentVisuals` warns once and falls back to the hip.
 - Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`),
-  `Archetype_Bow` (Back socket; drawn pose copied from the sword, sheathed pose a guess — tune in play mode).
+  `Archetype_Bow` (Back socket; drawn pose copied from the sword, sheathed pose a guess — tune in play mode;
+  `Bow_AnimatorOverride` swaps only the draw / sheathe clips).
 - **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
 

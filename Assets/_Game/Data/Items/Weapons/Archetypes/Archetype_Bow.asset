@@ -19,5 +19,5 @@ MonoBehaviour:
     localPosition: {x: 0, y: 0, z: 0}
     localEulerAngles: {x: 0, y: 0, z: 45}
   sheathSocket: 1
-  animatorOverrideController: {fileID: 0}
+  animatorOverrideController: {fileID: 22100000, guid: 4d609877b6a39c24facdd577ee8dfef2, type: 2}
   defaultComboSteps: 1

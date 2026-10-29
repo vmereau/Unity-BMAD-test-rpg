@@ -76,6 +76,12 @@ namespace Game.Player
         public bool IsInCombat { get; private set; }
 
         /// <summary>
+        /// True while a draw / sheathe clip runs, until its weapon swap happens. Locks R, Attack and Block.
+        /// Written by PlayerCombat via <see cref="BeginWeaponSwitch"/> / <see cref="EndWeaponSwitch"/>.
+        /// </summary>
+        public bool IsSwitchingWeapon { get; private set; }
+
+        /// <summary>
         /// True while in sneak stance. Written by <c>PlayerSneak</c>; cleared by dodge, jump, death and sprint
         /// (<see cref="ExitSneakToSprint"/>). Attacking and blocking keep it.
         /// </summary>
@@ -152,8 +158,22 @@ namespace Game.Player
         public void SetInCombat(bool value)
         {
             IsInCombat = value;
-            _playerAnimator.SetInCombat(value);
+            if (_playerAnimator != null) _playerAnimator.SetInCombat(value);
             GameLog.Info(TAG, $"Combat stance: {(value ? "DRAWN" : "sheathed")}");
+        }
+
+        /// <summary>Starts a draw (true) or sheathe (false): locks switching and plays the clip at <paramref name="speed"/>.</summary>
+        public void BeginWeaponSwitch(bool draw, float speed)
+        {
+            IsSwitchingWeapon = true;
+            if (_playerAnimator != null) _playerAnimator.PlayWeaponSwitch(draw, speed);
+        }
+
+        /// <summary>Ends the draw / sheathe lock and clears any trigger the Animator has not taken.</summary>
+        public void EndWeaponSwitch()
+        {
+            IsSwitchingWeapon = false;
+            if (_playerAnimator != null) _playerAnimator.ResetWeaponSwitchTriggers();
         }
 
         /// <summary>Enters or leaves sneak stance and drives the IsSneaking animator bool. Called by PlayerSneak.</summary>
@@ -202,6 +222,8 @@ namespace Game.Player
                 IsAttacking = false;
                 IsDodging = false;
                 IsSneaking = false;
+                // IsSwitchingWeapon is kept: IsBusy already blocks R, and the PlayerCombat watchdog (or the load) still
+                // has to move the weapon visual to match IsInCombat.
             }
             if (_playerAnimator == null) return;
 
@@ -221,14 +243,26 @@ namespace Game.Player
         // ── Can-do queries ────────────────────────────────────────────────────
 
         /// <summary>True when the player is allowed to start an attack.</summary>
-        public bool CanAttack() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && IsInCombat;
+        public bool CanAttack() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
 
         /// <summary>
         /// True when the player is allowed to raise a block.
         /// Note: blocking is intentionally permitted during an attack combo (block-cancel mechanic).
         /// OnBlockStarted in PlayerCombat resets combo state when a block is raised.
         /// </summary>
-        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && !IsAttacking && IsInCombat;
+        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && !IsAttacking && !IsSwitchingWeapon && IsInCombat;
+
+        /// <summary>True when R may start a draw / sheathe.</summary>
+        public bool CanSwitchWeapon() =>
+            EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon);
+
+        /// <summary>
+        /// Pure draw / sheathe gate (tested in WeaponSwitchGateTests). Blocking, dodging and airborne are excluded because
+        /// their Attack-layer AnyState transitions are held bools that would immediately pull the layer out of the clip.
+        /// </summary>
+        public static bool EvaluateCanSwitchWeapon(bool isBusy, bool isAttacking, bool isBlocking, bool isDodging,
+            bool isAirborne, bool isSwitchingWeapon) =>
+            !isBusy && !isAttacking && !isBlocking && !isDodging && !isAirborne && !isSwitchingWeapon;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
         public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;

@@ -16,6 +16,7 @@
 | Jump   | `CanJump()`   | — (read-only gate) |
 | Move   | `CanMove()`   | — (read-only gate) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
+| Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 
 **Rules:**
@@ -84,6 +85,8 @@ _humanoidBridge.SetMovement(normX, normZ);
 | `ResetAttackTriggers()` | `HumanoidAnimationBridge.ResetAttackTriggers` | Clears `Attack_1/2/3` — called by `PlayerStateManager.SetAttacking(false)` so an untaken trigger can't stay latched |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
 | `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (Attack layer: `LockOn Locomotion` ⇄ `CombatIdle`; the layer's weight is a constant 1) |
+| `PlayWeaponSwitch(bool draw, float speed)` | `HumanoidAnimationBridge.PlayWeaponSwitch` | Sets `WeaponSwitchSpeed`, fires `DrawWeapon` / `SheatheWeapon` (clears the opposite one) |
+| `ResetWeaponSwitchTriggers()` | `HumanoidAnimationBridge.ResetWeaponSwitchTriggers` | Clears both — called by `PlayerStateManager.EndWeaponSwitch()` |
 | `SetSneaking(bool)` | `HumanoidAnimationBridge.SetSneaking` | Sets `IsSneaking` bool (entering also resets `SneakToSprint`) |
 | `PlaySneakToSprint()` | `SetSneaking(false)` + `TriggerSneakToSprint` | Leaves sneak through the `sneak to sprint` clip |
 

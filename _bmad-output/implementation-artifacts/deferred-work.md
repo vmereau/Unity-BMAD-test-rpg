@@ -162,3 +162,10 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - Bow launch origin can sit inside a wall when the player hugs it; a sweep starting inside a non-convex MeshCollider / terrain reports nothing → the arrow passes through. Fall back to a chest/camera point when line of sight to the bow is blocked.
 - Stuck arrows aren't parented to what they hit — an arrow in a door / moving object floats when it moves.
 - In-flight projectiles live in the active scene (Core) and survive a quickload / region change (lifetime ≤ 5 s).
+
+## 2026-10-29 — from spec-player-draw-sheathe-animations review
+
+- **Load (alive) mid-draw leaves the Attack layer in `Draw_State`.** `PlayerSaveAdapter` forces the sheathed stance but
+  only the death path rebinds the Animator, so the leftover draw clip finishes (cosmetic), and an R pressed within
+  ~0.4 s can latch `DrawWeapon` (AnyState → `Draw_State` has no self-transition) and be completed early by the leftover
+  `WeaponSwap` event. Fix idea: play the Attack layer's locomotion state on load (bridge method), or rebind.

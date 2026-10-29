@@ -153,9 +153,11 @@ namespace Game.Player
             _stateManager?.SetDead(false);
             // Sneak isn't saved — every load starts standing.
             _stateManager?.SetSneaking(false);
-            // The drawn / sheathed stance isn't saved — every load starts sheathed.
-            if (_stateManager != null && _stateManager.IsInCombat)
+            // The drawn / sheathed stance isn't saved — every load starts sheathed. A sheathe in flight still has the
+            // weapon in hand (IsInCombat already false), so it is forced too.
+            if (_stateManager != null && (_stateManager.IsInCombat || _stateManager.IsSwitchingWeapon))
             {
+                _stateManager.EndWeaponSwitch();
                 _stateManager.SetInCombat(false);
                 _equipmentVisuals?.SetCombatState(false);
             }

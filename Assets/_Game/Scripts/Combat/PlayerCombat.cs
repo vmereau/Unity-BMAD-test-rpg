@@ -90,6 +90,10 @@ namespace Game.Combat
 
         private WeaponHitbox _activeHitbox;
 
+        // Draw / sheathe in flight (PlayerStateManager.IsSwitchingWeapon): direction and start time for the watchdog
+        private bool _pendingDraw;
+        private float _weaponSwitchStartTime;
+
         private void Awake()
         {
             if (_config == null)
@@ -160,6 +164,7 @@ namespace Game.Combat
         {
             // Story 7.9: clean up hitbox binding before input
             _onVisualsRefreshed?.RemoveListener(HandleVisualsRefreshed);
+            CompleteWeaponSwitch(); // no Update watchdog while disabled
             UnbindWeaponHitbox();
             if (_input == null) return; // Guard: Awake may disable before OnEnable runs
             _input.Player.Attack.started -= OnAttackStarted;
@@ -198,6 +203,27 @@ namespace Game.Combat
                 _attackTracker.Reset();
                 EndAttack();
             }
+
+            if (_stateManager.IsSwitchingWeapon)
+            {
+                // A dodge / jump taken on the same frame as R wins the Attack layer's AnyState order: Draw_State is
+                // never entered (no exit net) — finish the swap now instead of replaying the clip after landing.
+                if (_stateManager.IsDodging || _stateManager.IsAirborne)
+                {
+                    CompleteWeaponSwitch();
+                }
+                // Watchdog: a draw / sheathe whose WeaponSwap event and state exit never arrived (trigger not taken,
+                // controller swapped mid-clip) would lock R, Attack and Block forever. Scaled with the clip speed.
+                else
+                {
+                    float timeout = _config.weaponSwitchTimeout / _config.weaponSwitchAnimSpeed;
+                    if (Time.time - _weaponSwitchStartTime > timeout)
+                    {
+                        GameLog.Warn(TAG, $"Weapon switch stalled ({timeout:F2}s without WeaponSwap event or state exit) — forcing swap");
+                        CompleteWeaponSwitch();
+                    }
+                }
+            }
         }
 
         private void OnAttackStarted(InputAction.CallbackContext ctx)
@@ -205,20 +231,23 @@ namespace Game.Combat
             TryAttack();
         }
 
+        // R: flips IsInCombat now and plays the draw / sheathe clip; the weapon visual moves at the clip's WeaponSwap
+        // event (or the state-exit / watchdog safety nets) — see CompleteWeaponSwitch.
         private void OnDrawWeaponStarted(InputAction.CallbackContext ctx)
         {
-            if (_stateManager.IsBusy) return;
-            if (_stateManager.IsAttacking) return;
+            if (!_stateManager.CanSwitchWeapon()) return;
             bool entering = !_stateManager.IsInCombat;
+            _pendingDraw = entering;
+            _weaponSwitchStartTime = Time.time;
             _stateManager.SetInCombat(entering);
-            _equipmentVisuals?.SetCombatState(entering);
+            _stateManager.BeginWeaponSwitch(entering, _config.weaponSwitchAnimSpeed);
         }
 
         private void OnBlockStarted(InputAction.CallbackContext ctx)
         {
             if (!_stateManager.CanBlock())
             {
-                GameLog.Warn(TAG, "Cannot block — airborne, dodging, or weapon sheathed");
+                GameLog.Warn(TAG, "Cannot block — airborne, dodging, drawing / sheathing, or weapon sheathed");
                 return;
             }
 
@@ -254,7 +283,7 @@ namespace Game.Combat
         {
             if (!_stateManager.CanAttack())
             {
-                GameLog.Warn(TAG, "Cannot attack — airborne or blocking");
+                GameLog.Warn(TAG, "Cannot attack — airborne, blocking or drawing / sheathing");
                 return;
             }
 
@@ -381,6 +410,11 @@ namespace Game.Combat
         // guaranteeing ActiveWeaponGO is already set before we try to bind.
         private void HandleVisualsRefreshed(bool _)
         {
+            // Equipment changed mid draw / sheathe: the new visual (and animator override) replace the clip in flight.
+            CompleteWeaponSwitch();
+            // Refresh() reassigns runtimeAnimatorController, which resets every animator parameter — re-push the
+            // stance, or a drawn player stays in LockOn Locomotion and Attack_1 (only taken from CombatIdle) latches.
+            if (_stateManager != null) _stateManager.SetInCombat(_stateManager.IsInCombat);
             UnbindWeaponHitbox();
             // Story 7.10: cache weapon SO for comboSteps query
             BindWeaponHitbox();
@@ -631,6 +665,31 @@ namespace Game.Combat
         {
             if (!_attackTracker.Exit(Time.time)) return; // chain in flight
             EndAttack();
+        }
+
+        /// <summary>WeaponSwap clip event — the hand reached the hilt / sheath: move the weapon visual now.</summary>
+        public void OnWeaponSwapEvent() => CompleteWeaponSwitch();
+
+        /// <summary>
+        /// Called by SMB_WeaponSwitchState.OnStateExit — safety net when the clip was interrupted before its event.
+        /// Only the state matching the switch in flight completes it: after R is re-pressed, the previous state still
+        /// blending out must not finish the new switch early.
+        /// </summary>
+        public void OnWeaponSwitchStateExited(bool drawState)
+        {
+            if (drawState != _pendingDraw) return;
+            CompleteWeaponSwitch();
+        }
+
+        // ----------------------------------------------------------------------------
+
+        // Moves the weapon visual to match IsInCombat and releases the switch lock. No-op when no switch is in flight
+        // (late events / exits, or a load that already forced the sheathed stance).
+        private void CompleteWeaponSwitch()
+        {
+            if (_stateManager == null || !_stateManager.IsSwitchingWeapon) return;
+            _stateManager.EndWeaponSwitch(); // lock released first — a throwing visual must not leave R locked
+            if (_equipmentVisuals != null) _equipmentVisuals.SetCombatState(_stateManager.IsInCombat); // Unity null: may be destroyed on unload
         }
 
         // ----------------------------------------------------------------------------
