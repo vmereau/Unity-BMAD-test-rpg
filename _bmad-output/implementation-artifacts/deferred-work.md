@@ -195,3 +195,13 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 ## From spec-bow-left-hand-socket (2026-10-29)
 
 - **Arrow spawn inside close walls** — `PlayerCombat.GetLaunchOrigin` = `ActiveWeaponGO`, now the left-hand bow grip (~0.85 m ahead of the draw hand). Against a wall the spawn point can already be inside the collider, so the arrow's first `SphereCast` misses it. Consider sweeping from the chest/right hand to the bow on fire, or a backed-off origin.
+
+## From spec-smithing-skill-and-anvil (2026-10-29 review)
+
+- **Reward lost on full inventory** — `PlayerRewards` ignores a failed `AddItem` while the one-shot `DialogueFact` is still set, so a full inventory at "What should I forge first?" loses `Item_Recipe_ShortIronSword` for good (pre-existing for every item reward; the trout recipe has the same risk).
+- **Sole recipe source can be sold / dropped** — recipe items are sellable and droppable; selling the smithing recipe unread is recoverable only by buying it back from Edric. Consider quest-item flags (unsellable) or a re-ask fallback.
+- **Old saves keep the old NPC stock** — `SaveableObject` restores Edric's saved inventory, so a save made before this change has no ingots / sword.
+- **Finite shop stock** — no restock: 10 ingots = 5 forged swords. Needs a restock system before smithing scales.
+- **No feedback on a failed Forge** — `CookSelectedRecipe` refunds silently when the output can't be added (full inventory); the Recipes tab has no result text.
+- **Smithing screen wording** — recipe detail still says "Ingredients"; the tab bar shows a lone "Recipes" tab; forged / standard swords share the placeholder `sword.png` icon and the recipe item reuses the trout-recipe icon.
+- **Prompt doesn't show the skill gate** — the anvil prompt reads "Forge" even without Smithing (refused on interact with a toast).
