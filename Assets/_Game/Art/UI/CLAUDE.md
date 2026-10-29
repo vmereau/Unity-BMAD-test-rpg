@@ -55,6 +55,24 @@ the border thickness wanted in game; the import step converts it.
 | `BarTrack` | Health / stamina / XP bar background | 384×22, 384×6 | 3 (XP: 1) | Sliced | — |
 | `BarFill` | Health / stamina / XP fill — **one neutral sprite tinted per bar** (dull red, ochre, brass) | 384×22 inset 2 | none | Health: **Filled** horizontal (`fillAmount`); stamina / XP: Simple (scaled by `localScale.x`) | — |
 
+Not 9-slice sprites — **filter glyph icons** `Inventory/UI_Filter_<Name>.png` (All, Weapons, Armor, Potions,
+Meals, Ingredients, Crafting, BooksRecipes, Misc): the `Icon` of `InventoryFilterTab` (inset 5 in a 52×52
+`SlotWell` tab), imported Sprite, Max Size 128. Bone glyph on the flat panel brown, made by the user from:
+
+```
+Square minimalist UI icon for a dark medieval fantasy RPG in the style of Gothic 1 and 2, square image.
+Subject: {GLYPH}.
+A simple bold flat silhouette emblem, like a mark burned into dark leather: few shapes, thick clean
+strokes, no fine detail, no texture noise, readable at 32 pixels.
+The emblem is one flat color, pale bone-parchment (#D8CCB0), with a very slightly hand-made edge.
+Centered, seen straight-on, filling about 70% of the frame, with an even margin on all sides.
+On a flat solid near-black brown background (#2B2118), no gradient, no vignette, no frame, no border.
+No text, no letters, no numbers, no shading, no highlights, no glow, no drop shadow, no watermark.
+```
+
+`{GLYPH}` = one plain object (e.g. Weapons `a single straight sword pointing upward, with a plain crossguard
+and a round pommel`). A new filter tab needs a new glyph in the same wording.
+
 Sprites not worth generating: crosshair (8×8), dividers / hairlines (use a 1-px tinted `Image`), scrollbars
 (tinted `Panel` / `Button` at small size).
 
@@ -146,7 +164,7 @@ Variant `<state change>` examples: `SlotWell_Selected` → `the frame is dull br
   scene change) to `Previews/UI_<Screen>_Preview.png`; empty item grids get `ItemSlot` placeholders,
   runtime-toggled panels are shown, every `Image` rect is outlined. A **preview of the implemented UI**, not
   a generation input.
-- Screens: `HUD`, `Inventory`, `QuestLog`, `Character`, `Skills`, `Container`, `Trade`, `Crafting` (Recipes
+- Screens: `HUD`, `Inventory` (filter tabs built via `InventoryFilterBarUI.BuildTabs`, shared `header` hidden), `QuestLog`, `Character`, `Skills`, `Container`, `Trade`, `Crafting` (Recipes
   tab, item card without its runtime-hidden price row), `Dialogue`, `GameMenu`, `DeathScreen`,
   `ConfirmDialog`, `Loading` (`UILayoutCapture.Screens` — update it when the
   hierarchy changes). Menu: `Tools/UI/Capture All Layout Previews`. MCP: `execute_code` →
@@ -179,7 +197,7 @@ Re-measure with `UILayoutCapture.Measure` after any layout change and update thi
 | HUD | Toast stack | full width, y 236, h 100 | Upper third |
 | Menus | Tab bar | 460, 31, 1000×100 | 4 tabs 243×100, font 40 |
 | Inventory | Equipment column | 92, 140, 200×800 | 6 slots 200×64 stacked |
-| Inventory | Item grid panel | 576, 140, 768×800 | Cells 80×80, gap 5 → 8 columns, "Gold" line on top |
+| Inventory | Item grid panel | 576, 140, 768×800 | Filter strip 591,154 738×52 (9 tabs 52×52, gap 6); grid 591,216, cells 80×80, gap 5 → 8 columns; Gold footer 591,902 h30 font 24 (measured 2026-10-29) |
 | Inventory | Item detail | 1440, 140, 384×800 | Header 96 (icon + name + category), price row, action buttons (Drop / Use / Equip) |
 | Container / Trade | 3 columns | x 30 / 660 / 1290, y 30, each 600×1020 | Grid · detail · grid; side headers 40 tall font 30; grids 6 columns |
 | Quest log | List | 96, 140, 480×800 | Started / Completed / Failed tabs 80 tall |

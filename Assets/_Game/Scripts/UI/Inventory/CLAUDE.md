@@ -8,7 +8,9 @@
 
 | Script | Purpose |
 |--------|---------|
-| `InventoryUI` | Root inventory panel. Spawns `ItemSlotUI` from prefab, manages context menu, selection state, and wires `EquipmentUI` + `ActionBarUI`. Implements `IScreenPanel`. Repaints on `_onInventoryChanged` / action-bar / equipment events **only while open**. Selection follows its **item** (`_selectedItem`): same index if it still holds it, else the first slot holding it, else cleared. `RefreshSlots` unparents old slots before `Destroy` so `GetChild` hits the new ones. |
+| `InventoryUI` | Root inventory panel. Spawns `ItemSlotUI` from prefab, manages context menu, selection state, and wires `EquipmentUI` + `ActionBarUI`. Implements `IScreenPanel`. Repaints on `_onInventoryChanged` / action-bar / equipment events **only while open**. Selection follows its **item** (`_selectedItem`): same index if it still holds it, else the first slot holding it, else cleared. Spawns only the slots matching `_filterBar.Active`; `_slotViews[inventoryIndex]` → its `ItemSlotUI` or null when filtered out — **never `_contentRoot.GetChild(index)`** (grid order ≠ inventory index). Selection hidden by the filter is cleared. |
+| `InventoryFilterBarUI` / `InventoryFilterTabUI` | Icon filter tabs at the top of the inventory grid panel (`InventoryFilterTab.prefab`, built from the bar's `_entries` in `Awake`). Shared hover tooltip "Weapons (3)" (slot counts pushed by `InventoryUI.RefreshSlots`), active = brass tint, empty category = dimmed icon. `ResetToAll()` on every `OnScreenOpen` (no event); `FilterChanged` → `InventoryUI` closes the context menu and repaints. |
+| `ItemFilter` / `ItemFilterRules` | Pure tab logic: `Classify` (same precedence as `ItemDetailFormatter.GetCategory` — keep the two in sync), `Matches`, `Label`, `TooltipText`. Covered by `ItemFilterRulesTests`. |
 | `ItemSlotUI` | Single inventory slot. Supports drag-and-drop, hover highlight, selection, stack count display. Notifies parent `InventoryUI` on click/drag events. |
 | `ItemDetailPanelUI` | Shared display-only detail panel (header / stats / description / price). Call `Show(ItemSO, ItemPriceContext = Value)` / `Hide()`. Paints only. |
 | `ItemDetailFormatter` | Pure static display logic for the panel: category line, stat rows, skill description (tome: taught skill's description + effect text), price label/value. Player-dependent rows get their state injected (`BuildStatLines(item, into, isRecipeKnown, isMealBonusClaimed)` → recipe "Status: Already known / Not learned", food "First meal: +5 Max HP" / Muted "… (gained)"; the panel passes `WorldStateManager` checks) so it stays pure. Covered by `ItemDetailFormatterTests`. |
@@ -80,5 +82,6 @@ InventoryUI  (IScreenPanel)
 
 ## Gotchas
 
+- `InventoryPanel.prefab` is shared with `ContainerUI` and `NPCTradeUI`. The inventory-only parts (`FilterBar`, `FilterTooltip`, `GoldFooter`, top padding 76, `header` hidden) are **overrides on the instance in `InventoryUI.prefab`** — never add them to `InventoryPanel.prefab`. `InventoryUI._goldText` → `GoldFooter`.
 - `EquipmentSlotUI` does **not** subscribe to events — it is refreshed by `EquipmentUI` calling `Refresh(item)` on each slot after `_onEquipmentChanged` fires.
 - `InventoryUI` adds an `AnyButtonClickListener` component to `_panelRoot` at runtime in `Awake` — do not add it manually in the prefab.

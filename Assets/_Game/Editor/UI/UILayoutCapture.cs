@@ -39,7 +39,7 @@ namespace Game.Editor
         private static readonly Dictionary<string, ScreenDef> Screens = new(StringComparer.OrdinalIgnoreCase)
         {
             { "HUD", new ScreenDef { Roots = new[] { "Game" } } },
-            { "Inventory", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/InventoryUI" } } },
+            { "Inventory", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/InventoryUI" }, Hidden = new[] { "Menus/InventoryUI/InventoryPanel/header" } } },
             { "QuestLog", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/QuestLogUI" }, Hidden = new[] { "Menus/QuestLogUI/QuestInfoPanel/EmptyState" } } },
             { "Character", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/CharacterStatsUI" } } },
             { "Skills", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/SkillsUI" } } },
@@ -91,6 +91,7 @@ namespace Game.Editor
                 if (error != null) return error;
 
                 FillEmptyItemGrids(root.transform);
+                BuildFilterTabs(root.transform);
                 RebuildLayout(root);
 
                 camera.Render();
@@ -144,6 +145,7 @@ namespace Game.Editor
                 string error = ShowOnly(root.transform, def);
                 if (error != null) return error;
                 FillEmptyItemGrids(root.transform);
+                BuildFilterTabs(root.transform);
                 RebuildLayout(root);
 
                 var sb = new StringBuilder($"{CanonicalName(screen)} @ {Width}x{Height}, origin top-left\n");
@@ -231,6 +233,20 @@ namespace Game.Editor
                     }
                 }
             }
+        }
+
+        /// <summary>Inventory filter tabs are spawned in Awake, which never runs here — build them the same way.</summary>
+        private static void BuildFilterTabs(Transform root)
+        {
+            var build = typeof(Game.UI.InventoryFilterBarUI).GetMethod("BuildTabs",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            if (build == null)
+            {
+                Debug.LogWarning("[UILayoutCapture] InventoryFilterBarUI.BuildTabs not found — filter tabs stay empty.");
+                return;
+            }
+            foreach (var bar in root.GetComponentsInChildren<Game.UI.InventoryFilterBarUI>(false))
+                build.Invoke(bar, null);
         }
 
         private static List<Sprite> LoadItemIcons()

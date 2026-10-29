@@ -33,6 +33,7 @@ namespace Game.UI
         [SerializeField] private EquipmentSystem _equipmentSystem;
         [SerializeField] private EquipmentUI _equipmentUI;
         [SerializeField] private GameEventSO_Void _onEquipmentChanged;
+        [SerializeField] private InventoryFilterBarUI _filterBar;
 
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
@@ -43,6 +44,9 @@ namespace Game.UI
         private ItemSO _selectedItem = null; // selection follows the item, not the index
         private bool _isOpen;
         private readonly System.Collections.Generic.List<Transform> _staleSlots = new System.Collections.Generic.List<Transform>();
+        // Inventory index → its grid slot, null when the active filter hides it. Never use _contentRoot.GetChild(index).
+        private readonly System.Collections.Generic.List<ItemSlotUI> _slotViews = new System.Collections.Generic.List<ItemSlotUI>();
+        private readonly int[] _filterCounts = new int[ItemFilterRules.COUNT];
 
         private void Awake()
         {
@@ -60,6 +64,7 @@ namespace Game.UI
             _onEquipmentChanged?.AddListener(HandleEquipmentSlotsChange);
             _onGoldChanged?.AddListener(HandleGoldChanged);
             _onInventoryChanged?.AddListener(HandleInventoryChanged);
+            if (_filterBar != null) _filterBar.FilterChanged += HandleFilterChanged;
             UpdateGoldDisplay();
         }
 
@@ -69,6 +74,7 @@ namespace Game.UI
             _onEquipmentChanged?.RemoveListener(HandleEquipmentSlotsChange);
             _onGoldChanged?.RemoveListener(HandleGoldChanged);
             _onInventoryChanged?.RemoveListener(HandleInventoryChanged);
+            if (_filterBar != null) _filterBar.FilterChanged -= HandleFilterChanged;
         }
 
         private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
@@ -76,6 +82,7 @@ namespace Game.UI
         public void OnScreenOpen()
         {
             _isOpen = true;
+            _filterBar?.ResetToAll();
             RefreshSlots();
             _equipmentUI?.Refresh();
             _equipmentUI?.gameObject.SetActive(true);
@@ -103,6 +110,14 @@ namespace Game.UI
         // ActionBarUI listens to the same channel, so the bar isn't refreshed from here. An outside change (hotkey,
         // loot) can shift slots under an open context menu → close it so Drop / Use can't hit the wrong item.
         private void HandleInventoryChanged(bool _)
+        {
+            if (!_isOpen) return;
+            HideContextMenu();
+            RefreshSlots(false);
+        }
+
+        // The context menu targets a slot that may now be hidden → close it before repainting.
+        private void HandleFilterChanged(ItemFilter _)
         {
             if (!_isOpen) return;
             HideContextMenu();
@@ -298,8 +313,13 @@ namespace Game.UI
         public void SelectSlot(int slotIndex, IItemSlotContainer source)
         {
             if (slotIndex == _selectedSlotIndex) return;
+            var newSlot = GetSlotView(slotIndex);
+            if (newSlot == null)
+            {
+                GameLog.Warn(TAG, $"SelectSlot: slot {slotIndex} is not shown");
+                return;
+            }
             _selectedSlotUI?.SetSelected(false);
-            var newSlot = _contentRoot.GetChild(slotIndex).GetComponent<ItemSlotUI>();
             newSlot.SetSelected(true);
             _selectedSlotIndex = slotIndex;
             _selectedSlotUI = newSlot;
@@ -327,7 +347,7 @@ namespace Game.UI
             // Null out stale UI reference before destroying slot GameObjects
             _selectedSlotUI = null;
 
-            // Unparent before Destroy (end of frame) so GetChild below — and a same-frame SelectSlot — hit the new slots.
+            // Unparent before Destroy (end of frame) so the old slots leave the grid layout this frame.
             _staleSlots.Clear();
             foreach (Transform child in _contentRoot)
                 _staleSlots.Add(child);
@@ -338,20 +358,34 @@ namespace Game.UI
             }
             _staleSlots.Clear();
 
+            // Only slots matching the active filter are spawned; each keeps its real inventory index.
+            var filter = _filterBar != null ? _filterBar.Active : ItemFilter.All;
+            System.Array.Clear(_filterCounts, 0, _filterCounts.Length);
+            _slotViews.Clear();
             var items = _inventorySystem.Items;
             for (int i = 0; i < items.Count; i++)
             {
+                var item = items[i].Item;
+                _filterCounts[(int)ItemFilter.All]++;
+                _filterCounts[(int)ItemFilterRules.Classify(item)]++;
+                if (!ItemFilterRules.Matches(item, filter))
+                {
+                    _slotViews.Add(null);
+                    continue;
+                }
                 var go = Instantiate(_itemSlotPrefab, _contentRoot);
                 var slotUI = go.GetComponent<ItemSlotUI>();
-                slotUI.Bind(items[i].Item, i, items[i].Count);
+                slotUI.Bind(item, i, items[i].Count);
+                _slotViews.Add(slotUI);
             }
+            _filterBar?.SetCounts(_filterCounts);
 
-            // Selection follows its item: same index if it still holds it, else the first slot holding it, else cleared.
+            // Selection follows its item: same index if it still holds it, else the first shown slot holding it, else cleared.
             int newIndex = FindSelectedItemIndex(items);
             if (newIndex >= 0)
             {
                 _selectedSlotIndex = newIndex;
-                var slot = _contentRoot.GetChild(newIndex).GetComponent<ItemSlotUI>();
+                var slot = _slotViews[newIndex];
                 _selectedSlotUI = slot;
                 slot.SetSelected(true);
                 UpdateDetailPanel(items[newIndex].Item, newIndex);
@@ -371,11 +405,14 @@ namespace Game.UI
         private int FindSelectedItemIndex(System.Collections.Generic.IReadOnlyList<InventorySlot> items)
         {
             if (_selectedItem == null) return -1;
-            if (_selectedSlotIndex >= 0 && _selectedSlotIndex < items.Count && items[_selectedSlotIndex].Item == _selectedItem)
+            if (GetSlotView(_selectedSlotIndex) != null && items[_selectedSlotIndex].Item == _selectedItem)
                 return _selectedSlotIndex;
             for (int i = 0; i < items.Count; i++)
-                if (items[i].Item == _selectedItem) return i;
+                if (items[i].Item == _selectedItem && GetSlotView(i) != null) return i;
             return -1;
         }
+
+        private ItemSlotUI GetSlotView(int slotIndex) =>
+            slotIndex >= 0 && slotIndex < _slotViews.Count ? _slotViews[slotIndex] : null;
     }
 }
