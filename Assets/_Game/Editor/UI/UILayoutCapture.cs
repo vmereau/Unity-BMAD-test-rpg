@@ -45,6 +45,7 @@ namespace Game.Editor
             { "Skills", new ScreenDef { Roots = new[] { "Menus/TabBar", "Menus/SkillsUI" } } },
             { "Container", new ScreenDef { Roots = new[] { "ContainerUI" } } },
             { "Trade", new ScreenDef { Roots = new[] { "NPCTradeUI" } } },
+            { "Crafting", new ScreenDef { Roots = new[] { "CookingUI" }, Hidden = new[] { "CookingUI/StationSide/StationPanel/ExperimentPanel", "CookingUI/StationSide/StationPanel/RecipesPanel/RecipeList/NoRecipesText", "CookingUI/StationSide/StationPanel/RecipesPanel/RecipeDetail/ItemDetailPanel/PriceSection" } } },
             { "Dialogue", new ScreenDef { Roots = new[] { "DialoguePanel" }, Hidden = new[] { "DialoguePanel/ContentArea/Choice Text", "DialoguePanel/ContentArea/ResponseWrapper" } } },
             { "GameMenu", new ScreenDef { Roots = new[] { "GameMenu" }, Hidden = new[] { "GameMenu/Panel/Window/MainButtons/SaveBlockedText", "GameMenu/Panel/Window/SaveSlotList", "GameMenu/Panel/Window/OptionsUI", "GameMenu/Panel/Window/BackButton" } } },
             { "DeathScreen", new ScreenDef { Roots = new[] { "DeathScreen" } } },

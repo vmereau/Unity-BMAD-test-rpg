@@ -61,14 +61,10 @@ namespace Game.UI
         [SerializeField] private CookingRecipeRowUI _recipeRowPrefab;
         [SerializeField] private TMP_Text _noRecipesText;
         [SerializeField] private GameObject _recipeDetail;
-        [SerializeField] private Image _recipeOutputIcon;
-        [SerializeField] private TMP_Text _recipeNameText;
-        [SerializeField] private TMP_Text _recipeIngredientsText;
-        [SerializeField] private Button _recipeCookButton;
-        [Tooltip("Label of the Recipes Cook button — \"Cook\" or \"Forge\" per station kind.")]
-        [SerializeField] private TMP_Text _recipeCookLabel;
-        [Tooltip("\"Cooked N times\" under the selected recipe (WorldStateManager craft count, saved).")]
-        [SerializeField] private TMP_Text _recipeCraftCountText;
+        [Tooltip("Item card of the selected recipe's output (header, stats, description — no price).")]
+        [SerializeField] private ItemDetailPanelUI _recipeItemPanel;
+        [Tooltip("Requires block nested under the card's ActionsContainer: ingredients, craft count, Cook / Forge.")]
+        [SerializeField] private CookingRecipeActions _recipeActions;
 
         // Closes on death: an open screen would block loading and its Esc would re-lock the death screen's cursor.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
@@ -95,8 +91,13 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"{_slots.Length} ingredient slots wired, recipes allow up to {RecipeSO.MAX_INGREDIENTS}");
             if (_failedDish == null)
                 GameLog.Warn(TAG, "No failed dish assigned — unmatched experiments can't be cooked");
+            if (_recipeItemPanel == null)
+                GameLog.Warn(TAG, "No recipe item panel assigned — the Recipes tab card stays empty");
+            if (_recipeActions == null || _recipeActions.CraftButton == null)
+                GameLog.Warn(TAG, "Recipe actions or their craft button not assigned — recipes can't be crafted");
             _cookButton?.onClick.AddListener(CookExperiment);
-            _recipeCookButton?.onClick.AddListener(CookSelectedRecipe);
+            if (_recipeActions != null && _recipeActions.CraftButton != null)
+                _recipeActions.CraftButton.onClick.AddListener(CookSelectedRecipe);
             _experimentTabButton?.onClick.AddListener(ShowExperimentTab);
             _recipesTabButton?.onClick.AddListener(ShowRecipesTab);
         }
@@ -122,7 +123,8 @@ namespace Game.UI
         private void OnDestroy()
         {
             _cookButton?.onClick.RemoveListener(CookExperiment);
-            _recipeCookButton?.onClick.RemoveListener(CookSelectedRecipe);
+            if (_recipeActions != null && _recipeActions.CraftButton != null)
+                _recipeActions.CraftButton.onClick.RemoveListener(CookSelectedRecipe);
             _experimentTabButton?.onClick.RemoveListener(ShowExperimentTab);
             _recipesTabButton?.onClick.RemoveListener(ShowRecipesTab);
             _input?.Dispose();
@@ -166,7 +168,6 @@ namespace Game.UI
             SetResult(null);
             // Smithing has no Experiment tab: only known recipes can be forged.
             if (_experimentTabButton != null) _experimentTabButton.gameObject.SetActive(HasExperiment);
-            if (_recipeCookLabel != null) _recipeCookLabel.text = _kind == CraftingKind.Smithing ? FORGE_LABEL : COOK_LABEL;
             SetTab(!HasExperiment);
             CursorManager.Unlock();
             IsOpen = true;
@@ -440,13 +441,12 @@ namespace Game.UI
             if (_recipeDetail != null) _recipeDetail.SetActive(_selectedRecipe != null);
             if (_selectedRecipe == null) return;
 
-            SetIcon(_recipeOutputIcon, _selectedRecipe.output);
-            if (_recipeNameText != null) _recipeNameText.text = _selectedRecipe.output.itemName;
-            if (_recipeIngredientsText != null) _recipeIngredientsText.text = FormatIngredients(_selectedRecipe.ingredients);
-            if (_recipeCookButton != null)
-                _recipeCookButton.interactable = CookingRules.HasIngredients(_selectedRecipe.ingredients, CountOf);
-            if (_recipeCraftCountText != null)
-                _recipeCraftCountText.text = FormatCraftCount(CraftCount(_selectedRecipe), _kind);
+            if (_recipeItemPanel != null) _recipeItemPanel.Show(_selectedRecipe.output, ItemPriceContext.None);
+            if (_recipeActions != null)
+                _recipeActions.Show(FormatIngredients(_selectedRecipe.ingredients),
+                    FormatCraftCount(CraftCount(_selectedRecipe), _kind),
+                    _kind == CraftingKind.Smithing ? FORGE_LABEL : COOK_LABEL,
+                    CookingRules.HasIngredients(_selectedRecipe.ingredients, CountOf));
         }
 
         /// <summary>"Never cooked" / "Cooked once" / "Cooked N times" (smithing: "forged").</summary>

@@ -146,8 +146,9 @@ Variant `<state change>` examples: `SlotWell_Selected` → `the frame is dull br
   scene change) to `Previews/UI_<Screen>_Preview.png`; empty item grids get `ItemSlot` placeholders,
   runtime-toggled panels are shown, every `Image` rect is outlined. A **preview of the implemented UI**, not
   a generation input.
-- Screens: `HUD`, `Inventory`, `QuestLog`, `Character`, `Skills`, `Container`, `Trade`, `Dialogue`,
-  `GameMenu`, `DeathScreen`, `ConfirmDialog`, `Loading` (`UILayoutCapture.Screens` — update it when the
+- Screens: `HUD`, `Inventory`, `QuestLog`, `Character`, `Skills`, `Container`, `Trade`, `Crafting` (Recipes
+  tab, item card without its runtime-hidden price row), `Dialogue`, `GameMenu`, `DeathScreen`,
+  `ConfirmDialog`, `Loading` (`UILayoutCapture.Screens` — update it when the
   hierarchy changes). Menu: `Tools/UI/Capture All Layout Previews`. MCP: `execute_code` →
   `return Game.Editor.UILayoutCapture.Capture("Inventory");`.
 

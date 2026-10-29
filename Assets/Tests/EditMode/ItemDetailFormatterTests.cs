@@ -363,6 +363,27 @@ namespace Tests.EditMode
             Assert.AreEqual(5, ItemDetailFormatter.GetPrice(item, ItemPriceContext.Sell));
         }
 
+        // Crafting recipe card: None hides the price section, every other context shows it.
+        [TestCase(ItemPriceContext.Value, true)]
+        [TestCase(ItemPriceContext.Buy, true)]
+        [TestCase(ItemPriceContext.Sell, true)]
+        [TestCase(ItemPriceContext.None, false)]
+        public void ShowsPrice_OnlyNoneHidesIt(ItemPriceContext context, bool expected)
+        {
+            Assert.AreEqual(expected, ItemDetailFormatter.ShowsPrice(context));
+        }
+
+        [Test]
+        public void NoneContext_HasNoPriceLabelOrValue()
+        {
+            var item = Create<ItemSO>();
+            item.buyValue = 15;
+            item.sellValue = 5;
+
+            Assert.AreEqual("", ItemDetailFormatter.GetPriceLabel(ItemPriceContext.None));
+            Assert.AreEqual(0, ItemDetailFormatter.GetPrice(item, ItemPriceContext.None));
+        }
+
         // AC 8
         [Test]
         public void NullItem_IsSafe()

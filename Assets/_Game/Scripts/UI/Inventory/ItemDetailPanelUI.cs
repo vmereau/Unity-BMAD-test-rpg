@@ -33,6 +33,8 @@ namespace Game.UI
         [SerializeField] private TMP_Text _descriptionText;
 
         [Header("Price")]
+        [Tooltip("Hidden for ItemPriceContext.None (crafting recipe card).")]
+        [SerializeField] private GameObject _priceSection;
         [SerializeField] private TMP_Text _priceLabelText;
         [SerializeField] private TMP_Text _priceValueText;
 
@@ -151,6 +153,16 @@ namespace Game.UI
 
         private void PaintPrice(ItemSO item, ItemPriceContext context)
         {
+            bool showPrice = ItemDetailFormatter.ShowsPrice(context);
+            if (_priceSection != null) _priceSection.SetActive(showPrice);
+            else
+            {
+                // Unwired section: hide the texts at least.
+                if (_priceLabelText != null) _priceLabelText.gameObject.SetActive(showPrice);
+                if (_priceValueText != null) _priceValueText.gameObject.SetActive(showPrice);
+            }
+            if (!showPrice) return;
+
             if (_priceLabelText != null) _priceLabelText.text = ItemDetailFormatter.GetPriceLabel(context);
             if (_priceValueText == null) return;
             _priceValueText.text = $"{ItemDetailFormatter.GetPrice(item, context)}g";

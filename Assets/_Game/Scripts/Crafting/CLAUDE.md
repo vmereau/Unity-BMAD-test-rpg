@@ -70,7 +70,11 @@ the food item, not on the recipe, so a bought / looted copy counts too. Details:
   cleared by right-click, double-click or dragging out. Slots show the icon only — no stack count (a cook uses one unit). Cook consumes one unit per filled slot → the matching station recipe's output
   (learning it the first time: "New recipe: …") or `_failedDish` (`Item_ReplenishingStew`). The preview never reveals
   an unknown recipe ("Unknown result"). After a cook, slots whose item ran short clear.
-- **Recipes:** station recipes ∩ known, as `CookingRecipeRowUI` rows (`Prefabs/UI/Cooking/CookingRecipeRow.prefab`);
-  the detail lists ingredients `have/need` (missing tinted) and Cook needs them all.
+- **Recipes:** station recipes ∩ known, as `CookingRecipeRowUI` rows (`Prefabs/UI/Cooking/CookingRecipeRow.prefab`).
+  The detail is an **item card**: a nested `ItemDetailPanel` (`_recipeItemPanel`, `Show(output, ItemPriceContext.None)` →
+  header + category, stat rows, description, no price) with `CookingRecipeActions.prefab` (`_recipeActions`) nested
+  under its `ActionsContainer`: "Requires" + ingredients `have/need` (missing tinted), craft count, Cook / Forge
+  button (`CraftButton`; needs every ingredient). `RecipeDetail` has no layout group — the panel is anchor-stretched
+  (like `ContainerUI`), and its `LayoutElement.preferredWidth` 273 keeps the inventory / station split (889 / 942).
 - Every cook goes through `TryCraft`: consume all, add the result, refund everything if a step fails; then
   `OnActionBarUsed(REFRESH_ONLY_SLOT)` so the HUD bar and this screen refresh.

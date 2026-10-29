@@ -142,16 +142,20 @@ namespace Game.UI
             return hasEffect ? skillItem.Skill.effectDescription.Trim() : null;
         }
 
+        /// <summary>False for <see cref="ItemPriceContext.None"/>: the panel hides its price section.</summary>
+        public static bool ShowsPrice(ItemPriceContext context) => context != ItemPriceContext.None;
+
         public static string GetPriceLabel(ItemPriceContext context) => context switch
         {
             ItemPriceContext.Buy => PRICE_LABEL_BUY,
             ItemPriceContext.Sell => PRICE_LABEL_SELL,
+            ItemPriceContext.None => "",
             _ => PRICE_LABEL_VALUE
         };
 
         public static int GetPrice(ItemSO item, ItemPriceContext context)
         {
-            if (item == null) return 0;
+            if (item == null || context == ItemPriceContext.None) return 0;
             return context == ItemPriceContext.Buy ? item.buyValue : item.sellValue;
         }
 

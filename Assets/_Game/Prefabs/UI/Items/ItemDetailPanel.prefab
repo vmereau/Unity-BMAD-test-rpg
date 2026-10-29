@@ -168,11 +168,13 @@ MonoBehaviour:
   _skillDescriptionText: {fileID: 3408343472963790401}
   _descriptionSection: {fileID: 455162763419439854}
   _descriptionText: {fileID: 145146080791566491}
+  _priceSection: {fileID: 2057653579257397355}
   _priceLabelText: {fileID: 8333433583877522849}
   _priceValueText: {fileID: 586190861629890013}
   _positiveColor: {r: 0.49, g: 0.8, b: 0.42, a: 1}
   _negativeColor: {r: 0.88, g: 0.42, b: 0.42, a: 1}
   _neutralColor: {r: 0.88, g: 0.88, b: 0.88, a: 1}
+  _mutedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   _priceColor: {r: 0.9, g: 0.76, b: 0.36, a: 1}
 --- !u!114 &6329512850348734237
 MonoBehaviour:

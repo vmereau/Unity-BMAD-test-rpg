@@ -8,6 +8,8 @@ namespace Game.UI
         /// <summary>Shows <c>buyValue</c> as "Price" (trade, NPC side).</summary>
         Buy,
         /// <summary>Shows <c>sellValue</c> as "Sells for" (trade, player side).</summary>
-        Sell
+        Sell,
+        /// <summary>No price section (crafting recipe card).</summary>
+        None
     }
 }
