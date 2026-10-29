@@ -643,6 +643,22 @@ namespace Game.Combat
             return weapon != null ? weapon.transform.position : transform.position + Vector3.up * FALLBACK_LAUNCH_HEIGHT;
         }
 
+        /// <summary>
+        /// Crosshair aim point for the equipped bow (same ray as the shot). False when no bow is equipped or there is
+        /// no camera (the fallback point follows the body facing, not the crosshair).
+        /// </summary>
+        public bool TryGetAimPoint(out Vector3 point)
+        {
+            BowSO bow = EquippedBow;
+            if (bow == null || _camera == null)
+            {
+                point = default;
+                return false;
+            }
+            point = GetAimPoint(bow.maxAimDistance);
+            return true;
+        }
+
         // Crosshair (viewport centre) ray, skipping the player's own colliders and everything between the camera and
         // the player (a wall behind the OTS camera, an NPC behind the player); nothing hit → max range.
         private Vector3 GetAimPoint(float maxDistance)

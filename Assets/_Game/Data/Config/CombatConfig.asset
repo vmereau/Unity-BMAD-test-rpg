@@ -24,8 +24,19 @@ MonoBehaviour:
   baseHealth: 100
   attackDamage: 25
   attackHitRange: 2
+  sneakAttackDamageMultiplier: 2
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
+  weaponSwitchAnimSpeed: 1.5
+  weaponSwitchTimeout: 2
+  aimFieldOfView: 30
+  aimFollowOffset: {x: 0.6, y: 0.3, z: -1.8}
+  aimSensitivityMultiplier: 0.5
+  aimBlendSpeed: 8
+  bowNockTimeout: 2.5
+  aimCorrectionEnabled: 1
+  aimCorrectionMaxAnglePerBone: 35
+  aimCorrectionMinDistance: 2
   lockOnRange: 15
   lockOnFOV: 60
   lockOnLerpSpeed: 5

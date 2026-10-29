@@ -162,7 +162,7 @@ namespace Game.Player
                 if (isAiming && _mainCamera != null)
                 {
                     Quaternion targetRot = Quaternion.Euler(0f,
-                        _mainCamera.transform.eulerAngles.y + _config.aimBodyYawOffset, 0f);
+                        _mainCamera.transform.eulerAngles.y + _config.aimStanceYaw, 0f);
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
                         _config.rotationSpeed * Time.deltaTime);
                 }

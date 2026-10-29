@@ -74,6 +74,15 @@ namespace Game.Combat
                  "forced nocked. Must exceed Draw arrow (+ Fire arrow) at speed 1 (≈ 1.8 s).")]
         [Min(0.1f)] public float bowNockTimeout = 2.5f;
 
+        [Header("Bow Aim Correction")]
+        [Tooltip("Post-animation spine correction toward the crosshair while aiming (BowAimCorrection).")]
+        public bool aimCorrectionEnabled = true;
+        [Tooltip("Max yaw / pitch (degrees) each of Spine, Chest and UpperChest may add.")]
+        [Range(0f, 90f)] public float aimCorrectionMaxAnglePerBone = 35f;
+        [Tooltip("Aim points closer than this (metres along the crosshair ray) are pushed out to it, so a close wall " +
+                 "doesn't whip the spine.")]
+        [Min(0f)] public float aimCorrectionMinDistance = 2f;
+
         [Header("Lock-On")]
         [Tooltip("Max acquisition distance in metres.")]
         public float lockOnRange = 15f;

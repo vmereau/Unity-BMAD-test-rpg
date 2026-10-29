@@ -183,3 +183,11 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
   apply the offset there.
 - **No shot buffering** — a click during `Draw arrow` / `Fire arrow` is dropped (by design for now); consider buffering one
   shot until the nock if play tests feel unresponsive.
+
+## From spec-bow-aim-spine-correction (2026-10-29 review)
+
+- **Calibration drift** — `BowAimCorrection._arrowLineLocal` / `_arrowOriginLocal` are sampled from `Aim Overdraw` on the
+  current player rig; a body swap or re-imported / retimed bow clip leaves stale values with no warning. Add an editor
+  calibrate button that stores the source clip + avatar and a validator that flags a mismatch.
+- **Lock-on + aim** (see the bow-aim entry above) — the correction still aims the chest at the crosshair while locked on,
+  but the body keeps facing the target without the stance yaw, so large yaw deltas may hit the clamp.

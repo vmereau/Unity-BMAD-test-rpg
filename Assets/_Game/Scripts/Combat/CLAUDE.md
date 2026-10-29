@@ -123,6 +123,30 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
 - **Shot:** `TryAttack` requires `IsAiming && _arrowNocked`, then `TryFireBow` (returns bool). Success clears the nock
   and fires `BowFire` (`BowFire_State` → `BowDrawArrow_State` → re-nock at the aim enter). A refused shot keeps the nock.
   Ignored while a melee swing is still playing (`IsAttacking`).
+- **Aim correction (spec `spec-bow-aim-spine-correction.md`):** the Mixamo archer clips are side-on (clip hips +90°,
+  spine −90°), but on the Attack layer the hips come from locomotion, so no fixed body yaw lines the bow up.
+  `BowAimCorrection` (Player root, `LateUpdate`) blends a weight toward `IsAiming` (`aimBlendSpeed`, unscaled — same as
+  the aim camera). It then turns Spine → Chest → UpperChest (yaw about world up, then pitch about the line's horizontal
+  right axis) so the **chest-locked arrow line** points at `PlayerCombat.TryGetAimPoint` (same ray as the shot; false
+  without a bow or camera). Each bone takes `AimCorrectionMath.BoneStep` = what's left ÷ bones left (re-measured per
+  bone), clamped to `aimCorrectionMaxAnglePerBone`, plus one residual pass on UpperChest (the hand origin moves with
+  it). Blend is linear: `(1 − weight)` of the animated-pose delta is held back. Remaining yaw > 120° (target behind the
+  line, e.g. aim started while running at the camera) fades the correction out by 160°. Aim points closer than
+  `aimCorrectionMinDistance` past the bow are pushed out along the crosshair ray. Bone writes only — no animator params.
+  Math is covered by `AimCorrectionMathTests`.
+  - **`[DefaultExecutionOrder(200)]`:** `CinemachineBrain` runs at **100** (its MonoImporter order). A tie leaves the
+    camera pose a frame stale.
+  - **No stacking:** the component caches the animated local rotations and the ones it wrote. If a bone still holds its
+    own write (the Animator didn't evaluate — paused, culled), it restores the animated pose before correcting again.
+    `OnDisable` does the same.
+  - **The arrow line is calibrated, not measured live.** A live right-hand → left-hand line swings during `Draw arrow` /
+    `Fire arrow`, when the hand goes to the quiver. `_arrowLineLocal` / `_arrowOriginLocal` = left − right hand / the right
+    hand, in UpperChest local space, from `Aim Overdraw` sampled at 50 % on the Player prefab
+    (`PrefabUtility.LoadPrefabContents` + `clip.SampleAnimation(root, t)`). Re-calibrate if the bow clips or the
+    character model change. Selected in play, the component draws the line as a cyan gizmo.
+  - Stance: `PlayerController` faces camera yaw + `PlayerConfigSO.aimStanceYaw` (45°, was `aimBodyYawOffset`); the
+    correction makes up the rest.
+
 Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` → ammo `CountOf > 0` (else `OnCombatNotification`
 "Out of arrows" toast) → `Consume` stamina (checked) → `TryConsume` ammo → fire. A refused shot spends nothing.
 

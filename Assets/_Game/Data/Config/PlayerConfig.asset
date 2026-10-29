@@ -14,4 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Player.PlayerConfigSO
   walkSpeed: 3
   runSpeed: 6
+  sneakSpeed: 1.5
   rotationSpeed: 10
+  aimStanceYaw: 45
+  jumpForce: 5

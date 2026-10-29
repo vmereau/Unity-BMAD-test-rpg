@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 8712925390410062336}
   - component: {fileID: 1465710742913293695}
   - component: {fileID: 4294196649070488938}
+  - component: {fileID: 6598077931306381230}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -725,6 +726,24 @@ MonoBehaviour:
   _playerHealth: {fileID: 6838483035695751856}
   _catalog: {fileID: 11400000, guid: dfceae58cb261cc4fa9de45633747b46, type: 2}
   _onStatusEffectsChanged: {fileID: 11400000, guid: e4617c202cbf64040ab13d2bafb53ccd, type: 2}
+--- !u!114 &6598077931306381230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6da17179bee8c34481daa915668ad4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Combat.BowAimCorrection
+  _animator: {fileID: 256641999253984500}
+  _stateManager: {fileID: 212298241250081144}
+  _playerCombat: {fileID: 8895864641979124537}
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _arrowLineLocal: {x: -0.9895, y: 0.0821, z: -0.1191}
+  _arrowOriginLocal: {x: 0.0416, y: 0.1979, z: 0.1472}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
