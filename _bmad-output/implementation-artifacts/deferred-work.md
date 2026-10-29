@@ -205,3 +205,27 @@ Follow-up features built on `GameClock` (split out of the time-tracking request)
 - **No feedback on a failed Forge** — `CookSelectedRecipe` refunds silently when the output can't be added (full inventory); the Recipes tab has no result text.
 - **Smithing screen wording** — recipe detail still says "Ingredients"; the tab bar shows a lone "Recipes" tab; forged / standard swords share the placeholder `sword.png` icon and the recipe item reuses the trout-recipe icon.
 - **Prompt doesn't show the skill gate** — the anvil prompt reads "Forge" even without Smithing (refused on interact with a toast).
+
+## From spec-world-screens-over-hud (2026-10-29) — world-screen UX / readability suggestions
+
+Trade, container and crafting screens (and the shared `ItemDetailPanel`):
+
+- **No backdrop** — panels are `#1A1A1A` at 85 % alpha with no full-screen dim, so a bright day scene bleeds through
+  the panels and the gaps between them. Add a full-screen dim (black ~55–65 %) behind each world screen; consider panel
+  alpha ~92 %.
+- **Default Unity buttons** — Buy / Sell / Take / Put / Cook / Craft and the Experiment / Recipes tabs use the white
+  `Background` sprite with black 30 pt text: off-style against the dark Gothic panels and `UI_SlotWell`. Make a dark /
+  brass 9-slice button (`ui:create`) with light text and clear hover / pressed / disabled states; Buy should look
+  disabled when unaffordable.
+- **Active crafting tab not obvious** — reuse the brass active tint from the inventory filter tabs.
+- **Small / italic secondary text** — category line 16 pt `#A0A0A0` (borderline contrast) and italic descriptions
+  16–17 pt grey; aim for ≥ 18 pt and less italic body text at 1080p.
+- **Colour coding** — keep gold price `#E6C25C` and green / red stat polarity; apply green / red have / missing to the
+  recipe "Requires 2/2" ingredient lines (currently plain grey) and tint the header gold amounts with the price gold.
+- **Inventory tab** — the HUD `StatusEffectBar` (y 173–213 @1080p) overlaps the inventory `GoldFooter` (y 148–178)
+  when effects are active; move one of them.
+- **HUD hidden under attack** (review) — world screens don't pause, so HP loss while looting / crafting is invisible
+  until death. Consider closing the world screen (or re-showing the HUD) when the player takes damage.
+- **Action-bar hotkeys live behind world screens** (pre-existing) — `ActionBarSystem` hotkeys 1–6 aren't gated on
+  open screens, and the bar is now hidden while trading / looting; and the hidden action bar no longer accepts drops
+  from the trade / container grids. Gate hotkeys while the cursor is unlocked.
