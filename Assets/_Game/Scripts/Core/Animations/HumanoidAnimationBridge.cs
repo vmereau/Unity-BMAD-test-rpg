@@ -34,11 +34,27 @@ namespace Game.Animations
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
 
+        private const string FULL_BODY_LAYER = "FullBody";
+
         [SerializeField] private Animator _animator;
+
+        private int _fullBodyLayer = -1; // cached once found; looked up again while missing (controller assigned late)
 
         private void Awake()
         {
             if (_animator == null) _animator = GetComponentInChildren<Animator>();
+        }
+
+        /// <summary>
+        /// Weight of the unmasked FullBody layer (synced to Attack): 1 = the attack clip drives hips and legs too.
+        /// No-op on a controller without the layer. Override controllers keep the base layers, so the index is cached.
+        /// </summary>
+        public void SetFullBodyWeight(float weight)
+        {
+            if (_animator == null) return;
+            if (_fullBodyLayer < 0) _fullBodyLayer = _animator.GetLayerIndex(FULL_BODY_LAYER);
+            if (_fullBodyLayer < 0) return;
+            _animator.SetLayerWeight(_fullBodyLayer, weight);
         }
 
         public void SetMovement(float x, float z)

@@ -22,5 +22,9 @@ namespace Game.Player
 
         [Header("Jump")]
         [SerializeField] public float jumpForce = 5f;
+
+        [Header("Animation")]
+        [Tooltip("Seconds for the FullBody layer weight to fade in / out around a full-body attack (two-handed swings).")]
+        [Min(0.01f)] [SerializeField] public float fullBodyAttackBlendTime = 0.15f;
     }
 }

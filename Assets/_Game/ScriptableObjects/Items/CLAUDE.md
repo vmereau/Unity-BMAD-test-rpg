@@ -47,6 +47,8 @@ prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `We
 - `ResolvedAnimatorOverride` = `animatorOverrideController` if set, else `archetype.animatorOverrideController`, else null (default controller).
 - `ResolvedAttackStaminaMultiplier` = `archetype.attackStaminaMultiplier` (default 1), else 1 — archetype-only, no weapon override.
   `PlayerCombat` multiplies `CombatConfigSO.attackStaminaCost` by it for melee swings (bow shots keep the flat cost).
+- `ResolvedFullBodyAttacks` = `archetype.fullBodyAttacks`, else false — archetype-only. True (two-handed) = player swings
+  play on the FullBody Animator layer and root the player (`Scripts/Combat/PLAYER_COMBO.md`).
 - Always read the `Resolved*` properties in runtime code — never the raw fields.
 
 `EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.

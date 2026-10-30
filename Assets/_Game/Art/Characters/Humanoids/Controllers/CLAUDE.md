@@ -18,6 +18,14 @@ also replaces `Block Idle` and `unarmed stagger 1/2` (both layers, so the legs p
   `Block_State`, plus jump/fall/dodge copies. The Attack layer always drives the upper body, even out of
   combat — **any new Base locomotion state needs an Attack-layer twin**, or the torso plays standing
   locomotion over the new legs.
+- **`FullBody` layer (index 2):** synced to `Attack` (`syncedLayerAffectsTiming` off), **no mask**, Override, default
+  weight **0**, no SMBs; every state's override motion = the Attack state's motion (the weapon override controller then
+  swaps it like any clip). `PlayerAnimationDriver` fades its weight to 1 only while a full-body attack runs
+  (`WeaponArchetypeSO.fullBodyAttacks`, two-handed) — hips and legs then follow the clip, which the masked Attack layer
+  can't do (the 2H swing twists the hips up to 112°: torso and blade were 30–112° off). NPCs never write it. **A new
+  Attack-layer state needs its motion copied into the FullBody layer** (`layer.SetOverrideMotion(state, motion)`), or
+  it plays no motion there during a 2H swing. Both layers fire the same clip events — `AnimationEventReceiver`
+  forwards each once per frame (`Scripts/Combat/PLAYER_COMBO.md`).
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),

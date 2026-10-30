@@ -54,6 +54,9 @@ namespace Game.Inventory
         /// <summary>Archetype's melee attack stamina multiplier (floored at 0.1 — [Min] is Inspector-only), else 1.</summary>
         public float ResolvedAttackStaminaMultiplier => archetype != null ? Mathf.Max(0.1f, archetype.attackStaminaMultiplier) : 1f;
 
+        /// <summary>Archetype's full-body attack flag (player swings root the player), else false.</summary>
+        public bool ResolvedFullBodyAttacks => archetype != null && archetype.fullBodyAttacks;
+
         /// <summary>Weapon override if set, else archetype's, else null (default controller).</summary>
         public AnimatorOverrideController ResolvedAnimatorOverride => animatorOverrideController != null
             ? animatorOverrideController

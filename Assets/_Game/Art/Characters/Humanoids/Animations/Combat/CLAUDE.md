@@ -11,7 +11,7 @@
 ```
 Combat/
 ├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
-├── two handed/ — 2hand idle / attack / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
+├── two handed/ — 2hand idle / attack / attack 2 / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
@@ -46,12 +46,16 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 
 ### Two handed (`two handed/`)
 
-One swing clip, played by Attack_1 **and** Attack_2 (override maps `Unarmed Jab` + `Unarmed Uppercut` to it; the
-archetype's 2-step combo chains it into itself — it starts and ends in the same guard pose).
+2-step combo: `Unarmed Jab` → `2hand attack` (Attack_1), `Unarmed Uppercut` → `2hand attack 2` (Attack_2, finisher).
+Both play **full-body** (FullBody layer, `Controllers/CLAUDE.md`) — they twist the hips up to 112°.
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `2hand attack.fbx` (`2hand attack`, 1.83 s) | Attack_1 / Attack_2 | 0.33 | 0.58 | 0.58 | 0.78 |
+| `2hand attack.fbx` (`2hand attack`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
+| `2hand attack 2.fbx` (`2hand attack 2`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
+
+The finisher has no combo window (last step). Its first fast phase (0.08–0.26) is the backswing behind the body; the
+strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 
 Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–0.50, horizontal follow-through to ~0.58.
 `ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina

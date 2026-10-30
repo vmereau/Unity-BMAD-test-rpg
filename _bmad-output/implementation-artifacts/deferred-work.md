@@ -283,3 +283,14 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 
 - **`2hand sheath.anim` wrist flip at the merge seam** — the right hand rotates up to ~174°/frame around frames 21–25 (just before the WeaponSwap at 0.78 s), so the rigid weapon spins for ~2 frames before going to the back. Re-bake with a longer gap / proper rotation blend at the seam, or move WeaponSwap a few frames earlier.
 - **NPC two-handers** would get no grip constraint (Player-only component) — only relevant if NPCs ever wield `twoHandedGrip` archetypes through `EquipmentVisuals`.
+
+## From spec-two-handed-full-body-attacks (2026-10-30 review)
+
+- **FullBody fade-out tail** — for `fullBodyAttackBlendTime` (0.15 s) after a 2H swing ends or is cancelled, the unmasked
+  layer still shows the Attack layer's next state (CombatIdle / Block_State) on the legs while the player can already
+  move (brief foot slide). Playtest; if visible, fade out faster than in or snap to 0 on cancels.
+- **`IsMaxCombo` still reads the `_currentWeaponSO` cache** (startup race already listed above) — the full-body flag now
+  reads `EquipmentSystem`, combo steps / stamina / stance don't yet.
+- **Unverified engine behaviour** — whether Unity fires clip events from a synced layer at weight 0 (NPCs) or > 0
+  (player). Both receivers dedupe either way; a Play-mode log would tell whether the dedupe is load-bearing.
+

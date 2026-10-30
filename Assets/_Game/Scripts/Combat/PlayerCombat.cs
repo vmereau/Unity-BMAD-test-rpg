@@ -219,6 +219,14 @@ namespace Game.Combat
                 EndAttack();
             }
 
+            // Jump-cancel (or walking off a ledge mid-swing): the Attack layer's AnyState jump / fall transitions already
+            // left the clip — end the attack so the hitbox closes and a full-body swing stops rooting the player.
+            if (_stateManager.IsAttacking && _stateManager.IsAirborne)
+            {
+                GameLog.Info(TAG, "Attack cancelled — airborne");
+                CancelAttack();
+            }
+
             UpdateBowAim();
 
             if (_stateManager.IsSwitchingWeapon)
@@ -281,6 +289,14 @@ namespace Game.Combat
             {
                 GameLog.Warn(TAG, "Cannot block: insufficient stamina");
                 return;
+            }
+
+            // Block-cancel: any melee swing, at any moment (hitbox closed, combo reset; the AnyState → Block_State
+            // transition pulls the Attack layer out of the clip).
+            if (_stateManager.IsAttacking)
+            {
+                GameLog.Info(TAG, "Attack cancelled by block");
+                CancelAttack();
             }
 
             _stateManager.SetBlocking(true); // also drives animator IsBlocking bool
@@ -377,8 +393,12 @@ namespace Game.Combat
                 _ => Attack3Hash,
             };
             
-            // SetAttacking(true, triggerHash) sets state and fires the animator trigger atomically
-            _stateManager.SetAttacking(true, triggerHash);
+            // SetAttacking(true, triggerHash) sets state and fires the animator trigger atomically.
+            // Full-body families (two-handed) root the player and hand the legs to the FullBody layer.
+            // Read the equipment, not _currentWeaponSO: that cache is only set by OnVisualsRefreshed (startup race).
+            bool fullBody = _equipmentSystem != null
+                && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO weapon && weapon.ResolvedFullBodyAttacks;
+            _stateManager.SetAttacking(true, triggerHash, fullBody);
 
             // Story 7.11: hitbox enabled/disabled by HitboxEnable/HitboxDisable animation events.
             // No hitbox bound (e.g. _unarmedHitbox unassigned) — this attack cannot deal damage.
@@ -461,6 +481,9 @@ namespace Game.Combat
         // guaranteeing ActiveWeaponGO is already set before we try to bind.
         private void HandleVisualsRefreshed(bool _)
         {
+            // Refresh() reassigns runtimeAnimatorController, which resets the Animator without any SMB exit: a swing in
+            // flight (equip mid-swing, load) would stay IsAttacking — and a full-body one rooted — until the watchdog.
+            CancelAttack();
             // Equipment changed mid draw / sheathe: the new visual (and animator override) replace the clip in flight.
             CompleteWeaponSwitch();
             // The controller reset below drops the aim states; the player presses aim again.

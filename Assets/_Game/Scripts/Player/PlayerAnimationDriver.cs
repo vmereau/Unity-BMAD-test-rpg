@@ -20,6 +20,7 @@ namespace Game.Player
         private HumanoidAnimationBridge _humanoidBridge;
         private CharacterController _characterController;
         private PlayerStateManager _stateManager;
+        private float _fullBodyWeight;
 
         private void Awake()
         {
@@ -65,6 +66,24 @@ namespace Game.Player
             _humanoidBridge.SetMovement(normX, normZ);
             _humanoidBridge.SetGrounded(!_stateManager.IsAirborne);
             _humanoidBridge.SetRising(_characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
+
+            // FullBody layer: fades in while a full-body (two-handed) swing runs. Following IsAttacking means every end
+            // path — state exit, block / jump / dodge cancel, watchdog, stance interrupt, death — fades it out.
+            _fullBodyWeight = StepFullBodyWeight(_fullBodyWeight, _stateManager.IsAttacking, _stateManager.IsFullBodyAttack,
+                Time.deltaTime, _config.fullBodyAttackBlendTime);
+            _humanoidBridge.SetFullBodyWeight(_fullBodyWeight);
+        }
+
+        /// <summary>
+        /// Pure FullBody weight step (tested in PlayerAnimationDriverTests): toward 1 while a full-body attack runs, else
+        /// toward 0, a full 0↔1 fade taking <paramref name="blendTime"/> seconds.
+        /// </summary>
+        public static float StepFullBodyWeight(float current, bool isAttacking, bool isFullBodyAttack, float deltaTime,
+            float blendTime)
+        {
+            float target = isAttacking && isFullBodyAttack ? 1f : 0f;
+            if (blendTime <= 0f) return target;
+            return Mathf.MoveTowards(current, target, deltaTime / blendTime);
         }
 
         public void SetBlocking(bool value) => _humanoidBridge.SetBlocking(value);
@@ -89,6 +108,10 @@ namespace Game.Player
         public void PlayStagger(int variant) => _humanoidBridge.PlayStagger(variant);
         public void PlayKnockDown() => _humanoidBridge.PlayKnockDown();
         public void ClearStanceReaction() => _humanoidBridge.ResetStanceTriggers();
-        public void ResetAfterRevive() => _humanoidBridge.ResetToDefaultState();
+        public void ResetAfterRevive()
+        {
+            _humanoidBridge.ResetToDefaultState(); // Rebind restores the controller's default weights (FullBody 0)
+            _fullBodyWeight = 0f;
+        }
     }
 }

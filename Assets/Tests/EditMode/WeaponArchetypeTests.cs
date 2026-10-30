@@ -95,6 +95,24 @@ namespace Tests.EditMode
         public void ResolvedAttackStaminaMultiplier_NoArchetype_IsOne()
             => Assert.That(CreateWeapon().ResolvedAttackStaminaMultiplier, Is.EqualTo(1f));
 
+        // ── ResolvedFullBodyAttacks ─────────────────────────────────────────
+
+        [Test]
+        public void ResolvedFullBodyAttacks_UsesArchetypeFlag()
+        {
+            var archetype = CreateArchetype();
+            archetype.fullBodyAttacks = true;
+            Assert.That(CreateWeapon(0, archetype).ResolvedFullBodyAttacks, Is.True);
+        }
+
+        [Test]
+        public void ResolvedFullBodyAttacks_ArchetypeDefaultIsFalse()
+            => Assert.That(CreateWeapon(0, CreateArchetype()).ResolvedFullBodyAttacks, Is.False);
+
+        [Test]
+        public void ResolvedFullBodyAttacks_NoArchetype_IsFalse()
+            => Assert.That(CreateWeapon().ResolvedFullBodyAttacks, Is.False);
+
         // ── ResolvedAnimatorOverride ────────────────────────────────────────
 
         [Test]

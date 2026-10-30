@@ -14,7 +14,7 @@
 | Block  | `CanBlock()`  | `PlayerCombat.SetBlocking()` |
 | Dodge  | `CanDodge()`  | `DodgeController.SetDodging()` |
 | Jump   | `CanJump()`   | — (read-only gate) |
-| Move   | `CanMove()`   | — (read-only gate) |
+| Move   | `CanMove()`   | — (read-only gate; false during a full-body attack — `IsFullBodyAttack`, two-handed — which also stops free-movement turning) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
 | Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimStanceYaw` (45° side-on stance) with no sprint; `Game.Combat.BowAimCorrection` turns the spine onto the crosshair after the Animator (`Scripts/Combat/CLAUDE.md`); `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
@@ -22,9 +22,10 @@
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
-- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
+- State is set via `SetAttacking(bool, int triggerHash, bool fullBody)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
 - `IsBusy` is `true` when dead, staggered / knocked down (`IsIncapacitated`), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
+- `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
 ### Sneak — PlayerSneak
@@ -99,6 +100,7 @@ _humanoidBridge.SetMovement(normX, normZ);
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
 | `ResetAttackTriggers()` | `HumanoidAnimationBridge.ResetAttackTriggers` | Clears `Attack_1/2/3` — called by `PlayerStateManager.SetAttacking(false)` so an untaken trigger can't stay latched |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
+| `Update` (FullBody fade) | `HumanoidAnimationBridge.SetFullBodyWeight` | Weight of the `FullBody` layer: `StepFullBodyWeight` → 1 while `IsAttacking && IsFullBodyAttack`, over `PlayerConfigSO.fullBodyAttackBlendTime` (player only — NPCs keep 0) |
 | `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (Attack layer: `LockOn Locomotion` ⇄ `CombatIdle`; the layer's weight is a constant 1) |
 | `PlayWeaponSwitch(bool draw, float speed)` | `HumanoidAnimationBridge.PlayWeaponSwitch` | Sets `WeaponSwitchSpeed`, fires `DrawWeapon` / `SheatheWeapon` (clears the opposite one) |
 | `ResetWeaponSwitchTriggers()` | `HumanoidAnimationBridge.ResetWeaponSwitchTriggers` | Clears both — called by `PlayerStateManager.EndWeaponSwitch()` |

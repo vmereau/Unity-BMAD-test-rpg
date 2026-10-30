@@ -24,6 +24,7 @@ MonoBehaviour:
   gripSlide: 0
   sheathSocket: 1
   animatorOverrideController: {fileID: 22100000, guid: b550023594eb9c34ca5509c55f78fb4b, type: 2}
+  fullBodyAttacks: 1
   defaultComboSteps: 2
   attackStaminaMultiplier: 2
   stanceDamage: 45

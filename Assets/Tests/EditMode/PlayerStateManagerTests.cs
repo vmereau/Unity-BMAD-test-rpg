@@ -76,10 +76,10 @@ public class PlayerStateManagerTests
     [Test]
     public void IsBlocking_And_IsAttacking_AreMutuallyExclusive()
     {
-        // OnBlockStarted calls SetAttacking(false) before raising block.
+        // OnBlockStarted cancels an attack in progress (CancelAttack → SetAttacking(false)) before raising block.
         // Invariant: IsBlocking=true implies IsAttacking=false.
         bool isBlocking = true;
-        bool isAttackingAfterBlockStart = false; // SetAttacking(false) called in OnBlockStarted
+        bool isAttackingAfterBlockStart = false; // CancelAttack() called in OnBlockStarted
         Assert.That(isBlocking && isAttackingAfterBlockStart, Is.False,
             "IsBlocking and IsAttacking must never both be true simultaneously");
     }
@@ -98,5 +98,65 @@ public class PlayerStateManagerTests
     {
         // Attacking and blocking are not inputs of the gate — sneak is allowed (and kept) during both.
         Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: false, isAirborne: false, isDodging: false), Is.True);
+    }
+
+    // Exercises the real gate (PlayerStateManager.CanMove() delegates to EvaluateCanMove).
+    [Test]
+    public void CanMove_ReturnsFalse_DuringFullBodyAttack()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: true, isFullBodyAttack: true), Is.False);
+    }
+
+    [Test]
+    public void CanMove_ReturnsTrue_DuringUpperBodyAttack()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: true, isFullBodyAttack: false), Is.True);
+    }
+
+    [Test]
+    public void CanMove_ReturnsTrue_WhenFullBodyFlagOutlivesTheAttack()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: false, isFullBodyAttack: true), Is.True);
+    }
+
+    [Test]
+    public void CanMove_ReturnsFalse_WhenBusy()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: true, isAttacking: false, isFullBodyAttack: false), Is.False);
+    }
+
+    // Exercises the real gates (CanBlock / CanJump delegate to EvaluateCanBlock / EvaluateCanJump). Attacking is not an
+    // input: block and jump cancel a swing in progress.
+    [Test]
+    public void CanBlock_ReturnsTrue_DrawnOnGround_WhateverTheAttack()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(isBusy: false, isAirborne: false, isDodging: false,
+            isSwitchingWeapon: false, isInCombat: true), Is.True);
+    }
+
+    [Test]
+    public void CanBlock_ReturnsFalse_WhenSheathedSwitchingDodgingAirborneOrBusy()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(false, false, false, false, false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(false, false, false, true, true), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(false, false, true, false, true), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(false, true, false, false, true), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanBlock(true, false, false, false, true), Is.False);
+    }
+
+    [Test]
+    public void CanJump_ReturnsTrue_OnGround_WhateverTheAttack()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanJump(isBusy: false, isAirborne: false, isDodging: false,
+            isBlocking: false), Is.True);
+    }
+
+    [Test]
+    public void CanJump_ReturnsFalse_WhenBlockingDodgingAirborneOrBusy()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanJump(false, false, false, true), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanJump(false, false, true, false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanJump(false, true, false, false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanJump(true, false, false, false), Is.False);
     }
 }

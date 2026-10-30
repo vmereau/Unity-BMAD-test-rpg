@@ -1,3 +1,4 @@
+using Game.Combat;
 using Game.Core;
 using UnityEngine;
 
@@ -18,6 +19,10 @@ namespace Game.AI
         [Tooltip("Auto-resolved from the parents if null.")]
         [SerializeField] private EntityMeleeAttacker _attacker;
 
+        // Humanoid_Template's FullBody layer (player-only weight) replays the Attack layer's clip: should Unity fire its
+        // events, each would arrive twice in one frame — forward one per event + hitbox id per frame.
+        private readonly ClipEventDeduper _deduper = new();
+
         private void Awake()
         {
             if (_attacker == null) _attacker = GetComponentInParent<EntityMeleeAttacker>();
@@ -28,14 +33,14 @@ namespace Game.AI
         // Called from attack clips at the frame the hit window opens. Empty id = all hitboxes.
         public void HitboxEnable(string id)
         {
-            if (_attacker == null) return;
+            if (_attacker == null || !Forward(ClipEventDeduper.ClipEvent.HitboxEnable, id)) return;
             _attacker.OpenWindow(id);
         }
 
         // Called from attack clips at the frame the hit window closes. Empty id = all hitboxes.
         public void HitboxDisable(string id)
         {
-            if (_attacker == null) return;
+            if (_attacker == null || !Forward(ClipEventDeduper.ClipEvent.HitboxDisable, id)) return;
             _attacker.CloseWindow(id);
         }
 
@@ -57,11 +62,14 @@ namespace Game.AI
         // Called from attack clips when the next combo step may be requested (humanoid combos).
         public void ComboWindowOpen()
         {
-            if (_attacker == null) return;
+            if (_attacker == null || !Forward(ClipEventDeduper.ClipEvent.ComboWindowOpen, null)) return;
             _attacker.OnComboWindowOpen();
         }
 
         // Player attack clips also fire this — no-op (the next step is requested on open).
         public void ComboWindowClose() { }
+
+        private bool Forward(ClipEventDeduper.ClipEvent clipEvent, string id) =>
+            _deduper.ShouldForward(clipEvent, (id ?? string.Empty).GetHashCode(), Time.frameCount);
     }
 }

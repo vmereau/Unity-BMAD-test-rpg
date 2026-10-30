@@ -83,6 +83,11 @@ namespace Game.Player
         // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging / SetInCombat
         public bool IsBlocking { get; private set; }
         public bool IsAttacking { get; private set; }
+        /// <summary>
+        /// The current attack plays full-body (weapon archetype <c>fullBodyAttacks</c>, two-handed): the FullBody Animator
+        /// layer takes the legs and <see cref="CanMove"/> is false. Set with <see cref="SetAttacking"/>, cleared with it.
+        /// </summary>
+        public bool IsFullBodyAttack { get; private set; }
         public bool IsDodging { get; private set; }
         public bool IsInCombat { get; private set; }
 
@@ -150,10 +155,12 @@ namespace Game.Player
         /// Pass the precomputed trigger hash to play the animation; pass 0 to update state only.
         /// Ending an attack also clears pending Attack_1/2/3 triggers — a trigger the Animator never took
         /// would otherwise stay latched and auto-chain (or misfire) the next attack.
+        /// <paramref name="fullBody"/> = the swing roots the player (<see cref="IsFullBodyAttack"/>); ignored when ending.
         /// </summary>
-        public void SetAttacking(bool value, int triggerHash = 0)
+        public void SetAttacking(bool value, int triggerHash = 0, bool fullBody = false)
         {
             IsAttacking = value;
+            IsFullBodyAttack = value && fullBody;
             if (value && triggerHash != 0)
                 _playerAnimator.PlayAttack(triggerHash);
             else if (!value)
@@ -289,6 +296,7 @@ namespace Game.Player
             {
                 IsBlocking = false;
                 IsAttacking = false;
+                IsFullBodyAttack = false;
                 IsDodging = false;
                 IsSneaking = false;
                 IsAiming = false;
@@ -321,10 +329,14 @@ namespace Game.Player
 
         /// <summary>
         /// True when the player is allowed to raise a block.
-        /// Note: blocking is intentionally permitted during an attack combo (block-cancel mechanic).
-        /// OnBlockStarted in PlayerCombat resets combo state when a block is raised.
+        /// Blocking is permitted during an attack (block-cancel): PlayerCombat.OnBlockStarted cancels the swing.
         /// </summary>
-        public bool CanBlock() => !IsBusy && !IsAirborne && !IsDodging && !IsAttacking && !IsSwitchingWeapon && IsInCombat;
+        public bool CanBlock() => EvaluateCanBlock(IsBusy, IsAirborne, IsDodging, IsSwitchingWeapon, IsInCombat);
+
+        /// <summary>Pure block gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (block-cancel).</summary>
+        public static bool EvaluateCanBlock(bool isBusy, bool isAirborne, bool isDodging, bool isSwitchingWeapon,
+            bool isInCombat) =>
+            !isBusy && !isAirborne && !isDodging && !isSwitchingWeapon && isInCombat;
 
         /// <summary>True when R may start a draw / sheathe.</summary>
         public bool CanSwitchWeapon() =>
@@ -354,8 +366,15 @@ namespace Game.Player
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
         public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
 
-        /// <summary>True when the player is allowed to jump (state gates only; isGrounded not checked here).</summary>
-        public bool CanJump() => !IsBusy && !IsAirborne && !IsDodging && !IsBlocking && !IsAttacking;
+        /// <summary>
+        /// True when the player is allowed to jump (state gates only; isGrounded not checked here). Allowed during an attack
+        /// (jump-cancel): PlayerCombat cancels the swing once airborne.
+        /// </summary>
+        public bool CanJump() => EvaluateCanJump(IsBusy, IsAirborne, IsDodging, IsBlocking);
+
+        /// <summary>Pure jump gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (jump-cancel).</summary>
+        public static bool EvaluateCanJump(bool isBusy, bool isAirborne, bool isDodging, bool isBlocking) =>
+            !isBusy && !isAirborne && !isDodging && !isBlocking;
 
         /// <summary>True when the player may enter sneak stance. Attacking and blocking are allowed.</summary>
         public bool CanSneak() => EvaluateCanSneak(IsBusy, IsAirborne, IsDodging);
@@ -364,7 +383,11 @@ namespace Game.Player
         public static bool EvaluateCanSneak(bool isBusy, bool isAirborne, bool isDodging) =>
             !isBusy && !isAirborne && !isDodging;
 
-        /// <summary>True when the player is allowed to move.</summary>
-        public bool CanMove() => !IsBusy;
+        /// <summary>True when the player is allowed to move (and turn, outside lock-on).</summary>
+        public bool CanMove() => EvaluateCanMove(IsBusy, IsAttacking, IsFullBodyAttack);
+
+        /// <summary>Pure move gate (tested in PlayerStateManagerTests): a full-body swing roots the player.</summary>
+        public static bool EvaluateCanMove(bool isBusy, bool isAttacking, bool isFullBodyAttack) =>
+            !isBusy && !(isAttacking && isFullBodyAttack);
     }
 }

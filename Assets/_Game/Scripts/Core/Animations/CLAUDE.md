@@ -77,6 +77,9 @@ Symmetric on both sides: bridge + driver.
   `ResetStanceTriggers`. Like `ResetAttackTriggers`, these bridge methods write several parameters on purpose: one hit
   sets `GetHit` then `Stagger` in the same frame, and the pending `GetHit` must be cleared in the same write or it cuts
   the stagger clip.
+- **`HumanoidAnimationBridge.SetFullBodyWeight` is player-only.** It drives `Humanoid_Template`'s synced, unmasked
+  `FullBody` layer (default weight 0; `Controllers/CLAUDE.md`). AI drivers never call it — an NPC at weight > 0 would
+  play its Attack-layer state on the legs too.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 
