@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using _Game.ScriptableObjects.Entities;
+using Game.Combat;
 using Game.Core;
+using Game.Inventory;
 using UnityEngine;
 
 namespace Game.NPC
@@ -26,6 +28,24 @@ namespace Game.NPC
         [SerializeField] private WitnessProfileSO _witnessProfile;
 
         public override WitnessProfileSO WitnessProfile => _witnessProfile;
+
+        [Header("Combat")]
+        [Tooltip("Data only — no visual or hitbox (NPCs fight unarmed). Adds its stance damage to the entity's attack stance " +
+                 "and decides knockdown. Null = unarmed (never knocks down).")]
+        [SerializeField] private WeaponSO _weapon;
+        [Tooltip("Stance damage multiplier on the last hit of a multi-hit combo (finisher), like the player's.")]
+        [SerializeField, Min(1f)] private float _finisherStanceMultiplier = 1.5f;
+
+        public WeaponSO Weapon => _weapon;
+
+        /// <summary>Humanoid: entity base + weapon stance, × finisher on the last hit of a multi-hit combo.</summary>
+        public override float ResolveAttackStance(int step, int hits, out bool canKnockDown)
+        {
+            canKnockDown = _weapon != null && _weapon.ResolvedCanKnockDown;
+            bool isFinisher = hits > 1 && step >= hits;
+            return StanceMath.ComputeHumanoidStanceDamage(AttackStanceDamage,
+                _weapon != null ? _weapon.ResolvedStanceDamage : 0f, isFinisher, _finisherStanceMultiplier);
+        }
 
 #if UNITY_EDITOR
         private const string DEFAULT_WITNESS_PROFILE = "WitnessProfile_Humanoid";

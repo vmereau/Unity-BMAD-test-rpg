@@ -45,5 +45,7 @@ MonoBehaviour:
   _perfectBlockStanceDamage: 80
   _staggerDuration: 0.6
   _knockdownDuration: 1.5
+  _attackStanceDamage: 15
+  _attackCanKnockDown: 0
   _animatorOverride: {fileID: 22100000, guid: e60a8416b3a40f1468d8420c09e7cde6, type: 2}
   _idleWanderRadius: 5

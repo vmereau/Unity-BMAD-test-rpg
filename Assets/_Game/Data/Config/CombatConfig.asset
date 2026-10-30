@@ -25,6 +25,18 @@ MonoBehaviour:
   attackDamage: 25
   attackHitRange: 2
   sneakAttackDamageMultiplier: 2
+  unarmedStanceDamage: 15
+  stancePerStrength: 0.5
+  finisherStanceMultiplier: 1.5
+  powerStrikeStanceBonus: 5
+  playerMaxStance: 100
+  playerStaggerThreshold: 0.5
+  playerStanceRegenDelay: 2
+  playerStanceRegenRate: 20
+  playerAttackStanceResistance: 0
+  blockStanceMultiplier: 0.5
+  playerStaggerDuration: 1.1
+  playerKnockdownDuration: 4.6
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
   weaponSwitchAnimSpeed: 1.5

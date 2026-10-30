@@ -179,10 +179,11 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 
 ---
 
-## Stance (EntityStance — spec-ai-stance-stagger-knockdown)
+## Stance (EntityStance — spec-ai-stance-stagger-knockdown, spec-player-stance-stagger-knockdown)
 
 - `EntityStance` (`IStanceTarget`, on the `Entity_base` root → every entity) holds a hidden meter (`Entity` SO
-  `[Header("Stance")]`). Rules are pure in `Game.Combat.StanceMath` (`StanceMathTests`): crossing the threshold
+  `[Header("Stance")]`), state in the shared `Game.Combat.StanceMeter` (also used by the player's `PlayerStance`;
+  `StanceMeterTests`). Rules are pure in `Game.Combat.StanceMath` (`StanceMathTests`): crossing the threshold
   (`_staggerThreshold` × max, from above to at/below) **staggers once per drain** (re-armed when regen brings stance
   back above it); reaching 0 **knocks down**; a hit with `canKnockDown = false` never takes stance below the threshold.
   Regen after `_stanceRegenDelay`, **never while staggered / knocked down** (no re-stagger stun-lock); refilled to max
@@ -192,7 +193,14 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - Sources: `PlayerCombat.ResolveHit` → `ApplyStanceDamage` (after `TakeDamage`, skipped on a lethal hit) and
   `EntityMeleeAttacker` on `PerfectBlock` → `ApplyPerfectBlockStanceDamage(Entity.PerfectBlockStanceDamage)` (never
   knockdown, **skips hyper-armor** — the parried attacker is always mid-attack). By design a perfect block on an entity
-  already at/below the threshold deals nothing. NPC-vs-NPC hits deal no stance damage.
+  already at/below the threshold deals nothing.
+- **AI hits deal stance damage** to any `IStanceTarget` (player or another NPC): `EntityMeleeAttacker.HandleHit` →
+  `ApplyStanceDamage` after `TakeDamage` on `NotBlocked` (skipped on a lethal hit), `ApplyBlockedStanceDamage` on
+  `Blocked` (player: × `blockStanceMultiplier`, never knockdown). Amount = `Entity.ResolveAttackStance(step, hits)`:
+  monsters → fixed `_attackStanceDamage` / `_attackCanKnockDown` (rat 10, viper 15, spider 20, wolf 25 KD, grunt 30 KD);
+  `NPCEntity` → `_attackStanceDamage` (15) + data-only `_weapon` (`WeaponSO.ResolvedStanceDamage`, no visual / hitbox),
+  × `_finisherStanceMultiplier` on the last hit of a multi-hit combo; knockdown = the weapon's `ResolvedCanKnockDown`
+  (no weapon = never). Step / hits come from `AttackComboPlan` (`CurrentStep` advances at `ComboWindowOpen`).
 - Reaction: `AIAnimationDriver.TriggerStagger(variant 0/1)` / `TriggerKnockDown()` (base default = `TriggerGetHit`, so
   monsters fall back to GetHit). Timed by `_staggerDuration` / `_knockdownDuration` — **match the clip lengths**
   (humanoid 1.1 / 4.6 s, monsters 0.6 / 1.5 s).

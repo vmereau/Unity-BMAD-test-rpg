@@ -38,6 +38,7 @@ namespace Game.Player
         // Lives on a child of the Player rig — falls back to GetComponentInChildren.
         [SerializeField] private EquipmentVisuals _equipmentVisuals;
         [SerializeField] private StatusEffectHost _statusEffects;
+        [SerializeField] private PlayerStance _stance;
 
         private void Awake()
         {
@@ -56,6 +57,7 @@ namespace Game.Player
             Fallback(ref _characterController);
             Fallback(ref _playerController);
             Fallback(ref _statusEffects);
+            Fallback(ref _stance);
             if (_equipmentVisuals == null) _equipmentVisuals = GetComponentInChildren<EquipmentVisuals>(true);
             if (_equipmentVisuals == null) GameLog.Warn(TAG, "PlayerSaveAdapter: EquipmentVisuals not found — weapon may stay drawn after a load");
         }
@@ -151,6 +153,8 @@ namespace Game.Player
             _statusEffects?.Restore(d.statusEffects);
             _stamina?.RefillToMax();
             _stateManager?.SetDead(false);
+            // Stance isn't saved — every load starts at full stance, out of any stagger / knockdown.
+            _stance?.ResetStance();
             // Sneak isn't saved — every load starts standing.
             _stateManager?.SetSneaking(false);
             // The drawn / sheathed stance isn't saved — every load starts sheathed. A sheathe in flight still has the

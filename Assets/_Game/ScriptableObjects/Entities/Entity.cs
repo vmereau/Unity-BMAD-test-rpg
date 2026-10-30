@@ -86,6 +86,10 @@ namespace _Game.ScriptableObjects.Entities
         [SerializeField, Min(0.1f)] private float _staggerDuration = 1.1f;
         [Tooltip("Seconds the entity is down: knocked down + getting up clips (match their combined length).")]
         [SerializeField, Min(0.1f)] private float _knockdownDuration = 4.6f;
+        [Tooltip("Stance damage dealt per landed hit. Monsters: fixed. Humanoid NPCs: base, + equipped weapon stance.")]
+        [SerializeField, Min(0f)] private float _attackStanceDamage = 15f;
+        [Tooltip("Monsters: whether hits can knock down (take stance to 0). Humanoid NPCs use their weapon's flag instead.")]
+        [SerializeField] private bool _attackCanKnockDown;
 
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
@@ -123,6 +127,8 @@ namespace _Game.ScriptableObjects.Entities
         public float PerfectBlockStanceDamage => _perfectBlockStanceDamage;
         public float StaggerDuration          => _staggerDuration;
         public float KnockdownDuration        => _knockdownDuration;
+        public float AttackStanceDamage       => _attackStanceDamage;
+        public bool AttackCanKnockDown        => _attackCanKnockDown;
         
         public AnimatorOverrideController AnimatorOverride => _animatorOverride;
 
@@ -131,6 +137,17 @@ namespace _Game.ScriptableObjects.Entities
         /// <see cref="NPCEntity"/> returns its assigned profile.
         /// </summary>
         public virtual WitnessProfileSO WitnessProfile => null;
+
+        /// <summary>
+        /// Stance damage of combo hit <paramref name="step"/> (1-based) out of <paramref name="hits"/>. Default
+        /// (monsters): the fixed <see cref="AttackStanceDamage"/> / <see cref="AttackCanKnockDown"/>.
+        /// <see cref="NPCEntity"/> adds its weapon and the finisher multiplier.
+        /// </summary>
+        public virtual float ResolveAttackStance(int step, int hits, out bool canKnockDown)
+        {
+            canKnockDown = _attackCanKnockDown;
+            return _attackStanceDamage;
+        }
 
         /// <summary>
         /// Called by EntityBrain each frame when idle and not pathfinding.

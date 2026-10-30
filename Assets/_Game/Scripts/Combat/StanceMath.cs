@@ -56,5 +56,19 @@ namespace Game.Combat
             if (isFinisher) damage *= Mathf.Max(1f, finisherMultiplier);
             return damage + Mathf.Max(0f, powerStrikeBonus);
         }
+
+        /// <summary>
+        /// Humanoid NPC stance damage (spec-player-stance-stagger-knockdown): entity base + equipped weapon stance,
+        /// × finisher multiplier on the last hit of a multi-hit combo.
+        /// </summary>
+        public static float ComputeHumanoidStanceDamage(float baseDamage, float weaponStance, bool isFinisher,
+            float finisherMultiplier)
+        {
+            float damage = Mathf.Max(0f, baseDamage) + Mathf.Max(0f, weaponStance);
+            return isFinisher ? damage * Mathf.Max(1f, finisherMultiplier) : damage;
+        }
+
+        /// <summary>Player stance damage on a regular block: × multiplier (clamped 0..1).</summary>
+        public static float ApplyBlockMultiplier(float damage, float multiplier) => damage * Mathf.Clamp01(multiplier);
     }
 }

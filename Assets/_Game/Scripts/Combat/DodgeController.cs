@@ -123,6 +123,8 @@ namespace Game.Combat
 
         private void OnDodgeStarted(InputAction.CallbackContext ctx)
         {
+            if (_stateManager.IsIncapacitated) return; // staggered / knocked down
+
             if (_stateManager.IsAirborne)
             {
                 GameLog.Warn(TAG, "Cannot dodge while airborne");

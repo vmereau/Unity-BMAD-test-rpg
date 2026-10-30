@@ -23,7 +23,7 @@
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
-- `IsBusy` is `true` when the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy.
+- `IsBusy` is `true` when dead, staggered / knocked down (`IsIncapacitated`), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
@@ -37,6 +37,20 @@ reads Sprint/Move: Sprint held while moving → `ExitSneakToSprint()` (clears `I
 without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking off a ledge). `PlayerController` uses `PlayerConfigSO.sneakSpeed` while sneaking.
 `PlayerSaveAdapter.Restore` forces `SetSneaking(false)` (sneak is not saved). `VisibilityPoint` = feet +
 `StealthConfigSO.standing/sneakingVisibilityHeight` (the AI line-of-sight aim point).
+
+### Stance — PlayerStance (spec-player-stance-stagger-knockdown)
+
+`PlayerStance` (Player root, `Game.Combat.IStanceTarget`) runs the shared `StanceMeter` with the `CombatConfigSO`
+`[Header("Player Stance")]` settings — same rules as `EntityStance` (`Scripts/AI/CLAUDE.md` → Stance). AI hits call
+`ApplyStanceDamage` (landed) / `ApplyBlockedStanceDamage` (regular block: × `blockStanceMultiplier`, never knockdown);
+perfect block / dodge never reach it. Hyper-armor: `playerAttackStanceResistance` while `IsAttacking`. A reaction →
+`PlayerCombat.InterruptForStance()` (attack + combo ended, block lowered, PB window closed, aim stopped) then
+`PlayerStateManager.BeginStagger(variant)` / `BeginKnockDown()` (flag + exits sneak + `PlayerAnimationDriver.PlayStagger`
+/ `PlayKnockDown`); recovery → `EndStanceReaction()`. Health damage still lands while down. `SetDead(true)` clears the
+flags (and the meter refills while dead); `PlayerSaveAdapter.Restore` calls `ResetStance()` (a load mid-reaction rebinds
+the Animator). Systems outside the `Can*` gates check `IsIncapacitated` themselves: `DodgeController`, `InteractionSystem`
+(no focus / E), `ActionBarSystem.TryUseSlot`, `UIScreenManager.OpenTab` (an equip mid-reaction would swap the controller),
+`PlayerController` lock-on rotation. Hidden — no UI, not saved.
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
 

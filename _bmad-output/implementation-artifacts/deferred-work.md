@@ -232,8 +232,7 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 
 ## Stance follow-ups (from spec-ai-stance-stagger-knockdown, 2026-10-30)
 
-- **Player stance** — the player can't be staggered / knocked down yet (needs a hit-react state + input lock in
-  `PlayerStateManager`).
+- ~~**Player stance**~~ — done in `spec-player-stance-stagger-knockdown` (2026-10-30).
 - **Armor stance** — heavy armor raises max stance (`ArmorSO` weight / stance bonus), maybe with a stamina-regen cost.
 - **Two-handed archetype** — high stance damage, `canKnockDown` on; needs grip / clips.
 - **Ragdoll knockdown** — physics ragdoll + get-up blend in its own spec (today: animation-based fall).
@@ -243,9 +242,26 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Stance test bandits** — `NPC_Bandit` HP is 1000 (asked for testing; was 50) and `StartingTown/Bandit` has 3
   `bandit (stance test N)` copies, each with its own `Data/NPCs/Bandit/StanceTest/NPC_Bandit_StanceTestN` (HP 1000) +
   `KilledFact_bandit_stanceTestN`. After tuning: restore HP 50, delete the copies and the `StanceTest/` folder.
-- **Stance state tests** — only `StanceMath` is unit-tested; `EntityStance` timers / regen and the brain's
-  hold / restore / deferred-event paths are covered by manual play checks only (PlayMode tests would need a NavMesh).
+- **Stance state tests** — `StanceMath` and the shared `StanceMeter` (timers / regen / refill) are unit-tested; the
+  brain's hold / restore / deferred-event paths and `PlayerStance` side effects are manual play checks only.
 - **Weapon stance 0** — `WeaponSO.stanceDamage = 0` means "use archetype", so a weapon can't be authored with zero stance
   damage on an archetype that has some (use a flag like `KnockDownOverride` if ever needed).
 - **Pre-existing NRE at play start** — `PlayerAnimationDriver.SetInCombat` (line 74) via `EquipmentVisuals.OnEnable` →
   `PlayerCombat.HandleVisualsRefreshed`, seen while testing stance (path not touched by it).
+
+## Player stance follow-ups (from spec-player-stance-stagger-knockdown, 2026-10-30)
+
+- **Stance UI** — kept hidden on purpose (feel over numbers); revisit if playtests show players can't read it.
+- **Guard break** — a regular block only takes `blockStanceMultiplier` of stance and never knocks down; a dedicated
+  guard-break reaction (block broken at 0 stance) is a separate design.
+- **NPC weapon visuals** — `NPCEntity._weapon` is data only (stance + knockdown flag). Visual, hitbox, damage and
+  weapon-specific clips come with real NPC equipment.
+- **Attack layer has no `Death`** — a player (or NPC) dying mid-knockdown keeps the upper-body `KnockedDown 0` →
+  `GettingUp 0` twin running over the death pose. Add AnyState → a Death twin on the Attack layer (controller change).
+- **Airborne stagger / knockdown** — a reaction while airborne zeroes horizontal movement at once (straight drop) and
+  plays the clip mid-fall; consider ignoring stance while `IsAirborne` or delaying the reaction until landing.
+- **Forced NPC line while down** — a witness's forced dialogue (`DialogueSystem` forced line) can open over a knockdown
+  (cosmetic: the reaction still ends underneath). Witness brains could wait for `!IsIncapacitated`.
+- **Inventory already open when staggered** — `UIScreenManager.OpenTab` refuses while incapacitated, but a tab opened
+  before the hit still allows equip changes (controller swap cuts the reaction clip).
+- **I-frames / downed protection** — health damage still lands while the player is knocked down (asked "yes for now").

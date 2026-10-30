@@ -232,6 +232,8 @@ namespace Game.AI
                     break;
                 case HitResult.Blocked:
                     GameLog.Info(TAG, $"{gameObject.name} attack blocked — no damage");
+                    if (TryGetStanceTarget(target, out IStanceTarget blocker))
+                        blocker.ApplyBlockedStanceDamage(ResolveStanceDamage(out _));
                     break;
                 case HitResult.Dodged:
                     GameLog.Info(TAG, $"{gameObject.name} attack dodged — no damage");
@@ -243,8 +245,26 @@ namespace Game.AI
                         victim.NotifyHitBy(gameObject);
                     target.TakeDamage(CurrentDamage);
                     GameLog.Info(TAG, $"{gameObject.name} hit landed at {hitPoint}");
+                    // Stance after health, like the player's hits: a lethal hit skips stance.
+                    if (!target.IsDead && TryGetStanceTarget(target, out IStanceTarget stanceTarget))
+                        stanceTarget.ApplyStanceDamage(ResolveStanceDamage(out bool canKnockDown), canKnockDown);
                     break;
             }
+        }
+
+        // Stance damage of the combo step being played (Entity: monster fixed / humanoid base + weapon + finisher).
+        private float ResolveStanceDamage(out bool canKnockDown)
+        {
+            canKnockDown = false;
+            if (_persistentID == null || _persistentID.Entity == null) return 0f;
+            return _persistentID.Entity.ResolveAttackStance(Mathf.Max(1, _combo.CurrentStep), Mathf.Max(1, _combo.TotalHits),
+                out canKnockDown);
+        }
+
+        private static bool TryGetStanceTarget(IDamageable target, out IStanceTarget stanceTarget)
+        {
+            stanceTarget = null;
+            return target is Component component && component != null && component.TryGetComponent(out stanceTarget);
         }
 
         private bool IsHostileTarget(IDamageable target)

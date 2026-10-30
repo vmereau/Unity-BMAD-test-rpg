@@ -86,6 +86,9 @@ namespace Game.Player
             _humanoidBridge.TriggerSneakToSprint();
         }
         public void PlayDeath() => _humanoidBridge.TriggerDeath();
+        public void PlayStagger(int variant) => _humanoidBridge.PlayStagger(variant);
+        public void PlayKnockDown() => _humanoidBridge.PlayKnockDown();
+        public void ClearStanceReaction() => _humanoidBridge.ResetStanceTriggers();
         public void ResetAfterRevive() => _humanoidBridge.ResetToDefaultState();
     }
 }

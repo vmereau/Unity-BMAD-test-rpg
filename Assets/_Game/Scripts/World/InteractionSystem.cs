@@ -31,7 +31,8 @@ namespace Game.World
         private Camera _mainCamera;
         private PlayerStateManager _playerState;
 
-        private bool IsPlayerDead => _playerState != null && _playerState.IsDead;
+        // Dead, or staggered / knocked down (stance reaction): no focus, no interaction.
+        private bool IsPlayerUnable => _playerState != null && (_playerState.IsDead || _playerState.IsIncapacitated);
         private IInteractable _previousInteractable;
         private InputSystem_Actions _input;
         private float _scanTimer;
@@ -158,7 +159,7 @@ namespace Game.World
             }
 
             // Menus / dialogue / containers open: no focus, so the outline and crosshair tint match the hidden card.
-            if (!CursorManager.IsLocked || IsPlayerDead) best = null;
+            if (!CursorManager.IsLocked || IsPlayerUnable) best = null;
 
             // Also fires when the same target's verb/name/legality changes (e.g. a door's lock prompt after
             // unlocking, or an owner dying while its object is focused).
@@ -212,7 +213,7 @@ namespace Game.World
 
         private void LateUpdate()
         {
-            if (!CursorManager.IsLocked || IsPlayerDead) return;
+            if (!CursorManager.IsLocked || IsPlayerUnable) return;
             // The [E] that closed a dialogue this frame must not re-open it.
             if (_playerState != null && _playerState.DialogueEndedThisFrame) return;
             // Re-check CanInteract: the scan is throttled by _config.scanInterval, so combat could have

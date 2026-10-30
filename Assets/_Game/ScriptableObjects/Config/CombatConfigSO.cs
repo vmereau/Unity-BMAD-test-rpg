@@ -56,6 +56,24 @@ namespace Game.Combat
         [Tooltip("Flat stance damage added per melee hit when the Power Strike skill is learned.")]
         [Min(0f)] public float powerStrikeStanceBonus = 5f;
 
+        [Header("Player Stance (AI hits on the player)")]
+        [Tooltip("Hidden player stance meter. AI hits drain it; it regenerates after a delay without stance damage.")]
+        [Min(1f)] public float playerMaxStance = 100f;
+        [Tooltip("Fraction of max stance at/below which a hit staggers the player (once per drain). 0 stance = knockdown.")]
+        [Range(0f, 1f)] public float playerStaggerThreshold = 0.5f;
+        [Tooltip("Seconds without stance damage before the player's stance regenerates.")]
+        [Min(0f)] public float playerStanceRegenDelay = 2f;
+        [Tooltip("Stance regenerated per second once regen starts.")]
+        [Min(0f)] public float playerStanceRegenRate = 20f;
+        [Tooltip("Hyper-armor: fraction of stance damage ignored while the player attacks (0 = none, 1 = immune).")]
+        [Range(0f, 1f)] public float playerAttackStanceResistance = 0f;
+        [Tooltip("Stance damage multiplier on a hit absorbed by a regular block (never knocks down).")]
+        [Range(0f, 1f)] public float blockStanceMultiplier = 0.5f;
+        [Tooltip("Seconds the player is locked in a stagger (match the stagger clip length).")]
+        [Min(0.1f)] public float playerStaggerDuration = 1.1f;
+        [Tooltip("Seconds the player is down: knocked down + getting up clips (match their combined length).")]
+        [Min(0.1f)] public float playerKnockdownDuration = 4.6f;
+
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;

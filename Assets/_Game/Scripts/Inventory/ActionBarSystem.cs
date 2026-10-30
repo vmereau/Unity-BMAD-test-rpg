@@ -165,13 +165,14 @@ namespace Game.Inventory
 
         /// <summary>
         /// Attempts to use the item in the given action bar slot.
-        /// Blocked while the player is in dialogue.
+        /// Blocked while the player is in dialogue or staggered / knocked down.
         /// Called by both hotkey handlers and the UI click path.
         /// </summary>
         public void TryUseSlot(int slotIndex)
         {
             // DialogueEndedThisFrame: the number key that closed a dialogue (Farewell / forced line) is also ActionBarN.
-            if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.DialogueEndedThisFrame)) return;
+            if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.DialogueEndedThisFrame
+                                                || _playerStateManager.IsIncapacitated)) return;
             HandleHotkeyPressed(slotIndex);
         }
 

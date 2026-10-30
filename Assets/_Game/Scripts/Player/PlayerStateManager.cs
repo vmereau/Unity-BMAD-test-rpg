@@ -5,7 +5,8 @@ namespace Game.Player
 {
     /// <summary>
     /// Single source of truth for player action gating and state.
-    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat, IsSneaking, IsDead.
+    /// Exposes: IsAirborne, IsBlocking, IsAttacking, IsDodging, IsBusy, IsInCombat, IsSneaking, IsDead,
+    /// IsStaggered / IsKnockedDown (stance reaction, written by PlayerStance).
     /// All Can-do queries (CanAttack, CanBlock, CanDodge, CanJump, CanMove, CanSneak) live here.
     /// Animation side-effects are delegated to PlayerAnimator — this class never touches the Animator directly.
     /// State is written by PlayerCombat and DodgeController; state is read by any system needing action gates.
@@ -62,12 +63,22 @@ namespace Game.Player
         }
 
         /// <summary>
-        /// True when the player cannot perform any action (dead, cursor unlocked, or a dialogue closed this frame).
+        /// True when the player cannot perform any action (dead, staggered / knocked down, cursor unlocked, or a dialogue
+        /// closed this frame).
         /// </summary>
-        public bool IsBusy => IsDead || !CursorManager.IsLocked || DialogueEndedThisFrame;
+        public bool IsBusy => IsDead || IsIncapacitated || !CursorManager.IsLocked || DialogueEndedThisFrame;
 
         /// <summary>True from death until a save is loaded. Blocks every action through IsBusy.</summary>
         public bool IsDead { get; private set; }
+
+        /// <summary>
+        /// Stance reaction (spec-player-stance-stagger-knockdown), written by <c>PlayerStance</c> through
+        /// <see cref="BeginStagger"/> / <see cref="BeginKnockDown"/> / <see cref="EndStanceReaction"/>. Blocks every
+        /// action and movement through IsBusy.
+        /// </summary>
+        public bool IsStaggered { get; private set; }
+        public bool IsKnockedDown { get; private set; }
+        public bool IsIncapacitated => IsStaggered || IsKnockedDown;
 
         // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging / SetInCombat
         public bool IsBlocking { get; private set; }
@@ -228,6 +239,43 @@ namespace Game.Player
             GameLog.Info(TAG, $"IsInDialogue: {value}");
         }
 
+        /// <summary>Stance stagger: locks the player and plays stagger clip <paramref name="variant"/> (0/1). Exits sneak.</summary>
+        public void BeginStagger(int variant)
+        {
+            if (IsDead) return;
+            IsStaggered = true;
+            SetSneaking(false);
+            if (_playerAnimator != null) _playerAnimator.PlayStagger(variant);
+        }
+
+        /// <summary>Stance knockdown: locks the player and plays knocked down → getting up. Exits sneak.</summary>
+        public void BeginKnockDown()
+        {
+            if (IsDead) return;
+            IsStaggered = false;
+            IsKnockedDown = true;
+            SetSneaking(false);
+            if (_playerAnimator != null) _playerAnimator.PlayKnockDown();
+        }
+
+        /// <summary>
+        /// Ends the stance reaction and clears untaken triggers. <paramref name="resetAnimator"/> (load mid-reaction) also
+        /// snaps the Animator out of the clip and re-applies the combat stance.
+        /// </summary>
+        public void EndStanceReaction(bool resetAnimator = false)
+        {
+            bool wasIncapacitated = IsIncapacitated;
+            IsStaggered = false;
+            IsKnockedDown = false;
+            if (_playerAnimator == null) return;
+            _playerAnimator.ClearStanceReaction();
+            if (resetAnimator && wasIncapacitated && !IsDead)
+            {
+                _playerAnimator.ResetAfterRevive();
+                _playerAnimator.SetInCombat(IsInCombat);
+            }
+        }
+
         /// <summary>
         /// Called by PlayerHealth on death (true) and by the save system on revive (false). Death clears action
         /// states and plays the death animation; revive resets the Animator and re-applies the combat stance.
@@ -244,6 +292,8 @@ namespace Game.Player
                 IsDodging = false;
                 IsSneaking = false;
                 IsAiming = false;
+                IsStaggered = false;   // death overrides the stance reaction
+                IsKnockedDown = false;
                 // IsSwitchingWeapon is kept: IsBusy already blocks R, and the PlayerCombat watchdog (or the load) still
                 // has to move the weapon visual to match IsInCombat.
             }
@@ -254,6 +304,7 @@ namespace Game.Player
                 _playerAnimator.SetBlocking(false);
                 _playerAnimator.SetSneaking(false);
                 _playerAnimator.SetAiming(false);
+                _playerAnimator.ClearStanceReaction(); // an untaken Stagger / KnockDown must not fire after Death
                 _playerAnimator.PlayDeath();
             }
             else

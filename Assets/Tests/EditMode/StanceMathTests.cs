@@ -96,4 +96,22 @@ public class StanceMathTests
     [Test]
     public void ComputeMeleeStanceDamage_NegativeStrength_ClampedToBase()
         => Assert.That(StanceMath.ComputeMeleeStanceDamage(20f, -5f, 1f, false, 1.5f, 0f), Is.EqualTo(20f).Within(EPS));
+
+    // spec-player-stance-stagger-knockdown: humanoid NPC = base + weapon, × finisher; player block multiplier.
+
+    [Test]
+    public void ComputeHumanoidStanceDamage_Unarmed_IsBase()
+        => Assert.That(StanceMath.ComputeHumanoidStanceDamage(15f, 0f, false, 1.5f), Is.EqualTo(15f).Within(EPS));
+
+    [Test]
+    public void ComputeHumanoidStanceDamage_ArmedFinisher()
+        => Assert.That(StanceMath.ComputeHumanoidStanceDamage(15f, 35f, true, 1.5f), Is.EqualTo(75f).Within(EPS));
+
+    [Test]
+    public void ComputeHumanoidStanceDamage_FinisherBelowOne_Ignored()
+        => Assert.That(StanceMath.ComputeHumanoidStanceDamage(15f, 5f, true, 0.5f), Is.EqualTo(20f).Within(EPS));
+
+    [Test]
+    public void ApplyBlockMultiplier_Halves()
+        => Assert.That(StanceMath.ApplyBlockMultiplier(40f, 0.5f), Is.EqualTo(20f).Within(EPS));
 }

@@ -45,6 +45,8 @@ MonoBehaviour:
   _perfectBlockStanceDamage: 80
   _staggerDuration: 1.1
   _knockdownDuration: 4.6
+  _attackStanceDamage: 15
+  _attackCanKnockDown: 0
   _animatorOverride: {fileID: 0}
   dayState: 1
   nightState: 2
@@ -52,3 +54,5 @@ MonoBehaviour:
   memories: []
   _killedFact: {fileID: 11400000, guid: d110c30c11113d34fb9ef2708c4e5384, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _weapon: {fileID: 0}
+  _finisherStanceMultiplier: 1.5

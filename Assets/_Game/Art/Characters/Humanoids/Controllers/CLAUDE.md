@@ -83,9 +83,11 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
 - **Plain hits don't interrupt punches:** `GetHit` / `Death` are AnyState transitions on the **Base** layer while
   attacks live on the masked `Attack` layer — an NPC keeps punching while hit. Death stays safe via
   `EntityBrain.TransitionToDead → EndAttack` + the ragdoll. The `GetHit` state has **no motion** (no clip yet).
-- **Stance reactions interrupt both layers (AI only):** AnyState → `Stagger_1/2` (`Stagger` + `StaggerIndex` 0/1) and
+- **Stance reactions interrupt both layers (AI + Player):** AnyState → `Stagger_1/2` (`Stagger` + `StaggerIndex` 0/1) and
   `KnockedDown` → `GettingUp` (`KnockDown`) exist on the Base layer (listed after `Death`, before `GetHit`; exit →
   `LockOn Locomotion`) **and** as Attack-layer twins (`Stagger_1 0`, …; exit → `CombatIdle` if `IsInCombat`, else
   `LockOn Locomotion`). Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
   down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
-  `applyRootMotion` off). The Player never sets these triggers.
+  `applyRootMotion` off; so does the Player). The Player sets them through `PlayerStance` → `PlayerStateManager` →
+  `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance). Known gap: the `Attack` layer has no `Death`
+  transition, so a death mid-knockdown lets the upper-body twin finish `GettingUp`.

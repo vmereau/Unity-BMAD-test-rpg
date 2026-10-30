@@ -25,21 +25,30 @@ namespace Game.AI
         [Tooltip("Plays stagger / knockdown. Auto-resolved on the same GO if null.")]
         [SerializeField] private AIAnimationDriver _animationDriver;
 
-        public float CurrentStance { get; private set; }
+        public float CurrentStance => _meter.Current;
         public float MaxStance => _persistentID != null && _persistentID.Entity != null ? _persistentID.Entity.MaxStance : 100f;
-        public bool IsStaggered { get; private set; }
-        public bool IsKnockedDown { get; private set; }
-        public bool IsIncapacitated => IsStaggered || IsKnockedDown;
+        public bool IsStaggered => _meter.IsStaggered;
+        public bool IsKnockedDown => _meter.IsKnockedDown;
+        public bool IsIncapacitated => _meter.IsIncapacitated;
 
         /// <summary>Same-GO notifications for <see cref="EntityBrain"/>.</summary>
         public event Action Staggered;
         public event Action KnockedDown;
         public event Action Recovered;
 
+        private readonly StanceMeter _meter = new();
         private EntityHealth _health;
         private EntityMeleeAttacker _attacker;
-        private float _reactionTimer;
-        private float _timeSinceStanceDamage;
+
+        private StanceSettings Settings
+        {
+            get
+            {
+                Entity e = _persistentID.Entity;
+                return new StanceSettings(e.MaxStance, e.StaggerThreshold, e.StanceRegenDelay, e.StanceRegenRate,
+                    e.StaggerDuration, e.KnockdownDuration);
+            }
+        }
 
         private void Awake()
         {
@@ -56,11 +65,8 @@ namespace Game.AI
 
         private void OnEnable()
         {
-            CurrentStance = MaxStance;
-            IsStaggered = false;
-            IsKnockedDown = false;
-            _reactionTimer = 0f;
-            _timeSinceStanceDamage = 0f;
+            if (_persistentID == null || _persistentID.Entity == null) return;
+            _meter.Reset(Settings);
         }
 
         private void Update()
@@ -68,25 +74,17 @@ namespace Game.AI
             if (_health != null && _health.IsDead)
             {
                 // Death overrides the reaction; no Recovered — the brain resets itself in TransitionToDead.
-                IsStaggered = false;
-                IsKnockedDown = false;
+                _meter.ClearReaction();
                 return;
             }
 
-            if (IsIncapacitated)
-            {
-                // No regen while reacting: a stagger can't re-arm (stun-lock), a knockdown refills on getting up.
-                _reactionTimer -= Time.deltaTime;
-                if (_reactionTimer <= 0f) Recover();
-                return;
-            }
-
-            _timeSinceStanceDamage += Time.deltaTime;
-            if (_timeSinceStanceDamage >= _persistentID.Entity.StanceRegenDelay && CurrentStance < MaxStance)
-                CurrentStance = StanceMath.Regen(CurrentStance, MaxStance, _persistentID.Entity.StanceRegenRate, Time.deltaTime);
+            if (_meter.Tick(Time.deltaTime, Settings)) Recover();
         }
 
         public void ApplyStanceDamage(float amount, bool canKnockDown) => Apply(amount, canKnockDown, hyperArmor: true);
+
+        /// <summary>AI entities can't block — treated as a hit that can't knock down.</summary>
+        public void ApplyBlockedStanceDamage(float amount) => Apply(amount, false, hyperArmor: true);
 
         /// <summary>
         /// Perfect block: never knocks down, and skips hyper-armor — the parried attacker is always mid-attack, so
@@ -105,44 +103,27 @@ namespace Game.AI
             if (amount <= 0f) return; // fully absorbed
 
             float before = CurrentStance;
-            StanceResult result = StanceMath.Apply(CurrentStance, MaxStance, entity.StaggerThreshold, amount, canKnockDown);
-            if (result.Stance >= before) return; // floored (no-knockdown hit at/below the threshold): regen keeps running
-            CurrentStance = result.Stance;
-            _timeSinceStanceDamage = 0f;
+            StanceReaction reaction = _meter.Apply(amount, canKnockDown, Settings, out bool applied);
+            if (!applied) return; // floored (no-knockdown hit at/below the threshold): regen keeps running
             GameLog.Info(TAG, $"{gameObject.name} stance {before:F0} → {CurrentStance:F0}/{MaxStance:F0} " +
-                              $"(hit {amount:F0}, knockdown {(canKnockDown ? "on" : "off")}) {result.Reaction}");
+                              $"(hit {amount:F0}, knockdown {(canKnockDown ? "on" : "off")}) {reaction}");
 
-            switch (result.Reaction)
+            switch (reaction)
             {
-                case StanceReaction.Stagger:   BeginStagger();   break;
-                case StanceReaction.KnockDown: BeginKnockDown(); break;
+                case StanceReaction.Stagger:
+                    if (_animationDriver != null) _animationDriver.TriggerStagger(UnityEngine.Random.Range(0, STAGGER_VARIANTS));
+                    Staggered?.Invoke();
+                    break;
+                case StanceReaction.KnockDown:
+                    if (_animationDriver != null) _animationDriver.TriggerKnockDown();
+                    KnockedDown?.Invoke();
+                    break;
             }
         }
 
-        private void BeginStagger()
-        {
-            IsStaggered = true;
-            _reactionTimer = _persistentID.Entity.StaggerDuration;
-            if (_animationDriver != null) _animationDriver.TriggerStagger(UnityEngine.Random.Range(0, STAGGER_VARIANTS));
-            Staggered?.Invoke();
-        }
-
-        private void BeginKnockDown()
-        {
-            IsStaggered = false;
-            IsKnockedDown = true;
-            _reactionTimer = _persistentID.Entity.KnockdownDuration;
-            if (_animationDriver != null) _animationDriver.TriggerKnockDown();
-            KnockedDown?.Invoke();
-        }
-
+        // The meter already refilled (knockdown) and cleared the reaction.
         private void Recover()
         {
-            if (IsKnockedDown) CurrentStance = MaxStance;
-            IsStaggered = false;
-            IsKnockedDown = false;
-            _reactionTimer = 0f;
-            _timeSinceStanceDamage = 0f;
             if (_animationDriver != null) _animationDriver.ClearStanceReaction();
             GameLog.Info(TAG, $"{gameObject.name} recovered — stance {CurrentStance:F0}/{MaxStance:F0}");
             Recovered?.Invoke();

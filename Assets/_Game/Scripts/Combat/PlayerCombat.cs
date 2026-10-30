@@ -439,6 +439,21 @@ namespace Game.Combat
             EndAttack();
         }
 
+        /// <summary>
+        /// Player stance reaction started (PlayerStance): ends the attack and combo, lowers the block (perfect-block
+        /// window closed) and ends a bow aim. A held right click does not raise the block again.
+        /// </summary>
+        public void InterruptForStance()
+        {
+            if (_stateManager == null) return;
+            CancelAttack();
+            StopAim();
+            if (!_stateManager.IsBlocking) return;
+            _stateManager.SetBlocking(false);
+            _isPerfectBlockWindowOpen = false;
+            _perfectBlockWindowTimer = 0f;
+        }
+
         // Story 7.9: weapon hitbox helpers -------------------------------------------
 
         // Called by OnVisualsRefreshed GameEventSO — raised at the END of EquipmentVisuals.Refresh(),
