@@ -103,9 +103,18 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
   `Archetype_Bow` (**Left** hand; Back socket; drawn pose derived from `Aim Overdraw` at 50 % — belly (+Z) along the
   right-hand → left-hand line, limbs (+Y) along UpperChest up — sheathed pose a guess, tune in play mode;
   `Bow_AnimatorOverride` swaps only the draw / sheathe clips), `Archetype_TwoHanded` (Right hand, **Back** socket,
-  `TwoHanded_AnimatorOverride`, 2 combo steps, stance 45 + knockdown, `attackStaminaMultiplier` 2; drawn pose = the
-  left-hand → right-hand line (blade) + hand velocity (edge) at 45 % of `2hand attack`, sheathed pose = hilt above the
-  right shoulder, blade down-left — both first guesses, tune in play mode). No left-hand IK: the clips place the hands.
+  `TwoHanded_AnimatorOverride`, 2 combo steps, stance 45 + knockdown, `attackStaminaMultiplier` 2; drawn pose = edge
+  reference + fallback (two-hand grip below); sheathed pose = hilt above the right shoulder, blade down-left).
+- **Two-hand grip (`twoHandedGrip`, spec `spec-two-hand-grip-constraint.md`):** the Mixamo 2H clips don't keep a constant
+  hand relationship (hand line drifts ~50° within one swing; `2hand blocking` holds the other way round), so no rigid
+  `drawnPose` fits. `TwoHandGripConstraint` (Player root, `[DefaultExecutionOrder(250)]`, after `BowAimCorrection` 200)
+  re-aims `Drawn` every frame while drawn: grip on `DrawnSocket`, blade (+Y) = left socket → right socket line, edge (+Z) =
+  `drawnPose`'s edge projected ⊥ blade then rolled `gripRoll`°, moved `gripSlide` m along the blade (`TwoHandGripMath`,
+  tested). The result is **blended** with the rigid `drawnPose` by `GripWeight`: 1 for hands 0.10–0.40 m apart (measured
+  clips: 0.19–0.35), easing to 0 as the left hand lets go (0.55 m — sheathe, knockdown, death) or the solve degenerates
+  (hands < 5 cm, edge reference near the blade), so the hand-off never pops. `drawnPose` matters for its **edge
+  direction** and as that rigid pose. No arm IK: the clips place the hands. `drawnHand = Left` + `twoHandedGrip` is
+  unsupported (warns once). `WeaponHitbox` runs at order **300** so its sweep sees the re-aimed blade.
 - **Flamberge** (`TwoHanded/Flamberge/`): `Drawn` box trimmed to the blade (centre `(0, 0.91, 0)`, size `(0.03, 1.32, 0.08)`).
 - **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
@@ -144,8 +153,11 @@ Drawn mode the `Drawn` hitbox box is drawn in orange.
   **Revert** rebuilds the preview from the assets.
 - Save Pose is disabled while the preview sits on a fallback socket (Left / Back asked but unassigned). The sampled pose
   is stopped and the rig restored before any scene / prefab save, then re-sampled. Edit mode only.
-- Check several frames (guard, strike, follow-through) before saving — a two-handed grip only fits all of them if the
-  pose follows the hand line, not one frame.
+- **Two-hand grip archetype, Drawn mode:** the preview is re-solved like the runtime (after each sample and every
+  repaint); Save Pose / Select Pose Node are disabled — edit `gripRoll` / `gripSlide` on the archetype and watch the
+  preview. Grip (Mesh) and the Sheathed pose stay tunable as usual.
+- **After tuning in the Player's Prefab Mode, discard the stage changes** — only the archetype / weapon prefab are meant to
+  change. Saving the Player stage writes Cinemachine's edit-mode camera position and UI layout values into `Player.prefab`.
 
 ---
 

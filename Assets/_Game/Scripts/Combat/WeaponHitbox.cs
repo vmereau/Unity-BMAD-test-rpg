@@ -15,6 +15,7 @@ namespace Game.Combat
     /// each target is reported at most once per window via <see cref="OnHit"/>.
     /// The controlling component (PlayerCombat today, EntityBrain later) must call <see cref="SetOwner"/>.
     /// </summary>
+    [DefaultExecutionOrder(300)] // sweep after every pose writer: BowAimCorrection (200), TwoHandGripConstraint (250)
     public class WeaponHitbox : MonoBehaviour
     {
         private const string TAG = "[Combat]";

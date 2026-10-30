@@ -32,6 +32,15 @@ namespace Game.Inventory
         /// <summary>The currently instantiated weapon visual GO. Exposed for PlayerCombat (story 7-9) to locate WeaponHitbox.</summary>
         public GameObject ActiveWeaponGO => _weaponVisual;
 
+        /// <summary>Archetype of the equipped weapon (null when unarmed or no archetype).</summary>
+        public WeaponArchetypeSO CurrentArchetype => _currentArchetype;
+        /// <summary>True once the weapon visual sits in the hand (set by SetCombatState, i.e. at the draw's WeaponSwap).</summary>
+        public bool IsDrawn => _isInCombat;
+        /// <summary>Hand socket the drawn weapon uses for the current archetype (no warning side effect).</summary>
+        public Transform DrawnSocket => ResolveDrawnSocket(_currentArchetype, _weaponSocket, _leftWeaponSocket);
+        /// <summary>Left-hand socket (mirror of the right one), or null when unassigned.</summary>
+        public Transform LeftHandSocket => _leftWeaponSocket;
+
         private void Awake()
         {
             if (_equipmentSystem == null)

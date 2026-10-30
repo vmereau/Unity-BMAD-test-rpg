@@ -17,6 +17,15 @@ namespace Game.Inventory
         [Tooltip("Pose of the Sheathed child in sheath-socket space. Assumes a normalized mesh: grip at origin, blade +Y, edge +Z.")]
         public WeaponPose sheathedPose;
 
+        [Header("Two-hand grip")]
+        [Tooltip("Drawn weapon re-aimed every frame along the left-hand → right-hand line (TwoHandGripConstraint). " +
+                 "drawnPose then only provides the edge (roll) reference and the fallback pose.")]
+        public bool twoHandedGrip;
+        [Tooltip("Extra roll around the blade, in degrees, on top of drawnPose's edge direction.")]
+        public float gripRoll;
+        [Tooltip("Offset along the blade, in metres (+ = towards the tip): where the hands sit on the handle.")]
+        public float gripSlide;
+
         [Header("Sheath")]
         public WeaponSheathSocket sheathSocket = WeaponSheathSocket.Hip;
 

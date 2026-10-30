@@ -278,3 +278,8 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 
 - **Hitbox Tuner leaves Humanoid rigs posed** — `AnimationMode.StopAnimationMode` does not revert bones sampled from a Humanoid clip (verified on the Player). `HitboxTunerWindow` has no rest-pose snapshot, so tuning a humanoid NPC leaves it posed (and a save would bake it). Port the snapshot / restore + save hooks from `WeaponPoseTunerWindow`.
 - **Weapon Pose Tuner discards unsaved gizmo edits** on mode / weapon / target change without a prompt.
+
+## From spec-two-hand-grip-constraint (2026-10-30 review)
+
+- **`2hand sheath.anim` wrist flip at the merge seam** — the right hand rotates up to ~174°/frame around frames 21–25 (just before the WeaponSwap at 0.78 s), so the rigid weapon spins for ~2 frames before going to the back. Re-bake with a longer gap / proper rotation blend at the seam, or move WeaponSwap a few frames earlier.
+- **NPC two-handers** would get no grip constraint (Player-only component) — only relevant if NPCs ever wield `twoHandedGrip` archetypes through `EquipmentVisuals`.

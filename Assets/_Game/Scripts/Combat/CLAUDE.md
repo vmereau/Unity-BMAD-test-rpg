@@ -30,6 +30,8 @@ layer-collision-matrix dependency.
   `EntityMeleeAttacker` (`Game.AI`), keeping `Game.Combat` free of AI deps.
 - Targets resolve via `GetComponentInParent<IDamageable>()`; `event Action<IDamageable, Vector3> OnHit`
   fires **once per target per window**.
+- `[DefaultExecutionOrder(300)]`: the sweep runs after every bone / weapon pose writer (`BowAimCorrection` 200,
+  `TwoHandGripConstraint` 250) — at the default order it would sweep last frame's grip on this frame's hands.
 - Pure logic (dedupe, owner/dead/null rejection, sub-step count, inflation math) is in `HitSweepTracker`
   — covered by `Tests/EditMode/HitSweepTrackerTests`.
 

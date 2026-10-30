@@ -18,7 +18,8 @@ Player.prefab
 │   PlayerStateManager, PlayerCombat, DodgeController, StaminaSystem, PlayerHealth, PlayerStats,
 │   PlayerSkills, InteractionSystem, InventorySystem, ActionBarSystem, EquipmentSystem, XPSystem,
 │   LevelSystem, LearningPointSystem, GoldSystem (_startingGold 500), LockOnSystem,
-│   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/CLAUDE.md)
+│   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/CLAUDE.md),
+│   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Prefabs/Items/Weapons/CLAUDE.md)
 ├── UICanvas             (nested prefab Prefabs/UI/UICanvas.prefab — see Prefabs/UI/CLAUDE.md)
 ├── CameraTarget         (pure Transform pivot, local Y 1.6 — Cinemachine Follow/LookAt target)
 ├── Virtual Camera       (CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget)
@@ -26,7 +27,7 @@ Player.prefab
 ├── Character            (nested Mixamo FBX prefab, Humanoid rig)
 │   ├── …/RightHand/WeaponSocket      (right hand — drawn weapon, default)
 │   │   └── UnarmedHitbox             (Layer 0, inactive; disabled SphereCollider r 0.25 + WeaponHitbox)
-│   ├── …/LeftHand/LeftWeaponSocket   (left hand — drawn bow, archetype `drawnHand = Left`)
+│   ├── …/LeftHand/LeftWeaponSocket   (left hand — drawn bow, archetype `drawnHand = Left`; second hand of the two-hand grip)
 │   ├── mixamorig:Hips/UndrawnWeaponSocket   (hip sheath, position (0,0,0) — tune by hand)
 │   └── mixamorig:Spine2/BackWeaponSocket    (back sheath, (0, 0.05, -0.15) first guess)
 └── Hitbox               (Layer 7 CharacterHitbox, trigger CapsuleCollider r 0.3 h 1.7 center y 0.9 — hurtbox)

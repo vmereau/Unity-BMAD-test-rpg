@@ -55,6 +55,7 @@ namespace Game.Editor
         // snapshotted when the preview starts and restored by StopPreview.
         private readonly List<(Transform t, Vector3 pos, Quaternion rot, Vector3 scale)> _restPose = new();
         private bool _resampleAfterSave;
+        private bool _lastUsesTwoHandGrip;
 
         // UI
         private Label _targetLabel;
@@ -164,7 +165,11 @@ namespace Game.Editor
             WeaponArchetypeSO archetype = _weapon != null ? _weapon.archetype : null;
             if (archetype == null) return;
             AssetDatabase.SaveAssetIfDirty(archetype);
-            if (_preview != null) EquipmentVisuals.ApplyArchetypePoses(_preview, archetype);
+            if (_preview != null)
+            {
+                EquipmentVisuals.ApplyArchetypePoses(_preview, archetype);
+                ApplyTwoHandGrip();
+            }
         }
 
         // Target deleted, scene closed, preview deleted by the user → reset.
@@ -364,6 +369,7 @@ namespace Game.Editor
                 if (drawn != null) drawn.gameObject.SetActive(!_sheathedMode);
                 if (sheathed != null) sheathed.gameObject.SetActive(_sheathedMode);
                 _hasPreview = true;
+                ApplyTwoHandGrip();
             }
             RebuildClipList();
             RefreshAll();
@@ -418,6 +424,34 @@ namespace Game.Editor
 
         private Transform PoseNode() =>
             _preview != null ? _preview.transform.Find(_sheathedMode ? MODE_SHEATHED : MODE_DRAWN) : null;
+
+        // Drawn + two-hand-grip archetype: the pose comes from the hands every frame (TwoHandGripConstraint), so the
+        // preview is re-solved instead of edited, and only gripRoll / gripSlide (archetype inspector) + the grip stay tunable.
+        private bool UsesTwoHandGrip => !_sheathedMode && _weapon != null && _weapon.archetype != null && _weapon.archetype.twoHandedGrip;
+
+        private void ApplyTwoHandGrip()
+        {
+            if (!UsesTwoHandGrip || _preview == null || _visuals == null) return;
+            TwoHandGripConstraint.Apply(PoseNode(), _preview.transform.parent, _visuals.LeftHandSocket, _weapon.archetype);
+        }
+
+        // 10 Hz: archetype inspector edits (gripRoll / gripSlide) show without moving the mouse; toggling twoHandedGrip
+        // rebuilds the preview so a stale solved pose can never be saved as the rigid drawnPose.
+        private void OnInspectorUpdate()
+        {
+            bool uses = UsesTwoHandGrip;
+            if (uses != _lastUsesTwoHandGrip)
+            {
+                _lastUsesTwoHandGrip = uses;
+                if (_preview != null) RebuildPreview();
+                return;
+            }
+            if (uses && _preview != null)
+            {
+                ApplyTwoHandGrip();
+                SceneView.RepaintAll();
+            }
+        }
 
         // --- Clips ---
 
@@ -504,6 +538,7 @@ namespace Game.Editor
             AnimationMode.BeginSampling();
             AnimationMode.SampleAnimationClip(_animator.gameObject, _clip, _frame / _clip.frameRate);
             AnimationMode.EndSampling();
+            ApplyTwoHandGrip();
             SceneView.RepaintAll();
         }
 
@@ -560,6 +595,11 @@ namespace Game.Editor
         // computed from world space so a moved preview root is still saved correctly.
         private void SavePose()
         {
+            if (UsesTwoHandGrip)
+            {
+                GameLog.Warn(TAG, "Pose not saved: two-hand grip archetype — tune gripRoll / gripSlide instead");
+                return;
+            }
             Transform node = PoseNode();
             WeaponArchetypeSO archetype = _weapon != null ? _weapon.archetype : null;
             Transform socket = ResolveSocket(out string warning);
@@ -645,6 +685,7 @@ namespace Game.Editor
         private void OnSceneGUI(SceneView view)
         {
             if (_sheathedMode) return;
+            if (Event.current.type == EventType.Repaint) ApplyTwoHandGrip();
             Transform node = PoseNode();
             WeaponHitbox hitbox = node != null ? node.GetComponentInChildren<WeaponHitbox>(true) : null;
             if (hitbox == null || !hitbox.TryGetComponent(out BoxCollider box)) return;
@@ -672,7 +713,9 @@ namespace Game.Editor
             _weaponInfoLabel.text = _weapon == null ? string.Empty
                 : archetype == null ? "No archetype — preview uses the prefab poses; the pose can't be saved."
                 : $"Archetype: {archetype.name} ({archetype.drawnHand} hand, {archetype.sheathSocket} sheath) — " +
-                  $"pose shared by {CountWeaponsUsing(archetype)} weapon(s)";
+                  $"pose shared by {CountWeaponsUsing(archetype)} weapon(s)" +
+                  (UsesTwoHandGrip ? ". Two-hand grip: the drawn pose follows the hands — tune gripRoll / gripSlide on the " +
+                                     "archetype (live preview); Save Pose / Select Pose Node are disabled." : string.Empty);
 
             ResolveSocket(out string warning);
             if (_weapon != null && _weapon.equipVisualPrefab == null) warning = "Weapon has no equipVisualPrefab.";
@@ -686,9 +729,9 @@ namespace Game.Editor
             _clipSection.SetEnabled(hasTarget);
             _frameSlider.highValue = Mathf.Max(1, _frameCount - 1);
             _frameSlider.SetValueWithoutNotify(_frame);
-            _selectPoseButton.SetEnabled(hasPreview);
+            _selectPoseButton.SetEnabled(hasPreview && !UsesTwoHandGrip);
             _selectGripButton.SetEnabled(hasPreview);
-            _savePoseButton.SetEnabled(hasPreview && archetype != null && warning == null);
+            _savePoseButton.SetEnabled(hasPreview && archetype != null && warning == null && !UsesTwoHandGrip);
             _saveGripButton.SetEnabled(hasPreview);
             _revertButton.SetEnabled(hasPreview);
         }

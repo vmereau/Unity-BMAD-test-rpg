@@ -19,6 +19,9 @@ MonoBehaviour:
   sheathedPose:
     localPosition: {x: 0.16704082, y: 0.2821727, z: 0.09246846}
     localEulerAngles: {x: 10.239747, y: 107.87293, z: 197.912}
+  twoHandedGrip: 1
+  gripRoll: 0
+  gripSlide: 0
   sheathSocket: 1
   animatorOverrideController: {fileID: 22100000, guid: b550023594eb9c34ca5509c55f78fb4b, type: 2}
   defaultComboSteps: 2
