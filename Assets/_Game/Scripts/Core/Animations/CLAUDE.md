@@ -72,6 +72,11 @@ Symmetric on both sides: bridge + driver.
   owns the warning *logic* (stop, face, timer, escalate) identically for both; only the humanoid
   *animation* is stubbed. `SetBool` on a controller missing the `IsWarning` param is a silent
   no-op in Unity, so the C# is safe to ship before the controller is wired.
+- **Stance seam:** `TriggerStagger(int variant)` / `TriggerKnockDown()` default to `TriggerGetHit()` (monsters: GetHit
+  fallback); `ClearStanceReaction()` default no-op. Humanoid → `HumanoidAnimationBridge.PlayStagger` / `PlayKnockDown` /
+  `ResetStanceTriggers`. Like `ResetAttackTriggers`, these bridge methods write several parameters on purpose: one hit
+  sets `GetHit` then `Stagger` in the same frame, and the pending `GetHit` must be cleared in the same write or it cuts
+  the stagger clip.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 

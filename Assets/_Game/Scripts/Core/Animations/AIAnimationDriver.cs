@@ -14,6 +14,15 @@ namespace Game.Animations
         public virtual void DriveLocomotion(NavMeshAgent agent) { }
         public virtual void TriggerAttack() { }
         public virtual void TriggerGetHit() { }
+
+        /// <summary>Stance stagger; <paramref name="variant"/> picks the clip (humanoid: 0/1). Default: GetHit.</summary>
+        public virtual void TriggerStagger(int variant) => TriggerGetHit();
+
+        /// <summary>Stance broken: knocked down → getting up. Default: GetHit (no knockdown clip).</summary>
+        public virtual void TriggerKnockDown() => TriggerGetHit();
+
+        /// <summary>Recovered: drops a Stagger / KnockDown trigger that was never consumed, so it can't replay later.</summary>
+        public virtual void ClearStanceReaction() { }
         public virtual void TriggerDeath() { }
         public virtual void EnableRagdoll() { }
         public virtual void SetWarning(bool active) { }

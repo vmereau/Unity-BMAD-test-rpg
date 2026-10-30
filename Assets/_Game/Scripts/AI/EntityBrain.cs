@@ -107,6 +107,11 @@ namespace Game.AI
         private bool _searchArrived;
         private float _previousHealth;
         private bool _healthSubscribed;
+        private EntityStance _stance;
+        private bool _agentStoppedBeforeReaction;
+        private bool _reactionAgentSaved;
+        private bool _engageAfterRecovery;
+        private bool _routineAfterRecovery;
         private FactionMember _pendingAttacker;
         private int _pendingAttackerFrame = -1;
         private float _lastDamagedTime = float.NegativeInfinity;
@@ -206,6 +211,7 @@ namespace Game.AI
                 GameLog.Error(TAG, $"{gameObject.name}: no EntityMeleeAttacker — attacks will deal no damage");
 
             if (_perception == null) _perception = GetComponent<EntityPerception>();
+            _stance = GetComponent<EntityStance>(); // optional — no stance = never staggered
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
             if (_speechAnchor == null && WitnessProfileSO.IsEnabled(_persistentID.Entity.WitnessProfile))
@@ -216,8 +222,15 @@ namespace Game.AI
         {
             if (_onTheftCommitted != null) _onTheftCommitted.AddListener(HandleTheftCommitted);
             if (_entityHealth == null) return; // Awake failed before resolving it
+            ClearStanceReaction(); // disabled mid-reaction (respawn): no Recovered was raised
             _previousHealth = _entityHealth.CurrentHealth;
             _entityHealth.HealthChanged += HandleHealthChanged;
+            if (_stance != null)
+            {
+                _stance.Staggered += HandleStanceBroken;
+                _stance.KnockedDown += HandleStanceBroken;
+                _stance.Recovered += HandleStanceRecovered;
+            }
             _healthSubscribed = true;
         }
 
@@ -226,6 +239,12 @@ namespace Game.AI
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
+            if (_stance != null)
+            {
+                _stance.Staggered -= HandleStanceBroken;
+                _stance.KnockedDown -= HandleStanceBroken;
+                _stance.Recovered -= HandleStanceRecovered;
+            }
             _healthSubscribed = false;
         }
 
@@ -283,6 +302,15 @@ namespace Game.AI
 
             if (_state != EntityState.Dead && PerceptionActive)
                 _perception.Tick(Time.deltaTime, IsAlertedOnStealthTarget());
+
+            // Staggered / knocked down: state logic paused (no move, turn or attack); the state resumes on recovery.
+            if (_state != EntityState.Dead && _stance != null && _stance.IsIncapacitated)
+            {
+                HoldAgentForReaction(); // also covers an agent that was off the NavMesh when the reaction began
+                HandleCooldowns();
+                if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
+                return;
+            }
 
             switch (_state)
             {
@@ -668,6 +696,7 @@ namespace Game.AI
         {
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
                 _state != EntityState.Watching && _state != EntityState.Pursuing) return;
+            if (_stance != null && _stance.IsIncapacitated) return; // staggered / knocked down: misses the theft
             if (!PerceptionActive || !_perception.CanWitness) return;
 
             FactionMember thief = data.thief != null ? data.thief.GetComponentInParent<FactionMember>() : null;
@@ -888,8 +917,59 @@ namespace Game.AI
 
             if (PerceptionActive && candidate.StealthTarget != null) _perception.ForceAware(candidate);
             _currentTarget = candidate;
+            if (_stance != null && _stance.IsIncapacitated)
+            {
+                // Engaging now would restart the agent mid-stagger — engage once recovered.
+                _engageAfterRecovery = true;
+                return;
+            }
             GameLog.Info(TAG, $"{gameObject.name} was hit — engaging {candidate.Transform.name}");
             TransitionToEngaging();
+        }
+
+        // --- Stance (EntityStance, same GO) ---
+
+        // Stagger or knockdown: the swing is cut (hitboxes closed, queued combo dropped) and the agent halts.
+        // A knockdown during a stagger keeps the agent state saved at the stagger.
+        private void HandleStanceBroken()
+        {
+            if (_state == EntityState.Dead) return;
+            if (_meleeAttacker != null) _meleeAttacker.EndAttack();
+            HoldAgentForReaction();
+        }
+
+        // Saves the agent's isStopped once per reaction, then keeps it halted.
+        private void HoldAgentForReaction()
+        {
+            if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
+            if (!_reactionAgentSaved)
+            {
+                _agentStoppedBeforeReaction = _agent.isStopped;
+                _reactionAgentSaved = true;
+            }
+            if (_agent.isStopped) return;
+            _agent.isStopped = true;
+            _agent.velocity = Vector3.zero;
+        }
+
+        private void HandleStanceRecovered()
+        {
+            bool restore = _reactionAgentSaved;
+            bool engage = _engageAfterRecovery;
+            bool routine = _routineAfterRecovery;
+            ClearStanceReaction();
+            if (_state == EntityState.Dead || _entityHealth.IsDead) return;
+            if (restore && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = _agentStoppedBeforeReaction;
+            if (engage && HasValidTarget()) TransitionToEngaging();
+            else if (routine) SetRoutineSpot(_routineSpot, false); // walk to it — never snap out of a reaction
+        }
+
+        // Drops the per-reaction bookkeeping (recovery, death, re-enable).
+        private void ClearStanceReaction()
+        {
+            _reactionAgentSaved = false;
+            _engageAfterRecovery = false;
+            _routineAfterRecovery = false;
         }
 
         // --- ISneakAttackTarget ---
@@ -953,6 +1033,12 @@ namespace Game.AI
             _routineSpot = spot;
             // Store only: setup failed / brain disabled (Awake, Start, death components) or a corpse (incl. restored ones).
             if (!_started || !isActiveAndEnabled || _entityHealth.IsDead || _state == EntityState.Dead) return;
+            if (_stance != null && _stance.IsIncapacitated)
+            {
+                // A warp / new path mid-reaction would slide the body: apply (walking) once recovered.
+                _routineAfterRecovery = true;
+                return;
+            }
 
             // A time skip outlasts a witness flow: drop it and warp. Combat / theft flows apply the target on their exit.
             if (snap && (_state == EntityState.Suspicious || _state == EntityState.Watching))
@@ -1138,6 +1224,7 @@ namespace Game.AI
             if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = true;
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             if (_perception != null) _perception.ResetPerception();
+            ClearStanceReaction();
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }
 

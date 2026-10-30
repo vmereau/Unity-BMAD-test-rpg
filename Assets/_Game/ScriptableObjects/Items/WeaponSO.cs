@@ -33,6 +33,24 @@ namespace Game.Inventory
             : archetype != null ? Mathf.Max(1, archetype.defaultComboSteps)
             : DEFAULT_COMBO_STEPS;
 
+        /// <summary>Per-weapon knockdown override: Archetype = use the archetype's <c>canKnockDown</c>.</summary>
+        public enum KnockDownOverride { Archetype, Yes, No }
+
+        [Header("Stance")]
+        [Tooltip("Stance damage per hit. 0 = use archetype.")]
+        [Min(0f)] public float stanceDamage = 0f;
+        [Tooltip("Whether hits can knock down (take stance to 0). Archetype = use the archetype's flag.")]
+        public KnockDownOverride knockDown = KnockDownOverride.Archetype;
+
+        /// <summary>Weapon stanceDamage if &gt; 0, else archetype's, else 0.</summary>
+        public float ResolvedStanceDamage => stanceDamage > 0f ? stanceDamage
+            : archetype != null ? archetype.stanceDamage
+            : 0f;
+
+        /// <summary>Weapon override if set, else archetype's flag, else false.</summary>
+        public bool ResolvedCanKnockDown => knockDown == KnockDownOverride.Yes
+            || (knockDown == KnockDownOverride.Archetype && archetype != null && archetype.canKnockDown);
+
         /// <summary>Weapon override if set, else archetype's, else null (default controller).</summary>
         public AnimatorOverrideController ResolvedAnimatorOverride => animatorOverrideController != null
             ? animatorOverrideController

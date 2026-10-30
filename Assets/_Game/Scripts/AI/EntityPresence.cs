@@ -25,6 +25,7 @@ namespace Game.World
 
         protected EntityHealth _entityHealth;
         protected ICombatStateProvider _combatState;
+        private EntityStance _stance;
         private InventorySystem _inventory;
 
         /// <summary>True when this entity has died (corpse remains in the scene as a loot target).</summary>
@@ -60,6 +61,7 @@ namespace Game.World
             }
             _entityHealth = GetComponent<EntityHealth>();
             _combatState  = GetComponent<ICombatStateProvider>(); // null-safe: entities without a brain are never in combat
+            _stance       = GetComponent<EntityStance>();         // optional — staggered / knocked down blocks dialogue
             _inventory    = GetComponent<InventorySystem>();
         }
 
@@ -94,6 +96,7 @@ namespace Game.World
         /// <summary>True when this entity is alive and not currently in combat.</summary>
         protected bool IsAliveAndOutOfCombat =>
             (_entityHealth == null || !_entityHealth.IsDead) &&
-            (_combatState  == null || !_combatState.IsInCombat);
+            (_combatState  == null || !_combatState.IsInCombat) &&
+            (_stance       == null || !_stance.IsIncapacitated);
     }
 }

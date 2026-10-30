@@ -20,6 +20,9 @@ namespace Game.Animations
         private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
         private static readonly int GetHitHash = Animator.StringToHash("GetHit");
         private static readonly int DeathHash = Animator.StringToHash("Death");
+        private static readonly int StaggerHash = Animator.StringToHash("Stagger");
+        private static readonly int StaggerIndexHash = Animator.StringToHash("StaggerIndex");
+        private static readonly int KnockDownHash = Animator.StringToHash("KnockDown");
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
         private static readonly int Attack2Hash = Animator.StringToHash("Attack_2");
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
@@ -133,6 +136,35 @@ namespace Game.Animations
 
         public void TriggerGetHit() => _animator?.SetTrigger(GetHitHash);
         public void TriggerDeath()  => _animator?.SetTrigger(DeathHash);
+
+        /// <summary>
+        /// Plays stagger clip <paramref name="index"/> (StaggerIndex 0/1) on both layers. Clears a pending GetHit set by
+        /// the same hit — it would otherwise fire right after and cut the stagger.
+        /// </summary>
+        public void PlayStagger(int index)
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(GetHitHash);
+            _animator.SetInteger(StaggerIndexHash, index);
+            _animator.SetTrigger(StaggerHash);
+        }
+
+        /// <summary>Plays knocked down → getting up on both layers. Clears pending GetHit / Stagger triggers.</summary>
+        public void PlayKnockDown()
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(GetHitHash);
+            _animator.ResetTrigger(StaggerHash);
+            _animator.SetTrigger(KnockDownHash);
+        }
+
+        /// <summary>Clears pending Stagger / KnockDown triggers (reaction over before the animator consumed them).</summary>
+        public void ResetStanceTriggers()
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(StaggerHash);
+            _animator.ResetTrigger(KnockDownHash);
+        }
 
         /// <summary>
         /// Returns the Animator to its default state with default parameters (e.g. out of the terminal Death

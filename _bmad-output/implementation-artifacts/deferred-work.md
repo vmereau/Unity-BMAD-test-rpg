@@ -229,3 +229,23 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Action-bar hotkeys live behind world screens** (pre-existing) — `ActionBarSystem` hotkeys 1–6 aren't gated on
   open screens, and the bar is now hidden while trading / looting; and the hidden action bar no longer accepts drops
   from the trade / container grids. Gate hotkeys while the cursor is unlocked.
+
+## Stance follow-ups (from spec-ai-stance-stagger-knockdown, 2026-10-30)
+
+- **Player stance** — the player can't be staggered / knocked down yet (needs a hit-react state + input lock in
+  `PlayerStateManager`).
+- **Armor stance** — heavy armor raises max stance (`ArmorSO` weight / stance bonus), maybe with a stamina-regen cost.
+- **Two-handed archetype** — high stance damage, `canKnockDown` on; needs grip / clips.
+- **Ragdoll knockdown** — physics ragdoll + get-up blend in its own spec (today: animation-based fall).
+- **Knocked-down payoff** — a skill for bonus damage / a riposte on a knocked-down target.
+- **Weapon-specific stagger clips** — `stagger 1/2` (unarmed) play for every weapon; sword / axe variants via overrides.
+- **Monster stagger clips** — monsters fall back to `GetHit` + a timed lock.
+- **Stance test bandits** — `NPC_Bandit` HP is 1000 (asked for testing; was 50) and `StartingTown/Bandit` has 3
+  `bandit (stance test N)` copies, each with its own `Data/NPCs/Bandit/StanceTest/NPC_Bandit_StanceTestN` (HP 1000) +
+  `KilledFact_bandit_stanceTestN`. After tuning: restore HP 50, delete the copies and the `StanceTest/` folder.
+- **Stance state tests** — only `StanceMath` is unit-tested; `EntityStance` timers / regen and the brain's
+  hold / restore / deferred-event paths are covered by manual play checks only (PlayMode tests would need a NavMesh).
+- **Weapon stance 0** — `WeaponSO.stanceDamage = 0` means "use archetype", so a weapon can't be authored with zero stance
+  damage on an archetype that has some (use a flag like `KnockDownOverride` if ever needed).
+- **Pre-existing NRE at play start** — `PlayerAnimationDriver.SetInCombat` (line 74) via `EquipmentVisuals.OnEnable` →
+  `PlayerCombat.HandleVisualsRefreshed`, seen while testing stance (path not touched by it).

@@ -37,4 +37,12 @@ MonoBehaviour:
   _attackCooldown: 2
   _comboHitsMin: 1
   _comboHitsMax: 1
+  _maxStance: 100
+  _staggerThreshold: 0.5
+  _stanceRegenDelay: 2
+  _stanceRegenRate: 20
+  _attackStanceResistance: 0
+  _perfectBlockStanceDamage: 80
+  _staggerDuration: 1.1
+  _knockdownDuration: 4.6
   _animatorOverride: {fileID: 0}

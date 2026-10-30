@@ -46,6 +46,16 @@ namespace Game.Combat
         [Tooltip("Damage multiplier on a player hit against an entity that has not detected the player.")]
         [Min(1f)] public float sneakAttackDamageMultiplier = 2f;
 
+        [Header("Stance (player hits on AI)")]
+        [Tooltip("Stance damage per unarmed hit. Unarmed hits never knock down.")]
+        [Min(0f)] public float unarmedStanceDamage = 15f;
+        [Tooltip("Extra stance damage per Strength point above the base Strength.")]
+        [Min(0f)] public float stancePerStrength = 0.5f;
+        [Tooltip("Stance damage multiplier on the last step of a combo (finisher).")]
+        [Min(1f)] public float finisherStanceMultiplier = 1.5f;
+        [Tooltip("Flat stance damage added per melee hit when the Power Strike skill is learned.")]
+        [Min(0f)] public float powerStrikeStanceBonus = 5f;
+
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;

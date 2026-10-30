@@ -96,6 +96,9 @@ namespace Game.Animations
 
         public override void TriggerGetHit() => _bridge?.TriggerGetHit();
         public override void TriggerDeath()  => _bridge?.TriggerDeath();
+        public override void TriggerStagger(int variant) => _bridge?.PlayStagger(variant);
+        public override void TriggerKnockDown() => _bridge?.PlayKnockDown();
+        public override void ClearStanceReaction() => _bridge?.ResetStanceTriggers();
         public override void SetInCombat(bool active) => _bridge?.SetInCombat(active);
 
         public override void SetWarning(bool active)

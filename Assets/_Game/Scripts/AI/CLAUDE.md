@@ -24,6 +24,7 @@
 | `EntityAnimationEventReceiver` | On the **Animator GO**. Hit-window events by id → attacker; SMB notifications → attacker state counter; `ComboWindowOpen()` → `attacker.OnComboWindowOpen()`. |
 | `SMB_EntityAttackState` | On attack states of `EntityBase.controller` and `Humanoid_Template`. Enter/exit → receiver → attacker counter. Receiver lookup cached; no-op on the Player. |
 | `SMB_DeathState` | On the death animator state. |
+| `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
@@ -175,6 +176,36 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   (dedupe is per `WeaponHitbox`).
 - **Known gap:** spider `AttackRange` 0.8 is root-to-root, but agent avoidance holds it ≈ 1.0 m from an NPC →
   spiders engage NPCs but never bite them (they do bite the player). Retune the spider SO if needed.
+
+---
+
+## Stance (EntityStance — spec-ai-stance-stagger-knockdown)
+
+- `EntityStance` (`IStanceTarget`, on the `Entity_base` root → every entity) holds a hidden meter (`Entity` SO
+  `[Header("Stance")]`). Rules are pure in `Game.Combat.StanceMath` (`StanceMathTests`): crossing the threshold
+  (`_staggerThreshold` × max, from above to at/below) **staggers once per drain** (re-armed when regen brings stance
+  back above it); reaching 0 **knocks down**; a hit with `canKnockDown = false` never takes stance below the threshold.
+  Regen after `_stanceRegenDelay`, **never while staggered / knocked down** (no re-stagger stun-lock); refilled to max
+  on getting up. A floored or fully absorbed hit changes nothing and does **not** reset the regen delay (otherwise a
+  sword user pins stance at the threshold forever). Hyper-armor: `_attackStanceResistance` while
+  `EntityMeleeAttacker.IsInAttackState`. Runtime only (not saved, reset in `OnEnable`). One info log per stance hit.
+- Sources: `PlayerCombat.ResolveHit` → `ApplyStanceDamage` (after `TakeDamage`, skipped on a lethal hit) and
+  `EntityMeleeAttacker` on `PerfectBlock` → `ApplyPerfectBlockStanceDamage(Entity.PerfectBlockStanceDamage)` (never
+  knockdown, **skips hyper-armor** — the parried attacker is always mid-attack). By design a perfect block on an entity
+  already at/below the threshold deals nothing. NPC-vs-NPC hits deal no stance damage.
+- Reaction: `AIAnimationDriver.TriggerStagger(variant 0/1)` / `TriggerKnockDown()` (base default = `TriggerGetHit`, so
+  monsters fall back to GetHit). Timed by `_staggerDuration` / `_knockdownDuration` — **match the clip lengths**
+  (humanoid 1.1 / 4.6 s, monsters 0.6 / 1.5 s).
+- Brain: `Staggered` / `KnockedDown` → `EndAttack()` + `HoldAgentForReaction` (previous `isStopped` saved once; re-held
+  every paused tick, so an agent off the NavMesh at the hit is stopped once back on it); `Update` skips state handling
+  while `IsIncapacitated`; `Recovered` restores the agent and the state continues. **Event-driven entry points must
+  respect the pause:** a damage reaction stores the target and engages on recovery, `SetRoutineSpot` stores the spot and
+  walks to it on recovery (never snaps mid-reaction), `HandleTheftCommitted` ignores thefts. `ClearStanceReaction()`
+  drops the bookkeeping on recovery, death (`TransitionToDead`) and `OnEnable` (respawn mid-reaction raises no
+  `Recovered`). `EntityPresence.IsAliveAndOutOfCombat` is false while incapacitated (no dialogue with a downed NPC).
+- `EntityStance.Recover` calls `AIAnimationDriver.ClearStanceReaction()` (resets unconsumed `Stagger` / `KnockDown`).
+- `EntityHealth` skips `TriggerGetHit` while incapacitated (it would cut the clip); the bridge also resets a pending
+  `GetHit` on stagger / knockdown (same-hit order: `TakeDamage` → GetHit, then stance).
 
 ---
 

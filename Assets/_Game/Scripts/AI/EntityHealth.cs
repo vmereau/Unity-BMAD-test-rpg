@@ -40,8 +40,11 @@ namespace Game.AI
         /// </summary>
         public event Action<float, float> HealthChanged;
 
+        private EntityStance _stance;
+
         private void Awake()
         {
+            _stance = GetComponent<EntityStance>(); // optional
             if (_persistentID.Entity == null)
             {
                 GameLog.Error(TAG, $"Entity SO not assigned on {gameObject.name} — EntityHealth disabled");
@@ -81,7 +84,8 @@ namespace Game.AI
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
             if (CurrentHealth <= 0f) { Die(); return; }  // death path — no GetHit
-            _animationDriver?.TriggerGetHit();              // hit reaction only if still alive
+            // Hit reaction only if still alive, and not while staggered / knocked down (GetHit would cut the clip).
+            if (_stance == null || !_stance.IsIncapacitated) _animationDriver?.TriggerGetHit();
         }
 
         /// <summary>

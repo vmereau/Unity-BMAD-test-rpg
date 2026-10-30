@@ -20,7 +20,7 @@ Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Wea
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
-  `IsAiming` (bool), `BowFire` (trigger).
+  `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -80,6 +80,12 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   ComboWindowOpen (0.63), was cancelled by `Attack_2 → CombatIdle` at exit time 0.89, so step 3 never
   played. When adding/retiming combo clips, check `requestTime + blendDuration < exitTime` (normalized),
   or keep the combo transition at `None`.
-- **Hits don't interrupt punches:** `GetHit` / `Death` are AnyState transitions on the **Base** layer while
+- **Plain hits don't interrupt punches:** `GetHit` / `Death` are AnyState transitions on the **Base** layer while
   attacks live on the masked `Attack` layer — an NPC keeps punching while hit. Death stays safe via
-  `EntityBrain.TransitionToDead → EndAttack` + the ragdoll.
+  `EntityBrain.TransitionToDead → EndAttack` + the ragdoll. The `GetHit` state has **no motion** (no clip yet).
+- **Stance reactions interrupt both layers (AI only):** AnyState → `Stagger_1/2` (`Stagger` + `StaggerIndex` 0/1) and
+  `KnockedDown` → `GettingUp` (`KnockDown`) exist on the Base layer (listed after `Death`, before `GetHit`; exit →
+  `LockOn Locomotion`) **and** as Attack-layer twins (`Stagger_1 0`, …; exit → `CombatIdle` if `IsInCombat`, else
+  `LockOn Locomotion`). Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
+  down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
+  `applyRootMotion` off). The Player never sets these triggers.

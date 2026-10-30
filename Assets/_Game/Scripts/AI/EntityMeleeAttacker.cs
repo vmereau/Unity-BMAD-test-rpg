@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Animations;
 using Game.Combat;
 using Game.Core;
+using Game.World;
 using UnityEngine;
 
 namespace Game.AI
@@ -51,6 +52,8 @@ namespace Game.AI
         public int ComboStep => _combo.CurrentStep;
         public int ComboHits => _combo.TotalHits;
 
+        private EntityStance _stance;
+        private PersistentID _persistentID;
         private readonly HashSet<string> _warnedUnknownIds = new();
         private readonly AttackComboPlan _combo = new();
         private int _activeAttackStates;
@@ -60,6 +63,8 @@ namespace Game.AI
             if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
             // No warning when missing — driverless setups (tests) are valid and play single hits.
             if (_animationDriver == null) _animationDriver = GetComponent<AIAnimationDriver>();
+            _stance = GetComponent<EntityStance>();        // optional — perfect block deals no stance damage without it
+            _persistentID = GetComponent<PersistentID>();
             if (_selfFactionMember == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: EntityMeleeAttacker has no FactionMember — hits land on any target with a FactionMember");
 
@@ -220,7 +225,10 @@ namespace Game.AI
             switch (result)
             {
                 case HitResult.PerfectBlock:
-                    GameLog.Info(TAG, $"{gameObject.name} attack staggered by perfect block");
+                    // Perfect block hits the attacker's stance — never below the stagger threshold (no knockdown).
+                    if (_stance != null && _persistentID != null && _persistentID.Entity != null)
+                        _stance.ApplyPerfectBlockStanceDamage(_persistentID.Entity.PerfectBlockStanceDamage);
+                    GameLog.Info(TAG, $"{gameObject.name} attack perfect-blocked");
                     break;
                 case HitResult.Blocked:
                     GameLog.Info(TAG, $"{gameObject.name} attack blocked — no damage");

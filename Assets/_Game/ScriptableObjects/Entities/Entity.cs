@@ -69,6 +69,24 @@ namespace _Game.ScriptableObjects.Entities
         [Tooltip("Maximum hits per attack combo; clamped by the animation driver's MaxComboSteps.")]
         [SerializeField, Min(1)] private int _comboHitsMax = 1;
 
+        [Header("Stance")]
+        [Tooltip("Hidden stance meter. Player hits drain it; it regenerates after a delay without stance damage.")]
+        [SerializeField, Min(1f)] private float _maxStance = 100f;
+        [Tooltip("Fraction of max stance at/below which a hit staggers (once per drain). 0 stance = knockdown.")]
+        [SerializeField, Range(0f, 1f)] private float _staggerThreshold = 0.5f;
+        [Tooltip("Seconds without stance damage before stance regenerates.")]
+        [SerializeField, Min(0f)] private float _stanceRegenDelay = 2f;
+        [Tooltip("Stance regenerated per second once regen starts.")]
+        [SerializeField, Min(0f)] private float _stanceRegenRate = 20f;
+        [Tooltip("Hyper-armor: fraction of stance damage ignored while in an attack state (0 = none, 1 = immune).")]
+        [SerializeField, Range(0f, 1f)] private float _attackStanceResistance = 0f;
+        [Tooltip("Stance damage taken when the player perfect-blocks this entity's attack (never below the threshold).")]
+        [SerializeField, Min(0f)] private float _perfectBlockStanceDamage = 80f;
+        [Tooltip("Seconds the entity is locked in a stagger (match the stagger clip length).")]
+        [SerializeField, Min(0.1f)] private float _staggerDuration = 1.1f;
+        [Tooltip("Seconds the entity is down: knocked down + getting up clips (match their combined length).")]
+        [SerializeField, Min(0.1f)] private float _knockdownDuration = 4.6f;
+
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
         
@@ -97,6 +115,14 @@ namespace _Game.ScriptableObjects.Entities
         public float AttackCooldown           => _attackCooldown;
         public int ComboHitsMin               => _comboHitsMin;
         public int ComboHitsMax               => _comboHitsMax;
+        public float MaxStance                => _maxStance;
+        public float StaggerThreshold         => _staggerThreshold;
+        public float StanceRegenDelay         => _stanceRegenDelay;
+        public float StanceRegenRate          => _stanceRegenRate;
+        public float AttackStanceResistance   => _attackStanceResistance;
+        public float PerfectBlockStanceDamage => _perfectBlockStanceDamage;
+        public float StaggerDuration          => _staggerDuration;
+        public float KnockdownDuration        => _knockdownDuration;
         
         public AnimatorOverrideController AnimatorOverride => _animatorOverride;
 

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCEntity
   entityName: bandit
   _faction: {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
-  _baseHealth: 50
+  _baseHealth: 1000
   _attackDamage: 10
   _detectionRange: 8
   _disengageRange: 12
@@ -37,6 +37,14 @@ MonoBehaviour:
   _attackCooldown: 2
   _comboHitsMin: 1
   _comboHitsMax: 3
+  _maxStance: 100
+  _staggerThreshold: 0.5
+  _stanceRegenDelay: 2
+  _stanceRegenRate: 20
+  _attackStanceResistance: 0
+  _perfectBlockStanceDamage: 80
+  _staggerDuration: 1.1
+  _knockdownDuration: 4.6
   _animatorOverride: {fileID: 0}
   dayState: 1
   nightState: 2

@@ -39,6 +39,13 @@ Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` 
 **only on `NotBlocked`**; other results deal no damage. Player: `PlayerCombat.OnWeaponHit`. AI:
 `EntityMeleeAttacker` (see `Scripts/AI/CLAUDE.md`).
 
+**Stance** (player → AI only): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.
+Melee = `StanceMath.ComputeMeleeStanceDamage`: weapon `ResolvedStanceDamage` (archetype `stanceDamage`, or the weapon's
+own value when set; unarmed `CombatConfigSO.unarmedStanceDamage`) + Strength × `stancePerStrength`, × `finisherStanceMultiplier` on
+`IsMaxCombo()`, + `powerStrikeStanceBonus`. `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
+`KnockDownOverride`); unarmed never. Arrows snapshot the bow's resolved values at fire time (no Strength / finisher).
+Archetypes: sword 25 / no KD, axe 35 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
+
 ### Hit-window tooling
 
 - `HitWindowEvents` (pure) — frame↔time conversion and add/replace/remove of `HitboxEnable/HitboxDisable`

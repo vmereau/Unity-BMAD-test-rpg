@@ -27,6 +27,7 @@ namespace Game.Combat
     public class PlayerCombat : MonoBehaviour
     {
         private const string TAG = "[Combat]";
+        private const string POWER_STRIKE_SKILL_ID = "power_strike"; // SkillSO id (Story 3.5)
 
         // Trigger hashes — passed to PlayerStateManager.SetAttacking(true, hash) to fire the animation
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
@@ -506,12 +507,12 @@ namespace Game.Combat
 
         private void OnWeaponHit(IDamageable target, Vector3 hitPoint)
         {
-            ResolveHit(target, hitPoint, ComputeEffectiveDamage());
+            ResolveHit(target, hitPoint, ComputeEffectiveDamage(), ComputeMeleeStanceDamage(), MeleeCanKnockDown());
         }
 
         // Mirrors EntityBrain.ExecuteAttack: TryReceiveHit first, damage only when NotBlocked.
         // Shared by melee hitboxes and arrows (arrow damage is snapshotted at fire time).
-        private void ResolveHit(IDamageable target, Vector3 hitPoint, float damage)
+        private void ResolveHit(IDamageable target, Vector3 hitPoint, float damage, float stanceDamage, bool canKnockDown)
         {
             if (this == null) return; // arrow landing after the player was destroyed
             if (target == null || target.IsDead) return;
@@ -535,6 +536,10 @@ namespace Game.Combat
             }
             target.TakeDamage(damage);
             GameLog.Info(TAG, $"Weapon hit landed at {hitPoint} ({damage} dmg)");
+            // Stance after health: the damage reaction acquires the attacker first; a lethal hit skips stance.
+            if (!target.IsDead && target is Component stanceComponent &&
+                stanceComponent.TryGetComponent(out IStanceTarget stanceTarget))
+                stanceTarget.ApplyStanceDamage(stanceDamage, canKnockDown);
         }
 
         // Bow ------------------------------------------------------------------------
@@ -689,8 +694,10 @@ namespace Game.Combat
             }
 
             float damage = ComputeRangedDamage(bow);
+            float stanceDamage = bow.ResolvedStanceDamage; // snapshotted like damage; no Strength / finisher
+            bool canKnockDown = bow.ResolvedCanKnockDown;
             projectile.Launch(transform, direction, bow.projectileSpeed, bow.projectileLifetime,
-                (target, point) => ResolveHit(target, point, damage),
+                (target, point) => ResolveHit(target, point, damage, stanceDamage, canKnockDown),
                 bow.ammoItem.worldItemPrefab, bow.gravityScale, bow.gravityDelay, bow.gravityRampTime);
             GameLog.Info(TAG, $"Arrow fired ({damage} dmg, spread {spread:F1}°), {_inventory.CountOf(bow.ammoItem)} left");
         }
@@ -872,12 +879,29 @@ namespace Game.Combat
             // Prototype: hardcoded skill ID "power_strike" defined in SkillSO (Story 3.5).
             // Full system would query skill effects generically via a SkillEffectRegistry.
             if (_playerSkills != null && _progressionConfig != null
-                && _playerSkills.HasSkill("power_strike"))
+                && _playerSkills.HasSkill(POWER_STRIKE_SKILL_ID))
                 damage += _progressionConfig.powerStrikeDamageBonus;
             // Story 7.3: direct weapon damage bonus (flat, unscaled by stats).
             damage += _equipmentSystem?.GetWeaponDamageBonus() ?? 0f;
             return damage;
         }
+
+        /// <summary>
+        /// Melee stance damage: equipped weapon's resolved value (unarmed: config) + Strength bonus, × finisher
+        /// multiplier on the last combo step, + Power Strike bonus. See StanceMath.ComputeMeleeStanceDamage.
+        /// </summary>
+        private float ComputeMeleeStanceDamage()
+        {
+            float baseStance = _currentWeaponSO != null ? _currentWeaponSO.ResolvedStanceDamage : _config.unarmedStanceDamage;
+            float strengthDelta = _playerStats != null && _progressionConfig != null
+                ? _playerStats.Strength - _progressionConfig.baseStrength : 0f;
+            bool powerStrike = _playerSkills != null && _playerSkills.HasSkill(POWER_STRIKE_SKILL_ID);
+            return StanceMath.ComputeMeleeStanceDamage(baseStance, strengthDelta, _config.stancePerStrength,
+                IsMaxCombo(), _config.finisherStanceMultiplier, powerStrike ? _config.powerStrikeStanceBonus : 0f);
+        }
+
+        // Unarmed never knocks down.
+        private bool MeleeCanKnockDown() => _currentWeaponSO != null && _currentWeaponSO.ResolvedCanKnockDown;
 
         /// <summary>
         /// Called by enemy attack code when a hit connects with the player.

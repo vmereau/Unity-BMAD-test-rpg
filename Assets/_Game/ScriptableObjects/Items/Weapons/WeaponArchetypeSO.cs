@@ -25,5 +25,11 @@ namespace Game.Inventory
 
         [Header("Combo")]
         [Min(1)] public int defaultComboSteps = 2;
+
+        [Header("Stance")]
+        [Tooltip("Stance damage per hit dealt by this weapon family (before Strength / finisher / Power Strike).")]
+        [Min(0f)] public float stanceDamage = 20f;
+        [Tooltip("True = hits can take stance to 0 (knockdown). False = they stop at the stagger threshold.")]
+        public bool canKnockDown;
     }
 }
