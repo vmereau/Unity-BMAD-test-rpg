@@ -77,6 +77,24 @@ namespace Tests.EditMode
         public void ResolvedComboSteps_ArchetypeZero_ClampsToOne()
             => Assert.That(CreateWeapon(0, CreateArchetype(0)).ResolvedComboSteps, Is.EqualTo(1));
 
+        // ── ResolvedAttackStaminaMultiplier ─────────────────────────────────
+
+        [Test]
+        public void ResolvedAttackStaminaMultiplier_UsesArchetypeValue()
+        {
+            var archetype = CreateArchetype();
+            archetype.attackStaminaMultiplier = 2f;
+            Assert.That(CreateWeapon(0, archetype).ResolvedAttackStaminaMultiplier, Is.EqualTo(2f));
+        }
+
+        [Test]
+        public void ResolvedAttackStaminaMultiplier_ArchetypeDefaultIsOne()
+            => Assert.That(CreateWeapon(0, CreateArchetype()).ResolvedAttackStaminaMultiplier, Is.EqualTo(1f));
+
+        [Test]
+        public void ResolvedAttackStaminaMultiplier_NoArchetype_IsOne()
+            => Assert.That(CreateWeapon().ResolvedAttackStaminaMultiplier, Is.EqualTo(1f));
+
         // ── ResolvedAnimatorOverride ────────────────────────────────────────
 
         [Test]

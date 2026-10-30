@@ -44,7 +44,11 @@ Melee = `StanceMath.ComputeMeleeStanceDamage`: weapon `ResolvedStanceDamage` (ar
 own value when set; unarmed `CombatConfigSO.unarmedStanceDamage`) + Strength × `stancePerStrength`, × `finisherStanceMultiplier` on
 `IsMaxCombo()`, + `powerStrikeStanceBonus`. `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
 `KnockDownOverride`); unarmed never. Arrows snapshot the bow's resolved values at fire time (no Strength / finisher).
-Archetypes: sword 25 / no KD, axe 35 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
+Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
+
+**Melee stamina:** a swing costs `CombatConfigSO.attackStaminaCost` × `WeaponSO.ResolvedAttackStaminaMultiplier`
+(`PlayerCombat.MeleeAttackStaminaCost`; unarmed × 1; two-handed × 2). Health damage per family comes from each weapon's
+`damageBonus` (Flamberge 25 vs short iron sword 10).
 
 ### Hit-window tooling
 

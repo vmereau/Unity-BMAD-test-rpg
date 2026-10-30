@@ -8,8 +8,9 @@
 ## Humanoid_Template.controller
 
 Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Weapon families swap clips via
-`AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Sword_AnimatorOverride`, chosen by
-`WeaponSO.ResolvedAnimatorOverride`).
+`AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Combat/one handed/Sword_AnimatorOverride`,
+`Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). The two-handed override
+also replaces `Block Idle` and `unarmed stagger 1/2` (both layers, so the legs play the 2H stagger too).
 
 - **Layers:** `Base Layer` (locomotion `LockOn Locomotion` 2D blend tree, sneak states, jump/fall/land,
   dodge, `GetHit`, `Death`) and the upper-body-masked **`Attack`** layer at a **constant weight 1** with its
@@ -33,7 +34,8 @@ AnyState → `Draw_State` (`DrawWeapon`) / `Sheathe_State` (`SheatheWeapon`), 0.
 AnyState transitions are evaluated before `LockOn Locomotion → CombatIdle (IsInCombat)`, so the draw wins the frame
 `IsInCombat` flips. Base clips = `draw sword` / `sheath sword` (also the unarmed placeholder); `Sword_AnimatorOverride`
 lists them explicitly (self-mapped) so an unarmed clip only replaces the base-state motion; `Bow_AnimatorOverride`
-(→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`. NPCs never set the triggers.
+(→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`; `TwoHanded_AnimatorOverride` to the baked `2hand draw` /
+`2hand sheath` `.anim` (two-part vendor draws are merged, never given a second state — `../Animations/Combat/CLAUDE.md`). NPCs never set the triggers.
 
 ### Bow aim states (Attack layer, player only)
 

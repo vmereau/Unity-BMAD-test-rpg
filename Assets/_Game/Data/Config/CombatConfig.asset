@@ -40,7 +40,7 @@ MonoBehaviour:
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
   weaponSwitchAnimSpeed: 1.5
-  weaponSwitchTimeout: 2
+  weaponSwitchTimeout: 2.5
   aimFieldOfView: 30
   aimFollowOffset: {x: 0.6, y: 0.3, z: -1.8}
   aimSensitivityMultiplier: 0.5

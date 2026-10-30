@@ -26,6 +26,10 @@ namespace Game.Inventory
         [Header("Combo")]
         [Min(1)] public int defaultComboSteps = 2;
 
+        [Header("Stamina")]
+        [Tooltip("Multiplier on CombatConfigSO.attackStaminaCost for a melee swing with this family (two-handed: 2).")]
+        [Min(0.1f)] public float attackStaminaMultiplier = 1f;
+
         [Header("Stance")]
         [Tooltip("Stance damage per hit dealt by this weapon family (before Strength / finisher / Power Strike).")]
         [Min(0f)] public float stanceDamage = 20f;

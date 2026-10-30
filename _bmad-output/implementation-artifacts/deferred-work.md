@@ -265,3 +265,11 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Inventory already open when staggered** — `UIScreenManager.OpenTab` refuses while incapacitated, but a tab opened
   before the hit still allows equip changes (controller swap cuts the reaction clip).
 - **I-frames / downed protection** — health damage still lands while the player is knocked down (asked "yes for now").
+
+## From spec-two-handed-weapons-flamberge (2026-10-30 review)
+
+- **Combo state not reset on weapon swap** — `PlayerCombat.HandleVisualsRefreshed` keeps `_comboStep` / `_comboWindowOpen`; equipping a weapon with fewer combo steps mid-chain (e.g. unarmed step 3 → 2H max 2) lets `IsMaxCombo` (`==`) miss and fire `Attack_3` from CombatIdle. Pre-existing; reset the combo there and use `>=`.
+- **`_currentWeaponSO` cache can be null while a weapon is equipped** (after disable/enable, or if the startup visuals refresh precedes `OnEnable`): melee then uses ×1 stamina, unarmed combo steps, and no weapon stance. Pre-existing; resolve from `EquipmentSystem.GetEquipped(Weapon)` like `EquippedBow`.
+- **Stamina spent before the Animator accepts the attack trigger** — a press late in a combo window (or during blend-out after a low-stamina reset) can spend stamina with no swing. Pre-existing for all weapons; consider consuming on attack-state enter.
+- **No editor tool to bake two-part draw/sheathe clips** — `2hand draw.anim` / `2hand sheath.anim` were baked once from `execute_code` (recipe in `Combat/CLAUDE.md`). Add an `Editor/` baker if more two-part clips arrive.
+- **2H knockdown / getting-up / hit / death use the base clips** while holding the 1.3 m blade (clipping). Find 2H variants or accept.

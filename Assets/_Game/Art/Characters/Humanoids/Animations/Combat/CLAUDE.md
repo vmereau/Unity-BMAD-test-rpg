@@ -10,7 +10,9 @@
 
 ```
 Combat/
-├── Sword/      — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
+├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
+├── two handed/ — 2hand idle / attack / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
+│                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
@@ -32,7 +34,7 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 `ModelImporter.clipAnimations`. If editing the `.meta` by hand, copy an existing event block (all fields:
 `time`, `functionName`, `data`, `objectReferenceParameter`, `floatParameter`, `intParameter`, `messageOptions`).
 
-### Sword (`Sword/`)
+### One handed (`one handed/`)
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
@@ -41,6 +43,22 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 | `AttackThrust.fbx` | Attack_3 | 0.25 | 0.50 | 0.50 | 0.90 |
 
 `HitboxDisable` and `ComboWindowOpen` share 0.50 — they are independent, so dispatch order is irrelevant.
+
+### Two handed (`two handed/`)
+
+One swing clip, played by Attack_1 **and** Attack_2 (override maps `Unarmed Jab` + `Unarmed Uppercut` to it; the
+archetype's 2-step combo chains it into itself — it starts and ends in the same guard pose).
+
+| Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
+|------|-------|-------------|--------------|-----------------|-----------------|
+| `2hand attack.fbx` (`2hand attack`, 1.83 s) | Attack_1 / Attack_2 | 0.33 | 0.58 | 0.58 | 0.78 |
+
+Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–0.50, horizontal follow-through to ~0.58.
+`ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina
+(×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
+because the combo transition is listed first with `interruptionSource = None`.
+`2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
+`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend.
 
 ### Unarmed (`Unarmed/`)
 
@@ -65,12 +83,24 @@ hilt / sheath; the weapon visual changes socket there. First guesses, tune in pl
 
 | Clip | State | WeaponSwap |
 |------|-------|-----------|
-| `Sword/Draw Sword.fbx` (`draw sword`) | Draw_State | 0.40 |
-| `Sword/Sheath Sword.fbx` (`sheath sword`) | Sheathe_State | 0.65 |
+| `one handed/Draw Sword.fbx` (`draw sword`) | Draw_State | 0.40 |
+| `one handed/Sheath Sword.fbx` (`sheath sword`) | Sheathe_State | 0.65 |
+| `two handed/2hand draw.anim` (1.40 s) | Draw_State (2H override) | 0.55 s (seam) |
+| `two handed/2hand sheath.anim` (1.97 s) | Sheathe_State (2H override) | 0.78 s (seam) |
 | `Bow/Standing Equip Bow.fbx` (`Draw Bow`) | Draw_State (bow override) | 0.45 |
 | `Bow/Standing Disarm Bow.fbx` (`Sheathe Bow`) | Sheathe_State (bow override) | 0.65 |
 
 A missing event is not fatal — the state exit completes the swap, just late (end of clip).
+
+### Two-part draw / sheathe → one baked `.anim`
+
+Draw / sheathe is **one** Attack-layer state with one clip, so a vendor draw split in two parts (reach to the back →
+bring forward) is merged, not given a second state. No committed bake tool yet — the clips were baked once from `execute_code`. Recipe: for every
+`AnimationUtility.GetCurveBindings(part1)` (Humanoid muscle curves) copy part 1's keys, then part 2's keys shifted by
+`part1.length + 0.1 s`; set Auto tangents on the two seam keys (smooths the small pose jump); copy part 1's
+`AnimationClipSettings` (loopTime off, `stopTime` = total); one `WeaponSwap` event **in seconds** at the middle of the gap
+(the hand is at the back there). Re-bake after changing the source parts' import settings. Keep the longest clip under
+`CombatConfigSO.weaponSwitchTimeout` (2.5 s at speed 1).
 
 ---
 

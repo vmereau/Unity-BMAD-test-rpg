@@ -347,14 +347,15 @@ namespace Game.Combat
                 return;
             }
 
-            if (!_staminaSystem.HasEnough(_config.attackStaminaCost))
+            float staminaCost = MeleeAttackStaminaCost();
+            if (!_staminaSystem.HasEnough(staminaCost))
             {
                 GameLog.Warn(TAG, $"Cannot attack: insufficient stamina (combo step {_comboStep})");
                 ResetAttackCombo();
                 return;
             }
 
-            bool consumed = _staminaSystem.Consume(_config.attackStaminaCost);
+            bool consumed = _staminaSystem.Consume(staminaCost);
             if (!consumed)
             {
                 GameLog.Error(TAG, "Consume() returned false after HasEnough() passed — StaminaSystem inconsistency");
@@ -915,6 +916,10 @@ namespace Game.Combat
                 IsMaxCombo(), _config.finisherStanceMultiplier, powerStrike ? _config.powerStrikeStanceBonus : 0f);
         }
 
+        /// <summary>Melee swing cost: config cost × the equipped weapon's archetype multiplier (unarmed ×1).</summary>
+        private float MeleeAttackStaminaCost() => _config.attackStaminaCost
+            * (_currentWeaponSO != null ? _currentWeaponSO.ResolvedAttackStaminaMultiplier : 1f);
+
         // Unarmed never knocks down.
         private bool MeleeCanKnockDown() => _currentWeaponSO != null && _currentWeaponSO.ResolvedCanKnockDown;
 
@@ -989,7 +994,7 @@ namespace Game.Combat
             if (_config == null || _staminaSystem == null || _stateManager == null) return;
             if (_guiStyle == null) _guiStyle = new GUIStyle(GUI.skin.label) { fontSize = 18 };
             var style = _guiStyle;
-            bool canAttack = _staminaSystem.HasEnough(_config.attackStaminaCost);
+            bool canAttack = _staminaSystem.HasEnough(EquippedBow != null ? _config.attackStaminaCost : MeleeAttackStaminaCost());
             string state = canAttack ? "Ready" : "STAMINA EMPTY";
             GUI.Label(new Rect(10, 70, 400, 26), $"Combat: [{state}]", style);
             string windowState = _comboWindowOpen ? "OPEN (animation-event)" : "closed";

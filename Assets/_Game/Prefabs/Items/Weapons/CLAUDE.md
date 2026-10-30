@@ -76,6 +76,7 @@ Measured art-pack frames (mesh-local):
 |------|------|-----------|-----------|-------|
 | `SM_Sword_1` | `(0, 0.35, 0)` | `NegY` | `NegX` | bounds centred at origin, size `0.1455×0.8451×0.0289`; leading edge in the sword clips = −X |
 | `SM_Axe_01` | `(0, 0.08, 0)` | `PosY` | `PosZ` | pivot at the handle end; head y≈0.39–0.58, edge z≈0.19 |
+| `SM_Flamberge` | `(0, -0.05, 0)` | `NegY` | `NegX` | 1.90 m; blade y −1.62..−0.30 (±0.03 X), guard −0.20..−0.10 (±0.18 X), handle −0.10..0.20; the right hand sits just under the guard |
 | `SM_WeaponBow_01a` | `(0, 0, 0)` | `PosY` | `PosZ` | recurve, limbs ±0.65 Y; "edge" = belly / target side (+Z), string and tips at −Z |
 
 Per-weapon fine-tuning (a slightly different grip) goes into the `Mesh` child, never into `Drawn`/`Sheathed`.
@@ -100,7 +101,11 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
 - Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`),
   `Archetype_Bow` (**Left** hand; Back socket; drawn pose derived from `Aim Overdraw` at 50 % — belly (+Z) along the
   right-hand → left-hand line, limbs (+Y) along UpperChest up — sheathed pose a guess, tune in play mode;
-  `Bow_AnimatorOverride` swaps only the draw / sheathe clips).
+  `Bow_AnimatorOverride` swaps only the draw / sheathe clips), `Archetype_TwoHanded` (Right hand, **Back** socket,
+  `TwoHanded_AnimatorOverride`, 2 combo steps, stance 45 + knockdown, `attackStaminaMultiplier` 2; drawn pose = the
+  left-hand → right-hand line (blade) + hand velocity (edge) at 45 % of `2hand attack`, sheathed pose = hilt above the
+  right shoulder, blade down-left — both first guesses, tune in play mode). No left-hand IK: the clips place the hands.
+- **Flamberge** (`TwoHanded/Flamberge/`): `Drawn` box trimmed to the blade (centre `(0, 0.91, 0)`, size `(0.03, 1.32, 0.08)`).
 - **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
 

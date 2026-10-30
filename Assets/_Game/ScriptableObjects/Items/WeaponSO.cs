@@ -51,6 +51,9 @@ namespace Game.Inventory
         public bool ResolvedCanKnockDown => knockDown == KnockDownOverride.Yes
             || (knockDown == KnockDownOverride.Archetype && archetype != null && archetype.canKnockDown);
 
+        /// <summary>Archetype's melee attack stamina multiplier (floored at 0.1 — [Min] is Inspector-only), else 1.</summary>
+        public float ResolvedAttackStaminaMultiplier => archetype != null ? Mathf.Max(0.1f, archetype.attackStaminaMultiplier) : 1f;
+
         /// <summary>Weapon override if set, else archetype's, else null (default controller).</summary>
         public AnimatorOverrideController ResolvedAnimatorOverride => animatorOverrideController != null
             ? animatorOverrideController

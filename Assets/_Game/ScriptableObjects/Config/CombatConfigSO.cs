@@ -86,8 +86,8 @@ namespace Game.Combat
         [Min(0.1f)] public float weaponSwitchAnimSpeed = 1.5f;
         [Tooltip("Watchdog: seconds (at speed 1 — divided by weaponSwitchAnimSpeed at runtime) a draw / sheathe may run " +
                  "without its WeaponSwap event or state exit before the weapon swap is forced. Must exceed the longest " +
-                 "draw / sheathe clip at speed 1 (Sheath Sword ≈ 1.3 s).")]
-        [Min(0.1f)] public float weaponSwitchTimeout = 2f;
+                 "draw / sheathe clip at speed 1 (2hand sheath ≈ 2 s).")]
+        [Min(0.1f)] public float weaponSwitchTimeout = 2.5f;
 
         [Header("Bow Aim")]
         [Tooltip("Camera vertical field of view while aiming (the default lens FOV is restored when the aim ends).")]
