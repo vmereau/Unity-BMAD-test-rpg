@@ -58,6 +58,9 @@ Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. R
 - **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`, `Assets/_Game/Editor/HitboxTunerWindow.cs`) — scrub a
   clip on a scene / Prefab-Mode entity, see posed hitboxes + swept trail, add `Hitbox_<id>` to a bone,
   write/remove events.
+- **Weapon Pose Tuner** (`Tools/Combat/Weapon Pose Tuner`) — archetype drawn / sheathed poses and weapon grips, see
+  `Prefabs/Items/Weapons/CLAUDE.md`. **`AnimationMode.StopAnimationMode` does not revert bones posed by a Humanoid
+  clip** — the tuner snapshots the rig's local transforms before sampling and restores them itself.
 - **Debug sweeps** — `Tools/Combat/Show Hitbox Sweeps` toggles `HitboxDebug.DrawSweeps` (editor-only,
   EditorPrefs). Play-mode gizmos: yellow samples fading over 1 s, red hits. Compiled out of builds.
 

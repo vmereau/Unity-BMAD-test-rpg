@@ -91,7 +91,8 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
 `ApplyArchetypePoses(visual, archetype)`, which overwrites `Drawn` / `Sheathed` local transforms at runtime.
 
 - **Once a weapon has an archetype, editing its prefab's `Drawn`/`Sheathed` transforms has no in-game effect.**
-  Tune the archetype (affects the whole family) or the `Mesh` child (this weapon only).
+  Tune the archetype (affects the whole family) or the `Mesh` child (this weapon only) — with the **Weapon Pose Tuner**
+  (below), not by typing values blind.
 - **Null archetype** → prefab poses are used unchanged and the weapon sheathes on `UndrawnWeaponSocket` (legacy path).
 - **Drawn hand:** `drawnHand = Left` → `LeftWeaponSocket` under `mixamorig:LeftHand` (mirror of the right socket offset).
   Left asked for but `_leftWeaponSocket` unassigned → right hand + one warning (`ResolveDrawnSocket`).
@@ -124,8 +125,27 @@ Use it for every new weapon instead of hand-building prefabs. Inputs: name, C# t
   (`{Family}` = archetype name without `Archetype_`), sets `archetype`, leaves `comboSteps = 0` /
   `animatorOverrideController = null` (inherit) unless edited, and generates the icon.
 
-**Always verify grip and edge direction afterwards** (Play mode or the grip-preview tool). The fitted hitbox
+**Always verify grip and edge direction afterwards** with the Weapon Pose Tuner. The fitted hitbox
 covers the whole mesh — shrink it by hand for head-only hitboxes (e.g. the Axe keeps a head-only box).
+
+---
+
+## Weapon Pose Tuner (`Tools/Combat/Weapon Pose Tuner`)
+
+`Editor/WeaponPoseTunerWindow.cs`, edit mode only. Select the Player (scene or Prefab Mode) → **Use Selection**, pick a
+`WeaponSO`, mode **Drawn / Sheathed**, a clip (the weapon's override clips, or any clip in **Clip Override**), scrub frames.
+The `_Visual` is previewed (`HideFlags.DontSave`) on the socket `EquipmentVisuals` would use, with the archetype poses; in
+Drawn mode the `Drawn` hitbox box is drawn in orange.
+
+- **Select Pose Node** → move / rotate `Drawn` / `Sheathed` → **Save Pose to Archetype** (whole family; saved in socket
+  space from world, so moving the preview root is harmless; Undo-able).
+- **Select Grip (Mesh)** → **Save Grip to Weapon** writes that local pose to **both** `Drawn/Mesh` and `Sheathed/Mesh` of
+  the `_Visual` prefab (saved in place, GUID kept; **not Undo-able**, refused while that prefab is open in Prefab Mode).
+  **Revert** rebuilds the preview from the assets.
+- Save Pose is disabled while the preview sits on a fallback socket (Left / Back asked but unassigned). The sampled pose
+  is stopped and the rig restored before any scene / prefab save, then re-sampled. Edit mode only.
+- Check several frames (guard, strike, follow-through) before saving — a two-handed grip only fits all of them if the
+  pose follows the hand line, not one frame.
 
 ---
 

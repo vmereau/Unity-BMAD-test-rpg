@@ -273,3 +273,8 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Stamina spent before the Animator accepts the attack trigger** — a press late in a combo window (or during blend-out after a low-stamina reset) can spend stamina with no swing. Pre-existing for all weapons; consider consuming on attack-state enter.
 - **No editor tool to bake two-part draw/sheathe clips** — `2hand draw.anim` / `2hand sheath.anim` were baked once from `execute_code` (recipe in `Combat/CLAUDE.md`). Add an `Editor/` baker if more two-part clips arrive.
 - **2H knockdown / getting-up / hit / death use the base clips** while holding the 1.3 m blade (clipping). Find 2H variants or accept.
+
+## From spec-weapon-pose-tuner (2026-10-30 review)
+
+- **Hitbox Tuner leaves Humanoid rigs posed** — `AnimationMode.StopAnimationMode` does not revert bones sampled from a Humanoid clip (verified on the Player). `HitboxTunerWindow` has no rest-pose snapshot, so tuning a humanoid NPC leaves it posed (and a save would bake it). Port the snapshot / restore + save hooks from `WeaponPoseTunerWindow`.
+- **Weapon Pose Tuner discards unsaved gizmo edits** on mode / weapon / target change without a prompt.
