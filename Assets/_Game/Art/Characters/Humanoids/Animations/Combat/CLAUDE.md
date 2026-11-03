@@ -19,8 +19,11 @@ Combat/
 ├── Unarmed/    — Jab, Uppercut Jab + Unarmed Idle
 ├── Block Idle.fbx
 ├── dodge roll.fbx
-└── Dodge back.fbx
+├── Dodge back.fbx
+└── MESHY_PROMPTS.md — Meshy text-to-motion prompt rules, 2H templates, durations, import checklist, prompt log
 ```
+
+**Generating a clip with Meshy text-to-motion:** read and follow `MESHY_PROMPTS.md`, and log every prompt there.
 
 ---
 
@@ -66,7 +69,7 @@ Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–
 (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
 because the combo transition is listed first with `interruptionSource = Destination` (the outgoing exit can't cut it).
 `2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
-`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend.
+`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend (Meshy regeneration in progress: `MESHY_PROMPTS.md`).
 
 ### Unarmed (`Unarmed/`)
 
