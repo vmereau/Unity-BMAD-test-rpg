@@ -11,7 +11,7 @@
 ```
 Combat/
 ├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
-├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
+├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 (+ attack 2 refined, Blender) / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
@@ -60,11 +60,12 @@ they stay root-baked and the forward step is scripted per archetype (`AttackStep
 |------|-------|-------------|--------------|-----------------|-----------------|
 | `2hand attack refined.fbx` (`2hand attack refined`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
 | `2hand attack 2.fbx` (`2hand attack 2`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
+| `2hand attack 2 refined.fbx` (`2hand attack 2 refined`, 1.27 s) | Attack_2 candidate (Blender, not wired) | 0.42 | 0.63 | — | — |
 
 The finisher has no combo window (last step). Its first fast phase (0.08–0.26) is the backswing behind the body; the
 strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 
-Window from hand-speed sampling (original clip): wind-up overhead until ~0.30, downswing 0.33–0.50, follow-through to ~0.58.
+Attack_1 window from hand-speed sampling (original clip): wind-up overhead until ~0.30, downswing 0.33–0.50, follow-through to ~0.58.
 In the refined clip the blade is horizontal and in front 0.44–0.55, inside the unchanged 0.33–0.58 window.
 `ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina
 (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
@@ -78,10 +79,19 @@ because the combo transition is listed first with `interruptionSource = Destinat
 Blender edit (2026-11-03): only the left arm, 0.38–0.62, so the blade (left → right hand line, `TwoHandGripConstraint`)
 runs horizontal through the cut: pitch +18…+35° → +1…+7°, tip 1.23–1.58 → 0.91–1.11 m. Body and right hand within 2.4 mm.
 
+**`2hand attack 2 refined.fbx`** (Attack_2 candidate; take `Scene`, frames 1–39, same 1.27 s, avatar / root-bake / events
+as `2hand attack 2.fbx`). Blender edit (2026-11-03, `configs/2hand_attack_2.json`, `pitch_curve`): left arm only,
+0.18–0.69, yaw kept. The source swing was a near-flat descending sweep (blade never raised, flat behind the head at 0.42,
+plane tilted 21°, tip above the hands +11…+19° at 0.45–0.50). Refined: blade lifts over the right shoulder from 0.21
+(+48° at 0.42, tip 2.6 m), pitch falls monotonically to −38° at 0.605, then eases back to the source by 0.69; plane tilt
+42°. Body and right socket within 2.7 mm. Known limit: the hands are at 0.88 m when the blade points forward (0.55), so
+the tip passes the centre low (~0.7 m); raising it needs the body / right arm.
+
 ### Blender edit recipe (weapon line of a 2H clip)
 
 Claude Code Blender MCP (`mcp__blender__*`, Blender 5.2). Script + per-clip configs: `Tools/Blender/` (repo root,
-`twohand_blade_line.py`, `configs/2hand_attack_1.json`, README with the Unity sampling snippet and the measure → edit loop).
+`twohand_blade_line.py`, `configs/2hand_attack_1.json` / `2hand_attack_2.json`, README with the Unity sampling snippet, the
+measure → edit loop and the constant vs `pitch_curve` target).
 1. Sample the clip in Unity (PlayableGraph on `Player.prefab`, `WeaponSocket` / `LeftWeaponSocket`, per frame); set
    `animator.fireEvents = false` first or the clip events throw NREs into the uninitialised instance (the one NRE from
    `EquipmentVisuals.OnEnable` → `PlayerAnimationDriver.SetInCombat` on instantiation is expected and harmless).

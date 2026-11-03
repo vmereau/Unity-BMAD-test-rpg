@@ -324,9 +324,21 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
   back; trimming or speeding it would make the attack feel lighter. Changes the clip length → re-tune events / `attackSteps`.
 - **2H attack 1 strike entry** — the refined clip drops the blade from overhead to horizontal in ~40 ms (tip ~39 m/s vs 24
   m/s originally). Accepted in playtest; if it reads as a jerk, start the tilt during the overhead wind-up (before 0.38).
-- **2H attack 2 (finisher) blade check** — run the same Player-rig blade table on `2hand attack 2` and fix it with the
-  same recipe if the cut is off.
+- ~~**2H attack 2 (finisher) blade check**~~ — **done 2026-11-03** (spec-blender-2h-attack2-diagonal-finisher): the
+  swing was a flat descending sweep; `2hand attack 2 refined.fbx` raises the blade and tilts the cut to a 42° diagonal.
 - **`WeaponHitbox` sub-steps ignore rotation** (review finding) — `WeaponHitbox.cs` ~107 sizes the sweep sub-steps from
   the hitbox centre's travel only; a fast rotation about the grip (refined 2H attack 1 entry, tip ~39 m/s) moves the tip far
   while the centre barely moves, so a small hurtbox could be skipped at low frame rates. Pre-existing; hits were fine in playtest.
 - ~~**Commit the Blender edit script as a tool**~~ — **done 2026-11-03**: `Tools/Blender/twohand_blade_line.py` + `configs/2hand_attack_1.json`
+
+## From spec-blender-2h-attack2-diagonal-finisher (2026-11-03)
+
+- **2H finisher backswing as fast as the strike** — in `2hand attack 2` the backswing (0.08–0.26) peaks at 20 m/s tip speed,
+  the strike at 21 m/s (refined: 23), so the finisher doesn't read as heavy. Timing, not the blade line: slow the backswing
+  / hold the raise (body + both arms) — changes event times and maybe the clip length → re-tune `attackSteps`.
+- **2H finisher impact height** — when the blade points forward (0.55) the hands are at 0.88 m, so the tip crosses the
+  centre at ~0.7 m (thigh). Raising it needs the hands kept higher through the cut (right arm / spine edit, out of the
+  left-arm-only recipe).
+- **Commit the full Unity blade check** (review finding) — the README snippet only gives pitch / hand distance; the
+  acceptance numbers (yaw, tip, speed vs original, blade clearances, body-bone drift) came from an extended `execute_code`
+  run that isn't in the repo. Add it to `Tools/Blender/` (or an editor menu) so the check can be repeated.

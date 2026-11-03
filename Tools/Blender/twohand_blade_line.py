@@ -1,8 +1,10 @@
 """Re-aim the blade line of a Mixamo two-handed attack clip by moving only the left arm (IK), then export a new FBX.
 
 In game the 2H weapon is aimed along the left -> right hand line (TwoHandGripConstraint), so changing where the left hand
-sits relative to the right hand changes the blade direction. This script pulls that line toward a target pitch inside an
-edit window, keeps the body / right arm / root untouched, and bakes the result on LeftArm + LeftForeArm only.
+sits relative to the right hand changes the blade direction. This script moves that line's pitch toward a target inside an
+edit window (yaw kept), keeps the body / right arm / root untouched, and bakes the result on LeftArm + LeftForeArm only.
+Target: `target_pitch_deg` (constant, only pulls the blade down) or `pitch_curve` ([[normalized t, deg], ...], linear,
+raises or lowers; overrides the constant).
 
 Inputs come from Unity measurements on the Player rig (PlayableGraph sampling of WeaponSocket / LeftWeaponSocket), because
 the Blender hand bones are only a proxy for the in-game sockets (retarget + palm offsets). See README.md for the loop.
@@ -68,6 +70,16 @@ def _weight(n, window):
     return _smoothstep((end - n) / (end - full_end))
 
 
+def _curve(points, n):
+    """Piecewise-linear [[t, value], ...] sorted by t, clamped to the first / last value outside its range."""
+    if n <= points[0][0]:
+        return points[0][1]
+    for (t0, v0), (t1, v1) in zip(points, points[1:]):
+        if n <= t1:
+            return v0 + (v1 - v0) * (n - t0) / (t1 - t0) if t1 > t0 else v1
+    return points[-1][1]
+
+
 def _ctx_override(**extra):
     """Window context when Blender has a UI (needed after resets: no active object), plain context in background."""
     scene = bpy.context.scene
@@ -107,8 +119,24 @@ def _empty(name, parent):
     return e
 
 
+def _check_target(cfg):
+    """Fail before the scene is cleared: need a pitch_curve of sorted [t, deg] pairs, or a constant target."""
+    curve = cfg.get("pitch_curve")
+    if curve is None:
+        if "target_pitch_deg" not in cfg:
+            raise ValueError("config needs pitch_curve or target_pitch_deg")
+        return
+    if not curve or any(len(p) != 2 for p in curve):
+        raise ValueError("pitch_curve must be a non-empty list of [t, deg] pairs")
+    if any(b[0] < a[0] for a, b in zip(curve, curve[1:])):
+        raise ValueError("pitch_curve points must be sorted by t")
+    if "target_pitch_deg" in cfg:
+        print("twohand_blade_line: pitch_curve overrides target_pitch_deg")
+
+
 def run(cfg):
     """Apply the edit described by cfg and export. Returns a report dict."""
+    _check_target(cfg)
     scene = bpy.context.scene
     _clear_scene()
     arm, first, last = _import(cfg["source_fbx"], cfg.get("fps", 30))
@@ -119,7 +147,8 @@ def run(cfg):
     if len(pitch_unity) != len(frames):
         raise ValueError(f"blade_pitch_unity has {len(pitch_unity)} values, clip has {len(frames)} frames")
     dist_scale = {int(k): v for k, v in cfg.get("distance_scale", {}).items()}  # keyed by Blender frame
-    target_pitch = cfg["target_pitch_deg"]
+    pitch_curve = cfg.get("pitch_curve")  # optional [[t, deg], ...]: time-varying, two-way target, clamped at its ends
+    target_pitch = None if pitch_curve else cfg["target_pitch_deg"]
     window = cfg["window"]
     span = float(last - first)
 
@@ -144,8 +173,16 @@ def run(cfg):
         dist = line.length * dist_scale.get(f, 1.0)
         line.normalize()
         pitch_blender = math.degrees(math.asin(max(-1.0, min(1.0, line.y))))
-        delta = max(0.0, pitch_unity[i] - target_pitch) if w > 0 else 0.0  # only ever pulls the blade down
-        new_pitch = math.radians(pitch_blender - delta)
+        if w <= 0:
+            delta = 0.0
+        elif pitch_curve:
+            delta = pitch_unity[i] - _curve(pitch_curve, (f - first) / span)  # raises or lowers toward the curve
+        else:
+            delta = max(0.0, pitch_unity[i] - target_pitch)  # constant target: only ever pulls the blade down
+        new_pitch = pitch_blender - delta
+        if pitch_curve:  # a raise can cross vertical: clamp so the kept yaw never flips (constant path never raises)
+            new_pitch = max(-89.0, min(89.0, new_pitch))
+        new_pitch = math.radians(new_pitch)
         horizontal = Vector((line.x, 0.0, line.z))
         horizontal = horizontal.normalized() if horizontal.length > 1e-4 else Vector((0.0, 0.0, 1.0))
         new_line = horizontal * math.cos(new_pitch) + UP * math.sin(new_pitch)

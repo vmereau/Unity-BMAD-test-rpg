@@ -7,7 +7,16 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | File | What |
 |------|------|
 | `twohand_blade_line.py` | Re-aims the blade line (left → right hand) of a Mixamo 2H clip by moving the left arm with IK inside an edit window, bakes it, exports an armature-only FBX |
-| `configs/2hand_attack_1.json` | Final inputs that produced `two handed/2hand attack refined.fbx` (Attack_1) |
+| `configs/2hand_attack_1.json` | Final inputs that produced `two handed/2hand attack refined.fbx` (Attack_1) — constant `target_pitch_deg` |
+| `configs/2hand_attack_2.json` | Final inputs that produced `two handed/2hand attack 2 refined.fbx` (Attack_2 finisher) — `pitch_curve` |
+
+**Pitch target.** `target_pitch_deg` is one constant and only ever pulls the blade down (Attack_1 path). `pitch_curve`
+(`[[normalized t, Unity pitch deg], ...]`, sorted, piecewise linear) replaces it when present and can raise or lower the
+blade per frame; yaw is always kept and the result is clamped to ±89°. Outside its first / last point the curve holds the
+end value for the whole `window`, so the window's fade-in / fade-out blends toward that held value. The curve values are what you feed the script, not what you get: the hand-bone proxy
+misses large pitches by up to ~10°, so after a pass set each point to `point + (wanted − measured)` (Attack_2: points on
+every frame of the edit, 3 passes). Ramp a big change over several frames — Attack_2 spreads a 75° raise over 0.21–0.42
+to keep the tip speed within the original's + 8 m/s.
 
 ## Running
 
@@ -34,8 +43,10 @@ its keys by +1 frame** (2–57 instead of 1–56); compare source frame f with e
 2. Run the script, re-import the output in Unity (first time: copy the source root-bake flags, avatar setup, compression and
    events onto the new `.meta`, keep its own take `Scene` and frame range).
 3. Sample source and output: per frame, `distance_scale[f] *= sourceDist / outputDist` (key = Blender frame = source frame + 1),
-   and nudge `target_pitch_deg` if the cut lands off target. Repeat until the hand distance is within ~0.02 m
-   (Attack_1 took 3 passes).
+   and nudge `target_pitch_deg` / `pitch_curve` if the cut lands off target. Repeat until the hand distance is within
+   ~0.02 m (Attack_1 and Attack_2 each took 3 passes).
+4. For a full check (yaw, tip, speeds vs the original, blade clearances to spine / head / legs, body bones), extend the
+   snippet; exclude the left arm **and the left fingers** from the "body unchanged" check (they follow the hand).
 
 ```csharp
 // Unity MCP execute_code: per-frame blade pitch and hand distance of a clip on the Player rig.
