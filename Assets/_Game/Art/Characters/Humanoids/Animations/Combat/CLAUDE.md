@@ -80,7 +80,8 @@ runs horizontal through the cut: pitch +18…+35° → +1…+7°, tip 1.23–1.5
 
 ### Blender edit recipe (weapon line of a 2H clip)
 
-Claude Code Blender MCP (`mcp__blender__*`, Blender 5.2). The `.blend` and script live in the scratchpad, not the repo.
+Claude Code Blender MCP (`mcp__blender__*`, Blender 5.2). Script + per-clip configs: `Tools/Blender/` (repo root,
+`twohand_blade_line.py`, `configs/2hand_attack_1.json`, README with the Unity sampling snippet and the measure → edit loop).
 1. Sample the clip in Unity (PlayableGraph on `Player.prefab`, `WeaponSocket` / `LeftWeaponSocket`, per frame); set
    `animator.fireEvents = false` first or the clip events throw NREs into the uninitialised instance (the one NRE from
    `EquipmentVisuals.OnEnable` → `PlayerAnimationDriver.SetInCombat` on instantiation is expected and harmless).

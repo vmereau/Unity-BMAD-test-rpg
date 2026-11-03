@@ -329,6 +329,4 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **`WeaponHitbox` sub-steps ignore rotation** (review finding) — `WeaponHitbox.cs` ~107 sizes the sweep sub-steps from
   the hitbox centre's travel only; a fast rotation about the grip (refined 2H attack 1 entry, tip ~39 m/s) moves the tip far
   while the centre barely moves, so a small hurtbox could be skipped at low frame rates. Pre-existing; hits were fine in playtest.
-- **Commit the Blender edit script as a tool** (review finding) — the Attack_1 script and `.blend` lived in the session
-  scratchpad (spec rule); the recipe and final parameters are in `Combat/CLAUDE.md`, but a committed script (e.g.
-  `Tools/Blender/`) would make the next clip (attack 2, recovery trim) a re-run instead of a rewrite.
+- ~~**Commit the Blender edit script as a tool**~~ — **done 2026-11-03**: `Tools/Blender/twohand_blade_line.py` + `configs/2hand_attack_1.json`
