@@ -11,7 +11,7 @@
 ```
 Combat/
 ├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
-├── two handed/ — 2hand idle / attack / attack 2 / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
+├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
@@ -49,7 +49,7 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 
 ### Two handed (`two handed/`)
 
-2-step combo: `Unarmed Jab` → `2hand attack` (Attack_1), `Unarmed Uppercut` → `2hand attack 2` (Attack_2, finisher).
+2-step combo: `Unarmed Jab` → `2hand attack refined` (Attack_1), `Unarmed Uppercut` → `2hand attack 2` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
 **All attack clips are in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
@@ -58,18 +58,42 @@ they stay root-baked and the forward step is scripted per archetype (`AttackStep
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `2hand attack.fbx` (`2hand attack`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
+| `2hand attack refined.fbx` (`2hand attack refined`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
 | `2hand attack 2.fbx` (`2hand attack 2`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
 
 The finisher has no combo window (last step). Its first fast phase (0.08–0.26) is the backswing behind the body; the
 strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 
-Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–0.50, horizontal follow-through to ~0.58.
+Window from hand-speed sampling (original clip): wind-up overhead until ~0.30, downswing 0.33–0.50, follow-through to ~0.58.
+In the refined clip the blade is horizontal and in front 0.44–0.55, inside the unchanged 0.33–0.58 window.
 `ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina
 (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
 because the combo transition is listed first with `interruptionSource = Destination` (the outgoing exit can't cut it).
 `2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
-`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend. Meshy text-to-motion replacements were tried and rejected (`MESHY_PROMPTS.md` → Verdict).
+`2hand idle` (Mixamo) is a front guard like the attacks. Meshy text-to-motion replacements were tried and rejected
+(`MESHY_PROMPTS.md` → Verdict).
+
+**Attack_1 plays `2hand attack refined.fbx`** (take `Scene`, frames 1–56, same 1.83 s, avatar / root-bake / events as
+`2hand attack.fbx`). The original is unreferenced but kept as the edit source; revert = point the override slot back to it.
+Blender edit (2026-11-03): only the left arm, 0.38–0.62, so the blade (left → right hand line, `TwoHandGripConstraint`)
+runs horizontal through the cut: pitch +18…+35° → +1…+7°, tip 1.23–1.58 → 0.91–1.11 m. Body and right hand within 2.4 mm.
+
+### Blender edit recipe (weapon line of a 2H clip)
+
+Claude Code Blender MCP (`mcp__blender__*`, Blender 5.2). The `.blend` and script live in the scratchpad, not the repo.
+1. Sample the clip in Unity (PlayableGraph on `Player.prefab`, `WeaponSocket` / `LeftWeaponSocket`, per frame); set
+   `animator.fireEvents = false` first or the clip events throw NREs into the uninitialised instance (the one NRE from
+   `EquipmentVisuals.OnEnable` → `PlayerAnimationDriver.SetInCombat` on instantiation is expected and harmless).
+2. Import the FBX in Blender (`automatic_bone_orientation=False`; armature scale 0.01, armature space +Y up, +Z forward,
+   −X right); wrap import / export in `temp_override(window=…)` — after `read_homefile` the context has no active object.
+3. Key an empty (parented to the armature, armature space) as the left-hand IK target `R − d′ × dist`, `d′` = Unity-measured
+   correction applied to the Middle1→Middle1 line; IK on `LeftForeArm` (chain 2, pole from the original elbow, pole angle
+   calibrated ≈ 1.5°), influence keyed with a smoothstep ramp; bake LOCAL quats (`convert_space`) only in the window.
+4. Hand bones are only a proxy for the Unity sockets (retarget + palm offsets ≈ 10° pitch, distances off by up to 70 %):
+   re-measure in Unity and correct per frame — 3 passes reached 0.022 m on the hand distance. Attack_1 final values:
+   target pitch +4°, pole angle 1.5°, distance scale per Blender frame 24: 1.69, 25: 1.36, 26–31: 1.07–1.28, others ≈ 1.
+5. Export armature-only FBX (baked, no leaf bones, no simplify) at scene fps 30. Copy the source root-bake flags, avatar
+   setup, compression and events, but keep the new take (`Scene`) and its frame range (1–56), never the source's.
 
 ### Unarmed (`Unarmed/`)
 

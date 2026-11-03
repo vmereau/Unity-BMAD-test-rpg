@@ -313,3 +313,22 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
   path (guard → wind-up → cut → recovery), constrain both hands to the handle with IK, bake, re-import as Humanoid.
   Gives the grip constraint a consistent hand line. Needs the BlenderMCP addon installed first; validate on one attack
   with the Player-rig blade-tip sampling (PlayableGraph, `MESHY_PROMPTS.md`) before planning a full set. Own spec.
+  - **Update 2026-11-03 (spec-blender-2h-attack1-horizontal-slash):** the Blender pipeline works through the Claude Code
+    Blender MCP (`mcp__blender__*`; the Unity `blender_bridge` is not set up). Validated on a Mixamo clip, not a Meshy one:
+    left-hand IK only, driven by Unity-measured blade pitch → `2hand attack refined.fbx` (Attack_1). Recipe:
+    `Combat/CLAUDE.md` → Blender edit recipe. The full sword-path rebuild for weaponless clips stays open.
+
+## From spec-blender-2h-attack1-horizontal-slash (2026-11-03)
+
+- **2H attack 1 recovery tail** — after the hit (0.58 → 1.0, ~0.77 s) the follow-through swings behind the right side and
+  back; trimming or speeding it would make the attack feel lighter. Changes the clip length → re-tune events / `attackSteps`.
+- **2H attack 1 strike entry** — the refined clip drops the blade from overhead to horizontal in ~40 ms (tip ~39 m/s vs 24
+  m/s originally). Accepted in playtest; if it reads as a jerk, start the tilt during the overhead wind-up (before 0.38).
+- **2H attack 2 (finisher) blade check** — run the same Player-rig blade table on `2hand attack 2` and fix it with the
+  same recipe if the cut is off.
+- **`WeaponHitbox` sub-steps ignore rotation** (review finding) — `WeaponHitbox.cs` ~107 sizes the sweep sub-steps from
+  the hitbox centre's travel only; a fast rotation about the grip (refined 2H attack 1 entry, tip ~39 m/s) moves the tip far
+  while the centre barely moves, so a small hurtbox could be skipped at low frame rates. Pre-existing; hits were fine in playtest.
+- **Commit the Blender edit script as a tool** (review finding) — the Attack_1 script and `.blend` lived in the session
+  scratchpad (spec rule); the recipe and final parameters are in `Combat/CLAUDE.md`, but a committed script (e.g.
+  `Tools/Blender/`) would make the next clip (attack 2, recovery trim) a re-run instead of a rewrite.
