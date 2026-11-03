@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30e9628c85695b843a105032e7abd939, type: 3}
   m_Name: Cue_SwingLight
   m_EditorClassIdentifier: Game::Game.Audio.SoundCueSO
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: ed04766de71fa3643bb987f83dc49fe2, type: 3}
+  - {fileID: 8300000, guid: cf2f808ded41dc44097c7d502dc9d5f8, type: 3}
+  - {fileID: 8300000, guid: ea1dc0ac30895d247a5e6ffc0e247e73, type: 3}
+  - {fileID: 8300000, guid: 7acd0568231553842bc99ce59e7a7d86, type: 3}
   volume: 0.8
   volumeJitter: 0.1
   pitchMin: 0.92

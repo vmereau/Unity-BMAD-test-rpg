@@ -10,8 +10,9 @@
 
 - `MainMixer.mixer` — Master → Music, SFX (exposed `MusicVolume`, `SfxVolume`).
 - `SFX/Cue_<Name>.asset` — one `SoundCueSO` per sound; drag the clips into its `clips` array.
-- Clips: `<category>/SFX_<Name>_<N>.<ext>` — lowercase category folders (`combat/`, `humanoids/` for footsteps),
-  e.g. `combat/SFX_Block_1.mp3`, no spaces. 3–4 takes per cue — the cue picks one at random, never the same twice
+- Clips: `<category>/SFX_<Name>_<N>.<ext>` — lowercase category folders: `humanoids/` (footsteps, hurt voice),
+  `humanoids/combat/` (swings, hits, blocks, draw / sheathe), e.g. `humanoids/combat/SFX_Block_1.mp3`, no spaces.
+  The file name doesn't have to match the cue (`SFX_Male_hurt_N` → `Cue_PlayerHurt`). 3–4 takes per cue — the cue picks one at random, never the same twice
   in a row. Commit each clip with its `.meta` (let Unity import before committing).
 
 ## Import recipe (short SFX)
