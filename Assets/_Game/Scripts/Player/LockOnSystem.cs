@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.AI;
 using Game.Combat;
 using Game.Core;
+using Game.Factions;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -30,6 +31,8 @@ namespace Game.Player
         private readonly List<Vector3> _candidatePositions = new();
         private InputSystem_Actions _input;
         private Camera _mainCamera;
+        private FactionMember _playerMember; // faction read at query time — FactionMember resolves it in its own Awake
+        private bool _noFactionWarned;
 
         private void Awake()
         {
@@ -39,6 +42,11 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+
+            // Only entities hostile to the player's faction are lock-on targets.
+            _playerMember = GetComponent<FactionMember>();
+            if (_playerMember == null)
+                GameLog.Warn(TAG, "LockOnSystem: no FactionMember on the player — no entity can be locked on");
 
             _mainCamera = Camera.main;
             if (_mainCamera == null)
@@ -70,6 +78,12 @@ namespace Game.Player
 
         private void TryAcquireTarget()
         {
+            if (_playerMember != null && _playerMember.Faction == null && !_noFactionWarned)
+            {
+                _noFactionWarned = true;
+                GameLog.Warn(TAG, "LockOnSystem: player FactionMember has no faction — no entity can be locked on");
+            }
+
             int count = Physics.OverlapSphereNonAlloc(transform.position, _config.lockOnRange, _lockOnBuffer,
                 _lockOnLayerMask, QueryTriggerInteraction.Collide);
             if (count == _lockOnBuffer.Length)
@@ -90,6 +104,7 @@ namespace Game.Player
                 var health = _lockOnBuffer[i].GetComponentInParent<EntityHealth>();
                 if (health == null || health.IsDead) continue;
                 if (_candidates.Contains(health)) continue;
+                if (!IsHostileTarget(health)) continue;
                 _candidates.Add(health);
                 _candidatePositions.Add(health.transform.position);
             }
@@ -107,6 +122,12 @@ namespace Game.Player
             {
                 GameLog.Info(TAG, "No valid targets in cone");
             }
+        }
+
+        private bool IsHostileTarget(EntityHealth health)
+        {
+            var member = health.GetComponentInParent<FactionMember>();
+            return member != null && _playerMember != null && FactionSO.AreHostile(_playerMember.Faction, member.Faction);
         }
 
         /// <summary>

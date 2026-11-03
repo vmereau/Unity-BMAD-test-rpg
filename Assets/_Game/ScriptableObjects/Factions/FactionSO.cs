@@ -19,6 +19,11 @@ namespace Game.Factions
         public bool IsHostileTo(FactionSO other) => other != null && _hostileFactions.Contains(other);
         public bool IsAlliedWith(FactionSO other) => other != null && _alliedFactions.Contains(other);
 
+        /// <summary>True when either faction lists the other as hostile (null-safe). Shared rule for player-facing
+        /// hostility checks (lock-on targets, NPC interaction gating).</summary>
+        public static bool AreHostile(FactionSO a, FactionSO b) =>
+            a != null && b != null && (a.IsHostileTo(b) || b.IsHostileTo(a));
+
         #if UNITY_EDITOR
         private const string TAG = "[Faction]";
 

@@ -10,7 +10,9 @@
 Every entity is a variant of `Entity_base.prefab` (`Humanoids/NPC_base Variant`,
 `Monsters/Monster_DarknessSpider Variant`). The base carries:
 
-- **Root on Characters (Layer 6)** — `LockOnSystem._lockOnLayerMask` (`m_Bits: 64`) detects it.
+- **Root on Characters (Layer 6)**. `LockOnSystem._lockOnLayerMask` = Characters + CharacterHitbox (`m_Bits: 192`): humanoids
+  have no collider on Layer 6 (their solid / ragdoll colliders are Default), so lock-on finds them through the `Hitbox`
+  hurtbox (Layer 7). Only entities whose faction is hostile to the player's (`FactionSO.AreHostile`) are lockable.
 - `EntityPresence` (`Game.World.IInteractable`) on the root + an **`InteractionCollider`** child
   (Layer 8 Interactable, trigger CapsuleCollider r 0.5 / h 2 / center y 1). Every entity is therefore
   hoverable (name/HP `EntityUI`) by default; `GetComponentInParent<IInteractable>()` climbs from the

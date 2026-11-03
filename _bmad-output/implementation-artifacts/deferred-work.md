@@ -342,3 +342,7 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Commit the full Unity blade check** (review finding) — the README snippet only gives pitch / hand distance; the
   acceptance numbers (yaw, tip, speed vs original, blade clearances, body-bone drift) came from an extended `execute_code`
   run that isn't in the repo. Add it to `Tools/Blender/` (or an editor menu) so the check can be repeated.
+
+## 2026-11-03 — from spec-hostile-npc-lockon-and-prompt review
+
+- Humanoid NPCs' `EntityStance._animationDriver` is null: the base `Entity_base` reference points at the base animation driver that `NPC_base Variant` removes (fileID 3299999205233303053). `EntityStance.Awake` falls back to `GetComponent`; verify stagger / knockdown animations on humanoids and wire it to `HumanoidAIAnimationDriver` explicitly if needed.

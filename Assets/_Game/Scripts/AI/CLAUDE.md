@@ -26,7 +26,7 @@
 | `SMB_DeathState` | On the death animator state. |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
-| `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. |
+| `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, _playerFaction)`, `_playerFaction` = `Faction_Player` wired on `NPC_base Variant`) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
 | `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine — see below. `NpcRoutineSchedule.FindBlock` is pure (`NpcRoutineScheduleTests`). |
 

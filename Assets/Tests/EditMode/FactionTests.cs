@@ -71,5 +71,43 @@ namespace Tests.EditMode
             Assert.That(a.IsHostileTo(b), Is.True);
             Assert.That(b.IsHostileTo(a), Is.False); // documents symmetric-by-convention contract
         }
+
+        [Test]
+        public void AreHostile_OneWayList_IsHostileBothWays()
+        {
+            var a = MakeFaction("A");
+            var b = MakeFaction("B");
+            a.InitForTest(new List<FactionSO> { b });
+            Assert.IsTrue(FactionSO.AreHostile(a, b));
+            Assert.IsTrue(FactionSO.AreHostile(b, a));
+        }
+
+        [Test]
+        public void AreHostile_BothListEachOther_IsTrue()
+        {
+            var a = MakeFaction("A");
+            var b = MakeFaction("B");
+            a.InitForTest(new List<FactionSO> { b });
+            b.InitForTest(new List<FactionSO> { a });
+            Assert.IsTrue(FactionSO.AreHostile(a, b));
+        }
+
+        [Test]
+        public void AreHostile_NoListing_IsFalse()
+        {
+            var a = MakeFaction("A");
+            var b = MakeFaction("B");
+            Assert.IsFalse(FactionSO.AreHostile(a, b));
+        }
+
+        [Test]
+        public void AreHostile_NullFaction_IsFalse()
+        {
+            var a = MakeFaction("A");
+            a.InitForTest(new List<FactionSO> { a });
+            Assert.IsFalse(FactionSO.AreHostile(a, null));
+            Assert.IsFalse(FactionSO.AreHostile(null, a));
+            Assert.IsFalse(FactionSO.AreHostile(null, null));
+        }
     }
 }

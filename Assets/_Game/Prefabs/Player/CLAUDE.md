@@ -46,7 +46,7 @@ Player.prefab
 - `EquipmentVisuals` socket refs: re-wire with `Game/Dev/Wire EquipmentVisuals on Player Prefab` (creates
   `LeftWeaponSocket` / `BackWeaponSocket` if missing; wires `_bodyRenderer` to `base_hero` and `_skeletonRoot` to `Character/mixamorig:Hips`).
 - `Hitbox` is hit by AI `WeaponHitbox` sweeps. The player's own sweeps skip it (`SetOwner`), `LockOnSystem`
-  scans Layer 6 only and the CharacterController ignores triggers — so it has no side effects.
+  (scans Layers 6 + 7) ignores it (no `EntityHealth`) and the CharacterController ignores triggers — so it has no side effects.
 - `UnarmedHitbox` is toggled by `PlayerCombat` (active only while bound).
 - Camera-relative movement uses `Camera.main`, cached in `Awake` as `_mainCamera`.
 - `PlayerAnimationDriver` only reads `CharacterController.velocity` — it never writes movement state.

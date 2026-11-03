@@ -690,7 +690,7 @@ MonoBehaviour:
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _lockOnLayerMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 192
 --- !u!114 &2598684479475945976
 MonoBehaviour:
   m_ObjectHideFlags: 0
