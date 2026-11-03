@@ -301,3 +301,15 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **PlayerAnimationDriver NRE at startup** — `EquipmentVisuals.OnEnable → PlayerCombat.HandleVisualsRefreshed →
   PlayerStateManager.SetInCombat → PlayerAnimationDriver.SetInCombat` runs before the driver's `Awake` cached the bridge
   (seen on entering Play mode; code unchanged since a8a6bc5). Guard `_humanoidBridge` or resolve it lazily.
+
+## From spec-meshy-2h-motion-prompts (2026-11-03 playtest)
+
+- **Meshy text-to-motion for 2H attacks — retry later** — rejected because Meshy animates without a weapon: the
+  left → right hand line read by `TwoHandGripConstraint` swings behind the body (attack 1 cut through the player) and the
+  hands cross in the chop. Verdict, hand-order rule, mirror check and logged clips: `Combat/MESHY_PROMPTS.md`; the v1
+  clips are kept untracked in `two handed/meshy test/`. Retry when Meshy can take a prop or a reference clip.
+- **Blender bridge: sword path + two-hand IK bake** — repair weaponless clips (Meshy or other) in Blender via the
+  Unity MCP `blender_bridge` (`run_python`, `screenshot`, `import_model`): attach a sword object to the rig, keyframe its
+  path (guard → wind-up → cut → recovery), constrain both hands to the handle with IK, bake, re-import as Humanoid.
+  Gives the grip constraint a consistent hand line. Needs the BlenderMCP addon installed first; validate on one attack
+  with the Player-rig blade-tip sampling (PlayableGraph, `MESHY_PROMPTS.md`) before planning a full set. Own spec.
