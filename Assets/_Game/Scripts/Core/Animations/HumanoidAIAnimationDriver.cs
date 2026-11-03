@@ -48,6 +48,17 @@ namespace Game.Animations
                 enabled = false;
                 return;
             }
+            // Before the _runSpeed early return: the bridge keeps animating even when this driver disables itself.
+            var animator = _bridge.Animator;
+            if (animator != null && animator.applyRootMotion)
+            {
+                // NPCs attack in place: with root motion on, full-body attack clips move the Animator's own transform
+                // (Character child) away from the agent root, and a cut swing leaves the offset for good.
+                // Nested models default it on — force it off.
+                GameLog.Warn(TAG, $"{gameObject.name}: Animator '{animator.name}' had Apply Root Motion on — forced off (NPC body would drift from its root)");
+                animator.applyRootMotion = false;
+            }
+
             if (_runSpeed <= 0f)
             {
                 GameLog.Warn(TAG, $"{gameObject.name}: _runSpeed must be > 0 — HumanoidAIAnimationDriver disabled");
@@ -55,7 +66,6 @@ namespace Game.Animations
                 return;
             }
 
-            var animator = _bridge.GetComponentInChildren<Animator>();
             if (animator != null)
             {
                 _ragdollBodies = animator.GetComponentsInChildren<Rigidbody>();
@@ -136,7 +146,7 @@ namespace Game.Animations
                 return;
             }
 
-            var animator = _bridge != null ? _bridge.GetComponentInChildren<Animator>() : null;
+            var animator = _bridge != null ? _bridge.Animator : null;
             if (animator != null)
             {
                 animator.enabled = false;

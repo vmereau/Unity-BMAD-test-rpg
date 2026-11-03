@@ -37,10 +37,15 @@ All StartingTown NPCs are direct scene instances of this variant.
 - **Attack wiring:**
   - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_selfFactionMember` = root
     `FactionMember`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
-  - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned.
+  - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. **Apply Root Motion off**
+    (variant override — the nested model defaults it on; with it on, full-body attack clips move `Character` away from
+    the agent root and a cut swing leaves the offset). `HumanoidAIAnimationDriver.Awake` forces it off + warns.
   - `.../WeaponSocket/UnarmedHitbox`: **active** but dormant (SphereCollider disabled, window closed).
     **No Rigidbody** — `HumanoidAIAnimationDriver` treats every Rigidbody under the Animator as ragdoll.
-- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. Jabs land at 1.0 m; the
+- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. In-place jab (root motion off):
+  hitbox center 0.61 m forward + radius 0.25 + `UnarmedHitbox._reachPadding` 0.3 ≈ 1.16 m reach → hits the player hurtbox
+  (r 0.3) out to ~1.46 m, covering the 1.3 m stopping distance. Re-measure (Animator `cullingMode = AlwaysAnimate` — a culled
+  off-camera Animator doesn't pose bones) if clips or ranges change. The
   uppercut (step 2) mostly whiffs vs a standing target (upper-body-masked clip — known limitation).
 
 ---

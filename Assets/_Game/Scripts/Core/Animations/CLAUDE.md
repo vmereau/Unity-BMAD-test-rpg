@@ -82,6 +82,11 @@ Symmetric on both sides: bridge + driver.
   `PlayerAnimationDriver` and `HumanoidAIAnimationDriver` each call `UpperBodyWeight.Target` + `Step` in `Update` with
   their own `IsInCombat` (NPC: cached in `SetInCombat`). Same rule for Player and NPCs — never write the weight elsewhere.
   `HumanoidAnimationBridge.TriggerGetHit` is skipped while `IsBaseFullBody` (GetHit has no clip and must not latch).
+- **NPC Animators never apply root motion.** `HumanoidAIAnimationDriver.Awake` forces `applyRootMotion = false` (warns,
+  before any early return; it uses `HumanoidAnimationBridge.Animator` — drivers do lifecycle work on the bridge's Animator,
+  only animator *parameters* are bridge-only):
+  attacks play full-body on the Base Layer, so root motion would move the `Character` child away from the agent root
+  (lock-on, colliders and hitbox owners stay at the root). NPCs attack in place — no NPC attack step.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 

@@ -46,6 +46,19 @@ namespace Game.Animations
             if (_animator == null) _animator = GetComponentInChildren<Animator>();
         }
 
+        /// <summary>
+        /// The Animator this bridge writes to — drivers use it for lifecycle work (ragdoll, root-motion guard) so they
+        /// act on the same Animator. Resolves lazily: a driver's Awake may run before this bridge's.
+        /// </summary>
+        public Animator Animator
+        {
+            get
+            {
+                if (_animator == null) _animator = GetComponentInChildren<Animator>();
+                return _animator;
+            }
+        }
+
         private bool IsAnimatorLive => _animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null;
 
         private int UpperBodyLayer
