@@ -69,7 +69,7 @@ Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–
 (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
 because the combo transition is listed first with `interruptionSource = Destination` (the outgoing exit can't cut it).
 `2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
-`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend (Meshy regeneration in progress: `MESHY_PROMPTS.md`).
+`2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend. Meshy text-to-motion replacements were tried and rejected (`MESHY_PROMPTS.md` → Verdict).
 
 ### Unarmed (`Unarmed/`)
 
