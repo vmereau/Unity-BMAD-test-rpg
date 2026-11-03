@@ -49,7 +49,7 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 
 ### Two handed (`two handed/`)
 
-2-step combo: `Unarmed Jab` → `2hand attack refined` (Attack_1), `Unarmed Uppercut` → `2hand attack 2` (Attack_2, finisher).
+2-step combo: `Unarmed Jab` → `2hand attack refined` (Attack_1), `Unarmed Uppercut` → `2hand attack 2 refined` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
 **All attack clips are in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
@@ -59,8 +59,7 @@ they stay root-baked and the forward step is scripted per archetype (`AttackStep
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
 | `2hand attack refined.fbx` (`2hand attack refined`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
-| `2hand attack 2.fbx` (`2hand attack 2`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
-| `2hand attack 2 refined.fbx` (`2hand attack 2 refined`, 1.27 s) | Attack_2 candidate (Blender, not wired) | 0.42 | 0.63 | — | — |
+| `2hand attack 2 refined.fbx` (`2hand attack 2 refined`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
 
 The finisher has no combo window (last step). Its first fast phase (0.08–0.26) is the backswing behind the body; the
 strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
@@ -79,9 +78,9 @@ because the combo transition is listed first with `interruptionSource = Destinat
 Blender edit (2026-11-03): only the left arm, 0.38–0.62, so the blade (left → right hand line, `TwoHandGripConstraint`)
 runs horizontal through the cut: pitch +18…+35° → +1…+7°, tip 1.23–1.58 → 0.91–1.11 m. Body and right hand within 2.4 mm.
 
-**`2hand attack 2 refined.fbx`** (Attack_2 candidate; take `Scene`, frames 1–39, same 1.27 s, avatar / root-bake / events
-as `2hand attack 2.fbx`). Blender edit (2026-11-03, `configs/2hand_attack_2.json`, `pitch_curve`): left arm only,
-0.18–0.69, yaw kept. The source swing was a near-flat descending sweep (blade never raised, flat behind the head at 0.42,
+**Attack_2 plays `2hand attack 2 refined.fbx`** (take `Scene`, frames 1–39, same 1.27 s, avatar / root-bake / events as
+`2hand attack 2.fbx`; the original is kept as the edit source, revert = point the override slot back to it).
+Blender edit (2026-11-03, `configs/2hand_attack_2.json`, `pitch_curve`): left arm only, 0.18–0.69, yaw kept. The source swing was a near-flat descending sweep (blade never raised, flat behind the head at 0.42,
 plane tilted 21°, tip above the hands +11…+19° at 0.45–0.50). Refined: blade lifts over the right shoulder from 0.21
 (+48° at 0.42, tip 2.6 m), pitch falls monotonically to −38° at 0.605, then eases back to the source by 0.69; plane tilt
 42°. Body and right socket within 2.7 mm. Known limit: the hands are at 0.88 m when the blade points forward (0.55), so

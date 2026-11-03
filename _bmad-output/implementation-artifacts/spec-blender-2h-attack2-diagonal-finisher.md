@@ -2,7 +2,7 @@
 title: 'Blender: turn the 2H finisher (attack 2) into a raised overhead diagonal cut'
 type: 'feature'
 created: '2026-11-03'
-status: 'in-review'
+status: 'done'
 baseline_commit: 'a4814de'
 context: ['{project-root}/Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md', '{project-root}/Tools/Blender/README.md']
 ---
@@ -73,7 +73,7 @@ Normalized time; Unity Player rig; speeds per 1/30 s sample; "orig" = same sampl
 - [x] `Tools/Blender/configs/2hand_attack_2.json` -- source pitches (39 values), window [0.18, 0.22, 0.61, 0.69], per-frame curve 0.211–0.632 (proxy-corrected, wanted ≈ +46° at 0.42–0.45 → −38° at 0.60), 3 `distance_scale` passes -- inputs
 - [x] `.../two handed/2hand attack 2 refined.fbx` (+ `.meta`) -- export, import, copy importer settings / events -- the clip
 - [x] Unity sampling -- per-frame blade table + speeds + clearances on both clips; iterate until the matrix holds -- evidence
-- [ ] `.../TwoHanded_AnimatorOverride.overrideController` -- Attack_2 → refined clip after user approval -- switch
+- [x] `.../TwoHanded_AnimatorOverride.overrideController` -- Attack_2 → refined clip after user approval -- switch
 - [x] `Tools/Blender/README.md`, `.../Combat/CLAUDE.md` -- `pitch_curve`, new config, Attack_2 row and note -- knowledge
 - [x] `deferred-work.md` -- close "2H attack 2 blade check"; add "2H finisher backswing as fast as the strike (20 vs 21 m/s)" -- traceability
 
@@ -116,9 +116,15 @@ Review patches: curve validation before the scene is cleared, ±89° clamp on cu
 frame range 1–39 in the `.meta` (re-sampled, identical), Combat/CLAUDE.md placement / table row / tree, README clamp note,
 config comment. Deferred: commit the extended Unity check. Rejected with evidence: HitboxEnable at 0.42 (source tip was
 also behind at 0.42), avatar-setup mismatch (copied from source), `distance_scale` gap at frame 10 (within tolerance).
-Pending: user A/B in game, then the override switch (AC3) → status `done`.
+A/B: user played both in game and picked the refined clip ("refined is better"); Attack_2 slot (Unarmed Uppercut) now
+points to it, original unreferenced; console shows no new errors or warnings.
 
 ## Suggested Review Order
+
+**Clip switch**
+
+- Attack_2 slot now plays the Blender-refined finisher.
+  [`TwoHanded_AnimatorOverride.overrideController:17`](../../Assets/_Game/Art/Characters/Humanoids/Animations/Combat/two%20handed/TwoHanded_AnimatorOverride.overrideController#L17)
 
 **Script: two-way pitch target**
 
@@ -148,10 +154,10 @@ Pending: user A/B in game, then the override switch (AC3) → status `done`.
 **Knowledge**
 
 - Attack_2 refined note: before / after numbers and the impact-height limit.
-  [`CLAUDE.md:82`](../../Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md#L82)
+  [`CLAUDE.md:81`](../../Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md#L81)
 
-- Candidate row in the 2H hit-window table.
-  [`CLAUDE.md:63`](../../Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md#L63)
+- Attack_2 row in the 2H hit-window table.
+  [`CLAUDE.md:62`](../../Assets/_Game/Art/Characters/Humanoids/Animations/Combat/CLAUDE.md#L62)
 
 - Constant vs curve target, proxy correction and ramp advice.
   [`README.md:13`](../../Tools/Blender/README.md#L13)
