@@ -23,8 +23,12 @@ namespace Game.Player
         [Header("Jump")]
         [SerializeField] public float jumpForce = 5f;
 
+        [Header("Attack")]
+        [Tooltip("Turn speed toward the move input during an attack's wind-up (until its HitboxEnable event commits the swing).")]
+        [Min(0f)] [SerializeField] public float attackSteerSpeed = 8f;
+
         [Header("Animation")]
-        [Tooltip("Seconds for the FullBody layer weight to fade in / out around a full-body attack (two-handed swings).")]
-        [Min(0.01f)] [SerializeField] public float fullBodyAttackBlendTime = 0.15f;
+        [Tooltip("Seconds for a full 0↔1 fade of the UpperBody layer weight (attack / dodge / reaction start and end).")]
+        [Min(0.01f)] [SerializeField] public float upperBodyBlendTime = 0.15f;
     }
 }

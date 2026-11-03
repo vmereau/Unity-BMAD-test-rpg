@@ -47,7 +47,11 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 ### Two handed (`two handed/`)
 
 2-step combo: `Unarmed Jab` → `2hand attack` (Attack_1), `Unarmed Uppercut` → `2hand attack 2` (Attack_2, finisher).
-Both play **full-body** (FullBody layer, `Controllers/CLAUDE.md`) — they twist the hips up to 112°.
+They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
+
+**All attack clips are in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
+they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
+`attackSteps` start / duration in **seconds** against the clip lengths and hit windows (hit time = HitboxEnable × length).
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
@@ -60,7 +64,7 @@ strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 Window from hand-speed sampling: wind-up overhead until ~0.30, downswing 0.33–0.50, horizontal follow-through to ~0.58.
 `ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina
 (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
-because the combo transition is listed first with `interruptionSource = None`.
+because the combo transition is listed first with `interruptionSource = Destination` (the outgoing exit can't cut it).
 `2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
 `2hand idle` is a shoulder-rest pose while attack / stagger / sheathe start from a front guard — a visible blend.
 
@@ -98,7 +102,7 @@ A missing event is not fatal — the state exit completes the swap, just late (e
 
 ### Two-part draw / sheathe → one baked `.anim`
 
-Draw / sheathe is **one** Attack-layer state with one clip, so a vendor draw split in two parts (reach to the back →
+Draw / sheathe is **one** UpperBody-layer state with one clip, so a vendor draw split in two parts (reach to the back →
 bring forward) is merged, not given a second state. No committed bake tool yet — the clips were baked once from `execute_code`. Recipe: for every
 `AnimationUtility.GetCurveBindings(part1)` (Humanoid muscle curves) copy part 1's keys, then part 2's keys shifted by
 `part1.length + 0.1 s`; set Auto tangents on the two seam keys (smooths the small pose jump); copy part 1's

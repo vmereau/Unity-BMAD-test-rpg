@@ -110,9 +110,9 @@ which resets **every** animator parameter (a drawn player would sit in `LockOn L
 `SetDead(true)` keeps `IsSwitchingWeapon` (IsBusy blocks R; watchdog / load fix the visual). `PlayerSaveAdapter` forces the
 sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 
-- R is gated by `CanSwitchWeapon()`: not busy, attacking, blocking, dodging, airborne, or already switching — the
-  Attack-layer AnyState transitions for block / dodge / jump / fall are held bools that would yank the layer out of the
-  clip. `CanAttack()` / `CanBlock()` also require `!IsSwitchingWeapon`.
+- R is gated by `CanSwitchWeapon()`: not busy, attacking, blocking, dodging, airborne, or already switching — block
+  would pull the UpperBody layer out of the clip, and dodge / jump / fall play full-body (UpperBody weight 0, the
+  draw / sheathe clip hidden). `CanAttack()` / `CanBlock()` also require `!IsSwitchingWeapon`.
 - `CanAttack()` / `CanBlock()` require `IsInCombat` (gated in `PlayerStateManager`, see
   `Scripts/Player/CLAUDE.md`); `CanDodge()` does not. `IsInCombat` starts `false` (sheathed).
 - The `DrawWeapon.started` unsubscribe goes inside the `if (_input == null) return;` guarded block of
@@ -127,7 +127,7 @@ With a `BowSO` equipped (`EquippedBow`, read from `EquipmentSystem.GetEquipped(W
 only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't block and has no hip-fire:
 
 - **Aim (spec `spec-bow-aim-draw-fire.md`):** Block started / canceled (right click) → `StartAim` / `StopAim`
-  (`PlayerStateManager.SetAiming` → `IsAiming` bool → Attack layer `BowDrawArrow_State` → looping `BowAim_State`).
+  (`PlayerStateManager.SetAiming` → `IsAiming` bool → UpperBody layer `BowDrawArrow_State` → looping `BowAim_State`).
   `StartAim` is gated by `CanAim()`. `UpdateBowAim` ends the aim as soon as `CanAim()` fails or the bow is unequipped
   (dodge, jump, R, menu, death, sheathed). `StopAim` also runs on an unblocked hit (`TryReceiveHit`),
   `HandleVisualsRefreshed`, `OnDisable` and at the top of `OnDrawWeaponStarted` (R ends the aim, then switches;
@@ -140,7 +140,7 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
   and fires `BowFire` (`BowFire_State` → `BowDrawArrow_State` → re-nock at the aim enter). A refused shot keeps the nock.
   Ignored while a melee swing is still playing (`IsAttacking`).
 - **Aim correction (spec `spec-bow-aim-spine-correction.md`):** the Mixamo archer clips are side-on (clip hips +90°,
-  spine −90°), but on the Attack layer the hips come from locomotion, so no fixed body yaw lines the bow up.
+  spine −90°), but on the masked UpperBody layer the hips come from locomotion, so no fixed body yaw lines the bow up.
   `BowAimCorrection` (Player root, `LateUpdate`) blends a weight toward `IsAiming` (`aimBlendSpeed`, unscaled — same as
   the aim camera). It then turns Spine → Chest → UpperChest (yaw about world up, then pitch about the line's horizontal
   right axis) so the **chest-locked arrow line** points at `PlayerCombat.TryGetAimPoint` (same ray as the shot; false

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game.Combat
 {
     /// <summary>
-    /// StateMachineBehaviour on the Draw_State / Sheathe_State AnimatorStates (Humanoid_Template, Attack layer).
+    /// StateMachineBehaviour on the Draw_State / Sheathe_State AnimatorStates (Humanoid_Template, UpperBody layer).
     /// The WeaponSwap clip event times the weapon swap; this SMB's guaranteed OnStateExit completes it when the clip
     /// was interrupted (dodge, jump) before the event fired. Silent no-op on NPCs (no AnimationEventReceiver).
     /// </summary>

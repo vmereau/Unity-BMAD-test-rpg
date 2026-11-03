@@ -9,7 +9,7 @@ namespace Game.Animations
     /// humanoid enemies). Reads <c>NavMeshAgent.velocity</c>, normalizes it into local space
     /// against <c>_runSpeed</c>, and forwards <c>VelocityX</c>/<c>VelocityZ</c>/<c>IsGrounded</c>/<c>IsRising</c>
     /// to <see cref="HumanoidAnimationBridge"/>. Owns ragdoll-bone caching + death-component-disable
-    /// lifecycle. Attacks play the unarmed combo on the upper-body <c>Attack</c> layer:
+    /// lifecycle. Attacks play the unarmed combo full-body on the Base Layer:
     /// <c>TriggerAttack</c> resets the Attack_1/2/3 triggers and sets <c>Attack_1</c>;
     /// <c>TriggerComboStep(2|3)</c> sets <c>Attack_2|Attack_3</c>.
     /// </summary>
@@ -17,7 +17,7 @@ namespace Game.Animations
     public class HumanoidAIAnimationDriver : AIAnimationDriver
     {
         private const string TAG = "[AI]";
-        private const int MAX_COMBO_STEPS = 3; // Humanoid_Template Attack layer: Attack_1 → Attack_2 → Attack_3
+        private const int MAX_COMBO_STEPS = 3; // Humanoid_Template Base Layer: Attack_1 → Attack_2 → Attack_3
 
         [SerializeField] private HumanoidAnimationBridge _bridge;
 
@@ -30,9 +30,14 @@ namespace Game.Animations
         [Tooltip("Transforms (like InteractionCollider or Hitbox) that should follow the ragdoll hips after death instead of staying at the root.")]
         [SerializeField] private Transform[] _transformsToPinToHips;
 
+        [Tooltip("Seconds for a full 0↔1 fade of the UpperBody layer weight (combat carry pose in / out, attack start / end).")]
+        [Min(0.01f)] [SerializeField] private float _upperBodyBlendTime = 0.15f;
+
         private Rigidbody[] _ragdollBodies;
         private bool _ragdollActive;
         private bool _warnedWarningNotImplemented;
+        private bool _isInCombat;
+        private float _upperBodyWeight;
 
         private void Awake()
         {
@@ -57,6 +62,15 @@ namespace Game.Animations
                 foreach (var rb in _ragdollBodies)
                     rb.isKinematic = true;
             }
+        }
+
+        // UpperBody layer: combat carry pose in combat, 0 while an attack / reaction / death plays full-body (UpperBodyWeight).
+        private void Update()
+        {
+            if (_bridge == null || _ragdollActive) return;
+            float target = UpperBodyWeight.Target(_bridge.IsBaseFullBody, _bridge.IsUpperBodyAction, _isInCombat);
+            _upperBodyWeight = UpperBodyWeight.Step(_upperBodyWeight, target, Time.deltaTime, _upperBodyBlendTime);
+            _bridge.SetUpperBodyWeight(_upperBodyWeight);
         }
 
         public override void DriveLocomotion(NavMeshAgent agent)
@@ -86,7 +100,7 @@ namespace Game.Animations
             _bridge.PlayAttack(_bridge.AttackTriggerHash(step));
         }
 
-        // An Attack_1 set before the Attack layer reached CombatIdle (e.g. disengage during the
+        // An Attack_1 set before the Base Layer took it (e.g. disengage during the
         // IsInCombat blend) would otherwise fire on the next combat entry as a damage-less punch.
         public override void CancelAttack()
         {
@@ -99,7 +113,11 @@ namespace Game.Animations
         public override void TriggerStagger(int variant) => _bridge?.PlayStagger(variant);
         public override void TriggerKnockDown() => _bridge?.PlayKnockDown();
         public override void ClearStanceReaction() => _bridge?.ResetStanceTriggers();
-        public override void SetInCombat(bool active) => _bridge?.SetInCombat(active);
+        public override void SetInCombat(bool active)
+        {
+            _isInCombat = active;
+            _bridge?.SetInCombat(active);
+        }
 
         public override void SetWarning(bool active)
         {

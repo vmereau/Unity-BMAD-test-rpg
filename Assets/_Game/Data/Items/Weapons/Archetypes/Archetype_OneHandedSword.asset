@@ -19,8 +19,22 @@ MonoBehaviour:
   sheathedPose:
     localPosition: {x: 0.010540806, y: 0.110260576, z: 0.015339233}
     localEulerAngles: {x: 13.852132, y: 358.55875, z: 193.62311}
+  twoHandedGrip: 0
+  gripRoll: 0
+  gripSlide: 0
   sheathSocket: 0
   animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  attackSteps:
+  - distance: 0.5
+    startTime: 0.35
+    duration: 0.35
+  - distance: 0.6
+    startTime: 0.5
+    duration: 0.35
+  - distance: 0.6
+    startTime: 0.3
+    duration: 0.3
   defaultComboSteps: 2
+  attackStaminaMultiplier: 1
   stanceDamage: 25
   canKnockDown: 0

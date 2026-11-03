@@ -31,9 +31,9 @@ namespace Game.Inventory
 
         [Header("Animation")]
         public AnimatorOverrideController animatorOverrideController;
-        [Tooltip("Player attacks play full-body (FullBody Animator layer): hips and legs follow the clip, and the player " +
-                 "can't move or turn during the swing. For clips that twist the hips (two-handed: true).")]
-        public bool fullBodyAttacks;
+        [Tooltip("Player forward step per attack state (element 0 = Attack_1). Missing entries use " +
+                 "CombatConfigSO.defaultAttackStep; distance 0 = that swing stays in place.")]
+        public AttackStep[] attackSteps;
 
         [Header("Combo")]
         [Min(1)] public int defaultComboSteps = 2;

@@ -95,23 +95,37 @@ namespace Tests.EditMode
         public void ResolvedAttackStaminaMultiplier_NoArchetype_IsOne()
             => Assert.That(CreateWeapon().ResolvedAttackStaminaMultiplier, Is.EqualTo(1f));
 
-        // ── ResolvedFullBodyAttacks ─────────────────────────────────────────
+        // ── ResolveAttackStep ───────────────────────────────────────────────
+
+        private static readonly AttackStep Fallback = new AttackStep(0.5f, 0.35f, 0.35f);
 
         [Test]
-        public void ResolvedFullBodyAttacks_UsesArchetypeFlag()
+        public void ResolveAttackStep_UsesArchetypeEntryForTheAttackIndex()
         {
             var archetype = CreateArchetype();
-            archetype.fullBodyAttacks = true;
-            Assert.That(CreateWeapon(0, archetype).ResolvedFullBodyAttacks, Is.True);
+            archetype.attackSteps = new[] { new AttackStep(0.6f, 0.3f, 0.3f), new AttackStep(0.8f, 0.25f, 0.3f) };
+            Assert.That(CreateWeapon(0, archetype).ResolveAttackStep(2, Fallback).distance, Is.EqualTo(0.8f));
         }
 
         [Test]
-        public void ResolvedFullBodyAttacks_ArchetypeDefaultIsFalse()
-            => Assert.That(CreateWeapon(0, CreateArchetype()).ResolvedFullBodyAttacks, Is.False);
+        public void ResolveAttackStep_MissingEntry_UsesFallback()
+        {
+            var archetype = CreateArchetype();
+            archetype.attackSteps = new[] { new AttackStep(0.6f, 0.3f, 0.3f) };
+            Assert.That(CreateWeapon(0, archetype).ResolveAttackStep(3, Fallback).distance, Is.EqualTo(Fallback.distance));
+        }
 
         [Test]
-        public void ResolvedFullBodyAttacks_NoArchetype_IsFalse()
-            => Assert.That(CreateWeapon().ResolvedFullBodyAttacks, Is.False);
+        public void ResolveAttackStep_NoArchetype_UsesFallback()
+            => Assert.That(CreateWeapon().ResolveAttackStep(1, Fallback).distance, Is.EqualTo(Fallback.distance));
+
+        [Test]
+        public void ResolveAttackStep_ZeroDistanceEntry_IsKept()
+        {
+            var archetype = CreateArchetype();
+            archetype.attackSteps = new[] { new AttackStep(0f, 0f, 0f) };
+            Assert.That(CreateWeapon(0, archetype).ResolveAttackStep(1, Fallback).distance, Is.EqualTo(0f));
+        }
 
         // ── ResolvedAnimatorOverride ────────────────────────────────────────
 

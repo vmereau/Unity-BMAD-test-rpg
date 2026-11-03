@@ -34,27 +34,47 @@ namespace Game.Animations
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
 
-        private const string FULL_BODY_LAYER = "FullBody";
+        private const string UPPER_BODY_LAYER = "UpperBody";
+        private static readonly int LockOnLocomotionHash = Animator.StringToHash("LockOn Locomotion");
 
         [SerializeField] private Animator _animator;
 
-        private int _fullBodyLayer = -1; // cached once found; looked up again while missing (controller assigned late)
+        private int _upperBodyLayer = -1; // cached once found; looked up again while missing (controller assigned late)
 
         private void Awake()
         {
             if (_animator == null) _animator = GetComponentInChildren<Animator>();
         }
 
-        /// <summary>
-        /// Weight of the unmasked FullBody layer (synced to Attack): 1 = the attack clip drives hips and legs too.
-        /// No-op on a controller without the layer. Override controllers keep the base layers, so the index is cached.
-        /// </summary>
-        public void SetFullBodyWeight(float weight)
+        private bool IsAnimatorLive => _animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null;
+
+        private int UpperBodyLayer
         {
-            if (_animator == null) return;
-            if (_fullBodyLayer < 0) _fullBodyLayer = _animator.GetLayerIndex(FULL_BODY_LAYER);
-            if (_fullBodyLayer < 0) return;
-            _animator.SetLayerWeight(_fullBodyLayer, weight);
+            get
+            {
+                if (_upperBodyLayer < 0 && IsAnimatorLive) _upperBodyLayer = _animator.GetLayerIndex(UPPER_BODY_LAYER);
+                return _upperBodyLayer;
+            }
+        }
+
+        // The state a layer is heading into: the next state during a transition, else the current one.
+        private bool DestinationHasTag(int layer, string tag) => _animator.IsInTransition(layer)
+            ? _animator.GetNextAnimatorStateInfo(layer).IsTag(tag)
+            : _animator.GetCurrentAnimatorStateInfo(layer).IsTag(tag);
+
+        /// <summary>True while the Base Layer is in (or heading into) an attack or another full-body state (tags in <see cref="UpperBodyWeight"/>).</summary>
+        public bool IsBaseFullBody => IsAnimatorLive
+            && (DestinationHasTag(0, UpperBodyWeight.ATTACK_TAG) || DestinationHasTag(0, UpperBodyWeight.FULL_BODY_TAG));
+
+        /// <summary>True while the UpperBody layer is in (or heading into) block, draw / sheathe or a bow aim state.</summary>
+        public bool IsUpperBodyAction => IsAnimatorLive && UpperBodyLayer >= 0
+            && DestinationHasTag(UpperBodyLayer, UpperBodyWeight.UPPER_BODY_ACTION_TAG);
+
+        /// <summary>Weight of the masked UpperBody layer (drivers step it with <see cref="UpperBodyWeight"/>). No-op without the layer.</summary>
+        public void SetUpperBodyWeight(float weight)
+        {
+            if (!IsAnimatorLive || UpperBodyLayer < 0) return;
+            _animator.SetLayerWeight(UpperBodyLayer, weight);
         }
 
         public void SetMovement(float x, float z)
@@ -126,7 +146,7 @@ namespace Game.Animations
             _animator.ResetTrigger(SheatheWeaponHash);
         }
 
-        /// <summary>Sets the IsAiming bool (bow aim: Attack layer CombatIdle ⇄ BowDrawArrow / BowAim / BowFire).</summary>
+        /// <summary>Sets the IsAiming bool (bow aim: UpperBody layer CombatIdle ⇄ BowDrawArrow / BowAim / BowFire).</summary>
         public void SetAiming(bool value)
         {
             if (_animator != null) _animator.SetBool(IsAimingHash, value);
@@ -150,27 +170,45 @@ namespace Game.Animations
                 _animator.SetTrigger(isBackwardRoll ? IsDodgingBackwardsHash : IsDodgingHash);
         }
 
-        public void TriggerGetHit() => _animator?.SetTrigger(GetHitHash);
-        public void TriggerDeath()  => _animator?.SetTrigger(DeathHash);
+        /// <summary>
+        /// Plain hit reaction (GetHit has no clip yet; Base reaches it from LockOn Locomotion only). Set only while Base
+        /// sits in LockOn Locomotion: anywhere else (attack, sneak, dodge…) the trigger would stay latched and fire later.
+        /// </summary>
+        public void TriggerGetHit()
+        {
+            if (!IsAnimatorLive || _animator.IsInTransition(0)
+                || _animator.GetCurrentAnimatorStateInfo(0).shortNameHash != LockOnLocomotionHash) return;
+            _animator.SetTrigger(GetHitHash);
+        }
+
+        /// <summary>Plays Death. Clears pending attack triggers — the Base AnyState → Attack_1 would otherwise leave Death.</summary>
+        public void TriggerDeath()
+        {
+            if (_animator == null) return;
+            ResetAttackTriggers();
+            _animator.SetTrigger(DeathHash);
+        }
 
         /// <summary>
-        /// Plays stagger clip <paramref name="index"/> (StaggerIndex 0/1) on both layers. Clears a pending GetHit set by
-        /// the same hit — it would otherwise fire right after and cut the stagger.
+        /// Plays stagger clip <paramref name="index"/> (StaggerIndex 0/1) on the Base Layer. Clears a pending GetHit set by
+        /// the same hit (it would otherwise fire right after and cut the stagger) and pending attack triggers.
         /// </summary>
         public void PlayStagger(int index)
         {
             if (_animator == null) return;
             _animator.ResetTrigger(GetHitHash);
+            ResetAttackTriggers(); // a latched Attack_1 would cut the reaction through the Base AnyState
             _animator.SetInteger(StaggerIndexHash, index);
             _animator.SetTrigger(StaggerHash);
         }
 
-        /// <summary>Plays knocked down → getting up on both layers. Clears pending GetHit / Stagger triggers.</summary>
+        /// <summary>Plays knocked down → getting up on the Base Layer. Clears pending GetHit / Stagger / attack triggers.</summary>
         public void PlayKnockDown()
         {
             if (_animator == null) return;
             _animator.ResetTrigger(GetHitHash);
             _animator.ResetTrigger(StaggerHash);
+            ResetAttackTriggers(); // a latched Attack_1 would cut the reaction through the Base AnyState
             _animator.SetTrigger(KnockDownHash);
         }
 

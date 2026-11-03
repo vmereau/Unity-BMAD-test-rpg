@@ -1,3 +1,4 @@
+using Game.Inventory;
 using UnityEngine;
 
 namespace Game.Combat
@@ -80,6 +81,18 @@ namespace Game.Combat
         [Tooltip("Watchdog: seconds an attack may go without any attack state enter/exit or clip event before it is " +
                  "force-ended. Must exceed the longest gap between attack callbacks of any attack clip.")]
         [Min(0.1f)] public float attackStallTimeout = 1.5f;
+
+        [Header("Attack Step (player forward step per swing)")]
+        [Tooltip("Forward step of a weapon attack state the archetype doesn't list (WeaponArchetypeSO.attackSteps).")]
+        public AttackStep defaultAttackStep = new AttackStep(0.5f, 0.35f, 0.35f);
+        [Tooltip("Unarmed forward step per attack state (element 0 = Attack_1 Jab, 1 = Uppercut, 2 = Jab). Missing " +
+                 "entries use defaultAttackStep.")]
+        public AttackStep[] unarmedAttackSteps =
+        {
+            new AttackStep(0.3f, 0.2f, 0.25f),
+            new AttackStep(0.35f, 0.25f, 0.25f),
+            new AttackStep(0.3f, 0.2f, 0.25f),
+        };
 
         [Header("Draw / Sheathe")]
         [Tooltip("Playback speed of the draw / sheathe clips (Humanoid_Template WeaponSwitchSpeed).")]

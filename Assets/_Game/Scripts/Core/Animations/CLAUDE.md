@@ -61,7 +61,7 @@ Symmetric on both sides: bridge + driver.
   `HumanoidAnimationBridge.ResetAttackTriggers()` then sets `Attack_1` (a stale `Attack_2/3` would
   otherwise auto-chain the next attack); `TriggerComboStep(2|3)` sets `Attack_2|Attack_3`.
   `CancelAttack()` (called by `EntityMeleeAttacker.EndAttack`) resets the attack triggers — an
-  `Attack_1` set before the Attack layer reached `CombatIdle` (disengage during the `IsInCombat`
+  `Attack_1` set before the Base Layer took it (disengage during the `IsInCombat`
   blend) would otherwise fire as a damage-less punch on the next combat entry. Monster: no-op.
 - **`SetWarning(bool)` is a held bool, not a trigger.** The warning telegraph must hold for the
   multi-second warning timer and exit cleanly, so the seam method takes a bool (not a one-shot
@@ -77,9 +77,11 @@ Symmetric on both sides: bridge + driver.
   `ResetStanceTriggers`. Like `ResetAttackTriggers`, these bridge methods write several parameters on purpose: one hit
   sets `GetHit` then `Stagger` in the same frame, and the pending `GetHit` must be cleared in the same write or it cuts
   the stagger clip.
-- **`HumanoidAnimationBridge.SetFullBodyWeight` is player-only.** It drives `Humanoid_Template`'s synced, unmasked
-  `FullBody` layer (default weight 0; `Controllers/CLAUDE.md`). AI drivers never call it — an NPC at weight > 0 would
-  play its Attack-layer state on the legs too.
+- **UpperBody layer weight: drivers step it, the bridge reads tags.** `HumanoidAnimationBridge` exposes
+  `IsBaseFullBody` / `IsUpperBodyAction` (destination-state tags, `Controllers/CLAUDE.md`) and `SetUpperBodyWeight`;
+  `PlayerAnimationDriver` and `HumanoidAIAnimationDriver` each call `UpperBodyWeight.Target` + `Step` in `Update` with
+  their own `IsInCombat` (NPC: cached in `SetInCombat`). Same rule for Player and NPCs — never write the weight elsewhere.
+  `HumanoidAnimationBridge.TriggerGetHit` is skipped while `IsBaseFullBody` (GetHit has no clip and must not latch).
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 

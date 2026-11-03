@@ -50,6 +50,6 @@ An exit-only "attack ended" signal therefore fires mid-chain on every `Attack_1 
 
 ## Shared controller
 
-`Humanoid_Template.controller` is used by the Player **and** humanoid NPCs, so its attack states carry both
-SMBs. Each SMB must be a silent no-op when its receiver is absent — explicit `if (receiver != null)`, never
+`Humanoid_Template.controller` is used by the Player **and** humanoid NPCs, so its attack states (Base Layer, full-body,
+tag `Attack`) carry both SMBs. One layer plays each attack clip, so clip events fire once — no dedupe. Each SMB must be a silent no-op when its receiver is absent — explicit `if (receiver != null)`, never
 `?.` (Unity fake-null). `EntityBase.controller` (monsters) carries `SMB_EntityAttackState` on `Attack`.

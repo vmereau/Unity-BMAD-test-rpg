@@ -83,7 +83,7 @@ namespace Game.Player
                 _stateManager.SetSneaking(true);
         }
 
-        // No sprint while aiming the bow (PlayerController ignores Sprint then) or rooted by a full-body swing — Shift must
+        // No sprint while aiming the bow (PlayerController ignores Sprint then) or during a swing (no move input) — Shift must
         // not drop the sneak for nothing.
         private bool IsSprintingWhileMoving() =>
             !_stateManager.IsAiming

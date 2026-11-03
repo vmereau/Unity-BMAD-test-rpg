@@ -10,22 +10,24 @@
 Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Weapon families swap clips via
 `AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Combat/one handed/Sword_AnimatorOverride`,
 `Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). The two-handed override
-also replaces `Block Idle` and `unarmed stagger 1/2` (both layers, so the legs play the 2H stagger too).
+also replaces `Block Idle` and `unarmed stagger 1/2`.
 
-- **Layers:** `Base Layer` (locomotion `LockOn Locomotion` 2D blend tree, sneak states, jump/fall/land,
-  dodge, `GetHit`, `Death`) and the upper-body-masked **`Attack`** layer at a **constant weight 1** with its
-  **own** `LockOn Locomotion` (default) → `CombatIdle` (IsInCombat) → `Attack_1/2/3_State`, AnyState →
-  `Block_State`, plus jump/fall/dodge copies. The Attack layer always drives the upper body, even out of
-  combat — **any new Base locomotion state needs an Attack-layer twin**, or the torso plays standing
-  locomotion over the new legs.
-- **`FullBody` layer (index 2):** synced to `Attack` (`syncedLayerAffectsTiming` off), **no mask**, Override, default
-  weight **0**, no SMBs; every state's override motion = the Attack state's motion (the weapon override controller then
-  swaps it like any clip). `PlayerAnimationDriver` fades its weight to 1 only while a full-body attack runs
-  (`WeaponArchetypeSO.fullBodyAttacks`, two-handed) — hips and legs then follow the clip, which the masked Attack layer
-  can't do (the 2H swing twists the hips up to 112°: torso and blade were 30–112° off). NPCs never write it. **A new
-  Attack-layer state needs its motion copied into the FullBody layer** (`layer.SetOverrideMotion(state, motion)`), or
-  it plays no motion there during a 2H swing. Both layers fire the same clip events — `AnimationEventReceiver`
-  forwards each once per frame (`Scripts/Combat/PLAYER_COMBO.md`).
+- **Layers** (spec-full-body-attacks-root-motion): **`Base Layer`** holds locomotion (`LockOn Locomotion` 2D blend
+  tree, sneak states) **and every full-body action** — `Attack_1/2/3_State` (AnyState → `Attack_1`), jump/fall/land,
+  dodge, `Stagger_1/2`, `KnockedDown → GettingUp`, `Death`, `GetHit`. **`UpperBody`** (index 1, `UpperBodyMask`, Override,
+  default weight **0**) holds only `LockOn Locomotion` (default), `CombatIdle` (the weapon carry pose, IsInCombat),
+  AnyState → `Block_State` / `Draw_State` / `Sheathe_State`, and the bow aim states. No twins: **a new Base state needs
+  nothing on UpperBody** — tag it instead (below).
+- **UpperBody weight** is not authored: `PlayerAnimationDriver` / `HumanoidAIAnimationDriver` step it every frame with
+  `UpperBodyWeight` (`Scripts/Core/Animations/`) from the Animator's **state tags**, read on each layer's destination
+  state (next state during a transition): Base tag `Attack` or `FullBody` → 0; else UpperBody tag `UpperBodyAction` or
+  `IsInCombat` → 1; else 0 (blend `PlayerConfigSO.upperBodyBlendTime` / the NPC driver's `_upperBodyBlendTime`, 0.15 s).
+  Tags: `Attack` = the three attack states; `FullBody` = JumpRise, Falling, Dodging, Dodge back, Stagger_1/2,
+  KnockedDown, GettingUp, Death, Dead (not Landing: a block / draw pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, BowDrawArrow/Aim/Fire. **A new
+  full-body Base state must get the `FullBody` tag** or the carry pose plays over it in combat.
+- **Attacks are full-body.** Every attack state exits to `LockOn Locomotion` on `IsBlocking` (listed first — block-cancel),
+  then the combo / exit-time transitions. Attack clips stay root-baked (`applyRootMotion` off everywhere): the Mixamo clips
+  are in place (net root travel 0), so the player's forward step is scripted (`PlayerAttackStep`, `Scripts/Combat/PLAYER_COMBO.md`).
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
@@ -33,34 +35,33 @@ also replaces `Block Idle` and `unarmed stagger 1/2` (both layers, so the legs p
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
-### Draw / sheathe states (Attack layer, player only)
+### Draw / sheathe states (UpperBody layer, player only)
 
 AnyState → `Draw_State` (`DrawWeapon`) / `Sheathe_State` (`SheatheWeapon`), 0.1 s, no self-transition; speed multiplier
 `WeaponSwitchSpeed`; each carries `SMB_WeaponSwitchState` (`drawState` true / false). `Draw_State → CombatIdle` and
-`Sheathe_State → LockOn Locomotion` (IsSneaking false) / `→ Sneak Locomotion` (IsSneaking true), exit time 0.85.
-`Draw_State → Attack_1_State` (Attack_1, interruption Source) — attacks unlock at the `WeaponSwap` event, before the clip ends.
+`Sheathe_State → LockOn Locomotion`, exit time 0.85. Attacks unlock at the `WeaponSwap` event, before the clip ends: the
+Base AnyState → `Attack_1` takes the swing and the UpperBody weight drops to 0 (the draw tail is hidden).
 AnyState transitions are evaluated before `LockOn Locomotion → CombatIdle (IsInCombat)`, so the draw wins the frame
 `IsInCombat` flips. Base clips = `draw sword` / `sheath sword` (also the unarmed placeholder); `Sword_AnimatorOverride`
 lists them explicitly (self-mapped) so an unarmed clip only replaces the base-state motion; `Bow_AnimatorOverride`
 (→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`; `TwoHanded_AnimatorOverride` to the baked `2hand draw` /
 `2hand sheath` `.anim` (two-part vendor draws are merged, never given a second state — `../Animations/Combat/CLAUDE.md`). NPCs never set the triggers.
 
-### Bow aim states (Attack layer, player only)
+### Bow aim states (UpperBody layer, player only)
 
 `CombatIdle → BowDrawArrow_State` (`Draw arrow`, IsAiming, 0.15 s) `→ BowAim_State` (`Aim Overdraw`, looping, exit 0.9)
 `→ BowFire_State` (`Fire arrow`, BowFire trigger) `→ BowDrawArrow_State` (exit 0.85, IsAiming). Each of the three states
 also has `→ CombatIdle` (IsAiming false, 0.15 s), listed **first**. `BowAim_State` carries `SMB_BowAimState`: its enter =
 arrow nocked. The bow clips sit directly in the base controller (not in an override): only a bow sets `IsAiming`, and NPCs
-never do. The AnyState dodge / jump / fall transitions pull the layer out; `PlayerCombat` then clears `IsAiming`.
+never do. A dodge / jump / fall plays full-body (weight 0) and `PlayerCombat` clears `IsAiming`, which returns the aim states to `CombatIdle`.
 
-### Sneak states (both layers)
+### Sneak states (Base Layer)
 
 `LockOn Locomotion` → `Stand To Sneak` → `Sneak Locomotion` (2D freeform blend tree on VelocityX/Z:
 idle (0,0), walk (0,±0.25 — backward = `sneak walk` at time scale −1), left (−0.25,0), right (0.25,0);
-0.25 = `sneakSpeed / runSpeed`) → `Sneak To Stand` / `Sneak To Sprint` → `LockOn Locomotion`. The same four
-states + transitions exist on the Attack layer (sharing the blend tree), plus `Sneak Locomotion ⇄
-CombatIdle` (IsInCombat) and `Block_State → Sneak Locomotion` (IsBlocking false + IsSneaking);
-`CombatIdle/Block_State → LockOn Locomotion` require `IsSneaking == false`.
+0.25 = `sneakSpeed / runSpeed`) → `Sneak To Stand` / `Sneak To Sprint` → `LockOn Locomotion`. In combat the UpperBody
+`CombatIdle` carry pose plays over them. The blend tree is a sub-asset owned by its state — deleting a state that
+references a shared blend tree deletes it for every state (rebuilt once this way; check `motion` after removing states).
 
 - **Order matters:** `SneakToSprint` transitions are listed **before** `IsSneaking == false` ones — both
   conditions are true on the same frame and the trigger must win.
@@ -68,7 +69,7 @@ CombatIdle` (IsInCombat) and `Block_State → Sneak Locomotion` (IsBlocking fals
   slides in a static pose. `Sneak To Stand → Stand To Sneak` (IsSneaking) handles a fast re-toggle.
 - Sneak clips (`Animations/Sneaking/`): root rotation / Y / XZ baked into pose (like `Walking.fbx`), the four
   locomotion clips loop. Change them through `ModelImporter.clipAnimations`, never raw `.meta` YAML.
-- Known: after `GetHit` the Base layer returns to `LockOn Locomotion` and replays `stand to sneak`.
+- Known: after `GetHit` or an attack the Base layer returns to `LockOn Locomotion` and replays `stand to sneak`.
 - Animator writes go only through `HumanoidAnimationBridge` (`Scripts/Core/Animations/CLAUDE.md`).
 
 ---
@@ -85,19 +86,19 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
 
 ## Transition Rules
 
-- **Combo transitions must not be interruptible by the source state's exit** — `Attack_1 → Attack_2` and
-  `Attack_2 → Attack_3` both use `interruptionSource = None`. With `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
-  ComboWindowOpen (0.63), was cancelled by `Attack_2 → CombatIdle` at exit time 0.89, so step 3 never
+- **Attack transitions use `interruptionSource = Destination`** (every Base attack-state transition + AnyState →
+  `Attack_1`; tested). **Never `None` on the Base Layer**: a non-interruptible transition blocks AnyState too, so a dodge,
+  stagger or death waited out the whole 0.42 s combo blend (measured with a manual `Animator.Update` loop). **Never
+  `Source` on combo transitions**: with `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
+  ComboWindowOpen (0.63), was cancelled by `Attack_2 → CombatIdle` (now `→ LockOn Locomotion`) at exit time 0.89, so step 3 never
   played. When adding/retiming combo clips, check `requestTime + blendDuration < exitTime` (normalized),
-  or keep the combo transition at `None`.
-- **Plain hits don't interrupt punches:** `GetHit` / `Death` are AnyState transitions on the **Base** layer while
-  attacks live on the masked `Attack` layer — an NPC keeps punching while hit. Death stays safe via
-  `EntityBrain.TransitionToDead → EndAttack` + the ragdoll. The `GetHit` state has **no motion** (no clip yet).
-- **Stance reactions interrupt both layers (AI + Player):** AnyState → `Stagger_1/2` (`Stagger` + `StaggerIndex` 0/1) and
-  `KnockedDown` → `GettingUp` (`KnockDown`) exist on the Base layer (listed after `Death`, before `GetHit`; exit →
-  `LockOn Locomotion`) **and** as Attack-layer twins (`Stagger_1 0`, …; exit → `CombatIdle` if `IsInCombat`, else
-  `LockOn Locomotion`). Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
+  or keep the combo transition at `Destination`.
+- **Plain hits don't interrupt attacks:** `GetHit` (no clip yet) is reached from `LockOn Locomotion` only, never from
+  AnyState, and `HumanoidAnimationBridge.TriggerGetHit` skips while Base is in a full-body state (a latched trigger would
+  fire once the swing ends). Death stays safe via `EntityBrain.TransitionToDead → EndAttack` + the ragdoll.
+- **Stance reactions and death interrupt attacks (AI + Player):** AnyState → `Death`, `KnockedDown` → `GettingUp`
+  (`KnockDown`), `Stagger_1/2` (`Stagger` + `StaggerIndex` 0/1), all listed before AnyState → `Attack_1`; exit →
+  `LockOn Locomotion`. Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
   down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
   `applyRootMotion` off; so does the Player). The Player sets them through `PlayerStance` → `PlayerStateManager` →
-  `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance). Known gap: the `Attack` layer has no `Death`
-  transition, so a death mid-knockdown lets the upper-body twin finish `GettingUp`.
+  `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance).

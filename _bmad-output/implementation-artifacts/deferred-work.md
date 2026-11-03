@@ -256,8 +256,6 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
   guard-break reaction (block broken at 0 stance) is a separate design.
 - **NPC weapon visuals** — `NPCEntity._weapon` is data only (stance + knockdown flag). Visual, hitbox, damage and
   weapon-specific clips come with real NPC equipment.
-- **Attack layer has no `Death`** — a player (or NPC) dying mid-knockdown keeps the upper-body `KnockedDown 0` →
-  `GettingUp 0` twin running over the death pose. Add AnyState → a Death twin on the Attack layer (controller change).
 - **Airborne stagger / knockdown** — a reaction while airborne zeroes horizontal movement at once (straight drop) and
   plays the clip mid-fall; consider ignoring stance while `IsAirborne` or delaying the reaction until landing.
 - **Forced NPC line while down** — a witness's forced dialogue (`DialogueSystem` forced line) can open over a knockdown
@@ -286,11 +284,20 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 
 ## From spec-two-handed-full-body-attacks (2026-10-30 review)
 
-- **FullBody fade-out tail** — for `fullBodyAttackBlendTime` (0.15 s) after a 2H swing ends or is cancelled, the unmasked
-  layer still shows the Attack layer's next state (CombatIdle / Block_State) on the legs while the player can already
-  move (brief foot slide). Playtest; if visible, fade out faster than in or snap to 0 on cancels.
-- **`IsMaxCombo` still reads the `_currentWeaponSO` cache** (startup race already listed above) — the full-body flag now
+- **`IsMaxCombo` still reads the `_currentWeaponSO` cache** (startup race already listed above) — the attack step now
   reads `EquipmentSystem`, combo steps / stamina / stance don't yet.
-- **Unverified engine behaviour** — whether Unity fires clip events from a synced layer at weight 0 (NPCs) or > 0
-  (player). Both receivers dedupe either way; a Play-mode log would tell whether the dedupe is load-bearing.
 
+
+## From spec-full-body-attacks-root-motion (2026-11-03 review)
+
+- **Recovery-tail lock** — every attack now has no move input until its exit transition (0.81–0.90 normalized; the 1H
+  overhead clip is 3.17 s), and steering ends at `HitboxEnable`. Instant cancels (block / dodge / jump) are the only way
+  out. Playtest; if it feels sticky, add a recovery window (move / steer again after `HitboxDisable`, or a cancel-into-move
+  clip event).
+- **Watchdog roots the player** — a trigger the Animator never takes now keeps `CanMove()` false for the full
+  `attackStallTimeout` (1.5 s) for every weapon, not only 2H (pre-existing watchdog, wider impact now).
+- **Attack step is time-based** — `AttackStep` runs on seconds since the state entered, not clip time: an Animator speed
+  change (future attack-speed stat, hit-stop) would desync the lunge from the swing. Switch to normalized time if speeds vary.
+- **PlayerAnimationDriver NRE at startup** — `EquipmentVisuals.OnEnable → PlayerCombat.HandleVisualsRefreshed →
+  PlayerStateManager.SetInCombat → PlayerAnimationDriver.SetInCombat` runs before the driver's `Awake` cached the bridge
+  (seen on entering Play mode; code unchanged since a8a6bc5). Guard `_humanoidBridge` or resolve it lazily.

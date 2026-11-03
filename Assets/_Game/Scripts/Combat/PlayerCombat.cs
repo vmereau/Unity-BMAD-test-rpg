@@ -97,6 +97,7 @@ namespace Game.Combat
         // back while moving; reset on aim start and after every shot.
         private float _aimProgress;
         private CharacterController _characterController; // movement check for the spread (optional)
+        private PlayerAttackStep _attackStep;             // forward step of each swing (optional)
 
         private WeaponHitbox _activeHitbox;
 
@@ -155,6 +156,10 @@ namespace Game.Combat
             _characterController = GetComponent<CharacterController>();
             if (_characterController == null)
                 GameLog.Warn(TAG, "CharacterController not found — moving won't widen the bow aim spread");
+
+            _attackStep = GetComponent<PlayerAttackStep>();
+            if (_attackStep == null)
+                GameLog.Warn(TAG, "PlayerAttackStep not found — swings stay in place");
 
             _input = new InputSystem_Actions();
         }
@@ -219,8 +224,8 @@ namespace Game.Combat
                 EndAttack();
             }
 
-            // Jump-cancel (or walking off a ledge mid-swing): the Attack layer's AnyState jump / fall transitions already
-            // left the clip — end the attack so the hitbox closes and a full-body swing stops rooting the player.
+            // Jump-cancel (or walking off a ledge mid-swing): the Base Layer's AnyState jump / fall transitions already
+            // left the clip — end the attack so the hitbox closes and move input comes back.
             if (_stateManager.IsAttacking && _stateManager.IsAirborne)
             {
                 GameLog.Info(TAG, "Attack cancelled — airborne");
@@ -231,9 +236,9 @@ namespace Game.Combat
 
             if (_stateManager.IsSwitchingWeapon)
             {
-                // A dodge / jump taken on the same frame as R wins the Attack layer's AnyState order: Draw_State is
-                // never entered (no exit net) — finish the swap now instead of replaying the clip after landing.
-                if (_stateManager.IsDodging || _stateManager.IsAirborne)
+                // A dodge / jump / stance reaction during R plays full-body (UpperBody weight 0, so the draw / sheathe clip
+                // is hidden and its WeaponSwap may never arrive) — finish the swap now instead of replaying it afterwards.
+                if (_stateManager.IsDodging || _stateManager.IsAirborne || _stateManager.IsIncapacitated)
                 {
                     CompleteWeaponSwitch();
                 }
@@ -291,8 +296,8 @@ namespace Game.Combat
                 return;
             }
 
-            // Block-cancel: any melee swing, at any moment (hitbox closed, combo reset; the AnyState → Block_State
-            // transition pulls the Attack layer out of the clip).
+            // Block-cancel: any melee swing, at any moment (hitbox closed, combo reset; IsBlocking takes the Base Layer
+            // out of the attack state and the UpperBody AnyState → Block_State raises the guard).
             if (_stateManager.IsAttacking)
             {
                 GameLog.Info(TAG, "Attack cancelled by block");
@@ -394,11 +399,7 @@ namespace Game.Combat
             };
             
             // SetAttacking(true, triggerHash) sets state and fires the animator trigger atomically.
-            // Full-body families (two-handed) root the player and hand the legs to the FullBody layer.
-            // Read the equipment, not _currentWeaponSO: that cache is only set by OnVisualsRefreshed (startup race).
-            bool fullBody = _equipmentSystem != null
-                && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO weapon && weapon.ResolvedFullBodyAttacks;
-            _stateManager.SetAttacking(true, triggerHash, fullBody);
+            _stateManager.SetAttacking(true, triggerHash);
 
             // Story 7.11: hitbox enabled/disabled by HitboxEnable/HitboxDisable animation events.
             // No hitbox bound (e.g. _unarmedHitbox unassigned) — this attack cannot deal damage.
@@ -482,7 +483,7 @@ namespace Game.Combat
         private void HandleVisualsRefreshed(bool _)
         {
             // Refresh() reassigns runtimeAnimatorController, which resets the Animator without any SMB exit: a swing in
-            // flight (equip mid-swing, load) would stay IsAttacking — and a full-body one rooted — until the watchdog.
+            // flight (equip mid-swing, load) would stay IsAttacking — rooted, no move input — until the watchdog.
             CancelAttack();
             // Equipment changed mid draw / sheathe: the new visual (and animator override) replace the clip in flight.
             CompleteWeaponSwitch();
@@ -835,6 +836,7 @@ namespace Game.Combat
             // Same guard as OnComboWindowOpen: a cancelled / force-ended attack still blending out must not
             // reopen the hit window (phantom hits during the dodge).
             if (!_stateManager.IsAttacking) return;
+            _stateManager.SetAttackCommitted(true); // the swing is committed: wind-up steering ends
             _activeHitbox?.Enable();
         }
 
@@ -855,6 +857,19 @@ namespace Game.Combat
             _attackTracker.Enter(Time.time);
             _activeHitbox?.Disable();
             _comboWindowOpen = false;
+            if (_stateManager == null || _config == null) return; // Awake disabled us; SMBs still call in
+            if (!_stateManager.IsAttacking) return; // stale enter after a cancel: no steering, no step
+            _stateManager.SetAttackCommitted(false);   // new combo step: its wind-up can steer again
+            if (_attackStep != null) _attackStep.Begin(ResolveAttackStep(attackIndex));
+        }
+
+        // Forward step of attack state attackIndex (1..3): weapon archetype, unarmed config list, else the config default.
+        // Read the equipment, not _currentWeaponSO: that cache is only set by OnVisualsRefreshed (startup race).
+        private AttackStep ResolveAttackStep(int attackIndex)
+        {
+            if (_equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO weapon)
+                return weapon.ResolveAttackStep(attackIndex, _config.defaultAttackStep);
+            return AttackStep.Resolve(_config.unarmedAttackSteps, attackIndex, _config.defaultAttackStep);
         }
 
         /// <summary>

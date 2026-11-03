@@ -82,17 +82,21 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
   (full reset, stamina not refunded), never `SetAttacking(false)` alone — a leftover `_comboStep` made the next press
   fire `Attack_2/3` from `CombatIdle`, which has no such transition. Dodge: `DodgeController`. Block: `OnBlockStarted`
   (after its stamina check; `CanBlock` / `CanJump` no longer exclude `IsAttacking`). Jump / fall: `Update` cancels
-  when `IsAttacking && IsAirborne`. The Attack layer's AnyState block / dodge / jump / fall transitions pull the clip.
-- **Full-body attacks** (`WeaponSO.ResolvedFullBodyAttacks`, two-handed): `ExecuteAttack` passes the flag to
-  `SetAttacking(true, hash, fullBody)` → `IsFullBodyAttack` → `CanMove()` false (no move, no free-movement turn;
-  lock-on still faces the target) and the FullBody layer fades in (`Controllers/CLAUDE.md`). It follows `IsAttacking`,
-  so every end path fades it out.
-- **Clip events are deduplicated per frame** (`ClipEventDeduper`): the synced FullBody layer replays the Attack clip and
-  can fire each event a second time in the same frame. Key = event + clip + event time (handlers take `AnimationEvent`),
-  so a crossfade's outgoing / incoming clips still both fire. `EntityAnimationEventReceiver` (NPCs share the controller)
-  keys on event + hitbox id. SMB notifications are not deduplicated (the FullBody layer has no SMBs).
+  when `IsAttacking && IsAirborne`. On the Animator, Base Layer AnyState dodge / jump / fall and each attack state's
+  `IsBlocking` exit pull the clip (`Controllers/CLAUDE.md`). The GDD allows these instant cancels pending playtest.
+- **Every attack is full-body** (Base Layer, spec-full-body-attacks-root-motion): `CanMove()` is false while
+  `IsAttacking` — no move input during a swing. Movement comes from two things:
+  - **Attack step** — `PlayerAttackStep` (Player root) moves the `CharacterController` along the player's forward,
+    constant speed, during the step window. `OnAttackStateEntered(index)` calls `Begin(ResolveAttackStep(index))`:
+    `WeaponArchetypeSO.attackSteps[index − 1]`, else `CombatConfigSO.defaultAttackStep`; unarmed:
+    `CombatConfigSO.unarmedAttackSteps`. `AttackStep` = distance (m, 0 = rooted) + start / duration in **seconds since
+    the state entered** (not normalized). The step stops when `IsAttacking` clears (any cancel) or a dodge starts; a combo
+    step's enter replaces the previous step. Clips are in place (Mixamo, net root travel 0) — no `OnAnimatorMove`.
+  - **Wind-up steering** — `PlayerController` turns toward the raw camera-relative input at `PlayerConfigSO.attackSteerSpeed`
+    while `CanSteerAttack()` (attacking, not `IsAttackCommitted`). `OnHitboxEnable` commits (`SetAttackCommitted(true)`);
+    each attack-state enter re-opens it; `SetAttacking` clears it. Lock-on still always faces the target.
 - `HandleVisualsRefreshed` cancels any attack: `Refresh()` swaps the controller, which resets the Animator without an
-  SMB exit (equip / load mid-swing would otherwise stay rooted until the stall watchdog).
+  SMB exit (equip / load mid-swing would otherwise stay `IsAttacking`, rooted, until the stall watchdog).
 - `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
 - **Never detect chains with `GetNextAnimatorStateInfo(layer).IsTag(...)` in `OnStateExit`** — the
   transition may already be complete, so it returns an empty state.

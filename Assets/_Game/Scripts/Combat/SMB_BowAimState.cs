@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game.Combat
 {
     /// <summary>
-    /// StateMachineBehaviour on BowAim_State (Humanoid_Template, Attack layer). Entering the aim pose means the arrow is
+    /// StateMachineBehaviour on BowAim_State (Humanoid_Template, UpperBody layer). Entering the aim pose means the arrow is
     /// nocked: PlayerCombat allows the next shot. Silent no-op on NPCs (no AnimationEventReceiver).
     /// </summary>
     public class SMB_BowAimState : StateMachineBehaviour

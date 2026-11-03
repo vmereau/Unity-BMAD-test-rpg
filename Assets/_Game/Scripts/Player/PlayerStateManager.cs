@@ -84,10 +84,11 @@ namespace Game.Player
         public bool IsBlocking { get; private set; }
         public bool IsAttacking { get; private set; }
         /// <summary>
-        /// The current attack plays full-body (weapon archetype <c>fullBodyAttacks</c>, two-handed): the FullBody Animator
-        /// layer takes the legs and <see cref="CanMove"/> is false. Set with <see cref="SetAttacking"/>, cleared with it.
+        /// The current attack step reached its <c>HitboxEnable</c> event: the swing is committed and the player no longer
+        /// turns toward the move input (<see cref="CanSteerAttack"/>). Written by PlayerCombat via
+        /// <see cref="SetAttackCommitted"/>; cleared by every <see cref="SetAttacking"/> call.
         /// </summary>
-        public bool IsFullBodyAttack { get; private set; }
+        public bool IsAttackCommitted { get; private set; }
         public bool IsDodging { get; private set; }
         public bool IsInCombat { get; private set; }
 
@@ -155,17 +156,19 @@ namespace Game.Player
         /// Pass the precomputed trigger hash to play the animation; pass 0 to update state only.
         /// Ending an attack also clears pending Attack_1/2/3 triggers — a trigger the Animator never took
         /// would otherwise stay latched and auto-chain (or misfire) the next attack.
-        /// <paramref name="fullBody"/> = the swing roots the player (<see cref="IsFullBodyAttack"/>); ignored when ending.
         /// </summary>
-        public void SetAttacking(bool value, int triggerHash = 0, bool fullBody = false)
+        public void SetAttacking(bool value, int triggerHash = 0)
         {
             IsAttacking = value;
-            IsFullBodyAttack = value && fullBody;
+            IsAttackCommitted = false;
             if (value && triggerHash != 0)
                 _playerAnimator.PlayAttack(triggerHash);
             else if (!value)
                 _playerAnimator.ResetAttackTriggers();
         }
+
+        /// <summary>Commits (true) or re-opens (false, next combo step entered) the wind-up steering of the current attack.</summary>
+        public void SetAttackCommitted(bool value) => IsAttackCommitted = value && IsAttacking;
 
         /// <summary>Sets dodging state and fires the dodge animator trigger via PlayerAnimator.</summary>
         public void SetDodging(bool value, bool isBackwardRoll = false)
@@ -296,7 +299,7 @@ namespace Game.Player
             {
                 IsBlocking = false;
                 IsAttacking = false;
-                IsFullBodyAttack = false;
+                IsAttackCommitted = false;
                 IsDodging = false;
                 IsSneaking = false;
                 IsAiming = false;
@@ -344,7 +347,7 @@ namespace Game.Player
 
         /// <summary>
         /// Pure draw / sheathe gate (tested in WeaponSwitchGateTests). Blocking, dodging and airborne are excluded because
-        /// their Attack-layer AnyState transitions are held bools that would immediately pull the layer out of the clip;
+        /// their AnyState transitions are held bools that would immediately pull the layer out of the clip;
         /// aiming because the bow aim states would fight the draw / sheathe clip (release the aim first).
         /// </summary>
         public static bool EvaluateCanSwitchWeapon(bool isBusy, bool isAttacking, bool isBlocking, bool isDodging,
@@ -383,11 +386,20 @@ namespace Game.Player
         public static bool EvaluateCanSneak(bool isBusy, bool isAirborne, bool isDodging) =>
             !isBusy && !isAirborne && !isDodging;
 
-        /// <summary>True when the player is allowed to move (and turn, outside lock-on).</summary>
-        public bool CanMove() => EvaluateCanMove(IsBusy, IsAttacking, IsFullBodyAttack);
+        /// <summary>
+        /// True when the player is allowed to move (and turn, outside lock-on). Attacks play full-body: the swing moves the
+        /// player through its attack step (<c>PlayerAttackStep</c>), not through move input.
+        /// </summary>
+        public bool CanMove() => EvaluateCanMove(IsBusy, IsAttacking);
 
-        /// <summary>Pure move gate (tested in PlayerStateManagerTests): a full-body swing roots the player.</summary>
-        public static bool EvaluateCanMove(bool isBusy, bool isAttacking, bool isFullBodyAttack) =>
-            !isBusy && !(isAttacking && isFullBodyAttack);
+        /// <summary>Pure move gate (tested in PlayerStateManagerTests).</summary>
+        public static bool EvaluateCanMove(bool isBusy, bool isAttacking) => !isBusy && !isAttacking;
+
+        /// <summary>True while an attack's wind-up may still turn the player toward the move input.</summary>
+        public bool CanSteerAttack() => EvaluateCanSteerAttack(IsBusy, IsAttacking, IsAttackCommitted);
+
+        /// <summary>Pure wind-up steering gate (tested in PlayerStateManagerTests): attacking and not committed yet.</summary>
+        public static bool EvaluateCanSteerAttack(bool isBusy, bool isAttacking, bool isAttackCommitted) =>
+            !isBusy && isAttacking && !isAttackCommitted;
     }
 }

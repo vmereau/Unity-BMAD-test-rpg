@@ -100,29 +100,53 @@ public class PlayerStateManagerTests
         Assert.That(Game.Player.PlayerStateManager.EvaluateCanSneak(isBusy: false, isAirborne: false, isDodging: false), Is.True);
     }
 
-    // Exercises the real gate (PlayerStateManager.CanMove() delegates to EvaluateCanMove).
+    // Exercises the real gate (PlayerStateManager.CanMove() delegates to EvaluateCanMove). Attacks play full-body: the swing
+    // moves through its attack step, never through move input.
     [Test]
-    public void CanMove_ReturnsFalse_DuringFullBodyAttack()
+    public void CanMove_ReturnsFalse_DuringAnyAttack()
     {
-        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: true, isFullBodyAttack: true), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: true), Is.False);
     }
 
     [Test]
-    public void CanMove_ReturnsTrue_DuringUpperBodyAttack()
+    public void CanMove_ReturnsTrue_WhenIdle()
     {
-        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: true, isFullBodyAttack: false), Is.True);
-    }
-
-    [Test]
-    public void CanMove_ReturnsTrue_WhenFullBodyFlagOutlivesTheAttack()
-    {
-        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: false, isFullBodyAttack: true), Is.True);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: false, isAttacking: false), Is.True);
     }
 
     [Test]
     public void CanMove_ReturnsFalse_WhenBusy()
     {
-        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: true, isAttacking: false, isFullBodyAttack: false), Is.False);
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanMove(isBusy: true, isAttacking: false), Is.False);
+    }
+
+    // Wind-up steering: from the attack state enter until its HitboxEnable commits the swing.
+    [Test]
+    public void CanSteerAttack_ReturnsTrue_DuringWindUp()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSteerAttack(isBusy: false, isAttacking: true,
+            isAttackCommitted: false), Is.True);
+    }
+
+    [Test]
+    public void CanSteerAttack_ReturnsFalse_OnceCommitted()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSteerAttack(isBusy: false, isAttacking: true,
+            isAttackCommitted: true), Is.False);
+    }
+
+    [Test]
+    public void CanSteerAttack_ReturnsFalse_WhenNotAttacking()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSteerAttack(isBusy: false, isAttacking: false,
+            isAttackCommitted: false), Is.False);
+    }
+
+    [Test]
+    public void CanSteerAttack_ReturnsFalse_WhenBusy()
+    {
+        Assert.That(Game.Player.PlayerStateManager.EvaluateCanSteerAttack(isBusy: true, isAttacking: true,
+            isAttackCommitted: false), Is.False);
     }
 
     // Exercises the real gates (CanBlock / CanJump delegate to EvaluateCanBlock / EvaluateCanJump). Attacking is not an

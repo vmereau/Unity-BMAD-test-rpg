@@ -114,11 +114,16 @@ namespace Game.Player
 
         private void ApplyMovement()
         {
-            Vector2 moveInput = _input.Player.Move.ReadValue<Vector2>();
+            Vector2 rawInput = _input.Player.Move.ReadValue<Vector2>();
+            Vector2 moveInput = rawInput;
 
             if(_stateManager != null && !_stateManager.CanMove()) {
                 moveInput = new Vector2(0f, 0f);
             }
+
+            // Attack wind-up: no movement (PlayerAttackStep moves the swing), but the raw input still turns the player
+            // until the step's HitboxEnable commits it.
+            bool steering = _stateManager != null && _stateManager.CanSteerAttack();
 
             Vector3 moveDir = Vector3.zero;
 
@@ -147,17 +152,19 @@ namespace Game.Player
             // --- Free movement branch ---
             else
             {
+                Vector3 inputDir;
                 if (_mainCamera != null)
                 {
                     Vector3 camForward = Vector3.Scale(_mainCamera.transform.forward, new Vector3(1f, 0f, 1f)).normalized;
                     Vector3 camRight   = Vector3.Scale(_mainCamera.transform.right,   new Vector3(1f, 0f, 1f)).normalized;
-                    moveDir = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+                    inputDir = (camForward * rawInput.y + camRight * rawInput.x).normalized;
                 }
                 else
                 {
                     // Fallback: world-space axes when no camera is present
-                    moveDir = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+                    inputDir = new Vector3(rawInput.x, 0f, rawInput.y).normalized;
                 }
+                moveDir = moveInput.sqrMagnitude > 0f ? inputDir : Vector3.zero;
 
                 // Bow aim: always face the camera yaw (strafe), like lock-on faces its target
                 bool isAiming = _stateManager != null && _stateManager.IsAiming;
@@ -167,6 +174,13 @@ namespace Game.Player
                         _mainCamera.transform.eulerAngles.y + _config.aimStanceYaw, 0f);
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRot,
                         _config.rotationSpeed * Time.deltaTime);
+                }
+                // Attack wind-up: turn toward the input, slower than free movement
+                else if (steering)
+                {
+                    if (inputDir.sqrMagnitude > 0.01f)
+                        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(inputDir),
+                            _config.attackSteerSpeed * Time.deltaTime);
                 }
                 // Rotate body to face movement direction
                 else if (moveDir.sqrMagnitude > 0.01f)

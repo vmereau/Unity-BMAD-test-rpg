@@ -20,7 +20,7 @@ namespace Game.Player
         private HumanoidAnimationBridge _humanoidBridge;
         private CharacterController _characterController;
         private PlayerStateManager _stateManager;
-        private float _fullBodyWeight;
+        private float _upperBodyWeight;
 
         private void Awake()
         {
@@ -67,23 +67,12 @@ namespace Game.Player
             _humanoidBridge.SetGrounded(!_stateManager.IsAirborne);
             _humanoidBridge.SetRising(_characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
 
-            // FullBody layer: fades in while a full-body (two-handed) swing runs. Following IsAttacking means every end
-            // path — state exit, block / jump / dodge cancel, watchdog, stance interrupt, death — fades it out.
-            _fullBodyWeight = StepFullBodyWeight(_fullBodyWeight, _stateManager.IsAttacking, _stateManager.IsFullBodyAttack,
-                Time.deltaTime, _config.fullBodyAttackBlendTime);
-            _humanoidBridge.SetFullBodyWeight(_fullBodyWeight);
-        }
-
-        /// <summary>
-        /// Pure FullBody weight step (tested in PlayerAnimationDriverTests): toward 1 while a full-body attack runs, else
-        /// toward 0, a full 0↔1 fade taking <paramref name="blendTime"/> seconds.
-        /// </summary>
-        public static float StepFullBodyWeight(float current, bool isAttacking, bool isFullBodyAttack, float deltaTime,
-            float blendTime)
-        {
-            float target = isAttacking && isFullBodyAttack ? 1f : 0f;
-            if (blendTime <= 0f) return target;
-            return Mathf.MoveTowards(current, target, deltaTime / blendTime);
+            // UpperBody layer: combat carry pose / block / aim / draw-sheathe over the legs; 0 while the Base Layer plays an
+            // attack, dodge, jump, reaction or death full-body. Read from the Animator's state tags (same rule as NPCs).
+            float target = UpperBodyWeight.Target(_humanoidBridge.IsBaseFullBody, _humanoidBridge.IsUpperBodyAction,
+                _stateManager.IsInCombat);
+            _upperBodyWeight = UpperBodyWeight.Step(_upperBodyWeight, target, Time.deltaTime, _config.upperBodyBlendTime);
+            _humanoidBridge.SetUpperBodyWeight(_upperBodyWeight);
         }
 
         public void SetBlocking(bool value) => _humanoidBridge.SetBlocking(value);
@@ -110,8 +99,8 @@ namespace Game.Player
         public void ClearStanceReaction() => _humanoidBridge.ResetStanceTriggers();
         public void ResetAfterRevive()
         {
-            _humanoidBridge.ResetToDefaultState(); // Rebind restores the controller's default weights (FullBody 0)
-            _fullBodyWeight = 0f;
+            _humanoidBridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)
+            _upperBodyWeight = 0f;
         }
     }
 }

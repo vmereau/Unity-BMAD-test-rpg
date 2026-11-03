@@ -301,7 +301,8 @@ unlock abilities, or raise crafting skill tiers.
 
 #### Input Feel
 
-Combat inputs should feel weighty and committed — no instant cancels.
+Combat inputs should feel weighty and committed. Block, dodge and jump may cancel
+a swing at any moment (instant cancels — kept pending playtest, 2026-11-03).
 Attacks have wind-up and recovery frames. The perfect block window is tight
 enough to reward skill without being frame-perfect. Combo attacks should feel
 weighty and committed — each hit in the chain has a clear animation window.
