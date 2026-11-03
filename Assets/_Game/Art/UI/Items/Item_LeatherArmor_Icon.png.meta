@@ -1,12 +1,10 @@
 fileFormatVersion: 2
-guid: 021bafa43343b474eb176846f1ac7d92
-labels:
-- UnityAI
+guid: df66c6289bf18ca4aa0b200f0d2bf570
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2994909562745029205
-    second: Armor_TestArmor_Icon_0
+      213: -7474761230000766659
+    second: Item_LeatherArmor_Icon_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -53,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 1024
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -76,7 +74,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 256
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -104,7 +102,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Armor_TestArmor_Icon_0
+      name: Item_LeatherArmor_Icon_0
       rect:
         serializedVersion: 2
         x: 0
@@ -119,8 +117,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 55286dd216e009920800000000000000
-      internalID: 2994909562745029205
+      spriteID: d3141f8a340544890800000000000000
+      internalID: -7474761230000766659
       vertices: []
       indices: 
       edges: []
