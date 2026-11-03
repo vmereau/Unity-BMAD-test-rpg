@@ -15,7 +15,6 @@ namespace Game.Editor
         {
             const string prefabPath = "Assets/_Game/Prefabs/Player/Player.prefab";
             const string eventPath  = "Assets/_Game/Data/Events/OnEquipmentChanged.asset";
-            const string matPath    = "Assets/_Game/Art/Materials/ArmorPlaceholder.mat";
 
             var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefabAsset == null) { GameLog.Error(TAG, "Player prefab not found"); return; }
@@ -82,30 +81,30 @@ namespace Game.Editor
             var helmetSocket = root.transform.Find("Character/mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2/mixamorig:Neck/mixamorig:Head/HelmetSocket");
             so.FindProperty("_helmetSocket").objectReferenceValue = helmetSocket;
 
-            // _bodyRenderer — find SkinnedMeshRenderer named Beta_Surface
-            var renderers = root.GetComponentsInChildren<Renderer>(true);
-            Renderer bodyRenderer = null;
-            foreach (var r in renderers)
+            // _bodyRenderer — the naked body SMR (base_hero; Beta_Surface on the legacy model)
+            SkinnedMeshRenderer bodyRenderer = null;
+            foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
-                if (r.gameObject.name == "Beta_Surface")
+                if (r.gameObject.name == "base_hero" || r.gameObject.name == "Beta_Surface")
                 {
                     bodyRenderer = r;
                     break;
                 }
             }
-            // Keep the current reference when Beta_Surface is gone (swapped body model) — don't wipe a hand-wired renderer
+            // Keep the current reference when no known body is found — don't wipe a hand-wired renderer
             var bodyProp = so.FindProperty("_bodyRenderer");
             if (bodyRenderer != null)
                 bodyProp.objectReferenceValue = bodyRenderer;
             else
             {
-                bodyRenderer = bodyProp.objectReferenceValue as Renderer;
-                GameLog.Warn(TAG, $"Beta_Surface not found — keeping the current _bodyRenderer ({(bodyRenderer != null ? bodyRenderer.name : "none")})");
+                bodyRenderer = bodyProp.objectReferenceValue as SkinnedMeshRenderer;
+                GameLog.Warn(TAG, $"No base_hero / Beta_Surface body found — keeping the current _bodyRenderer ({(bodyRenderer != null ? bodyRenderer.name : "none")})");
             }
 
-            // _armorPlaceholderMaterial
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-            so.FindProperty("_armorPlaceholderMaterial").objectReferenceValue = mat;
+            // _skeletonRoot — armor visuals bind to this skeleton by bone name
+            var hips = root.transform.Find("Character/mixamorig:Hips");
+            if (hips == null) GameLog.Warn(TAG, "Character/mixamorig:Hips not found — _skeletonRoot left unchanged");
+            else so.FindProperty("_skeletonRoot").objectReferenceValue = hips;
 
             // _animator → Animator component on Player root
             var animator = root.GetComponent<Animator>();
@@ -118,7 +117,7 @@ namespace Game.Editor
 
             so.ApplyModifiedProperties();
 
-            GameLog.Info(TAG, $"Done. equipSys={equipSys != null}, evSO={evSO != null}, weaponSocket={weaponSocket != null}, leftSocket={leftSocket != null}, backSocket={backSocket != null}, helmetSocket={helmetSocket != null}, bodyRenderer={bodyRenderer != null}, mat={mat != null}, animator={animator != null}, defaultController={defaultController != null}");
+            GameLog.Info(TAG, $"Done. equipSys={equipSys != null}, evSO={evSO != null}, weaponSocket={weaponSocket != null}, leftSocket={leftSocket != null}, backSocket={backSocket != null}, helmetSocket={helmetSocket != null}, bodyRenderer={bodyRenderer != null}, skeletonRoot={hips != null}, animator={animator != null}, defaultController={defaultController != null}");
         }
     }
 }

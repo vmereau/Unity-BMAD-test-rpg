@@ -14,7 +14,7 @@ not for beauty. Art direction comes from `Art/ART_DIRECTION.md` (realistic, dark
 muted earthy palette, grounded and worn). Keep every line **verbatim** — only `{VIEW}`, `{OUTFIT}`
 and the optional reference line change.
 
-**Base hero (first test, 2026-10-09):** front / back views in `Art/UI/Items/tests/`
+**Base hero (first test, 2026-10-09):** front / back views in `models/`
 (`test hero front view.png`, `test hero back view.png`) → `models/test base hero/` (current player body).
 Generated with Gemini 2.5 Flash Image, free tier.
 
@@ -94,10 +94,31 @@ the same local offsets, set the root `Animator.avatar` and `EquipmentVisuals._bo
 old `Character`. The dev tool `Game/Dev/Wire EquipmentVisuals on Player Prefab` still looks for
 `Beta_Surface` — don't run it on a swapped body.
 
-### Head / body split (keeping the same face)
+### Head / body split + skinned armor (implemented 2026-11-03)
 
-Image-to-image with a reference keeps the face *similar*, but Meshy regenerates the whole mesh — the
-3D head is never identical between two generations. To reuse the exact head (Gothic 1/2 do this:
-separate head and body meshes), both meshes must be skinned to the **same skeleton**, cut at the neck,
-with the seam hidden by the outfit's collar. Not implemented yet — needs either a Blender pass per
-outfit or a Unity editor tool (split triangles by Head/Neck bone weights, rebind by bone name).
+The player is a **Head** SMR + a **Body** SMR (`base_hero`, below the neck) on the original Mixamo skeleton.
+An armor is a skinned mesh covering everything below the neck; equipping it hides the Body
+(`EquipmentVisuals.RefreshBody`, `Scripts/Inventory/CLAUDE.md`). All three meshes live in the **original
+base_hero mesh space with its bind poses**, so they bend identically and share one `bones[]` order.
+
+- **Split** (done once): `Tools/Blender/split_head_body.py`, level cut at **1.585 m** (Neck bone 1.55, Head 1.63) →
+  `models/test base hero/base hero split.fbx`. Both sides get the smooth normals of the uncut mesh (import with
+  Normals **Import**, scale 100, Generic / no avatar, animation off) — the seam has no crease.
+- **Bake** (every part): `Tools/Characters/Skinned Mesh Baker` (`Editor/Characters/SkinnedMeshBaker`). Target =
+  the base_hero SMR of `rigged test hero with textures.fbx`; it re-expresses the source in the target's mesh space
+  through the **bind poses** (never the FBX rest pose — Blender re-exports moved it ~9 mm), remaps weights by bone
+  name, refuses weights on bones the target lacks, optional ±3% height check against a reference mesh (armor →
+  `base_hero_body_baked.asset`). Optional output: a skeleton-less `SkinnedBodyPart` prefab (bone names only).
+- **Armor fit** (per armor, by hand through the Blender MCP so far — seed script kept for the fit-pass spec):
+  1. Import base split + armor in a separate scene; clear the armor's `mixamo.com` action and **reset both rigs to
+     rest** (the imported Base_Rig pose is not its bind pose).
+  2. Uniform scale to the base height, feet on the floor, then set each armor pose bone's armature-space matrix so
+     its head lands on the base head and it stretches **along its length only** toward the base child (Stretch To
+     constraints don't work: Mixamo bones are unconnected, tails ≠ child heads). Bake the posed mesh.
+  3. Bisect at 1.585 m and delete only the **connected head component** above the plane (Meshy meshes can poke above
+     it elsewhere — the leather armor's left shoulder did), re-weld the rest of the cut.
+  4. Conform the 2 cm band under the cut radially onto the head-ring profile, bridge the outer collar loop to an exact
+     copy of the head ring (positions, weights and normals copied from the head) → watertight join.
+  5. Data Transfer vertex-group weights from `base_hero_body` (nearest face interpolated), parent to Base_Rig, export.
+- Meshy + Mixamo armor imports come in ~2 cm tall with the texture path pointing at Mixamo's server: apply the
+  pipeline import settings and remap `Materialmat` to a URP Lit built from the Meshy PNGs (`M_LeatherArmor`).

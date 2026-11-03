@@ -30,7 +30,7 @@ one line and suggest making it a separate asset instead.
 ## Step 3 — Same face or new character
 
 Default to **same character** (the base hero): fill `{REFERENCE}` with the reference line and note the
-reference image to attach — `Assets/_Game/Art/UI/Items/tests/test hero front view.png` (front) or
+reference image to attach — `Assets/_Game/Art/Characters/Humanoids/models/test hero front view.png` (front) or
 `test hero back view.png` (back). Leave `{REFERENCE}` empty only if the user asks for a new character.
 
 ## Step 4 — Output

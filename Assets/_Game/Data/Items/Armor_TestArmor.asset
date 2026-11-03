@@ -20,7 +20,9 @@ MonoBehaviour:
   worldItemPrefab: {fileID: 7470631476087896926, guid: 3da8f2f42c43c344c9014ffa57f2ca4f, type: 3}
   buyValue: 50
   sellValue: 25
-  equipVisualPrefab: {fileID: 0}
+  isIngredient: 0
+  isCraftingMaterial: 0
+  equipVisualPrefab: {fileID: 5092115071275473251, guid: c327469848d64b049baa48519ccc40ca, type: 3}
   strengthBonus: 0
   dexterityBonus: 0
   enduranceBonus: 1

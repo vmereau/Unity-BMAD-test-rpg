@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Core;
 using UnityEngine;
 
@@ -14,8 +15,10 @@ namespace Game.Inventory
         [SerializeField] private Transform _undrawnWeaponSocket;
         [SerializeField] private Transform _backWeaponSocket;
         [SerializeField] private Transform _helmetSocket;
-        [SerializeField] private Renderer _bodyRenderer;
-        [SerializeField] private Material _armorPlaceholderMaterial;
+        [Tooltip("Naked body below the neck — hidden while a skinned armor is worn. The Head SMR is separate and always visible.")]
+        [SerializeField] private SkinnedMeshRenderer _bodyRenderer;
+        [Tooltip("Skeleton root (mixamorig:Hips) that armor visuals are bound to by bone name.")]
+        [SerializeField] private Transform _skeletonRoot;
         [SerializeField] private Animator _animator;
         [SerializeField] private RuntimeAnimatorController _defaultAnimatorController;
         // Story 7.9: raised at the end of Refresh() so listeners see a valid ActiveWeaponGO
@@ -26,7 +29,10 @@ namespace Game.Inventory
         private bool _backSocketWarned; // warn once per equipped weapon, not on every sheathe
         private bool _leftSocketWarned; // warn once per equipped weapon, not on every draw
         private GameObject _helmetVisual;
-        private Material _originalBodyMaterial;
+        private GameObject _armorVisual;
+        private ItemSO _armorVisualItem; // armor the current _armorVisual was built for — skip rebuilds on unrelated refreshes
+        private Dictionary<string, Transform> _skeleton;
+        private readonly List<string> _missingBones = new List<string>();
         private bool _isInCombat = false;
 
         /// <summary>The currently instantiated weapon visual GO. Exposed for PlayerCombat (story 7-9) to locate WeaponHitbox.</summary>
@@ -51,9 +57,9 @@ namespace Game.Inventory
             }
 
             if (_bodyRenderer == null)
-                GameLog.Warn(TAG, "EquipmentVisuals: _bodyRenderer is not assigned — body material swap will be skipped");
-
-            _originalBodyMaterial = _bodyRenderer != null ? _bodyRenderer.sharedMaterial : null;
+                GameLog.Warn(TAG, "EquipmentVisuals: _bodyRenderer is not assigned — armor will not hide the body");
+            if (_skeletonRoot == null)
+                GameLog.Warn(TAG, "EquipmentVisuals: _skeletonRoot is not assigned — skinned armor visuals will be skipped");
 
             if (_animator == null)
                 GameLog.Warn(TAG, "EquipmentVisuals: _animator not assigned — animator override will be skipped");
@@ -159,13 +165,78 @@ namespace Game.Inventory
 
         private void RefreshBody()
         {
-            if (_bodyRenderer == null) return;
+            var armor = _equipmentSystem.GetEquipped(EquipmentSlot.Armor) as EquipableItemSO;
+            if (_armorVisual != null && armor != null && armor == _armorVisualItem) return; // same armor, still bound
 
-            var armor = _equipmentSystem.GetEquipped(EquipmentSlot.Armor);
-            if (armor != null && _armorPlaceholderMaterial != null)
-                _bodyRenderer.material = _armorPlaceholderMaterial;
-            else
-                _bodyRenderer.material = _originalBodyMaterial;
+            if (_armorVisual != null)
+                Destroy(_armorVisual);
+            _armorVisual = null;
+            _armorVisualItem = null;
+
+            bool bodyCovered = false;
+            if (armor != null)
+            {
+                if (armor.equipVisualPrefab == null)
+                    GameLog.Info(TAG, $"Armor '{armor.itemName}' has no equipVisualPrefab — body stays visible");
+                else
+                    bodyCovered = TryAttachArmor(armor);
+            }
+
+            if (_bodyRenderer != null)
+                _bodyRenderer.enabled = !bodyCovered;
+        }
+
+        /// <summary>Instantiates the armor's skinned visual next to the body and binds it to the player skeleton by bone name.</summary>
+        private bool TryAttachArmor(EquipableItemSO armor)
+        {
+            if (_skeletonRoot == null) return false;
+
+            var parent = _bodyRenderer != null ? _bodyRenderer.transform.parent : _skeletonRoot.parent;
+            var visual = Instantiate(armor.equipVisualPrefab, parent);
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localScale = Vector3.one;
+
+            var part = visual.GetComponent<SkinnedBodyPart>();
+            if (part == null || part.Renderer == null)
+            {
+                GameLog.Warn(TAG, $"Armor '{armor.itemName}': equipVisualPrefab has no SkinnedBodyPart with a renderer — body stays visible");
+                DiscardVisual(visual);
+                return false;
+            }
+
+            _skeleton ??= _bodyRenderer != null
+                ? SkinnedMeshRebinder.IndexBones(_bodyRenderer.bones, _skeletonRoot)
+                : SkinnedMeshRebinder.IndexSkeleton(_skeletonRoot);
+            if (!SkinnedMeshRebinder.TryBind(part.Renderer, part.BoneNames, part.RootBoneName, _skeleton, _skeletonRoot, _missingBones))
+            {
+                GameLog.Warn(TAG, $"Armor '{armor.itemName}': cannot bind to the player skeleton ({string.Join(", ", _missingBones)}) — body stays visible");
+                DiscardVisual(visual);
+                return false;
+            }
+
+            if (_bodyRenderer != null)
+            {
+                // Render like the body it replaces (layer, outline rendering layer, shadows); bounds = body's grown by the baked armor bounds.
+                visual.layer = _bodyRenderer.gameObject.layer;
+                part.Renderer.renderingLayerMask = _bodyRenderer.renderingLayerMask;
+                part.Renderer.shadowCastingMode = _bodyRenderer.shadowCastingMode;
+                part.Renderer.receiveShadows = _bodyRenderer.receiveShadows;
+                part.Renderer.updateWhenOffscreen = _bodyRenderer.updateWhenOffscreen;
+                var bounds = _bodyRenderer.localBounds;
+                bounds.Encapsulate(part.Renderer.localBounds);
+                part.Renderer.localBounds = bounds;
+            }
+            _armorVisual = visual;
+            _armorVisualItem = armor;
+            GameLog.Info(TAG, $"Armor visual attached (prefab: {armor.equipVisualPrefab.name})");
+            return true;
+        }
+
+        private static void DiscardVisual(GameObject visual)
+        {
+            visual.SetActive(false); // Destroy is deferred to end of frame — never render the unbound mesh
+            Destroy(visual);
         }
 
         private void ApplyAnimatorOverride(AnimatorOverrideController overrideController)
