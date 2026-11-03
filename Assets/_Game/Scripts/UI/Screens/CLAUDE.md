@@ -13,7 +13,7 @@
 | `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (P) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
 | `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
-| `OptionsUI` | Options placeholder, now a Game Menu sub-panel (not a tab). Implements `IScreenPanel`; logs open/close only. |
+| `OptionsUI` | Game Menu sub-panel (not a tab), implements `IScreenPanel` (the Game Menu owns the cursor). `MusicVolumeRow` slider → `MusicVolumeSettings.Set` live; `OnScreenOpen` syncs the slider without notify, `OnScreenClose` flushes PlayerPrefs. Add new settings as rows that are siblings of `Title` under `OptionsUI`. |
 | `GameMenuUI` | Esc menu: Resume / Save Game / Load Game / Options / Quit (confirm). Pauses (`timeScale = 0`) + unlocks cursor; Close restores both. Save button disabled with `SaveSystem.CanSave` reason. Hides (without touching timeScale / cursor) on `OnLoadStarted`. |
 | `SaveSlotListUI` / `SaveSlotEntryUI` | Slot list sub-panel. Save mode: manual slots only, overwrite confirm. Load mode: all slots, valid rows clickable, load confirm. Delete on every existing row. Static `FormatSlotLabel` / `FormatDetails` / `FormatTimestamp` / `FormatPlaytime` (tested by `SaveSlotListFormatTests`). |
 | `ConfirmDialogUI` | Shared Yes / No modal (`Show(message, onYes, onNo)`, `Cancel`, `Hide`, `IsOpen`). `SaveSystem` ignores F9 while it's open. |

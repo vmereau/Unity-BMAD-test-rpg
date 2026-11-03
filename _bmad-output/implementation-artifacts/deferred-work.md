@@ -346,3 +346,10 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 ## 2026-11-03 — from spec-hostile-npc-lockon-and-prompt review
 
 - Humanoid NPCs' `EntityStance._animationDriver` is null: the base `Entity_base` reference points at the base animation driver that `NPC_base Variant` removes (fileID 3299999205233303053). `EntityStance.Awake` falls back to `GetComponent`; verify stagger / knockdown animations on humanoids and wire it to `HumanoidAIAnimationDriver` explicitly if needed.
+
+## 2026-11-03 — from spec-music-system-exploration-track review
+
+- **Music starts with Core, not with the first region** — the 3 s fade can partly happen during the boot loading overlay. Start (or restart) the fade on the first `OnLoadFinished` if it's noticeable.
+- **Linear volume slider** — `AudioSource.volume` is amplitude, so most audible change sits near 0. Use a perceptual curve (or dB via an `AudioMixer`) when SFX / master volume arrive.
+- **Options slider has navigation None** — like the rest of the Game Menu, there's no keyboard / gamepad navigation. Revisit with controller support.
+- **Core.unity UICanvas override values re-serialized** — saving Core rewrote ~15 existing RectTransform override values on layout-driven Player UI children (0 → computed). No runtime effect (layout groups drive them), but those stale overrides could be cleaned up.
