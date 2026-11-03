@@ -353,3 +353,13 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **Linear volume slider** — `AudioSource.volume` is amplitude, so most audible change sits near 0. Use a perceptual curve (or dB via an `AudioMixer`) when SFX / master volume arrive.
 - **Options slider has navigation None** — like the rest of the Game Menu, there's no keyboard / gamepad navigation. Revisit with controller support.
 - **Core.unity UICanvas override values re-serialized** — saving Core rewrote ~15 existing RectTransform override values on layout-driven Player UI children (0 → computed). No runtime effect (layout groups drive them), but those stale overrides could be cleaned up.
+
+## 2026-11-03 — from spec-sfx-system-combat-footsteps review
+
+- **Arrows reuse melee cues** — `PlayerCombat.ResolveHit` plays `hitFlesh` / `block` / `perfectBlock` (sword sounds) for arrow hits too, and arrows hitting terrain or walls make no sound. Add arrow impact cues (bow `WeaponSO` or projectile data).
+- **Monsters share humanoid combat cues** — the spider's bite plays the sword-on-flesh cue, and blocking it plays a steel clang. Add a per-entity `CombatAudioSO` override (e.g. on `EntitySO`).
+- **Cooldown is per cue, not per emitter** — two hits on the same cue within its cooldown (50 ms) drop the second one in group fights. Key the cooldown by cue + emitter if it's noticeable.
+- **No voice priority** — once the pool is full, the earliest-started voice is stolen, whatever its importance (a perfect block could be cut by a footstep). Add a priority field to `SoundCueSO` if it's audible.
+- **SFX tails keep playing over pause** — nothing pauses the SFX pool when the Game Menu or death screen sets `timeScale = 0`. Consider `AudioListener.pause` (music already ignores it).
+- **Sneak footsteps** — sneaking (1.5 m/s) plays normal walk steps. Consider a quieter sneak cue or volume scale (pure audio; stealth doesn't model sound).
+- **AI swing whooshes** — enemies have no swing sound. Needs a per-attack cue that avoids sword whooshes on creatures.

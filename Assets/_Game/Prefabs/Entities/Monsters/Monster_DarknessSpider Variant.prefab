@@ -276,6 +276,9 @@ MonoBehaviour:
   - Id: Bite
     Hitbox: {fileID: 2935523744275433176}
   _selfFactionMember: {fileID: 3039617870295530094}
+  _animationDriver: {fileID: 0}
+  _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
 --- !u!1001 &559364768911813784
 PrefabInstance:
   m_ObjectHideFlags: 0

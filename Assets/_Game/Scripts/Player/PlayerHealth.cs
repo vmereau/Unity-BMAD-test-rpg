@@ -1,3 +1,4 @@
+using Game.Audio;
 using Game.Combat;
 using Game.Core;
 using UnityEngine;
@@ -20,6 +21,11 @@ namespace Game.Player
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Void _onPlayerDied;
         [SerializeField] private GameEventSO_Float _onPlayerHealthChanged;
+
+        [Header("Audio")]
+        [Tooltip("Hurt grunt (CombatAudioSO.playerHurt) on damage taken while alive. Empty = silent.")]
+        [SerializeField] private CombatAudioSO _combatAudio;
+        [SerializeField] private GameEventSO_SfxRequest _onSfxRequested;
 
         // Same-system reference — PlayerHealth and PlayerStats both in Scripts/Player/. No architecture violation.
         [SerializeField] private PlayerStats _playerStats;
@@ -85,6 +91,8 @@ namespace Game.Player
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
             _onPlayerHealthChanged?.Raise(CurrentHealth);
+            if (CurrentHealth > 0f && _onSfxRequested != null && _combatAudio != null) // no grunt on the killing blow
+                _onSfxRequested.Play(_combatAudio.playerHurt, transform.position);
             if (CurrentHealth <= 0f) Die();
         }
 

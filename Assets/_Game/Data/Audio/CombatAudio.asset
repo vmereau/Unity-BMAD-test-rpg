@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71f2e389bf9b10f438ed64cec67b7382, type: 3}
+  m_Name: CombatAudio
+  m_EditorClassIdentifier: Game::Game.Audio.CombatAudioSO
+  unarmedSwing: {fileID: 11400000, guid: 35b9b8f966e1f0141848df3ca7c9e3e6, type: 2}
+  hitFlesh: {fileID: 11400000, guid: 51d51a528b6e7c34fb1c4f356b19d7e3, type: 2}
+  block: {fileID: 11400000, guid: 48f9135adb3c02849935cd2139f96965, type: 2}
+  perfectBlock: {fileID: 11400000, guid: ee910ba933360b243b94d724c4ba0c47, type: 2}
+  draw: {fileID: 11400000, guid: 0d96d46195848594bb6ba98e83f0ec72, type: 2}
+  sheathe: {fileID: 11400000, guid: 1fcc337fb86ce734db53c151c2abcc3e, type: 2}
+  playerHurt: {fileID: 11400000, guid: 19ffebd3bc499d3459dde6470050e539, type: 2}

@@ -19,7 +19,8 @@ Player.prefab
 │   PlayerSkills, InteractionSystem, InventorySystem, ActionBarSystem, EquipmentSystem, XPSystem,
 │   LevelSystem, LearningPointSystem, GoldSystem (_startingGold 500), LockOnSystem,
 │   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/CLAUDE.md),
-│   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Prefabs/Items/Weapons/CLAUDE.md)
+│   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Prefabs/Items/Weapons/CLAUDE.md),
+│   FootstepEmitter (distance-based steps, gated by PlayerStateManager as IFootstepGate — Scripts/Audio/CLAUDE.md)
 ├── UICanvas             (nested prefab Prefabs/UI/UICanvas.prefab — see Prefabs/UI/CLAUDE.md)
 ├── CameraTarget         (pure Transform pivot, local Y 1.6 — Cinemachine Follow/LookAt target)
 ├── Virtual Camera       (CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget)

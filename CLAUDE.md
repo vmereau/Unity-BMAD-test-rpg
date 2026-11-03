@@ -119,7 +119,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
 | Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem` → `CookingUI`, `CookingRules` |
 | Status effects | `Scripts/StatusEffects/CLAUDE.md` | `StatusEffectSO` / catalog, clock-driven `StatusEffectHost` (food heal over time), payout math |
-| Audio | `Scripts/Audio/CLAUDE.md` | `MusicPlayer` on Core's `AudioManager`, `MusicVolumeSettings` (PlayerPrefs), music import recipe |
+| Audio | `Scripts/Audio/CLAUDE.md` | `MusicPlayer`, `SfxPlayer` (pooled one-shots via `OnSfxRequested`), `SoundCueSO`, `MainMixer` + volume settings, footsteps |
+| Sound clips | `Art/Sounds/CLAUDE.md` | SFX naming / import recipe, cue assets, ElevenLabs prompt table |
 | Stealth | `Scripts/Stealth/CLAUDE.md` | `IStealthTarget`, `StealthDetection` formula, `StealthConfigSO`, detection gizmos + F3 overlay |
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |

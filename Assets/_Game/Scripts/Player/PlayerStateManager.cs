@@ -17,7 +17,7 @@ namespace Game.Player
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerAnimationDriver))]
-    public class PlayerStateManager : MonoBehaviour
+    public class PlayerStateManager : MonoBehaviour, Game.Audio.IFootstepGate
     {
         private const string TAG = "[Player]";
 
@@ -70,6 +70,9 @@ namespace Game.Player
 
         /// <summary>True from death until a save is loaded. Blocks every action through IsBusy.</summary>
         public bool IsDead { get; private set; }
+
+        /// <summary>Footsteps muted while the body moves without walking (roll, attack lunge, stagger / knockdown, death).</summary>
+        public bool SuppressFootsteps => IsDead || IsDodging || IsAttacking || IsIncapacitated;
 
         /// <summary>
         /// Stance reaction (spec-player-stance-stagger-knockdown), written by <c>PlayerStance</c> through

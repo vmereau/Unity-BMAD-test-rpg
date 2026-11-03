@@ -47,5 +47,9 @@ namespace Game.Inventory
         [Min(0f)] public float stanceDamage = 20f;
         [Tooltip("True = hits can take stance to 0 (knockdown). False = they stop at the stagger threshold.")]
         public bool canKnockDown;
+
+        [Header("Audio")]
+        [Tooltip("Swing whoosh played when a melee hit window opens. Empty = silent (bows).")]
+        public Game.Audio.SoundCueSO swingSound;
     }
 }

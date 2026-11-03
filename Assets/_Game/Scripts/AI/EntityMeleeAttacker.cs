@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Animations;
+using Game.Audio;
 using Game.Combat;
 using Game.Core;
 using Game.World;
@@ -44,6 +45,11 @@ namespace Game.AI
         [SerializeField] private FactionMember _selfFactionMember;
         [Tooltip("Plays attack/combo steps. Auto-resolved on the same GO if null.")]
         [SerializeField] private AIAnimationDriver _animationDriver;
+
+        [Header("Audio")]
+        [Tooltip("Shared combat cues (hit / block / perfect block at the contact point). Empty = silent.")]
+        [SerializeField] private CombatAudioSO _combatAudio;
+        [SerializeField] private GameEventSO_SfxRequest _onSfxRequested;
 
         public float CurrentDamage { get; private set; }
         public bool IsAttacking { get; private set; }
@@ -222,6 +228,7 @@ namespace Game.AI
             if (!IsHostileTarget(target)) return;
 
             HitResult result = target.TryReceiveHit(gameObject);
+            if (_onSfxRequested != null && _combatAudio != null) _onSfxRequested.Play(_combatAudio.ForHit(result), hitPoint);
             switch (result)
             {
                 case HitResult.PerfectBlock:

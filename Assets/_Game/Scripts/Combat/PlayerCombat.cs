@@ -1,3 +1,4 @@
+using Game.Audio;
 using Game.Core;
 using Game.Inventory;
 using Game.Player;
@@ -57,6 +58,10 @@ namespace Game.Combat
         [SerializeField] private InventorySystem _inventory;
         [Tooltip("Toast channel for combat feedback (e.g. \"Out of arrows\").")]
         [SerializeField] private GameEventSO_String _onCombatNotification;
+
+        [Header("Audio")]
+        [SerializeField] private CombatAudioSO _combatAudio;
+        [SerializeField] private GameEventSO_SfxRequest _onSfxRequested;
 
         private StaminaSystem _staminaSystem;
         private PlayerStateManager _stateManager;
@@ -557,6 +562,7 @@ namespace Game.Combat
             if (this == null) return; // arrow landing after the player was destroyed
             if (target == null || target.IsDead) return;
             HitResult result = target.TryReceiveHit(gameObject);
+            PlayHitSound(result, hitPoint);
             if (result != HitResult.NotBlocked)
             {
                 GameLog.Info(TAG, $"Weapon hit {result} at {hitPoint}");
@@ -838,6 +844,7 @@ namespace Game.Combat
             if (!_stateManager.IsAttacking) return;
             _stateManager.SetAttackCommitted(true); // the swing is committed: wind-up steering ends
             _activeHitbox?.Enable();
+            PlaySfx(SwingCue(), transform.position);
         }
 
         public void OnHitboxDisable()  // Story 7.11
@@ -885,7 +892,15 @@ namespace Game.Combat
         }
 
         /// <summary>WeaponSwap clip event — the hand reached the hilt / sheath: move the weapon visual now.</summary>
-        public void OnWeaponSwapEvent() => CompleteWeaponSwitch();
+        public void OnWeaponSwapEvent()
+        {
+            // Draw / sheathe sound only on the real clip event (not the interrupt nets / watchdog), armed, non-bow.
+            WeaponSO weapon = EquippedWeapon();
+            if (_stateManager != null && _stateManager.IsSwitchingWeapon && weapon != null &&
+                weapon is not BowSO && _combatAudio != null)
+                PlaySfx(_stateManager.IsInCombat ? _combatAudio.draw : _combatAudio.sheathe, transform.position);
+            CompleteWeaponSwitch();
+        }
 
         /// <summary>Called by SMB_BowAimState.OnStateEnter — the aim pose is reached: the arrow is nocked.</summary>
         public void OnBowAimEntered()
@@ -907,6 +922,31 @@ namespace Game.Combat
         }
 
         // ----------------------------------------------------------------------------
+
+        // Audio ----------------------------------------------------------------------
+
+        // Read live, not _currentWeaponSO: that cache is only set on visuals refresh (startup race, see ResolveAttackStep).
+        private WeaponSO EquippedWeapon() =>
+            _equipmentSystem != null ? _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as WeaponSO : null;
+
+        // Equipped weapon's archetype swing, unarmed swing when no weapon.
+        private SoundCueSO SwingCue()
+        {
+            WeaponSO weapon = EquippedWeapon();
+            if (weapon != null) return weapon.archetype != null ? weapon.archetype.swingSound : null;
+            return _combatAudio != null ? _combatAudio.unarmedSwing : null;
+        }
+
+        private void PlayHitSound(HitResult result, Vector3 hitPoint)
+        {
+            if (_combatAudio == null) return;
+            PlaySfx(_combatAudio.ForHit(result), hitPoint);
+        }
+
+        private void PlaySfx(SoundCueSO cue, Vector3 position)
+        {
+            if (_onSfxRequested != null) _onSfxRequested.Play(cue, position);
+        }
 
         // Moves the weapon visual to match IsInCombat and releases the switch lock. No-op when no switch is in flight
         // (late events / exits, or a load that already forced the sheathed stance).

@@ -35,3 +35,4 @@ MonoBehaviour:
   attackStaminaMultiplier: 2
   stanceDamage: 45
   canKnockDown: 1
+  swingSound: {fileID: 11400000, guid: e8289b5ea30a9df44805ae18b4bcf78d, type: 2}

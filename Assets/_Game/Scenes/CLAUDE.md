@@ -16,7 +16,7 @@ Manager GameObjects in `Core.unity`:
 | `SaveSystem` | Scripted — `Game.Core.SaveSystem` (refs wired to the Player instance's components and `UICanvas/ConfirmDialog`; see `Scripts/Core/CLAUDE.md` → Save) |
 | `GameClock` | Scripted — `Game.Core.GameClock` (world time; `TimeConfig`, `OnHourChanged`, `OnTimeSkipped`). Referenced by `SaveSystem` and the Player instance's `SleepSystem` / `StatusEffectHost` (scene overrides — `Player.prefab` itself has no clock, so beds refuse with a warning in scenes without one, e.g. `TestScene`) |
 | `DayNightController` | Scripted — `Game.Core.DayNightController` (`GameClock`, `DayNightConfig`, children `Sun` / `Moon` directional lights). **Region scenes must not contain a directional light** — the sun lives here (StartingTown's was removed). `TestScene` keeps its own (it runs without Core) |
-| `AudioManager` | Scripted — `Game.Audio.MusicPlayer` + `AudioSource` (global exploration track; see `Scripts/Audio/CLAUDE.md`) |
+| `AudioManager` | Scripted — `MusicPlayer` + `AudioSource` (Output = `MainMixer/Music`), `SfxPlayer` (pooled one-shots), `AudioMixerVolumes`; see `Scripts/Audio/CLAUDE.md` |
 | `GameEventBus` | Empty stub |
 
 **Active scene / `RenderSettings`:** no code calls `SetActiveScene`, so in a build Core stays active and its Lighting

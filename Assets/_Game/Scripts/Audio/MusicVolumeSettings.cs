@@ -5,7 +5,7 @@ namespace Game.Audio
 {
     /// <summary>
     /// Music volume setting (0–1), stored in <see cref="PlayerPrefs"/> as a device setting (never in save files).
-    /// Single owner of the value: <see cref="MusicPlayer"/> reads it and listens to <see cref="Changed"/>,
+    /// Single owner of the value: <see cref="AudioMixerVolumes"/> applies it to the mixer's Music group,
     /// <c>OptionsUI</c> writes it through <see cref="Set"/>.
     /// </summary>
     public static class MusicVolumeSettings

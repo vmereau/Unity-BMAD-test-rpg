@@ -6,7 +6,8 @@ namespace Game.Audio
     /// <summary>
     /// Plays the global exploration track (GO <c>AudioManager</c> in Core.unity, always loaded, so music survives
     /// region loads, save loads and death). 2D, looping, fades in with unscaled time so it also runs while paused.
-    /// Effective volume = fade factor × <see cref="MusicVolumeSettings"/>; setting changes apply live.
+    /// Source volume = fade factor only; the music volume setting is applied on the mixer's Music group by
+    /// <see cref="AudioMixerVolumes"/> (the AudioSource's Output must be the Music group).
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
     public class MusicPlayer : MonoBehaviour
@@ -19,7 +20,6 @@ namespace Game.Audio
         [SerializeField, Min(0f)] private float _fadeInSeconds = 3f;
 
         private AudioSource _source;
-        private float _settingVolume;
         private float _fade;
 
         private void Awake()
@@ -31,17 +31,8 @@ namespace Game.Audio
             _source.ignoreListenerPause = true;
             _source.priority = 0; // never virtualised by SFX voices
             _source.volume = 0f;
-            _settingVolume = MusicVolumeSettings.Get();
-        }
-
-        private void OnEnable()
-        {
-            MusicVolumeSettings.Changed += HandleVolumeChanged;
-        }
-
-        private void OnDisable()
-        {
-            MusicVolumeSettings.Changed -= HandleVolumeChanged;
+            if (_source.outputAudioMixerGroup == null)
+                GameLog.Warn(TAG, "AudioSource has no mixer group — the music volume setting won't apply");
         }
 
         private void Start()
@@ -66,16 +57,10 @@ namespace Game.Audio
             ApplyVolume();
         }
 
-        private void HandleVolumeChanged(float volume)
-        {
-            _settingVolume = volume;
-            ApplyVolume();
-        }
-
         private void ApplyVolume()
         {
             if (_source == null) return;
-            _source.volume = _fade * _settingVolume;
+            _source.volume = _fade;
         }
     }
 }

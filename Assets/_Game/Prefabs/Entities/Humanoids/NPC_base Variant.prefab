@@ -1800,6 +1800,8 @@ MonoBehaviour:
     Hitbox: {fileID: 8497970747787917959}
   _selfFactionMember: {fileID: 5167142401029590748}
   _animationDriver: {fileID: 3766970546440902038}
+  _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
 --- !u!114 &5167142401029590748 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3156794405520552273, guid: e265604e8dcaaad4c81236c415d32664, type: 3}

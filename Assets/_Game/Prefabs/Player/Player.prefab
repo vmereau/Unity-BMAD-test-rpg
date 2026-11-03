@@ -273,6 +273,7 @@ GameObject:
   - component: {fileID: 2172086601274250965}
   - component: {fileID: 86657316684564912}
   - component: {fileID: 7928728298857477829}
+  - component: {fileID: 6091756440222296104}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -489,6 +490,8 @@ MonoBehaviour:
   _unarmedHitbox: {fileID: 2908738489711061366}
   _inventory: {fileID: 1994668802294238475}
   _onCombatNotification: {fileID: 11400000, guid: 9378fcbf7485c534dabd2a7076b500fc, type: 2}
+  _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
 --- !u!114 &4959302933258015613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -517,6 +520,8 @@ MonoBehaviour:
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
   _onPlayerHealthChanged: {fileID: 11400000, guid: d93b6981e4214bd488ec8a72b03d8c60, type: 2}
+  _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
   _playerStats: {fileID: 5748466653404673820}
   _playerCombat: {fileID: 8895864641979124537}
   _playerStateManager: {fileID: 212298241250081144}
@@ -955,6 +960,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a480ff6d089c1ed4191574234b4021c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Player.PlayerAttackStep
+--- !u!114 &6091756440222296104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb3b5ddddabc0344a4a21a17e178b86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Audio.FootstepEmitter
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
+  _walkCue: {fileID: 11400000, guid: e931ef9a48631234399e081011d9a639, type: 2}
+  _runCue: {fileID: 11400000, guid: 7e44a5d8a38e0f048a26c59888d1cb31, type: 2}
+  _walkStride: 1.4
+  _runStride: 1.9
+  _runThreshold: 4.5
+  _minSpeed: 0.5
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
