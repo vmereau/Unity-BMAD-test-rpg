@@ -237,6 +237,8 @@ namespace Game.Combat
                 CancelAttack();
             }
 
+            if (_stateManager.IsSwimming) SheatheForSwimming();
+
             UpdateBowAim();
 
             if (_stateManager.IsSwitchingWeapon)
@@ -479,6 +481,16 @@ namespace Game.Combat
             _stateManager.SetBlocking(false);
             _isPerfectBlockWindowOpen = false;
             _perfectBlockWindowTimer = 0f;
+        }
+
+        // No clip: swimming plays full-body, which hides the UpperBody sheathe, so the weapon moves at once.
+        private void SheatheForSwimming()
+        {
+            InterruptForStance();
+            if (!_stateManager.IsInCombat && !_stateManager.IsSwitchingWeapon) return;
+            _stateManager.EndWeaponSwitch();
+            _stateManager.SetInCombat(false);
+            if (_equipmentVisuals != null) _equipmentVisuals.SetCombatState(false);
         }
 
         // Story 7.9: weapon hitbox helpers -------------------------------------------

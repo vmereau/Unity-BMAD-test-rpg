@@ -29,6 +29,9 @@ namespace Game.Player
         /// <summary>Teleports (save load) drop any fall speed accumulated while the region was gone.</summary>
         public void ResetVerticalVelocity() => _verticalVelocity = GROUNDED_VELOCITY;
         private PlayerStateManager _stateManager;
+        private PlayerSwimming _swimming;
+
+        private bool IsSwimming => _swimming != null && _stateManager != null && _stateManager.IsSwimming;
 
         private void Awake()
         {
@@ -54,6 +57,10 @@ namespace Game.Player
             _stateManager = GetComponent<PlayerStateManager>();
             if (_stateManager == null)
                 GameLog.Warn(TAG, "PlayerStateManager not found on Player — dodge gating unavailable");
+
+            _swimming = GetComponent<PlayerSwimming>();
+            if (_swimming == null)
+                GameLog.Warn(TAG, "PlayerSwimming not found on Player — no swimming");
 
             if (_lockOnSystem == null) _lockOnSystem = GetComponent<LockOnSystem>();
             if (_lockOnSystem == null)
@@ -84,8 +91,15 @@ namespace Game.Player
             if (_stateManager != null && _stateManager.IsDodging)
                 return;
 
-            ApplyJump();
-            ApplyGravity();
+            if (IsSwimming)
+            {
+                ApplySwimHeight();
+            }
+            else
+            {
+                ApplyJump();
+                ApplyGravity();
+            }
             ApplyMovement();
         }
 
@@ -110,6 +124,12 @@ namespace Game.Player
             {
                 _verticalVelocity += GRAVITY * Time.deltaTime;
             }
+        }
+
+        private void ApplySwimHeight()
+        {
+            _verticalVelocity = SwimRules.VerticalSpeed(transform.position.y, _swimming.TargetFeetY,
+                _config.swimRiseSpeed, Time.deltaTime);
         }
 
         private void ApplyMovement()
@@ -194,9 +214,13 @@ namespace Game.Player
             // No sprint while aiming the bow (walk speed max; sneak speed still applies)
             bool isSprinting = _input.Player.Sprint.IsPressed() && (_stateManager == null || !_stateManager.IsAiming);
             // Sneak overrides both; PlayerSneak ends sneak as soon as Sprint is held while moving.
-            float currentSpeed = (_stateManager != null && _stateManager.IsSneaking)
-                ? _config.sneakSpeed
-                : (isSprinting ? _config.runSpeed : _config.walkSpeed);
+            float currentSpeed;
+            if (IsSwimming)
+                currentSpeed = _swimming.IsSwimSprinting ? _config.swimSprintSpeed : _config.swimSpeed;
+            else if (_stateManager != null && _stateManager.IsSneaking)
+                currentSpeed = _config.sneakSpeed;
+            else
+                currentSpeed = isSprinting ? _config.runSpeed : _config.walkSpeed;
             Vector3 velocity = moveDir * currentSpeed + Vector3.up * _verticalVelocity;
             _characterController.Move(velocity * Time.deltaTime);
         }

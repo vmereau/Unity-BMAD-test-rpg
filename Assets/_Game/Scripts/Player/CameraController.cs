@@ -172,7 +172,9 @@ namespace Game.Player
             {
                 Vector3 offset = _cinemachineFollow.FollowOffset;
                 // Apply the height adjustment to the camera offset instead
-                offset.y = _defaultFollowOffsetY + (heightSign * t * _lookDownHeightRise);
+                // Swimming: no drop when looking up, the water surface is invisible from below.
+                bool swimming = _stateManager != null && _stateManager.IsSwimming;
+                offset.y = _defaultFollowOffsetY + ((swimming ? Mathf.Max(0f, heightSign) : heightSign) * t * _lookDownHeightRise);
                 offset.z = _defaultFollowOffsetZ + (t * _lookDownZoomIn);
                 // Bow aim: shift towards the aim offset on top of the look-down adjustment (the two compose)
                 if (_aimBlend > 0f && _combatConfig != null)

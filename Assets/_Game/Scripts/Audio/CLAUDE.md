@@ -25,7 +25,8 @@
 | Hit / block / perfect block | `PlayerCombat.ResolveHit` (player melee + arrows) and `EntityMeleeAttacker.HandleHit`, at the hit point |
 | Draw / sheathe | `PlayerCombat.OnWeaponSwapEvent` only (not the interrupt nets / watchdog); armed, non-bow; `IsInCombat` = draw |
 | Player hurt | `PlayerHealth.TakeDamage` while still alive after the hit (no grunt on the killing blow; 2D cue) |
-| Footsteps | `FootstepEmitter` |
+| Footsteps | `FootstepEmitter` (muted while swimming) |
+| Water splash / exit / stroke | `PlayerSwimming`. Stroke every `swimStrokeDistance` m; no exit sound when the volume vanishes, no splash on a teleport |
 
 ---
 

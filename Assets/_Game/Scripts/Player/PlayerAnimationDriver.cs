@@ -66,6 +66,9 @@ namespace Game.Player
             _humanoidBridge.SetMovement(normX, normZ);
             _humanoidBridge.SetGrounded(!_stateManager.IsAirborne);
             _humanoidBridge.SetRising(_characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
+            // Every frame: an equip change or a revive resets all Animator parameters. Off during a stance reaction, or
+            // the held bool would retake the Base AnyState right after the reaction's blend and hide the clip.
+            _humanoidBridge.SetSwimming(_stateManager.IsSwimming && !_stateManager.IsIncapacitated);
 
             // UpperBody layer: combat carry pose / block / aim / draw-sheathe over the legs; 0 while the Base Layer plays an
             // attack, dodge, jump, reaction or death full-body. Read from the Animator's state tags (same rule as NPCs).

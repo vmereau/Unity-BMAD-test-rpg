@@ -19,6 +19,7 @@
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 | `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
+| `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
 | `World/Tent_Graybox` | Placeholder worker tent (BanditVillage tarp, sacks, log). All camp tents are instances, so real art is one prefab swap |
 
 ---
@@ -49,6 +50,23 @@
   (Ctrl+D copies the ID; harvesting one would remove both on load); add `Ownership` for a garden plant (→ "Steal").
 - `Tools/Items/Generate Missing Icons` renders a yield item's icon from its harvestable prefab (real model), not
   from the placeholder drop.
+
+## Water volumes (`World/Water_Volume`)
+
+Root: layer `Water`, trigger `BoxCollider` (1×1×1), `NavMeshModifierVolume` (Not Walkable). Child `Surface`: quad at the
+top face, `Game/Water` material, `NavMeshModifier` ignore. **Resize with the root scale only.** The top of the box is the
+swim surface, so it must match the visible water. The box must reach below the basin floor and cover the whole basin:
+leaving its sides ends the swim at once and the player falls.
+
+New lake recipe:
+1. Dig the basin **where the ground is at least ~2.5 m high**. The terrain sits at y = 0 and can't go lower, so the camp
+   (~0.7 m) can't hold deep water.
+2. Keep one shoreline at a walkable slope (`CharacterController.slopeLimit` 45°): there is no climb-out animation, so a
+   steep bank traps the player.
+3. Rebake the NavMesh. Scene bakes collect render meshes: the prefab keeps the surface out and marks the box unwalkable, but
+   only after a rebake.
+
+`StartingTown` has one instance at (75, 50), surface y 6.24.
 
 ## Cooking stations (`World/CookingStations/`)
 

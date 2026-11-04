@@ -31,7 +31,7 @@ also replaces `Block Idle` and `unarmed stagger 1/2`.
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
-  `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1).
+  `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -54,6 +54,15 @@ lists them explicitly (self-mapped) so an unarmed clip only replaces the base-st
 also has `→ CombatIdle` (IsAiming false, 0.15 s), listed **first**. `BowAim_State` carries `SMB_BowAimState`: its enter =
 arrow nocked. The bow clips sit directly in the base controller (not in an override): only a bow sets `IsAiming`, and NPCs
 never do. A dodge / jump / fall plays full-body (weight 0) and `PlayerCombat` clears `IsAiming`, which returns the aim states to `CombatIdle`.
+
+### Swim state (Base Layer, player only)
+
+AnyState → `Swim Locomotion` (`IsSwimming`, 0.25 s, no self-transition), listed after Death and the stance reactions, before
+`Attack_1`; exit → `LockOn Locomotion` (`IsSwimming` false, 0.25 s). Tag `FullBody`. 1D blend tree on `VelocityZ`:
+`swimming idle` (0), `swimming` (0.33 = `swimSpeed / runSpeed`), `swimming` at time scale 1.5 (0.58 = `swimSprintSpeed / runSpeed`);
+update the thresholds if the speeds change. Both clips: root rotation / Y / XZ baked into pose, looping. **The idle is upright
+but `swimming` is prone** (shoulders 0.9 m against 1.5 m), so `swimming.fbx` has a clip **height offset of −0.6** to share one
+waterline. Negative raises the body. Re-measure the shoulders if the clip changes.
 
 ### Sneak states (Base Layer)
 

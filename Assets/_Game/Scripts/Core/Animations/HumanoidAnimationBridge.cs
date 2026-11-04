@@ -33,6 +33,7 @@ namespace Game.Animations
         private static readonly int WeaponSwitchSpeedHash = Animator.StringToHash("WeaponSwitchSpeed");
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
+        private static readonly int IsSwimmingHash = Animator.StringToHash("IsSwimming");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
         private static readonly int LockOnLocomotionHash = Animator.StringToHash("LockOn Locomotion");
@@ -101,6 +102,7 @@ namespace Game.Animations
         public void SetRising(bool value) => _animator?.SetBool(IsRisingHash, value);
         public void SetBlocking(bool value) => _animator?.SetBool(IsBlockingHash, value);
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
+        public void SetSwimming(bool value) => _animator?.SetBool(IsSwimmingHash, value);
 
         /// <summary>
         /// Sets the IsSneaking bool. Entering sneak also clears a pending SneakToSprint trigger so a stale one

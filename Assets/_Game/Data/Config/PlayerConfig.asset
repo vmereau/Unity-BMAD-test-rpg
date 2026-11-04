@@ -18,3 +18,13 @@ MonoBehaviour:
   rotationSpeed: 10
   aimStanceYaw: 45
   jumpForce: 5
+  swimSpeed: 2
+  swimSprintSpeed: 3.5
+  swimSprintStaminaPerSecond: 8
+  swimEnterDepth: 1.3
+  swimExitDepth: 1.1
+  swimFloatDepth: 1.45
+  swimRiseSpeed: 2
+  swimStrokeDistance: 2
+  attackSteerSpeed: 8
+  upperBodyBlendTime: 0.15

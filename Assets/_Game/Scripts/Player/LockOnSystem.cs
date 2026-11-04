@@ -31,6 +31,7 @@ namespace Game.Player
         private readonly List<Vector3> _candidatePositions = new();
         private InputSystem_Actions _input;
         private Camera _mainCamera;
+        private PlayerStateManager _stateManager;
         private FactionMember _playerMember; // faction read at query time — FactionMember resolves it in its own Awake
         private bool _noFactionWarned;
 
@@ -42,6 +43,8 @@ namespace Game.Player
                 enabled = false;
                 return;
             }
+
+            _stateManager = GetComponent<PlayerStateManager>();
 
             // Only entities hostile to the player's faction are lock-on targets.
             _playerMember = GetComponent<FactionMember>();
@@ -72,7 +75,7 @@ namespace Game.Player
         {
             if (IsLockedOn)
                 ClearLock();
-            else
+            else if (!IsSwimming)
                 TryAcquireTarget();
         }
 
@@ -168,6 +171,12 @@ namespace Game.Player
         {
             if (!IsLockedOn) return;
 
+            if (IsSwimming)
+            {
+                ClearLock();
+                return;
+            }
+
             if (LockedTarget == null || !LockedTarget.gameObject.activeInHierarchy)
             {
                 ClearLock();
@@ -186,6 +195,8 @@ namespace Game.Player
                 ClearLock();
             }
         }
+
+        private bool IsSwimming => _stateManager != null && _stateManager.IsSwimming;
 
         private void ClearLock()
         {

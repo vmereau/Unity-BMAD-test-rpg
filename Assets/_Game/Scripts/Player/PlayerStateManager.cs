@@ -41,7 +41,7 @@ namespace Game.Player
             get
             {
                 if (_characterController == null) return false;
-                if (_characterController.isGrounded)
+                if (IsSwimming || _characterController.isGrounded) // floating is never a fall
                 {
                     _lastGroundedTime = Time.time;
                     return false;
@@ -72,7 +72,7 @@ namespace Game.Player
         public bool IsDead { get; private set; }
 
         /// <summary>Footsteps muted while the body moves without walking (roll, attack lunge, stagger / knockdown, death).</summary>
-        public bool SuppressFootsteps => IsDead || IsDodging || IsAttacking || IsIncapacitated;
+        public bool SuppressFootsteps => IsDead || IsDodging || IsAttacking || IsIncapacitated || IsSwimming;
 
         /// <summary>
         /// Stance reaction (spec-player-stance-stagger-knockdown), written by <c>PlayerStance</c> through
@@ -112,6 +112,12 @@ namespace Game.Player
         /// (<see cref="ExitSneakToSprint"/>). Attacking and blocking keep it.
         /// </summary>
         public bool IsSneaking { get; private set; }
+
+        /// <summary>
+        /// True while in surface swim mode. Written by <c>PlayerSwimming</c>; cleared by death. Blocks attack, block, aim,
+        /// draw / sheathe, dodge, jump and sneak. PlayerAnimationDriver pushes it to the Animator every frame.
+        /// </summary>
+        public bool IsSwimming { get; private set; }
 
         /// <summary>True while the player is in an active dialogue conversation.</summary>
         public bool IsInDialogue { get; private set; }
@@ -230,6 +236,15 @@ namespace Game.Player
             GameLog.Info(TAG, $"Sneak: {value}");
         }
 
+        /// <summary>Enters or leaves swim mode. Entering clears sneak without a stand-up clip. Called by PlayerSwimming.</summary>
+        public void SetSwimming(bool value)
+        {
+            if (IsSwimming == value) return;
+            IsSwimming = value;
+            if (value) SetSneaking(false);
+            GameLog.Info(TAG, $"Swimming: {value}");
+        }
+
         /// <summary>Leaves sneak because the player started running — plays the sneak-to-sprint clip.</summary>
         public void ExitSneakToSprint()
         {
@@ -306,6 +321,7 @@ namespace Game.Player
                 IsDodging = false;
                 IsSneaking = false;
                 IsAiming = false;
+                IsSwimming = false;    // the body sinks under normal gravity
                 IsStaggered = false;   // death overrides the stance reaction
                 IsKnockedDown = false;
                 // IsSwitchingWeapon is kept: IsBusy already blocks R, and the PlayerCombat watchdog (or the load) still
@@ -331,13 +347,13 @@ namespace Game.Player
         // ── Can-do queries ────────────────────────────────────────────────────
 
         /// <summary>True when the player is allowed to start an attack.</summary>
-        public bool CanAttack() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
+        public bool CanAttack() => !IsSwimming && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
 
         /// <summary>
         /// True when the player is allowed to raise a block.
         /// Blocking is permitted during an attack (block-cancel): PlayerCombat.OnBlockStarted cancels the swing.
         /// </summary>
-        public bool CanBlock() => EvaluateCanBlock(IsBusy, IsAirborne, IsDodging, IsSwitchingWeapon, IsInCombat);
+        public bool CanBlock() => !IsSwimming && EvaluateCanBlock(IsBusy, IsAirborne, IsDodging, IsSwitchingWeapon, IsInCombat);
 
         /// <summary>Pure block gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (block-cancel).</summary>
         public static bool EvaluateCanBlock(bool isBusy, bool isAirborne, bool isDodging, bool isSwitchingWeapon,
@@ -346,7 +362,7 @@ namespace Game.Player
 
         /// <summary>True when R may start a draw / sheathe.</summary>
         public bool CanSwitchWeapon() =>
-            EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon, IsAiming);
+            !IsSwimming && EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon, IsAiming);
 
         /// <summary>
         /// Pure draw / sheathe gate (tested in WeaponSwitchGateTests). Blocking, dodging and airborne are excluded because
@@ -359,7 +375,7 @@ namespace Game.Player
 
         /// <summary>True when the player may start (or keep) a bow aim. Bow equipped is checked by PlayerCombat.</summary>
         public bool CanAim() =>
-            EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);
+            !IsSwimming && EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);
 
         /// <summary>
         /// Pure bow-aim gate (tested in BowAimGateTests). Same exclusions as blocking: drawn and on the ground. A block still
@@ -370,20 +386,20 @@ namespace Game.Player
             !isBusy && !isAirborne && !isDodging && !isAttacking && !isBlocking && !isSwitchingWeapon && isInCombat;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
-        public bool CanDodge() => !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
+        public bool CanDodge() => !IsSwimming && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
 
         /// <summary>
         /// True when the player is allowed to jump (state gates only; isGrounded not checked here). Allowed during an attack
         /// (jump-cancel): PlayerCombat cancels the swing once airborne.
         /// </summary>
-        public bool CanJump() => EvaluateCanJump(IsBusy, IsAirborne, IsDodging, IsBlocking);
+        public bool CanJump() => !IsSwimming && EvaluateCanJump(IsBusy, IsAirborne, IsDodging, IsBlocking);
 
         /// <summary>Pure jump gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (jump-cancel).</summary>
         public static bool EvaluateCanJump(bool isBusy, bool isAirborne, bool isDodging, bool isBlocking) =>
             !isBusy && !isAirborne && !isDodging && !isBlocking;
 
         /// <summary>True when the player may enter sneak stance. Attacking and blocking are allowed.</summary>
-        public bool CanSneak() => EvaluateCanSneak(IsBusy, IsAirborne, IsDodging);
+        public bool CanSneak() => !IsSwimming && EvaluateCanSneak(IsBusy, IsAirborne, IsDodging);
 
         /// <summary>Pure sneak gate (tested in PlayerStateManagerTests). Attacking / blocking are deliberately not inputs.</summary>
         public static bool EvaluateCanSneak(bool isBusy, bool isAirborne, bool isDodging) =>

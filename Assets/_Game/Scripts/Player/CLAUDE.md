@@ -20,6 +20,7 @@
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
 | Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimStanceYaw` (45° side-on stance) with no sprint; `Game.Combat.BowAimCorrection` turns the spine onto the crosshair after the Animator (`Scripts/Combat/CLAUDE.md`); `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
+| Swim   | `IsSwimming` (blocks attack, block, aim, R, dodge, jump, sneak) | `PlayerSwimming` → `SetSwimming(bool)` |
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
@@ -39,6 +40,28 @@ reads Sprint/Move: Sprint held while moving → `ExitSneakToSprint()` (clears `I
 without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking off a ledge). `PlayerController` uses `PlayerConfigSO.sneakSpeed` while sneaking.
 `PlayerSaveAdapter.Restore` forces `SetSneaking(false)` (sneak is not saved). `VisibilityPoint` = feet +
 `StealthConfigSO.standing/sneakingVisibilityHeight` (the AI line-of-sight aim point).
+
+### Swimming — PlayerSwimming (spec-water-and-swimming)
+
+`PlayerSwimming` (Player root, `[DefaultExecutionOrder(-10)]`, before `PlayerController`) finds water with one
+`OverlapSphereNonAlloc` just above the feet on `_waterMask` (layer `Water`, triggers only); surface = highest
+`collider.bounds.max.y`. No water script, no trigger callbacks (those would also fire for child hitboxes). Pure rules:
+`SwimRules` (`SwimRulesTests`). Tunables: `PlayerConfigSO` `[Header("Swimming")]`.
+
+- **Depths** = surface above the feet. Keep `swimExitDepth < swimEnterDepth <= swimFloatDepth`, or the float height
+  ends the swim at once. The shore needs no code: rising ground pushes the `CharacterController` up past the exit depth.
+- **`PlayerController`:** `ApplySwimHeight` replaces jump + gravity while swimming; speed = `swimSpeed` / `swimSprintSpeed`.
+- **Sprint:** `IsSwimSprinting` drains `swimSprintStaminaPerSecond`, consumed in whole points (`StaminaSystem.Consume` logs
+  and raises the HUD event each call). Empty → normal speed until Sprint is released.
+- **Gates:** `!IsSwimming` wraps the instance `Can*` methods; the pure `Evaluate*` signatures stay untouched. `IsAirborne`
+  stays false while swimming. `DodgeController` checks `IsSwimming` itself. `LockOnSystem` releases and refuses a lock.
+- **Weapon:** `PlayerCombat.SheatheForSwimming` ends attack / aim / block and sheathes instantly, without a clip (the
+  swim state is full-body, which hides the UpperBody sheathe).
+- `PlayerAnimationDriver` pushes `IsSwimming` **every frame**: `Refresh()` and `Rebind()` reset all parameters.
+- A dodge delays the swim until it ends. Death clears `IsSwimming`; the body sinks. Not saved: detection re-runs after a load.
+- **Stance reactions:** the driver sends `IsSwimming && !IsIncapacitated`, so a stagger / knockdown clip isn't cut by the
+  held bool. `CameraController` drops its look-up height loss while swimming (the surface is invisible from below).
+- Water surface and basin recipe: `Prefabs/CLAUDE.md` → Water volumes.
 
 ### Stance — PlayerStance (spec-player-stance-stagger-knockdown)
 

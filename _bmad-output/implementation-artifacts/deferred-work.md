@@ -390,3 +390,6 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Terrain tree prefabs missing** — "Tree prefab at index 0–2 is missing" logged on load (pre-existing).
 - **Colliders on `PF_PrimitiveHouse01`** — negative-scale BoxCollider warnings each play session (pre-existing, pack prefab).
 - **`TheftPursuitRegistryTests` fail on a second run in one Unity session** (pre-existing) — the static `_claimed` set only resets on play-mode enter and the tests reuse fixed ids, so re-running EditMode tests without a domain reload fails 3 tests. Add a test-only reset or per-run unique ids.
+- **Enemies stay engaged at the shore** (spec-water-and-swimming) — `EntityBrain.HandleEngage` keeps a hostile Engaging when a swimmer is unreachable, so water is a free escape. Add an unreachable timer, then search or disengage.
+- **Water ripple precision** (spec-water-and-swimming) — `Game/Water` feeds unwrapped `_Time.y` into the hash; noise may coarsen after about two hours. Wrap the offset or use a precision-safe hash.
+- **Water shader lighting** (spec-water-and-swimming) — no main-light shadows on the sun glint (shows under cliffs and trees), and see-through water is fogged twice. Cosmetic.

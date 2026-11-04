@@ -39,5 +39,8 @@ tone: dry, close, weighty, no music, no reverb tail unless stated.
 | `Draw` | 1.0 s | drawing a steel sword from a leather scabbard, metallic scrape, ending with a ring |
 | `Sheathe` | 1.0 s | sliding a steel sword into a leather scabbard, scrape ending with a soft thud |
 | `PlayerHurt` | 0.6 s | male warrior pain grunt, short, gritty, medieval, no words |
+| `WaterSplash` | 1.0 s | body plunging into a lake, heavy water splash, close mic, no reverb |
+| `WaterExit` | 1.0 s | person wading out of shallow water, water dripping and sloshing off clothes, close mic |
+| `SwimStroke` | 0.8 s | single swimming stroke, arm pulling through calm water, soft splash and swirl, close mic |
 
 New sounds: add a row here, create `Cue_<Name>.asset`, wire it (see `Scripts/Audio/CLAUDE.md` → Where sounds are raised).

@@ -274,6 +274,7 @@ GameObject:
   - component: {fileID: 86657316684564912}
   - component: {fileID: 7928728298857477829}
   - component: {fileID: 6091756440222296104}
+  - component: {fileID: 3603420808322167872}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -979,6 +980,28 @@ MonoBehaviour:
   _runStride: 1.9
   _runThreshold: 4.5
   _minSpeed: 0.5
+  _groundedGrace: 0.15
+--- !u!114 &3603420808322167872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a45026b11add64cab7047cbab8436d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Player.PlayerSwimming
+  _config: {fileID: 11400000, guid: b187ee82d09378f4888b6823b0af5d07, type: 2}
+  _staminaSystem: {fileID: 8924309687103124940}
+  _waterMask:
+    serializedVersion: 2
+    m_Bits: 16
+  _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
+  _enterCue: {fileID: 11400000, guid: e26e29c5b5429e448893980d2a4f4404, type: 2}
+  _exitCue: {fileID: 11400000, guid: 3814d85b8cda457429f1fd71f390bab2, type: 2}
+  _strokeCue: {fileID: 11400000, guid: f6d61cb214b76e74b88986f7e95b858c, type: 2}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

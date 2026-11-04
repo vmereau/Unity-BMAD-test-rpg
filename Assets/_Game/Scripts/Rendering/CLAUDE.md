@@ -18,6 +18,7 @@ Shaders live in `Assets/_Game/Shaders/`:
 |--------|------|
 | `Hidden/Game/InteractionOutlineMask` | Override material for the mask pass — writes 1 into an R8 mask. `ZWrite Off`, `ZTest LEqual` against the camera depth, so only the visible silhouette counts (no outline through walls). |
 | `Hidden/Game/InteractionOutlineComposite` | Full-screen blit (`Blit.hlsl` `Vert`). Samples the mask on 12 directions at `_OutlineWidth` and half of it; colors pixels outside the mask, alpha-blended over camera color. Interior stays clean. Color = global `_InteractionOutlineColor` (`GameConstants.INTERACTION_OUTLINE_COLOR_PROPERTY`, set by `InteractionSystem`). Texel size comes from `_OutlineMaskTexelSize` set in C#. |
+| `Game/Water` | Transparent surface of `Water_Volume`. World-space procedural ripples (no texture; scale never stretches them), depth tint, shore foam, refraction, reflection, sun specular, fog. Needs the depth and opaque textures on `PC_RPAsset`. Visible from above only. Tune on `Art/Materials/Water.mat`. |
 
 ---
 
