@@ -47,7 +47,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `CivilizationGate` | South trail, (−15, −50) | Closed; `GateBlocker` collider. Fences stop short of the cliff line by design: nothing seals the open slopes yet |
 | `WildernessPath` | North-east trail, (28, 50) | Open exit, marked by a gap between fences |
 
-Enemies live outside the basin: spiders around (62, −35), bandits around (−70, 60). The terrain has no river yet.
+Enemies live outside the basin: spiders around (62, −35), bandits around (−70, 60). The terrain has no river yet; a 20 × 20 m lake (`Water_Volume`) sits in a crater at (75, 50).
 
 ---
 

@@ -393,3 +393,11 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Enemies stay engaged at the shore** (spec-water-and-swimming) — `EntityBrain.HandleEngage` keeps a hostile Engaging when a swimmer is unreachable, so water is a free escape. Add an unreachable timer, then search or disengage.
 - **Water ripple precision** (spec-water-and-swimming) — `Game/Water` feeds unwrapped `_Time.y` into the hash; noise may coarsen after about two hours. Wrap the offset or use a precision-safe hash.
 - **Water shader lighting** (spec-water-and-swimming) — no main-light shadows on the sun glint (shows under cliffs and trees), and see-through water is fogged twice. Cosmetic.
+
+## From spec-area-1-zone-planner (2026-11-04)
+
+- **Area 1 blockout** — split from the zone planner: build every feature in the approved `docs/World/Areas/area-001/layout.json`
+  and its `notes`: terrain, river, lake, roads, fences, forest, the arrival gate and removal of the Civilization gate, work sites,
+  both ruins, hollow, cave and the stone fort; move the spiders and bandits; then rebake the NavMesh and check sightlines and walk times. Whole-terrain sculpting is pre-approved by Valentin (2026-11-04).
+- **Magenta tree in `StartingTown`** — a large tree renders magenta in the Scene view. A scan of scene renderer materials found nothing
+  broken, and all 3 terrain tree prototypes report no prefab. Cause not confirmed; check them before the blockout scatters forest.

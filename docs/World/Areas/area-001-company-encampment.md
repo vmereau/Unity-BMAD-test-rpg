@@ -15,7 +15,11 @@
 
 ## Overview
 
-> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. No river yet, so the Company house stands on the south outcrop and the docks are not built.
+> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. No river or docks yet. The Company house stays on the south outcrop.
+
+> **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography is in `area-001/layout.json`; the camp's internal layout is still open.
+>
+> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`. The new north-west arrival gate replaces the Civilization gate. The camp is fenced with a palisade inside and a low fence outside, with an opening wherever a road crosses. The Company emblem is still open.
 
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
@@ -57,7 +61,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 ### Exits
 | Exit | Direction | Status | Notes |
 |------|-----------|--------|-------|
-| Civilization Road | Back toward towns / Company camps | Gated | Guarded post, blocked until story conditions met |
+| Civilization Road | Back toward towns / Company camps | Gated | Guarded post at the new north-west gate, blocked until story conditions met |
 | Wilderness Path | Into the unknown | Open | Curves behind a hill, disappears from sight. Reads as danger, then as freedom. |
 
 ---

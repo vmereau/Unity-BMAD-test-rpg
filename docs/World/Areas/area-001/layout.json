@@ -1,0 +1,533 @@
+{
+  "version": 1,
+  "savedAt": "2026-11-04T14:35:35.000Z",
+  "features": [
+    {
+      "id": "mountains",
+      "kind": "mountain",
+      "name": "Mountain wall",
+      "width": 50,
+      "art": [
+        "master-2"
+      ],
+      "note": "Seals the valley. The gap on the west side lets the river and road through.",
+      "points": [
+        [
+          -225.1,
+          55
+        ],
+        [
+          -225.1,
+          -225.9
+        ],
+        [
+          224.9,
+          -225.9
+        ],
+        [
+          224.9,
+          224.1
+        ],
+        [
+          -225.1,
+          224.1
+        ],
+        [
+          -225.1,
+          160
+        ]
+      ]
+    },
+    {
+      "id": "river",
+      "kind": "river",
+      "name": "River",
+      "width": 18,
+      "art": [
+        "master-2",
+        "freedom"
+      ],
+      "note": "Rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass.",
+      "points": [
+        [
+          -248.3,
+          121.7
+        ],
+        [
+          -138.3,
+          109.7
+        ],
+        [
+          -58.3,
+          93.7
+        ],
+        [
+          1.7,
+          77.7
+        ],
+        [
+          46.7,
+          67.7
+        ],
+        [
+          99.2,
+          46.2
+        ],
+        [
+          225.5,
+          63
+        ]
+      ]
+    },
+    {
+      "id": "lake",
+      "kind": "water",
+      "name": "Enlarged lake",
+      "x": 104.1,
+      "z": 45.5,
+      "w": 97.2,
+      "d": 68.4,
+      "art": [
+        "master-2"
+      ],
+      "note": "Today's lake is 20 m wide. The art shows a much larger one."
+    },
+    {
+      "id": "arrival-road",
+      "kind": "road",
+      "name": "Arrival road",
+      "width": 5,
+      "art": [
+        "master-2",
+        "arrival"
+      ],
+      "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
+      "points": [
+        [
+          -250,
+          92
+        ],
+        [
+          -140,
+          84
+        ],
+        [
+          -85,
+          66
+        ],
+        [
+          -48,
+          42
+        ],
+        [
+          -8,
+          18
+        ]
+      ]
+    },
+    {
+      "id": "arrival-gate",
+      "kind": "point",
+      "name": "Arrival gate",
+      "x": -38.4,
+      "z": 36.3,
+      "art": [
+        "arrival"
+      ],
+      "note": "New north-west gate. It replaces the Civilization gate."
+    },
+    {
+      "id": "outer-fence",
+      "kind": "fence",
+      "name": "Low outer fence, south-west",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Openings are left where roads cross.",
+      "points": [
+        [
+          -2.7,
+          -52.2
+        ],
+        [
+          -31.5,
+          -43.3
+        ],
+        [
+          -46.7,
+          -26.4
+        ],
+        [
+          -49.1,
+          -5.2
+        ],
+        [
+          -50.3,
+          2.6
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-2",
+      "kind": "fence",
+      "name": "Low outer fence, west",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Openings are left where roads cross.",
+      "points": [
+        [
+          -51.3,
+          8.6
+        ],
+        [
+          -52.1,
+          13.4
+        ],
+        [
+          -45.8,
+          29.4
+        ],
+        [
+          -41.3,
+          33.6
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-3",
+      "kind": "fence",
+      "name": "Low outer fence, north",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Openings are left where roads cross.",
+      "points": [
+        [
+          -35.5,
+          39
+        ],
+        [
+          -20.7,
+          52.8
+        ],
+        [
+          30,
+          51.9
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-4",
+      "kind": "fence",
+      "name": "Low outer fence, east",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Openings are left where roads cross.",
+      "points": [
+        [
+          35.3,
+          51.8
+        ],
+        [
+          51.6,
+          35.3
+        ],
+        [
+          55.5,
+          -2.9
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-5",
+      "kind": "fence",
+      "name": "Low outer fence, south-east",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Openings are left where roads cross.",
+      "points": [
+        [
+          56.1,
+          -8.6
+        ],
+        [
+          39,
+          -37.7
+        ]
+      ]
+    },
+    {
+      "id": "docks",
+      "kind": "zone",
+      "name": "Docks",
+      "x": 1.1,
+      "z": 66.1,
+      "w": 18.4,
+      "d": 24.4,
+      "art": [
+        "master-2",
+        "freedom"
+      ],
+      "note": "Company docks on the camp bank. Off-limits at night."
+    },
+    {
+      "id": "ford",
+      "kind": "point",
+      "name": "Ford",
+      "x": 34.9,
+      "z": 70.3,
+      "art": [],
+      "note": "Shallow crossing for the wilderness path."
+    },
+    {
+      "id": "hunter-fire",
+      "kind": "point",
+      "name": "Hunter's fire",
+      "x": -24,
+      "z": 109.2,
+      "art": [
+        "freedom"
+      ],
+      "note": "Must be seen from the docks and tents at night."
+    },
+    {
+      "id": "wilderness-trail",
+      "kind": "road",
+      "name": "Wilderness trail",
+      "width": 3,
+      "art": [],
+      "note": "Runs from the camp exit over the ford to the hunting grounds.",
+      "points": [
+        [
+          33,
+          51.7
+        ],
+        [
+          35,
+          71.7
+        ],
+        [
+          42,
+          91.5
+        ],
+        [
+          44,
+          117
+        ],
+        [
+          31.7,
+          143.8
+        ]
+      ]
+    },
+    {
+      "id": "ruins",
+      "kind": "zone",
+      "name": "Ruins",
+      "x": 149.4,
+      "z": 166.1,
+      "w": 70,
+      "d": 45,
+      "art": [
+        "ruins",
+        "master-2"
+      ],
+      "note": "On a raised ridge across the river. Must be seen from camp by day."
+    },
+    {
+      "id": "hunting-grounds",
+      "kind": "zone",
+      "name": "Hunting grounds",
+      "x": -19.6,
+      "z": 155.8,
+      "w": 200.1,
+      "d": 83.9,
+      "art": [],
+      "note": "Work site, north of the river."
+    },
+    {
+      "id": "quarry",
+      "kind": "zone",
+      "name": "Stone quarry",
+      "x": 141,
+      "z": -59.7,
+      "w": 60,
+      "d": 45,
+      "art": [
+        "quarry",
+        "master-2"
+      ],
+      "note": "Work site on high ground. Holds the sealed passage."
+    },
+    {
+      "id": "quarry-road",
+      "kind": "road",
+      "name": "Quarry road",
+      "width": 4,
+      "art": [],
+      "note": "Workers walk this every morning.",
+      "points": [
+        [
+          12.6,
+          2
+        ],
+        [
+          45.4,
+          -1.5
+        ],
+        [
+          65.1,
+          -10.7
+        ],
+        [
+          120.7,
+          -41.1
+        ]
+      ]
+    },
+    {
+      "id": "wood-camp",
+      "kind": "zone",
+      "name": "Wood camp",
+      "x": -139.7,
+      "z": -4.8,
+      "w": 87.5,
+      "d": 74.9,
+      "art": [],
+      "note": "Work site in the west forest."
+    },
+    {
+      "id": "wood-road",
+      "kind": "road",
+      "name": "Wood camp road",
+      "width": 3,
+      "art": [],
+      "note": "Branches west from the camp.",
+      "points": [
+        [
+          -17.4,
+          4
+        ],
+        [
+          -42,
+          5
+        ],
+        [
+          -85,
+          8
+        ],
+        [
+          -118,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "hollow",
+      "kind": "zone",
+      "name": "Fight Club Hollow",
+      "x": 39.6,
+      "z": 27.9,
+      "w": 16,
+      "d": 16,
+      "art": [],
+      "note": "Must stay hidden from the Company house."
+    },
+    {
+      "id": "zone-1",
+      "kind": "zone",
+      "name": "player tent",
+      "x": -41.7,
+      "z": -6.2,
+      "w": 9.6,
+      "d": 7.5,
+      "art": [],
+      "note": ""
+    },
+    {
+      "id": "zone-2",
+      "kind": "zone",
+      "name": "center",
+      "x": -2.4,
+      "z": 4.3,
+      "w": 30,
+      "d": 30,
+      "art": [],
+      "note": ""
+    },
+    {
+      "id": "zone-3",
+      "kind": "zone",
+      "name": "Company house / fort",
+      "x": -2.7,
+      "z": -42.2,
+      "w": 79.9,
+      "d": 29.1,
+      "art": [],
+      "note": ""
+    },
+    {
+      "id": "zone-4",
+      "kind": "zone",
+      "name": "Ruins 2",
+      "x": 170.2,
+      "z": -91.7,
+      "w": 30,
+      "d": 30,
+      "art": [
+        "quarry"
+      ],
+      "note": "Extra ruins in and hidden around the quarry. The sealed passage connects to them."
+    },
+    {
+      "id": "cave",
+      "kind": "point",
+      "name": "Tutorial cave",
+      "x": 85,
+      "z": -45,
+      "art": [],
+      "note": "The GDD's nearby cave. It teaches dungeon exploring and looting."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "gate",
+      "label": "Arrival gate",
+      "options": [
+        "New north-west gate replaces the Civilization gate",
+        "Keep both gates",
+        "Keep only the south gate"
+      ],
+      "value": "New north-west gate replaces the Civilization gate"
+    },
+    {
+      "id": "fence",
+      "label": "Camp fence",
+      "options": [
+        "Palisade inside, low fence outside",
+        "Full palisade ring",
+        "Low fence only, as in the design doc"
+      ],
+      "value": "Palisade inside, low fence outside"
+    },
+    {
+      "id": "banner",
+      "label": "Company emblem",
+      "options": [
+        "Raven",
+        "Ram",
+        "Something else"
+      ],
+      "value": "Something else"
+    }
+  ],
+  "notes": "Valley layout, camp interior still open.\n- Spiders move away from the quarry road.\n- River rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass. No exit through the mountains.\n- Fight Club Hollow: rock fold hides it from the fort.\n- Ruins ridge must read from the tents at about 200 m.\n- Ruins 2: extra ruins in and hidden around the quarry; the sealed passage connects to them.\n- Quarry and wood roads join the camp at the current centre; revisit with the camp layout.\n- Bandits sit beside the arrival road; move them during the blockout."
+}

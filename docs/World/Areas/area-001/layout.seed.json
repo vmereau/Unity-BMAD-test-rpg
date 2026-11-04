@@ -1,0 +1,543 @@
+{
+  "version": 1,
+  "terrain": {
+    "originX": -250,
+    "originZ": -250,
+    "size": 500
+  },
+  "speeds": {
+    "walk": 3,
+    "run": 6
+  },
+  "fixed": [
+    {
+      "id": "company-house",
+      "name": "Company house",
+      "x": 15.05,
+      "z": -38.5,
+      "w": 22.1,
+      "d": 10,
+      "note": "Scene: Camp/CompanyHouse on the outcrop."
+    },
+    {
+      "id": "inner-fence",
+      "name": "Inner fence",
+      "x": -1.5,
+      "z": 8.95,
+      "w": 82,
+      "d": 1,
+      "note": "Scene: Camp/InnerFence, gate gap at x≈0."
+    },
+    {
+      "id": "center-stage",
+      "name": "Center stage",
+      "x": 0.05,
+      "z": 14.7,
+      "w": 12.1,
+      "d": 5.4,
+      "note": "Scene: Camp/CenterStage."
+    },
+    {
+      "id": "canteen",
+      "name": "Canteen",
+      "x": -9.8,
+      "z": 14.6,
+      "w": 8.4,
+      "d": 2.8,
+      "note": "Scene: Camp/Canteen."
+    },
+    {
+      "id": "players-zone",
+      "name": "Player's zone",
+      "x": 14.9,
+      "z": 27.95,
+      "w": 15,
+      "d": 10.5,
+      "note": "Scene: Camp/PlayersZone."
+    },
+    {
+      "id": "wretches-corner",
+      "name": "Wretches' corner",
+      "x": -0.5,
+      "z": 32.5,
+      "w": 9,
+      "d": 8,
+      "note": "Scene: Camp/WretchesCorner."
+    },
+    {
+      "id": "mafia-zone",
+      "name": "Mafia zone",
+      "x": 26.85,
+      "z": 17.65,
+      "w": 10.3,
+      "d": 7.9,
+      "note": "Scene: Camp/MafiaZone."
+    },
+    {
+      "id": "civilization-gate",
+      "name": "Civilization gate",
+      "x": -19.5,
+      "z": -47.65,
+      "w": 33,
+      "d": 5.1,
+      "note": "Scene: Camp/CivilizationGate, currently closed."
+    },
+    {
+      "id": "wilderness-exit",
+      "name": "Wilderness exit",
+      "x": 26.5,
+      "z": 49.95,
+      "w": 25,
+      "d": 1,
+      "note": "Scene: Camp/WildernessPath, open gap."
+    },
+    {
+      "id": "lake-now",
+      "name": "Lake today",
+      "x": 75,
+      "z": 50,
+      "w": 20,
+      "d": 20,
+      "note": "Scene: Water_Volume, 20 × 20 m."
+    },
+    {
+      "id": "player-spawn",
+      "name": "Player spawn",
+      "x": 13.5,
+      "z": 19.5,
+      "note": "Scene: PlayerSpawnPoint."
+    },
+    {
+      "id": "spiders",
+      "name": "Spiders",
+      "x": 62.7,
+      "z": -35.3,
+      "note": "Scene: centre of the three Monster_DarknessSpider instances."
+    },
+    {
+      "id": "bandits",
+      "name": "Bandits",
+      "x": -62,
+      "z": 58,
+      "note": "Scene: the Bandit instance. The proposed arrival road passes close by."
+    }
+  ],
+  "features": [
+    {
+      "id": "mountains",
+      "kind": "mountain",
+      "name": "Mountain wall",
+      "width": 50,
+      "art": [
+        "master-2"
+      ],
+      "note": "Seals the valley. The gap on the west side lets the river and road through.",
+      "points": [
+        [
+          -225,
+          55
+        ],
+        [
+          -225,
+          -225
+        ],
+        [
+          225,
+          -225
+        ],
+        [
+          225,
+          225
+        ],
+        [
+          -225,
+          225
+        ],
+        [
+          -225,
+          160
+        ]
+      ]
+    },
+    {
+      "id": "river",
+      "kind": "river",
+      "name": "River",
+      "width": 18,
+      "art": [
+        "master-2",
+        "freedom"
+      ],
+      "note": "Flows along the north of the tents into the lake.",
+      "points": [
+        [
+          -250,
+          120
+        ],
+        [
+          -140,
+          108
+        ],
+        [
+          -60,
+          92
+        ],
+        [
+          0,
+          76
+        ],
+        [
+          45,
+          66
+        ],
+        [
+          75,
+          55
+        ]
+      ]
+    },
+    {
+      "id": "lake",
+      "kind": "water",
+      "name": "Enlarged lake",
+      "x": 90,
+      "z": 62,
+      "w": 90,
+      "d": 70,
+      "art": [
+        "master-2"
+      ],
+      "note": "Today's lake is 20 m wide. The art shows a much larger one."
+    },
+    {
+      "id": "arrival-road",
+      "kind": "road",
+      "name": "Arrival road",
+      "width": 5,
+      "art": [
+        "master-2",
+        "arrival"
+      ],
+      "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
+      "points": [
+        [
+          -250,
+          92
+        ],
+        [
+          -140,
+          84
+        ],
+        [
+          -85,
+          66
+        ],
+        [
+          -48,
+          42
+        ],
+        [
+          -8,
+          18
+        ]
+      ]
+    },
+    {
+      "id": "arrival-gate",
+      "kind": "point",
+      "name": "Arrival gate",
+      "x": -48,
+      "z": 42,
+      "art": [
+        "arrival"
+      ],
+      "note": "Decide whether this replaces the Civilization gate."
+    },
+    {
+      "id": "outer-fence",
+      "kind": "fence",
+      "name": "Low outer fence",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Low, broken fence with gaps toward the wild.",
+      "points": [
+        [
+          -42,
+          9
+        ],
+        [
+          -52,
+          40
+        ],
+        [
+          -18,
+          53
+        ],
+        [
+          38,
+          52
+        ],
+        [
+          46,
+          30
+        ],
+        [
+          40,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "docks",
+      "kind": "zone",
+      "name": "Docks",
+      "x": 4,
+      "z": 60,
+      "w": 14,
+      "d": 12,
+      "art": [
+        "master-2",
+        "freedom"
+      ],
+      "note": "Company docks on the camp bank. Off-limits at night."
+    },
+    {
+      "id": "ford",
+      "kind": "point",
+      "name": "Ford",
+      "x": 30,
+      "z": 70,
+      "art": [],
+      "note": "Shallow crossing for the wilderness path."
+    },
+    {
+      "id": "hunter-fire",
+      "kind": "point",
+      "name": "Hunter's fire",
+      "x": 6,
+      "z": 104,
+      "art": [
+        "freedom"
+      ],
+      "note": "Must be seen from the docks and tents at night."
+    },
+    {
+      "id": "wilderness-trail",
+      "kind": "road",
+      "name": "Wilderness trail",
+      "width": 3,
+      "art": [],
+      "note": "Runs from the camp exit over the ford to the hunting grounds.",
+      "points": [
+        [
+          28,
+          50
+        ],
+        [
+          30,
+          70
+        ],
+        [
+          60,
+          100
+        ],
+        [
+          100,
+          125
+        ]
+      ]
+    },
+    {
+      "id": "ruins",
+      "kind": "zone",
+      "name": "Ruins",
+      "x": -20,
+      "z": 170,
+      "w": 70,
+      "d": 45,
+      "art": [
+        "ruins",
+        "master-2"
+      ],
+      "note": "On a raised ridge across the river. Must be seen from camp by day."
+    },
+    {
+      "id": "hunting-grounds",
+      "kind": "zone",
+      "name": "Hunting grounds",
+      "x": 120,
+      "z": 140,
+      "w": 100,
+      "d": 80,
+      "art": [],
+      "note": "Work site, north of the river."
+    },
+    {
+      "id": "quarry",
+      "kind": "zone",
+      "name": "Stone quarry",
+      "x": -95,
+      "z": -60,
+      "w": 60,
+      "d": 45,
+      "art": [
+        "quarry",
+        "master-2"
+      ],
+      "note": "Work site on high ground. Holds the sealed passage."
+    },
+    {
+      "id": "quarry-road",
+      "kind": "road",
+      "name": "Quarry road",
+      "width": 4,
+      "art": [],
+      "note": "Workers walk this every morning.",
+      "points": [
+        [
+          -42,
+          5
+        ],
+        [
+          -68,
+          -28
+        ],
+        [
+          -80,
+          -42
+        ]
+      ]
+    },
+    {
+      "id": "wood-camp",
+      "kind": "zone",
+      "name": "Wood camp",
+      "x": -145,
+      "z": 0,
+      "w": 55,
+      "d": 45,
+      "art": [],
+      "note": "Work site in the west forest."
+    },
+    {
+      "id": "wood-road",
+      "kind": "road",
+      "name": "Wood camp road",
+      "width": 3,
+      "art": [],
+      "note": "Branches west from the camp.",
+      "points": [
+        [
+          -42,
+          5
+        ],
+        [
+          -85,
+          8
+        ],
+        [
+          -118,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "hollow",
+      "kind": "zone",
+      "name": "Fight Club Hollow",
+      "x": -62,
+      "z": 24,
+      "w": 16,
+      "d": 16,
+      "art": [],
+      "note": "Must stay hidden from the Company house."
+    },
+    {
+      "id": "cave",
+      "kind": "point",
+      "name": "Tutorial cave",
+      "x": 85,
+      "z": -45,
+      "art": [],
+      "note": "The GDD's nearby cave, close to the spiders."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "gate",
+      "label": "Arrival gate",
+      "options": [
+        "New north-west gate replaces the Civilization gate",
+        "Keep both gates",
+        "Keep only the south gate"
+      ],
+      "value": ""
+    },
+    {
+      "id": "fence",
+      "label": "Camp fence",
+      "options": [
+        "Palisade inside, low fence outside",
+        "Full palisade ring",
+        "Low fence only, as in the design doc"
+      ],
+      "value": ""
+    },
+    {
+      "id": "banner",
+      "label": "Company emblem",
+      "options": [
+        "Raven",
+        "Ram",
+        "Something else"
+      ],
+      "value": ""
+    }
+  ],
+  "artworks": [
+    {
+      "id": "master-2",
+      "title": "Master layout 2",
+      "file": "art/master-layout-2.png",
+      "note": "Main reference. Looks south-east from above the arrival road."
+    },
+    {
+      "id": "master-1",
+      "title": "Master layout",
+      "file": "art/master-layout.png",
+      "note": "Superseded for geography; still good for mood."
+    },
+    {
+      "id": "arrival",
+      "title": "Arrival",
+      "file": "art/arrival.png",
+      "note": "To redo once the layout is settled."
+    },
+    {
+      "id": "fort",
+      "title": "Company fort",
+      "file": "art/company-fort.png",
+      "note": "Target for the Company house."
+    },
+    {
+      "id": "freedom",
+      "title": "Freedom at night",
+      "file": "art/freedom-at-night.png",
+      "note": "Target view from the docks."
+    },
+    {
+      "id": "ruins",
+      "title": "Ruins",
+      "file": "art/ruins.png",
+      "note": "Target view from the tents."
+    },
+    {
+      "id": "quarry",
+      "title": "Quarry",
+      "file": "art/quarry.png",
+      "note": "The sealed crack is the part to keep."
+    }
+  ]
+}

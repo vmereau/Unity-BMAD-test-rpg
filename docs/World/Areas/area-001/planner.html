@@ -1,0 +1,633 @@
+<title>Alderath Camp Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=IM+Fell+English+SC&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a surveyor's table. The map fills the room, the ledger sits at its right hand. */
+:root {
+  color-scheme: dark;
+  --ground: #1b1712; --panel: #262019; --raised: #322a20; --line: #4a3e30;
+  --bone: #d8ccb0; --dust: #a89a80; --brass: #b4924f; --ember: #e0a35a;
+  --water: #4d6a86; --blood: #b0483c; --pine: #7f8f63; --stone: #8e897e; --road: #cdb78d;
+  --display: "IM Fell English SC", Georgia, serif;
+  --body: "Alegreya Sans", "Segoe UI", sans-serif;
+  --data: "IBM Plex Mono", Consolas, monospace;
+}
+html, body { height: 100%; }
+body { background: var(--ground); color: var(--bone); font: 15px/1.4 var(--body); }
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: var(--raised); border: 1px solid var(--line); border-radius: 3px; padding: 5px 10px; cursor: pointer; }
+button:hover { border-color: var(--brass); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+button.primary { background: var(--brass); border-color: var(--brass); color: #1b1712; font-weight: 700; }
+button.danger { border-color: var(--blood); color: #e7a79f; }
+.app { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px; gap: 10px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+h1 { font: 24px/1.1 var(--display); margin: 0; color: var(--bone); }
+.status { color: var(--dust); font-size: 13px; }
+.status.warn { color: var(--ember); }
+.tools { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.work { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 10px; min-height: 0; }
+.mapwrap { position: relative; min-height: 0; min-width: 0; background: #121009; border: 1px solid var(--line); overflow: hidden; }
+#map { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; user-select: none; }
+#map.grabbing { cursor: grabbing; }
+.mapbar { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.mapbar button { background: rgba(38, 32, 25, .92); }
+.layers { position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; background: rgba(27, 23, 18, .88); padding: 4px 8px; font-size: 13px; border-radius: 3px; }
+.layers label { display: inline-flex; gap: 5px; align-items: center; }
+.scale { position: absolute; right: 10px; bottom: 10px; font: 12px var(--data); color: var(--bone); text-align: center; pointer-events: none; }
+.scale i { display: block; height: 5px; border: 1px solid var(--bone); border-top: 0; margin-top: 2px; }
+.north { position: absolute; right: 12px; top: 10px; font: 16px var(--display); color: var(--bone); pointer-events: none; }
+.coord { position: absolute; right: 10px; bottom: 42px; font: 12px var(--data); color: var(--dust); pointer-events: none; }
+aside { min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.inspector { background: var(--panel); border: 1px solid var(--line); padding: 10px; display: grid; gap: 7px; }
+.inspector h2 { font: 18px/1.15 var(--display); margin: 0; }
+.tag { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--brass); }
+.note { color: var(--dust); margin: 0; }
+.fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.fields label, .stack label { display: grid; gap: 2px; font-size: 12px; color: var(--dust); min-width: 0; }
+input[type=number], input[type=text], select, textarea { background: var(--ground); border: 1px solid var(--line); border-radius: 3px; padding: 4px 6px; width: 100%; min-width: 0; }
+input[type=number] { font-family: var(--data); font-size: 13px; }
+.measure { font: 13px var(--data); color: var(--ember); }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { flex: 1; }
+.tabs button[aria-selected=true] { border-color: var(--brass); color: var(--ember); }
+.pane { flex: 1; min-height: 0; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); padding: 8px; }
+.list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 2px; }
+.list h3 { font: 12px var(--body); letter-spacing: .05em; text-transform: uppercase; color: var(--brass); margin: 8px 0 3px; }
+.list button { width: 100%; display: flex; justify-content: space-between; gap: 8px; background: transparent; border-color: transparent; text-align: left; padding: 3px 6px; }
+.list button:hover { border-color: var(--line); }
+.list button[aria-current=true] { background: var(--raised); border-color: var(--brass); }
+.list span:last-child { font: 12px var(--data); color: var(--dust); white-space: nowrap; }
+.stack { display: grid; gap: 10px; }
+.art { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.art button { padding: 0; background: none; border: 1px solid var(--line); display: grid; text-align: left; }
+.art img { aspect-ratio: 16 / 9; object-fit: cover; width: 100%; }
+.art span { padding: 3px 6px; font-size: 13px; }
+.mini { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini button { padding: 2px 8px; font-size: 13px; }
+dialog { background: var(--panel); color: var(--bone); border: 1px solid var(--line); padding: 10px; max-width: min(1100px, 94vw); }
+dialog::backdrop { background: rgba(0, 0, 0, .8); }
+dialog img { display: block; max-width: 100%; max-height: 74vh; margin: 0 auto; }
+dialog h2 { font: 20px var(--display); margin: 8px 0 2px; }
+#jsonOut { width: 100%; height: 140px; font: 12px var(--data); }
+svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8, .9); stroke-linejoin: round; pointer-events: none; }
+@media (max-width: 900px) {
+  html, body { height: auto; }
+  .app { height: auto; }
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .mapwrap { height: 62vh; }
+  .pane { max-height: 60vh; }
+  .tools { margin-left: 0; }
+}
+</style>
+
+<div class="app">
+  <header>
+    <h1>Alderath Camp Planner</h1>
+    <span class="status" id="status" role="status">Loading the map…</span>
+    <div class="tools">
+      <button id="addZone">Add zone</button>
+      <button id="addPath">Add path</button>
+      <button id="copy">Copy JSON</button>
+      <button id="reset">Reset</button>
+      <button id="save" class="primary">Save layout</button>
+    </div>
+  </header>
+  <div class="work">
+    <div class="mapwrap">
+      <svg id="map" aria-label="Top-down map of Area 1. Drag features to move them."></svg>
+      <div class="mapbar">
+        <button id="viewAll">Whole valley</button>
+        <button id="viewCamp">Camp</button>
+        <button id="zoomIn" aria-label="Zoom in">+</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+      </div>
+      <div class="north">N ↑</div>
+      <div class="coord" id="coord"></div>
+      <div class="scale" id="scale"><span></span><i></i></div>
+      <div class="layers" id="layers"></div>
+    </div>
+    <aside>
+      <section class="inspector" id="inspector" aria-live="polite"></section>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-features" aria-selected="true">Features</button>
+        <button role="tab" id="tab-decisions" aria-selected="false">Decisions</button>
+        <button role="tab" id="tab-art" aria-selected="false">Artwork</button>
+      </div>
+      <div class="pane" id="pane"></div>
+    </aside>
+  </div>
+</div>
+<dialog id="lightbox"><img id="lbImg" alt=""><h2 id="lbTitle"></h2><p class="note" id="lbNote"></p><button id="lbClose">Close</button></dialog>
+<dialog id="jsonBox"><h2>Layout JSON</h2><p class="note">Select this text and copy it.</p><textarea id="jsonOut" readonly></textarea><div class="row"><button id="jsonClose">Close</button></div></dialog>
+
+<script>
+(() => {
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const LIMIT = 250, MIN_SIZE = 4, MIN_VIEW = 40, DRAFT_KEY = 'alderath-planner-draft';
+  const DOC = 'layouts/current';
+  const LINE_KINDS = ['road', 'river', 'fence', 'mountain'];
+  const KIND_LABEL = { zone: 'Zone', water: 'Water', point: 'Point', road: 'Road', river: 'River', fence: 'Fence', mountain: 'Mountains', fixed: 'In the scene' };
+  const GROUPS = [['Paths and water', ['road', 'river', 'fence', 'mountain', 'water']], ['Zones', ['zone']], ['Points', ['point']]];
+  const $ = id => document.getElementById(id);
+  const svg = $('map');
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const round = v => Math.round(v * 10) / 10;
+  const isLine = f => Array.isArray(f.points);
+  const isRect = f => f.w !== undefined;
+
+  let seed, layout, db = null;
+  const ui = { sel: null, tab: 'features', dirty: false, resetArmed: false, drag: null, ready: false, rev: 0, saving: false, loadFailed: false,
+    view: { cx: 0, cz: 0, w: 520 }, show: { fixed: true, proposed: true, labels: true, grid: true } };
+
+  const base = el('g', {}, svg);
+  const image = el('image', { x: -LIMIT, y: -LIMIT, width: LIMIT * 2, height: LIMIT * 2, preserveAspectRatio: 'none' }, base);
+  const dyn = el('g', {}, svg);
+
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const all = () => [...layout.features, ...seed.fixed.map(f => ({ ...f, kind: 'fixed' }))];
+  const find = id => all().find(f => f.id === id);
+  const editable = f => f && f.kind !== 'fixed';
+
+  function pathLength(f) {
+    let d = 0;
+    for (let i = 1; i < f.points.length; i++) d += Math.hypot(f.points[i][0] - f.points[i - 1][0], f.points[i][1] - f.points[i - 1][1]);
+    return d;
+  }
+  const time = t => { const s = Math.round(t); return s >= 60 ? `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')} s` : `${s} s`; };
+  const measure = f => {
+    const d = pathLength(f);
+    return `${Math.round(d)} m · walk ${time(d / seed.speeds.walk)} · run ${time(d / seed.speeds.run)}`;
+  };
+
+  function aspect() { const r = svg.getBoundingClientRect(); return r.width && r.height ? r.height / r.width : 1; }
+  function fitView() {
+    const v = ui.view, h = v.w * aspect();
+    svg.setAttribute('viewBox', `${v.cx - v.w / 2} ${-v.cz - h / 2} ${v.w} ${h}`);
+  }
+  function toWorld(e) {
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+    return [p.x, -p.y];
+  }
+  const px = () => ui.view.w / (svg.getBoundingClientRect().width || 800);
+
+  function label(text, x, z, opts = {}) {
+    const k = px(), size = (opts.size || 12) * k;
+    el('text', { x, y: -z, 'font-size': size, 'stroke-width': 3 * k, fill: opts.fill || 'var(--bone)', 'text-anchor': 'middle', 'font-weight': opts.bold ? 700 : 400 }, dyn).textContent = text;
+  }
+
+  function polyline(f) { return f.points.map(p => `${p[0]},${-p[1]}`).join(' '); }
+
+  function drawLine(f) {
+    const k = px(), selected = ui.sel === f.id;
+    const style = {
+      mountain: { stroke: 'var(--stone)', 'stroke-width': f.width, opacity: .32 },
+      river: { stroke: 'var(--water)', 'stroke-width': f.width, opacity: .9 },
+      road: { stroke: 'var(--road)', 'stroke-width': Math.max(f.width, 2 * k), 'stroke-dasharray': `${Math.max(f.width, 8 * k) * 1.6} ${Math.max(f.width, 8 * k)}` },
+      fence: { stroke: 'var(--ember)', 'stroke-width': Math.max(f.width, 2 * k), 'stroke-dasharray': `${3 * k} ${3 * k}` }
+    }[f.kind] || { stroke: 'var(--road)', 'stroke-width': 2 * k };
+    if (selected) el('polyline', { points: polyline(f), fill: 'none', stroke: 'var(--ember)', 'stroke-width': style['stroke-width'] + 5 * k, opacity: .5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, dyn);
+    const dashed = f.kind === 'road' || f.kind === 'fence';
+    el('polyline', { points: polyline(f), fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': dashed ? 'butt' : 'round', ...style }, dyn);
+    el('polyline', { points: polyline(f), fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(f.width || 0, 14 * k), 'data-id': f.id, 'data-role': 'body', style: 'cursor:move', 'stroke-linejoin': 'round' }, dyn);
+  }
+
+  function drawRect(f) {
+    const selected = ui.sel === f.id, k = px(), fixed = f.kind === 'fixed';
+    const w = Math.max(f.w, 2 * k), d = Math.max(f.d, 2 * k);
+    const fill = f.kind === 'water' ? 'var(--water)' : fixed ? 'var(--bone)' : 'var(--brass)';
+    el('rect', { x: f.x - w / 2, y: -f.z - d / 2, width: w, height: d, rx: (f.kind === 'water' ? Math.min(w, d) / 2 : 0),
+      fill, 'fill-opacity': fixed ? .22 : .28, stroke: selected ? 'var(--ember)' : fill,
+      'stroke-width': (selected ? 2.5 : 1.2) * k, 'data-id': f.id, 'data-role': 'body', style: fixed ? 'cursor:pointer' : 'cursor:move' }, dyn);
+  }
+
+  function drawPoint(f) {
+    const k = px(), selected = ui.sel === f.id, fixed = f.kind === 'fixed';
+    const colour = fixed ? 'var(--bone)' : f.id === 'hunter-fire' ? 'var(--ember)' : 'var(--brass)';
+    el('circle', { cx: f.x, cy: -f.z, r: (selected ? 7 : 5) * k, fill: colour, stroke: selected ? 'var(--ember)' : '#120f0a', 'stroke-width': 2 * k, 'data-id': f.id, 'data-role': 'body', style: fixed ? 'cursor:pointer' : 'cursor:move' }, dyn);
+  }
+
+  function drawHandles(f) {
+    if (!editable(f)) return;
+    const k = px(), s = 11 * k;
+    if (isLine(f)) {
+      f.points.forEach((p, i) => {
+        if (i) {
+          const a = f.points[i - 1];
+          el('circle', { cx: (a[0] + p[0]) / 2, cy: -(a[1] + p[1]) / 2, r: 4 * k, fill: 'var(--ground)', stroke: 'var(--ember)', 'stroke-width': 1.5 * k, 'data-id': f.id, 'data-role': 'mid', 'data-idx': i, style: 'cursor:copy' }, dyn);
+        }
+        el('circle', { cx: p[0], cy: -p[1], r: 6 * k, fill: 'var(--ember)', stroke: '#120f0a', 'stroke-width': 1.5 * k, 'data-id': f.id, 'data-role': 'vertex', 'data-idx': i, style: 'cursor:grab' }, dyn);
+      });
+    } else if (isRect(f)) {
+      el('rect', { x: f.x + f.w / 2 - s / 2, y: -f.z + f.d / 2 - s / 2, width: s, height: s, fill: 'var(--ember)', stroke: '#120f0a', 'stroke-width': 1.5 * k, 'data-id': f.id, 'data-role': 'resize', style: 'cursor:nwse-resize' }, dyn);
+    }
+  }
+
+  function renderMap() {
+    fitView();
+    dyn.replaceChildren();
+    const k = px();
+    if (ui.show.grid) {
+      for (let m = -200; m <= 200; m += 100) {
+        el('line', { x1: m, y1: -LIMIT, x2: m, y2: LIMIT, stroke: 'var(--bone)', 'stroke-opacity': .1, 'stroke-width': k }, dyn);
+        el('line', { x1: -LIMIT, y1: m, x2: LIMIT, y2: m, stroke: 'var(--bone)', 'stroke-opacity': .1, 'stroke-width': k }, dyn);
+      }
+    }
+    if (ui.show.proposed) {
+      layout.features.filter(f => f.kind === 'mountain').forEach(drawLine);
+      layout.features.filter(f => isRect(f)).sort((a, b) => b.w * b.d - a.w * a.d).forEach(drawRect);
+      layout.features.filter(f => isLine(f) && f.kind !== 'mountain').forEach(drawLine);
+      layout.features.filter(f => !isLine(f) && !isRect(f)).forEach(drawPoint);
+    }
+    if (ui.show.fixed) seed.fixed.map(f => ({ ...f, kind: 'fixed' })).forEach(f => isRect(f) ? drawRect(f) : drawPoint(f));
+    const s = ui.sel && find(ui.sel);
+    if (s && ui.show.proposed) drawHandles(s);
+    if (ui.show.labels) {
+      if (ui.show.proposed) layout.features.forEach(f => {
+        if (f.kind === 'fence') return;
+        const at = isLine(f) ? f.points[Math.floor((f.points.length - 1) / 2)] : [f.x, f.z];
+        label(f.name, at[0], at[1] + (isRect(f) ? 0 : 7 * k), { bold: ui.sel === f.id, fill: f.kind === 'mountain' ? 'var(--dust)' : 'var(--bone)' });
+      });
+      if (ui.show.fixed && k < 0.3) seed.fixed.forEach(f => label(f.name, f.x, f.z + (isRect(f) ? 0 : 7 * k), { size: 11, fill: 'var(--dust)' }));
+    }
+    const nice = [5, 10, 20, 50, 100, 200].find(m => m / k >= 60) || 200;
+    $('scale').firstElementChild.textContent = `${nice} m`;
+    $('scale').lastElementChild.style.width = `${nice / k}px`;
+  }
+
+  function renderInspector() {
+    const box = $('inspector'), f = ui.sel && find(ui.sel);
+    box.replaceChildren();
+    if (!f) {
+      const h = document.createElement('h2'); h.textContent = 'Nothing selected';
+      const p = document.createElement('p'); p.className = 'note';
+      p.textContent = 'Click a feature to edit it. Drag to move. On a selected path, drag a dot to reshape it, drag a hollow dot to add a bend, or double-click a dot to remove it. Scroll to zoom, drag empty ground to pan.';
+      box.append(h, p);
+      return;
+    }
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = KIND_LABEL[f.kind] || f.kind;
+    box.append(tag);
+    if (editable(f)) {
+      const name = document.createElement('input'); name.type = 'text'; name.id = 'fName'; name.value = f.name; name.setAttribute('aria-label', 'Name');
+      name.oninput = () => { f.name = name.value || 'Unnamed'; touched(); renderMap(); renderPane(); };
+      box.append(name);
+    } else {
+      const h = document.createElement('h2'); h.textContent = f.name; box.append(h);
+    }
+    if (f.note) { const p = document.createElement('p'); p.className = 'note'; p.textContent = f.note; box.append(p); }
+    if (isLine(f)) {
+      const m = document.createElement('div'); m.className = 'measure'; m.id = 'fMeasure'; m.textContent = measure(f); box.append(m);
+      if (editable(f)) {
+        const fields = document.createElement('div'); fields.className = 'fields';
+        const l = document.createElement('label'); l.textContent = 'Width';
+        const i = document.createElement('input'); i.type = 'number'; i.id = 'f_width'; i.value = f.width; i.step = 1; i.min = 1;
+        i.onchange = () => { const v = parseFloat(i.value); if (!isNaN(v)) { f.width = clamp(round(v), 1, 100); touched(); renderMap(); } i.value = f.width; };
+        l.append(i); fields.append(l); box.append(fields);
+      }
+    } else {
+      const fields = document.createElement('div'); fields.className = 'fields';
+      const entries = isRect(f) ? [['x', 'X'], ['z', 'Z'], ['w', 'Width'], ['d', 'Depth']] : [['x', 'X'], ['z', 'Z']];
+      entries.forEach(([key, text]) => {
+        const l = document.createElement('label'); l.textContent = text;
+        const i = document.createElement('input'); i.type = 'number'; i.id = 'f_' + key; i.value = round(f[key]); i.step = 1; i.disabled = !editable(f);
+        i.onchange = () => { const v = parseFloat(i.value); if (!isNaN(v)) { f[key] = v; settle(f); touched(); renderMap(); } i.value = round(f[key]); syncInspector(); };
+        l.append(i); fields.append(l);
+      });
+      box.append(fields);
+    }
+    if (f.art && f.art.length) {
+      const mini = document.createElement('div'); mini.className = 'mini';
+      f.art.forEach(id => { const a = seed.artworks.find(x => x.id === id); if (!a) return;
+        const b = document.createElement('button'); b.textContent = a.title; b.onclick = () => openArt(a); mini.append(b); });
+      box.append(mini);
+    }
+    if (editable(f)) {
+      const row = document.createElement('div'); row.className = 'row';
+      if (isLine(f) && f.points.length > 2) {
+        const pop = document.createElement('button'); pop.textContent = 'Remove last point';
+        pop.onclick = () => { f.points.pop(); touched(); renderAll(); }; row.append(pop);
+      }
+      const del = document.createElement('button'); del.className = 'danger'; del.textContent = 'Delete';
+      del.onclick = () => { layout.features = layout.features.filter(x => x !== f); ui.sel = null; touched(); renderAll(); };
+      row.append(del); box.append(row);
+    }
+  }
+
+  function syncInspector() {
+    const f = ui.sel && find(ui.sel); if (!f) return;
+    if (isLine(f)) { const m = $('fMeasure'); if (m) m.textContent = measure(f); }
+    else ['x', 'z', 'w', 'd'].forEach(k => { const i = $('f_' + k); if (i && document.activeElement !== i) i.value = round(f[k]); });
+  }
+
+  function renderPane() {
+    const pane = $('pane'); pane.replaceChildren();
+    ['features', 'decisions', 'art'].forEach(t => $('tab-' + t).setAttribute('aria-selected', ui.tab === t));
+    if (ui.tab === 'features') {
+      const add = (title, items) => {
+        const h = document.createElement('h3'); h.textContent = title; h.style.cssText = 'font:12px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--brass);margin:8px 0 3px';
+        pane.append(h);
+        const ul = document.createElement('ul'); ul.className = 'list';
+        items.forEach(f => {
+          const li = document.createElement('li'), b = document.createElement('button');
+          if (ui.sel === f.id) b.setAttribute('aria-current', 'true');
+          const a = document.createElement('span'), c = document.createElement('span');
+          a.textContent = f.name; c.textContent = isLine(f) && f.kind === 'road' ? `${Math.round(pathLength(f))} m` : '';
+          b.append(a, c); b.onclick = () => select(f.id, true);
+          li.append(b); ul.append(li);
+        });
+        pane.append(ul);
+      };
+      GROUPS.forEach(([title, kinds]) => { const items = layout.features.filter(f => kinds.includes(f.kind)); if (items.length) add(title, items); });
+      add('Already in the scene', seed.fixed.map(f => ({ ...f, kind: 'fixed' })));
+    } else if (ui.tab === 'decisions') {
+      const s = document.createElement('div'); s.className = 'stack';
+      layout.decisions.forEach(d => {
+        const l = document.createElement('label'); l.textContent = d.label;
+        const sel = document.createElement('select'); sel.id = 'dec_' + d.id;
+        ['', ...d.options].forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o || 'Not decided'; sel.append(op); });
+        sel.value = d.value; sel.onchange = () => { d.value = sel.value; touched(); };
+        l.append(sel); s.append(l);
+      });
+      const l = document.createElement('label'); l.textContent = 'Notes for the blockout';
+      const t = document.createElement('textarea'); t.id = 'notes'; t.rows = 5; t.value = layout.notes || '';
+      t.oninput = () => { layout.notes = t.value; touched(); };
+      l.append(t); s.append(l); pane.append(s);
+    } else {
+      const g = document.createElement('div'); g.className = 'art';
+      seed.artworks.forEach(a => {
+        const b = document.createElement('button'), i = document.createElement('img'), c = document.createElement('span');
+        i.src = a.file; i.alt = a.title; i.loading = 'lazy'; c.textContent = a.title;
+        b.append(i, c); b.onclick = () => openArt(a); g.append(b);
+      });
+      pane.append(g);
+    }
+  }
+
+  function renderAll() { renderMap(); renderInspector(); renderPane(); }
+
+  function openArt(a) {
+    $('lbImg').src = a.file; $('lbImg').alt = a.title; $('lbTitle').textContent = a.title; $('lbNote').textContent = a.note || '';
+    $('lightbox').showModal();
+  }
+
+  function select(id, centre) {
+    ui.sel = id;
+    const f = id && find(id);
+    if (f && centre) {
+      const at = isLine(f) ? f.points[Math.floor((f.points.length - 1) / 2)] : [f.x, f.z];
+      ui.view.cx = at[0]; ui.view.cz = at[1];
+      if (f.kind === 'fixed') { ui.show.fixed = true; ui.view.w = Math.min(ui.view.w, 240); syncLayers(); }
+      else { ui.show.proposed = true; syncLayers(); }
+    }
+    renderAll();
+  }
+
+  /** Keeps a feature inside the terrain: sizes first, then position. */
+  function settle(f) {
+    if (isLine(f)) { f.points.forEach(p => { p[0] = clamp(round(p[0]), -LIMIT, LIMIT); p[1] = clamp(round(p[1]), -LIMIT, LIMIT); }); return; }
+    if (isRect(f)) {
+      f.w = clamp(round(f.w), MIN_SIZE, LIMIT * 2); f.d = clamp(round(f.d), MIN_SIZE, LIMIT * 2);
+      f.x = clamp(round(f.x), -LIMIT + f.w / 2, LIMIT - f.w / 2); f.z = clamp(round(f.z), -LIMIT + f.d / 2, LIMIT - f.d / 2);
+    } else { f.x = clamp(round(f.x), -LIMIT, LIMIT); f.z = clamp(round(f.z), -LIMIT, LIMIT); }
+  }
+
+  function touched() {
+    ui.dirty = true; ui.rev++;
+    if (!ui.loadFailed) setStatus('Unsaved changes');
+    try { localStorage.setItem(DRAFT_KEY, snapshot()); } catch (e) { /* the draft is only a convenience */ }
+  }
+  function setStatus(text, warn) { const s = $('status'); s.textContent = text; s.classList.toggle('warn', !!warn); }
+  function snapshot() {
+    return JSON.stringify({ version: layout.version, savedAt: new Date().toISOString(), features: layout.features, decisions: layout.decisions, notes: layout.notes || '' }, null, 1);
+  }
+
+  svg.addEventListener('pointerdown', e => {
+    if (!ui.ready || ui.drag || e.button !== 0) return;
+    ui.dragPointer = e.pointerId;
+    const t = e.target, id = t.dataset && t.dataset.id, role = t.dataset && t.dataset.role;
+    const at = toWorld(e);
+    svg.setPointerCapture(e.pointerId);
+    ui.drag = { mode: 'pan', moved: false, screen: [e.clientX, e.clientY], view: { ...ui.view } };
+    if (!id) { svg.classList.add('grabbing'); return; }
+    if (ui.sel !== id) { ui.sel = id; renderInspector(); renderPane(); }
+    const f = find(id);
+    if (!editable(f)) { ui.drag = { mode: 'none' }; renderMap(); return; }
+    const idx = +t.dataset.idx;
+    if (role === 'mid') {
+      const a = f.points[idx - 1], b = f.points[idx];
+      f.points.splice(idx, 0, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+      settle(f);
+      ui.drag = { mode: 'vertex', f, idx, added: true };
+    } else if (role === 'vertex') ui.drag = { mode: 'vertex', f, idx };
+    else if (role === 'resize') ui.drag = { mode: 'resize', f };
+    else ui.drag = { mode: 'move', f, start: at, orig: clone(f) };
+    ui.drag.screen = [e.clientX, e.clientY];
+    renderMap();
+  });
+
+  svg.addEventListener('pointermove', e => {
+    if (ui.drag && e.pointerId !== ui.dragPointer) return;
+    const at = toWorld(e), d = ui.drag;
+    $('coord').textContent = `x ${Math.round(at[0])}  z ${Math.round(at[1])}`;
+    if (!d || d.mode === 'none') return;
+    if (d.mode === 'pan') {
+      const k = px();
+      ui.view.cx = clamp(d.view.cx - (e.clientX - d.screen[0]) * k, -LIMIT, LIMIT);
+      ui.view.cz = clamp(d.view.cz + (e.clientY - d.screen[1]) * k, -LIMIT, LIMIT);
+      if (Math.hypot(e.clientX - d.screen[0], e.clientY - d.screen[1]) > 3) d.moved = true;
+      renderMap(); return;
+    }
+    if (!d.moved && Math.hypot(e.clientX - d.screen[0], e.clientY - d.screen[1]) <= 3) return;
+    d.moved = true;
+    const f = d.f;
+    if (d.mode === 'vertex') { f.points[d.idx] = [at[0], at[1]]; settle(f); }
+    else if (d.mode === 'resize') { f.w = Math.min(Math.abs(at[0] - f.x), LIMIT - Math.abs(f.x)) * 2; f.d = Math.min(Math.abs(at[1] - f.z), LIMIT - Math.abs(f.z)) * 2; settle(f); }
+    else if (isLine(f)) {
+      let dx = at[0] - d.start[0], dz = at[1] - d.start[1];
+      d.orig.points.forEach(p => { dx = clamp(dx, -LIMIT - p[0], LIMIT - p[0]); dz = clamp(dz, -LIMIT - p[1], LIMIT - p[1]); });
+      f.points = d.orig.points.map(p => [p[0] + dx, p[1] + dz]); settle(f);
+    } else { f.x = d.orig.x + at[0] - d.start[0]; f.z = d.orig.z + at[1] - d.start[1]; settle(f); }
+    renderMap(); syncInspector();
+  });
+
+  const endDrag = e => {
+    if (ui.drag && e.pointerId !== ui.dragPointer) return;
+    const d = ui.drag; ui.drag = null; svg.classList.remove('grabbing');
+    if (!d) return;
+    if (d.added && !d.moved) { d.f.points.splice(d.idx, 1); renderAll(); return; }
+    if (d.mode === 'pan' && !d.moved && ui.sel) { ui.sel = null; renderAll(); return; }
+    if (d.f && d.moved) { touched(); renderInspector(); renderPane(); }
+  };
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('dblclick', e => {
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    if (!t || !t.dataset || t.dataset.role !== 'vertex') return;
+    const f = find(t.dataset.id);
+    if (!editable(f) || f.points.length <= 2) return;
+    f.points.splice(+t.dataset.idx, 1); touched(); renderAll();
+  });
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (!ui.ready) return;
+    const at = toWorld(e);
+    zoomTo(ui.view.w * (e.deltaY > 0 ? 1.18 : 1 / 1.18), at);
+  }, { passive: false });
+
+  function zoomTo(w, at) {
+    const v = ui.view, nw = clamp(w, MIN_VIEW, Math.max(620, 620 / aspect())), f = nw / v.w;
+    if (at) { v.cx = clamp(at[0] + (v.cx - at[0]) * f, -LIMIT, LIMIT); v.cz = clamp(at[1] + (v.cz - at[1]) * f, -LIMIT, LIMIT); }
+    v.w = nw; renderMap();
+  }
+
+  function syncLayers() { ['fixed', 'proposed', 'labels', 'grid'].forEach(k => { const c = $('layer_' + k); if (c) c.checked = ui.show[k]; }); }
+  function buildLayers() {
+    [['fixed', 'In the scene'], ['proposed', 'Proposed'], ['labels', 'Labels'], ['grid', '100 m grid']].forEach(([k, text]) => {
+      const l = document.createElement('label'), c = document.createElement('input');
+      c.type = 'checkbox'; c.id = 'layer_' + k; c.checked = ui.show[k];
+      c.onchange = () => { ui.show[k] = c.checked; renderMap(); };
+      l.append(c, text); $('layers').append(l);
+    });
+  }
+
+  function newId(prefix) { let i = 1; while (find(`${prefix}-${i}`)) i++; return `${prefix}-${i}`; }
+  $('addZone').onclick = () => {
+    const f = { id: newId('zone'), kind: 'zone', name: 'New zone', x: ui.view.cx, z: ui.view.cz, w: 30, d: 30, art: [], note: '' };
+    settle(f); layout.features.push(f); ui.show.proposed = true; syncLayers(); touched(); select(f.id);
+  };
+  $('addPath').onclick = () => {
+    const s = ui.view.w / 8;
+    const f = { id: newId('path'), kind: 'road', name: 'New path', width: 3, art: [], note: '', points: [[ui.view.cx - s, ui.view.cz], [ui.view.cx + s, ui.view.cz]] };
+    settle(f); layout.features.push(f); ui.show.proposed = true; syncLayers(); touched(); select(f.id);
+  };
+
+  $('reset').onclick = () => {
+    if (!ui.resetArmed) {
+      ui.resetArmed = true; $('reset').textContent = 'Confirm reset'; $('reset').classList.add('danger');
+      ui.resetTimer = setTimeout(() => { ui.resetArmed = false; $('reset').textContent = 'Reset'; $('reset').classList.remove('danger'); }, 5000);
+      return;
+    }
+    clearTimeout(ui.resetTimer);
+    ui.resetArmed = false; $('reset').textContent = 'Reset'; $('reset').classList.remove('danger');
+    layout = fresh(); ui.sel = null; touched(); renderAll();
+    setStatus('Reset to the starting layout. Save to keep it.');
+  };
+
+  $('save').onclick = async () => {
+    if (ui.loadFailed || ui.saving) return;
+    const json = snapshot(), rev = ui.rev;
+    if (!db) {
+      try { localStorage.setItem(DRAFT_KEY, json); ui.dirty = false; setStatus('Saved in this browser only. Use Copy JSON to send it to Claude.', true); }
+      catch (e) { setStatus('Saving is not available here. Use Copy JSON to keep your changes.', true); }
+      return;
+    }
+    ui.saving = true; $('save').disabled = true; setStatus('Saving…');
+    try {
+      const timeout = new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 15000));
+      await Promise.race([db.doc(DOC).set({ json, savedAt: new Date().toISOString() }), timeout]);
+      if (ui.rev === rev) {
+        ui.dirty = false; setStatus('Saved. Tell Claude when this layout is final.');
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* the draft is only a convenience */ }
+      } else setStatus('Saved, but newer changes are not saved yet.', true);
+    } catch (e) { setStatus('Saving failed. Your changes are kept in this browser; use Copy JSON to be safe.', true); }
+    ui.saving = false; $('save').disabled = false;
+  };
+
+  $('copy').onclick = async () => {
+    const json = snapshot();
+    try { await navigator.clipboard.writeText(json); setStatus('Layout JSON copied.'); }
+    catch (e) { $('jsonOut').value = json; $('jsonBox').showModal(); $('jsonOut').select(); }
+  };
+  $('jsonClose').onclick = () => $('jsonBox').close();
+  $('lbClose').onclick = () => $('lightbox').close();
+  const wholeValley = () => Object.assign(ui.view, { cx: 0, cz: 0, w: Math.max(520, 520 / aspect()) });
+  $('viewAll').onclick = () => { wholeValley(); renderMap(); };
+  $('viewCamp').onclick = () => { Object.assign(ui.view, { cx: 0, cz: 10, w: 180 }); renderMap(); };
+  $('zoomIn').onclick = () => zoomTo(ui.view.w / 1.4);
+  $('zoomOut').onclick = () => zoomTo(ui.view.w * 1.4);
+  ['features', 'decisions', 'art'].forEach(t => { $('tab-' + t).onclick = () => { ui.tab = t; renderPane(); }; });
+  new ResizeObserver(() => { if (layout) renderMap(); }).observe(svg);
+
+  const fresh = () => ({ version: seed.version, features: clone(seed.features), decisions: clone(seed.decisions), notes: '' });
+  /** Returns a safe copy of a saved feature, or null if it can't be drawn. */
+  function clean(f, seen) {
+    if (!f || typeof f !== 'object' || typeof f.id !== 'string' || seen.has(f.id)) return null;
+    const c = { ...f, name: String(f.name || 'Unnamed'), art: Array.isArray(f.art) ? f.art : [], note: String(f.note || '') };
+    if (Array.isArray(f.points)) {
+      c.points = f.points.filter(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite));
+      if (c.points.length < 2) return null;
+      c.width = Number.isFinite(f.width) ? f.width : 3;
+      if (!LINE_KINDS.includes(c.kind)) c.kind = 'road';
+    } else {
+      if (!Number.isFinite(f.x) || !Number.isFinite(f.z)) return null;
+      if (Number.isFinite(f.w) && Number.isFinite(f.d)) { if (!['zone', 'water'].includes(c.kind)) c.kind = 'zone'; }
+      else { delete c.w; delete c.d; c.kind = 'point'; }
+    }
+    seen.add(f.id); settle(c);
+    return c;
+  }
+  function apply(saved) {
+    if (!saved || !Array.isArray(saved.features)) throw new Error('Not a layout');
+    const l = fresh(), seen = new Set(seed.fixed.map(f => f.id));
+    l.features = saved.features.map(f => clean(f, seen)).filter(Boolean);
+    const decisions = Array.isArray(saved.decisions) ? saved.decisions : [];
+    l.decisions = l.decisions.map(d => { const v = (decisions.find(x => x && x.id === d.id) || {}).value; return { ...d, value: d.options.includes(v) ? v : '' }; });
+    l.notes = String(saved.notes || '');
+    return l;
+  }
+
+  async function loadSaved() {
+    let stored = null, draft = null, failed = false;
+    try {
+      if (window.claude) db = await window.claude.use('db');
+      if (db) {
+        const timeout = new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000));
+        const snap = await Promise.race([db.doc(DOC).get(), timeout]);
+        if (snap.exists) stored = JSON.parse(snap.data().json);
+      }
+    } catch (e) { failed = true; }
+    try { const d = localStorage.getItem(DRAFT_KEY); if (d) draft = JSON.parse(d); } catch (e) { /* the draft is only a convenience */ }
+    const useDraft = draft && (!stored || String(draft.savedAt) > String(stored.savedAt));
+    let saved = useDraft ? draft : stored;
+    let source = useDraft ? 'Loaded your unsaved draft from this browser.' : 'Loaded your saved layout.';
+    if (!saved && !failed) {
+      try { const r = await fetch('layout.json'); if (r.ok) { saved = await r.json(); source = 'Loaded the approved layout.'; } } catch (e) { /* fall back to the seed */ }
+    }
+    if (saved) {
+      try { layout = apply(saved); ui.sel = null; renderAll(); }
+      catch (e) { layout = fresh(); renderAll(); failed = true; }
+    }
+    if (failed) { ui.loadFailed = true; setStatus('Could not read the saved layout. Saving is off so it stays safe. Reload to try again.', true); }
+    else setStatus(saved ? source : db ? 'Starting layout. Drag anything, then save.' : 'Starting layout. Saving stays in this browser here.');
+  }
+
+  (async () => {
+    buildLayers();
+    const controls = document.querySelectorAll('.tools button, .mapbar button, .tabs button');
+    controls.forEach(b => { b.disabled = true; });
+    try {
+      seed = await (await fetch('layout.seed.json')).json();
+      if (!Array.isArray(seed.fixed) || !Array.isArray(seed.features) || !seed.speeds) throw new Error('Bad seed');
+    } catch (e) { setStatus('The layout data did not load. Reload the page.', true); return; }
+    image.addEventListener('error', () => setStatus('The terrain map did not load. Reload the page.', true));
+    image.setAttribute('href', 'terrain-map.png');
+    layout = fresh();
+    wholeValley();
+    renderAll();
+    await loadSaved();
+    ui.ready = true;
+    controls.forEach(b => { b.disabled = false; });
+    if (ui.loadFailed) $('save').disabled = true;
+  })();
+})();
+</script>
