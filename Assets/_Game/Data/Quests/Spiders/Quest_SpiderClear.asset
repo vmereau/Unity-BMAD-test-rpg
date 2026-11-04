@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Quest.QuestSO
   questId: SpiderClear
   title: Spider Infestation
-  description: The town guard has spotted a nest of Darkness Spiders lurking near the outskirts of town. He's asked you to hunt them down before they become a real problem. Kill all five and report back to the guard for your reward.
+  description: Guard Harl has ordered you to clear out two Darkness Spiders nesting beyond the camp. Kill both and report back to him for your pay.
   startPart:
     fact: {fileID: 11400000, guid: 6dbfcecc138b29a42904b465db447573, type: 2}
     entry: You accepted the guard's request to clear the Darkness Spiders.

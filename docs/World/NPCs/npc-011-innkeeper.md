@@ -1,18 +1,21 @@
-# NPC 011 — Innkeeper (Aldric Sorn)
+# NPC 011 — Camp Cook (Aldric Sorn)
 
 > id: npc-011
 > type: npc
 > name: Aldric Sorn
 > status: draft
-> location: Starting Town outskirts — The Creaking Flagon Inn
+> location: area-001 — Canteen
 > faction: none (covert contacts)
 > role: service NPC / information broker
 > personality: Shrewd, amiable, secretive
-> unity-asset: Assets/_Game/Data/NPCs/Innkeeper/
+> unity-asset: Assets/_Game/Data/NPCs/Cook/
 > quests-given: TBD
 > quests-involved: TBD
 > events: TBD
 > knows-of: TBD
+
+> Moved into the camp on 2026-11-04: the inn became the canteen. Text below may still say "inn";
+> `Assets/_Game/Data/NPCs/Cook/CLAUDE.md` is canonical.
 
 ---
 

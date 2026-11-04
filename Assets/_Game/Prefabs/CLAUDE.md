@@ -19,6 +19,7 @@
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 | `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
+| `World/Tent_Graybox` | Placeholder worker tent (BanditVillage tarp, sacks, log). All camp tents are instances, so real art is one prefab swap |
 
 ---
 
@@ -69,4 +70,4 @@
 - `_onSleepRequested` (`OnBedSleepRequested`) is set on the base, so every look inherits it. Beds are stateless — no
   `SaveableObject` / save ID.
 - `Bed_WoodBed_01a` = HouseForge `SM_WoodBed_01a` (in the `HDRP (Default)` folder, but `S_MasterORM` has a URP target;
-  long axis = local X). Instance `Bed` in StartingTown next to the fireplace.
+  long axis = local X). Instance `Bed` in StartingTown beside the player's tent.

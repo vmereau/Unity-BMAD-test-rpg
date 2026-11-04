@@ -52,8 +52,9 @@
   off the spot → walks back; a partial path logs one warning.
 - No clock (region played without Core) → home behaviour, one info log.
 - `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
-- StartingTown: Blacksmith, Elder, Merchant, Villager sleep in `Village house (1)`, the Innkeeper in `Village house`
-  (spots under `NpcRoutineSpots`), 06–21 home / 21–06 house. The Guard has no routine.
+- StartingTown (spots under `NpcRoutineSpots`), 06–21 home / 21–06 spot: Storekeeper in `Village house (1)`, Cook in
+  `Village house`, Old Hobb (`TentMate`) by the Player's Zone tents, Blacksmith by the forge, Warden outside the Company
+  office door on the outcrop (NPCs can't open doors). `RacketGuard` and `BeatenWorker` have no routine.
 
 ---
 

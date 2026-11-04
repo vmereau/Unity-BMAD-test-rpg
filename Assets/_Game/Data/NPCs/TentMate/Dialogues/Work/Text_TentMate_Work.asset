@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_TentMate_Work
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Whatever they tell me. I've been here long enough to know where everything is, and how little of it is ours.
+  nextNode: {fileID: 0}
+  _id: bb5b3a29370018343b67ab3bd76b2ff0

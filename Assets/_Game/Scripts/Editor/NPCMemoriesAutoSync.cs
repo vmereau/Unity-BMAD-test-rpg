@@ -47,7 +47,7 @@ namespace Game.Editor
                 if (!path.EndsWith(".asset")) continue;
                 if (!path.StartsWith(NPC_DATA_ROOT)) continue;
 
-                // path relative to NPC root: "NPC_Guard/Memories/Spiders/Mem_xxx.asset"
+                // path relative to NPC root: "RacketGuard/Memories/Spiders/Mem_xxx.asset"
                 string relative = path.Substring(NPC_DATA_ROOT.Length);
                 int slash = relative.IndexOf('/');
                 if (slash < 0) continue;

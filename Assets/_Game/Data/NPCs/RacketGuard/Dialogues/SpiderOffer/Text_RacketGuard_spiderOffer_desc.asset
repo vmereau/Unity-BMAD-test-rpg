@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_RacketGuard_spiderOffer_desc
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: New meat. Two Darkness Spiders are nesting out past the rim, and the Warden wants it handled. Handled means you. There's coin in it, if you come back.
+  nextNode: {fileID: 11400000, guid: ec2caeecb910e7f47ab8b73aeeac5ad6, type: 2}
+  _id: eee0bb3499007c0468ced7abef1160e7

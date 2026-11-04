@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCEntity
   entityName: bandit
   _faction: {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
-  _baseHealth: 1000
+  _baseHealth: 50
   _attackDamage: 10
   _detectionRange: 8
   _disengageRange: 12

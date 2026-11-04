@@ -15,6 +15,8 @@
 
 ## Overview
 
+> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. No river yet, so the Company house stands on the south outcrop and the docks are not built.
+
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
 This area serves as the game's tutorial, first demo, and prologue. It ends with a player-authored ending event that closes the prologue and opens the next region.

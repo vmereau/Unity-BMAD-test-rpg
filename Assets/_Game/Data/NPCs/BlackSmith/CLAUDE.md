@@ -13,8 +13,8 @@
 | **Name** | Edric the Greysmith |
 | **Nickname / Known As** | Edric |
 | **Profession** | Blacksmith |
-| **Faction / Affiliation** | Independent |
-| **Location** | Small village forge |
+| **Faction / Affiliation** | The Company (hired smith) |
+| **Location** | Company yard forge, Alderath Camp |
 | **Age** | Mid-50s |
 
 ---

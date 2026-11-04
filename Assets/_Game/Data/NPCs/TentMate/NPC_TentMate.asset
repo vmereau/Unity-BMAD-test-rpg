@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
+  m_Name: NPC_TentMate
+  m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  entityName: Old Hobb
+  _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
+  _baseHealth: 50
+  _attackDamage: 10
+  _detectionRange: 8
+  _disengageRange: 12
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
+  _viewAngle: 110
+  _eyeHeight: 1.6
+  _proximityRadius: 2
+  _awarenessFillTime: 1
+  _loseSightTime: 2
+  _searchDuration: 6
+  _engageStoppingDistance: 1.3
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: 25
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.5
+  _attackCooldown: 2
+  _comboHitsMin: 1
+  _comboHitsMax: 3
+  _maxStance: 100
+  _staggerThreshold: 0.5
+  _stanceRegenDelay: 2
+  _stanceRegenRate: 20
+  _attackStanceResistance: 0
+  _perfectBlockStanceDamage: 80
+  _staggerDuration: 1.1
+  _knockdownDuration: 4.6
+  _attackStanceDamage: 15
+  _attackCanKnockDown: 0
+  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
+  dayState: 1
+  nightState: 2
+  prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
+  memories:
+  - {fileID: 11400000, guid: ea7f28c08c866aa49a5796b42bbe4983, type: 2}
+  - {fileID: 11400000, guid: b783c91f2d581624e92f54d864ad9e9b, type: 2}
+  - {fileID: 11400000, guid: 09f5e89cfd1e63e4e8f89be0511b05a7, type: 2}
+  _killedFact: {fileID: 11400000, guid: df86a1f722ae4104f8ed33c61e1c647b, type: 2}
+  _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _weapon: {fileID: 0}
+  _finisherStanceMultiplier: 1.5

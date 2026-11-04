@@ -365,3 +365,28 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 - **AI swing whooshes** — enemies have no swing sound. Needs a per-attack cue that avoids sword whooshes on creatures.
 - **Block sounds by blocking surface** (design agreed with Valentin) — `Block` / `PerfectBlock` cues assume steel on steel, but blocks can be made with bare arms today and with shields later (wood / metal). Plan: an `ImpactSurfaceSO` (Metal, Wood, Body, …) holding its own `block` / `perfectBlock` cues. `WeaponArchetypeSO.blockSurface` (sword / axe / two-handed → Metal), a future `ShieldSO` → Wood or Metal, unarmed → Body via `CombatAudioSO`. Move the block sound to the defender (`PlayerCombat.TryReceiveHit` knows what blocked) instead of `EntityMeleeAttacker.HandleHit`. No attacker × defender matrix — the blocking surface sets the sound. Generate wood (thunk / crack) and body (forearm thud / deflect) sets. Do it as its own quick-dev spec. Until then the Block / PerfectBlock cues have no clips (silent).
 - **Unarmed swing is a stopgap** — `Cue_UnarmedSwing` reuses the 4 `SwingLight` clips at pitch 1.3–1.5 and volume 0.5. The ElevenLabs "punch swing" prompt gave impact sounds. Retry with "very short quick air whoosh of an arm swinging, light cloth sleeve flutter, no impact, no hit, no voice" (0.3–0.4 s, prompt influence ~0.7–0.8).
+
+## 2026-11-04 — Area 1 vertical slice (split from spec-encampment-camp-and-cast)
+
+Each ships as its own quick-dev spec, on top of the camp layout and cast:
+
+- **Arrival sequence** — escorted arrival, the public beating at the center stage, escort to the tent, Tent Mate briefing.
+- **Warden's errand tour** — report to each work site manager; tools issued as Company property.
+- **First work site** — Stone Quarry recommended (hidden find, first contact with the ruins mystery).
+- **Racket guard encounter** — exit-tax interception, pay / refuse / attack-on-sight branches.
+
+## From spec-encampment-camp-and-cast (2026-11-04)
+
+- **River and docks** — the terrain has no river, though Area 1 relies on it (docks, illegal fishing, the hunter's fire across
+  the water, Harl's trout line). Needs terrain work and a water shader.
+- **Camp boundary** — only the gate and short fence runs block anything; open slopes let the player walk round both the inner
+  fence and the civilization gate. Close it with a real outer fence, or terrain, once the area's shape is settled.
+- **Outcrop shack** — the `SM_AssembledPlanksA_a1*` / `SM_wallDoor2m_a1_1` planks at the cliff foot (−1, −44) were left in
+  place: purpose unknown, sits at y −1. Decide whether it stays.
+- **Find Herbalist can't finish** (pre-existing, Quest Explorer V3 / V7) — `WorldFact_herbalist_forest_camp_found` has no setter
+  and the quest has no completed part. It starts and logs only.
+- **Tam is present before the beating** — `docs/World/NPCs/npc-002` gates him behind event-001; the arrival spec adds that.
+- **Company flags are stand-ins** — `SKL_Flag_03` scaled 1.5×, with no Company emblem.
+- **Terrain tree prefabs missing** — "Tree prefab at index 0–2 is missing" logged on load (pre-existing).
+- **Colliders on `PF_PrimitiveHouse01`** — negative-scale BoxCollider warnings each play session (pre-existing, pack prefab).
+- **`TheftPursuitRegistryTests` fail on a second run in one Unity session** (pre-existing) — the static `_claimed` set only resets on play-mode enter and the tests reuse fixed ids, so re-running EditMode tests without a domain reload fails 3 tests. Add a test-only reset or per-run unique ids.

@@ -156,7 +156,7 @@ Use **`/NPC:shop-dialogue`** to create or edit a shop (topic, stock, conditions)
   inventory at each item's `buyValue` / `sellValue`; there is no restocking.
 - **Visibility** is per topic only — the shop memory's `unlockConditions` / `invalidationConditions`. Individual
   items can't be hidden, and there are no price modifiers.
-- `Merchant/` predates the convention (`Start_Merchant`, `Shop_Merchant`, `Mem_Merchant_shop`).
+- `Storekeeper/` predates the convention (`Start_Storekeeper`, `Shop_Storekeeper`, `Mem_Storekeeper_shop`).
 
 ---
 
@@ -186,7 +186,7 @@ Start_Blacksmith_Make         dialogueFact=null (repeatable), text="What can you
 
 ## Checklist When Creating a New Dialogue Topic
 
-- [ ] NPC subfolder exists (e.g. `Villager/`)
+- [ ] NPC subfolder exists (e.g. `TentMate/`)
 - [ ] `Dialogues/<TopicName>/` subfolder created
 - [ ] `StartDialogueNode` asset created and linked to a memory (`effects.startdialog`)
 - [ ] Memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`) (or existing memory updated)

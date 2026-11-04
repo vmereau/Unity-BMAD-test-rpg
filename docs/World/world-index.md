@@ -18,17 +18,17 @@
 
 | ID | Name | Location | Role | Faction | Status |
 |----|------|----------|------|---------|--------|
-| npc-001 | Tent Mate | area-001 | Logistics informant (existing narrative NPC) | none | stub |
-| npc-002 | Beaten Worker | area-001 | Social informant | none | draft |
+| npc-001 | Tent Mate (Old Hobb) | area-001 | Logistics informant (existing narrative NPC) | none | graybox |
+| npc-002 | Beaten Worker (Tam) | area-001 | Social informant | none | graybox |
 | npc-003 | Stash Owner | area-001 | Worker with leverage | company-adjacent | stub |
 | npc-004 | Independent Hunter | wilderness / area-001 edge | Independent path contact | faction-003 | stub |
 | npc-005 | Worker Leader | area-001 | Hidden rebel leader | faction-002 | stub |
-| npc-006 | The Warden | area-001 | Main antagonist / camp authority | faction-001 | stub |
-| npc-007 | Racket Guard | area-001 exit | Antagonist / extortionist | faction-001 | stub |
+| npc-006 | The Warden (Voss) | area-001 | Main antagonist / camp authority | faction-001 | graybox |
+| npc-007 | Racket Guard (Harl) | area-001 exit | Antagonist / extortionist | faction-001 | graybox |
 | npc-008 | The False Friend | area-001 | Antagonist / betrayer | none | stub |
 | npc-009 | Quarry Worker | area-002 (quarry) | Quest giver — sealed passage | none | stub |
 | npc-010 | Lead Hunter | area-004 (hunting grounds) | Work site manager | faction-001 (loose) | stub |
-| npc-011 | Innkeeper (Aldric Sorn) | Starting Town — The Creaking Flagon | Service NPC / information broker | none (covert) | draft |
+| npc-011 | Camp Cook (Aldric Sorn) | area-001 — Canteen | Service NPC / information broker | none (covert) | draft |
 
 ---
 
@@ -38,7 +38,7 @@
 |----|------|-------|------|-------------|--------|
 | quest-001 | The Hidden Stash | npc-002 | area-001 | neutral | stub |
 | quest-002 | The Sealed Passage | npc-009 | area-002 | worker / independent | stub |
-| SpiderClear | Spider Infestation | NPC_Guard | — | — | implemented |
+| SpiderClear | Spider Infestation | NPC_RacketGuard | area-001 | — | implemented |
 
 ---
 

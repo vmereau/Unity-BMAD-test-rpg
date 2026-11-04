@@ -2,13 +2,13 @@
 
 > id: npc-002
 > type: npc
-> name: Beaten Worker (display name TBD)
+> name: Tam
 > status: draft
 > location: area-001 — Player's Zone (recovers near campfire after event-001)
 > faction: none
 > role: social-informant
 > personality: sardonic, resigned, observant
-> unity-asset: Assets/_Game/Data/NPCs/NPC_BeatenWorker/ (not yet created)
+> unity-asset: Assets/_Game/Data/NPCs/BeatenWorker/
 > quests-given: none
 > quests-involved: quest-001
 > events: event-001
@@ -22,7 +22,7 @@ A long-timer in the encampment. Has been beaten before and will be beaten again.
 
 He is the first NPC the player can choose to interact with after the arrival sequence. He is found recovering near the campfire in the player's tent zone — conscious, bruised, unbothered.
 
-Display name to be determined. Should feel ordinary — a common laborer's name, nothing remarkable.
+Named Tam: an ordinary laborer's name, nothing remarkable.
 
 ---
 
@@ -94,7 +94,5 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 
 ## Open Threads
 
-- Display name not yet assigned
-- Dialogue scripts not yet written — see Dialogue Topics above
-- Unity asset scaffold not yet created (`/NPC:create` when ready)
+- Only greeting and camp-people topics exist so far — see Dialogue Topics above
 - Potential: does he have a personal quest of his own, or is he purely a support NPC?

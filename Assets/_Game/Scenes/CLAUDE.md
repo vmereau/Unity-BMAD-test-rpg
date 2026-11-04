@@ -29,6 +29,28 @@ the scene YAML are that instance's components, not separate scene components.
 
 ---
 
+## StartingTown = Alderath Camp (Area 1 graybox)
+
+The scene keeps the name `StartingTown` (`SceneLoader`, `GameConstants`, save data use it) but is the Company Encampment.
+New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-company-encampment.md`.
+
+| Zone | Where (x, z) | Notes |
+|------|--------------|-------|
+| `CompanyHouse` | Outcrop y≈10, (0..30, −33..−45) | Hall + flags; `House` (lockable, door faces the camp) is the Warden's office; ramp on the north side |
+| Company yard | South of the inner fence | Forge, anvil, chests, archery targets, `Village house (1)` as the store |
+| `InnerFence` | z≈9, gate gap at x≈0 | Open gap; Guard Harl stands inside it |
+| `CenterStage` | (0, 16) | Platform, punishment post, flags |
+| `Canteen` | `Village house` (−14, 22) | Cook, `CookingStation_Fireplace` outside |
+| `PlayersZone` | (8..22, 20..34) | Tents, `Bed`, `PlayerSpawnPoint`, Old Hobb, Tam |
+| `WretchesCorner` | (−8..6, 30..40) | Smaller tents |
+| `MafiaZone` | (24..36, 12..24) | Larger tents, for the stash owner later |
+| `CivilizationGate` | South trail, (−15, −50) | Closed; `GateBlocker` collider. Fences stop short of the cliff line by design: nothing seals the open slopes yet |
+| `WildernessPath` | North-east trail, (28, 50) | Open exit, marked by a gap between fences |
+
+Enemies live outside the basin: spiders around (62, −35), bandits around (−70, 60). The terrain has no river yet.
+
+---
+
 ## MCP Tool Quirk — Scene Loading
 
 **`manage_scene(action="load")`** only resolves scene names at `Assets/{name}.unity`. It **cannot** load scenes in sub-folders (e.g. `Assets/_Game/Scenes/Core.unity`). Edit `.unity` files directly for sub-folder scenes, then call `refresh_unity`.
