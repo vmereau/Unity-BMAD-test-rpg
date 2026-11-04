@@ -17,8 +17,8 @@ MonoBehaviour:
     localPosition: {x: 0.011257708, y: 0.013294995, z: 0.013848245}
     localEulerAngles: {x: 293.1189, y: 318.97446, z: 107.92484}
   sheathedPose:
-    localPosition: {x: 0.010540806, y: 0.110260576, z: 0.015339233}
-    localEulerAngles: {x: 13.852132, y: 358.55875, z: 193.62311}
+    localPosition: {x: -0.313, y: 0.09590648, z: 0.0841159}
+    localEulerAngles: {x: 24.444921, y: 352.9479, z: 172.50923}
   twoHandedGrip: 0
   gripRoll: 0
   gripSlide: 0
