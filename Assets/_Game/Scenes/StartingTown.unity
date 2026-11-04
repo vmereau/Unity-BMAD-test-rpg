@@ -9110,7 +9110,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.size
-      value: 12
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[0].item
@@ -9147,11 +9147,11 @@ PrefabInstance:
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[8].item
       value: 
-      objectReference: {fileID: 11400000, guid: 4fc19bd634454ee4d87b3ecf5464e0b7, type: 2}
+      objectReference: {fileID: 11400000, guid: c10c4b94977698b488c5b91219c8c8fb, type: 2}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[9].item
       value: 
-      objectReference: {fileID: 11400000, guid: c10c4b94977698b488c5b91219c8c8fb, type: 2}
+      objectReference: {fileID: 11400000, guid: 176d411c700164f47b8c5ba0b73ca22b, type: 2}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[0].count
       value: 1
@@ -9159,7 +9159,7 @@ PrefabInstance:
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[10].item
       value: 
-      objectReference: {fileID: 11400000, guid: 176d411c700164f47b8c5ba0b73ca22b, type: 2}
+      objectReference: {fileID: 11400000, guid: e3ca513a0f162374283b6e549f955576, type: 2}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[11].item
       value: 
@@ -9194,7 +9194,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[8].count
-      value: 50
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[9].count
