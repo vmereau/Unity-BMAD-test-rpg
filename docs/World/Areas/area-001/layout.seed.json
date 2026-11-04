@@ -1,9 +1,9 @@
 {
   "version": 1,
   "terrain": {
-    "originX": -250,
-    "originZ": -250,
-    "size": 500
+    "originX": -500,
+    "originZ": -500,
+    "size": 1000
   },
   "speeds": {
     "walk": 3,
@@ -92,15 +92,6 @@
       "note": "Scene: Camp/WildernessPath, open gap."
     },
     {
-      "id": "lake-now",
-      "name": "Lake today",
-      "x": 75,
-      "z": 50,
-      "w": 20,
-      "d": 20,
-      "note": "Scene: Water_Volume, 20 × 20 m."
-    },
-    {
       "id": "player-spawn",
       "name": "Player spawn",
       "x": 13.5,
@@ -127,34 +118,34 @@
       "id": "mountains",
       "kind": "mountain",
       "name": "Mountain wall",
-      "width": 50,
+      "width": 150,
       "art": [
         "master-2"
       ],
       "note": "Seals the valley. The gap on the west side lets the river and road through.",
       "points": [
         [
-          -225,
+          -425,
           55
         ],
         [
-          -225,
-          -225
+          -425,
+          -425
         ],
         [
-          225,
-          -225
+          425,
+          -425
         ],
         [
-          225,
-          225
+          425,
+          425
         ],
         [
-          -225,
-          225
+          -425,
+          425
         ],
         [
-          -225,
+          -425,
           160
         ]
       ]
@@ -170,6 +161,10 @@
       ],
       "note": "Flows along the north of the tents into the lake.",
       "points": [
+        [
+          -500,
+          135
+        ],
         [
           -250,
           120
@@ -193,6 +188,14 @@
         [
           75,
           55
+        ],
+        [
+          225.5,
+          63
+        ],
+        [
+          385,
+          75
         ]
       ]
     },
@@ -220,6 +223,10 @@
       ],
       "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
       "points": [
+        [
+          -500,
+          92
+        ],
         [
           -250,
           92
@@ -332,20 +339,24 @@
       "note": "Runs from the camp exit over the ford to the hunting grounds.",
       "points": [
         [
-          28,
-          50
+          33,
+          51.7
         ],
         [
-          30,
-          70
+          35,
+          71.7
         ],
         [
-          60,
-          100
+          42,
+          91.5
         ],
         [
-          100,
-          125
+          44,
+          160
+        ],
+        [
+          31.7,
+          208
         ]
       ]
     },
@@ -367,8 +378,8 @@
       "id": "hunting-grounds",
       "kind": "zone",
       "name": "Hunting grounds",
-      "x": 120,
-      "z": 140,
+      "x": -20,
+      "z": 250,
       "w": 100,
       "d": 80,
       "art": [],
@@ -378,8 +389,8 @@
       "id": "quarry",
       "kind": "zone",
       "name": "Stone quarry",
-      "x": -95,
-      "z": -60,
+      "x": 226,
+      "z": -96,
       "w": 60,
       "d": 45,
       "art": [
@@ -397,16 +408,20 @@
       "note": "Workers walk this every morning.",
       "points": [
         [
-          -42,
-          5
+          12.6,
+          2
         ],
         [
-          -68,
-          -28
+          45.4,
+          -1.5
         ],
         [
-          -80,
-          -42
+          65.1,
+          -10.7
+        ],
+        [
+          193,
+          -66
         ]
       ]
     },
@@ -414,8 +429,8 @@
       "id": "wood-camp",
       "kind": "zone",
       "name": "Wood camp",
-      "x": -145,
-      "z": 0,
+      "x": -224,
+      "z": -8,
       "w": 55,
       "d": 45,
       "art": [],
@@ -430,6 +445,10 @@
       "note": "Branches west from the camp.",
       "points": [
         [
+          -17.4,
+          4
+        ],
+        [
           -42,
           5
         ],
@@ -438,8 +457,8 @@
           8
         ],
         [
-          -118,
-          2
+          -182,
+          3
         ]
       ]
     },
@@ -462,6 +481,19 @@
       "z": -45,
       "art": [],
       "note": "The GDD's nearby cave, close to the spiders."
+    },
+    {
+      "id": "zone-4",
+      "kind": "zone",
+      "name": "Ruins 2",
+      "x": 272,
+      "z": -147,
+      "w": 30,
+      "d": 30,
+      "art": [
+        "quarry"
+      ],
+      "note": "Extra ruins in and hidden around the quarry. The sealed passage connects to them."
     }
   ],
   "decisions": [

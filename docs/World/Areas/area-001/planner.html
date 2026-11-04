@@ -128,7 +128,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
 <script>
 (() => {
   const SVGNS = 'http://www.w3.org/2000/svg';
-  const LIMIT = 250, MIN_SIZE = 4, MIN_VIEW = 40, DRAFT_KEY = 'alderath-planner-draft';
+  const LIMIT = 500, MIN_SIZE = 4, MIN_VIEW = 40, DRAFT_KEY = 'alderath-planner-draft';
   const DOC = 'layouts/current';
   const LINE_KINDS = ['road', 'river', 'fence', 'mountain'];
   const KIND_LABEL = { zone: 'Zone', water: 'Water', point: 'Point', road: 'Road', river: 'River', fence: 'Fence', mountain: 'Mountains', fixed: 'In the scene' };
@@ -142,7 +142,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
 
   let seed, layout, db = null;
   const ui = { sel: null, tab: 'features', dirty: false, resetArmed: false, drag: null, ready: false, rev: 0, saving: false, loadFailed: false,
-    view: { cx: 0, cz: 0, w: 520 }, show: { fixed: true, proposed: true, labels: true, grid: true } };
+    view: { cx: 0, cz: 0, w: LIMIT * 2.08 }, show: { fixed: true, proposed: true, labels: true, grid: true } };
 
   const base = el('g', {}, svg);
   const image = el('image', { x: -LIMIT, y: -LIMIT, width: LIMIT * 2, height: LIMIT * 2, preserveAspectRatio: 'none' }, base);
@@ -238,7 +238,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
     dyn.replaceChildren();
     const k = px();
     if (ui.show.grid) {
-      for (let m = -200; m <= 200; m += 100) {
+      for (let m = -LIMIT + 100; m < LIMIT; m += 100) {
         el('line', { x1: m, y1: -LIMIT, x2: m, y2: LIMIT, stroke: 'var(--bone)', 'stroke-opacity': .1, 'stroke-width': k }, dyn);
         el('line', { x1: -LIMIT, y1: m, x2: LIMIT, y2: m, stroke: 'var(--bone)', 'stroke-opacity': .1, 'stroke-width': k }, dyn);
       }
@@ -260,7 +260,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
       });
       if (ui.show.fixed && k < 0.3) seed.fixed.forEach(f => label(f.name, f.x, f.z + (isRect(f) ? 0 : 7 * k), { size: 11, fill: 'var(--dust)' }));
     }
-    const nice = [5, 10, 20, 50, 100, 200].find(m => m / k >= 60) || 200;
+    const nice = [5, 10, 20, 50, 100, 200, 500].find(m => m / k >= 60) || 500;
     $('scale').firstElementChild.textContent = `${nice} m`;
     $('scale').lastElementChild.style.width = `${nice / k}px`;
   }
@@ -485,7 +485,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
   }, { passive: false });
 
   function zoomTo(w, at) {
-    const v = ui.view, nw = clamp(w, MIN_VIEW, Math.max(620, 620 / aspect())), f = nw / v.w;
+    const v = ui.view, nw = clamp(w, MIN_VIEW, Math.max(LIMIT * 2.48, LIMIT * 2.48 / aspect())), f = nw / v.w;
     if (at) { v.cx = clamp(at[0] + (v.cx - at[0]) * f, -LIMIT, LIMIT); v.cz = clamp(at[1] + (v.cz - at[1]) * f, -LIMIT, LIMIT); }
     v.w = nw; renderMap();
   }
@@ -550,7 +550,7 @@ svg text { font-family: var(--body); paint-order: stroke; stroke: rgba(14, 12, 8
   };
   $('jsonClose').onclick = () => $('jsonBox').close();
   $('lbClose').onclick = () => $('lightbox').close();
-  const wholeValley = () => Object.assign(ui.view, { cx: 0, cz: 0, w: Math.max(520, 520 / aspect()) });
+  const wholeValley = () => Object.assign(ui.view, { cx: 0, cz: 0, w: Math.max(LIMIT * 2.08, LIMIT * 2.08 / aspect()) });
   $('viewAll').onclick = () => { wholeValley(); renderMap(); };
   $('viewCamp').onclick = () => { Object.assign(ui.view, { cx: 0, cz: 10, w: 180 }); renderMap(); };
   $('zoomIn').onclick = () => zoomTo(ui.view.w / 1.4);

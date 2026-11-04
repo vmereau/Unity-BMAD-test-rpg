@@ -59,14 +59,14 @@ swim surface, so it must match the visible water. The box must reach below the b
 leaving its sides ends the swim at once and the player falls.
 
 New lake recipe:
-1. Dig the basin **where the ground is at least ~2.5 m high**. The terrain sits at y = 0 and can't go lower, so the camp
-   (~0.7 m) can't hold deep water.
+1. Dig the basin below the top of the box. In `StartingTown` the valley water is one volume with its top at y = −2, so add a new
+   lake to `layout.json` and `Area1TerrainBuilder` instead of hand-digging: the next build overwrites hand edits (`Scenes/CLAUDE.md`).
 2. Keep one shoreline at a walkable slope (`CharacterController.slopeLimit` 45°): there is no climb-out animation, so a
    steep bank traps the player.
 3. Rebake the NavMesh. Scene bakes collect render meshes: the prefab keeps the surface out and marks the box unwalkable, but
    only after a rebake.
 
-`StartingTown` has one instance at (75, 50), surface y 6.24.
+`StartingTown` has one instance scaled to the whole valley, surface y −2, with its Not Walkable volume split around the ford.
 
 ## Cooking stations (`World/CookingStations/`)
 

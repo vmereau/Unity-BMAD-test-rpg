@@ -1,39 +1,39 @@
 {
   "version": 1,
-  "savedAt": "2026-11-04T14:48:58.000Z",
+  "savedAt": "2026-11-04T19:20:38.000Z",
   "features": [
     {
       "id": "mountains",
       "kind": "mountain",
       "name": "Mountain wall",
-      "width": 50,
+      "width": 150,
       "art": [
         "master-2"
       ],
       "note": "Seals the valley. The gap on the west side lets the river and road through.",
       "points": [
         [
-          -225.1,
+          -425,
           55
         ],
         [
-          -225.1,
-          -225.9
+          -425,
+          -425
         ],
         [
-          224.9,
-          -225.9
+          425,
+          -425
         ],
         [
-          224.9,
-          224.1
+          425,
+          425
         ],
         [
-          -225.1,
-          224.1
+          -425,
+          425
         ],
         [
-          -225.1,
+          -425,
           160
         ]
       ]
@@ -49,6 +49,10 @@
       ],
       "note": "Rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass.",
       "points": [
+        [
+          -500,
+          135
+        ],
         [
           -248.3,
           121.7
@@ -76,6 +80,10 @@
         [
           225.5,
           63
+        ],
+        [
+          385,
+          75
         ]
       ]
     },
@@ -103,6 +111,10 @@
       ],
       "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
       "points": [
+        [
+          -500,
+          92
+        ],
         [
           -250,
           92
@@ -320,11 +332,11 @@
         ],
         [
           44,
-          117
+          160
         ],
         [
           31.7,
-          143.8
+          208
         ]
       ]
     },
@@ -346,8 +358,8 @@
       "id": "hunting-grounds",
       "kind": "zone",
       "name": "Hunting grounds",
-      "x": -19.6,
-      "z": 155.8,
+      "x": -20,
+      "z": 250,
       "w": 200.1,
       "d": 83.9,
       "art": [],
@@ -357,8 +369,8 @@
       "id": "quarry",
       "kind": "zone",
       "name": "Stone quarry",
-      "x": 141,
-      "z": -59.7,
+      "x": 226,
+      "z": -96,
       "w": 60,
       "d": 45,
       "art": [
@@ -388,8 +400,8 @@
           -10.7
         ],
         [
-          120.7,
-          -41.1
+          193,
+          -66
         ]
       ]
     },
@@ -397,8 +409,8 @@
       "id": "wood-camp",
       "kind": "zone",
       "name": "Wood camp",
-      "x": -139.7,
-      "z": -4.8,
+      "x": -224,
+      "z": -8,
       "w": 87.5,
       "d": 74.9,
       "art": [],
@@ -425,8 +437,8 @@
           8
         ],
         [
-          -118,
-          2
+          -182,
+          3
         ]
       ]
     },
@@ -478,8 +490,8 @@
       "id": "zone-4",
       "kind": "zone",
       "name": "Ruins 2",
-      "x": 170.2,
-      "z": -91.7,
+      "x": 272,
+      "z": -147,
       "w": 30,
       "d": 30,
       "art": [
@@ -529,5 +541,5 @@
       "value": "Something else"
     }
   ],
-  "notes": "Valley layout, camp interior still open.\n- Spiders move away from the quarry road.\n- River rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass. No exit through the mountains.\n- Fight Club Hollow: rock fold hides it from the fort.\n- Ruins ridge must read from the tents at about 200 m.\n- Ruins 2: extra ruins in and hidden around the quarry; the sealed passage connects to them.\n- Quarry and wood roads join the camp at the current centre; revisit with the camp layout.\n- Bandits sit beside the arrival road; move them during the blockout."
+  "notes": "Valley layout, camp interior still open.\n- Spiders move away from the quarry road.\n- River rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass. No exit through the mountains.\n- Fight Club Hollow: rock fold hides it from the fort.\n- Ruins ridge must read from the tents at about 200 m.\n- Ruins 2: extra ruins in and hidden around the quarry; the sealed passage connects to them.\n- Quarry and wood roads join the camp at the current centre; revisit with the camp layout.\n- Bandits sit beside the arrival road; move them during the blockout.\n- Valley grown to 1000 m (2026-11-04): the mountain wall moved out to a 700 m valley and the quarry, Ruins 2, wood camp, hunting grounds and river ends moved out; the camp and the sites near it did not move."
 }

@@ -399,5 +399,21 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Area 1 blockout** — split from the zone planner: build every feature in the approved `docs/World/Areas/area-001/layout.json`
   and its `notes`: terrain, river, lake, roads, fences, forest, the arrival gate and removal of the Civilization gate, work sites,
   both ruins, hollow, cave and the stone fort; move the spiders and bandits; then rebake the NavMesh and check sightlines and walk times. Whole-terrain sculpting is pre-approved by Valentin (2026-11-04).
-- **Magenta tree in `StartingTown`** — a large tree renders magenta in the Scene view. A scan of scene renderer materials found nothing
+- **Magenta tree in `StartingTown`** (resolved, see the blockout-terrain entries below) — a large tree renders magenta in the Scene view. A scan of scene renderer materials found nothing
   broken, and all 3 terrain tree prototypes report no prefab. Cause not confirmed; check them before the blockout scatters forest.
+
+## From spec-area-1-blockout-terrain (2026-11-04)
+
+- **Area 1 blockout: sites and structures** — split from the blockout at Valentin's request; depends on `spec-area-1-blockout-terrain`.
+  Build the palisade ring with an opening at every road crossing and the north-west arrival gate, and remove the Civilization gate.
+  Add the docks, hunter's fire, quarry with the hidden sealed crack, Ruins 2, ruins, wood camp, hunting grounds, Fight Club Hollow with a
+  rock fold hiding it from the fort, tutorial cave and a placeholder stone fort. Move the spiders off the quarry road and the bandits off
+  the arrival road, then rebake the NavMesh. Verify: hollow hidden from the fort, hunter's fire visible at night from the docks and tents,
+  ruins visible from the tents, player can leave the camp through every opening, eye-level screenshots against the artworks.
+- **Magenta tree: cause found and fixed** — `SM_MountainTree_*` and `SM_LeafTree_*` had HDRP materials (`InternalErrorShader`). Valentin reimported the packs as URP on 2026-11-04 and they now render. The forest uses beech instead; see the spec.
+- **Recorder sample blocks all compilation after a pack reimport** — `Assets/Hivemind/Defaults/Samples/Recorder/3.0.3/Movie Recorder Sample/MovieRecorderExample.cs` needs `com.unity.recorder`, which the project lacks. It is wrapped in `#if false` locally; `Assets/Hivemind` is gitignored, so a fresh pack import brings the error back. Delete the sample, or install the package.
+- **`PlayerAnimationDriver.SetInCombat` null reference at startup** — `EquipmentVisuals.OnEnable` → `Refresh` → `PlayerCombat.HandleVisualsRefreshed` reaches `_humanoidBridge` before it is set, once per play session. Seen in the blockout's play test, outside the code it changed.
+- **29 camp ferns and trees left the scene before the blockout** — root-level `SM_EagleFern_*`, `SM_EuropeanBeech_*`, `SM_SilverFir_*` instances were already gone from the unsaved editor state and were saved as Valentin chose. They are in `ffdd42e` if wanted back.
+- **Forest is all beech** — `SM_SilverFir_*` prefabs exist and would suit the art's dark conifers better. Check they work as terrain trees and add them to `TreePrefabs`.
+- **`Application.runInBackground` is off in the Editor** — play mode doesn't tick while Unity is unfocused, so MCP play tests sit at frame 2 unless a test sets it to true first.
+- **Reimport side effects to sort out** — untracked `Assets/DemoLevelSettings.lighting`, `Assets/Medieval_VillageSettings.lighting` (and metas) appeared with the URP reimport; they are not part of the blockout commits.

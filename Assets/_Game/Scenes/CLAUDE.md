@@ -47,7 +47,9 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `CivilizationGate` | South trail, (−15, −50) | Closed; `GateBlocker` collider. Fences stop short of the cliff line by design: nothing seals the open slopes yet |
 | `WildernessPath` | North-east trail, (28, 50) | Open exit, marked by a gap between fences |
 
-Enemies live outside the basin: spiders around (62, −35), bandits around (−70, 60). The terrain has no river yet; a 20 × 20 m lake (`Water_Volume`) sits in a crater at (75, 50).
+Enemies live outside the basin: spiders around (62, −35), bandits around (−70, 60).
+
+**Valley terrain:** 1000 m square (1025 heightmap, about 1 m per sample), origin (−500, −500), with the object at y = −30 and heights +30 so ground can sit below y = 0. The sculpt, paint and forest come from `Tools/World/Build Area 1 Terrain` (`Editor/World/Area1TerrainBuilder`). Sites, river, lake, ford and roads are read from `docs/World/Areas/area-001/layout.json`; ridges, pad heights and the camp footprint are constants in the tool, so moving the ruins or quarry far means moving their ridge too. Every run overwrites `StartingTownTerrain.asset`, including hand edits. The camp's ground, paint and holes come from `Art/Terrain/StartingTownTerrain_Source.asset` (the original 500 m terrain): don't delete it, and make lasting camp ground edits there. Water is one `Water_Volume` covering the valley, top at y = −2. Any non-water ground must stay above that, and `NotWalkable_West` / `NotWalkable_East` leave x 31..39 open for the ford. `Area1_Blockout` holds the pass blocker and the waterfall placeholder. Rebake the NavMesh after a re-run.
 
 ---
 
