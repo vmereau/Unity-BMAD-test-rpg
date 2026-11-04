@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-11-04T14:35:35.000Z",
+  "savedAt": "2026-11-04T14:48:58.000Z",
   "features": [
     {
       "id": "mountains",
@@ -139,12 +139,12 @@
     {
       "id": "outer-fence",
       "kind": "fence",
-      "name": "Low outer fence, south-west",
+      "name": "Palisade, south-west",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
           -2.7,
@@ -171,12 +171,12 @@
     {
       "id": "outer-fence-2",
       "kind": "fence",
-      "name": "Low outer fence, west",
+      "name": "Palisade, west",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
           -51.3,
@@ -199,12 +199,12 @@
     {
       "id": "outer-fence-3",
       "kind": "fence",
-      "name": "Low outer fence, north",
+      "name": "Palisade, north",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
           -35.5,
@@ -223,12 +223,12 @@
     {
       "id": "outer-fence-4",
       "kind": "fence",
-      "name": "Low outer fence, east",
+      "name": "Palisade, east",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
           35.3,
@@ -247,12 +247,12 @@
     {
       "id": "outer-fence-5",
       "kind": "fence",
-      "name": "Low outer fence, south-east",
+      "name": "Palisade, south-east",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
           56.1,
@@ -516,7 +516,7 @@
         "Full palisade ring",
         "Low fence only, as in the design doc"
       ],
-      "value": "Palisade inside, low fence outside"
+      "value": "Full palisade ring"
     },
     {
       "id": "banner",

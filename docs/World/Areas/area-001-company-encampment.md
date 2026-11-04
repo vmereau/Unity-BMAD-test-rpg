@@ -19,7 +19,7 @@
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography is in `area-001/layout.json`; the camp's internal layout is still open.
 >
-> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`. The new north-west arrival gate replaces the Civilization gate. The camp is fenced with a palisade inside and a low fence outside, with an opening wherever a road crosses. The Company emblem is still open.
+> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`. The new north-west arrival gate replaces the Civilization gate. A full timber palisade rings the camp, with an opening wherever a road crosses. The Company emblem is still open.
 
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
@@ -41,7 +41,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Docks** — company-maintained fishing docks on the river. Off-limits at night officially.
 
 ### Fences
-- **Outer fence** — low, practical. Not imposing. Message: the wilderness is worse than staying.
+- **Outer fence** — tall timber palisade around the camp, with openings where roads cross.
 - **Inner fence** — separates worker area from company area. The real social divide.
 
 ### Camp Center
