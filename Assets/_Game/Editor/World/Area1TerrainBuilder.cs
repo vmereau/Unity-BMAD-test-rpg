@@ -205,7 +205,21 @@ namespace Game.Editor.World
                 return;
             }
 
+            Area1TerrainSculpt sculpt = null;
+            if (rerun && !Area1TerrainSculpt.TryLoad(out sculpt))
+            {
+                GameLog.Error(TAG, $"{Area1TerrainSculpt.FILE} is missing or broken, so a rebuild would lose the hand edits; nothing changed.");
+                return;
+            }
+
+            if (rerun && HeightHash(data.GetHeights(0, 0, HEIGHT_RES, HEIGHT_RES)) != sculpt.BuiltHash)
+            {
+                GameLog.Error(TAG, "The terrain has hand edits that aren't captured. Run Tools/World/Capture Area 1 Terrain Sculpt first; nothing changed.");
+                return;
+            }
+
             float[,] heights = SculptHeights(layout, source, out float[,] roadDistance, out float[,] protect);
+            sculpt?.Apply(heights);
             float[,,] alpha = Paint(layout, source, heights, roadDistance, protect);
             TreeInstance[] trees = ScatterTrees(layout, heights, roadDistance);
 
@@ -236,7 +250,36 @@ namespace Game.Editor.World
             EditorSceneManager.MarkSceneDirty(terrain.gameObject.scene);
             AssetDatabase.SaveAssets();
 
+            sculpt ??= new Area1TerrainSculpt();
+            sculpt.BuiltHash = HeightHash(data.GetHeights(0, 0, HEIGHT_RES, HEIGHT_RES));
+            sculpt.Save();
+
             GameLog.Info(TAG, $"Done. {trees.Length} trees, height hash {HeightHash(normalized)}.");
+        }
+
+        /// <summary>Stores the live terrain's hand edits next to layout.json, so later builds keep them.</summary>
+        [MenuItem("Tools/World/Capture Area 1 Terrain Sculpt")]
+        public static void CaptureSculpt()
+        {
+            Terrain terrain = Terrain.activeTerrain;
+            TerrainData source = AssetDatabase.LoadAssetAtPath<TerrainData>(SOURCE_ASSET);
+            if (EditorApplication.isPlaying || terrain == null || source == null || terrain.terrainData.heightmapResolution != HEIGHT_RES
+                || !TryLoadLayout(out Layout layout, out string problem))
+            {
+                GameLog.Error(TAG, "Need edit mode, the built valley terrain, its source asset and a valid layout; nothing changed.");
+                return;
+            }
+
+            float[,] normalized = terrain.terrainData.GetHeights(0, 0, HEIGHT_RES, HEIGHT_RES);
+            var live = new float[HEIGHT_RES, HEIGHT_RES];
+            for (int z = 0; z < HEIGHT_RES; z++)
+                for (int x = 0; x < HEIGHT_RES; x++)
+                    live[z, x] = normalized[z, x] * TERRAIN_HEIGHT + TERRAIN_Y;
+
+            Area1TerrainSculpt sculpt = Area1TerrainSculpt.Capture(SculptHeights(layout, source, out _, out _), live);
+            sculpt.BuiltHash = HeightHash(normalized);
+            sculpt.Save();
+            GameLog.Info(TAG, $"Captured {sculpt.Width} x {sculpt.Depth} samples to {Area1TerrainSculpt.FILE}.");
         }
 
         /// <summary>The source terrain's holes at their old world positions; everywhere else stays solid.</summary>

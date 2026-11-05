@@ -51,7 +51,8 @@ namespace Game.Editor.World
         private const string BARRICADES = "Barricades";
         private const string HOLLOW = "Hollow";
         private const string FIRE = "HuntersFire";
-        private const string HAND_DOCK = "CampDock";
+        private const string DECK_PREFIX = "SM_WoodPlatformFloorKit";
+        private static readonly string[] DockParts = { "DeckFloor_", "Walkway_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
         private const string HAND_BRIDGE = "CampBridge/floor";
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
@@ -70,10 +71,9 @@ namespace Game.Editor.World
         private const float MERLON_HEIGHT = 0.9f;
         private const int MERLONS_PER_SIDE = 3;
 
-        private const float WALKWAY_REACH = 5.5f; // either way along each deck piece
-        private const float WALKWAY_WIDTH = 1.6f;
-        private const float WALKWAY_TOP = 0.86f;  // just over the visible planks, which have gaps a bake won't cross
-        private const float WALKWAY_THICKNESS = 0.1f;
+        private const float DECK_REACH = 5.5f;    // either way along each deck piece
+        private const float DECK_Y = 0.76f;       // puts the floor at the height of the visible planks
+        private const float DECK_THICKNESS = 0.1f;
         private const float DECK_WIDTH = 2.6f;    // collider-only floor: the deck's own colliders sit 0.45 m under the planks and miss some
         private const float WATER_LEVEL = -2f;
         private const float BOAT_OFFSET = 4f;     // out from the head of the T
@@ -171,15 +171,16 @@ namespace Game.Editor.World
                 return;
             }
 
-            Transform dock = root.transform.Find(HAND_DOCK);
+            Transform docks = root.transform.Find(DOCKS);
+            List<Transform> deck = FindDeck(docks);
             Transform bridge = root.transform.Find(HAND_BRIDGE);
-            bool deckFound = dock != null && dock.childCount == 2 && TryBounds(dock.GetChild(0), out _) && TryBounds(dock.GetChild(1), out _);
+            bool deckFound = deck.Count == 2 && TryBounds(deck[0], out _) && TryBounds(deck[1], out _);
             Bounds bridgeDeck = default;
             bool bridgeFound = bridge != null && TryBounds(bridge, out bridgeDeck) && bridgeDeck.size.z > RAIL_END_INSET * 2f;
             bool barricadesFound = TryFindBarricades(root, out List<BoxCollider> barricades);
             if (!deckFound || !bridgeFound || !barricadesFound)
             {
-                GameLog.Error(TAG, $"Need the hand-built {HAND_DOCK} (two deck pieces, both rendered), {HAND_BRIDGE} and {BARRICADE_PREFIX}* barricades, each with a box collider; nothing changed.");
+                GameLog.Error(TAG, $"Need {DECK_PREFIX}* twice under {DOCKS}, both rendered, {HAND_BRIDGE} and {BARRICADE_PREFIX}* barricades, each with a box collider; nothing changed.");
                 return;
             }
 
@@ -189,7 +190,8 @@ namespace Game.Editor.World
             BuildRuinsRing(line, ruins2, quarry);
 
             BuildFort(features, terrain, stone, timber, NewRoot(root.transform, FORT));
-            BuildDocks(dock, timber, NewRoot(root.transform, DOCKS));
+            ClearDockParts(docks);
+            BuildDocks(deck, timber, docks);
             BuildBridgeRails(bridgeDeck, timber, NewRoot(root.transform, RAILS));
             BuildBarricadeVolumes(barricades, NewRoot(root.transform, BARRICADES));
             BuildHollow(Area1BlockoutBuilder.Position(hollowZone), (float)hollowZone["d"], terrain, rockTall, rockLow, NewRoot(root.transform, HOLLOW));
@@ -377,28 +379,45 @@ namespace Game.Editor.World
             }
         }
 
+        private static List<Transform> FindDeck(Transform docks)
+        {
+            var deck = new List<Transform>();
+            if (docks == null) return deck;
+            foreach (Transform child in docks)
+                if (child.name.StartsWith(DECK_PREFIX)) deck.Add(child);
+            return deck;
+        }
+
+        /// <summary>The deck lives in this root too, so only the tool's own parts go, by name.</summary>
+        private static void ClearDockParts(Transform docks)
+        {
+            for (int i = docks.childCount - 1; i >= 0; i--)
+            {
+                Transform child = docks.GetChild(i);
+                foreach (string part in DockParts)
+                {
+                    if (!child.name.StartsWith(part)) continue;
+                    Object.DestroyImmediate(child.gameObject);
+                    break;
+                }
+            }
+        }
+
         /// <summary>
-        /// The hand-built deck's planks have gaps, and a render-mesh bake splits on them, so boards along each piece join it up.
-        /// Its colliders sit under the planks and leave holes, so an invisible floor gives the player the surface they see.
+        /// The deck is hand-built and stays. Its colliders sit under the planks and leave holes, so an invisible floor gives
+        /// the player the surface they see.
         /// </summary>
-        private static void BuildDocks(Transform dock, Material timber, Transform docks)
+        private static void BuildDocks(List<Transform> deck, Material timber, Transform docks)
         {
             Transform head = null;
             int index = 0;
-            foreach (Transform piece in dock)
+            foreach (Transform piece in deck)
             {
                 Vector2 center = DeckCenter(piece);
-                Vector2 along = YawDirection(piece);
-                Transform walkway = Area1BlockoutBuilder.Box($"Walkway_{index++}", docks, timber,
-                    new Vector3(center.x, WALKWAY_TOP - WALKWAY_THICKNESS * 0.5f, center.y),
-                    new Vector3(WALKWAY_WIDTH, WALKWAY_THICKNESS, WALKWAY_REACH * 2f));
-                walkway.rotation = Area1BlockoutBuilder.Yaw(along);
-                Object.DestroyImmediate(walkway.GetComponent<Collider>());
-
-                var floor = new GameObject($"DeckFloor_{index - 1}").transform;
+                var floor = new GameObject($"DeckFloor_{index++}").transform;
                 floor.SetParent(docks, false);
-                floor.SetPositionAndRotation(new Vector3(center.x, WALKWAY_TOP - WALKWAY_THICKNESS, center.y), walkway.rotation);
-                floor.gameObject.AddComponent<BoxCollider>().size = new Vector3(DECK_WIDTH, WALKWAY_THICKNESS, WALKWAY_REACH * 2f);
+                floor.SetPositionAndRotation(new Vector3(center.x, DECK_Y, center.y), Area1BlockoutBuilder.Yaw(YawDirection(piece)));
+                floor.gameObject.AddComponent<BoxCollider>().size = new Vector3(DECK_WIDTH, DECK_THICKNESS, DECK_REACH * 2f);
 
                 if (head == null || center.y > DeckCenter(head).y) head = piece; // the head of the T is the piece furthest out
             }
