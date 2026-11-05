@@ -23,6 +23,25 @@ namespace Tests.EditMode
             Assert.AreEqual(1f, Area1TerrainMath.Ramp(2f, 2f, 2f));
         }
 
+        [TestCase(30f, 0f, 30f)]   // on the floor edge
+        [TestCase(40f, 0f, 40f)]   // on the rise
+        [TestCase(70f, 5f, 52f)]   // levels at the top
+        [TestCase(70f, 18f, 52f)]  // end of the crest
+        [TestCase(70f, 23f, 44f)]  // outer fall
+        public void CliffSurface_RisesLevelsAndFalls(float floorRise, float rim, float expected)
+        {
+            Assert.AreEqual(expected, Area1TerrainMath.CliffSurface(floorRise, rim, 52f, 18f, 1.6f), 1e-4f);
+        }
+
+        [TestCase(1f, 27f)]    // on the floor
+        [TestCase(2f, 27f)]    // edge of the floor
+        [TestCase(5f, 33f)]    // on the wall
+        [TestCase(20f, 40f)]   // past the wall the ground stays
+        public void CutCleft_FloorThenWalls(float distance, float expected)
+        {
+            Assert.AreEqual(expected, Area1TerrainMath.CutCleft(40f, distance, 27f, 2f, 2f), 1e-4f);
+        }
+
         [Test]
         public void PolylineDistance_ReportsNearestSegmentAndPosition()
         {

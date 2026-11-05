@@ -580,6 +580,35 @@
       "z": -45,
       "art": [],
       "note": "The GDD's nearby cave. It teaches dungeon exploring and looting."
+    },
+    {
+      "id": "quarry-cleft",
+      "kind": "road",
+      "name": "Sealed cleft",
+      "width": 4,
+      "art": [
+        "quarry"
+      ],
+      "note": "Narrow open-air passage from the quarry to Ruins 2, closed by a planks-and-rubble blocker until quest-002.",
+      "points": [
+        [
+          252,
+          -116
+        ],
+        [
+          260,
+          -134
+        ]
+      ]
+    },
+    {
+      "id": "hunting-camp",
+      "kind": "point",
+      "name": "Hunting camp",
+      "x": 32,
+      "z": 214,
+      "art": [],
+      "note": "Clearing at the trail's end, inside the hunting grounds."
     }
   ],
   "decisions": [

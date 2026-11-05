@@ -56,6 +56,16 @@ namespace Game.Editor.World
         private const float ROAD_SMOOTHING = 12f; // metres either side
         private const float MAX_ROAD_GRADE = 0.25f; // about 14 degrees
 
+        // One closed block around Ruins 2 and along the quarry's south and east edges. The outer face keeps the crest out of
+        // reach: from a gentle back slope the player could walk the crest and drop into Ruins 2.
+        private const float QUARRY_PAD = 25f;
+        private const float RUINS2_PAD = 30f;
+        private const float CLIFF_TOP = 56f;
+        private const float CLIFF_CREST = 20f;   // from the floor edge to where the outer face starts
+        private const float CLIFF_SLOPE = 1.6f;  // about 58 degrees, over the 45 degree slope limit
+        private const float CLIFF_REACH = CLIFF_CREST + CLIFF_TOP / CLIFF_SLOPE;
+        private const float CLEFT_WALL_SLOPE = 2f;
+
         private const float EYE_HEIGHT = 1.6f;
         private const float SIGHT_CLEARANCE = 0.5f;
         private const float SIGHT_HALF_WIDTH = 3f;
@@ -63,6 +73,9 @@ namespace Game.Editor.World
         private const float RUINS_SIGHT_SHARE = 0.6f; // stop before the ridge itself
 
         private const float TREE_CELL = 6.5f;
+        private const float CLEFT_TREE_CLEARANCE = 8f;
+        private const float CAVE_CLEARING = 20f;
+        private const float HUNTING_CAMP_CLEARING = 22f;
         private const int MAX_TREES = 8000;
         private const int SEED = 1337;
 
@@ -125,6 +138,11 @@ namespace Game.Editor.World
             public Vector2[][] Corridors;
             public Vector2 Fire;
             public Vector2 Ford;
+            public Vector2 QuarryCenter, QuarrySize, Ruins2Center, Ruins2Size;
+            public Vector2[] QuarryCliff;
+            public Vector2[] Cleft;
+            public float CleftHalf;
+            public (Vector2 center, float radius)[] Clearings;
         }
 
         [MenuItem("Tools/World/Build Area 1 Terrain")]
@@ -303,7 +321,25 @@ namespace Game.Editor.World
                 h = Mathf.Lerp(height, h, Math.Ramp(d, 0f, 25f));
             }
 
-            return h + Mountain(layout, p);
+            return Cliffs(layout, p, h) + Mountain(layout, p);
+        }
+
+        /// <summary>The quarry's cliffs, the ring around Ruins 2, and the cleft between them.</summary>
+        private static float Cliffs(Layout layout, Vector2 p, float land)
+        {
+            float toRuins = Math.RectDistance(p, layout.Ruins2Center, layout.Ruins2Size);
+            float toCliff = Math.PolylineDistance(p, layout.QuarryCliff, out _);
+            float rim = Mathf.Min(toRuins, toCliff);
+            if (rim >= CLIFF_REACH) return land;
+
+            float toQuarry = Math.RectDistance(p, layout.QuarryCenter, layout.QuarrySize);
+            float rise = Mathf.Min(RUINS2_PAD + toRuins * CLIFF_SLOPE, QUARRY_PAD + toQuarry * CLIFF_SLOPE);
+            float h = Mathf.Max(land, Math.CliffSurface(rise, rim, CLIFF_TOP, CLIFF_CREST, CLIFF_SLOPE));
+
+            // Measured between the pad edges, not along the line: the line runs into both pads, and neither may be lowered.
+            float across = toQuarry + toRuins > 0f ? toQuarry / (toQuarry + toRuins) : 0f;
+            float floor = Mathf.Lerp(QUARRY_PAD, RUINS2_PAD, across);
+            return Math.CutCleft(h, Math.PolylineDistance(p, layout.Cleft, out _), floor, layout.CleftHalf, CLEFT_WALL_SLOPE);
         }
 
         private static float Mountain(Layout layout, Vector2 p)
@@ -610,6 +646,11 @@ namespace Game.Editor.World
             foreach (Vector2[] corridor in layout.Corridors)
                 if (Math.PolylineDistance(p, corridor, out _) < 8f) return false;
 
+            if (Math.PolylineDistance(p, layout.Cleft, out _) < CLEFT_TREE_CLEARANCE) return false;
+
+            foreach ((Vector2 center, float radius) in layout.Clearings)
+                if (Vector2.Distance(p, center) < radius) return false;
+
             return Vector2.Distance(p, layout.Fire) >= 7f;
         }
 
@@ -630,7 +671,7 @@ namespace Game.Editor.World
             string[] required =
             {
                 "mountains", "river", "lake", "ford", "hunter-fire", "ruins", "quarry", "zone-4", "wood-camp", "docks",
-                "arrival-road", "quarry-road", "wood-road", "wilderness-trail",
+                "arrival-road", "quarry-road", "wood-road", "wilderness-trail", "quarry-cleft", "cave", "hunting-camp",
             };
             string missing = required.FirstOrDefault(id => !features.ContainsKey(id));
             if (missing != null)
@@ -639,10 +680,21 @@ namespace Game.Editor.World
                 return false;
             }
 
+            if (!(features["quarry-cleft"]["points"] is JArray cleftPoints) || cleftPoints.Count < 2 || features["quarry-cleft"]["width"] == null)
+            {
+                problem = "Layout has no usable feature 'quarry-cleft'";
+                return false;
+            }
+
             Vector2[] wall = Points(features["mountains"]);
             float wallCentre = wall.Max(p => Mathf.Abs(p.x));
             JObject lake = features["lake"];
             Vector2 fire = Position(features["hunter-fire"]);
+            JObject quarry = features["quarry"];
+            JObject ruins2 = features["zone-4"];
+            Vector2 quarryCenter = Position(quarry);
+            Vector2 quarrySize = new Vector2((float)quarry["w"], (float)quarry["d"]);
+            Vector2 corner = quarryCenter + new Vector2(quarrySize.x, -quarrySize.y) * 0.5f;
 
             layout = new Layout
             {
@@ -654,7 +706,7 @@ namespace Game.Editor.World
                 RiverHalf = (float)features["river"]["width"] * 0.5f,
                 LakeCenter = Position(lake),
                 LakeRadius = new Vector2((float)lake["w"], (float)lake["d"]) * 0.5f,
-                Pads = new[] { ("ruins", 35f), ("quarry", 25f), ("zone-4", 30f), ("wood-camp", 6f) },
+                Pads = new[] { ("ruins", 35f), ("quarry", QUARRY_PAD), ("zone-4", RUINS2_PAD), ("wood-camp", 6f) },
                 Roads = new[] { "arrival-road", "quarry-road", "wood-road", "wilderness-trail" }.Select(id => new Road
                 {
                     Points = Points(features[id]),
@@ -668,6 +720,22 @@ namespace Game.Editor.World
                 },
                 Fire = fire,
                 Ford = Position(features["ford"]),
+                QuarryCenter = quarryCenter,
+                QuarrySize = quarrySize,
+                Ruins2Center = Position(ruins2),
+                Ruins2Size = new Vector2((float)ruins2["w"], (float)ruins2["d"]),
+                QuarryCliff = new[]
+                {
+                    // Short of the pad's far corners: the crest rounds past each end, and would otherwise wrap around them.
+                    new Vector2(corner.x - quarrySize.x + CLIFF_CREST, corner.y), corner, new Vector2(corner.x, corner.y + quarrySize.y - CLIFF_CREST),
+                },
+                Cleft = Points(features["quarry-cleft"]),
+                CleftHalf = (float)features["quarry-cleft"]["width"] * 0.5f,
+                Clearings = new[]
+                {
+                    (Position(features["cave"]), CAVE_CLEARING),
+                    (Position(features["hunting-camp"]), HUNTING_CAMP_CLEARING),
+                },
             };
             return true;
         }

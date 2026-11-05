@@ -69,6 +69,17 @@ namespace Game.Editor.World
         }
 
         /// <summary>
+        /// Height of a cliff block: climbs <paramref name="floorRise"/> from its floors, levels at <paramref name="top"/>,
+        /// then falls at <paramref name="slope"/> past <paramref name="crest"/> metres from the floor edge.
+        /// </summary>
+        public static float CliffSurface(float floorRise, float rimDistance, float top, float crest, float slope) =>
+            Mathf.Min(Mathf.Min(floorRise, top), top - slope * Mathf.Max(rimDistance - crest, 0f));
+
+        /// <summary>Lowers <paramref name="height"/> to a flat floor within <paramref name="halfWidth"/>, with walls at <paramref name="slope"/> beyond it.</summary>
+        public static float CutCleft(float height, float distance, float floor, float halfWidth, float slope) =>
+            Mathf.Min(height, floor + slope * Mathf.Max(distance - halfWidth, 0f));
+
+        /// <summary>
         /// Cuts a polyline into equal panels of at most <paramref name="panelLength"/>, leaving out the stretch within
         /// <paramref name="gapHalfWidth"/> of <paramref name="gapCentre"/> along any segment that passes through that point.
         /// </summary>

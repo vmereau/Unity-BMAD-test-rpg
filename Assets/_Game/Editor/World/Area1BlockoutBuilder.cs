@@ -232,7 +232,7 @@ namespace Game.Editor.World
             return best;
         }
 
-        private static Transform Box(string name, Transform parent, Material material, Vector3 position, Vector3 size)
+        internal static Transform Box(string name, Transform parent, Material material, Vector3 position, Vector3 size)
         {
             GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.name = name;
@@ -245,7 +245,7 @@ namespace Game.Editor.World
         }
 
         /// <summary>Yaw whose local Z runs along <paramref name="direction"/>.</summary>
-        private static Quaternion Yaw(Vector2 direction) =>
+        internal static Quaternion Yaw(Vector2 direction) =>
             Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.y), Vector3.up);
 
         private static void GroundUnder(Terrain terrain, Vector2 a, Vector2 b, out float low, out float mean, out float high)
@@ -263,7 +263,7 @@ namespace Game.Editor.World
             mean = sum / GROUND_SAMPLES;
         }
 
-        private static float Ground(Terrain terrain, Vector2 p) =>
+        internal static float Ground(Terrain terrain, Vector2 p) =>
             terrain.SampleHeight(new Vector3(p.x, 0f, p.y)) + terrain.transform.position.y;
 
         /// <summary>FNV-1a over child positions, for comparing two runs.</summary>
@@ -282,7 +282,7 @@ namespace Game.Editor.World
             return hash;
         }
 
-        private static bool TryLoadFeatures(out Dictionary<string, JObject> features, out string problem)
+        internal static bool TryReadLayout(out Dictionary<string, JObject> features, out string problem)
         {
             features = null;
             problem = null;
@@ -293,8 +293,15 @@ namespace Game.Editor.World
                 return false;
             }
 
-            Dictionary<string, JObject> found = JObject.Parse(File.ReadAllText(path))["features"]
-                .Cast<JObject>().ToDictionary(f => (string)f["id"]);
+            features = JObject.Parse(File.ReadAllText(path))["features"].Cast<JObject>().ToDictionary(f => (string)f["id"]);
+            return true;
+        }
+
+        private static bool TryLoadFeatures(out Dictionary<string, JObject> features, out string problem)
+        {
+            features = null;
+            if (!TryReadLayout(out Dictionary<string, JObject> found, out problem)) return false;
+
             string missing = FenceIds.FirstOrDefault(id => !found.TryGetValue(id, out JObject fence) || !HasPoints(fence))
                 ?? new[] { "fence-break", "arrival-gate" }.FirstOrDefault(id => !found.TryGetValue(id, out JObject point) || !HasPosition(point));
             if (missing == null && found.TryGetValue(OUTCROP_EDGE, out JObject edge) && !HasPoints(edge)) missing = OUTCROP_EDGE;
@@ -308,13 +315,13 @@ namespace Game.Editor.World
             return true;
         }
 
-        private static bool HasPoints(JObject feature) => feature["points"] is JArray points && points.Count >= 2;
+        internal static bool HasPoints(JObject feature) => feature["points"] is JArray points && points.Count >= 2;
 
-        private static bool HasPosition(JObject feature) => feature["x"] != null && feature["z"] != null;
+        internal static bool HasPosition(JObject feature) => feature["x"] != null && feature["z"] != null;
 
-        private static Vector2[] Points(JObject feature) =>
+        internal static Vector2[] Points(JObject feature) =>
             feature["points"].Select(p => new Vector2((float)p[0], (float)p[1])).ToArray();
 
-        private static Vector2 Position(JObject feature) => new Vector2((float)feature["x"], (float)feature["z"]);
+        internal static Vector2 Position(JObject feature) => new Vector2((float)feature["x"], (float)feature["z"]);
     }
 }
