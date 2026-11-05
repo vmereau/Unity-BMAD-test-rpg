@@ -15,9 +15,9 @@
 
 ## Overview
 
-> **In Unity (2026-11-05):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The Company house stays on the south outcrop.
+> **In Unity (2026-11-05):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The Company house stays on the south outcrop.
 
-> **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography is in `area-001/layout.json`; the camp's internal layout is still open.
+> **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
 > **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`. The new north-west arrival gate replaces the Civilization gate. A full timber palisade rings the camp, with an opening wherever a road crosses. The Company emblem is still open.
 
@@ -36,13 +36,15 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 ### Structures
 - **Company House** — behind the inner fence. Guards' quarters and warden's office. More maintained than the rest.
-- **Storage Hut** — company-controlled warehouse. Accessible via warden task (hauling goods).
-- **Workshop** — shared-use tool and repair facility, company-controlled.
-- **Docks** — company-maintained fishing docks on the river. Off-limits at night officially.
+- **Storage Hut** — company-controlled warehouse, built into the north palisade above the docks. Its door faces the camp and its river door leads to the deck. Accessible via warden task (hauling goods).
+- **Workshop** — shared-use tool and repair facility, company-controlled, in the yard by the quarry opening.
+- **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. Reached through the warehouse, or from the bridge path through a gate that stands open in the blockout and will be restricted. The north bank from the arrival road is still open.
+- **Timber yard** — log stacks and handcarts by the wood opening.
+- **Latrine** — trench behind Wretches' Corner.
 
 ### Fences
 - **Outer fence** — tall timber palisade around the camp, with openings where roads cross. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through.
-- **Inner fence** — separates worker area from company area. The real social divide.
+- **Inner fence** — tall palisade with one guarded gate, separating the worker area from the company area. The real social divide: everyone walks through it each morning.
 
 ### Camp Center
 - Visible from both entrances and the company gate

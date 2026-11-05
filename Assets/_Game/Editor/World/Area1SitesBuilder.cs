@@ -70,6 +70,25 @@ namespace Game.Editor.World
         private const string WOOD_FEATURE = "wood-camp";
         private const string HUNTING_FEATURE = "hunting-camp";
         private const string CAVE_FEATURE = "cave";
+        private const string INNER_GATE = "InnerGate";
+        private const string WAREHOUSE = "Warehouse";
+        private const string DOCK_GATE = "DockGate";
+        private const string WORK_GANG = "WorkGangTents";
+        private const string LATRINE = "Latrine";
+        private const string TIMBER_YARD = "TimberYard";
+        private const string WORKSHOP_YARD = "WorkshopYard";
+        private const string WALKWAYS = "Walkways";
+        private const string INNER_GATE_FEATURE = "inner-gate";
+        private const string WAREHOUSE_FEATURE = "warehouse";
+        private const string DOCK_GATE_FEATURE = "dock-gate";
+        private const string WORK_GANG_FEATURE = "work-gang-tents";
+        private const string LATRINE_FEATURE = "latrine";
+        private const string TIMBER_YARD_FEATURE = "timber-yard";
+        private const string WORKSHOP_YARD_FEATURE = "workshop-yard";
+        private static readonly string[] WalkwayIds = { "walkway-tents", "walkway-canteen" };
+        private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
+        private const float WAREHOUSE_MIN_WIDTH = 8f;  // doors, landing and hoist are laid out from the middle
+        private const float WAREHOUSE_MIN_DEPTH = 4f;
 
         private const float WALL_TOP = 14f;      // world height: 4 m above the outcrop
         private const float WALL_THICKNESS = 1.2f;
@@ -135,10 +154,11 @@ namespace Game.Editor.World
             DayNightConfigSO dayNight = AssetDatabase.LoadAssetAtPath<DayNightConfigSO>(DAY_NIGHT);
             GameObject rockTall = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_TALL);
             GameObject rockLow = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_LOW);
+            GameObject tent = AssetDatabase.LoadAssetAtPath<GameObject>(TENT);
             if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || fact == null || factEvent == null
-                || glow == null || dayNight == null || rockTall == null || rockLow == null)
+                || glow == null || dayNight == null || rockTall == null || rockLow == null || tent == null)
             {
-                GameLog.Error(TAG, $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT} and the rock prefabs; nothing changed.");
+                GameLog.Error(TAG, $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT}, the rock prefabs and {TENT}; nothing changed.");
                 return;
             }
 
@@ -168,10 +188,26 @@ namespace Game.Editor.World
                 return;
             }
 
-            foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE })
+            foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
+                                                 INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, WORKSHOP_YARD_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
                 GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
+                return;
+            }
+
+            foreach (string id in WalkwayIds)
+            {
+                if (features.TryGetValue(id, out JObject walkway) && Area1BlockoutBuilder.HasPoints(walkway) && Area1BlockoutBuilder.IsNumber(walkway["width"]) && (float)walkway["width"] > 0f) continue;
+                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
+                return;
+            }
+
+            JObject warehouseZone = features[WAREHOUSE_FEATURE];
+            if (!Area1BlockoutBuilder.IsNumber(warehouseZone["w"]) || !Area1BlockoutBuilder.IsNumber(warehouseZone["d"])
+                || (float)warehouseZone["w"] < WAREHOUSE_MIN_WIDTH || (float)warehouseZone["d"] < WAREHOUSE_MIN_DEPTH)
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{WAREHOUSE_FEATURE}'; nothing changed.");
                 return;
             }
 
@@ -214,6 +250,17 @@ namespace Game.Editor.World
             Area1RemoteSites.BuildWoodCamp(Area1BlockoutBuilder.Position(features[WOOD_FEATURE]), terrain, timber, NewRoot(root.transform, WOOD_CAMP));
             Area1RemoteSites.BuildHuntingCamp(Area1BlockoutBuilder.Position(features[HUNTING_FEATURE]), terrain, timber, stone, NewRoot(root.transform, HUNTING_CAMP));
             Area1RemoteSites.BuildCave(Area1BlockoutBuilder.Position(features[CAVE_FEATURE]), terrain, stone, rockTall, rockLow, NewRoot(root.transform, CAVE));
+
+            Area1CampInterior.BuildInnerGate(Area1BlockoutBuilder.Position(features[INNER_GATE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, INNER_GATE));
+            Area1CampInterior.BuildWarehouse(Area1BlockoutBuilder.Position(warehouseZone), (float)warehouseZone["w"], (float)warehouseZone["d"], terrain, timber, NewRoot(root.transform, WAREHOUSE));
+            Area1CampInterior.BuildDockGate(Area1BlockoutBuilder.Position(features[DOCK_GATE_FEATURE]), terrain, timber, NewRoot(root.transform, DOCK_GATE));
+            Area1CampInterior.BuildWorkGangTents(Area1BlockoutBuilder.Position(features[WORK_GANG_FEATURE]), tent, terrain, stone, NewRoot(root.transform, WORK_GANG));
+            Area1CampInterior.BuildLatrine(Area1BlockoutBuilder.Position(features[LATRINE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, LATRINE));
+            Area1CampInterior.BuildTimberYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, NewRoot(root.transform, TIMBER_YARD));
+            Area1CampInterior.BuildWorkshopYard(Area1BlockoutBuilder.Position(features[WORKSHOP_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, WORKSHOP_YARD));
+            Transform walkways = NewRoot(root.transform, WALKWAYS);
+            foreach (string id in WalkwayIds)
+                Area1CampInterior.BuildWalkway(id, Area1BlockoutBuilder.Points(features[id]), (float)features[id]["width"], terrain, timber, walkways);
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, "Done. Rebake the NavMesh.");

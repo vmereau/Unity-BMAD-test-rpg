@@ -25,7 +25,10 @@ namespace Game.Editor.World
         private static readonly string[] FenceIds =
         {
             "outer-fence", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "outer-fence-6",
+            "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
         };
+
+        private const string WAREHOUSE_FEATURE = "warehouse";
 
         private const string BLOCKER_LAYER = "Ignore Raycast";
 
@@ -96,15 +99,21 @@ namespace Game.Editor.World
         {
             var random = new System.Random(SEED);
             int count = 0;
+            JObject warehouse = features[WAREHOUSE_FEATURE];
+            Vector2 warehouseAt = Position(warehouse);
+            var warehouseSize = new Vector2((float)warehouse["w"], (float)warehouse["d"]);
             foreach (string id in FenceIds)
             {
                 var group = new GameObject(id).transform;
                 group.SetParent(edge, false);
 
-                foreach ((Vector2 a, Vector2 b) in Area1TerrainMath.CutPanels(Points(features[id]), PANEL_LENGTH, breakPoint, BREAK_HALF_WIDTH))
+                foreach ((Vector2 start, Vector2 end) in Area1TerrainMath.CutPanels(Points(features[id]), PANEL_LENGTH, breakPoint, BREAK_HALF_WIDTH))
                 {
+                    float jitter = ((float)random.NextDouble() * 2f - 1f) * PANEL_JITTER; // drawn first, so a skipped panel leaves the rest alone
+                    Vector2 a = start, b = end;
+                    if (!Area1TerrainMath.ClipOutsideRect(ref a, ref b, warehouseAt, warehouseSize)) continue; // its walls are the fence here
+
                     GroundUnder(terrain, a, b, out float low, out float mean, out float high);
-                    float jitter = ((float)random.NextDouble() * 2f - 1f) * PANEL_JITTER;
                     float top = Mathf.Max(mean + PANEL_HEIGHT + jitter, high + PANEL_MIN_CLEARANCE);
                     float bottom = low - PANEL_BURY;
 
@@ -276,6 +285,12 @@ namespace Game.Editor.World
             if (missing != null)
             {
                 problem = $"Layout has no usable feature '{missing}'";
+                return false;
+            }
+
+            if (!found.TryGetValue(WAREHOUSE_FEATURE, out JObject warehouse) || !HasPosition(warehouse) || !IsNumber(warehouse["w"]) || !IsNumber(warehouse["d"]))
+            {
+                problem = $"Layout has no usable feature '{WAREHOUSE_FEATURE}'";
                 return false;
             }
 

@@ -437,5 +437,10 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 ## Deferred from: review of spec-area-1-blockout-remote-sites (2026-11-05)
 
 - **Graybox box tops bake as NavMesh islands.** Confirmed on `Ruins/Tower_West`, the arch `Lintel` and the scaffold decks: each samples as NavMesh, with a partial path from the camp. The player can jump up there, and `EntityBrain` chase calls `SetDestination` with no path-status check, so a chasing agent would likely stall at the nearest edge. Consider Not Walkable volumes when art replaces these roots.
-- **`NullReferenceException` at `PlayerAnimationDriver.cs:85` on entering play mode.** Reached from `EquipmentVisuals.OnEnable` → `Refresh` → `PlayerCombat.HandleVisualsRefreshed` → `PlayerStateManager.SetInCombat`. It looks like an init-order issue; none of those files were touched by this spec.
 - **`Waterfall_Placeholder` reads grey above the water line.** The `Water` material shows only on the lowest part of the box. It is a placeholder and unchanged by this spec.
+
+## From spec-area-1-blockout-camp-interior (2026-11-05)
+
+- **Paint the camp paths.** `layout.json` holds `path-arrival`, `path-commute`, `path-company`, `path-daily` and `path-night` as a plan. Painting mud along them needs the terrain tool or a hand paint, then a capture. The art calls for the deepest mud through the inner gate.
+- **West bank route to the docks.** From outside the arrival opening, the north bank runs 52 m to the deck, past neither the warehouse nor `DockGate`. Valentin decides whether to close it; a second spur west of the deck would do it.
+- **Restrict the dock gate.** `DockGate` stands open. Locking it, or a guard at night, is gameplay for a later spec, along with the guards at the inner gate and warehouse.

@@ -22,11 +22,11 @@
     {
       "id": "inner-fence",
       "name": "Inner fence",
-      "x": -1.5,
+      "x": 1.5,
       "z": 8.95,
-      "w": 82,
+      "w": 105.6,
       "d": 1,
-      "note": "Scene: Camp/InnerFence, gate gap at x≈0."
+      "note": "Scene: tall palisade in Area1_Blockout/CampEdge, gate at x≈0 in InnerGate."
     },
     {
       "id": "center-stage",
@@ -159,35 +159,35 @@
         "master-2",
         "freedom"
       ],
-      "note": "Flows along the north of the tents into the lake.",
+      "note": "Rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass.",
       "points": [
         [
           -500,
           135
         ],
         [
-          -250,
-          120
+          -248.3,
+          121.7
         ],
         [
-          -140,
-          108
+          -138.3,
+          109.7
         ],
         [
-          -60,
-          92
+          -58.3,
+          93.7
         ],
         [
-          0,
-          76
+          1.7,
+          77.7
         ],
         [
-          45,
-          66
+          46.7,
+          67.7
         ],
         [
-          75,
-          55
+          99.2,
+          46.2
         ],
         [
           225.5,
@@ -203,10 +203,10 @@
       "id": "lake",
       "kind": "water",
       "name": "Enlarged lake",
-      "x": 90,
-      "z": 62,
-      "w": 90,
-      "d": 70,
+      "x": 104.1,
+      "z": 45.5,
+      "w": 97.2,
+      "d": 68.4,
       "art": [
         "master-2"
       ],
@@ -221,7 +221,7 @@
         "master-2",
         "arrival"
       ],
-      "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
+      "note": "Follows the south bank and enters facing the fort.",
       "points": [
         [
           -500,
@@ -253,57 +253,188 @@
       "id": "arrival-gate",
       "kind": "point",
       "name": "Arrival gate",
-      "x": -48,
-      "z": 42,
+      "x": -38.4,
+      "z": 36.3,
       "art": [
         "arrival"
       ],
-      "note": "Decide whether this replaces the Civilization gate."
+      "note": "New north-west gate. It replaces the Civilization gate."
     },
     {
       "id": "outer-fence",
       "kind": "fence",
-      "name": "Low outer fence",
+      "name": "Palisade, south-west",
       "width": 1,
       "art": [
         "master-2"
       ],
-      "note": "Low, broken fence with gaps toward the wild.",
+      "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
-          -42,
-          9
+          -2.7,
+          -52.2
         ],
         [
-          -52,
-          40
+          -31.5,
+          -43.3
         ],
         [
-          -18,
-          53
+          -46.7,
+          -26.4
+        ],
+        [
+          -49.1,
+          -5.2
+        ],
+        [
+          -50.3,
+          2.6
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-2",
+      "kind": "fence",
+      "name": "Palisade, west",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "points": [
+        [
+          -51.3,
+          8.6
+        ],
+        [
+          -52.1,
+          13.4
+        ],
+        [
+          -45.8,
+          29.4
+        ],
+        [
+          -41.3,
+          33.6
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-3",
+      "kind": "fence",
+      "name": "Palisade, north",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "points": [
+        [
+          -35.5,
+          39
+        ],
+        [
+          -20.7,
+          52.8
+        ],
+        [
+          30,
+          51.9
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-4",
+      "kind": "fence",
+      "name": "Palisade, east",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "points": [
+        [
+          35.3,
+          51.8
+        ],
+        [
+          51.6,
+          35.3
+        ],
+        [
+          55.5,
+          -2.9
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-5",
+      "kind": "fence",
+      "name": "Palisade, south-east",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "points": [
+        [
+          56.1,
+          -8.6
+        ],
+        [
+          39,
+          -37.7
+        ]
+      ]
+    },
+    {
+      "id": "outer-fence-6",
+      "kind": "fence",
+      "name": "Palisade, south",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Closes the ring behind the outcrop, south of the trough, so the back alley stays inside the camp.",
+      "points": [
+        [
+          39,
+          -37.7
         ],
         [
           38,
-          52
+          -50
         ],
         [
-          46,
-          30
+          20,
+          -57
         ],
         [
-          40,
-          9
+          -2.7,
+          -52.2
         ]
       ]
+    },
+    {
+      "id": "fence-break",
+      "kind": "point",
+      "name": "Broken palisade",
+      "x": 3,
+      "z": 52.4,
+      "art": [
+        "freedom"
+      ],
+      "note": "8 m collapsed stretch of the north palisade. Keeps the hunter's fire in view from the tents; it stays closed to walking."
     },
     {
       "id": "docks",
       "kind": "zone",
       "name": "Docks",
-      "x": 4,
-      "z": 60,
-      "w": 14,
-      "d": 12,
+      "x": 1.1,
+      "z": 66.1,
+      "w": 18.4,
+      "d": 24.4,
       "art": [
         "master-2",
         "freedom"
@@ -314,8 +445,8 @@
       "id": "ford",
       "kind": "point",
       "name": "Ford",
-      "x": 30,
-      "z": 70,
+      "x": 34.9,
+      "z": 70.3,
       "art": [],
       "note": "Shallow crossing for the wilderness path."
     },
@@ -323,8 +454,8 @@
       "id": "hunter-fire",
       "kind": "point",
       "name": "Hunter's fire",
-      "x": 6,
-      "z": 104,
+      "x": -24,
+      "z": 109.2,
       "art": [
         "freedom"
       ],
@@ -364,8 +495,8 @@
       "id": "ruins",
       "kind": "zone",
       "name": "Ruins",
-      "x": -20,
-      "z": 170,
+      "x": 149.4,
+      "z": 166.1,
       "w": 70,
       "d": 45,
       "art": [
@@ -380,8 +511,8 @@
       "name": "Hunting grounds",
       "x": -20,
       "z": 250,
-      "w": 100,
-      "d": 80,
+      "w": 200.1,
+      "d": 83.9,
       "art": [],
       "note": "Work site, north of the river."
     },
@@ -431,8 +562,8 @@
       "name": "Wood camp",
       "x": -224,
       "z": -8,
-      "w": 55,
-      "d": 45,
+      "w": 87.5,
+      "d": 74.9,
       "art": [],
       "note": "Work site in the west forest."
     },
@@ -466,21 +597,45 @@
       "id": "hollow",
       "kind": "zone",
       "name": "Fight Club Hollow",
-      "x": -62,
-      "z": 24,
-      "w": 16,
-      "d": 16,
+      "x": 32,
+      "z": 30,
+      "w": 10,
+      "d": 8,
       "art": [],
-      "note": "Must stay hidden from the Company house."
+      "note": "Crater rim is the back wall; a rock fold along its south edge hides it from the fort."
     },
     {
-      "id": "cave",
-      "kind": "point",
-      "name": "Tutorial cave",
-      "x": 85,
-      "z": -45,
+      "id": "zone-1",
+      "kind": "zone",
+      "name": "player tent",
+      "x": -41.7,
+      "z": -6.2,
+      "w": 9.6,
+      "d": 7.5,
       "art": [],
-      "note": "The GDD's nearby cave, close to the spiders."
+      "note": ""
+    },
+    {
+      "id": "zone-2",
+      "kind": "zone",
+      "name": "center",
+      "x": -2.4,
+      "z": 4.3,
+      "w": 30,
+      "d": 30,
+      "art": [],
+      "note": ""
+    },
+    {
+      "id": "zone-3",
+      "kind": "zone",
+      "name": "Company house / fort",
+      "x": -2.7,
+      "z": -42.2,
+      "w": 79.9,
+      "d": 29.1,
+      "art": [],
+      "note": ""
     },
     {
       "id": "zone-4",
@@ -494,6 +649,513 @@
         "quarry"
       ],
       "note": "Extra ruins in and hidden around the quarry. The sealed passage connects to them."
+    },
+    {
+      "id": "fort-wall-north",
+      "kind": "fence",
+      "name": "Fort wall, north",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Tower to the ruin pieces at the gate. The ruin pillars are the only opening.",
+      "points": [
+        [
+          0.8,
+          -31
+        ],
+        [
+          7,
+          -31.6
+        ],
+        [
+          11,
+          -33
+        ],
+        [
+          15.5,
+          -34.6
+        ]
+      ]
+    },
+    {
+      "id": "fort-wall-west",
+      "kind": "fence",
+      "name": "Fort wall, west and south",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Tower along the rim, round the south tip, into the House. Replaces the old outcrop-edge blocker.",
+      "points": [
+        [
+          0.8,
+          -31
+        ],
+        [
+          -0.5,
+          -33.5
+        ],
+        [
+          -0.5,
+          -48.5
+        ],
+        [
+          1.5,
+          -50.3
+        ],
+        [
+          5,
+          -50.3
+        ],
+        [
+          7.5,
+          -49.6
+        ],
+        [
+          9.2,
+          -48.8
+        ],
+        [
+          11,
+          -47.4
+        ],
+        [
+          13,
+          -45.1
+        ],
+        [
+          19.4,
+          -45.1
+        ]
+      ]
+    },
+    {
+      "id": "fort-wall-east",
+      "kind": "fence",
+      "name": "Fort wall, east",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "House to SM_Ruin_04 along the rim; the Company cliff rocks stop at outcrop height.",
+      "points": [
+        [
+          24.9,
+          -43.8
+        ],
+        [
+          27.5,
+          -41.3
+        ],
+        [
+          30,
+          -38.5
+        ],
+        [
+          32.3,
+          -35.8
+        ],
+        [
+          32,
+          -33.6
+        ],
+        [
+          30,
+          -32.1
+        ]
+      ]
+    },
+    {
+      "id": "fort-tower",
+      "kind": "point",
+      "name": "Fort tower",
+      "x": 0.8,
+      "z": -31,
+      "art": [
+        "fort"
+      ],
+      "note": "Stone tower on the north-west corner."
+    },
+    {
+      "id": "cave",
+      "kind": "point",
+      "name": "Tutorial cave",
+      "x": 85,
+      "z": -45,
+      "art": [],
+      "note": "The GDD's nearby cave. It teaches dungeon exploring and looting."
+    },
+    {
+      "id": "quarry-cleft",
+      "kind": "road",
+      "name": "Sealed cleft",
+      "width": 4,
+      "art": [
+        "quarry"
+      ],
+      "note": "Narrow open-air passage from the quarry to Ruins 2, closed by a planks-and-rubble blocker until quest-002.",
+      "points": [
+        [
+          252,
+          -116
+        ],
+        [
+          260,
+          -134
+        ]
+      ]
+    },
+    {
+      "id": "hunting-camp",
+      "kind": "point",
+      "name": "Hunting camp",
+      "x": 32,
+      "z": 222,
+      "art": [],
+      "note": "Clearing at the trail's end, inside the hunting grounds."
+    },
+    {
+      "id": "ruins-arch",
+      "kind": "point",
+      "name": "Ruins arch",
+      "x": 127,
+      "z": 146,
+      "art": [
+        "ruins"
+      ],
+      "note": "Centre of the lip ruins, on the sight corridor from the tents. The arch stands just north of this point, square to the tents, so (127, 143) stays open in front of it."
+    },
+    {
+      "id": "inner-fence-west",
+      "kind": "fence",
+      "name": "Inner palisade, west",
+      "width": 1,
+      "art": [],
+      "note": "Tall palisade between the worker side and the Company yard. Meets the ring at the wood opening.",
+      "points": [
+        [
+          -51.3,
+          8.6
+        ],
+        [
+          -4.2,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "inner-fence-east",
+      "kind": "fence",
+      "name": "Inner palisade, east",
+      "width": 1,
+      "art": [],
+      "note": "Tall palisade between the worker side and the Company yard.",
+      "points": [
+        [
+          4.2,
+          9
+        ],
+        [
+          54.3,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "dock-fence-upper",
+      "kind": "fence",
+      "name": "Dock spur, upper",
+      "width": 1,
+      "art": [],
+      "note": "Spur from the north palisade to the dock gate.",
+      "points": [
+        [
+          24.5,
+          51.7
+        ],
+        [
+          24.5,
+          57.5
+        ]
+      ]
+    },
+    {
+      "id": "dock-fence-lower",
+      "kind": "fence",
+      "name": "Dock spur, lower",
+      "width": 1,
+      "art": [],
+      "note": "Spur from the dock gate into the river.",
+      "points": [
+        [
+          24.5,
+          60.5
+        ],
+        [
+          24.5,
+          66
+        ]
+      ]
+    },
+    {
+      "id": "inner-gate",
+      "kind": "point",
+      "name": "Inner gate",
+      "x": 0,
+      "z": 9,
+      "art": [
+        "morning-gate"
+      ],
+      "note": "The only way between the worker side and the Company yard. Everyone walks through it each morning."
+    },
+    {
+      "id": "warehouse",
+      "kind": "zone",
+      "name": "Dock warehouse",
+      "x": 15,
+      "z": 52,
+      "w": 12,
+      "d": 8,
+      "art": [
+        "dock-checkpoint"
+      ],
+      "note": "Storage Hut. Built into the north palisade, door on the camp side, river door and ramp to the deck."
+    },
+    {
+      "id": "dock-gate",
+      "kind": "point",
+      "name": "Dock gate",
+      "x": 24.5,
+      "z": 59,
+      "art": [
+        "dock-checkpoint"
+      ],
+      "note": "Restricted gate on the bank path from the bridge. Stands open in the blockout."
+    },
+    {
+      "id": "work-gang-tents",
+      "kind": "zone",
+      "name": "Work-gang tents",
+      "x": -30,
+      "z": 18.5,
+      "w": 18,
+      "d": 15,
+      "art": [
+        "tent-rows"
+      ],
+      "note": "Tents along the arrival road, so the road walks past the workforce."
+    },
+    {
+      "id": "latrine",
+      "kind": "point",
+      "name": "Latrine",
+      "x": -10,
+      "z": 43,
+      "art": [],
+      "note": "Trench behind the Wretches. The poorest get the smell."
+    },
+    {
+      "id": "timber-yard",
+      "kind": "zone",
+      "name": "Timber yard",
+      "x": -35,
+      "z": -5,
+      "w": 22,
+      "d": 12,
+      "art": [
+        "timber-yard"
+      ],
+      "note": "Logs and carts by the wood opening. Keep the road clear."
+    },
+    {
+      "id": "workshop-yard",
+      "kind": "zone",
+      "name": "Workshop and stone yard",
+      "x": 35,
+      "z": -5,
+      "w": 22,
+      "d": 12,
+      "art": [],
+      "note": "Shared workshop and stone stacks by the quarry opening."
+    },
+    {
+      "id": "walkway-tents",
+      "kind": "road",
+      "name": "Tent walkway",
+      "width": 2,
+      "art": [],
+      "note": "Boards over the mud between the tent groups.",
+      "points": [
+        [
+          -2,
+          20
+        ],
+        [
+          6,
+          26
+        ],
+        [
+          8,
+          35
+        ]
+      ]
+    },
+    {
+      "id": "walkway-canteen",
+      "kind": "road",
+      "name": "Canteen walkway",
+      "width": 2,
+      "art": [],
+      "note": "Boards from the stage side to the canteen.",
+      "points": [
+        [
+          -2,
+          20
+        ],
+        [
+          -9,
+          23
+        ]
+      ]
+    },
+    {
+      "id": "path-arrival",
+      "kind": "road",
+      "name": "Path: arrival",
+      "width": 3,
+      "art": [],
+      "note": "Planned. Escort route: arrival opening, stage, Player's Zone.",
+      "points": [
+        [
+          -38.4,
+          36.3
+        ],
+        [
+          -8,
+          18
+        ],
+        [
+          14,
+          22
+        ]
+      ]
+    },
+    {
+      "id": "path-commute",
+      "kind": "road",
+      "name": "Path: morning commute",
+      "width": 4,
+      "art": [],
+      "note": "Planned, and the muddiest. Tents, inner gate, yard, then the wood or quarry opening.",
+      "points": [
+        [
+          14,
+          27
+        ],
+        [
+          0,
+          16
+        ],
+        [
+          0,
+          9
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          -42,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "path-company",
+      "kind": "road",
+      "name": "Path: Company",
+      "width": 3,
+      "art": [],
+      "note": "Planned. Yard, ramp, fort gate.",
+      "points": [
+        [
+          0,
+          3
+        ],
+        [
+          13,
+          -28
+        ],
+        [
+          20,
+          -33
+        ]
+      ]
+    },
+    {
+      "id": "path-daily",
+      "kind": "road",
+      "name": "Path: daily",
+      "width": 1,
+      "art": [],
+      "note": "Planned. Narrow foot-worn line: tents, canteen, latrine.",
+      "points": [
+        [
+          14,
+          27
+        ],
+        [
+          -11,
+          24
+        ],
+        [
+          -10,
+          42
+        ]
+      ]
+    },
+    {
+      "id": "path-night",
+      "kind": "road",
+      "name": "Path: night",
+      "width": 1,
+      "art": [],
+      "note": "Planned. Hollow, wilderness opening, bank, docks, away from the inner gate.",
+      "points": [
+        [
+          32,
+          30
+        ],
+        [
+          33,
+          44
+        ],
+        [
+          32.7,
+          52
+        ],
+        [
+          30,
+          59
+        ],
+        [
+          24.5,
+          59
+        ],
+        [
+          21,
+          59.8
+        ],
+        [
+          6,
+          59.1
+        ],
+        [
+          4,
+          57
+        ]
+      ]
     }
   ],
   "decisions": [
@@ -505,7 +1167,7 @@
         "Keep both gates",
         "Keep only the south gate"
       ],
-      "value": ""
+      "value": "New north-west gate replaces the Civilization gate"
     },
     {
       "id": "fence",
@@ -515,7 +1177,7 @@
         "Full palisade ring",
         "Low fence only, as in the design doc"
       ],
-      "value": ""
+      "value": "Full palisade ring"
     },
     {
       "id": "banner",
@@ -525,7 +1187,7 @@
         "Ram",
         "Something else"
       ],
-      "value": ""
+      "value": "Something else"
     }
   ],
   "artworks": [
@@ -570,6 +1232,36 @@
       "title": "Quarry",
       "file": "art/quarry.png",
       "note": "The sealed crack is the part to keep."
+    },
+    {
+      "id": "camp-aerial",
+      "title": "Camp aerial",
+      "file": "art/camp-aerial.png",
+      "note": "Overall camp massing. The dock gate stands beside the warehouse, not through it."
+    },
+    {
+      "id": "morning-gate",
+      "title": "Morning gate",
+      "file": "art/morning-gate.png",
+      "note": "Inner gate and guard hut."
+    },
+    {
+      "id": "tent-rows",
+      "title": "Tent rows at dusk",
+      "file": "art/tent-rows.png",
+      "note": "Tent rows and plank walkways."
+    },
+    {
+      "id": "timber-yard",
+      "title": "Timber yard",
+      "file": "art/timber-yard.png",
+      "note": "Yard by the wood opening."
+    },
+    {
+      "id": "dock-checkpoint",
+      "title": "Dock checkpoint",
+      "file": "art/dock-checkpoint.png",
+      "note": "Warehouse, hoist and gate look."
     }
   ]
 }

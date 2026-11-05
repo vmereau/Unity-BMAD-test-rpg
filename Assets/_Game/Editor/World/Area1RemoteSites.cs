@@ -141,7 +141,7 @@ namespace Game.Editor.World
             Thin("Rope", crane, timber, new Vector3(0f, 8f, 8f), new Vector3(0.05f, 7f, 0.05f));
         }
 
-        private static void BuildStoneStack(string name, Vector2 at, Terrain terrain, Material stone, Transform parent)
+        internal static void BuildStoneStack(string name, Vector2 at, Terrain terrain, Material stone, Transform parent)
         {
             var stack = new GameObject(name).transform;
             stack.SetParent(parent, false);
@@ -184,13 +184,7 @@ namespace Game.Editor.World
             BuildLeanTo("Shelter_0", center + new Vector2(-6f, 16f), Vector2.down, terrain, timber, root);
             BuildLeanTo("Shelter_1", center + new Vector2(8f, 15f), Vector2.down, terrain, timber, root);
 
-            Vector2 pit = center + new Vector2(12f, -6f);
-            var saw = new GameObject("SawPit").transform;
-            saw.SetParent(root, false);
-            saw.position = new Vector3(pit.x, Area1BlockoutBuilder.Ground(terrain, pit), pit.y);
-            Local("Trestle_0", saw, timber, new Vector3(0f, (1.2f - PROP_BURY) * 0.5f, -2.2f), new Vector3(1.6f, 1.2f + PROP_BURY, 0.25f));
-            Local("Trestle_1", saw, timber, new Vector3(0f, (1.2f - PROP_BURY) * 0.5f, 2.2f), new Vector3(1.6f, 1.2f + PROP_BURY, 0.25f));
-            Local("Log", saw, timber, new Vector3(0f, 1.45f, 0f), new Vector3(0.6f, 0.5f, 6f));
+            BuildSawPit(center + new Vector2(12f, -6f), terrain, timber, root);
 
             var random = new System.Random(SEED);
             float Range(float from, float to) => from + (float)random.NextDouble() * (to - from);
@@ -204,7 +198,17 @@ namespace Game.Editor.World
             }
         }
 
-        private static void BuildLogStack(string name, Vector2 at, float yaw, Terrain terrain, Material timber, Transform parent)
+        internal static void BuildSawPit(Vector2 at, Terrain terrain, Material timber, Transform parent)
+        {
+            var saw = new GameObject("SawPit").transform;
+            saw.SetParent(parent, false);
+            saw.position = new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at), at.y);
+            Local("Trestle_0", saw, timber, new Vector3(0f, (1.2f - PROP_BURY) * 0.5f, -2.2f), new Vector3(1.6f, 1.2f + PROP_BURY, 0.25f));
+            Local("Trestle_1", saw, timber, new Vector3(0f, (1.2f - PROP_BURY) * 0.5f, 2.2f), new Vector3(1.6f, 1.2f + PROP_BURY, 0.25f));
+            Local("Log", saw, timber, new Vector3(0f, 1.45f, 0f), new Vector3(0.6f, 0.5f, 6f));
+        }
+
+        internal static void BuildLogStack(string name, Vector2 at, float yaw, Terrain terrain, Material timber, Transform parent)
         {
             var stack = new GameObject(name).transform;
             stack.SetParent(parent, false);
@@ -252,7 +256,7 @@ namespace Game.Editor.World
             Local("Hide", rack, timber, new Vector3(0f, 1.15f, 0f), new Vector3(1.8f, 1.2f, 0.04f));
         }
 
-        private static void BuildLeanTo(string name, Vector2 at, Vector2 facing, Terrain terrain, Material timber, Transform parent)
+        internal static void BuildLeanTo(string name, Vector2 at, Vector2 facing, Terrain terrain, Material timber, Transform parent)
         {
             var shelter = new GameObject(name).transform;
             shelter.SetParent(parent, false);
@@ -344,7 +348,7 @@ namespace Game.Editor.World
             pier.rotation = yaw;
         }
 
-        private static void Column(string name, Transform parent, Material material, Terrain terrain, Vector2 at, Vector2 footprint, float height, float yaw)
+        internal static void Column(string name, Transform parent, Material material, Terrain terrain, Vector2 at, Vector2 footprint, float height, float yaw)
         {
             float ground = Area1BlockoutBuilder.Ground(terrain, at);
             Transform box = Area1BlockoutBuilder.Box(name, parent, material, new Vector3(at.x, ground + (height - BURY) * 0.5f, at.y),
@@ -352,7 +356,7 @@ namespace Game.Editor.World
             box.rotation = Quaternion.Euler(0f, yaw, 0f);
         }
 
-        private static Transform Local(string name, Transform parent, Material material, Vector3 local, Vector3 size)
+        internal static Transform Local(string name, Transform parent, Material material, Vector3 local, Vector3 size)
         {
             Transform box = Area1BlockoutBuilder.Box(name, parent, material, Vector3.zero, size);
             box.localPosition = local;
@@ -360,7 +364,7 @@ namespace Game.Editor.World
             return box;
         }
 
-        private static void Thin(string name, Transform parent, Material material, Vector3 local, Vector3 size)
+        internal static void Thin(string name, Transform parent, Material material, Vector3 local, Vector3 size)
         {
             Transform box = Local(name, parent, material, local, size);
             Object.DestroyImmediate(box.GetComponent<Collider>());

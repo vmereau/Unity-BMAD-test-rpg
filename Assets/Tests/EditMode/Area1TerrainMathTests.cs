@@ -109,6 +109,44 @@ namespace Tests.EditMode
             CollectionAssert.AreEqual(new[] { 3f, 3f, 3f }, heights);
         }
 
+        [TestCase(15f, 52f, true)]
+        [TestCase(21f, 56f, true)]
+        [TestCase(21.1f, 52f, false)]
+        [TestCase(15f, 47.9f, false)]
+        public void InsideRect_IncludesEdges_AndNothingBeyond(float x, float z, bool expected)
+        {
+            Assert.AreEqual(expected, Area1TerrainMath.InsideRect(new Vector2(x, z), new Vector2(15f, 52f), new Vector2(12f, 8f)));
+        }
+
+        [Test]
+        public void ClipOutsideRect_WhollyInside_IsDropped()
+        {
+            Vector2 a = new Vector2(12f, 52f), b = new Vector2(15f, 52f);
+
+            Assert.IsFalse(Area1TerrainMath.ClipOutsideRect(ref a, ref b, new Vector2(15f, 52f), new Vector2(12f, 8f)));
+        }
+
+        [Test]
+        public void ClipOutsideRect_Straddling_StopsAtTheEdge()
+        {
+            Vector2 a = new Vector2(7f, 52f), b = new Vector2(10f, 52f);
+
+            Assert.IsTrue(Area1TerrainMath.ClipOutsideRect(ref a, ref b, new Vector2(15f, 52f), new Vector2(12f, 8f)));
+
+            Assert.AreEqual(new Vector2(7f, 52f), a);
+            Assert.AreEqual(9f, b.x, 0.001f);
+        }
+
+        [Test]
+        public void ClipOutsideRect_Outside_IsUnchanged()
+        {
+            Vector2 a = new Vector2(30f, 52f), b = new Vector2(33f, 52f);
+
+            Assert.IsTrue(Area1TerrainMath.ClipOutsideRect(ref a, ref b, new Vector2(15f, 52f), new Vector2(12f, 8f)));
+
+            Assert.AreEqual(new Vector2(33f, 52f), b);
+        }
+
         [Test]
         public void CutPanels_SplitsEachSegmentEvenly_AndKeepsCorners()
         {

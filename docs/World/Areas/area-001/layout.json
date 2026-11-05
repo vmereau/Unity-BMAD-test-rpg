@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "savedAt": "2026-11-04T19:20:38.000Z",
+  "savedAt": "2026-11-05T19:00:00.000Z",
   "features": [
     {
       "id": "mountains",
@@ -713,6 +713,337 @@
         "ruins"
       ],
       "note": "Centre of the lip ruins, on the sight corridor from the tents. The arch stands just north of this point, square to the tents, so (127, 143) stays open in front of it."
+    },
+    {
+      "id": "inner-fence-west",
+      "kind": "fence",
+      "name": "Inner palisade, west",
+      "width": 1,
+      "art": [],
+      "note": "Tall palisade between the worker side and the Company yard. Meets the ring at the wood opening.",
+      "points": [
+        [
+          -51.3,
+          8.6
+        ],
+        [
+          -4.2,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "inner-fence-east",
+      "kind": "fence",
+      "name": "Inner palisade, east",
+      "width": 1,
+      "art": [],
+      "note": "Tall palisade between the worker side and the Company yard.",
+      "points": [
+        [
+          4.2,
+          9
+        ],
+        [
+          54.3,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "dock-fence-upper",
+      "kind": "fence",
+      "name": "Dock spur, upper",
+      "width": 1,
+      "art": [],
+      "note": "Spur from the north palisade to the dock gate.",
+      "points": [
+        [
+          24.5,
+          51.7
+        ],
+        [
+          24.5,
+          57.5
+        ]
+      ]
+    },
+    {
+      "id": "dock-fence-lower",
+      "kind": "fence",
+      "name": "Dock spur, lower",
+      "width": 1,
+      "art": [],
+      "note": "Spur from the dock gate into the river.",
+      "points": [
+        [
+          24.5,
+          60.5
+        ],
+        [
+          24.5,
+          66
+        ]
+      ]
+    },
+    {
+      "id": "inner-gate",
+      "kind": "point",
+      "name": "Inner gate",
+      "x": 0,
+      "z": 9,
+      "art": [
+        "morning-gate"
+      ],
+      "note": "The only way between the worker side and the Company yard. Everyone walks through it each morning."
+    },
+    {
+      "id": "warehouse",
+      "kind": "zone",
+      "name": "Dock warehouse",
+      "x": 15,
+      "z": 52,
+      "w": 12,
+      "d": 8,
+      "art": [
+        "dock-checkpoint"
+      ],
+      "note": "Storage Hut. Built into the north palisade, door on the camp side, river door and ramp to the deck."
+    },
+    {
+      "id": "dock-gate",
+      "kind": "point",
+      "name": "Dock gate",
+      "x": 24.5,
+      "z": 59,
+      "art": [
+        "dock-checkpoint"
+      ],
+      "note": "Restricted gate on the bank path from the bridge. Stands open in the blockout."
+    },
+    {
+      "id": "work-gang-tents",
+      "kind": "zone",
+      "name": "Work-gang tents",
+      "x": -30,
+      "z": 18.5,
+      "w": 18,
+      "d": 15,
+      "art": [
+        "tent-rows"
+      ],
+      "note": "Tents along the arrival road, so the road walks past the workforce."
+    },
+    {
+      "id": "latrine",
+      "kind": "point",
+      "name": "Latrine",
+      "x": -10,
+      "z": 43,
+      "art": [],
+      "note": "Trench behind the Wretches. The poorest get the smell."
+    },
+    {
+      "id": "timber-yard",
+      "kind": "zone",
+      "name": "Timber yard",
+      "x": -35,
+      "z": -5,
+      "w": 22,
+      "d": 12,
+      "art": [
+        "timber-yard"
+      ],
+      "note": "Logs and carts by the wood opening. Keep the road clear."
+    },
+    {
+      "id": "workshop-yard",
+      "kind": "zone",
+      "name": "Workshop and stone yard",
+      "x": 35,
+      "z": -5,
+      "w": 22,
+      "d": 12,
+      "art": [],
+      "note": "Shared workshop and stone stacks by the quarry opening."
+    },
+    {
+      "id": "walkway-tents",
+      "kind": "road",
+      "name": "Tent walkway",
+      "width": 2,
+      "art": [],
+      "note": "Boards over the mud between the tent groups.",
+      "points": [
+        [
+          -2,
+          20
+        ],
+        [
+          6,
+          26
+        ],
+        [
+          8,
+          35
+        ]
+      ]
+    },
+    {
+      "id": "walkway-canteen",
+      "kind": "road",
+      "name": "Canteen walkway",
+      "width": 2,
+      "art": [],
+      "note": "Boards from the stage side to the canteen.",
+      "points": [
+        [
+          -2,
+          20
+        ],
+        [
+          -9,
+          23
+        ]
+      ]
+    },
+    {
+      "id": "path-arrival",
+      "kind": "road",
+      "name": "Path: arrival",
+      "width": 3,
+      "art": [],
+      "note": "Planned. Escort route: arrival opening, stage, Player's Zone.",
+      "points": [
+        [
+          -38.4,
+          36.3
+        ],
+        [
+          -8,
+          18
+        ],
+        [
+          14,
+          22
+        ]
+      ]
+    },
+    {
+      "id": "path-commute",
+      "kind": "road",
+      "name": "Path: morning commute",
+      "width": 4,
+      "art": [],
+      "note": "Planned, and the muddiest. Tents, inner gate, yard, then the wood or quarry opening.",
+      "points": [
+        [
+          14,
+          27
+        ],
+        [
+          0,
+          16
+        ],
+        [
+          0,
+          9
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          -42,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "path-company",
+      "kind": "road",
+      "name": "Path: Company",
+      "width": 3,
+      "art": [],
+      "note": "Planned. Yard, ramp, fort gate.",
+      "points": [
+        [
+          0,
+          3
+        ],
+        [
+          13,
+          -28
+        ],
+        [
+          20,
+          -33
+        ]
+      ]
+    },
+    {
+      "id": "path-daily",
+      "kind": "road",
+      "name": "Path: daily",
+      "width": 1,
+      "art": [],
+      "note": "Planned. Narrow foot-worn line: tents, canteen, latrine.",
+      "points": [
+        [
+          14,
+          27
+        ],
+        [
+          -11,
+          24
+        ],
+        [
+          -10,
+          42
+        ]
+      ]
+    },
+    {
+      "id": "path-night",
+      "kind": "road",
+      "name": "Path: night",
+      "width": 1,
+      "art": [],
+      "note": "Planned. Hollow, wilderness opening, bank, docks, away from the inner gate.",
+      "points": [
+        [
+          32,
+          30
+        ],
+        [
+          33,
+          44
+        ],
+        [
+          32.7,
+          52
+        ],
+        [
+          30,
+          59
+        ],
+        [
+          24.5,
+          59
+        ],
+        [
+          21,
+          59.8
+        ],
+        [
+          6,
+          59.1
+        ],
+        [
+          4,
+          57
+        ]
+      ]
     }
   ],
   "decisions": [

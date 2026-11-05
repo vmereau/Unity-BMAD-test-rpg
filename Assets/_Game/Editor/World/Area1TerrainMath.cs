@@ -16,6 +16,33 @@ namespace Game.Editor.World
             return t * t * (3f - 2f * t);
         }
 
+        /// <summary>True when a point lies inside an axis-aligned rectangle, edges included.</summary>
+        public static bool InsideRect(Vector2 point, Vector2 center, Vector2 size) =>
+            Mathf.Abs(point.x - center.x) <= size.x * 0.5f && Mathf.Abs(point.y - center.y) <= size.y * 0.5f;
+
+        /// <summary>
+        /// Cuts a segment back to where it leaves a rectangle. False when it lies wholly inside; a segment with both ends outside
+        /// is left alone, so the rectangle must be longer than the segments.
+        /// </summary>
+        public static bool ClipOutsideRect(ref Vector2 a, ref Vector2 b, Vector2 center, Vector2 size)
+        {
+            bool aInside = InsideRect(a, center, size), bInside = InsideRect(b, center, size);
+            if (aInside && bInside) return false;
+            if (!aInside && !bInside) return true;
+
+            Vector2 inside = aInside ? a : b;
+            Vector2 direction = (aInside ? b : a) - inside;
+            Vector2 local = inside - center;
+            float t = 1f;
+            if (direction.x != 0f) t = Mathf.Min(t, (Mathf.Sign(direction.x) * size.x * 0.5f - local.x) / direction.x);
+            if (direction.y != 0f) t = Mathf.Min(t, (Mathf.Sign(direction.y) * size.y * 0.5f - local.y) / direction.y);
+
+            Vector2 edge = inside + direction * t;
+            if (aInside) a = edge;
+            else b = edge;
+            return true;
+        }
+
         /// <summary>Distance to a polyline, plus the 0..1 position along its nearest segment's whole length.</summary>
         public static float PolylineDistance(Vector2 point, IReadOnlyList<Vector2> line, out float along)
         {
