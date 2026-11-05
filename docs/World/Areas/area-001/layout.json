@@ -109,7 +109,7 @@
         "master-2",
         "arrival"
       ],
-      "note": "Follows the south bank and enters facing the fort. Passes close to the bandits, so they may need to move.",
+      "note": "Follows the south bank and enters facing the fort.",
       "points": [
         [
           -500,
@@ -699,9 +699,20 @@
       "kind": "point",
       "name": "Hunting camp",
       "x": 32,
-      "z": 214,
+      "z": 222,
       "art": [],
       "note": "Clearing at the trail's end, inside the hunting grounds."
+    },
+    {
+      "id": "ruins-arch",
+      "kind": "point",
+      "name": "Ruins arch",
+      "x": 127,
+      "z": 146,
+      "art": [
+        "ruins"
+      ],
+      "note": "Centre of the lip ruins, on the sight corridor from the tents. The arch stands just north of this point, square to the tents, so (127, 143) stays open in front of it."
     }
   ],
   "decisions": [
@@ -736,5 +747,5 @@
       "value": "Something else"
     }
   ],
-  "notes": "Valley layout, camp interior still open.\n- Spiders move away from the quarry road.\n- River rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass. No exit through the mountains.\n- Fight Club Hollow: rock fold hides it from the fort.\n- Ruins ridge must read from the tents at about 200 m.\n- Ruins 2: extra ruins in and hidden around the quarry; the sealed passage connects to them.\n- Quarry and wood roads join the camp at the current centre; revisit with the camp layout.\n- Bandits sit beside the arrival road; move them during the blockout.\n- Hand-sculpted heights live in terrain-sculpt.bin next to this file: Tools/World/Capture Area 1 Terrain Sculpt saves them, and the terrain tool reapplies them.\n- Valley grown to 1000 m (2026-11-04): the mountain wall moved out to a 700 m valley and the quarry, Ruins 2, wood camp, hunting grounds and river ends moved out; the camp and the sites near it did not move."
+  "notes": "Valley layout, camp interior still open.\n- River rises as a spring or waterfall in the eastern mountains, runs through the lake and leaves by the western pass. No exit through the mountains.\n- Fight Club Hollow: rock fold hides it from the fort.\n- Ruins ridge must read from the tents at about 200 m.\n- Ruins 2: extra ruins in and hidden around the quarry; the sealed passage connects to them.\n- Quarry and wood roads join the camp at the current centre; revisit with the camp layout.\n- Hand-sculpted heights live in terrain-sculpt.bin next to this file: Tools/World/Capture Area 1 Terrain Sculpt saves them, and the terrain tool reapplies them.\n- Valley grown to 1000 m (2026-11-04): the mountain wall moved out to a 700 m valley and the quarry, Ruins 2, wood camp, hunting grounds and river ends moved out; the camp and the sites near it did not move."
 }

@@ -52,13 +52,24 @@ namespace Game.Editor.World
         private const string HOLLOW = "Hollow";
         private const string FIRE = "HuntersFire";
         private const string DECK_PREFIX = "SM_WoodPlatformFloorKit";
-        private static readonly string[] DockParts = { "DeckFloor_", "Walkway_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
+        private static readonly string[] DockParts = { "DeckFloor_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
         private const string HAND_BRIDGE = "CampBridge/floor";
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
         private const string TOWER_FEATURE = "fort-tower";
         private const string HOLLOW_FEATURE = "hollow";
         private const string FIRE_FEATURE = "hunter-fire";
+        private const string RUINS = "Ruins";
+        private const string QUARRY_DRESSING = "QuarryDressing";
+        private const string RUINS2_DRESSING = "Ruins2Dressing";
+        private const string WOOD_CAMP = "WoodCamp";
+        private const string HUNTING_CAMP = "HuntingCamp";
+        private const string CAVE = "Cave";
+        private const string ARCH_FEATURE = "ruins-arch";
+        private const string QUARRY_FEATURE = "quarry";
+        private const string WOOD_FEATURE = "wood-camp";
+        private const string HUNTING_FEATURE = "hunting-camp";
+        private const string CAVE_FEATURE = "cave";
 
         private const float WALL_TOP = 14f;      // world height: 4 m above the outcrop
         private const float WALL_THICKNESS = 1.2f;
@@ -74,7 +85,7 @@ namespace Game.Editor.World
         private const float DECK_REACH = 5.5f;    // either way along each deck piece
         private const float DECK_Y = 0.76f;       // puts the floor at the height of the visible planks
         private const float DECK_THICKNESS = 0.1f;
-        private const float DECK_WIDTH = 2.6f;    // collider-only floor: the deck's own colliders sit 0.45 m under the planks and miss some
+        private const float DECK_WIDTH = 2.6f;    // walkable floor: the deck's own colliders sit 0.45 m under the planks and miss some
         private const float WATER_LEVEL = -2f;
         private const float BOAT_OFFSET = 4f;     // out from the head of the T
         private const float MOORING_TOP = 1.4f;   // the post runs on down into the water
@@ -157,7 +168,7 @@ namespace Game.Editor.World
                 return;
             }
 
-            foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE })
+            foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
                 GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
@@ -196,6 +207,13 @@ namespace Game.Editor.World
             BuildBarricadeVolumes(barricades, NewRoot(root.transform, BARRICADES));
             BuildHollow(Area1BlockoutBuilder.Position(hollowZone), (float)hollowZone["d"], terrain, rockTall, rockLow, NewRoot(root.transform, HOLLOW));
             BuildFire(Area1BlockoutBuilder.Position(features[FIRE_FEATURE]), terrain, timber, stone, glow, dayNight, NewRoot(root.transform, FIRE));
+
+            Area1RemoteSites.BuildRuins(Area1BlockoutBuilder.Position(features[ARCH_FEATURE]), terrain, stone, NewRoot(root.transform, RUINS));
+            Area1RemoteSites.BuildQuarry(Area1BlockoutBuilder.Position(features[QUARRY_FEATURE]), terrain, timber, stone, NewRoot(root.transform, QUARRY_DRESSING));
+            Area1RemoteSites.BuildRuins2(Area1BlockoutBuilder.Position(ruins2), terrain, stone, NewRoot(root.transform, RUINS2_DRESSING));
+            Area1RemoteSites.BuildWoodCamp(Area1BlockoutBuilder.Position(features[WOOD_FEATURE]), terrain, timber, NewRoot(root.transform, WOOD_CAMP));
+            Area1RemoteSites.BuildHuntingCamp(Area1BlockoutBuilder.Position(features[HUNTING_FEATURE]), terrain, timber, stone, NewRoot(root.transform, HUNTING_CAMP));
+            Area1RemoteSites.BuildCave(Area1BlockoutBuilder.Position(features[CAVE_FEATURE]), terrain, stone, rockTall, rockLow, NewRoot(root.transform, CAVE));
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, "Done. Rebake the NavMesh.");
@@ -404,8 +422,9 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// The deck is hand-built and stays. Its colliders sit under the planks and leave holes, so an invisible floor gives
-        /// the player the surface they see.
+        /// The deck is hand-built and stays. Its colliders sit under the planks and leave holes, and its gaps split a bake, so
+        /// an invisible floor gives the player and agents the surface they see. ShadowsOnly draws only into the shadow map,
+        /// and a render-mesh bake still collects it; a disabled renderer would not be collected.
         /// </summary>
         private static void BuildDocks(List<Transform> deck, Material timber, Transform docks)
         {
@@ -414,10 +433,12 @@ namespace Game.Editor.World
             foreach (Transform piece in deck)
             {
                 Vector2 center = DeckCenter(piece);
-                var floor = new GameObject($"DeckFloor_{index++}").transform;
-                floor.SetParent(docks, false);
-                floor.SetPositionAndRotation(new Vector3(center.x, DECK_Y, center.y), Area1BlockoutBuilder.Yaw(YawDirection(piece)));
-                floor.gameObject.AddComponent<BoxCollider>().size = new Vector3(DECK_WIDTH, DECK_THICKNESS, DECK_REACH * 2f);
+                Transform floor = Area1BlockoutBuilder.Box($"DeckFloor_{index++}", docks, timber, new Vector3(center.x, DECK_Y, center.y),
+                    new Vector3(DECK_WIDTH, DECK_THICKNESS, DECK_REACH * 2f));
+                floor.rotation = Area1BlockoutBuilder.Yaw(YawDirection(piece));
+                var surface = floor.GetComponent<MeshRenderer>();
+                surface.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+                surface.receiveShadows = false;
 
                 if (head == null || center.y > DeckCenter(head).y) head = piece; // the head of the T is the piece furthest out
             }
@@ -568,7 +589,7 @@ namespace Game.Editor.World
             }
         }
 
-        private static void PlaceRock(GameObject prefab, string name, Transform parent, Vector3 position, float yaw, Vector3 scale)
+        internal static void PlaceRock(GameObject prefab, string name, Transform parent, Vector3 position, float yaw, Vector3 scale)
         {
             var rock = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             rock.name = name;

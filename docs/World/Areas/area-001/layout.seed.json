@@ -101,16 +101,16 @@
     {
       "id": "spiders",
       "name": "Spiders",
-      "x": 62.7,
-      "z": -35.3,
-      "note": "Scene: centre of the three Monster_DarknessSpider instances."
+      "x": 81.6,
+      "z": -42.5,
+      "note": "Scene: centre of the three Monster_DarknessSpider instances, in and at the mouth of the tutorial cave."
     },
     {
       "id": "bandits",
       "name": "Bandits",
-      "x": -62,
-      "z": 58,
-      "note": "Scene: the Bandit instance. The proposed arrival road passes close by."
+      "x": -102,
+      "z": 28,
+      "note": "Scene: the Bandit instance, between the wood and arrival roads."
     }
   ],
   "features": [
