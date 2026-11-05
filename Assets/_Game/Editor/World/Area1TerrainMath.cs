@@ -75,6 +75,27 @@ namespace Game.Editor.World
             return best;
         }
 
+        /// <summary>Paint share at a point: 1 within <paramref name="halfWidth"/> of the line, fading to 0 over <paramref name="edge"/> metres.</summary>
+        public static float LineBlend(Vector2 point, IReadOnlyList<Vector2> line, float halfWidth, float edge) =>
+            1f - Ramp(PolylineDistance(point, line, out _), halfWidth, halfWidth + edge);
+
+        /// <summary>
+        /// Raises <paramref name="layer"/> to at least the share and scales the others into what is left, so a normalised set stays
+        /// normalised. A line's fade never thins ground that already has more of the layer.
+        /// </summary>
+        public static void BlendLayer(float[] weights, int layer, float share)
+        {
+            if (share <= weights[layer]) return;
+            float others = 0f;
+            for (int i = 0; i < weights.Length; i++)
+                if (i != layer) others += weights[i];
+
+            float rest = 1f - share;
+            for (int i = 0; i < weights.Length; i++)
+                if (i != layer) weights[i] = others > 0f ? weights[i] / others * rest : 0f;
+            weights[layer] = share;
+        }
+
         /// <summary>Distance from a point to an axis-aligned rectangle; 0 inside it.</summary>
         public static float RectDistance(Vector2 point, Vector2 center, Vector2 size)
         {

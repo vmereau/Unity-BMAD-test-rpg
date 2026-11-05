@@ -15,16 +15,16 @@ namespace Game.Editor.World
         private const float DOOR_HEIGHT = 2.8f;
         private const float DOOR_X = 2f;          // from the warehouse centre, on both long walls
         private const float ROOF_PITCH = 30f;
-        private const float LANDING_DEPTH = 3f;
-        private const float RAMP_WIDTH = 2.4f;
+        private const float LANDING_DEPTH = 3.8f; // keeps the river ramp clear of the wall posts
+        private const float RAMP_WIDTH = 3.5f;    // a cart's width
         private const float RAMP_THICKNESS = 0.2f;
-        private const float CAMP_RAMP_LENGTH = 9f;
+        private const float CAMP_RAMP_LENGTH = 13.2f; // 18 degrees over the 4.2 m drop to the tents
+        private const float RIVER_RAMP_LENGTH = 10f;
         private const float POST_SPACING = 4f;
         private const float POST_BURY = 0.5f;
         private const int FLOOR_SAMPLES = 5;      // per side: the rim falls away, so one point can sit low
 
         private const float GATE_HEIGHT = 5f;
-        private const float GATE_WIDTH = 3f;
         private const float BOARD_LENGTH = 1f;
 
         /// <summary>Open leaves between the two hand-built gate posts, with the guard hut beside them, as in the Morning gate art.</summary>
@@ -101,8 +101,9 @@ namespace Game.Editor.World
 
             // Down the river side, westward along the wall to the head of the deck. The bank path runs north of it.
             float rampZ = center.y + halfDepth + LANDING_DEPTH * 0.5f;
-            Vector2 riverEnd = new Vector2(center.x - 10f, rampZ);
-            Slab("Ramp_River", new Vector3(center.x - 1f, floor, rampZ), new Vector3(riverEnd.x, Area1BlockoutBuilder.Ground(terrain, riverEnd), riverEnd.y), root, timber);
+            float rampTop = center.x - 1f;
+            Vector2 riverEnd = new Vector2(rampTop - RIVER_RAMP_LENGTH, rampZ);
+            Slab("Ramp_River", new Vector3(rampTop, floor, rampZ), new Vector3(riverEnd.x, Area1BlockoutBuilder.Ground(terrain, riverEnd), riverEnd.y), root, timber);
 
             float doorX = center.x + DOOR_X;
             float campZ = center.y - halfDepth;
@@ -150,21 +151,25 @@ namespace Game.Editor.World
             slab.rotation = rotation;
         }
 
-        /// <summary>Stands open in the blockout, so the bank route stays walkable; restricting it is later gameplay.</summary>
-        internal static void BuildDockGate(Vector2 gate, Terrain terrain, Material timber, Transform root)
+        /// <summary>
+        /// A gate across a north-south fence line, with the guard post on its east side. It stands open in the blockout, so the
+        /// route stays walkable; restricting it is later gameplay.
+        /// </summary>
+        internal static void BuildGate(Vector2 gate, float width, Terrain terrain, Material timber, Transform root)
         {
-            float half = GATE_WIDTH * 0.5f;
+            float half = width * 0.5f;
             Vector2 south = gate + new Vector2(0f, -half), north = gate + new Vector2(0f, half);
             float southGround = Area1BlockoutBuilder.Ground(terrain, south), northGround = Area1BlockoutBuilder.Ground(terrain, north);
             float top = Mathf.Max(southGround, northGround) + GATE_HEIGHT; // the bank falls across the gate, so both posts reach one top
             Area1RemoteSites.Column("Post_South", root, timber, terrain, south, new Vector2(0.5f, 0.5f), top - southGround, 0f);
             Area1RemoteSites.Column("Post_North", root, timber, terrain, north, new Vector2(0.5f, 0.5f), top - northGround, 0f);
-            Area1BlockoutBuilder.Box("Lintel", root, timber, new Vector3(gate.x, top, gate.y), new Vector3(0.35f, 0.35f, GATE_WIDTH + 0.8f));
+            Area1BlockoutBuilder.Box("Lintel", root, timber, new Vector3(gate.x, top, gate.y), new Vector3(0.35f, 0.35f, width + 0.8f));
 
-            Area1RemoteSites.Column("Leaf_South", root, timber, terrain, gate + new Vector2(0.9f, -half - 0.1f), new Vector2(1.5f, 0.12f), 2.6f, -4f);
-            Area1RemoteSites.Column("Leaf_North", root, timber, terrain, gate + new Vector2(0.9f, half + 0.1f), new Vector2(1.5f, 0.12f), 2.6f, 4f);
+            float leafX = half * 0.5f + 0.15f; // each leaf is half the gate's width, swung back along the road
+            Area1RemoteSites.Column("Leaf_South", root, timber, terrain, gate + new Vector2(leafX, -half - 0.1f), new Vector2(half, 0.12f), 2.6f, -4f);
+            Area1RemoteSites.Column("Leaf_North", root, timber, terrain, gate + new Vector2(leafX, half + 0.1f), new Vector2(half, 0.12f), 2.6f, 4f);
 
-            Area1RemoteSites.BuildLeanTo("GuardPost", gate + new Vector2(3.2f, -1.9f), Vector2.up, terrain, timber, root); // long side along the bank
+            Area1RemoteSites.BuildLeanTo("GuardPost", gate + new Vector2(half + 1.7f, -half - 0.4f), Vector2.up, terrain, timber, root); // long side along the bank
         }
 
         internal static void BuildWorkGangTents(Vector2 center, GameObject tent, Terrain terrain, Material stone, Transform root)
@@ -222,6 +227,39 @@ namespace Game.Editor.World
             Area1RemoteSites.Local("Wheel_L", cart, timber, new Vector3(-0.7f, 0.4f, 0f), new Vector3(0.12f, 0.8f, 0.8f));
             Area1RemoteSites.Local("Wheel_R", cart, timber, new Vector3(0.7f, 0.4f, 0f), new Vector3(0.12f, 0.8f, 0.8f));
             Area1RemoteSites.Local("Handle", cart, timber, new Vector3(0f, 0.6f, 1.6f), new Vector3(0.9f, 0.08f, 1.4f));
+        }
+
+        /// <summary>Keeps north of the delivery road. Everything stays low, and west of the tents-to-fire strip.</summary>
+        internal static void BuildStagingYard(Vector2 center, Terrain terrain, Material timber, Material stone, Transform root)
+        {
+            Vector2 shedAt = center + new Vector2(-7f, 0.5f);
+            var shed = new GameObject("CartShed").transform;
+            shed.SetParent(root, false);
+            shed.position = new Vector3(shedAt.x, Area1BlockoutBuilder.Ground(terrain, shedAt), shedAt.y);
+            foreach (float x in new[] { -2.8f, 2.8f })
+                foreach (float z in new[] { -2.2f, 2.2f })
+                    Stilt($"Post_{x:0}_{z:0}", shedAt + new Vector2(x, z), shed.position.y + 2.75f, terrain, timber, shed); // the bank falls under it
+            Area1RemoteSites.Local("Roof", shed, timber, new Vector3(0f, 2.82f, 0f), new Vector3(6.4f, 0.14f, 5.2f));
+            BuildCart("Cart_0", shedAt + new Vector2(-1.3f, 0f), 0f, terrain, timber, root);
+            BuildCart("Cart_1", shedAt + new Vector2(1.3f, 0.3f), 4f, terrain, timber, root);
+
+            Vector2[] crates = { new Vector2(0f, 2f), new Vector2(1.3f, 2.3f), new Vector2(0.5f, 0.8f), new Vector2(2.6f, 0.5f), new Vector2(2.2f, 2.8f) };
+            for (int i = 0; i < crates.Length; i++)
+                Area1RemoteSites.Column($"Crate_{i}", root, timber, terrain, center + crates[i], new Vector2(1f, 1f), 1f + (i % 2) * 0.8f, i * 17f);
+
+            Vector2[] sacks = { new Vector2(0.5f, -2.5f), new Vector2(1.7f, -2.8f), new Vector2(2.9f, -2.5f), new Vector2(1.2f, -1.5f) };
+            for (int i = 0; i < sacks.Length; i++)
+                Area1RemoteSites.Column($"Sack_{i}", root, stone, terrain, center + sacks[i], new Vector2(1.1f, 0.6f), 0.5f, i * 31f);
+
+            Vector2 watchAt = center + new Vector2(9f, 1f);
+            var watch = new GameObject("WatchPost").transform;
+            watch.SetParent(root, false);
+            watch.position = new Vector3(watchAt.x, Area1BlockoutBuilder.Ground(terrain, watchAt), watchAt.y);
+            foreach (float x in new[] { -1.1f, 1.1f })
+                foreach (float z in new[] { -1.1f, 1.1f })
+                    Stilt($"Leg_{x:0}_{z:0}", watchAt + new Vector2(x, z), watch.position.y + 1.94f, terrain, timber, watch);
+            Area1RemoteSites.Local("Deck", watch, timber, new Vector3(0f, 2f, 0f), new Vector3(2.8f, 0.12f, 2.8f));
+            Area1RemoteSites.Local("Rail", watch, timber, new Vector3(0f, 2.6f, -1.3f), new Vector3(2.8f, 0.8f, 0.1f));
         }
 
         /// <summary>Keeps south of the quarry road.</summary>

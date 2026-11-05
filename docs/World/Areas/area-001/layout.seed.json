@@ -439,7 +439,7 @@
         "master-2",
         "freedom"
       ],
-      "note": "Company docks on the camp bank. Off-limits at night."
+      "note": "Company docks on the camp bank, inside the compound. Off-limits at night."
     },
     {
       "id": "ford",
@@ -980,28 +980,6 @@
       "note": "Shared workshop and stone stacks by the quarry opening."
     },
     {
-      "id": "walkway-tents",
-      "kind": "road",
-      "name": "Tent walkway",
-      "width": 2,
-      "art": [],
-      "note": "Boards over the mud between the tent groups.",
-      "points": [
-        [
-          -2,
-          20
-        ],
-        [
-          6,
-          26
-        ],
-        [
-          8,
-          35
-        ]
-      ]
-    },
-    {
       "id": "walkway-canteen",
       "kind": "road",
       "name": "Canteen walkway",
@@ -1025,7 +1003,7 @@
       "name": "Path: arrival",
       "width": 3,
       "art": [],
-      "note": "Planned. Escort route: arrival opening, stage, Player's Zone.",
+      "note": "Escort route: arrival opening, stage, Player's Zone.",
       "points": [
         [
           -38.4,
@@ -1047,49 +1025,35 @@
       "name": "Path: morning commute",
       "width": 4,
       "art": [],
-      "note": "Planned, and the muddiest. Tents, inner gate, yard, then the wood or quarry opening.",
+      "note": "The muddiest. Tents, past the stage, inner gate, yard, then the wood or quarry opening. The Company Road stays clean on top of it at the gate.",
       "points": [
         [
           14,
           27
         ],
         [
-          0,
-          16
+          8.5,
+          21
         ],
         [
-          0,
-          9
+          6.5,
+          14
         ],
         [
-          0,
-          3
+          2,
+          10
+        ],
+        [
+          -1.5,
+          7
+        ],
+        [
+          -8,
+          4.5
         ],
         [
           -42,
           5
-        ]
-      ]
-    },
-    {
-      "id": "path-company",
-      "kind": "road",
-      "name": "Path: Company",
-      "width": 3,
-      "art": [],
-      "note": "Planned. Yard, ramp, fort gate.",
-      "points": [
-        [
-          0,
-          3
-        ],
-        [
-          13,
-          -28
-        ],
-        [
-          20,
-          -33
         ]
       ]
     },
@@ -1099,7 +1063,7 @@
       "name": "Path: daily",
       "width": 1,
       "art": [],
-      "note": "Planned. Narrow foot-worn line: tents, canteen, latrine.",
+      "note": "Narrow foot-worn line: tents, canteen, latrine.",
       "points": [
         [
           14,
@@ -1121,7 +1085,7 @@
       "name": "Path: night",
       "width": 1,
       "art": [],
-      "note": "Planned. Hollow, wilderness opening, bank, docks, away from the inner gate.",
+      "note": "Hollow, wilderness opening, bank, docks, away from the inner gate.",
       "points": [
         [
           32,
@@ -1154,6 +1118,196 @@
         [
           4,
           57
+        ]
+      ]
+    },
+    {
+      "id": "compound",
+      "kind": "zone",
+      "name": "Company compound",
+      "x": -9.5,
+      "z": 64,
+      "w": 68,
+      "d": 50,
+      "art": [
+        "dock-checkpoint"
+      ],
+      "note": "North bank between the arrival towers and the dock spur. Fenced on the west and closed by the river. No trees."
+    },
+    {
+      "id": "compound-fence-upper",
+      "kind": "fence",
+      "name": "Compound fence, upper",
+      "width": 1,
+      "art": [],
+      "note": "From the arrival gate tower to the compound gate.",
+      "points": [
+        [
+          -35.5,
+          39
+        ],
+        [
+          -41,
+          50
+        ],
+        [
+          -41,
+          54.5
+        ]
+      ]
+    },
+    {
+      "id": "compound-fence-lower",
+      "kind": "fence",
+      "name": "Compound fence, lower",
+      "width": 1,
+      "art": [],
+      "note": "From the compound gate into the river, past wading depth.",
+      "points": [
+        [
+          -41,
+          59.5
+        ],
+        [
+          -43,
+          84
+        ]
+      ]
+    },
+    {
+      "id": "compound-gate",
+      "kind": "point",
+      "name": "Compound gate",
+      "x": -41,
+      "z": 57,
+      "width": 5,
+      "art": [],
+      "note": "Delivery gate off the arrival road. Stands open in the blockout."
+    },
+    {
+      "id": "staging-yard",
+      "kind": "zone",
+      "name": "Staging yard",
+      "x": -24,
+      "z": 65.5,
+      "w": 24,
+      "d": 9,
+      "art": [],
+      "note": "Cart shed, crates and sacks, low watch post. West of the tents-to-fire strip; keeps north of the delivery road."
+    },
+    {
+      "id": "company-road",
+      "kind": "road",
+      "name": "Company Road",
+      "width": 5,
+      "art": [],
+      "note": "Cobbled: the one clean surface in the camp. Warehouse, tents, inner gate, yard, fort gate. Paint only, no grading.",
+      "points": [
+        [
+          17,
+          34.8
+        ],
+        [
+          10,
+          37
+        ],
+        [
+          8,
+          33
+        ],
+        [
+          6.5,
+          27
+        ],
+        [
+          4,
+          18
+        ],
+        [
+          3,
+          13
+        ],
+        [
+          0,
+          9.5
+        ],
+        [
+          1.5,
+          5.5
+        ],
+        [
+          3.5,
+          -1
+        ],
+        [
+          4,
+          -7
+        ],
+        [
+          6,
+          -13
+        ],
+        [
+          12,
+          -17
+        ],
+        [
+          17.3,
+          -21
+        ],
+        [
+          16.5,
+          -23.6
+        ],
+        [
+          13,
+          -26.3
+        ],
+        [
+          12.6,
+          -27.3
+        ],
+        [
+          13.4,
+          -28.3
+        ],
+        [
+          20,
+          -33
+        ]
+      ]
+    },
+    {
+      "id": "delivery-road",
+      "kind": "road",
+      "name": "Delivery road",
+      "width": 4,
+      "art": [],
+      "note": "Off the arrival road, through the compound gate, to the warehouse river ramp. Paint only.",
+      "points": [
+        [
+          -60,
+          50
+        ],
+        [
+          -50,
+          51.5
+        ],
+        [
+          -44,
+          56.5
+        ],
+        [
+          -41,
+          57
+        ],
+        [
+          -12,
+          57.9
+        ],
+        [
+          4,
+          57.9
         ]
       ]
     }

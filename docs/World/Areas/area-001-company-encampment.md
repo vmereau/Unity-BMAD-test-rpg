@@ -38,7 +38,9 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Company House** — behind the inner fence. Guards' quarters and warden's office. More maintained than the rest.
 - **Storage Hut** — company-controlled warehouse, built into the north palisade above the docks. Its door faces the camp and its river door leads to the deck. Accessible via warden task (hauling goods).
 - **Workshop** — shared-use tool and repair facility, company-controlled, in the yard by the quarry opening.
-- **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. Reached through the warehouse, or from the bridge path through a gate that stands open in the blockout and will be restricted. The north bank from the arrival road is still open.
+- **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. They stand inside the Company compound, so they are reached through the warehouse, the compound gate on the delivery road, or the bridge path's dock gate. Both gates stand open in the blockout and will be restricted.
+- **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed and a low watch post stands by the delivery road.
+- **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort ramp, past the mud the workers walk in.
 - **Timber yard** — log stacks and handcarts by the wood opening.
 - **Latrine** — trench behind Wretches' Corner.
 

@@ -441,6 +441,6 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 ## From spec-area-1-blockout-camp-interior (2026-11-05)
 
-- **Paint the camp paths.** `layout.json` holds `path-arrival`, `path-commute`, `path-company`, `path-daily` and `path-night` as a plan. Painting mud along them needs the terrain tool or a hand paint, then a capture. The art calls for the deepest mud through the inner gate.
-- **West bank route to the docks.** From outside the arrival opening, the north bank runs 52 m to the deck, past neither the warehouse nor `DockGate`. Valentin decides whether to close it; a second spur west of the deck would do it.
+- **[Done 2026-11-05, `spec-area-1-company-compound-road.md`] Paint the camp paths.** The terrain tool now paints them. The Company Road's cobbles take the middle of the inner gate, so the art's deepest mud shows only at its sides.
+- **[Done 2026-11-05, `spec-area-1-company-compound-road.md`] West bank route to the docks.** Closed by the compound fence and gate.
 - **Restrict the dock gate.** `DockGate` stands open. Locking it, or a guard at night, is gameplay for a later spec, along with the guards at the inner gate and warehouse.

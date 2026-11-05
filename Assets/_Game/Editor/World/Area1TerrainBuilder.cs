@@ -54,6 +54,7 @@ namespace Game.Editor.World
 
         private const float ROAD_SHOULDER = 6f;
         private const float ROAD_SMOOTHING = 12f; // metres either side
+        private const float PAINT_EDGE = 1f;      // fade past a painted line's edge
         private const float MAX_ROAD_GRADE = 0.25f; // about 14 degrees
 
         // One closed block around Ruins 2 and along the quarry's south and east edges. The outer face keeps the crest out of
@@ -78,6 +79,11 @@ namespace Game.Editor.World
         private const float HUNTING_CAMP_CLEARING = 22f;
         private const int MAX_TREES = 8000;
         private const int SEED = 1337;
+
+        private const string COMPOUND_FEATURE = "compound";
+        private const string COMPANY_ROAD = "company-road";
+        private const string DELIVERY_ROAD = "delivery-road";
+        private const string PATH_PREFIX = "path-";
 
         private enum Layer { Grass, Mud, Road, Cobble, Rock, Count }
 
@@ -126,6 +132,14 @@ namespace Game.Editor.World
         // Sight lines the forest must leave open: tents and docks to the hunter's fire, tents to the ruins.
         private static readonly Vector2 TentsEye = new Vector2(15f, 28f);
 
+        /// <summary>Colour only: these never reach <see cref="CarveRoads"/>, so ground heights stay as they are.</summary>
+        private sealed class PaintedLine
+        {
+            public Layer Layer;
+            public Vector2[] Points;
+            public float HalfWidth;
+        }
+
         private sealed class Layout
         {
             public Dictionary<string, JObject> Features;
@@ -135,6 +149,8 @@ namespace Game.Editor.World
             public Vector2 LakeCenter, LakeRadius;
             public (string id, float height)[] Pads;
             public Road[] Roads;
+            public PaintedLine[] PaintedLines; // in paint order: later lines lie on top
+            public Vector2 CompoundCenter, CompoundSize;
             public Vector2[][] Corridors;
             public Vector2 Fire;
             public Vector2 Ford;
@@ -263,10 +279,15 @@ namespace Game.Editor.World
         {
             Terrain terrain = Terrain.activeTerrain;
             TerrainData source = AssetDatabase.LoadAssetAtPath<TerrainData>(SOURCE_ASSET);
-            if (EditorApplication.isPlaying || terrain == null || source == null || terrain.terrainData.heightmapResolution != HEIGHT_RES
-                || !TryLoadLayout(out Layout layout, out string problem))
+            if (EditorApplication.isPlaying || terrain == null || source == null || terrain.terrainData.heightmapResolution != HEIGHT_RES)
             {
-                GameLog.Error(TAG, "Need edit mode, the built valley terrain, its source asset and a valid layout; nothing changed.");
+                GameLog.Error(TAG, "Need edit mode, the built valley terrain and its source asset; nothing changed.");
+                return;
+            }
+
+            if (!TryLoadLayout(out Layout layout, out string problem))
+            {
+                GameLog.Error(TAG, $"{problem}; nothing changed.");
                 return;
             }
 
@@ -599,21 +620,28 @@ namespace Game.Editor.World
                             w[l] = Mathf.Lerp(w[l], oldAlpha[oz, ox, l], keep);
                     w[(int)Layer.Rock] *= 1f - keep;
 
+                    PaintLines(layout, w, p, true); // mud goes under every road
+
                     float road = 1f - Math.Ramp(roadDistance[z, x], 0.5f, 2f);
-                    if (road > 0f && !InWater(layout, p))
-                    {
-                        float rest = 1f - road;
-                        float sum = 0f;
-                        for (int l = 0; l < layers; l++) if (l != (int)Layer.Road) sum += w[l];
-                        for (int l = 0; l < layers; l++) if (l != (int)Layer.Road) w[l] = sum > 0f ? w[l] / sum * rest : 0f;
-                        w[(int)Layer.Road] = road;
-                    }
+                    if (road > 0f && !InWater(layout, p)) Math.BlendLayer(w, (int)Layer.Road, road);
+
+                    PaintLines(layout, w, p, false);
 
                     float total = w.Sum();
                     for (int l = 0; l < layers; l++) alpha[z, x, l] = w[l] / total;
                 }
             }
             return alpha;
+        }
+
+        private static void PaintLines(Layout layout, float[] weights, Vector2 p, bool mud)
+        {
+            foreach (PaintedLine line in layout.PaintedLines)
+            {
+                if ((line.Layer == Layer.Mud) != mud) continue;
+                float share = Math.LineBlend(p, line.Points, line.HalfWidth, PAINT_EDGE);
+                if (share > 0f && !InWater(layout, p)) Math.BlendLayer(weights, (int)line.Layer, share);
+            }
         }
 
         private static TreeInstance[] ScatterTrees(Layout layout, float[,] heights, float[,] roadDistance)
@@ -663,6 +691,7 @@ namespace Game.Editor.World
         private static bool TreeAllowed(Layout layout, float[,] heights, float[,] roadDistance, Vector2 p)
         {
             if (Mathf.Abs(p.x) > 498f || Mathf.Abs(p.y) > 498f) return false;
+            if (Math.InsideRect(p, layout.CompoundCenter, layout.CompoundSize)) return false;
             if (Vector2.Distance(p, CampCenter) < 62f) return false;
             foreach (Shape s in KeptRects)
                 if (Math.RectDistance(p, s.Center, s.Size) < 6f) return false;
@@ -729,6 +758,16 @@ namespace Game.Editor.World
                 return false;
             }
 
+            if (!features.TryGetValue(COMPOUND_FEATURE, out JObject compound) || !Area1BlockoutBuilder.HasPosition(compound)
+                || !Area1BlockoutBuilder.IsNumber(compound["w"]) || !Area1BlockoutBuilder.IsNumber(compound["d"])
+                || (float)compound["w"] <= 0f || (float)compound["d"] <= 0f)
+            {
+                problem = $"Layout has no usable feature '{COMPOUND_FEATURE}'";
+                return false;
+            }
+
+            if (!TryReadPaintedLines(features, out PaintedLine[] paintedLines, out problem)) return false;
+
             Vector2[] wall = Points(features["mountains"]);
             float wallCentre = wall.Max(p => Mathf.Abs(p.x));
             JObject lake = features["lake"];
@@ -755,6 +794,9 @@ namespace Game.Editor.World
                     Points = Points(features[id]),
                     HalfWidth = (float)features[id]["width"] * 0.5f,
                 }).ToArray(),
+                PaintedLines = paintedLines,
+                CompoundCenter = Position(compound),
+                CompoundSize = new Vector2((float)compound["w"], (float)compound["d"]),
                 Corridors = new[]
                 {
                     new[] { TentsEye, fire },
@@ -780,6 +822,31 @@ namespace Game.Editor.World
                     (Position(features["hunting-camp"]), HUNTING_CAMP_CLEARING),
                 },
             };
+            return true;
+        }
+
+        /// <summary>In paint order within each pass; the Company Road goes last, so it stays clean over everything.</summary>
+        private static bool TryReadPaintedLines(Dictionary<string, JObject> features, out PaintedLine[] lines, out string problem)
+        {
+            lines = null;
+            problem = null;
+            var wanted = features.Keys.Where(id => id.StartsWith(PATH_PREFIX, StringComparison.Ordinal)).Select(id => (id, layer: Layer.Mud)).ToList();
+            wanted.Add((DELIVERY_ROAD, Layer.Road));
+            wanted.Add((COMPANY_ROAD, Layer.Cobble));
+
+            var read = new List<PaintedLine>();
+            foreach ((string id, Layer layer) in wanted)
+            {
+                if (!features.TryGetValue(id, out JObject line) || !Area1BlockoutBuilder.HasPoints(line)
+                    || !Area1BlockoutBuilder.IsNumber(line["width"]) || (float)line["width"] <= 0f)
+                {
+                    problem = $"Layout has no usable feature '{id}'";
+                    return false;
+                }
+                read.Add(new PaintedLine { Layer = layer, Points = Points(line), HalfWidth = (float)line["width"] * 0.5f });
+            }
+
+            lines = read.ToArray();
             return true;
         }
 

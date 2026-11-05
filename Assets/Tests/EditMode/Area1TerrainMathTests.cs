@@ -79,6 +79,52 @@ namespace Tests.EditMode
                 Area1TerrainMath.PolylineDistance(Vector2.zero, new Vector2[0], out _)));
         }
 
+        [TestCase(0f, 1f)]    // on the line
+        [TestCase(2.5f, 1f)]  // at the edge
+        [TestCase(3f, 0.5f)]  // half way through the fade
+        [TestCase(3.5f, 0f)]  // past it
+        [TestCase(40f, 0f)]
+        public void LineBlend_IsFullAcrossTheWidthThenFades(float offset, float expected)
+        {
+            var line = new[] { new Vector2(-10f, 0f), new Vector2(10f, 0f) };
+            Assert.AreEqual(expected, Area1TerrainMath.LineBlend(new Vector2(0f, offset), line, 2.5f, 1f), 1e-4f);
+        }
+
+        [Test]
+        public void BlendLayer_KeepsTheTotal_AndTheOthersInProportion()
+        {
+            var weights = new[] { 0.6f, 0.3f, 0.1f, 0f };
+            Area1TerrainMath.BlendLayer(weights, 3, 0.5f);
+            Assert.AreEqual(0.5f, weights[3], 1e-5f);
+            Assert.AreEqual(0.3f, weights[0], 1e-5f);
+            Assert.AreEqual(0.15f, weights[1], 1e-5f);
+            Assert.AreEqual(1f, weights[0] + weights[1] + weights[2] + weights[3], 1e-5f);
+        }
+
+        [Test]
+        public void BlendLayer_FullShare_LeavesOnlyThatLayer()
+        {
+            var weights = new[] { 0.5f, 0.5f, 0f };
+            Area1TerrainMath.BlendLayer(weights, 2, 1f);
+            CollectionAssert.AreEqual(new[] { 0f, 0f, 1f }, weights);
+        }
+
+        [Test]
+        public void BlendLayer_NeverThinsTheLayer()
+        {
+            var weights = new[] { 0.1f, 0.9f };
+            Area1TerrainMath.BlendLayer(weights, 1, 0.3f);
+            CollectionAssert.AreEqual(new[] { 0.1f, 0.9f }, weights);
+        }
+
+        [Test]
+        public void BlendLayer_NoShare_ChangesNothing()
+        {
+            var weights = new[] { 0.5f, 0.5f };
+            Area1TerrainMath.BlendLayer(weights, 1, 0f);
+            CollectionAssert.AreEqual(new[] { 0.5f, 0.5f }, weights);
+        }
+
         [Test]
         public void RectDistance_IsZeroInsideAndEuclideanAtCorners()
         {

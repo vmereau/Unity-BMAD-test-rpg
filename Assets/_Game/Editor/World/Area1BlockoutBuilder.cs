@@ -26,6 +26,7 @@ namespace Game.Editor.World
         {
             "outer-fence", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "outer-fence-6",
             "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
+            "compound-fence-upper", "compound-fence-lower", // keep new lines last: panels draw from one seeded sequence
         };
 
         private const string WAREHOUSE_FEATURE = "warehouse";
