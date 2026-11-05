@@ -316,40 +316,6 @@
       "note": "8 m collapsed stretch of the north palisade. Keeps the hunter's fire in view from the tents; it stays closed to walking."
     },
     {
-      "id": "outcrop-edge",
-      "kind": "fence",
-      "name": "Outcrop edge blocker",
-      "width": 1,
-      "art": [],
-      "note": "Invisible until the fort wall replaces it. Stops the player stepping off the outcrop's south tip and dropping over the palisade.",
-      "points": [
-        [
-          -2.5,
-          -42
-        ],
-        [
-          -2.5,
-          -50.5
-        ],
-        [
-          1,
-          -51.8
-        ],
-        [
-          6,
-          -51.8
-        ],
-        [
-          10,
-          -49.5
-        ],
-        [
-          13,
-          -46
-        ]
-      ]
-    },
-    {
       "id": "docks",
       "kind": "zone",
       "name": "Docks",
@@ -519,12 +485,12 @@
       "id": "hollow",
       "kind": "zone",
       "name": "Fight Club Hollow",
-      "x": 39.6,
-      "z": 27.9,
-      "w": 16,
-      "d": 16,
+      "x": 32,
+      "z": 30,
+      "w": 10,
+      "d": 8,
       "art": [],
-      "note": "Must stay hidden from the Company house."
+      "note": "Crater rim is the back wall; a rock fold along its south edge hides it from the fort."
     },
     {
       "id": "zone-1",
@@ -571,6 +537,133 @@
         "quarry"
       ],
       "note": "Extra ruins in and hidden around the quarry. The sealed passage connects to them."
+    },
+    {
+      "id": "fort-wall-north",
+      "kind": "fence",
+      "name": "Fort wall, north",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Tower to the ruin pieces at the gate. The ruin pillars are the only opening.",
+      "points": [
+        [
+          0.8,
+          -31
+        ],
+        [
+          7,
+          -31.6
+        ],
+        [
+          11,
+          -33
+        ],
+        [
+          15.5,
+          -34.6
+        ]
+      ]
+    },
+    {
+      "id": "fort-wall-west",
+      "kind": "fence",
+      "name": "Fort wall, west and south",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Tower along the rim, round the south tip, into the House. Replaces the old outcrop-edge blocker.",
+      "points": [
+        [
+          0.8,
+          -31
+        ],
+        [
+          -0.5,
+          -33.5
+        ],
+        [
+          -0.5,
+          -48.5
+        ],
+        [
+          1.5,
+          -50.3
+        ],
+        [
+          5,
+          -50.3
+        ],
+        [
+          7.5,
+          -49.6
+        ],
+        [
+          9.2,
+          -48.8
+        ],
+        [
+          11,
+          -47.4
+        ],
+        [
+          13,
+          -45.1
+        ],
+        [
+          19.4,
+          -45.1
+        ]
+      ]
+    },
+    {
+      "id": "fort-wall-east",
+      "kind": "fence",
+      "name": "Fort wall, east",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "House to SM_Ruin_04 along the rim; the Company cliff rocks stop at outcrop height.",
+      "points": [
+        [
+          24.9,
+          -43.8
+        ],
+        [
+          27.5,
+          -41.3
+        ],
+        [
+          30,
+          -38.5
+        ],
+        [
+          32.3,
+          -35.8
+        ],
+        [
+          32,
+          -33.6
+        ],
+        [
+          30,
+          -32.1
+        ]
+      ]
+    },
+    {
+      "id": "fort-tower",
+      "kind": "point",
+      "name": "Fort tower",
+      "x": 0.8,
+      "z": -31,
+      "art": [
+        "fort"
+      ],
+      "note": "Stone tower on the north-west corner."
     },
     {
       "id": "cave",

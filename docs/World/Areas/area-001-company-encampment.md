@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring and the cleft blocker; the other sites are next. The Company house stays on the south outcrop.
+> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The ruins, work-site dressing, hunting camp and tutorial cave are next. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography is in `area-001/layout.json`; the camp's internal layout is still open.
 >
@@ -56,7 +56,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 | Player's Zone | Neutral. Worn but not destitute. Card game, tool repair trunk, campfire, low conversation. |
 | Wretches' Corner | Poorest workers. Minimal possessions. Social bottom of the camp. |
 | Mafia Zone | Workers with leverage or muscle. Better-kept tents. Stash owner's territory. |
-| Fight Club Hollow | Hidden by rock face or cave mouth. Not visible from company house. Runs at night. |
+| Fight Club Hollow | About (32, 30), behind a rock fold north of the Mafia tents, with the crater rim as its back wall. Not visible from company house. Runs at night. |
 
 ### Exits
 | Exit | Direction | Status | Notes |

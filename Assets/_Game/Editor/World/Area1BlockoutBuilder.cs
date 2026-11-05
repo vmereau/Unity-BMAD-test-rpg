@@ -27,7 +27,6 @@ namespace Game.Editor.World
             "outer-fence", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "outer-fence-6",
         };
 
-        private const string OUTCROP_EDGE = "outcrop-edge";
         private const string BLOCKER_LAYER = "Ignore Raycast";
 
         private const float PANEL_LENGTH = 3f;
@@ -50,7 +49,6 @@ namespace Game.Editor.World
         private const float POST_WIDTH = 0.3f;
         private const float BLOCKER_HEIGHT = 6f;
         private const float BLOCKER_BURY = 1f;
-        private const float EDGE_BLOCKER_TOP = 14f; // world height: 4 m above the outcrop, even where the line runs down its face
         private const float BLOCKER_DEPTH = 1f;
         private const float NOT_WALKABLE_DEPTH = 2f;
         private const int NOT_WALKABLE_AREA = 1;
@@ -89,8 +87,6 @@ namespace Game.Editor.World
             int panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
             BuildArrivalGate(features, terrain, timber, edge);
             BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint);
-            if (features.TryGetValue(OUTCROP_EDGE, out JObject outcropEdge)) BuildOutcropEdge(outcropEdge, terrain, edge);
-            else GameLog.Warn(TAG, $"No '{OUTCROP_EDGE}' feature: the outcrop's south tip relies on the fort wall.");
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {PositionHash(edge)}. Rebake the NavMesh.");
@@ -191,33 +187,6 @@ namespace Game.Editor.World
             notWalkable.area = NOT_WALKABLE_AREA;
         }
 
-        /// <summary>
-        /// The palisade runs right under the outcrop's south tip, so a player stepping off the 10 m edge would drop over it.
-        /// Invisible until the fort wall takes its place.
-        /// </summary>
-        private static void BuildOutcropEdge(JObject feature, Terrain terrain, Transform edge)
-        {
-            var group = new GameObject("OutcropEdge").transform;
-            group.SetParent(edge, false);
-
-            int count = 0;
-            foreach ((Vector2 a, Vector2 b) in Area1TerrainMath.CutPanels(Points(feature), PANEL_LENGTH, Vector2.zero, 0f))
-            {
-                GroundUnder(terrain, a, b, out float low, out _, out _);
-                float top = EDGE_BLOCKER_TOP;
-                float bottom = low - PANEL_BURY;
-                Vector2 middle = (a + b) * 0.5f;
-                Vector2 along = b - a;
-
-                var blocker = new GameObject($"Blocker_{count++:00}").transform;
-                blocker.SetParent(group, false);
-                blocker.SetPositionAndRotation(new Vector3(middle.x, (top + bottom) * 0.5f, middle.y), Yaw(along));
-                blocker.gameObject.layer = LayerMask.NameToLayer(BLOCKER_LAYER);
-                blocker.gameObject.AddComponent<BoxCollider>().size =
-                    new Vector3(PANEL_THICKNESS, top - bottom, along.magnitude + PANEL_OVERLAP * 2f);
-            }
-        }
-
         private static Vector2 NearestSegmentDirection(Vector2[] line, Vector2 point)
         {
             Vector2 best = Vector2.right;
@@ -248,7 +217,7 @@ namespace Game.Editor.World
         internal static Quaternion Yaw(Vector2 direction) =>
             Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.y), Vector3.up);
 
-        private static void GroundUnder(Terrain terrain, Vector2 a, Vector2 b, out float low, out float mean, out float high)
+        internal static void GroundUnder(Terrain terrain, Vector2 a, Vector2 b, out float low, out float mean, out float high)
         {
             low = float.PositiveInfinity;
             high = float.NegativeInfinity;
@@ -304,7 +273,6 @@ namespace Game.Editor.World
 
             string missing = FenceIds.FirstOrDefault(id => !found.TryGetValue(id, out JObject fence) || !HasPoints(fence))
                 ?? new[] { "fence-break", "arrival-gate" }.FirstOrDefault(id => !found.TryGetValue(id, out JObject point) || !HasPosition(point));
-            if (missing == null && found.TryGetValue(OUTCROP_EDGE, out JObject edge) && !HasPoints(edge)) missing = OUTCROP_EDGE;
             if (missing != null)
             {
                 problem = $"Layout has no usable feature '{missing}'";
@@ -315,9 +283,13 @@ namespace Game.Editor.World
             return true;
         }
 
-        internal static bool HasPoints(JObject feature) => feature["points"] is JArray points && points.Count >= 2;
+        internal static bool HasPoints(JObject feature) =>
+            feature["points"] is JArray points && points.Count >= 2
+            && points.All(p => p is JArray pair && pair.Count >= 2 && IsNumber(pair[0]) && IsNumber(pair[1]));
 
-        internal static bool HasPosition(JObject feature) => feature["x"] != null && feature["z"] != null;
+        internal static bool HasPosition(JObject feature) => IsNumber(feature["x"]) && IsNumber(feature["z"]);
+
+        internal static bool IsNumber(JToken token) => token != null && (token.Type == JTokenType.Float || token.Type == JTokenType.Integer);
 
         internal static Vector2[] Points(JObject feature) =>
             feature["points"].Select(p => new Vector2((float)p[0], (float)p[1])).ToArray();
