@@ -277,6 +277,79 @@
       ]
     },
     {
+      "id": "outer-fence-6",
+      "kind": "fence",
+      "name": "Palisade, south",
+      "width": 1,
+      "art": [
+        "master-2"
+      ],
+      "note": "Closes the ring behind the outcrop, south of the trough, so the back alley stays inside the camp.",
+      "points": [
+        [
+          39,
+          -37.7
+        ],
+        [
+          38,
+          -50
+        ],
+        [
+          20,
+          -57
+        ],
+        [
+          -2.7,
+          -52.2
+        ]
+      ]
+    },
+    {
+      "id": "fence-break",
+      "kind": "point",
+      "name": "Broken palisade",
+      "x": 3,
+      "z": 52.4,
+      "art": [
+        "freedom"
+      ],
+      "note": "8 m collapsed stretch of the north palisade. Keeps the hunter's fire in view from the tents; it stays closed to walking."
+    },
+    {
+      "id": "outcrop-edge",
+      "kind": "fence",
+      "name": "Outcrop edge blocker",
+      "width": 1,
+      "art": [],
+      "note": "Invisible until the fort wall replaces it. Stops the player stepping off the outcrop's south tip and dropping over the palisade.",
+      "points": [
+        [
+          -2.5,
+          -42
+        ],
+        [
+          -2.5,
+          -50.5
+        ],
+        [
+          1,
+          -51.8
+        ],
+        [
+          6,
+          -51.8
+        ],
+        [
+          10,
+          -49.5
+        ],
+        [
+          13,
+          -46
+        ]
+      ]
+    },
+    {
       "id": "docks",
       "kind": "zone",
       "name": "Docks",

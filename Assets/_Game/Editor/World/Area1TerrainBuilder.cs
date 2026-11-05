@@ -50,6 +50,7 @@ namespace Game.Editor.World
         private const float FORD_RAMP = 12f;   // then climbs linearly, about 30 degrees, walkable by agents
         private const float FORD_TOP = 4.5f;   // height of the camp rim at the crossing
         private const float FORD_FLANK = 12f;  // side slope from the crossing down to the river bed
+        private const float FORD_RIM_BLEND = 1f; // the old ground outside the rim is low: a wider blend drags the ramp down and steepens it
 
         private const float ROAD_SHOULDER = 6f;
         private const float ROAD_SMOOTHING = 12f; // metres either side
@@ -97,8 +98,8 @@ namespace Game.Editor.World
         private static readonly Shape[] KeptRects =
         {
             new Shape(12f, -40f, 44f, 28f, 14f),   // outcrop and Company house
-            new Shape(-19f, -49f, 38f, 10f, 10f),  // CivilizationGate, until the next spec removes it
-            new Shape(29f, 50f, 30f, 8f, 8f),      // WildernessPath fences
+            new Shape(-19f, -49f, 38f, 10f, 10f),  // ground of the removed CivilizationGate; the palisade stands on it
+            new Shape(29f, 50f, 30f, 8f, 8f),      // ground of the removed WildernessPath fences; the north palisade stands on it
         };
 
         private static readonly Ridge[] Ridges =
@@ -123,7 +124,7 @@ namespace Game.Editor.World
             public Road[] Roads;
             public Vector2[][] Corridors;
             public Vector2 Fire;
-            public float FordX;
+            public Vector2 Ford;
         }
 
         [MenuItem("Tools/World/Build Area 1 Terrain")]
@@ -263,7 +264,7 @@ namespace Game.Editor.World
                     Vector2 p = World(x, z);
                     float h = Water(layout, p, Land(layout, p));
 
-                    float keep = Keep(p);
+                    float keep = Keep(layout, p);
                     protect[z, x] = keep;
                     if (keep > 0f)
                     {
@@ -335,7 +336,7 @@ namespace Game.Editor.World
                 float t = Math.Ramp(riverDistance, layout.RiverHalf - BANK_WIDTH * 0.5f, reach);
                 float bed = Mathf.Lerp(RIVER_BED, BANK_HEIGHT, t);
                 float ford = Mathf.Lerp(FORD_BED, FORD_TOP, Mathf.Clamp01((riverDistance - FORD_FLAT) / FORD_RAMP));
-                float fordShare = 1f - Math.Ramp(Mathf.Abs(p.x - layout.FordX), FORD_HALF_WIDTH, FORD_HALF_WIDTH + FORD_FLANK);
+                float fordShare = 1f - Math.Ramp(Mathf.Abs(p.x - layout.Ford.x), FORD_HALF_WIDTH, FORD_HALF_WIDTH + FORD_FLANK);
                 bed = Mathf.Lerp(bed, ford, fordShare);
                 river = Mathf.Lerp(bed, land, Math.Ramp(riverDistance, reach, reach + BANK_BLEND));
             }
@@ -361,13 +362,28 @@ namespace Game.Editor.World
         }
 
         /// <summary>1 where the original ground stays, blending to 0 around the footprint.</summary>
-        private static float Keep(Vector2 p)
+        private static float Keep(Layout layout, Vector2 p)
         {
             float keep = 1f - Math.Ramp(Vector2.Distance(p, CampCenter), CAMP_RADIUS, CAMP_RADIUS + CAMP_BLEND);
+            bool ramp = OnFordRamp(layout, p);
+            float toFlank = Math.Ramp(Mathf.Abs(p.x - layout.Ford.x), FORD_HALF_WIDTH, FORD_HALF_WIDTH + FORD_FLANK);
             foreach (Shape s in KeptRects)
-                keep = Mathf.Max(keep, 1f - Math.Ramp(Math.RectDistance(p, s.Center, s.Size), 0f, s.Blend));
+            {
+                // Tight only on the crossing: across the whole flank it would leave ledges either side.
+                float blend = ramp ? Mathf.Lerp(FORD_RIM_BLEND, s.Blend, toFlank) : s.Blend;
+                keep = Mathf.Max(keep, 1f - Math.Ramp(Math.RectDistance(p, s.Center, s.Size), 0f, blend));
+            }
             return keep;
         }
+
+        /// <summary>
+        /// True on the ford's camp-side ramp, which keeps its own grade: neither road grading nor a wide camp blend may steepen it.
+        /// The north side has no fixed ground to meet, so the road grades into it as usual.
+        /// </summary>
+        private static bool OnFordRamp(Layout layout, Vector2 p) =>
+            p.y < layout.Ford.y
+            && Mathf.Abs(p.x - layout.Ford.x) < FORD_HALF_WIDTH + FORD_FLANK
+            && Math.PolylineDistance(p, layout.River, out _) < FORD_FLAT + FORD_RAMP + FORD_RIM_BLEND;
 
         /// <summary>True on ground roads must not touch, because camp objects stand on it.</summary>
         private static bool IsFixedGround(Vector2 p)
@@ -426,7 +442,7 @@ namespace Game.Editor.World
                     int z = hit.Key / HEIGHT_RES, x = hit.Key % HEIGHT_RES;
                     Vector2 p = World(x, z);
                     edge[z, x] = Mathf.Min(edge[z, x], hit.Value.distance - road.HalfWidth);
-                    if (IsFixedGround(p) || InWater(layout, p)) continue;
+                    if (IsFixedGround(p) || InWater(layout, p) || OnFordRamp(layout, p)) continue;
                     float share = 1f - Math.Ramp(hit.Value.distance, road.HalfWidth + 0.5f, reach);
                     float graded = Mathf.Lerp(heights[z, x], hit.Value.height, share);
                     heights[z, x] = Mathf.Max(graded, WATER_LEVEL + DRY_MARGIN);
@@ -651,7 +667,7 @@ namespace Game.Editor.World
                     new[] { TentsEye, Position(features["ruins"]) },
                 },
                 Fire = fire,
-                FordX = Position(features["ford"]).x,
+                Ford = Position(features["ford"]),
             };
             return true;
         }

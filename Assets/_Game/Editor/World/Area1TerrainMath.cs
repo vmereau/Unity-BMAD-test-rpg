@@ -6,6 +6,8 @@ namespace Game.Editor.World
     /// <summary>Pure shaping helpers behind <see cref="Area1TerrainBuilder"/>.</summary>
     public static class Area1TerrainMath
     {
+        private const float GAP_TOLERANCE = 1f;
+
         /// <summary>Smooth ramp: 0 at or below <paramref name="from"/>, 1 at or above <paramref name="to"/>.</summary>
         public static float Ramp(float value, float from, float to)
         {
@@ -64,6 +66,44 @@ namespace Game.Editor.World
                 if (!anchored[i]) heights[i] = Mathf.Clamp(heights[i], heights[i - 1] - maxStep, heights[i - 1] + maxStep);
             for (int i = heights.Length - 2; i >= 0; i--)
                 if (!anchored[i]) heights[i] = Mathf.Clamp(heights[i], heights[i + 1] - maxStep, heights[i + 1] + maxStep);
+        }
+
+        /// <summary>
+        /// Cuts a polyline into equal panels of at most <paramref name="panelLength"/>, leaving out the stretch within
+        /// <paramref name="gapHalfWidth"/> of <paramref name="gapCentre"/> along any segment that passes through that point.
+        /// </summary>
+        public static List<(Vector2 a, Vector2 b)> CutPanels(IReadOnlyList<Vector2> line, float panelLength, Vector2 gapCentre, float gapHalfWidth)
+        {
+            var panels = new List<(Vector2 a, Vector2 b)>();
+            for (int i = 1; i < line.Count; i++)
+            {
+                Vector2 a = line[i - 1], b = line[i];
+                float length = Vector2.Distance(a, b);
+                if (length <= 0f) continue;
+
+                Vector2 direction = (b - a) / length;
+                float along = Vector2.Dot(gapCentre - a, direction);
+                bool onSegment = gapHalfWidth > 0f && along >= 0f && along <= length
+                    && Vector2.Distance(a + direction * along, gapCentre) < GAP_TOLERANCE;
+
+                if (!onSegment)
+                {
+                    AddPanels(panels, a, b, panelLength);
+                    continue;
+                }
+                AddPanels(panels, a, a + direction * Mathf.Max(along - gapHalfWidth, 0f), panelLength);
+                AddPanels(panels, a + direction * Mathf.Min(along + gapHalfWidth, length), b, panelLength);
+            }
+            return panels;
+        }
+
+        private static void AddPanels(List<(Vector2 a, Vector2 b)> panels, Vector2 a, Vector2 b, float panelLength)
+        {
+            float length = Vector2.Distance(a, b);
+            if (length <= 0f) return;
+            int count = Mathf.CeilToInt(length / panelLength);
+            for (int n = 0; n < count; n++)
+                panels.Add((Vector2.Lerp(a, b, n / (float)count), Vector2.Lerp(a, b, (n + 1) / (float)count)));
         }
     }
 }

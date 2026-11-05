@@ -89,5 +89,43 @@ namespace Tests.EditMode
 
             CollectionAssert.AreEqual(new[] { 3f, 3f, 3f }, heights);
         }
+
+        [Test]
+        public void CutPanels_SplitsEachSegmentEvenly_AndKeepsCorners()
+        {
+            var line = new[] { new Vector2(0f, 0f), new Vector2(9f, 0f), new Vector2(9f, 4f) };
+
+            var panels = Area1TerrainMath.CutPanels(line, 3f, Vector2.zero, 0f);
+
+            Assert.AreEqual(5, panels.Count);
+            Assert.AreEqual(new Vector2(3f, 0f), panels[0].b);
+            Assert.AreEqual(new Vector2(9f, 0f), panels[2].b);
+            Assert.AreEqual(new Vector2(9f, 0f), panels[3].a);
+            Assert.AreEqual(new Vector2(9f, 4f), panels[4].b);
+        }
+
+        [Test]
+        public void CutPanels_SkipsTheGap_OnlyOnTheSegmentThroughIt()
+        {
+            var line = new[] { new Vector2(0f, 0f), new Vector2(20f, 0f), new Vector2(20f, 10f) };
+
+            var panels = Area1TerrainMath.CutPanels(line, 4f, new Vector2(10f, 0f), 4f);
+
+            float covered = 0f;
+            foreach (var panel in panels)
+            {
+                covered += Vector2.Distance(panel.a, panel.b);
+                Assert.IsFalse(panel.a.y == 0f && panel.a.x >= 6f && panel.a.x < 14f, "Panel starts inside the gap");
+            }
+            Assert.AreEqual(22f, covered, 1e-3f);
+        }
+
+        [Test]
+        public void CutPanels_GapOffTheLine_ChangesNothing()
+        {
+            var line = new[] { new Vector2(0f, 0f), new Vector2(12f, 0f) };
+
+            Assert.AreEqual(4, Area1TerrainMath.CutPanels(line, 3f, new Vector2(6f, 20f), 4f).Count);
+        }
     }
 }

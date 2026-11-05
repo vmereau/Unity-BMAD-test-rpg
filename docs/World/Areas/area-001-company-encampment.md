@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads and forest are in; palisade, gates and sites are next. The Company house stays on the south outcrop.
+> **In Unity (2026-11-04):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in; sites are next. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography is in `area-001/layout.json`; the camp's internal layout is still open.
 >
@@ -41,7 +41,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Docks** — company-maintained fishing docks on the river. Off-limits at night officially.
 
 ### Fences
-- **Outer fence** — tall timber palisade around the camp, with openings where roads cross.
+- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through.
 - **Inner fence** — separates worker area from company area. The real social divide.
 
 ### Camp Center
@@ -61,7 +61,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 ### Exits
 | Exit | Direction | Status | Notes |
 |------|-----------|--------|-------|
-| Civilization Road | Back toward towns / Company camps | Gated | Guarded post at the new north-west gate, blocked until story conditions met |
+| Civilization Road | Back toward towns / Company camps | Gated | Guarded post at the new north-west gate. The gate stands open; the pass at the valley's west end is what stays blocked until story conditions are met. |
 | Wilderness Path | Into the unknown | Open | Curves behind a hill, disappears from sight. Reads as danger, then as freedom. |
 
 ---
