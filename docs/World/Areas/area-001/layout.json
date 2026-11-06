@@ -916,15 +916,120 @@
       "note": "Logs and carts by the wood opening. Keep the road clear."
     },
     {
-      "id": "workshop-yard",
-      "kind": "zone",
-      "name": "Workshop and stone yard",
-      "x": 35,
-      "z": -5,
-      "w": 22,
-      "d": 12,
-      "art": [],
-      "note": "Shared workshop and stone stacks by the quarry opening."
+      "id": "stone-lodge",
+      "kind": "point",
+      "name": "Stone mason's lodge",
+      "x": 35.5,
+      "z": -12.5,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Replaces the workshop shed. Stone room to the west, walk-in cutting bay open to the road, stone stacks around it. Half finished, built from quarry offcuts."
+    },
+    {
+      "id": "masons-row",
+      "kind": "point",
+      "name": "Masons' row",
+      "x": 34,
+      "z": 6.5,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Five huts backed against the inner palisade, for skilled masons who sleep behind the gate. The tool store, weighing beam and parked sledge are laid out from this point. Ridges stay under y 3.6."
+    },
+    {
+      "id": "tally-post",
+      "kind": "point",
+      "name": "Tally post",
+      "x": 52.5,
+      "z": 2.5,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Guard hut, tally board and wash trough beside the quarry opening."
+    },
+    {
+      "id": "fort-hoist",
+      "kind": "road",
+      "name": "Fort hoists",
+      "width": 1,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Scenery. Points in order: foot crane, its rim frame, outcrop crane, its rim frame. Keep the ground round the foot crane clear: a later route may use it.",
+      "points": [
+        [
+          37,
+          -25.5
+        ],
+        [
+          33,
+          -33
+        ],
+        [
+          25,
+          -26.5
+        ],
+        [
+          26.5,
+          -32
+        ]
+      ]
+    },
+    {
+      "id": "ox-pen",
+      "kind": "point",
+      "name": "Ox pen",
+      "x": 46.9,
+      "z": -18.3,
+      "yaw": -59.7,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Railed pen along the south-east palisade. Local +Z faces the yard."
+    },
+    {
+      "id": "rubble-tip",
+      "kind": "point",
+      "name": "Rubble tip",
+      "x": 61.5,
+      "z": -2,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Waste stone outside the east wall, north of the quarry road."
+    },
+    {
+      "id": "path-sledge",
+      "kind": "road",
+      "name": "Path: sledge track",
+      "width": 2.5,
+      "art": [
+        "quarry-entrance"
+      ],
+      "note": "Side track from the quarry road, round the lodge's east and south sides, to the foot crane.",
+      "points": [
+        [
+          47,
+          -3.4
+        ],
+        [
+          45,
+          -11
+        ],
+        [
+          42,
+          -18.5
+        ],
+        [
+          38.5,
+          -22
+        ],
+        [
+          37,
+          -24
+        ]
+      ]
     },
     {
       "id": "walkway-canteen",

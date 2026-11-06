@@ -556,25 +556,6 @@ namespace Game.Editor.World
             Area1RemoteSites.Local("Hatch", shed, timber, new Vector3(0f, 1.85f, depth * 0.5f + 0.3f), new Vector3(1.8f, 0.08f, 0.8f));
         }
 
-        /// <summary>Keeps south of the quarry road.</summary>
-        internal static void BuildWorkshopYard(Vector2 center, Terrain terrain, Material timber, Material stone, Transform root)
-        {
-            Vector2 shopAt = center + new Vector2(1f, -4f);
-            var shop = new GameObject("Workshop").transform;
-            shop.SetParent(root, false);
-            shop.position = new Vector3(shopAt.x, Area1BlockoutBuilder.Ground(terrain, shopAt), shopAt.y);
-            foreach (float x in new[] { -3.3f, 3.3f })
-                foreach (float z in new[] { -1.8f, 1.8f })
-                    Area1RemoteSites.Local($"Post_{x:0}_{z:0}", shop, timber, new Vector3(x, 1.25f, z), new Vector3(0.2f, 3f, 0.2f));
-            Area1RemoteSites.Local("Roof", shop, timber, new Vector3(0f, 2.82f, 0f), new Vector3(7.4f, 0.14f, 4.6f));
-            Area1RemoteSites.Local("Bench", shop, timber, new Vector3(0f, 0.8f, -1.2f), new Vector3(5f, 0.15f, 0.8f));
-            Area1RemoteSites.Local("Bench_Legs", shop, timber, new Vector3(0f, 0.35f, -1.2f), new Vector3(4.4f, 0.8f, 0.5f));
-
-            Area1RemoteSites.BuildStoneStack("Stones_0", center + new Vector2(-7f, -3f), terrain, stone, root);
-            Area1RemoteSites.BuildStoneStack("Stones_1", center + new Vector2(8f, -2f), terrain, stone, root);
-            Area1RemoteSites.BuildStoneStack("Stones_2", center + new Vector2(9f, -5f), terrain, stone, root);
-        }
-
         /// <summary>Flat boards over the mud, as in the Tent rows art. No colliders, so they never catch a foot; they are too thin to change a bake.</summary>
         internal static void BuildWalkway(string name, Vector2[] line, float width, Terrain terrain, Material timber, Transform root)
         {

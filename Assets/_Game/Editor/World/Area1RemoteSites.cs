@@ -85,14 +85,7 @@ namespace Game.Editor.World
             Vector2[] stacks = { new Vector2(-18f, -12f), new Vector2(-10f, -11f), new Vector2(4f, -12f), new Vector2(21f, 12f) };
             for (int i = 0; i < stacks.Length; i++) BuildStoneStack($"Stones_{i}", center + stacks[i], terrain, stone, root);
 
-            Vector2 sledgeAt = center + new Vector2(-4f, -7f);
-            var sledge = new GameObject("Sledge").transform;
-            sledge.SetParent(root, false);
-            sledge.position = new Vector3(sledgeAt.x, Area1BlockoutBuilder.Ground(terrain, sledgeAt), sledgeAt.y);
-            Local("Runner_L", sledge, timber, new Vector3(-0.6f, 0.1f, 0f), new Vector3(0.2f, 0.2f, 2.8f));
-            Local("Runner_R", sledge, timber, new Vector3(0.6f, 0.1f, 0f), new Vector3(0.2f, 0.2f, 2.8f));
-            Local("Bed", sledge, timber, new Vector3(0f, 0.25f, 0f), new Vector3(1.6f, 0.1f, 2.6f));
-            Local("Block", sledge, stone, new Vector3(0f, 0.75f, 0f), new Vector3(1.3f, 0.9f, 2f));
+            BuildSledge(center + new Vector2(-4f, -7f), 0f, terrain, timber, stone, root);
         }
 
         private static void BuildScaffold(string name, Vector2 start, Vector2 along, float length, float height, Terrain terrain, Material timber, Transform parent)
@@ -139,6 +132,17 @@ namespace Game.Editor.World
             Transform boom = Local("Boom", crane, timber, new Vector3(0f, 10.5f, 3.6f), new Vector3(0.3f, 0.3f, 9f));
             boom.localRotation = Quaternion.Euler(-14f, 0f, 0f);
             Thin("Rope", crane, timber, new Vector3(0f, 8f, 8f), new Vector3(0.05f, 7f, 0.05f));
+        }
+
+        internal static void BuildSledge(Vector2 at, float yaw, Terrain terrain, Material timber, Material stone, Transform parent)
+        {
+            var sledge = new GameObject("Sledge").transform;
+            sledge.SetParent(parent, false);
+            sledge.SetPositionAndRotation(new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at), at.y), Quaternion.Euler(0f, yaw, 0f));
+            Local("Runner_L", sledge, timber, new Vector3(-0.6f, 0.1f, 0f), new Vector3(0.2f, 0.2f, 2.8f));
+            Local("Runner_R", sledge, timber, new Vector3(0.6f, 0.1f, 0f), new Vector3(0.2f, 0.2f, 2.8f));
+            Local("Bed", sledge, timber, new Vector3(0f, 0.25f, 0f), new Vector3(1.6f, 0.1f, 2.6f));
+            Local("Block", sledge, stone, new Vector3(0f, 0.75f, 0f), new Vector3(1.3f, 0.9f, 2f));
         }
 
         internal static void BuildStoneStack(string name, Vector2 at, Terrain terrain, Material stone, Transform parent)

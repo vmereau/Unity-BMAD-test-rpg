@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
+> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
@@ -37,7 +37,15 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 ### Structures
 - **Company House** — behind the inner fence. Guards' quarters and warden's office. More maintained than the rest.
 - **Storage Hut** — company-controlled warehouse, built into the north palisade above the docks. Its door faces the camp and its river door leads to the deck. Accessible via warden task (hauling goods).
-- **Workshop** — shared-use tool and repair facility, company-controlled, in the yard by the quarry opening.
+- **Stoneworks** — the yard inside the quarry opening, on the Company side of the inner gate. It is the only part of that side workers cross every day. Stone comes in through the opening, is weighed and cut here, then goes up the hoists to the fort repairs or on through the inner gate to the warehouse.
+  - **Stone mason's lodge** — half-finished stone building made from quarry offcuts, with an open cutting bay. It replaces the old shared workshop.
+  - **Masons' row** — five huts against the inner palisade for skilled masons. Better than tents, worse than guards. They sleep behind the gate at night, so they can carry things the tent workers can't.
+  - **Tool store** — tools are counted out through a hatch and back in.
+  - **Tally post** — guard hut, tally board and wash trough beside the opening. A natural spot for the racket guard's exit tax.
+  - **Sledge track and weighing beam** — ruts lead from the quarry road round the lodge to the foot crane. The beam shows how stone is counted.
+  - **Fort hoists** — one timber crane at the foot of the Company cliff and one on the outcrop, roped to the rim. Scenery for now, with space kept for a later route up.
+  - **Ox pen** — against the south-east wall. The oxen have a better roof than the workers.
+  - **Rubble tip** — waste stone outside the east wall, north of the quarry road.
 - **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. They stand inside the Company compound, so they are reached through the warehouse, the compound gate on the delivery road, or the bridge path's dock gate. Both gates stand open in the blockout and will be restricted.
 - **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed, smokehouse, net racks and a gutting table stands by the delivery road.
 - **Dock guard post** — a small enterable guard house in the palisade corner by the compound gate, with a lockup cage, a tally shed where goods are counted, and an alarm bell. It watches the gate and the delivery road, and with fishing moved away, workers have no reason to be at the docks at night.

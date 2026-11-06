@@ -83,7 +83,14 @@ namespace Game.Editor.World
         private const string WORK_GANG_FEATURE = "work-gang-tents";
         private const string LATRINE_FEATURE = "latrine";
         private const string TIMBER_YARD_FEATURE = "timber-yard";
-        private const string WORKSHOP_YARD_FEATURE = "workshop-yard";
+        private const string STONE_LODGE_FEATURE = "stone-lodge";
+        private const string MASONS_ROW_FEATURE = "masons-row";
+        private const string TALLY_POST_FEATURE = "tally-post";
+        private const string FORT_HOIST_FEATURE = "fort-hoist";
+        private const string OX_PEN_FEATURE = "ox-pen";
+        private const string RUBBLE_TIP_FEATURE = "rubble-tip";
+        private const string SLEDGE_PATH_FEATURE = "path-sledge";
+        private const int FORT_HOIST_POINTS = 4; // two cranes, each with its rim frame
         private const string COMPOUND_GATE = "CompoundGate";
         private const string STAGING_YARD = "StagingYard";
         private const string GUARD_POST = "GuardPost";
@@ -204,7 +211,7 @@ namespace Game.Editor.World
             }
 
             foreach (string id in new[] { TOWER_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
-                                                 INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, WORKSHOP_YARD_FEATURE,
+                                                 INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, STONE_LODGE_FEATURE, MASONS_ROW_FEATURE, TALLY_POST_FEATURE, OX_PEN_FEATURE, RUBBLE_TIP_FEATURE,
                                                  COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
@@ -216,6 +223,25 @@ namespace Game.Editor.World
             {
                 if (features.TryGetValue(id, out JObject walkway) && Area1BlockoutBuilder.HasPoints(walkway) && Area1BlockoutBuilder.IsNumber(walkway["width"]) && (float)walkway["width"] > 0f) continue;
                 GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
+                return;
+            }
+
+            if (!features.TryGetValue(FORT_HOIST_FEATURE, out JObject fortHoist) || !Area1BlockoutBuilder.HasPoints(fortHoist) || ((JArray)fortHoist["points"]).Count != FORT_HOIST_POINTS)
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{FORT_HOIST_FEATURE}'; nothing changed.");
+                return;
+            }
+
+            if (!Area1BlockoutBuilder.IsNumber(features[OX_PEN_FEATURE]["yaw"]))
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{OX_PEN_FEATURE}'; nothing changed.");
+                return;
+            }
+
+            // Only the terrain tool reads it, and it skips a missing path without a word.
+            if (!features.TryGetValue(SLEDGE_PATH_FEATURE, out JObject sledgePath) || !Area1BlockoutBuilder.HasPoints(sledgePath))
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{SLEDGE_PATH_FEATURE}'; nothing changed.");
                 return;
             }
 
@@ -301,7 +327,13 @@ namespace Game.Editor.World
             Area1CampInterior.BuildWorkGangTents(Area1BlockoutBuilder.Position(features[WORK_GANG_FEATURE]), tent, terrain, stone, NewRoot(root.transform, WORK_GANG));
             Area1CampInterior.BuildLatrine(Area1BlockoutBuilder.Position(features[LATRINE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, LATRINE));
             Area1CampInterior.BuildTimberYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, NewRoot(root.transform, TIMBER_YARD));
-            Area1CampInterior.BuildWorkshopYard(Area1BlockoutBuilder.Position(features[WORKSHOP_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, WORKSHOP_YARD));
+            Transform stoneworks = NewRoot(root.transform, WORKSHOP_YARD);
+            Area1Stoneworks.BuildLodge(Area1BlockoutBuilder.Position(features[STONE_LODGE_FEATURE]), terrain, timber, stone, stoneworks);
+            Area1Stoneworks.BuildMasonsRow(Area1BlockoutBuilder.Position(features[MASONS_ROW_FEATURE]), terrain, timber, stone, stoneworks);
+            Area1Stoneworks.BuildTallyPost(Area1BlockoutBuilder.Position(features[TALLY_POST_FEATURE]), terrain, timber, stone, stoneworks);
+            Area1Stoneworks.BuildHoists(Area1BlockoutBuilder.Points(fortHoist), terrain, timber, stone, stoneworks);
+            Area1Stoneworks.BuildOxPen(Area1BlockoutBuilder.Position(features[OX_PEN_FEATURE]), (float)features[OX_PEN_FEATURE]["yaw"], terrain, timber, stone, stoneworks);
+            Area1Stoneworks.BuildRubble(Area1BlockoutBuilder.Position(features[RUBBLE_TIP_FEATURE]), terrain, stone, stoneworks);
             Transform house = NewRoot(root.transform, GANG_HOUSE);
             Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
             Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
