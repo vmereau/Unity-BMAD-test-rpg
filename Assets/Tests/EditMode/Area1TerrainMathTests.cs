@@ -33,6 +33,46 @@ namespace Tests.EditMode
             Assert.AreEqual(expected, Area1TerrainMath.CliffSurface(floorRise, rim, 52f, 18f, 1.6f), 1e-4f);
         }
 
+        private static readonly Area1TerrainMath.FightPit Pit =
+            new Area1TerrainMath.FightPit(Vector2.zero, 5.5f, Vector2.left, Vector2.up);
+
+        [Test]
+        public void FightPit_Floor_IsLoweredEvenly()
+        {
+            Assert.AreEqual(-1.4f, Pit.Offset(Vector2.zero), 1e-5f);
+            Assert.AreEqual(-1.4f, Pit.Offset(new Vector2(5.4f, 0f)), 1e-5f);
+        }
+
+        [Test]
+        public void FightPit_Crest_IsHighestTowardsTheHighSide()
+        {
+            float high = Pit.Offset(new Vector2(-Area1TerrainMath.FightPit.CREST_RADIUS, 0f));
+            float low = Pit.Offset(new Vector2(Area1TerrainMath.FightPit.CREST_RADIUS, 0f));
+
+            Assert.AreEqual(2.7f, high, 1e-5f);
+            Assert.AreEqual(1.3f, low, 1e-5f);
+        }
+
+        [Test]
+        public void FightPit_Gap_OpensAtGroundLevel()
+        {
+            Assert.AreEqual(0f, Pit.Offset(new Vector2(0f, Area1TerrainMath.FightPit.CREST_RADIUS)), 1e-5f);
+            Assert.AreEqual(0f, Pit.Offset(new Vector2(1f, 11f)), 1e-5f);
+        }
+
+        [Test]
+        public void FightPit_Gap_DoesNotOpenTheFarSide()
+        {
+            Assert.AreEqual(1.3f, Pit.Offset(new Vector2(0f, -Area1TerrainMath.FightPit.CREST_RADIUS)), 1e-5f);
+        }
+
+        [Test]
+        public void FightPit_PastTheFoot_LeavesTheGround()
+        {
+            Assert.AreEqual(0f, Pit.Offset(new Vector2(Area1TerrainMath.FightPit.FOOT_RADIUS, 0f)));
+            Assert.AreEqual(0f, Pit.Offset(new Vector2(0f, -30f)));
+        }
+
         [TestCase(1f, 27f)]    // on the floor
         [TestCase(2f, 27f)]    // edge of the floor
         [TestCase(5f, 33f)]    // on the wall

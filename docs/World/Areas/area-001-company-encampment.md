@@ -15,11 +15,11 @@
 
 ## Overview
 
-> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The Company house stays on the south outcrop.
+> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
-> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`, with the camp under `Camp/` and the docks under `Camp/Docks/`. The new north-west arrival gate replaces the Civilization gate. A full timber palisade rings the camp, with an opening wherever a road crosses. The Company emblem is still open.
+> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`, with the camp under `Camp/` and the docks under `Camp/Docks/`. The new north-west arrival gate replaces the Civilization gate. A timber palisade rings the camp, with an opening wherever a road crosses, except on the lake side, which stands open. The Company emblem is still open.
 
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
@@ -44,9 +44,11 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort ramp, past the mud the workers walk in.
 - **Timber yard** — log stacks and handcarts by the wood opening.
 - **Latrine** — trench behind Wretches' Corner.
+- **Gang house** — a small timber house on the lake shore near the wilderness opening, with its own short dock behind it. The camp's top gang members are "allowed" a real roof, and it overlooks the night path and the bridge. npc-003 lives here.
 
 ### Fences
-- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through.
+- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
+- **Shore rail** — knee-high broken rail with gaps along the lake side. Workers can reach the water. The Company marks the line but doesn't defend it.
 - **Inner fence** — tall palisade with one guarded gate, separating the worker area from the company area. The real social divide: everyone walks through it each morning.
 
 ### Camp Center
@@ -60,8 +62,9 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 |------|-------------|
 | Player's Zone | Neutral. Worn but not destitute. Card game, tool repair trunk, campfire, low conversation. |
 | Wretches' Corner | Poorest workers. Minimal possessions. Social bottom of the camp. |
-| Mafia Zone | Workers with leverage or muscle. Better-kept tents. Stash owner's territory. |
-| Fight Club Hollow | About (32, 30), behind a rock fold north of the Mafia tents, with the crater rim as its back wall. Not visible from company house. Runs at night. |
+| Mafia Zone | Workers with leverage or muscle. Better-kept tents. Stash owner's territory, run from the gang house. |
+| Fight Pit | About (52.5, 24), by the lake: a round sunken floor inside a raised earth bank, with a screen of tall rocks on the fort side and a gap to the north. Out of sight from the fort, but no secret. Runs at night. See **The Company's Tolerance**. |
+| Lakeside | The open ground between the tents and the shore. Reserved: tents and other uses to be decided. |
 
 ### Exits
 | Exit | Direction | Status | Notes |
@@ -75,9 +78,13 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 **By day:** Grim and functional. Workers move in silence. Guards visible. Company flags everywhere. The elevated company house watches over everything. Ruins visible on a distant hillside.
 
-**By night:** The camp breathes. Fewer guards, some asleep. Illegal fishing on the far side of the lake. Fight club in the hollow. Across the river — a warm light in the treeline. The independent hunter's fire.
+**By night:** The camp breathes. Fewer guards, some asleep. Illegal fishing on the far side of the lake. Fights in the pit, with guards among the bettors. Across the river — a warm light in the treeline. The independent hunter's fire.
 
 **Tone:** Oppressive but not hopeless. The injustice is immediate and personal. Freedom is visible — literally — across the river.
+
+### The Company's Tolerance
+
+The fights are illegal in name only. The Company knows about the pit and lets it run: as long as the workers can work, a little "entertainment" costs it nothing. The pit stays tucked out of sight, so nobody has to look at it, and some guards take bets on the fights.
 
 ---
 
@@ -96,7 +103,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 |----|------|------|------|
 | npc-001 | Tent Mate | Logistics informant. Knows where everything is. | Player's Zone |
 | npc-002 | Beaten Worker | Social informant. Knows people and secrets. | Recovers in Player's Zone after event-001 |
-| npc-003 | Stash Owner | Worker with leverage. Intimidation or snitch connections. | Mafia Zone |
+| npc-003 | Stash Owner | Worker with leverage. Intimidation or snitch connections. | Gang house / Mafia Zone |
 | npc-004 | Independent Hunter | Free operator. Camp is across the river. | Wilderness / river crossing |
 | npc-005 | Worker Leader | Hidden rebel leader. Appears as ordinary worker. | Worker area (indeterminate) |
 | npc-006 | The Warden | Camp authority. Main antagonist. Issues tasks, enforces order. | Company house / camp center |
@@ -160,7 +167,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 ### Unofficial (where real money is)
 - Gambling — card games in the neutral zone
-- Fight club winnings
+- Fight club winnings and bets, with some guards taking wagers
 - Smuggling goods in or out
 - Doing other workers' assigned labor for pay
 - Selling stolen goods via black market
@@ -173,7 +180,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 | Activity | Time | Location | Notes |
 |----------|------|----------|-------|
 | Illegal fishing | Night | Far side of the lake (spot TBD) | Out of the Company's sight. Black market outlet. |
-| Fight club | Night | Fight Club Hollow | Hidden from company sightlines. |
+| Fight club | Night | Fight Pit | Out of sight from the fort, tolerated by the Company. Some guards take bets. |
 | Hunter's fire visible | Night | Across river | First contact incentive for independent path. |
 | Black market | Night | Tent area (location TBD) | Different inventory than official shop. |
 | Theft / sneaking | Night | Camp-wide | Reduced guard coverage. Some guards asleep. |
@@ -205,7 +212,7 @@ No hard resource gate. Endings become available when player's actions and comple
 - **Ruins design** — hillside layout, what's inside, the vanished civilization's identity
 - **Black market operator** — who runs it, what they sell, faction alignment
 - **Camp official shop/trader** — who runs it, company employee or worker?
-- **Fight club design** — rules, opponent roster, reward structure, reputation effects
+- **Fight club design** — rules, opponent roster, reward structure, reputation effects, which guards take bets and where the Company's tolerance ends
 - **NPC roster completion** — names for all stub NPCs, full dialogue seeds
 - **Wood camp quest details** — beyond basic flavor
 - **Work site guard/manager NPCs** — area-002 and area-003 managers unnamed

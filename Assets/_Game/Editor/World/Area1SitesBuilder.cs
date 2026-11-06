@@ -49,7 +49,8 @@ namespace Game.Editor.World
         private const string DOCKS = "Docks";
         private const string RAILS = "BridgeRails";
         private const string BARRICADES = "Barricades";
-        private const string HOLLOW = "Hollow";
+        private const string OLD_HOLLOW = "Hollow";  // the rock fold the pit replaced; a run deletes it
+        private const string FIGHT_PIT = "FightPit";
         private const string FIRE = "HuntersFire";
         private const string DECK_PREFIX = "SM_WoodPlatformFloorKit";
         private static readonly string[] DockParts = { "DeckFloor_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
@@ -57,7 +58,7 @@ namespace Game.Editor.World
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
         private const string TOWER_FEATURE = "fort-tower";
-        private const string HOLLOW_FEATURE = "hollow";
+        private const string FIGHT_PIT_FEATURE = "fight-pit";
         private const string FIRE_FEATURE = "hunter-fire";
         private const string RUINS = "Ruins";
         private const string QUARRY_DRESSING = "QuarryDressing";
@@ -88,9 +89,13 @@ namespace Game.Editor.World
         private const string COMPOUND_GATE = "CompoundGate";
         private const string STAGING_YARD = "StagingYard";
         private const string GUARD_POST = "GuardPost";
+        private const string GANG_HOUSE = "GangHouse";
+        private const string GANG_DOCK = "GangDock";
         private const string COMPOUND_GATE_FEATURE = "compound-gate";
         private const string STAGING_YARD_FEATURE = "staging-yard";
         private const string GUARD_POST_FEATURE = "guard-post";
+        private const string GANG_HOUSE_FEATURE = "gang-house";
+        private const string GANG_DOCK_FEATURE = "gang-dock";
         private const float DOCK_GATE_WIDTH = 3f;
         private static readonly string[] WalkwayIds = { "walkway-canteen", "walkway-guard-post" };
         private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
@@ -101,6 +106,22 @@ namespace Game.Editor.World
         private const float GUARD_POST_MAX_WIDTH = 8.5f;
         private const float GUARD_POST_MIN_DEPTH = 4.5f;
         private const float GUARD_POST_MAX_DEPTH = 6f;
+        // The room is fitted to 9 x 6 m, so a size outside these stops the run.
+        private const float GANG_HOUSE_MIN_WIDTH = 8.5f;
+        private const float GANG_HOUSE_MAX_WIDTH = 10f;
+        private const float GANG_HOUSE_MIN_DEPTH = 5.5f;
+        private const float GANG_HOUSE_MAX_DEPTH = 7f;
+        private const float GANG_DOCK_MIN_LENGTH = 2f;
+        private const int PIT_ROCKS = 14;
+        private const float PIT_ROCK_SCALE = 0.55f;
+        private const float PIT_ROCK_SINK = 0.3f;
+        private const float PIT_ROCK_GAP_CLEARANCE = 1.5f; // the ground falls away beside the gap, so a rock there overhangs it
+        private const float PIT_POST_HEIGHT = 2.4f;
+        private const int PIT_SCREEN_ROCKS = 8;
+        private const float PIT_SCREEN_SPREAD = 42f;   // degrees either side of the fort: wide enough for the whole floor
+        private const float PIT_SCREEN_OUT = 1f;       // past the crest, so the rocks don't stand in the bowl
+        private const float PIT_SCREEN_SINK = 0.6f;
+        private const float PIT_SCREEN_SCALE = 0.55f;
 
         private const float WALL_TOP = 14f;      // world height: 4 m above the outcrop
         private const float WALL_THICKNESS = 1.2f;
@@ -131,12 +152,6 @@ namespace Game.Editor.World
         private const float BARRICADE_MARGIN = 0.35f; // agent radius and a little: Not Walkable areas aren't eroded
         private const float BARRICADE_VOLUME_HEIGHT = 6f;
         private const int NOT_WALKABLE_AREA = 1;
-
-        private const float FOLD_WEST = 10f;      // from the hollow's centre: wide enough for sight lines from the tower
-        private const float FOLD_EAST = 8f;
-        private const float FOLD_GAP = 0.1f;      // south of the floor, which puts it just north of the Mafia tents
-        private const float FOLD_SPACING = 2.4f;
-        private const float FOLD_SINK = 0.5f;
 
         private const float FLAME_HEIGHT = 1.9f;  // the camp rim clears the tents' sight line by 0.4 m, so it sits high
         private const float FLAME_WIDTH = 1.8f;
@@ -200,7 +215,7 @@ namespace Game.Editor.World
                 return;
             }
 
-            foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
+            foreach (string id in new[] { TOWER_FEATURE, FIGHT_PIT_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
                                                  INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, WORKSHOP_YARD_FEATURE,
                                                  COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
@@ -240,10 +255,25 @@ namespace Game.Editor.World
                 return;
             }
 
-            JObject hollowZone = features[HOLLOW_FEATURE];
-            if (!Area1BlockoutBuilder.IsNumber(hollowZone["d"]))
+            JObject pitZone = features[FIGHT_PIT_FEATURE];
+            if (!IsUsableFightPit(pitZone))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{HOLLOW_FEATURE}'; nothing changed.");
+                GameLog.Error(TAG, $"Layout has no usable feature '{FIGHT_PIT_FEATURE}'; nothing changed.");
+                return;
+            }
+
+            if (!features.TryGetValue(GANG_HOUSE_FEATURE, out JObject gangHouse) || !Area1BlockoutBuilder.HasPosition(gangHouse)
+                || !Area1BlockoutBuilder.IsNumber(gangHouse["w"]) || !Area1BlockoutBuilder.IsNumber(gangHouse["d"]) || !Area1BlockoutBuilder.IsNumber(gangHouse["yaw"])
+                || (float)gangHouse["w"] < GANG_HOUSE_MIN_WIDTH || (float)gangHouse["w"] > GANG_HOUSE_MAX_WIDTH
+                || (float)gangHouse["d"] < GANG_HOUSE_MIN_DEPTH || (float)gangHouse["d"] > GANG_HOUSE_MAX_DEPTH)
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{GANG_HOUSE_FEATURE}'; nothing changed.");
+                return;
+            }
+
+            if (!features.TryGetValue(GANG_DOCK_FEATURE, out JObject gangDock) || !IsUsableGangDock(gangDock))
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{GANG_DOCK_FEATURE}'; nothing changed.");
                 return;
             }
 
@@ -270,7 +300,9 @@ namespace Game.Editor.World
             BuildDocks(deck, timber, docks);
             BuildBridgeRails(bridgeDeck, timber, NewRoot(root.transform, RAILS));
             BuildBarricadeVolumes(barricades, NewRoot(root.transform, BARRICADES));
-            BuildHollow(Area1BlockoutBuilder.Position(hollowZone), (float)hollowZone["d"], terrain, rockTall, rockLow, NewRoot(root.transform, HOLLOW));
+            Transform oldHollow = root.transform.Find(OLD_HOLLOW);
+            if (oldHollow != null) Object.DestroyImmediate(oldHollow.gameObject);
+            BuildFightPit(ReadFightPit(pitZone, features[TOWER_FEATURE]), terrain, timber, rockTall, rockLow, NewRoot(root.transform, FIGHT_PIT));
             BuildFire(Area1BlockoutBuilder.Position(features[FIRE_FEATURE]), terrain, timber, stone, glow, dayNight, NewRoot(root.transform, FIRE));
 
             Area1RemoteSites.BuildRuins(Area1BlockoutBuilder.Position(features[ARCH_FEATURE]), terrain, stone, NewRoot(root.transform, RUINS));
@@ -290,6 +322,9 @@ namespace Game.Editor.World
             Area1CampInterior.BuildLatrine(Area1BlockoutBuilder.Position(features[LATRINE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, LATRINE));
             Area1CampInterior.BuildTimberYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, NewRoot(root.transform, TIMBER_YARD));
             Area1CampInterior.BuildWorkshopYard(Area1BlockoutBuilder.Position(features[WORKSHOP_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, WORKSHOP_YARD));
+            Transform house = NewRoot(root.transform, GANG_HOUSE);
+            Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
+            Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
             Transform walkways = NewRoot(root.transform, WALKWAYS);
             foreach (string id in WalkwayIds)
                 Area1CampInterior.BuildWalkway(id, Area1BlockoutBuilder.Points(features[id]), (float)features[id]["width"], terrain, timber, walkways);
@@ -565,7 +600,7 @@ namespace Game.Editor.World
             return new Vector2(Mathf.Sin(yaw), Mathf.Cos(yaw));
         }
 
-        private static void BuildBoat(Vector2 at, Vector2 along, Material timber, Transform parent)
+        internal static void BuildBoat(Vector2 at, Vector2 along, Material timber, Transform parent)
         {
             var boat = new GameObject("Boat").transform;
             boat.SetParent(parent, false);
@@ -645,27 +680,61 @@ namespace Game.Editor.World
             }
         }
 
-        /// <summary>
-        /// A rock fold along the north edge of the Mafia tents hides the hollow from the fort; the crater rim is its back wall.
-        /// Tall rocks set the height and low ones close the gaps at their feet.
-        /// </summary>
-        private static void BuildHollow(Vector2 center, float depth, Terrain terrain, GameObject rockTall, GameObject rockLow, Transform hollow)
+        /// <summary>The bank's radii are fixed, so a floor outside these limits breaks its shape.</summary>
+        internal static bool IsUsableFightPit(JObject zone)
         {
-            float foldZ = center.y - depth * 0.5f - FOLD_GAP;
-            var random = new System.Random(SEED);
-            float Range(float from, float to) => from + (float)random.NextDouble() * (to - from);
+            if (!Area1BlockoutBuilder.IsNumber(zone["w"])) return false;
+            float radius = (float)zone["w"] * 0.5f;
+            return radius >= Area1TerrainMath.FightPit.MIN_FLOOR_RADIUS && radius <= Area1TerrainMath.FightPit.MAX_FLOOR_RADIUS;
+        }
 
-            int index = 0;
-            for (float x = center.x - FOLD_WEST; x <= center.x + FOLD_EAST; x += FOLD_SPACING)
+        /// <summary>A straight run: the builder has no bends.</summary>
+        private static bool IsUsableGangDock(JObject dock)
+        {
+            if (!Area1BlockoutBuilder.HasPoints(dock) || !Area1BlockoutBuilder.IsNumber(dock["width"]) || (float)dock["width"] <= 0f) return false;
+            Vector2[] line = Area1BlockoutBuilder.Points(dock);
+            return line.Length == 2 && Vector2.Distance(line[0], line[1]) >= GANG_DOCK_MIN_LENGTH;
+        }
+
+        /// <summary>The bank is highest towards the fort, and the gap faces north, away from it.</summary>
+        internal static Area1TerrainMath.FightPit ReadFightPit(JObject zone, JObject tower)
+        {
+            Vector2 center = Area1BlockoutBuilder.Position(zone);
+            return new Area1TerrainMath.FightPit(center, (float)zone["w"] * 0.5f, Area1BlockoutBuilder.Position(tower) - center, Vector2.up);
+        }
+
+        /// <summary>
+        /// The terrain tool shapes the pit. This adds low rocks along the crest, two posts marking the gap and a screen of tall
+        /// rocks on the fort side: the tower looks down into the bowl, so the bank alone hides only the near half of the floor.
+        /// </summary>
+        private static void BuildFightPit(Area1TerrainMath.FightPit pit, Terrain terrain, Material timber, GameObject rockTall, GameObject rockLow, Transform root)
+        {
+            float crest = Area1TerrainMath.FightPit.CREST_RADIUS;
+            float gapWidth = Area1TerrainMath.FightPit.GAP_HALF_WIDTH + Area1TerrainMath.FightPit.GAP_BLEND + PIT_ROCK_GAP_CLEARANCE;
+            var random = new System.Random(SEED);
+            float gapBearing = Mathf.Atan2(pit.GapFacing.y, pit.GapFacing.x) * Mathf.Rad2Deg;
+            float clearance = Mathf.Asin(gapWidth / crest) * Mathf.Rad2Deg;
+            for (int index = 0; index < PIT_ROCKS; index++)
             {
-                float z = foldZ + Range(-0.3f, 0.3f);
-                float ground = Area1BlockoutBuilder.Ground(terrain, new Vector2(x, z));
-                PlaceRock(rockTall, $"Fold_{index:00}", hollow, new Vector3(x, ground - FOLD_SINK, z), Range(-20f, 20f) + (index % 2) * 180f,
-                    new Vector3(1.2f, Range(0.8f, 0.92f), 0.75f));
-                var foot = new Vector2(x + 1.2f, z + 0.9f);
-                PlaceRock(rockLow, $"Foot_{index:00}", hollow, new Vector3(foot.x, Area1BlockoutBuilder.Ground(terrain, foot) + 0.2f, foot.y), Range(0f, 360f), Vector3.one * 0.8f);
-                index++;
+                float bearing = (gapBearing + clearance + (360f - clearance * 2f) * index / (PIT_ROCKS - 1f)) * Mathf.Deg2Rad;
+                Vector2 at = pit.Center + new Vector2(Mathf.Cos(bearing), Mathf.Sin(bearing)) * crest;
+                PlaceRock(rockLow, $"Rock_{index:00}", root, new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at) - PIT_ROCK_SINK, at.y), (float)random.NextDouble() * 360f, Vector3.one * PIT_ROCK_SCALE);
             }
+
+            float fortBearing = Mathf.Atan2(pit.HighFacing.y, pit.HighFacing.x) * Mathf.Rad2Deg;
+            for (int index = 0; index < PIT_SCREEN_ROCKS; index++)
+            {
+                float bearing = fortBearing + Mathf.Lerp(-PIT_SCREEN_SPREAD, PIT_SCREEN_SPREAD, index / (PIT_SCREEN_ROCKS - 1f));
+                Vector2 at = pit.Center + new Vector2(Mathf.Cos(bearing * Mathf.Deg2Rad), Mathf.Sin(bearing * Mathf.Deg2Rad)) * (crest + PIT_SCREEN_OUT);
+                float height = PIT_SCREEN_SCALE + (float)random.NextDouble() * 0.1f;
+                PlaceRock(rockTall, $"Screen_{index:00}", root, new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at) - PIT_SCREEN_SINK, at.y),
+                    -bearing - 90f + (float)random.NextDouble() * 30f - 15f, new Vector3(1.2f, height, 0.75f));
+            }
+
+            Vector2 across = new Vector2(pit.GapFacing.y, -pit.GapFacing.x) * (Area1TerrainMath.FightPit.GAP_HALF_WIDTH + 0.4f);
+            Vector2 mouth = pit.Center + pit.GapFacing * crest;
+            Area1RemoteSites.Column("GapPost_L", root, timber, terrain, mouth + across, new Vector2(0.25f, 0.25f), PIT_POST_HEIGHT, 0f);
+            Area1RemoteSites.Column("GapPost_R", root, timber, terrain, mouth - across, new Vector2(0.25f, 0.25f), PIT_POST_HEIGHT, 0f);
         }
 
         internal static void PlaceRock(GameObject prefab, string name, Transform parent, Vector3 position, float yaw, Vector3 scale)

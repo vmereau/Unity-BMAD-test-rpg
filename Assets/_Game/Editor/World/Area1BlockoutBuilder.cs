@@ -26,10 +26,11 @@ namespace Game.Editor.World
         {
             "outer-fence", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "outer-fence-6",
             "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
-            "compound-fence-upper", "compound-fence-lower", // keep new lines last: panels draw from one seeded sequence
+            "compound-fence-upper", "compound-fence-lower", "lake-fence", // keep new lines last: panels draw from one seeded sequence
         };
 
         private const string WAREHOUSE_FEATURE = "warehouse";
+        private const string SHORE_RAIL_FEATURE = "shore-rail";
 
         private const string BLOCKER_LAYER = "Ignore Raycast";
 
@@ -56,6 +57,15 @@ namespace Game.Editor.World
         private const float BLOCKER_DEPTH = 1f;
         private const float NOT_WALKABLE_DEPTH = 2f;
         private const int NOT_WALKABLE_AREA = 1;
+
+        private const float SHORE_RAIL_PIECE = 3f;
+        private const int SHORE_RAIL_GAP_EVERY = 3;       // every third piece is missing; each line divides evenly, so pieces run up to 3 m
+        private const float SHORE_RAIL_POST_HEIGHT = 0.7f;
+        private const float SHORE_RAIL_POST_WIDTH = 0.14f;
+        private const float SHORE_RAIL_BAR = 0.08f;
+        private const float SHORE_RAIL_POST_BURY = 0.4f;
+        private const float SHORE_RAIL_SAG = 0.12f;       // ends sit at different heights, so it reads as neglected
+        private const float SHORE_RAIL_NAV_MARGIN = 0.35f; // agent radius: Not Walkable areas aren't eroded
 
         [MenuItem("Tools/World/Build Area 1 Camp Edge")]
         public static void Build()
@@ -91,6 +101,7 @@ namespace Game.Editor.World
             int panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
             BuildArrivalGate(features, terrain, timber, edge);
             BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint);
+            BuildShoreRail(features[SHORE_RAIL_FEATURE], terrain, timber, edge);
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {PositionHash(edge)}. Rebake the NavMesh.");
@@ -153,6 +164,44 @@ namespace Game.Editor.World
             Transform tower = Box(name, parent, timber, new Vector3(at.x, (top + bottom) * 0.5f, at.y),
                 new Vector3(TOWER_WIDTH, top - bottom, TOWER_WIDTH));
             tower.rotation = Yaw(across);
+        }
+
+        /// <summary>Marks a line the Company doesn't defend: knee-high, with a walkable gap after every stretch.</summary>
+        private static void BuildShoreRail(JObject feature, Terrain terrain, Material timber, Transform edge)
+        {
+            var rail = new GameObject("ShoreRail").transform;
+            rail.SetParent(edge, false);
+
+            var random = new System.Random(SEED);
+            int index = 0;
+            foreach ((Vector2 a, Vector2 b) in Area1TerrainMath.CutPanels(Points(feature), SHORE_RAIL_PIECE, Vector2.zero, 0f))
+            {
+                float sag = (float)random.NextDouble() * SHORE_RAIL_SAG;
+                if (++index % SHORE_RAIL_GAP_EVERY == 0) continue;
+
+                float groundA = Ground(terrain, a), groundB = Ground(terrain, b);
+                foreach ((Vector2 at, float ground, string end) in new[] { (a, groundA, "A"), (b, groundB, "B") })
+                {
+                    float bottom = ground - SHORE_RAIL_POST_BURY;
+                    float height = SHORE_RAIL_POST_HEIGHT + SHORE_RAIL_POST_BURY;
+                    Box($"Post_{index:00}_{end}", rail, timber, new Vector3(at.x, bottom + height * 0.5f, at.y),
+                        new Vector3(SHORE_RAIL_POST_WIDTH, height, SHORE_RAIL_POST_WIDTH));
+                }
+
+                var from = new Vector3(a.x, groundA + SHORE_RAIL_POST_HEIGHT - sag, a.y);
+                var to = new Vector3(b.x, groundB + SHORE_RAIL_POST_HEIGHT, b.y);
+                Transform bar = Box($"Bar_{index:00}", rail, timber, (from + to) * 0.5f, new Vector3(SHORE_RAIL_BAR, SHORE_RAIL_BAR, Vector3.Distance(from, to)));
+                bar.rotation = Quaternion.LookRotation(to - from);
+
+                // The bar and posts are too thin for a bake to see, so the NavMesh would run straight through them.
+                var volume = new GameObject($"NotWalkable_{index:00}").transform;
+                volume.SetParent(rail, false);
+                volume.SetPositionAndRotation((from + to) * 0.5f, Yaw(b - a));
+                var notWalkable = volume.gameObject.AddComponent<NavMeshModifierVolume>();
+                notWalkable.center = Vector3.zero;
+                notWalkable.size = new Vector3(SHORE_RAIL_POST_WIDTH + SHORE_RAIL_NAV_MARGIN * 2f, BLOCKER_HEIGHT, Vector2.Distance(a, b) + SHORE_RAIL_NAV_MARGIN * 2f);
+                notWalkable.area = NOT_WALKABLE_AREA;
+            }
         }
 
         /// <summary>
@@ -282,7 +331,8 @@ namespace Game.Editor.World
             if (!TryReadLayout(out Dictionary<string, JObject> found, out problem)) return false;
 
             string missing = FenceIds.FirstOrDefault(id => !found.TryGetValue(id, out JObject fence) || !HasPoints(fence))
-                ?? new[] { "fence-break", "arrival-gate" }.FirstOrDefault(id => !found.TryGetValue(id, out JObject point) || !HasPosition(point));
+                ?? new[] { "fence-break", "arrival-gate" }.FirstOrDefault(id => !found.TryGetValue(id, out JObject point) || !HasPosition(point))
+                ?? (found.TryGetValue(SHORE_RAIL_FEATURE, out JObject rail) && HasPoints(rail) ? null : SHORE_RAIL_FEATURE);
             if (missing != null)
             {
                 problem = $"Layout has no usable feature '{missing}'";

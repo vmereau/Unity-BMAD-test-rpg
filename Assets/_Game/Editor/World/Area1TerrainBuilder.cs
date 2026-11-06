@@ -81,6 +81,11 @@ namespace Game.Editor.World
         private const int SEED = 1337;
 
         private const string COMPOUND_FEATURE = "compound";
+        private const string FIGHT_PIT_FEATURE = "fight-pit";
+        private const string LAKESIDE_FEATURE = "lakeside";
+        private const string FORT_TOWER_FEATURE = "fort-tower";
+        private const string GANG_HOUSE_FEATURE = "gang-house";
+        private const float GANG_HOUSE_TREE_CLEARANCE = 14f; // from its centre: covers the house, deck and dock
         private const string COMPANY_ROAD = "company-road";
         private const string DELIVERY_ROAD = "delivery-road";
         private const string PATH_PREFIX = "path-";
@@ -151,6 +156,9 @@ namespace Game.Editor.World
             public Road[] Roads;
             public PaintedLine[] PaintedLines; // in paint order: later lines lie on top
             public Vector2 CompoundCenter, CompoundSize;
+            public Math.FightPit Pit;
+            public Vector2 LakesideCenter, LakesideSize;
+            public Vector2 GangHouse;
             public Vector2[][] Corridors;
             public Vector2 Fire;
             public Vector2 Ford;
@@ -360,7 +368,18 @@ namespace Game.Editor.World
 
             roadDistance = CarveRoads(layout, heights);
             OpenSightLines(layout, heights);
+            AddFightPit(layout, heights);
             return heights;
+        }
+
+        /// <summary>Last, as an offset: <see cref="Area1TerrainSculpt"/> stores hand edits over this result, so a capture keeps no pit in them.</summary>
+        private static void AddFightPit(Layout layout, float[,] heights)
+        {
+            Vector2 reach = Vector2.one * Math.FightPit.FOOT_RADIUS;
+            Vector2Int from = Grid(layout.Pit.Center - reach), to = Grid(layout.Pit.Center + reach);
+            for (int z = from.y; z <= to.y; z++)
+                for (int x = from.x; x <= to.x; x++)
+                    heights[z, x] += layout.Pit.Offset(World(x, z));
         }
 
         /// <summary>Hills, ridges, pads and mountains, before water.</summary>
@@ -625,6 +644,9 @@ namespace Game.Editor.World
                     float road = 1f - Math.Ramp(roadDistance[z, x], 0.5f, 2f);
                     if (road > 0f && !InWater(layout, p)) Math.BlendLayer(w, (int)Layer.Road, road);
 
+                    float pitFloor = layout.Pit.FloorRadius;
+                    Math.BlendLayer(w, (int)Layer.Mud, 1f - Math.Ramp(Vector2.Distance(p, layout.Pit.Center), pitFloor - 0.5f, pitFloor + 1f));
+
                     PaintLines(layout, w, p, false);
 
                     float total = w.Sum();
@@ -692,6 +714,9 @@ namespace Game.Editor.World
         {
             if (Mathf.Abs(p.x) > 498f || Mathf.Abs(p.y) > 498f) return false;
             if (Math.InsideRect(p, layout.CompoundCenter, layout.CompoundSize)) return false;
+            if (Math.RectDistance(p, layout.LakesideCenter, layout.LakesideSize) < 4f) return false;
+            if (Vector2.Distance(p, layout.Pit.Center) < Math.FightPit.FOOT_RADIUS + 4f) return false;
+            if (Vector2.Distance(p, layout.GangHouse) < GANG_HOUSE_TREE_CLEARANCE) return false;
             if (Vector2.Distance(p, CampCenter) < 62f) return false;
             foreach (Shape s in KeptRects)
                 if (Math.RectDistance(p, s.Center, s.Size) < 6f) return false;
@@ -766,6 +791,27 @@ namespace Game.Editor.World
                 return false;
             }
 
+            foreach (string id in new[] { FIGHT_PIT_FEATURE, LAKESIDE_FEATURE })
+            {
+                if (features.TryGetValue(id, out JObject zone) && Area1BlockoutBuilder.HasPosition(zone)
+                    && Area1BlockoutBuilder.IsNumber(zone["w"]) && Area1BlockoutBuilder.IsNumber(zone["d"]) && (float)zone["w"] > 0f && (float)zone["d"] > 0f) continue;
+                problem = $"Layout has no usable feature '{id}'";
+                return false;
+            }
+
+            if (!Area1SitesBuilder.IsUsableFightPit(features[FIGHT_PIT_FEATURE]))
+            {
+                problem = $"Layout has no usable feature '{FIGHT_PIT_FEATURE}'";
+                return false;
+            }
+
+            foreach (string id in new[] { FORT_TOWER_FEATURE, GANG_HOUSE_FEATURE })
+            {
+                if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
+                problem = $"Layout has no usable feature '{id}'";
+                return false;
+            }
+
             if (!TryReadPaintedLines(features, out PaintedLine[] paintedLines, out problem)) return false;
 
             Vector2[] wall = Points(features["mountains"]);
@@ -777,6 +823,7 @@ namespace Game.Editor.World
             Vector2 quarryCenter = Position(quarry);
             Vector2 quarrySize = new Vector2((float)quarry["w"], (float)quarry["d"]);
             Vector2 corner = quarryCenter + new Vector2(quarrySize.x, -quarrySize.y) * 0.5f;
+            JObject lakeside = features[LAKESIDE_FEATURE];
 
             layout = new Layout
             {
@@ -797,6 +844,10 @@ namespace Game.Editor.World
                 PaintedLines = paintedLines,
                 CompoundCenter = Position(compound),
                 CompoundSize = new Vector2((float)compound["w"], (float)compound["d"]),
+                Pit = Area1SitesBuilder.ReadFightPit(features[FIGHT_PIT_FEATURE], features[FORT_TOWER_FEATURE]),
+                GangHouse = Position(features[GANG_HOUSE_FEATURE]),
+                LakesideCenter = Position(lakeside),
+                LakesideSize = new Vector2((float)lakeside["w"], (float)lakeside["d"]),
                 Corridors = new[]
                 {
                     new[] { TentsEye, fire },

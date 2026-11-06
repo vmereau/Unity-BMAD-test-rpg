@@ -449,3 +449,10 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 - **Illegal fishing spot.** Moved from the docks to the far side of the lake, in the design doc only. The spot, its route and how workers slip out at night still need designing.
 - **Guard post gameplay.** Guards, door leaves, the lockup and tally shed interactions, the alarm bell, and a possible back way into the compound.
+
+## From spec-area-1-lakeside-rework (2026-11-06)
+
+- **Guard the terrain capture against pit changes.** Capturing after `fight-pit` or `FightPit.Offset` changes stores the old pit as a hand edit, and the next build cancels the new one. `Assets/_Game/Scenes/CLAUDE.md` warns about it. A pit signature in `terrain-sculpt.bin`, checked by `CaptureSculpt`, would stop it.
+- **Update the hosted zone planner.** The hosted planner artifact still holds the old layout with `hollow` and none of the lakeside features. Anything exported from it would fail the builders until it is republished.
+- **Floating log at (31, 43.5).** `SM_Outskirts_CuttedWoodTrunk` stands about 1.6 m over the ground since the lakeside was flattened. Its collider catches a player walking the slope below it, and the night path runs close by.
+- **Fence the shore south of the pit, if wanted.** `lake-fence` ends at (63.4, 15.6), so the shore stays walkable round its end to the quarry side. Valentin will decide later.

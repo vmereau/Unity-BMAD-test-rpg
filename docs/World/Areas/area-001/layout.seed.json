@@ -352,15 +352,11 @@
       "art": [
         "master-2"
       ],
-      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "note": "Tall timber palisade from the inner fence to the quarry opening. The stretch east of the old hollow came down when the lakeside opened.",
       "points": [
         [
-          35.3,
-          51.8
-        ],
-        [
-          51.6,
-          35.3
+          54,
+          11.8
         ],
         [
           55.5,
@@ -594,15 +590,92 @@
       ]
     },
     {
-      "id": "hollow",
-      "kind": "zone",
-      "name": "Fight Club Hollow",
-      "x": 32,
-      "z": 30,
-      "w": 10,
-      "d": 8,
+      "id": "lake-fence",
+      "kind": "fence",
+      "name": "Palisade, lake end",
+      "width": 1,
       "art": [],
-      "note": "Crater rim is the back wall; a rock fold along its south edge hides it from the fort."
+      "note": "Carries the palisade from the inner fence's east end towards the lake. Stops short of the shore: it marks a line more than it closes one.",
+      "points": [
+        [
+          54,
+          11.8
+        ],
+        [
+          63.4,
+          15.6
+        ]
+      ]
+    },
+    {
+      "id": "shore-rail",
+      "kind": "fence",
+      "name": "Shore rail",
+      "width": 1,
+      "art": [],
+      "note": "Knee-high broken rail with walkable gaps, built by Camp Edge. Runs from the pit's bank to the gang house, staying 3 m or more inland of the water. Workers reach the shore through the gaps, and the bank marks the stretch south of it.",
+      "points": [
+        [
+          56,
+          36
+        ],
+        [
+          46.5,
+          46.8
+        ]
+      ]
+    },
+    {
+      "id": "fight-pit",
+      "kind": "zone",
+      "name": "Fight Pit",
+      "x": 52.5,
+      "z": 24,
+      "w": 11,
+      "d": 11,
+      "art": [],
+      "note": "Round sunken floor inside a raised bank. Highest towards the fort, gap to the north. Out of sight from the fort, tolerated by the Company. w is the floor's diameter; the bank reaches 12.5 m from the centre."
+    },
+    {
+      "id": "gang-house",
+      "kind": "zone",
+      "name": "Gang house",
+      "x": 43.5,
+      "z": 53.5,
+      "w": 9,
+      "d": 6,
+      "yaw": 205,
+      "art": [],
+      "note": "Enterable house for the top gang members, npc-003 included. Door faces the camp, back deck and dock on the lake side."
+    },
+    {
+      "id": "gang-dock",
+      "kind": "road",
+      "name": "Gang dock",
+      "width": 2.4,
+      "art": [],
+      "note": "Short dock from the gang house's back deck into the lake.",
+      "points": [
+        [
+          46,
+          59
+        ],
+        [
+          47.6,
+          67
+        ]
+      ]
+    },
+    {
+      "id": "lakeside",
+      "kind": "zone",
+      "name": "Lakeside",
+      "x": 50,
+      "z": 38,
+      "w": 28,
+      "d": 24,
+      "art": [],
+      "note": "Reserved open ground between the tents and the shore. Tents and other uses to be decided. No trees."
     },
     {
       "id": "zone-1",
@@ -1085,11 +1158,15 @@
       "name": "Path: night",
       "width": 1,
       "art": [],
-      "note": "Hollow, wilderness opening, bank, docks, away from the inner gate.",
+      "note": "Fight pit, wilderness opening, bank, docks, away from the inner gate.",
       "points": [
         [
-          32,
-          30
+          52.5,
+          34
+        ],
+        [
+          44,
+          39
         ],
         [
           33,
@@ -1370,9 +1447,10 @@
       "options": [
         "Palisade inside, low fence outside",
         "Full palisade ring",
-        "Low fence only, as in the design doc"
+        "Low fence only, as in the design doc",
+        "Palisade with an open lake shore"
       ],
-      "value": "Full palisade ring"
+      "value": "Palisade with an open lake shore"
     },
     {
       "id": "banner",

@@ -127,6 +127,53 @@ namespace Game.Editor.World
         public static float CutCleft(float height, float distance, float floor, float halfWidth, float slope) =>
             Mathf.Min(height, floor + slope * Mathf.Max(distance - halfWidth, 0f));
 
+        /// <summary>The fight pit's shape. Radii are in metres from the centre; heights are offsets over the ground.</summary>
+        public readonly struct FightPit
+        {
+            public const float CREST_RADIUS = 9f;
+            public const float FOOT_RADIUS = 12.5f;
+            public const float GAP_HALF_WIDTH = 2f;
+            public const float GAP_BLEND = 1.5f;
+            public const float MIN_FLOOR_RADIUS = 3.5f; // the gap needs GAP_HALF_WIDTH + GAP_BLEND of floor to open onto
+            public const float MAX_FLOOR_RADIUS = 8f;   // leaves a slope up to the crest
+            private const float FLOOR_DROP = 1.4f;
+            private const float LOW_CREST = 1.3f;
+            private const float HIGH_CREST = 2.7f;
+            private const float HIGH_SPREAD = 0.5f; // cosine of the angle off the high side where the crest is fully high
+
+            public readonly Vector2 Center, HighFacing, GapFacing;
+            public readonly float FloorRadius;
+
+            public FightPit(Vector2 center, float floorRadius, Vector2 highFacing, Vector2 gapFacing)
+            {
+                Center = center;
+                FloorRadius = floorRadius;
+                HighFacing = highFacing.normalized;
+                GapFacing = gapFacing.normalized;
+            }
+
+            /// <summary>Height to add to the ground at <paramref name="point"/>. Additive, so hand sculpts over it stay valid.</summary>
+            public float Offset(Vector2 point)
+            {
+                Vector2 from = point - Center;
+                float radius = from.magnitude;
+                if (radius >= FOOT_RADIUS) return 0f;
+                if (radius <= FloorRadius) return -FLOOR_DROP;
+
+                Vector2 direction = from / radius;
+                float crest = Mathf.Lerp(LOW_CREST, HIGH_CREST, Ramp(Vector2.Dot(direction, HighFacing), 0f, HIGH_SPREAD));
+                if (Vector2.Dot(from, GapFacing) > 0f)
+                {
+                    float sideways = Mathf.Abs(from.x * GapFacing.y - from.y * GapFacing.x);
+                    crest *= Ramp(sideways, GAP_HALF_WIDTH, GAP_HALF_WIDTH + GAP_BLEND);
+                }
+
+                return radius <= CREST_RADIUS
+                    ? Mathf.Lerp(-FLOOR_DROP, crest, Ramp(radius, FloorRadius, CREST_RADIUS))
+                    : crest * (1f - Ramp(radius, CREST_RADIUS, FOOT_RADIUS));
+            }
+        }
+
         /// <summary>
         /// Cuts a polyline into equal panels of at most <paramref name="panelLength"/>, leaving out the stretch within
         /// <paramref name="gapHalfWidth"/> of <paramref name="gapCentre"/> along any segment that passes through that point.

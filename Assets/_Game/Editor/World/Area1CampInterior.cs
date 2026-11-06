@@ -40,6 +40,14 @@ namespace Game.Editor.World
         private const float SKIRT_THICKNESS = 0.15f;
         private const int GABLE_TIERS = 5;
         private const float BANNER_POLE_HEIGHT = 6f;
+        private const string GANG_DECK = "BackDeck";
+        private const float GANG_DECK_DEPTH = 3f;
+        private const float GANG_DECK_THICKNESS = 0.15f;
+        private const float GANG_DECK_CLEARANCE = 0.15f;  // over the highest ground under it, so it stays easy to step onto
+        private const float GANG_DOCK_OVERLAP = 0.4f;     // the boards run a little under the deck
+        private const float GANG_DOCK_DROP = 0.02f;       // just below the deck, so the overlap doesn't flicker
+        private const float GANG_DOCK_BAY = 3f;
+        private const float GANG_BOAT_OFFSET = 1f;
         private const float CAGE_SIZE = 2.5f;
         private const float CAGE_HEIGHT = 2.4f;
         private const float CAGE_BAR_GAP = 0.35f;
@@ -330,53 +338,13 @@ namespace Game.Editor.World
         {
             float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
             Quaternion rotation = Quaternion.Euler(0f, yaw, 0f);
-            Vector2 At(float x, float z)
-            {
-                Vector3 local = rotation * new Vector3(x, 0f, z);
-                return center + new Vector2(local.x, local.z);
-            }
-
-            float floor = float.NegativeInfinity;
-            for (int x = 0; x < FLOOR_SAMPLES; x++)
-                for (int z = 0; z < FLOOR_SAMPLES; z++)
-                    floor = Mathf.Max(floor, Area1BlockoutBuilder.Ground(terrain, At(
-                        Mathf.Lerp(-halfWidth, halfWidth, x / (FLOOR_SAMPLES - 1f)), Mathf.Lerp(-halfDepth, halfDepth, z / (FLOOR_SAMPLES - 1f)))));
-            root.SetPositionAndRotation(new Vector3(center.x, floor, center.y), rotation);
-
-            Area1RemoteSites.Local("Floor", root, timber, new Vector3(0f, -0.15f, 0f), new Vector3(width, 0.3f, depth));
-            Area1RemoteSites.Local("Wall_Gate", root, timber, new Vector3(-halfWidth + WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
-            Area1RemoteSites.Local("Wall_End", root, timber, new Vector3(halfWidth - WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
-            Area1RemoteSites.Local("Wall_Back", root, timber, new Vector3(0f, POST_WALL_HEIGHT * 0.5f, -halfDepth + WALL_THICKNESS * 0.5f), new Vector3(width, POST_WALL_HEIGHT, WALL_THICKNESS));
-            DoorWall("Wall_Front", halfDepth - WALL_THICKNESS * 0.5f, halfWidth, timber, root, POST_DOOR_X, POST_DOOR_WIDTH, POST_DOOR_HEIGHT, POST_WALL_HEIGHT);
-
-            float rise = halfDepth * Mathf.Tan(ROOF_PITCH * Mathf.Deg2Rad);
-            float slope = halfDepth / Mathf.Cos(ROOF_PITCH * Mathf.Deg2Rad) + 0.5f;
-            foreach (float side in new[] { -1f, 1f })
-            {
-                Transform roof = Area1RemoteSites.Local(side < 0f ? "Roof_Back" : "Roof_Front", root, timber,
-                    new Vector3(0f, POST_WALL_HEIGHT + rise * 0.5f, side * halfDepth * 0.5f), new Vector3(width + 0.8f, 0.2f, slope));
-                roof.localRotation = Quaternion.Euler(side * ROOF_PITCH, 0f, 0f);
-
-                // Stepped, because the room is entered and a square gable leaves sky at both ends.
-                for (int tier = 0; tier < GABLE_TIERS; tier++)
-                {
-                    float height = rise / GABLE_TIERS;
-                    Area1RemoteSites.Local($"{(side < 0f ? "Gable_Gate" : "Gable_End")}_{tier}", root, timber,
-                        new Vector3(side * (halfWidth - WALL_THICKNESS * 0.5f), POST_WALL_HEIGHT + height * (tier + 0.5f), 0f),
-                        new Vector3(WALL_THICKNESS, height, depth * (1f - (tier + 0.5f) / GABLE_TIERS)));
-                }
-            }
-
-            BuildPostUnderside(width, depth, floor, At, terrain, timber, root);
-            BuildPostRamp(At(POST_DOOR_X, halfDepth), rotation * Vector3.forward, floor, terrain, timber, root);
+            float floor = BuildHouseShell(center, width, depth, rotation, "Gate", terrain, timber, root);
+            Vector2 At(float x, float z) => LocalToGround(center, rotation, x, z);
 
             // One room: two double bunks along the back wall, hearth at the far end, table between it and the door.
             foreach (int i in new[] { 0, 1 })
                 Area1RemoteSites.Local($"Bunks_{i}", root, timber, new Vector3(-2.5f + i * 2.2f, 0.8f, -halfDepth + WALL_THICKNESS + 0.45f), new Vector3(1.9f, 1.6f, 0.8f));
-            Area1RemoteSites.Local("Hearth", root, stone, new Vector3(halfWidth - WALL_THICKNESS - 0.5f, 0.6f, 0f), new Vector3(1f, 1.2f, 1.6f));
-            const float hearthTop = 1.2f;
-            float chimneyTop = POST_WALL_HEIGHT + rise + 0.7f;
-            Area1RemoteSites.Local("Chimney", root, stone, new Vector3(halfWidth - WALL_THICKNESS - 0.5f, (hearthTop + chimneyTop) * 0.5f, 0f), new Vector3(0.7f, chimneyTop - hearthTop, 0.7f));
+            BuildHearth(halfWidth, depth, stone, root);
             Area1RemoteSites.Local("Table", root, timber, new Vector3(1f, 0.4f, 1f), new Vector3(1.6f, 0.8f, 0.8f));
 
             BuildLockup(At(-6.77f, -1.32f), rotation, terrain, timber, root);
@@ -395,6 +363,118 @@ namespace Game.Editor.World
             float bannerTop = Area1BlockoutBuilder.Ground(terrain, bannerAt) + BANNER_POLE_HEIGHT - floor;
             Area1RemoteSites.Thin("BannerArm", root, timber, new Vector3(5.6f, bannerTop - 0.2f, 2.2f), new Vector3(0.08f, 0.08f, 1.1f));
             Area1RemoteSites.Thin("Banner", root, stone, new Vector3(5.6f, bannerTop - 1.3f, 2.3f), new Vector3(0.04f, 2.1f, 0.9f));
+        }
+
+        /// <summary>
+        /// On the shore by the wilderness opening: the one real roof the Company allows the workers' side. Local Z faces the camp,
+        /// and the back deck, close to the ground, leads to the dock on the lake side.
+        /// </summary>
+        internal static void BuildGangHouse(Vector2 center, float width, float depth, float yaw, Terrain terrain, Material timber, Material stone, Transform root)
+        {
+            float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
+            Quaternion rotation = Quaternion.Euler(0f, yaw, 0f);
+            BuildHouseShell(center, width, depth, rotation, "East", terrain, timber, root);
+
+            // One room: bed along the back wall, hearth at the far end, table in the middle, chest by the door.
+            Area1RemoteSites.Local("Bed", root, timber, new Vector3(-2.6f, 0.3f, -halfDepth + WALL_THICKNESS + 0.6f), new Vector3(2.1f, 0.6f, 1.1f));
+            BuildHearth(halfWidth, depth, stone, root);
+            Area1RemoteSites.Local("Table", root, timber, new Vector3(1f, 0.4f, 0.4f), new Vector3(1.8f, 0.8f, 0.9f));
+            Area1RemoteSites.Local("Chest", root, timber, new Vector3(-3.6f, 0.3f, halfDepth - WALL_THICKNESS - 0.4f), new Vector3(1f, 0.6f, 0.6f));
+
+            float deckTop = float.NegativeInfinity;
+            foreach (float x in new[] { -halfWidth, 0f, halfWidth })
+                foreach (float z in new[] { 0f, GANG_DECK_DEPTH })
+                    deckTop = Mathf.Max(deckTop, Area1BlockoutBuilder.Ground(terrain, LocalToGround(center, rotation, x, -halfDepth - z)));
+            deckTop += GANG_DECK_CLEARANCE;
+
+            Vector2 deckAt = LocalToGround(center, rotation, 0f, -halfDepth - GANG_DECK_DEPTH * 0.5f);
+            Transform deck = Area1BlockoutBuilder.Box(GANG_DECK, root, timber, new Vector3(deckAt.x, deckTop - GANG_DECK_THICKNESS * 0.5f, deckAt.y),
+                new Vector3(width, GANG_DECK_THICKNESS, GANG_DECK_DEPTH));
+            deck.rotation = rotation;
+        }
+
+        /// <summary>Boards at the back deck's height on posts into the lake bed, with a small boat at the head.</summary>
+        internal static void BuildGangDock(Vector2[] line, float width, Terrain terrain, Material timber, Transform house, Transform root)
+        {
+            Vector2 from = line[0], to = line[line.Length - 1];
+            Vector2 along = (to - from).normalized;
+            float length = Vector2.Distance(from, to);
+            float top = house.Find(GANG_DECK).GetComponent<Renderer>().bounds.max.y;
+
+            Vector2 middle = (from + to) * 0.5f;
+            Transform boards = Area1BlockoutBuilder.Box("Boards", root, timber, new Vector3(middle.x, top - GANG_DOCK_DROP - GANG_DECK_THICKNESS * 0.5f, middle.y),
+                new Vector3(width, GANG_DECK_THICKNESS, length + GANG_DOCK_OVERLAP));
+            boards.rotation = Area1BlockoutBuilder.Yaw(along);
+
+            Vector2 across = new Vector2(along.y, -along.x) * (width * 0.5f);
+            int bays = Mathf.CeilToInt(length / GANG_DOCK_BAY);
+            for (int i = 1; i <= bays; i++)
+            {
+                Vector2 at = from + along * (length * i / bays);
+                Stilt($"Post_{i}_L", at + across, top, terrain, timber, root);
+                Stilt($"Post_{i}_R", at - across, top, terrain, timber, root);
+            }
+
+            Area1SitesBuilder.BuildBoat(to - along * 2f + across.normalized * (width * 0.5f + GANG_BOAT_OFFSET), along, timber, root);
+        }
+
+        private static Vector2 LocalToGround(Vector2 center, Quaternion rotation, float x, float z)
+        {
+            Vector3 local = rotation * new Vector3(x, 0f, z);
+            return center + new Vector2(local.x, local.z);
+        }
+
+        /// <summary>Floor, walls, door, pitched roof, closed underside and ramp. Returns the floor height.</summary>
+        private static float BuildHouseShell(Vector2 center, float width, float depth, Quaternion rotation, string sideName, Terrain terrain, Material timber, Transform root)
+        {
+            float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
+            Vector2 At(float x, float z) => LocalToGround(center, rotation, x, z);
+
+            float floor = float.NegativeInfinity;
+            for (int x = 0; x < FLOOR_SAMPLES; x++)
+                for (int z = 0; z < FLOOR_SAMPLES; z++)
+                    floor = Mathf.Max(floor, Area1BlockoutBuilder.Ground(terrain, At(
+                        Mathf.Lerp(-halfWidth, halfWidth, x / (FLOOR_SAMPLES - 1f)), Mathf.Lerp(-halfDepth, halfDepth, z / (FLOOR_SAMPLES - 1f)))));
+            root.SetPositionAndRotation(new Vector3(center.x, floor, center.y), rotation);
+
+            Area1RemoteSites.Local("Floor", root, timber, new Vector3(0f, -0.15f, 0f), new Vector3(width, 0.3f, depth));
+            Area1RemoteSites.Local($"Wall_{sideName}", root, timber, new Vector3(-halfWidth + WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
+            Area1RemoteSites.Local("Wall_End", root, timber, new Vector3(halfWidth - WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
+            Area1RemoteSites.Local("Wall_Back", root, timber, new Vector3(0f, POST_WALL_HEIGHT * 0.5f, -halfDepth + WALL_THICKNESS * 0.5f), new Vector3(width, POST_WALL_HEIGHT, WALL_THICKNESS));
+            DoorWall("Wall_Front", halfDepth - WALL_THICKNESS * 0.5f, halfWidth, timber, root, POST_DOOR_X, POST_DOOR_WIDTH, POST_DOOR_HEIGHT, POST_WALL_HEIGHT);
+
+            float rise = RoofRise(depth);
+            float slope = halfDepth / Mathf.Cos(ROOF_PITCH * Mathf.Deg2Rad) + 0.5f;
+            foreach (float side in new[] { -1f, 1f })
+            {
+                Transform roof = Area1RemoteSites.Local(side < 0f ? "Roof_Back" : "Roof_Front", root, timber,
+                    new Vector3(0f, POST_WALL_HEIGHT + rise * 0.5f, side * halfDepth * 0.5f), new Vector3(width + 0.8f, 0.2f, slope));
+                roof.localRotation = Quaternion.Euler(side * ROOF_PITCH, 0f, 0f);
+
+                // Stepped, because the room is entered and a square gable leaves sky at both ends.
+                for (int tier = 0; tier < GABLE_TIERS; tier++)
+                {
+                    float height = rise / GABLE_TIERS;
+                    Area1RemoteSites.Local($"{(side < 0f ? $"Gable_{sideName}" : "Gable_End")}_{tier}", root, timber,
+                        new Vector3(side * (halfWidth - WALL_THICKNESS * 0.5f), POST_WALL_HEIGHT + height * (tier + 0.5f), 0f),
+                        new Vector3(WALL_THICKNESS, height, depth * (1f - (tier + 0.5f) / GABLE_TIERS)));
+                }
+            }
+
+            BuildPostUnderside(width, depth, floor, At, terrain, timber, root);
+            BuildPostRamp(At(POST_DOOR_X, halfDepth), rotation * Vector3.forward, floor, terrain, timber, root);
+            return floor;
+        }
+
+        private static float RoofRise(float depth) => depth * 0.5f * Mathf.Tan(ROOF_PITCH * Mathf.Deg2Rad);
+
+        private static void BuildHearth(float halfWidth, float depth, Material stone, Transform root)
+        {
+            const float hearthTop = 1.2f;
+            float x = halfWidth - WALL_THICKNESS - 0.5f;
+            float chimneyTop = POST_WALL_HEIGHT + RoofRise(depth) + 0.7f;
+            Area1RemoteSites.Local("Hearth", root, stone, new Vector3(x, 0.6f, 0f), new Vector3(1f, hearthTop, 1.6f));
+            Area1RemoteSites.Local("Chimney", root, stone, new Vector3(x, (hearthTop + chimneyTop) * 0.5f, 0f), new Vector3(0.7f, chimneyTop - hearthTop, 0.7f));
         }
 
         /// <summary>Posts along both long walls, with boards between them so nothing walks or bakes under the floor.</summary>
@@ -432,7 +512,7 @@ namespace Game.Editor.World
             while (length < POST_RAMP_MAX && TooSteep(length))
                 length += POST_RAMP_STEP;
             if (TooSteep(length))
-                GameLog.Warn(TAG, $"Guard post ramp stops at {POST_RAMP_MAX} m and is still steeper than {POST_RAMP_MAX_ANGLE} degrees.");
+                GameLog.Warn(TAG, $"House ramp stops at {POST_RAMP_MAX} m and is still steeper than {POST_RAMP_MAX_ANGLE} degrees.");
 
             Vector2 foot = door + outward * length;
             Slab("Ramp", new Vector3(door.x, floor, door.y), new Vector3(foot.x, Area1BlockoutBuilder.Ground(terrain, foot), foot.y), root, timber, POST_RAMP_WIDTH);
