@@ -87,13 +87,20 @@ namespace Game.Editor.World
         private const string WORKSHOP_YARD_FEATURE = "workshop-yard";
         private const string COMPOUND_GATE = "CompoundGate";
         private const string STAGING_YARD = "StagingYard";
+        private const string GUARD_POST = "GuardPost";
         private const string COMPOUND_GATE_FEATURE = "compound-gate";
         private const string STAGING_YARD_FEATURE = "staging-yard";
+        private const string GUARD_POST_FEATURE = "guard-post";
         private const float DOCK_GATE_WIDTH = 3f;
-        private static readonly string[] WalkwayIds = { "walkway-canteen" };
+        private static readonly string[] WalkwayIds = { "walkway-canteen", "walkway-guard-post" };
         private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
         private const float WAREHOUSE_MIN_WIDTH = 8f;  // doors, landing and hoist are laid out from the middle
         private const float WAREHOUSE_MIN_DEPTH = 4f;
+        // The room and yard props are fitted to 8 x 5 m, so a size outside these stops the run.
+        private const float GUARD_POST_MIN_WIDTH = 7.8f;
+        private const float GUARD_POST_MAX_WIDTH = 8.5f;
+        private const float GUARD_POST_MIN_DEPTH = 4.5f;
+        private const float GUARD_POST_MAX_DEPTH = 6f;
 
         private const float WALL_TOP = 14f;      // world height: 4 m above the outcrop
         private const float WALL_THICKNESS = 1.2f;
@@ -195,7 +202,7 @@ namespace Game.Editor.World
 
             foreach (string id in new[] { TOWER_FEATURE, HOLLOW_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
                                                  INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, WORKSHOP_YARD_FEATURE,
-                                                 COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE })
+                                                 COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
                 GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
@@ -221,6 +228,15 @@ namespace Game.Editor.World
                 || (float)warehouseZone["w"] < WAREHOUSE_MIN_WIDTH || (float)warehouseZone["d"] < WAREHOUSE_MIN_DEPTH)
             {
                 GameLog.Error(TAG, $"Layout has no usable feature '{WAREHOUSE_FEATURE}'; nothing changed.");
+                return;
+            }
+
+            JObject guardPost = features[GUARD_POST_FEATURE];
+            if (!Area1BlockoutBuilder.IsNumber(guardPost["w"]) || !Area1BlockoutBuilder.IsNumber(guardPost["d"]) || !Area1BlockoutBuilder.IsNumber(guardPost["yaw"])
+                || (float)guardPost["w"] < GUARD_POST_MIN_WIDTH || (float)guardPost["w"] > GUARD_POST_MAX_WIDTH
+                || (float)guardPost["d"] < GUARD_POST_MIN_DEPTH || (float)guardPost["d"] > GUARD_POST_MAX_DEPTH)
+            {
+                GameLog.Error(TAG, $"Layout has no usable feature '{GUARD_POST_FEATURE}'; nothing changed.");
                 return;
             }
 
@@ -269,6 +285,7 @@ namespace Game.Editor.World
             Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(features[DOCK_GATE_FEATURE]), DOCK_GATE_WIDTH, terrain, timber, NewRoot(root.transform, DOCK_GATE));
             Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(compoundGate), (float)compoundGate["width"], terrain, timber, NewRoot(root.transform, COMPOUND_GATE));
             Area1CampInterior.BuildStagingYard(Area1BlockoutBuilder.Position(features[STAGING_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, STAGING_YARD));
+            Area1CampInterior.BuildGuardPost(Area1BlockoutBuilder.Position(guardPost), (float)guardPost["w"], (float)guardPost["d"], (float)guardPost["yaw"], terrain, timber, stone, NewRoot(root.transform, GUARD_POST));
             Area1CampInterior.BuildWorkGangTents(Area1BlockoutBuilder.Position(features[WORK_GANG_FEATURE]), tent, terrain, stone, NewRoot(root.transform, WORK_GANG));
             Area1CampInterior.BuildLatrine(Area1BlockoutBuilder.Position(features[LATRINE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, LATRINE));
             Area1CampInterior.BuildTimberYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, NewRoot(root.transform, TIMBER_YARD));

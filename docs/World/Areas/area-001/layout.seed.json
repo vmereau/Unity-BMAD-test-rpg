@@ -1190,10 +1190,51 @@
       "name": "Staging yard",
       "x": -24,
       "z": 65.5,
-      "w": 24,
-      "d": 9,
-      "art": [],
-      "note": "Cart shed, crates and sacks, low watch post. West of the tents-to-fire strip; keeps north of the delivery road."
+      "w": 30,
+      "d": 12,
+      "art": [
+        "docks-example-1"
+      ],
+      "note": "Cart shed, crates and sacks, smokehouse, net racks and gutting table. West of the tents-to-fire strip; keeps north of the delivery road."
+    },
+    {
+      "id": "guard-post",
+      "kind": "zone",
+      "name": "Dock guard post",
+      "x": -30.5,
+      "z": 48.5,
+      "w": 8,
+      "d": 5,
+      "yaw": -43,
+      "art": [
+        "docks-example-1",
+        "docks-example-2"
+      ],
+      "note": "Enterable guard house in the palisade corner by the compound gate, with lockup cage, tally shed and bell post. Yaw turns its front to the delivery road."
+    },
+    {
+      "id": "walkway-guard-post",
+      "kind": "road",
+      "name": "Guard post walkway",
+      "width": 1.2,
+      "art": [
+        "docks-example-2"
+      ],
+      "note": "Boards from the guard house ramp, round the gate lean-to, to the delivery road. Move the start if the ramp foot moves.",
+      "points": [
+        [
+          -36.3,
+          52.1
+        ],
+        [
+          -34.4,
+          52.7
+        ],
+        [
+          -34.2,
+          55.2
+        ]
+      ]
     },
     {
       "id": "company-road",
@@ -1416,6 +1457,18 @@
       "title": "Dock checkpoint",
       "file": "art/dock-checkpoint.png",
       "note": "Warehouse, hoist and gate look."
+    },
+    {
+      "id": "docks-example-1",
+      "title": "Docks example 1",
+      "file": "art/docks-example-1.png",
+      "note": "Main dock reference: layout, road and cart shed. The compound gate is missing from it."
+    },
+    {
+      "id": "docks-example-2",
+      "title": "Docks example 2",
+      "file": "art/docks-example-2.png",
+      "note": "Guard yard details only. Its road and mid-wall gate are not built."
     }
   ]
 }

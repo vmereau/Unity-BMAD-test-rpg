@@ -15,11 +15,11 @@
 
 ## Overview
 
-> **In Unity (2026-11-05):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The Company house stays on the south outcrop.
+> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, Fight Club Hollow and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, workshop yard, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
-> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`. The new north-west arrival gate replaces the Civilization gate. A full timber palisade rings the camp, with an opening wherever a road crosses. The Company emblem is still open.
+> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`, with the camp under `Camp/` and the docks under `Camp/Docks/`. The new north-west arrival gate replaces the Civilization gate. A full timber palisade rings the camp, with an opening wherever a road crosses. The Company emblem is still open.
 
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
@@ -39,7 +39,8 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Storage Hut** — company-controlled warehouse, built into the north palisade above the docks. Its door faces the camp and its river door leads to the deck. Accessible via warden task (hauling goods).
 - **Workshop** — shared-use tool and repair facility, company-controlled, in the yard by the quarry opening.
 - **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. They stand inside the Company compound, so they are reached through the warehouse, the compound gate on the delivery road, or the bridge path's dock gate. Both gates stand open in the blockout and will be restricted.
-- **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed and a low watch post stands by the delivery road.
+- **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed, smokehouse, net racks and a gutting table stands by the delivery road.
+- **Dock guard post** — a small enterable guard house in the palisade corner by the compound gate, with a lockup cage, a tally shed where goods are counted, and an alarm bell. It watches the gate and the delivery road, and with fishing moved away, workers have no reason to be at the docks at night.
 - **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort ramp, past the mud the workers walk in.
 - **Timber yard** — log stacks and handcarts by the wood opening.
 - **Latrine** — trench behind Wretches' Corner.
@@ -74,7 +75,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 **By day:** Grim and functional. Workers move in silence. Guards visible. Company flags everywhere. The elevated company house watches over everything. Ruins visible on a distant hillside.
 
-**By night:** The camp breathes. Fewer guards, some asleep. Illegal fishing at the docks. Fight club in the hollow. Across the river — a warm light in the treeline. The independent hunter's fire.
+**By night:** The camp breathes. Fewer guards, some asleep. Illegal fishing on the far side of the lake. Fight club in the hollow. Across the river — a warm light in the treeline. The independent hunter's fire.
 
 **Tone:** Oppressive but not hopeless. The injustice is immediate and personal. Freedom is visible — literally — across the river.
 
@@ -171,7 +172,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 | Activity | Time | Location | Notes |
 |----------|------|----------|-------|
-| Illegal fishing | Night | Docks | Guards absent. Black market outlet. |
+| Illegal fishing | Night | Far side of the lake (spot TBD) | Out of the Company's sight. Black market outlet. |
 | Fight club | Night | Fight Club Hollow | Hidden from company sightlines. |
 | Hunter's fire visible | Night | Across river | First contact incentive for independent path. |
 | Black market | Night | Tent area (location TBD) | Different inventory than official shop. |

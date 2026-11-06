@@ -444,3 +444,8 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **[Done 2026-11-05, `spec-area-1-company-compound-road.md`] Paint the camp paths.** The terrain tool now paints them. The Company Road's cobbles take the middle of the inner gate, so the art's deepest mud shows only at its sides.
 - **[Done 2026-11-05, `spec-area-1-company-compound-road.md`] West bank route to the docks.** Closed by the compound fence and gate.
 - **Restrict the dock gate.** `DockGate` stands open. Locking it, or a guard at night, is gameplay for a later spec, along with the guards at the inner gate and warehouse.
+
+## From spec-area-1-dock-guard-post (2026-11-06)
+
+- **Illegal fishing spot.** Moved from the docks to the far side of the lake, in the design doc only. The spot, its route and how workers slip out at night still need designing.
+- **Guard post gameplay.** Guards, door leaves, the lockup and tally shed interactions, the alarm bell, and a possible back way into the compound.
