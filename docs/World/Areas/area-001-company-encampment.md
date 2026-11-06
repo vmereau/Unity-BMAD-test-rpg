@@ -63,7 +63,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 | Player's Zone | Neutral. Worn but not destitute. Card game, tool repair trunk, campfire, low conversation. |
 | Wretches' Corner | Poorest workers. Minimal possessions. Social bottom of the camp. |
 | Mafia Zone | Workers with leverage or muscle. Better-kept tents. Stash owner's territory, run from the gang house. |
-| Fight Pit | About (52.5, 24), by the lake: a round sunken floor inside a raised earth bank, with a screen of tall rocks on the fort side and a gap to the north. Out of sight from the fort, but no secret. Runs at night. See **The Company's Tolerance**. |
+| Fight Pit | About (52.5, 24), by the lake: a round sunken floor inside a raised earth bank, with a gap to the north. A placeholder until the detailed pit is designed: mostly out of sight from the fort, but no secret. Runs at night. See **The Company's Tolerance**. |
 | Lakeside | The open ground between the tents and the shore. Reserved: tents and other uses to be decided. |
 
 ### Exits

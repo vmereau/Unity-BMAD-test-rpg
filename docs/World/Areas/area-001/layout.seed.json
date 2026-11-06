@@ -352,14 +352,18 @@
       "art": [
         "master-2"
       ],
-      "note": "Tall timber palisade from the inner fence to the quarry opening. The stretch east of the old hollow came down when the lakeside opened.",
+      "note": "Tall timber palisade from the inner fence's east end to the quarry opening. A diagonal joins the two; north of the inner fence the lake side is open. Five panels on purpose: panels draw from one seeded sequence, so another count changes the fences after it.",
       "points": [
         [
-          54,
-          11.8
+          54.13,
+          9.5
         ],
         [
-          55.5,
+          56.22,
+          7.42
+        ],
+        [
+          57.23,
           -2.9
         ]
       ]
@@ -586,24 +590,6 @@
         [
           -182,
           3
-        ]
-      ]
-    },
-    {
-      "id": "lake-fence",
-      "kind": "fence",
-      "name": "Palisade, lake end",
-      "width": 1,
-      "art": [],
-      "note": "Carries the palisade from the inner fence's east end towards the lake. Stops short of the shore: it marks a line more than it closes one.",
-      "points": [
-        [
-          54,
-          11.8
-        ],
-        [
-          63.4,
-          15.6
         ]
       ]
     },

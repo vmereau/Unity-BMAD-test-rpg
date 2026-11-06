@@ -68,6 +68,9 @@ context:
 
 - Review pass 1: the audit measured the rail 0.6–2.8 m from the water where it rounded the bank, against the planned 3–7 m. Amended the Design Notes and `shore-rail` to start at (56, 36). Avoids a rail standing at the shoreline. KEEP: pit shape and screen rocks, house, dock, rail volumes. The bank's outer foot crosses natural lake bed below y −2 at its north-east edge; floor and crest stay above water, so the Always rule holds for what is built.
 
+- After sign-off: Valentin removed the `Screen_*` rocks by hand, because a more detailed pit will replace this placeholder, and the Sites tool no longer builds them. The tower top therefore sees the north half of the floor again, and the wall walk sees one of the 17 test points, so the first acceptance criterion no longer holds for those two viewpoints. Avoids a tool run restoring them.
+- After sign-off: Valentin replaced `lake-fence` with hand-placed rocks, moved the east palisade and hand-edited the pit's rocks. `lake-fence` is gone, `outer-fence-4` now follows the moved panels, keeping five panels so later fences keep their seeded heights, and Sites no longer owns `FightPit`. The tall `lake-fence` line in this spec is superseded. Avoids a tool run reverting them.
+
 ## Design Notes
 
 **Pit:** floor radius 5.5 m at about y −0.8, crest at 9 m, outer foot at 12.5 m. Crest is about y 3.5 on the fort side (southwest; the tower sees the site today) and 1–1.5 m over ground elsewhere. The gap faces north, away from the fort. The bank is wider than the sketched circle and reaches the water to the east, so it marks that stretch itself. The rail runs from (56, 36) to the house, 3 m or more inland.

@@ -50,7 +50,6 @@ namespace Game.Editor.World
         private const string RAILS = "BridgeRails";
         private const string BARRICADES = "Barricades";
         private const string OLD_HOLLOW = "Hollow";  // the rock fold the pit replaced; a run deletes it
-        private const string FIGHT_PIT = "FightPit";
         private const string FIRE = "HuntersFire";
         private const string DECK_PREFIX = "SM_WoodPlatformFloorKit";
         private static readonly string[] DockParts = { "DeckFloor_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
@@ -58,7 +57,6 @@ namespace Game.Editor.World
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
         private const string TOWER_FEATURE = "fort-tower";
-        private const string FIGHT_PIT_FEATURE = "fight-pit";
         private const string FIRE_FEATURE = "hunter-fire";
         private const string RUINS = "Ruins";
         private const string QUARRY_DRESSING = "QuarryDressing";
@@ -112,16 +110,6 @@ namespace Game.Editor.World
         private const float GANG_HOUSE_MIN_DEPTH = 5.5f;
         private const float GANG_HOUSE_MAX_DEPTH = 7f;
         private const float GANG_DOCK_MIN_LENGTH = 2f;
-        private const int PIT_ROCKS = 14;
-        private const float PIT_ROCK_SCALE = 0.55f;
-        private const float PIT_ROCK_SINK = 0.3f;
-        private const float PIT_ROCK_GAP_CLEARANCE = 1.5f; // the ground falls away beside the gap, so a rock there overhangs it
-        private const float PIT_POST_HEIGHT = 2.4f;
-        private const int PIT_SCREEN_ROCKS = 8;
-        private const float PIT_SCREEN_SPREAD = 42f;   // degrees either side of the fort: wide enough for the whole floor
-        private const float PIT_SCREEN_OUT = 1f;       // past the crest, so the rocks don't stand in the bowl
-        private const float PIT_SCREEN_SINK = 0.6f;
-        private const float PIT_SCREEN_SCALE = 0.55f;
 
         private const float WALL_TOP = 14f;      // world height: 4 m above the outcrop
         private const float WALL_THICKNESS = 1.2f;
@@ -215,7 +203,7 @@ namespace Game.Editor.World
                 return;
             }
 
-            foreach (string id in new[] { TOWER_FEATURE, FIGHT_PIT_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
+            foreach (string id in new[] { TOWER_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
                                                  INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, WORKSHOP_YARD_FEATURE,
                                                  COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
@@ -252,13 +240,6 @@ namespace Game.Editor.World
                 || (float)guardPost["d"] < GUARD_POST_MIN_DEPTH || (float)guardPost["d"] > GUARD_POST_MAX_DEPTH)
             {
                 GameLog.Error(TAG, $"Layout has no usable feature '{GUARD_POST_FEATURE}'; nothing changed.");
-                return;
-            }
-
-            JObject pitZone = features[FIGHT_PIT_FEATURE];
-            if (!IsUsableFightPit(pitZone))
-            {
-                GameLog.Error(TAG, $"Layout has no usable feature '{FIGHT_PIT_FEATURE}'; nothing changed.");
                 return;
             }
 
@@ -302,7 +283,6 @@ namespace Game.Editor.World
             BuildBarricadeVolumes(barricades, NewRoot(root.transform, BARRICADES));
             Transform oldHollow = root.transform.Find(OLD_HOLLOW);
             if (oldHollow != null) Object.DestroyImmediate(oldHollow.gameObject);
-            BuildFightPit(ReadFightPit(pitZone, features[TOWER_FEATURE]), terrain, timber, rockTall, rockLow, NewRoot(root.transform, FIGHT_PIT));
             BuildFire(Area1BlockoutBuilder.Position(features[FIRE_FEATURE]), terrain, timber, stone, glow, dayNight, NewRoot(root.transform, FIRE));
 
             Area1RemoteSites.BuildRuins(Area1BlockoutBuilder.Position(features[ARCH_FEATURE]), terrain, stone, NewRoot(root.transform, RUINS));
@@ -701,40 +681,6 @@ namespace Game.Editor.World
         {
             Vector2 center = Area1BlockoutBuilder.Position(zone);
             return new Area1TerrainMath.FightPit(center, (float)zone["w"] * 0.5f, Area1BlockoutBuilder.Position(tower) - center, Vector2.up);
-        }
-
-        /// <summary>
-        /// The terrain tool shapes the pit. This adds low rocks along the crest, two posts marking the gap and a screen of tall
-        /// rocks on the fort side: the tower looks down into the bowl, so the bank alone hides only the near half of the floor.
-        /// </summary>
-        private static void BuildFightPit(Area1TerrainMath.FightPit pit, Terrain terrain, Material timber, GameObject rockTall, GameObject rockLow, Transform root)
-        {
-            float crest = Area1TerrainMath.FightPit.CREST_RADIUS;
-            float gapWidth = Area1TerrainMath.FightPit.GAP_HALF_WIDTH + Area1TerrainMath.FightPit.GAP_BLEND + PIT_ROCK_GAP_CLEARANCE;
-            var random = new System.Random(SEED);
-            float gapBearing = Mathf.Atan2(pit.GapFacing.y, pit.GapFacing.x) * Mathf.Rad2Deg;
-            float clearance = Mathf.Asin(gapWidth / crest) * Mathf.Rad2Deg;
-            for (int index = 0; index < PIT_ROCKS; index++)
-            {
-                float bearing = (gapBearing + clearance + (360f - clearance * 2f) * index / (PIT_ROCKS - 1f)) * Mathf.Deg2Rad;
-                Vector2 at = pit.Center + new Vector2(Mathf.Cos(bearing), Mathf.Sin(bearing)) * crest;
-                PlaceRock(rockLow, $"Rock_{index:00}", root, new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at) - PIT_ROCK_SINK, at.y), (float)random.NextDouble() * 360f, Vector3.one * PIT_ROCK_SCALE);
-            }
-
-            float fortBearing = Mathf.Atan2(pit.HighFacing.y, pit.HighFacing.x) * Mathf.Rad2Deg;
-            for (int index = 0; index < PIT_SCREEN_ROCKS; index++)
-            {
-                float bearing = fortBearing + Mathf.Lerp(-PIT_SCREEN_SPREAD, PIT_SCREEN_SPREAD, index / (PIT_SCREEN_ROCKS - 1f));
-                Vector2 at = pit.Center + new Vector2(Mathf.Cos(bearing * Mathf.Deg2Rad), Mathf.Sin(bearing * Mathf.Deg2Rad)) * (crest + PIT_SCREEN_OUT);
-                float height = PIT_SCREEN_SCALE + (float)random.NextDouble() * 0.1f;
-                PlaceRock(rockTall, $"Screen_{index:00}", root, new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at) - PIT_SCREEN_SINK, at.y),
-                    -bearing - 90f + (float)random.NextDouble() * 30f - 15f, new Vector3(1.2f, height, 0.75f));
-            }
-
-            Vector2 across = new Vector2(pit.GapFacing.y, -pit.GapFacing.x) * (Area1TerrainMath.FightPit.GAP_HALF_WIDTH + 0.4f);
-            Vector2 mouth = pit.Center + pit.GapFacing * crest;
-            Area1RemoteSites.Column("GapPost_L", root, timber, terrain, mouth + across, new Vector2(0.25f, 0.25f), PIT_POST_HEIGHT, 0f);
-            Area1RemoteSites.Column("GapPost_R", root, timber, terrain, mouth - across, new Vector2(0.25f, 0.25f), PIT_POST_HEIGHT, 0f);
         }
 
         internal static void PlaceRock(GameObject prefab, string name, Transform parent, Vector3 position, float yaw, Vector3 scale)
