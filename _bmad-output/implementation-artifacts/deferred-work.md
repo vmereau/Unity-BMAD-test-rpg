@@ -457,3 +457,11 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Floating log at (31, 43.5).** `SM_Outskirts_CuttedWoodTrunk` stands about 1.6 m over the ground since the lakeside was flattened. Its collider catches a player walking the slope below it, and the night path runs close by.
 - **Close the shore south of the pit, if wanted.** Hand-placed rocks replaced `lake-fence`, but the shore is still walkable past them at about (68, 14), round to the quarry opening. Valentin will decide later.
 - **Detailed fight pit.** Valentin will design it later. Its sides should hide the floor from the tower top, which sees the north half of the floor now that the rock screen is gone.
+
+## From spec-area-1-fort-hill-limits (2026-11-06)
+
+- **Fort interior.** Valentin will design it. `House` and the big building stand open in the bailey, and the fort rectangle has no trees.
+- **Moving the ramp keeps the old cut.** `Tools/World/Grade Area 1 Fort Ramp` only reshapes ground around the current line, so a moved line leaves the old cut in the sculpt until it's smoothed by hand. Storing the pre-grade heights would let the tool regrade cleanly.
+- **Low stub panel.** The `outer-fence-stub` panel near (-1.9, -52.1) clears the cliff beside it by 1.23 m, under the 1.27 m jump. It only joins the ramp and the camp, which the open `RampGate` joins anyway. Raise it when `RampGate` is closed by gameplay.
+- **Panels only check height along their length.** `BuildPalisade` sets a panel's top from the ground under it, so a cliff beside a panel isn't counted. That is what leaves the stub panel low.
+- **Fort entrances have no gameplay.** Both gates stand open with no guards. Who may use the cart gate, and when, is for a later spec.

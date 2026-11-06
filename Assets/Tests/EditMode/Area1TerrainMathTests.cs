@@ -37,6 +37,55 @@ namespace Tests.EditMode
             new Area1TerrainMath.FightPit(Vector2.zero, 5.5f, Vector2.left, Vector2.up);
 
         [Test]
+        public void GradeAlong_RisesEvenlyOverTheWholeLine()
+        {
+            var line = new[] { Vector2.zero, new Vector2(10f, 0f), new Vector2(10f, 30f) };
+            Assert.AreEqual(1f, Area1TerrainMath.GradeAlong(Vector2.zero, line, 1f, 5f, out _), 1e-5f);
+            Assert.AreEqual(2f, Area1TerrainMath.GradeAlong(new Vector2(10f, 0f), line, 1f, 5f, out _), 1e-5f);
+            Assert.AreEqual(5f, Area1TerrainMath.GradeAlong(new Vector2(10f, 30f), line, 1f, 5f, out _), 1e-5f);
+        }
+
+        [Test]
+        public void GradeAlong_ReportsTheDistanceFromTheLine()
+        {
+            var line = new[] { Vector2.zero, new Vector2(10f, 0f) };
+            Area1TerrainMath.GradeAlong(new Vector2(5f, 2.5f), line, 0f, 1f, out float distance);
+            Assert.AreEqual(2.5f, distance, 1e-5f);
+        }
+
+        [Test]
+        public void GradedHeight_AcrossTheRoad_IsTheTarget()
+        {
+            Assert.AreEqual(5f, Area1TerrainMath.GradedHeight(9f, 0f, 5f, 3f), 1e-5f);
+            Assert.AreEqual(5f, Area1TerrainMath.GradedHeight(1f, 3f, 5f, 3f), 1e-5f);
+        }
+
+        [Test]
+        public void GradedHeight_Bank_LeavesGroundItClears()
+        {
+            Assert.AreEqual(10f, Area1TerrainMath.GradedHeight(10f, 9f, 1.5f, 3f), 1e-5f); // the rim above the ramp's foot
+            Assert.AreEqual(0.5f, Area1TerrainMath.GradedHeight(0.5f, 9f, 7f, 3f), 1e-5f);
+        }
+
+        [Test]
+        public void GradedHeight_Bank_SteepensWithDistance()
+        {
+            float first = Area1TerrainMath.GradedHeight(20f, 4f, 0f, 3f);
+            float second = Area1TerrainMath.GradedHeight(20f, 5f, 0f, 3f) - first;
+            float third = Area1TerrainMath.GradedHeight(20f, 6f, 0f, 3f) - first - second;
+            Assert.Greater(first, 0f);
+            Assert.Greater(second, first);
+            Assert.Greater(third, second);
+        }
+
+        [Test]
+        public void GradedHeight_SecondPass_ChangesNothing([Values(0f, 2f, 3.5f, 5f, 8f)] float distance, [Values(-4f, 0.5f, 6f, 12f)] float ground)
+        {
+            float once = Area1TerrainMath.GradedHeight(ground, distance, 4f, 3f);
+            Assert.AreEqual(once, Area1TerrainMath.GradedHeight(once, distance, 4f, 3f), 1e-5f);
+        }
+
+        [Test]
         public void FightPit_Floor_IsLoweredEvenly()
         {
             Assert.AreEqual(-1.4f, Pit.Offset(Vector2.zero), 1e-5f);

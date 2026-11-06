@@ -271,8 +271,12 @@
       "note": "Tall timber palisade. Openings are left where roads cross.",
       "points": [
         [
-          -2.7,
-          -52.2
+          -9.63,
+          -51.37
+        ],
+        [
+          -11.5,
+          -49.5
         ],
         [
           -31.5,
@@ -352,7 +356,7 @@
       "art": [
         "master-2"
       ],
-      "note": "Tall timber palisade from the inner fence's east end to the quarry opening. A diagonal joins the two; north of the inner fence the lake side is open. Five panels on purpose: panels draw from one seeded sequence, so another count changes the fences after it.",
+      "note": "Tall timber palisade from the inner fence's east end to the quarry opening. A diagonal joins the two; north of the inner fence the lake side is open.",
       "points": [
         [
           54.13,
@@ -385,34 +389,6 @@
         [
           39,
           -37.7
-        ]
-      ]
-    },
-    {
-      "id": "outer-fence-6",
-      "kind": "fence",
-      "name": "Palisade, south",
-      "width": 1,
-      "art": [
-        "master-2"
-      ],
-      "note": "Closes the ring behind the outcrop, south of the trough, so the back alley stays inside the camp.",
-      "points": [
-        [
-          39,
-          -37.7
-        ],
-        [
-          38,
-          -50
-        ],
-        [
-          20,
-          -57
-        ],
-        [
-          -2.7,
-          -52.2
         ]
       ]
     },
@@ -689,10 +665,10 @@
       "id": "zone-3",
       "kind": "zone",
       "name": "Company house / fort",
-      "x": -2.7,
-      "z": -42.2,
-      "w": 79.9,
-      "d": 29.1,
+      "x": 24.5,
+      "z": -52,
+      "w": 54,
+      "d": 44,
       "art": [],
       "note": ""
     },
@@ -717,7 +693,7 @@
       "art": [
         "fort"
       ],
-      "note": "Tower to the ruin pieces at the gate. The ruin pillars are the only opening.",
+      "note": "Tower to the ruin pieces at the gate. The ruin pillars are the foot entrance.",
       "points": [
         [
           0.8,
@@ -740,12 +716,12 @@
     {
       "id": "fort-wall-west",
       "kind": "fence",
-      "name": "Fort wall, west and south",
+      "name": "Fort wall, west",
       "width": 1,
       "art": [
         "fort"
       ],
-      "note": "Tower along the rim, round the south tip, into the House. Replaces the old outcrop-edge blocker.",
+      "note": "Tower down the west rim to the north pier of the cart gate, facing the ramp.",
       "points": [
         [
           0.8,
@@ -760,32 +736,20 @@
           -48.5
         ],
         [
-          1.5,
-          -50.3
+          0.6,
+          -52
         ],
         [
-          5,
-          -50.3
+          2.6,
+          -56
         ],
         [
-          7.5,
-          -49.6
+          5.4,
+          -61.5
         ],
         [
-          9.2,
-          -48.8
-        ],
-        [
-          11,
-          -47.4
-        ],
-        [
-          13,
-          -45.1
-        ],
-        [
-          19.4,
-          -45.1
+          6.8,
+          -63.9
         ]
       ]
     },
@@ -797,31 +761,27 @@
       "art": [
         "fort"
       ],
-      "note": "House to SM_Ruin_04 along the rim; the Company cliff rocks stop at outcrop height.",
+      "note": "SM_Ruin_04 along the north rim to the hill palisade. Stays south of the rim notch, so the hoist's rim frame is outside it.",
       "points": [
         [
-          24.9,
-          -43.8
-        ],
-        [
-          27.5,
-          -41.3
-        ],
-        [
           30,
-          -38.5
-        ],
-        [
-          32.3,
-          -35.8
+          -32.1
         ],
         [
           32,
           -33.6
         ],
         [
-          30,
-          -32.1
+          32.3,
+          -35.8
+        ],
+        [
+          35.5,
+          -37
+        ],
+        [
+          39,
+          -37.7
         ]
       ]
     },
@@ -1519,6 +1479,286 @@
           57.9
         ]
       ]
+    },
+    {
+      "id": "outer-fence-stub",
+      "kind": "fence",
+      "name": "Palisade, ramp gate to rim",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Closes the ring between the ramp gate and the fort's west wall.",
+      "points": [
+        [
+          -4.17,
+          -50.63
+        ],
+        [
+          -2.7,
+          -52.2
+        ],
+        [
+          0.6,
+          -52
+        ]
+      ]
+    },
+    {
+      "id": "hill-palisade",
+      "kind": "fence",
+      "name": "Palisade, hill rim",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "The back of the fort: from outer-fence-5's end round the east and south rims to the south pier of the cart gate, about 1.5 m inside the rim.",
+      "points": [
+        [
+          39,
+          -37.7
+        ],
+        [
+          42,
+          -36.2
+        ],
+        [
+          44.5,
+          -35.6
+        ],
+        [
+          47.5,
+          -36.5
+        ],
+        [
+          48.8,
+          -39
+        ],
+        [
+          48.8,
+          -50
+        ],
+        [
+          47.5,
+          -57
+        ],
+        [
+          45.2,
+          -61
+        ],
+        [
+          43.6,
+          -65
+        ],
+        [
+          41,
+          -69
+        ],
+        [
+          37,
+          -70.3
+        ],
+        [
+          33,
+          -69.8
+        ],
+        [
+          26,
+          -69.5
+        ],
+        [
+          19,
+          -68.6
+        ],
+        [
+          14,
+          -67.8
+        ],
+        [
+          11.3,
+          -68
+        ]
+      ]
+    },
+    {
+      "id": "ramp-gate",
+      "kind": "point",
+      "name": "Ramp gate",
+      "x": -6.9,
+      "z": -51,
+      "width": 5.5,
+      "yaw": 82.4,
+      "art": [
+        "fort"
+      ],
+      "note": "Where the fort ramp passes through the palisade, square to the road. Local +X faces out of the camp, so the leaves swing back beside the ramp."
+    },
+    {
+      "id": "fort-cart-gate",
+      "kind": "point",
+      "name": "Fort cart gate",
+      "x": 9.2,
+      "z": -66.2,
+      "width": 5.5,
+      "yaw": -48.7,
+      "art": [
+        "fort"
+      ],
+      "note": "Wide entrance at the top of the ramp, between stone piers. Local +X faces into the fort."
+    },
+    {
+      "id": "ramp-rail",
+      "kind": "fence",
+      "name": "Ramp rail",
+      "width": 1,
+      "art": [
+        "fort"
+      ],
+      "note": "Unbroken rail along the ramp's outer edge, built by Camp Edge.",
+      "points": [
+        [
+          -9.63,
+          -51.37
+        ],
+        [
+          -10.2,
+          -52.4
+        ],
+        [
+          -10,
+          -55
+        ],
+        [
+          -9,
+          -57.5
+        ],
+        [
+          -7.5,
+          -62.3
+        ],
+        [
+          -4.5,
+          -66.7
+        ],
+        [
+          0.5,
+          -70.4
+        ],
+        [
+          5.8,
+          -71.3
+        ],
+        [
+          9,
+          -70.3
+        ],
+        [
+          11,
+          -68.6
+        ]
+      ]
+    },
+    {
+      "id": "path-fort-road",
+      "kind": "road",
+      "name": "Path: fort road",
+      "width": 4,
+      "art": [
+        "fort"
+      ],
+      "note": "Paint only: Company Road to the ramp foot, west of the wooden cover at (-9, -46).",
+      "points": [
+        [
+          3.5,
+          -1
+        ],
+        [
+          -3,
+          -10
+        ],
+        [
+          -7,
+          -22
+        ],
+        [
+          -8.6,
+          -33
+        ],
+        [
+          -10,
+          -40
+        ],
+        [
+          -12.8,
+          -44.5
+        ],
+        [
+          -12,
+          -47.5
+        ],
+        [
+          -7.2,
+          -48.5
+        ]
+      ]
+    },
+    {
+      "id": "path-fort-ramp",
+      "kind": "road",
+      "name": "Path: fort ramp",
+      "width": 5,
+      "art": [
+        "fort"
+      ],
+      "note": "The graded cart ramp, foot to fort. Tools/World/Grade Area 1 Fort Ramp shapes the ground along it; capture the sculpt afterwards.",
+      "points": [
+        [
+          -7.2,
+          -48.5
+        ],
+        [
+          -6.6,
+          -53
+        ],
+        [
+          -6.3,
+          -57
+        ],
+        [
+          -5,
+          -61
+        ],
+        [
+          -2.5,
+          -64.7
+        ],
+        [
+          1.5,
+          -67.8
+        ],
+        [
+          4.4,
+          -68.6
+        ],
+        [
+          6.4,
+          -68.3
+        ],
+        [
+          8,
+          -67.3
+        ],
+        [
+          9.2,
+          -66.2
+        ],
+        [
+          11.5,
+          -63.7
+        ]
+      ],
+      "foot": 0.7,
+      "head": 9.95
     }
   ],
   "decisions": [

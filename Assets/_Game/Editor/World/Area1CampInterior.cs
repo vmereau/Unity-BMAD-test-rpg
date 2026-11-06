@@ -181,24 +181,33 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// A gate across a north-south fence line, with the guard post on its east side. It stands open in the blockout, so the
-        /// route stays walkable; restricting it is later gameplay.
+        /// A gate with its road along local X, turned clockwise from above by <paramref name="yaw"/>. The leaves swing back along
+        /// local +X and the guard post stands on that side. It stands open in the blockout, so the route stays walkable;
+        /// restricting it is later gameplay.
         /// </summary>
-        internal static void BuildGate(Vector2 gate, float width, Terrain terrain, Material timber, Transform root)
+        internal static void BuildGate(Vector2 gate, float width, Terrain terrain, Material timber, Transform root, float yaw = 0f, bool guardPost = true)
         {
             float half = width * 0.5f;
-            Vector2 south = gate + new Vector2(0f, -half), north = gate + new Vector2(0f, half);
+            Vector2 south = GateOffset(gate, new Vector2(0f, -half), yaw), north = GateOffset(gate, new Vector2(0f, half), yaw);
             float southGround = Area1BlockoutBuilder.Ground(terrain, south), northGround = Area1BlockoutBuilder.Ground(terrain, north);
             float top = Mathf.Max(southGround, northGround) + GATE_HEIGHT; // the bank falls across the gate, so both posts reach one top
-            Area1RemoteSites.Column("Post_South", root, timber, terrain, south, new Vector2(0.5f, 0.5f), top - southGround, 0f);
-            Area1RemoteSites.Column("Post_North", root, timber, terrain, north, new Vector2(0.5f, 0.5f), top - northGround, 0f);
-            Area1BlockoutBuilder.Box("Lintel", root, timber, new Vector3(gate.x, top, gate.y), new Vector3(0.35f, 0.35f, width + 0.8f));
+            Area1RemoteSites.Column("Post_South", root, timber, terrain, south, new Vector2(0.5f, 0.5f), top - southGround, yaw);
+            Area1RemoteSites.Column("Post_North", root, timber, terrain, north, new Vector2(0.5f, 0.5f), top - northGround, yaw);
+            Transform lintel = Area1BlockoutBuilder.Box("Lintel", root, timber, new Vector3(gate.x, top, gate.y), new Vector3(0.35f, 0.35f, width + 0.8f));
+            lintel.rotation = Quaternion.Euler(0f, yaw, 0f);
 
             float leafX = half * 0.5f + 0.15f; // each leaf is half the gate's width, swung back along the road
-            Area1RemoteSites.Column("Leaf_South", root, timber, terrain, gate + new Vector2(leafX, -half - 0.1f), new Vector2(half, 0.12f), 2.6f, -4f);
-            Area1RemoteSites.Column("Leaf_North", root, timber, terrain, gate + new Vector2(leafX, half + 0.1f), new Vector2(half, 0.12f), 2.6f, 4f);
+            Area1RemoteSites.Column("Leaf_South", root, timber, terrain, GateOffset(gate, new Vector2(leafX, -half - 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw - 4f);
+            Area1RemoteSites.Column("Leaf_North", root, timber, terrain, GateOffset(gate, new Vector2(leafX, half + 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw + 4f);
 
-            Area1RemoteSites.BuildLeanTo("GuardPost", gate + new Vector2(half + 1.7f, -half - 0.4f), Vector2.up, terrain, timber, root); // long side along the bank
+            if (guardPost)
+                Area1RemoteSites.BuildLeanTo("GuardPost", GateOffset(gate, new Vector2(half + 1.7f, -half - 0.4f), yaw), GateOffset(Vector2.zero, Vector2.up, yaw), terrain, timber, root); // long side along the bank
+        }
+
+        internal static Vector2 GateOffset(Vector2 gate, Vector2 local, float yaw)
+        {
+            Vector3 turned = Quaternion.Euler(0f, yaw, 0f) * new Vector3(local.x, 0f, local.y);
+            return gate + new Vector2(turned.x, turned.z);
         }
 
         internal static void BuildWorkGangTents(Vector2 center, GameObject tent, Terrain terrain, Material stone, Transform root)

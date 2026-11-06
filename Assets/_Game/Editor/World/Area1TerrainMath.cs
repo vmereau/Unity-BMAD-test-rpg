@@ -7,6 +7,8 @@ namespace Game.Editor.World
     public static class Area1TerrainMath
     {
         private const float GAP_TOLERANCE = 1f;
+        private const float BANK_SLOPE = 0.6f;  // rise per metre at the road's edge
+        private const float BANK_CURVE = 0.4f;  // past about 5 m the bank clears anything on the hill
 
         /// <summary>Smooth ramp: 0 at or below <paramref name="from"/>, 1 at or above <paramref name="to"/>.</summary>
         public static float Ramp(float value, float from, float to)
@@ -126,6 +128,25 @@ namespace Game.Editor.World
         /// <summary>Lowers <paramref name="height"/> to a flat floor within <paramref name="halfWidth"/>, with walls at <paramref name="slope"/> beyond it.</summary>
         public static float CutCleft(float height, float distance, float floor, float halfWidth, float slope) =>
             Mathf.Min(height, floor + slope * Mathf.Max(distance - halfWidth, 0f));
+
+        /// <summary>Road height for a point: an even grade from <paramref name="foot"/> to <paramref name="head"/> along the line.</summary>
+        public static float GradeAlong(Vector2 point, IReadOnlyList<Vector2> line, float foot, float head, out float distance)
+        {
+            distance = PolylineDistance(point, line, out float along);
+            return Mathf.Lerp(foot, head, along);
+        }
+
+        /// <summary>
+        /// Height of graded ground: <paramref name="target"/> across the road, then the old ground held within a bank that steepens
+        /// with distance, so it meets a cliff on its own instead of cutting back to the rim. Graded ground stays inside its own
+        /// bank, so a second pass changes nothing.
+        /// </summary>
+        public static float GradedHeight(float ground, float distance, float target, float halfWidth)
+        {
+            float past = Mathf.Max(distance - halfWidth, 0f);
+            float bank = past * (BANK_SLOPE + past * BANK_CURVE);
+            return Mathf.Clamp(ground, target - bank, target + bank);
+        }
 
         /// <summary>The fight pit's shape. Radii are in metres from the centre; heights are offsets over the ground.</summary>
         public readonly struct FightPit

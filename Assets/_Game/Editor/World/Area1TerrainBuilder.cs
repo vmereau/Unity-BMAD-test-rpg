@@ -84,6 +84,9 @@ namespace Game.Editor.World
         private const string FIGHT_PIT_FEATURE = "fight-pit";
         private const string LAKESIDE_FEATURE = "lakeside";
         private const string FORT_TOWER_FEATURE = "fort-tower";
+        private const string FORT_ZONE_FEATURE = "zone-3";
+        private const string FORT_RAMP_FEATURE = "path-fort-ramp";
+        private const float FORT_RAMP_TREE_CLEARANCE = 6.5f; // from its centre line: the road, its rail and the rail's gate end
         private const string GANG_HOUSE_FEATURE = "gang-house";
         private const float GANG_HOUSE_TREE_CLEARANCE = 14f; // from its centre: covers the house, deck and dock
         private const string COMPANY_ROAD = "company-road";
@@ -159,6 +162,8 @@ namespace Game.Editor.World
             public Math.FightPit Pit;
             public Vector2 LakesideCenter, LakesideSize;
             public Vector2 GangHouse;
+            public Vector2 FortCenter, FortSize;
+            public Vector2[] FortRamp;
             public Vector2[][] Corridors;
             public Vector2 Fire;
             public Vector2 Ford;
@@ -717,6 +722,8 @@ namespace Game.Editor.World
             if (Math.RectDistance(p, layout.LakesideCenter, layout.LakesideSize) < 4f) return false;
             if (Vector2.Distance(p, layout.Pit.Center) < Math.FightPit.FOOT_RADIUS + 4f) return false;
             if (Vector2.Distance(p, layout.GangHouse) < GANG_HOUSE_TREE_CLEARANCE) return false;
+            if (Math.InsideRect(p, layout.FortCenter, layout.FortSize)) return false;
+            if (Math.PolylineDistance(p, layout.FortRamp, out _) < FORT_RAMP_TREE_CLEARANCE) return false;
             if (Vector2.Distance(p, CampCenter) < 62f) return false;
             foreach (Shape s in KeptRects)
                 if (Math.RectDistance(p, s.Center, s.Size) < 6f) return false;
@@ -791,11 +798,17 @@ namespace Game.Editor.World
                 return false;
             }
 
-            foreach (string id in new[] { FIGHT_PIT_FEATURE, LAKESIDE_FEATURE })
+            foreach (string id in new[] { FIGHT_PIT_FEATURE, LAKESIDE_FEATURE, FORT_ZONE_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject zone) && Area1BlockoutBuilder.HasPosition(zone)
                     && Area1BlockoutBuilder.IsNumber(zone["w"]) && Area1BlockoutBuilder.IsNumber(zone["d"]) && (float)zone["w"] > 0f && (float)zone["d"] > 0f) continue;
                 problem = $"Layout has no usable feature '{id}'";
+                return false;
+            }
+
+            if (!features.TryGetValue(FORT_RAMP_FEATURE, out JObject fortRamp) || !Area1BlockoutBuilder.HasPoints(fortRamp))
+            {
+                problem = $"Layout has no usable feature '{FORT_RAMP_FEATURE}'";
                 return false;
             }
 
@@ -846,6 +859,9 @@ namespace Game.Editor.World
                 CompoundSize = new Vector2((float)compound["w"], (float)compound["d"]),
                 Pit = Area1SitesBuilder.ReadFightPit(features[FIGHT_PIT_FEATURE], features[FORT_TOWER_FEATURE]),
                 GangHouse = Position(features[GANG_HOUSE_FEATURE]),
+                FortCenter = Position(features[FORT_ZONE_FEATURE]),
+                FortSize = new Vector2((float)features[FORT_ZONE_FEATURE]["w"], (float)features[FORT_ZONE_FEATURE]["d"]),
+                FortRamp = Points(features[FORT_RAMP_FEATURE]),
                 LakesideCenter = Position(lakeside),
                 LakesideSize = new Vector2((float)lakeside["w"], (float)lakeside["d"]),
                 Corridors = new[]

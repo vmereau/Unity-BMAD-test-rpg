@@ -24,13 +24,14 @@ namespace Game.Editor.World
 
         private static readonly string[] FenceIds =
         {
-            "outer-fence", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "outer-fence-6",
+            "outer-fence", "outer-fence-stub", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "hill-palisade",
             "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
-            "compound-fence-upper", "compound-fence-lower", // keep new lines last: panels draw from one seeded sequence
+            "compound-fence-upper", "compound-fence-lower",
         };
 
         private const string WAREHOUSE_FEATURE = "warehouse";
         private const string SHORE_RAIL_FEATURE = "shore-rail";
+        private const string RAMP_RAIL_FEATURE = "ramp-rail";
 
         private const string BLOCKER_LAYER = "Ignore Raycast";
 
@@ -66,6 +67,7 @@ namespace Game.Editor.World
         private const float SHORE_RAIL_POST_BURY = 0.4f;
         private const float SHORE_RAIL_SAG = 0.12f;       // ends sit at different heights, so it reads as neglected
         private const float SHORE_RAIL_NAV_MARGIN = 0.35f; // agent radius: Not Walkable areas aren't eroded
+        private const float RAMP_RAIL_POST_HEIGHT = 1.1f;  // waist-high on the drop, where the shore rail only marks a line
 
         [MenuItem("Tools/World/Build Area 1 Camp Edge")]
         public static void Build()
@@ -101,7 +103,8 @@ namespace Game.Editor.World
             int panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
             BuildArrivalGate(features, terrain, timber, edge);
             BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint);
-            BuildShoreRail(features[SHORE_RAIL_FEATURE], terrain, timber, edge);
+            BuildRail("ShoreRail", features[SHORE_RAIL_FEATURE], SHORE_RAIL_GAP_EVERY, SHORE_RAIL_POST_HEIGHT, terrain, timber, edge);
+            BuildRail("RampRail", features[RAMP_RAIL_FEATURE], 0, RAMP_RAIL_POST_HEIGHT, terrain, timber, edge);
 
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {PositionHash(edge)}. Rebake the NavMesh.");
@@ -109,7 +112,6 @@ namespace Game.Editor.World
 
         private static int BuildPalisade(Dictionary<string, JObject> features, Terrain terrain, Material timber, Transform edge, Vector2 breakPoint)
         {
-            var random = new System.Random(SEED);
             int count = 0;
             JObject warehouse = features[WAREHOUSE_FEATURE];
             Vector2 warehouseAt = Position(warehouse);
@@ -119,6 +121,7 @@ namespace Game.Editor.World
                 var group = new GameObject(id).transform;
                 group.SetParent(edge, false);
 
+                var random = new System.Random(SEED ^ StableHash(id)); // from the id, so adding or changing a line leaves the others' heights alone
                 foreach ((Vector2 start, Vector2 end) in Area1TerrainMath.CutPanels(Points(features[id]), PANEL_LENGTH, breakPoint, BREAK_HALF_WIDTH))
                 {
                     float jitter = ((float)random.NextDouble() * 2f - 1f) * PANEL_JITTER; // drawn first, so a skipped panel leaves the rest alone
@@ -166,10 +169,10 @@ namespace Game.Editor.World
             tower.rotation = Yaw(across);
         }
 
-        /// <summary>Marks a line the Company doesn't defend: knee-high, with a walkable gap after every stretch.</summary>
-        private static void BuildShoreRail(JObject feature, Terrain terrain, Material timber, Transform edge)
+        /// <summary>A post-and-bar line that follows the ground. With <paramref name="gapEvery"/> above 0, that piece is left out each time, as a walkable gap.</summary>
+        private static void BuildRail(string name, JObject feature, int gapEvery, float postHeight, Terrain terrain, Material timber, Transform edge)
         {
-            var rail = new GameObject("ShoreRail").transform;
+            var rail = new GameObject(name).transform;
             rail.SetParent(edge, false);
 
             var random = new System.Random(SEED);
@@ -177,19 +180,20 @@ namespace Game.Editor.World
             foreach ((Vector2 a, Vector2 b) in Area1TerrainMath.CutPanels(Points(feature), SHORE_RAIL_PIECE, Vector2.zero, 0f))
             {
                 float sag = (float)random.NextDouble() * SHORE_RAIL_SAG;
-                if (++index % SHORE_RAIL_GAP_EVERY == 0) continue;
+                index++;
+                if (gapEvery > 0 && index % gapEvery == 0) continue;
 
                 float groundA = Ground(terrain, a), groundB = Ground(terrain, b);
                 foreach ((Vector2 at, float ground, string end) in new[] { (a, groundA, "A"), (b, groundB, "B") })
                 {
                     float bottom = ground - SHORE_RAIL_POST_BURY;
-                    float height = SHORE_RAIL_POST_HEIGHT + SHORE_RAIL_POST_BURY;
+                    float height = postHeight + SHORE_RAIL_POST_BURY;
                     Box($"Post_{index:00}_{end}", rail, timber, new Vector3(at.x, bottom + height * 0.5f, at.y),
                         new Vector3(SHORE_RAIL_POST_WIDTH, height, SHORE_RAIL_POST_WIDTH));
                 }
 
-                var from = new Vector3(a.x, groundA + SHORE_RAIL_POST_HEIGHT - sag, a.y);
-                var to = new Vector3(b.x, groundB + SHORE_RAIL_POST_HEIGHT, b.y);
+                var from = new Vector3(a.x, groundA + postHeight - sag, a.y);
+                var to = new Vector3(b.x, groundB + postHeight, b.y);
                 Transform bar = Box($"Bar_{index:00}", rail, timber, (from + to) * 0.5f, new Vector3(SHORE_RAIL_BAR, SHORE_RAIL_BAR, Vector3.Distance(from, to)));
                 bar.rotation = Quaternion.LookRotation(to - from);
 
@@ -294,6 +298,18 @@ namespace Game.Editor.World
         internal static float Ground(Terrain terrain, Vector2 p) =>
             terrain.SampleHeight(new Vector3(p.x, 0f, p.y)) + terrain.transform.position.y;
 
+        /// <summary>FNV-1a, because string.GetHashCode can change between runs.</summary>
+        private static int StableHash(string text)
+        {
+            uint hash = 2166136261;
+            foreach (char c in text)
+            {
+                hash ^= c;
+                hash *= 16777619;
+            }
+            return (int)hash;
+        }
+
         /// <summary>FNV-1a over child positions, for comparing two runs.</summary>
         private static uint PositionHash(Transform root)
         {
@@ -332,7 +348,7 @@ namespace Game.Editor.World
 
             string missing = FenceIds.FirstOrDefault(id => !found.TryGetValue(id, out JObject fence) || !HasPoints(fence))
                 ?? new[] { "fence-break", "arrival-gate" }.FirstOrDefault(id => !found.TryGetValue(id, out JObject point) || !HasPosition(point))
-                ?? (found.TryGetValue(SHORE_RAIL_FEATURE, out JObject rail) && HasPoints(rail) ? null : SHORE_RAIL_FEATURE);
+                ?? new[] { SHORE_RAIL_FEATURE, RAMP_RAIL_FEATURE }.FirstOrDefault(id => !found.TryGetValue(id, out JObject rail) || !HasPoints(rail));
             if (missing != null)
             {
                 problem = $"Layout has no usable feature '{missing}'";

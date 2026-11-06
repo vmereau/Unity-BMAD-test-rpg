@@ -57,6 +57,10 @@ namespace Game.Editor.World
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
         private const string TOWER_FEATURE = "fort-tower";
+        private const string RAMP_GATE = "RampGate";
+        private const string RAMP_GATE_FEATURE = "ramp-gate";
+        private const string CART_GATE_FEATURE = "fort-cart-gate";
+        private static readonly string[] FortPathIds = { "path-fort-road", "path-fort-ramp" };
         private const string FIRE_FEATURE = "hunter-fire";
         private const string RUINS = "Ruins";
         private const string QUARRY_DRESSING = "QuarryDressing";
@@ -122,6 +126,8 @@ namespace Game.Editor.World
         private const float WALL_THICKNESS = 1.2f;
         private const float WALL_PANEL = 3f;
         private const float WALL_BURY = 1.5f;
+        private const float CART_PIER_WIDTH = 2f;
+        private const float CART_PIER_RISE = 1f;  // over the wall top
         private const float HOARDING_HEIGHT = 1.2f;
         private const float HOARDING_THICKNESS = 0.25f;
         private const float TOWER_WIDTH = 4f;    // clears SM_smallStoneE_a1
@@ -238,6 +244,21 @@ namespace Game.Editor.World
                 return;
             }
 
+            foreach (string id in new[] { RAMP_GATE_FEATURE, CART_GATE_FEATURE })
+            {
+                if (features.TryGetValue(id, out JObject gate) && Area1BlockoutBuilder.HasPosition(gate)
+                    && Area1BlockoutBuilder.IsNumber(gate["width"]) && (float)gate["width"] > 0f && Area1BlockoutBuilder.IsNumber(gate["yaw"])) continue;
+                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
+                return;
+            }
+
+            foreach (string id in FortPathIds)
+            {
+                if (features.TryGetValue(id, out JObject path) && Area1BlockoutBuilder.HasPoints(path)) continue;
+                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
+                return;
+            }
+
             // Only the terrain tool reads it, and it skips a missing path without a word.
             if (!features.TryGetValue(SLEDGE_PATH_FEATURE, out JObject sledgePath) || !Area1BlockoutBuilder.HasPoints(sledgePath))
             {
@@ -303,6 +324,8 @@ namespace Game.Editor.World
             BuildRuinsRing(line, ruins2, quarry);
 
             BuildFort(features, terrain, stone, timber, NewRoot(root.transform, FORT));
+            JObject rampGate = features[RAMP_GATE_FEATURE];
+            Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(rampGate), (float)rampGate["width"], terrain, timber, NewRoot(root.transform, RAMP_GATE), (float)rampGate["yaw"], guardPost: false); // rocks on one side, the road on the other
             ClearDockParts(docks);
             BuildDocks(deck, timber, docks);
             BuildBridgeRails(bridgeDeck, timber, NewRoot(root.transform, RAILS));
@@ -438,8 +461,9 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// Old stone with new timber on top. Each line ends inside something solid: the tower, the House or a ruin piece, so
-        /// the ruin's pillars stay the only way in. The lines keep to the rim, so no panel reaches down into the chamber.
+        /// Old stone with new timber on top. Each line ends inside something solid: the tower, a ruin piece, a cart gate pier or
+        /// the hill palisade, so the ruin's pillars and the cart gate stay the only ways in. The lines keep to the rim, so no panel
+        /// reaches down into the chamber.
         /// </summary>
         private static void BuildFort(Dictionary<string, JObject> features, Terrain terrain, Material stone, Material timber, Transform fort)
         {
@@ -475,6 +499,25 @@ namespace Game.Editor.World
             }
 
             BuildTower(Area1BlockoutBuilder.Position(features[TOWER_FEATURE]), terrain, stone, fort);
+            BuildCartGate(features[CART_GATE_FEATURE], terrain, stone, timber, fort);
+        }
+
+        /// <summary>The timber gate of the ramp, between two stone piers that end the west wall and the hill palisade.</summary>
+        private static void BuildCartGate(JObject feature, Terrain terrain, Material stone, Material timber, Transform fort)
+        {
+            var gate = new GameObject("CartGate").transform;
+            gate.SetParent(fort, false);
+
+            Vector2 at = Area1BlockoutBuilder.Position(feature);
+            float width = (float)feature["width"], yaw = (float)feature["yaw"];
+            Area1CampInterior.BuildGate(at, width, terrain, timber, gate, yaw);
+
+            foreach ((string name, float side) in new[] { ("Pier_South", -1f), ("Pier_North", 1f) })
+            {
+                Vector2 pier = Area1CampInterior.GateOffset(at, new Vector2(0f, side * (width * 0.5f + CART_PIER_WIDTH * 0.5f)), yaw);
+                float height = WALL_TOP + CART_PIER_RISE - Area1BlockoutBuilder.Ground(terrain, pier);
+                Area1RemoteSites.Column(name, gate, stone, terrain, pier, new Vector2(CART_PIER_WIDTH, CART_PIER_WIDTH), height, yaw);
+            }
         }
 
         private static void AddShed(Vector2[] line, Material stone, Material timber, Transform parent)

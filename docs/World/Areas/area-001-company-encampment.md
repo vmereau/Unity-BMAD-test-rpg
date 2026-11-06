@@ -19,7 +19,7 @@
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
-> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`, with the camp under `Camp/` and the docks under `Camp/Docks/`. The new north-west arrival gate replaces the Civilization gate. A timber palisade rings the camp, with an opening wherever a road crosses, except on the lake side, which stands open. The Company emblem is still open.
+> **Art decisions:** the Company house becomes an old stone fort with a tower on the outcrop, repaired with timber. Its walls now follow the whole plateau rim: stone facing the camp and the ramp, timber palisade on the back. The interior is still to be designed. The quarry passage stays a hidden crack that a worker sealed with rubble and planks, not a visible door. Reference images: `Assets/_Game/Art/Artworks/Starting area/`, with the camp under `Camp/` and the docks under `Camp/Docks/`. The new north-west arrival gate replaces the Civilization gate. A timber palisade rings the camp, with an opening wherever a road crosses, except on the lake side, which stands open. The Company emblem is still open.
 
 The Company Encampment is the player's arrival point and prologue zone. It is a remote frontier labor camp run by the Company — grim, barely maintained, and governed by debt bondage. The player arrives deceived and stripped of possessions, and must accumulate power, allies, and agency through any means available before choosing a path out.
 
@@ -49,13 +49,15 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Docks** — company-maintained fishing docks on the river. Off-limits at night officially. They stand inside the Company compound, so they are reached through the warehouse, the compound gate on the delivery road, or the bridge path's dock gate. Both gates stand open in the blockout and will be restricted.
 - **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed, smokehouse, net racks and a gutting table stands by the delivery road.
 - **Dock guard post** — a small enterable guard house in the palisade corner by the compound gate, with a lockup cage, a tally shed where goods are counted, and an alarm bell. It watches the gate and the delivery road, and with fishing moved away, workers have no reason to be at the docks at night.
-- **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort ramp, past the mud the workers walk in.
+- **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort's foot entrance, past the mud the workers walk in.
 - **Timber yard** — log stacks and handcarts by the wood opening.
 - **Latrine** — trench behind Wretches' Corner.
 - **Gang house** — a small timber house on the lake shore near the wilderness opening, with its own short dock behind it. The camp's top gang members are "allowed" a real roof, and it overlooks the night path and the bridge. npc-003 lives here.
 
 ### Fences
-- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
+- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. The fort hill closes it on the south: the palisade runs up onto the hill and round its back, and the fort's stone walls take over on the camp side. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
+- **Fort entrances** — a narrow foot entrance through the ruin pillars above the Company Road, and a wide cart gate on the south-west of the plateau.
+- **Fort ramp** — a railed 5 m cart ramp from the ramp gate in the palisade up to the cart gate. It runs outside the palisade, under the fort's west wall, so anyone climbing it is exposed; the cart gate is the real defence.
 - **Shore rail** — knee-high broken rail with gaps along the lake side. Workers can reach the water. The Company marks the line but doesn't defend it.
 - **Inner fence** — tall palisade with one guarded gate, separating the worker area from the company area. The real social divide: everyone walks through it each morning.
 
