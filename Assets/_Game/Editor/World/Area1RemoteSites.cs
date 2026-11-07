@@ -368,10 +368,11 @@ namespace Game.Editor.World
             return box;
         }
 
-        internal static void Thin(string name, Transform parent, Material material, Vector3 local, Vector3 size)
+        internal static Transform Thin(string name, Transform parent, Material material, Vector3 local, Vector3 size)
         {
             Transform box = Local(name, parent, material, local, size);
             Object.DestroyImmediate(box.GetComponent<Collider>());
+            return box;
         }
     }
 }

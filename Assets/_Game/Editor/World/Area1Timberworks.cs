@@ -171,7 +171,7 @@ namespace Game.Editor.World
         }
 
         /// <summary>A wall across the building at <paramref name="x"/>, with a door centred on <paramref name="doorZ"/>.</summary>
-        private static void DoorWall(string name, Transform parent, Material timber, float x, float doorZ, float halfDepth)
+        internal static void DoorWall(string name, Transform parent, Material timber, float x, float doorZ, float halfDepth)
         {
             float wallY = (WALL_HEIGHT - BURY) * 0.5f;
             float wallSize = WALL_HEIGHT + BURY;

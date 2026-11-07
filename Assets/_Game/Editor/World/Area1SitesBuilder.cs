@@ -81,6 +81,7 @@ namespace Game.Editor.World
         private const string WORK_GANG = "WorkGangTents";
         private const string LATRINE = "Latrine";
         private const string TIMBER_YARD = "TimberYard";
+        private const string GARRISON = "Garrison";
         private const string WORKSHOP_YARD = "WorkshopYard";
         private const string WALKWAYS = "Walkways";
         private const string INNER_GATE_FEATURE = "inner-gate";
@@ -114,6 +115,25 @@ namespace Game.Editor.World
         private const string GANG_HOUSE_FEATURE = "gang-house";
         private const string GANG_DOCK_FEATURE = "gang-dock";
         private const float DOCK_GATE_WIDTH = 3f;
+        private const string GARRISON_BARRACKS_FEATURE = "garrison-barracks";
+        private const string STAFF_HOUSE_FEATURE = "staff-house";
+        private const string SHORT_MEASURE_FEATURE = "short-measure";
+        private const string GRAIN_STORE_FEATURE = "grain-store";
+        private const string DRILL_YARD_FEATURE = "drill-yard";
+        private const string WORKERS_GRAVES_FEATURE = "workers-graves";
+        private const string GARRISON_WELL_FEATURE = "garrison-well";
+        private const string GARRISON_BELL_FEATURE = "garrison-bell";
+
+        // Smallest footprint each builder's fixed door, rooms and props fit in.
+        private static readonly (string Id, float MinWidth, float MinDepth)[] GarrisonPlots =
+        {
+            (GARRISON_BARRACKS_FEATURE, 14f, 5f), (STAFF_HOUSE_FEATURE, 12f, 5f), (SHORT_MEASURE_FEATURE, 11f, 5f),
+            (GRAIN_STORE_FEATURE, 4f, 3f), (DRILL_YARD_FEATURE, 12f, 6f), (WORKERS_GRAVES_FEATURE, 2f, 5f),
+        };
+
+        private static readonly string[] GarrisonPoints = { GARRISON_WELL_FEATURE, GARRISON_BELL_FEATURE, "reserve-kennels", "reserve-barber" };
+        private static readonly string[] GarrisonPaths = { "path-garrison", "path-drill-yard" };
+
         private static readonly string[] WalkwayIds = { "walkway-canteen", "walkway-guard-post" };
         private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
         private const float WAREHOUSE_MIN_WIDTH = 8f;  // doors, landing and hoist are laid out from the middle
@@ -273,6 +293,29 @@ namespace Game.Editor.World
                 return false;
             }
 
+            foreach ((string id, float minWidth, float minDepth) in GarrisonPlots)
+            {
+                if (features.TryGetValue(id, out JObject plot) && Area1BlockoutBuilder.HasPosition(plot)
+                    && Area1BlockoutBuilder.IsNumber(plot["w"]) && (float)plot["w"] >= minWidth && Area1BlockoutBuilder.IsNumber(plot["d"]) && (float)plot["d"] >= minDepth && Area1BlockoutBuilder.IsNumber(plot["yaw"])) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            foreach (string id in GarrisonPoints)
+            {
+                if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            // Only the terrain tool reads these, and it skips a missing path without a word.
+            foreach (string id in GarrisonPaths)
+            {
+                if (features.TryGetValue(id, out JObject path) && Area1BlockoutBuilder.HasPoints(path)) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
             // Only the terrain tool reads it, and it skips a missing path without a word.
             if (!features.TryGetValue(TIMBERWORKS_PATH_FEATURE, out JObject timberworksPath) || !Area1BlockoutBuilder.HasPoints(timberworksPath))
             {
@@ -379,6 +422,13 @@ namespace Game.Editor.World
             Area1Timberworks.BuildCarpentersShop(Area1BlockoutBuilder.Position(features[CARPENTERS_SHOP_FEATURE]), terrain, timber, timberworks);
             Area1Timberworks.BuildCharcoalClamp(Area1BlockoutBuilder.Position(features[CHARCOAL_CLAMP_FEATURE]), terrain, timber, stone, timberworks);
             Area1Timberworks.BuildCompanyStore(Area1BlockoutBuilder.Position(features[COMPANY_STORE_FEATURE]), terrain, timber, stone, timberworks);
+            Transform garrison = NewRoot(root.transform, GARRISON);
+            Area1Garrison.BuildBarracks(Plot(features[GARRISON_BARRACKS_FEATURE]), terrain, timber, stone, garrison);
+            Area1Garrison.BuildStaffHouse(Plot(features[STAFF_HOUSE_FEATURE]), terrain, timber, stone, garrison);
+            Area1Garrison.BuildShortMeasure(Plot(features[SHORT_MEASURE_FEATURE]), terrain, timber, stone, garrison);
+            Area1Garrison.BuildGrainStore(Plot(features[GRAIN_STORE_FEATURE]), terrain, timber, stone, garrison);
+            Area1Garrison.BuildDrillYard(Plot(features[DRILL_YARD_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_WELL_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_BELL_FEATURE]), terrain, timber, stone, garrison);
+            Area1Garrison.BuildGraves(Plot(features[WORKERS_GRAVES_FEATURE]), terrain, timber, stone, garrison);
             Transform stoneworks = NewRoot(root.transform, WORKSHOP_YARD);
             Area1Stoneworks.BuildLodge(Area1BlockoutBuilder.Position(features[STONE_LODGE_FEATURE]), terrain, timber, stone, stoneworks);
             Area1Stoneworks.BuildMasonsRow(Area1BlockoutBuilder.Position(features[MASONS_ROW_FEATURE]), terrain, timber, stone, stoneworks);
@@ -433,6 +483,9 @@ namespace Game.Editor.World
             string[] segments = path.Split('/');
             return BuiltRoots.Contains(segments[0]) || (segments[0] == DOCKS && segments.Length > 1 && IsDockPart(segments[1]));
         }
+
+        private static Area1Garrison.Plot Plot(JObject feature) =>
+            new Area1Garrison.Plot(Area1BlockoutBuilder.Position(feature), (float)feature["w"], (float)feature["d"], (float)feature["yaw"]);
 
         private static bool IsDockPart(Transform child) => IsDockPart(child.name);
 

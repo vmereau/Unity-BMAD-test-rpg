@@ -156,7 +156,7 @@
       "art": [
         "master-2"
       ],
-      "note": "Tall timber palisade. Openings are left where roads cross.",
+      "note": "Tall timber palisade. Openings are left where roads cross. West of (-31.5, -43.3) it runs along the hilltop and then the foot of the wood road, so the hill outside stays below the panel tops all the way to the wood opening.",
       "points": [
         [
           -9.63,
@@ -171,12 +171,32 @@
           -43.3
         ],
         [
-          -46.7,
-          -26.4
+          -46,
+          -37
         ],
         [
-          -49.1,
-          -5.2
+          -47.5,
+          -32
+        ],
+        [
+          -50,
+          -28
+        ],
+        [
+          -53,
+          -20
+        ],
+        [
+          -56.5,
+          -10
+        ],
+        [
+          -56.5,
+          0.5
+        ],
+        [
+          -55,
+          2.2
         ],
         [
           -50.3,
@@ -926,7 +946,7 @@
       "name": "Path: Timberworks lane",
       "width": 3.5,
       "art": [],
-      "note": "Paint only. Wood road, past the forge and carpenters, to the fort road. The garrison quarter hangs off its south side.",
+      "note": "Paint only. Wood road, past the forge and carpenters, to the fort road. The garrison quarter has its own path off the fort road.",
       "points": [
         [
           -30,
@@ -939,6 +959,162 @@
         [
           -6,
           -10.5
+        ]
+      ]
+    },
+    {
+      "id": "garrison-barracks",
+      "kind": "zone",
+      "name": "Barracks and armoury",
+      "x": -23,
+      "z": -41.7,
+      "w": 15,
+      "d": 5.5,
+      "yaw": 17.2,
+      "art": [],
+      "note": "Rank-and-file guards, along the palisade under the ramp. Door to the yard. The stone east end is the locked armoury, nearest the ramp gate."
+    },
+    {
+      "id": "staff-house",
+      "kind": "zone",
+      "name": "Company staff house",
+      "x": -19.5,
+      "z": -34.5,
+      "w": 12,
+      "d": 5.5,
+      "yaw": 0,
+      "art": [],
+      "note": "Lower employees: the Debt Manager and the steward under Voss. Ledger room at the west end, pay hatch and queue rail on the road side."
+    },
+    {
+      "id": "short-measure",
+      "kind": "zone",
+      "name": "The Short Measure",
+      "x": -17,
+      "z": -25.6,
+      "w": 11,
+      "d": 6.5,
+      "yaw": 180,
+      "art": [],
+      "note": "Alehouse for guards and artisans. Door on the spine, near the cooper."
+    },
+    {
+      "id": "grain-store",
+      "kind": "zone",
+      "name": "Grain store",
+      "x": -26,
+      "z": -26.5,
+      "w": 5,
+      "d": 4,
+      "yaw": 0,
+      "art": [],
+      "note": "On stilts with capped tops. Closed for now; a later theft target."
+    },
+    {
+      "id": "drill-yard",
+      "kind": "zone",
+      "name": "Drill yard",
+      "x": -32,
+      "z": -33.3,
+      "w": 12,
+      "d": 7.5,
+      "yaw": 0,
+      "art": [],
+      "note": "Pells, with butts at the west end against the bank. Doubles as the quarter's square."
+    },
+    {
+      "id": "workers-graves",
+      "kind": "zone",
+      "name": "Workers' graves",
+      "x": -37.5,
+      "z": -38.2,
+      "w": 3,
+      "d": 6.6,
+      "yaw": -36.9,
+      "art": [],
+      "note": "Numbered stakes on the low bank, with rows running along it. Local +X faces downhill."
+    },
+    {
+      "id": "reserve-kennels",
+      "kind": "zone",
+      "name": "Reserved: kennels",
+      "x": -40.5,
+      "z": -27.5,
+      "w": 6,
+      "d": 6,
+      "art": [],
+      "note": "Empty for now."
+    },
+    {
+      "id": "reserve-barber",
+      "kind": "zone",
+      "name": "Reserved: barber-surgeon",
+      "x": -32.7,
+      "z": -39.7,
+      "w": 3.2,
+      "d": 4,
+      "art": [],
+      "note": "Empty for now, beside the barracks."
+    },
+    {
+      "id": "garrison-well",
+      "kind": "point",
+      "name": "Guards' well",
+      "x": -36.5,
+      "z": -30.8,
+      "art": [],
+      "note": "Guards get clean water; workers carry theirs from the river."
+    },
+    {
+      "id": "garrison-bell",
+      "kind": "point",
+      "name": "Alarm bell",
+      "x": -12.4,
+      "z": -32.2,
+      "art": [],
+      "note": "At the spine mouth, facing the fort road and the ramp gate."
+    },
+    {
+      "id": "path-garrison",
+      "kind": "road",
+      "name": "Path: garrison spine",
+      "width": 3,
+      "art": [],
+      "note": "Paint only. The one way in, from the fort road through the yard to the graves.",
+      "points": [
+        [
+          -8.7,
+          -30.3
+        ],
+        [
+          -26,
+          -30.3
+        ],
+        [
+          -34,
+          -30.5
+        ],
+        [
+          -36.3,
+          -36.5
+        ]
+      ]
+    },
+    {
+      "id": "path-drill-yard",
+      "kind": "road",
+      "name": "Path: drill yard",
+      "width": 7.5,
+      "art": [],
+      "note": "Paint only: the yard's trodden ground.",
+      "points": [
+        [
+          -38,
+          -33.3
+        ],
+        [
+          -26,
+          -33.3
         ]
       ]
     },

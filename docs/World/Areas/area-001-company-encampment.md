@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-07):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, the Timberworks by the wood opening, with Edric's forge and the Company store, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
+> **In Unity (2026-11-07):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, the Timberworks by the wood opening, with Edric's forge and the Company store, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop, with the garrison quarter under its ramp.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
@@ -35,7 +35,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Wilderness** surrounds the camp on all other sides — dense, frontier, where workers labor by day
 
 ### Structures
-- **Company House** — behind the inner fence. Guards' quarters and warden's office. More maintained than the rest.
+- **Company House** — the fort on the outcrop. Officers' quarters and warden's office. More maintained than the rest. Voss stays here, out of the player's reach early on.
 - **Storage Hut** — company-controlled warehouse, built into the north palisade above the docks. Its door faces the camp and its river door leads to the deck. Accessible via warden task (hauling goods).
 - **Stoneworks** — the yard inside the quarry opening, on the Company side of the inner gate. It is the only part of that side workers cross every day. Stone comes in through the opening, is weighed and cut here, then goes up the hoists to the fort repairs or on through the inner gate to the warehouse.
   - **Stone mason's lodge** — half-finished stone building made from quarry offcuts, with an open cutting bay. It replaces the old shared workshop.
@@ -57,11 +57,19 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
   - **Charcoal clamp** — an earth mound behind the shed, burning offcuts into fuel for the forge.
   - **Forge** — Edric's bigger forge on the lane, stone-backed and open to it, with a small room for him. It replaces the open-air anvil in the yard.
 - **Company store** — the Storekeeper's building at the lane's east end, by the commute. He still works outside it for now.
+- **Garrison quarter** — the ground under the fort ramp, south of the Timberworks. One path leaves the fort road and runs through the drill yard, which serves as the quarter's square. It is built to guard the ramp gate. Its armoury and grain store are later theft targets for the worker path; the docks and warehouse hold the early ones, and the fort comes last.
+  - **Barracks** — rank-and-file guards, along the palisade. The stone end nearest the ramp gate is the locked armoury.
+  - **Company staff house** — shared lodging for lower employees: the Debt Manager, the steward under Voss and other low-ranking staff. The false ledgers are in its ledger room. Workers deal with the Debt Manager at a pay hatch on the road side, behind a queue rail, and never go inside.
+  - **The Short Measure** — alehouse for guards and artisans at the start, selling food and ale. Workers eat at the canteen on their own side.
+  - **Drill yard** — pells, a guards' well and straw butts with the bank behind them. An alarm bell stands where the path meets the fort road.
+  - **Grain store** — on capped stilts beside the alehouse.
+  - **Workers' graves** — on the low bank, with numbers on stakes and no names.
+  - **Reserved ground** — plots are kept for kennels and a barber-surgeon.
 - **Latrine** — trench behind Wretches' Corner.
 - **Gang house** — a small timber house on the lake shore near the wilderness opening, with its own short dock behind it. The camp's top gang members are "allowed" a real roof, and it overlooks the night path and the bridge. npc-003 lives here.
 
 ### Fences
-- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. The fort hill closes it on the south: the palisade runs up onto the hill and round its back, and the fort's stone walls take over on the camp side. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
+- **Outer fence** — tall timber palisade around the camp, with openings where roads cross. West of the fort it stands on top of the bank above the garrison quarter. The fort hill closes it on the south: the palisade runs up onto the hill and round its back, and the fort's stone walls take over on the camp side. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
 - **Fort entrances** — a narrow foot entrance through the ruin pillars above the Company Road, and a wide cart gate on the south-west of the plateau.
 - **Fort ramp** — a railed 5 m cart ramp from the ramp gate in the palisade up to the cart gate. It runs outside the palisade, under the fort's west wall, so anyone climbing it is exposed; the cart gate is the real defence.
 - **Shore rail** — knee-high broken rail with gaps along the lake side. Workers can reach the water. The Company marks the line but doesn't defend it.

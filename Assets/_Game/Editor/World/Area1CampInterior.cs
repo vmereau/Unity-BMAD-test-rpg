@@ -422,8 +422,9 @@ namespace Game.Editor.World
             return center + new Vector2(local.x, local.z);
         }
 
-        /// <summary>Floor, walls, door, pitched roof, closed underside and ramp. Returns the floor height.</summary>
-        internal static float BuildHouseShell(Vector2 center, float width, float depth, Quaternion rotation, string sideName, Terrain terrain, Material timber, Transform root)
+        /// <summary>Floor, walls, door, pitched roof, closed underside and ramp. Returns the floor height. A short ramp suits flat ground, where the default is a long flat plank.</summary>
+        internal static float BuildHouseShell(Vector2 center, float width, float depth, Quaternion rotation, string sideName, Terrain terrain, Material timber, Transform root,
+            float doorX = POST_DOOR_X, float rampMin = POST_RAMP_MIN)
         {
             float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
             Vector2 At(float x, float z) => LocalToGround(center, rotation, x, z);
@@ -439,7 +440,7 @@ namespace Game.Editor.World
             Area1RemoteSites.Local($"Wall_{sideName}", root, timber, new Vector3(-halfWidth + WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
             Area1RemoteSites.Local("Wall_End", root, timber, new Vector3(halfWidth - WALL_THICKNESS * 0.5f, POST_WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, POST_WALL_HEIGHT, depth));
             Area1RemoteSites.Local("Wall_Back", root, timber, new Vector3(0f, POST_WALL_HEIGHT * 0.5f, -halfDepth + WALL_THICKNESS * 0.5f), new Vector3(width, POST_WALL_HEIGHT, WALL_THICKNESS));
-            DoorWall("Wall_Front", halfDepth - WALL_THICKNESS * 0.5f, halfWidth, timber, root, POST_DOOR_X, POST_DOOR_WIDTH, POST_DOOR_HEIGHT, POST_WALL_HEIGHT);
+            DoorWall("Wall_Front", halfDepth - WALL_THICKNESS * 0.5f, halfWidth, timber, root, doorX, POST_DOOR_WIDTH, POST_DOOR_HEIGHT, POST_WALL_HEIGHT);
 
             float rise = RoofRise(depth);
             float slope = halfDepth / Mathf.Cos(ROOF_PITCH * Mathf.Deg2Rad) + 0.5f;
@@ -459,8 +460,8 @@ namespace Game.Editor.World
                 }
             }
 
-            BuildPostUnderside(width, depth, floor, At, terrain, timber, root);
-            BuildPostRamp(At(POST_DOOR_X, halfDepth), rotation * Vector3.forward, floor, terrain, timber, root);
+            BuildPostUnderside(width, depth, floor, doorX, At, terrain, timber, root);
+            BuildPostRamp(At(doorX, halfDepth), rotation * Vector3.forward, floor, rampMin, terrain, timber, root);
             return floor;
         }
 
@@ -476,13 +477,13 @@ namespace Game.Editor.World
         }
 
         /// <summary>Posts along both long walls, with boards between them so nothing walks or bakes under the floor.</summary>
-        private static void BuildPostUnderside(float width, float depth, float floor, System.Func<float, float, Vector2> at, Terrain terrain, Material timber, Transform root)
+        private static void BuildPostUnderside(float width, float depth, float floor, float doorX, System.Func<float, float, Vector2> at, Terrain terrain, Material timber, Transform root)
         {
             float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
             int index = 0;
             foreach (float z in new[] { -halfDepth, halfDepth })
                 for (float x = -halfWidth; x <= halfWidth + 0.01f; x += POST_SPACING * 0.5f)
-                    if (z < 0f || Mathf.Abs(x - POST_DOOR_X) >= (POST_RAMP_WIDTH + POST_WIDTH) * 0.5f) // the ramp meets the front wall here
+                    if (z < 0f || Mathf.Abs(x - doorX) >= (POST_RAMP_WIDTH + POST_WIDTH) * 0.5f) // the ramp meets the front wall here
                         Stilt($"Post_{index++}", at(x, z), floor, terrain, timber, root);
 
             (string name, Vector2 a, Vector2 b, Vector3 local, Vector2 size)[] sides =
@@ -501,11 +502,11 @@ namespace Game.Editor.World
         }
 
         /// <summary>Lengthens until the slope drops to the limit, because the ground under the ramp keeps falling away.</summary>
-        private static void BuildPostRamp(Vector2 door, Vector3 forward, float floor, Terrain terrain, Material timber, Transform root)
+        private static void BuildPostRamp(Vector2 door, Vector3 forward, float floor, float rampMin, Terrain terrain, Material timber, Transform root)
         {
             Vector2 outward = new Vector2(forward.x, forward.z);
             float limit = Mathf.Tan(POST_RAMP_MAX_ANGLE * Mathf.Deg2Rad);
-            float length = POST_RAMP_MIN;
+            float length = rampMin;
             bool TooSteep(float run) => Mathf.Abs(floor - Area1BlockoutBuilder.Ground(terrain, door + outward * run)) / run > limit;
             while (length < POST_RAMP_MAX && TooSteep(length))
                 length += POST_RAMP_STEP;
