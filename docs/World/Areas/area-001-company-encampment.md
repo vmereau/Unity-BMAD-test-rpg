@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-06):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, timber yard, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
+> **In Unity (2026-11-07):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, the Timberworks by the wood opening, with Edric's forge and the Company store, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop.
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
@@ -50,7 +50,13 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Company compound** — the north bank, closed on the west by a fence and on the north by the river. A staging yard with a cart shed, smokehouse, net racks and a gutting table stands by the delivery road.
 - **Dock guard post** — a small enterable guard house in the palisade corner by the compound gate, with a lockup cage, a tally shed where goods are counted, and an alarm bell. It watches the gate and the delivery road, and with fishing moved away, workers have no reason to be at the docks at night.
 - **Company Road** — the one clean surface in the camp: 5 m of cobbles from the warehouse through the tents and the inner gate to the fort's foot entrance, past the mud the workers walk in.
-- **Timber yard** — log stacks and handcarts by the wood opening.
+- **Timberworks** — the yard inside the wood opening, on the Company side of the inner gate, doing for wood what the Stoneworks does for stone. A lane runs from the wood road to the fort road.
+  - **Timber yard** — log stacks, handcarts, a tally board, the tool shelter and a roofed sawpit by the opening.
+  - **Seasoning shed** — a long open-sided roof over plank stacks. Wood dries here before use.
+  - **Carpenters' shop** — a room and an open bay on the lane, turning out palisade stakes, fort beams and cart wheels. The cooper's lean-to at its east end makes barrels for the smokehouse.
+  - **Charcoal clamp** — an earth mound behind the shed, burning offcuts into fuel for the forge.
+  - **Forge** — Edric's bigger forge on the lane, stone-backed and open to it, with a small room for him. It replaces the open-air anvil in the yard.
+- **Company store** — the Storekeeper's building at the lane's east end, by the commute. He still works outside it for now.
 - **Latrine** — trench behind Wretches' Corner.
 - **Gang house** — a small timber house on the lake shore near the wilderness opening, with its own short dock behind it. The camp's top gang members are "allowed" a real roof, and it overlooks the night path and the bridge. npc-003 lives here.
 

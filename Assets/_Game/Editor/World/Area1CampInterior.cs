@@ -245,18 +245,7 @@ namespace Game.Editor.World
             Area1RemoteSites.Local("Screen_East", root, timber, new Vector3(3f, 0.8f, 0.2f), new Vector3(0.12f, 2f, 1.8f));
         }
 
-        /// <summary>Keeps south of the wood road, so carts and the road end stay clear.</summary>
-        internal static void BuildTimberYard(Vector2 center, Terrain terrain, Material timber, Transform root)
-        {
-            Area1RemoteSites.BuildLogStack("Logs_0", center + new Vector2(-5f, -3f), 15f, terrain, timber, root);
-            Area1RemoteSites.BuildLogStack("Logs_1", center + new Vector2(1f, -5f), 80f, terrain, timber, root);
-            Area1RemoteSites.BuildSawPit(center + new Vector2(5f, -1f), terrain, timber, root);
-            Area1RemoteSites.BuildLeanTo("ToolShelter", center + new Vector2(-8f, 2f), new Vector2(0.7f, 0.7f), terrain, timber, root);
-            BuildCart("Cart_0", center + new Vector2(-1f, 2.5f), 30f, terrain, timber, root);
-            BuildCart("Cart_1", center + new Vector2(8f, 3f), -40f, terrain, timber, root);
-        }
-
-        private static void BuildCart(string name, Vector2 at, float yaw, Terrain terrain, Material timber, Transform parent)
+        internal static void BuildCart(string name, Vector2 at, float yaw, Terrain terrain, Material timber, Transform parent)
         {
             var cart = new GameObject(name).transform;
             cart.SetParent(parent, false);
@@ -434,7 +423,7 @@ namespace Game.Editor.World
         }
 
         /// <summary>Floor, walls, door, pitched roof, closed underside and ramp. Returns the floor height.</summary>
-        private static float BuildHouseShell(Vector2 center, float width, float depth, Quaternion rotation, string sideName, Terrain terrain, Material timber, Transform root)
+        internal static float BuildHouseShell(Vector2 center, float width, float depth, Quaternion rotation, string sideName, Terrain terrain, Material timber, Transform root)
         {
             float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
             Vector2 At(float x, float z) => LocalToGround(center, rotation, x, z);

@@ -14,7 +14,7 @@
 | **Nickname / Known As** | the Storekeeper |
 | **Profession** | Company storekeeper |
 | **Faction / Affiliation** | The Company |
-| **Location** | Storage hut, Company yard |
+| **Location** | Company yard, at his table east of the Company store (he doesn't work inside it yet) |
 | **Age** | Mid-40s |
 
 ---

@@ -14,7 +14,7 @@
 | **Nickname / Known As** | Edric |
 | **Profession** | Blacksmith |
 | **Faction / Affiliation** | The Company (hired smith) |
-| **Location** | Company yard forge, Alderath Camp |
+| **Location** | Timberworks forge, Company side, Alderath Camp |
 | **Age** | Mid-50s |
 
 ---
@@ -26,7 +26,7 @@
 | **Alignment** | Neutral Good |
 | **Traits** | Blunt, distant, direct, hardworking |
 | **Fears / Flaws** | Hates frogs (childhood trauma — fell into a frog pond); refuses to discuss them |
-| **Desires / Goals** | Wants a bigger forge |
+| **Desires / Goals** | Got his bigger forge at the Timberworks; wants the commissions to fill it |
 
 ---
 
@@ -46,7 +46,7 @@
 
 ## Background
 
-Edric grew up in a small village, the son of a blacksmith. As a child he fell into a pond full of frogs — an event he never speaks of and which left him with a deep, irrational aversion to the creatures. When his father retired, Edric took over the forge without question and has worked it ever since. He is content in his craft but quietly dreams of a larger forge where he could take on bigger commissions.
+Edric grew up in a small village, the son of a blacksmith. As a child he fell into a pond full of frogs — an event he never speaks of and which left him with a deep, irrational aversion to the creatures. When his father retired, Edric took over the forge without question and has worked it ever since. He is content in his craft. The Company has given him a larger forge beside the Timberworks, and he quietly hopes for the bigger commissions that should go with it.
 
 ---
 

@@ -262,7 +262,7 @@ namespace Game.Editor.World
         }
 
         /// <summary>Roof panels sit on the wall tops at <paramref name="wallCentre"/>, with an eave past them that drops below the wall line.</summary>
-        private static void GableRoof(Transform parent, Material timber, Vector3 wallCentre, float length, float halfWall, float eave, float pitch)
+        internal static void GableRoof(Transform parent, Material timber, Vector3 wallCentre, float length, float halfWall, float eave, float pitch)
         {
             float slopeRise = Mathf.Tan(pitch * Mathf.Deg2Rad);
             float halfSpan = halfWall + eave;
@@ -276,7 +276,7 @@ namespace Game.Editor.World
             }
         }
 
-        private static Transform Group(string name, Transform parent, Vector2 at, float yaw, Terrain terrain)
+        internal static Transform Group(string name, Transform parent, Vector2 at, float yaw, Terrain terrain)
         {
             var group = new GameObject(name).transform;
             group.SetParent(parent, false);

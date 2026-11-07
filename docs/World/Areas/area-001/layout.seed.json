@@ -978,14 +978,81 @@
       "id": "timber-yard",
       "kind": "zone",
       "name": "Timber yard",
-      "x": -35,
-      "z": -5,
-      "w": 22,
+      "x": -39,
+      "z": -3,
+      "w": 12,
       "d": 12,
       "art": [
         "timber-yard"
       ],
-      "note": "Logs and carts by the wood opening. Keep the road clear."
+      "note": "Logs, tally and sawpit by the wood opening. Keep the road clear."
+    },
+    {
+      "id": "forge",
+      "kind": "point",
+      "name": "Edric's forge",
+      "x": -23.5,
+      "z": -4,
+      "art": [],
+      "note": "Stone hearth and chimney, open to the lane, with a small room for Edric. The clamp behind the shed feeds it."
+    },
+    {
+      "id": "company-store",
+      "kind": "point",
+      "name": "Company store",
+      "x": -12.5,
+      "z": -5,
+      "art": [],
+      "note": "The Storekeeper's shop. House shell with its door towards the commute."
+    },
+    {
+      "id": "seasoning-shed",
+      "kind": "point",
+      "name": "Seasoning shed",
+      "x": -37,
+      "z": -16.5,
+      "art": [],
+      "note": "Long open-sided roof over plank stacks: the wood side of the warehouse."
+    },
+    {
+      "id": "carpenters-shop",
+      "kind": "point",
+      "name": "Carpenters' shop",
+      "x": -21,
+      "z": -17,
+      "art": [],
+      "note": "Room with an open bay on the lane, and the cooper's lean-to at the east end."
+    },
+    {
+      "id": "charcoal-clamp",
+      "kind": "point",
+      "name": "Charcoal clamp",
+      "x": -34,
+      "z": -24.5,
+      "art": [],
+      "note": "Earth mound behind the seasoning shed, with wood stacked beside it."
+    },
+    {
+      "id": "path-timberworks",
+      "kind": "road",
+      "name": "Path: Timberworks lane",
+      "width": 3.5,
+      "art": [],
+      "note": "Paint only. Wood road, past the forge and carpenters, to the fort road. The garrison quarter hangs off its south side.",
+      "points": [
+        [
+          -30,
+          4
+        ],
+        [
+          -30,
+          -10.5
+        ],
+        [
+          -6,
+          -10.5
+        ]
+      ]
     },
     {
       "id": "stone-lodge",

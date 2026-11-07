@@ -96,6 +96,12 @@ namespace Game.Editor.World
         private const string OX_PEN_FEATURE = "ox-pen";
         private const string RUBBLE_TIP_FEATURE = "rubble-tip";
         private const string SLEDGE_PATH_FEATURE = "path-sledge";
+        private const string TIMBERWORKS_PATH_FEATURE = "path-timberworks";
+        private const string FORGE_FEATURE = "forge";
+        private const string COMPANY_STORE_FEATURE = "company-store";
+        private const string SEASONING_SHED_FEATURE = "seasoning-shed";
+        private const string CARPENTERS_SHOP_FEATURE = "carpenters-shop";
+        private const string CHARCOAL_CLAMP_FEATURE = "charcoal-clamp";
         private const int FORT_HOIST_POINTS = 4; // two cranes, each with its rim frame
         private const string COMPOUND_GATE = "CompoundGate";
         private const string STAGING_YARD = "StagingYard";
@@ -225,7 +231,7 @@ namespace Game.Editor.World
             }
 
             foreach (string id in new[] { TOWER_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
-                                                 INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, STONE_LODGE_FEATURE, MASONS_ROW_FEATURE, TALLY_POST_FEATURE, OX_PEN_FEATURE, RUBBLE_TIP_FEATURE,
+                                                 INNER_GATE_FEATURE, WAREHOUSE_FEATURE, DOCK_GATE_FEATURE, WORK_GANG_FEATURE, LATRINE_FEATURE, TIMBER_YARD_FEATURE, FORGE_FEATURE, COMPANY_STORE_FEATURE, SEASONING_SHED_FEATURE, CARPENTERS_SHOP_FEATURE, CHARCOAL_CLAMP_FEATURE, STONE_LODGE_FEATURE, MASONS_ROW_FEATURE, TALLY_POST_FEATURE, OX_PEN_FEATURE, RUBBLE_TIP_FEATURE,
                                                  COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
@@ -268,6 +274,12 @@ namespace Game.Editor.World
             }
 
             // Only the terrain tool reads it, and it skips a missing path without a word.
+            if (!features.TryGetValue(TIMBERWORKS_PATH_FEATURE, out JObject timberworksPath) || !Area1BlockoutBuilder.HasPoints(timberworksPath))
+            {
+                problem = $"Layout has no usable feature '{TIMBERWORKS_PATH_FEATURE}'; nothing changed.";
+                return false;
+            }
+
             if (!features.TryGetValue(SLEDGE_PATH_FEATURE, out JObject sledgePath) || !Area1BlockoutBuilder.HasPoints(sledgePath))
             {
                 problem = $"Layout has no usable feature '{SLEDGE_PATH_FEATURE}'; nothing changed.";
@@ -360,7 +372,13 @@ namespace Game.Editor.World
             Area1CampInterior.BuildGuardPost(Area1BlockoutBuilder.Position(guardPost), (float)guardPost["w"], (float)guardPost["d"], (float)guardPost["yaw"], terrain, timber, stone, NewRoot(root.transform, GUARD_POST));
             Area1CampInterior.BuildWorkGangTents(Area1BlockoutBuilder.Position(features[WORK_GANG_FEATURE]), tent, terrain, stone, NewRoot(root.transform, WORK_GANG));
             Area1CampInterior.BuildLatrine(Area1BlockoutBuilder.Position(features[LATRINE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, LATRINE));
-            Area1CampInterior.BuildTimberYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, NewRoot(root.transform, TIMBER_YARD));
+            Transform timberworks = NewRoot(root.transform, TIMBER_YARD);
+            Area1Timberworks.BuildReceivingYard(Area1BlockoutBuilder.Position(features[TIMBER_YARD_FEATURE]), terrain, timber, timberworks);
+            Area1Timberworks.BuildForge(Area1BlockoutBuilder.Position(features[FORGE_FEATURE]), terrain, timber, stone, timberworks);
+            Area1Timberworks.BuildSeasoningShed(Area1BlockoutBuilder.Position(features[SEASONING_SHED_FEATURE]), terrain, timber, timberworks);
+            Area1Timberworks.BuildCarpentersShop(Area1BlockoutBuilder.Position(features[CARPENTERS_SHOP_FEATURE]), terrain, timber, timberworks);
+            Area1Timberworks.BuildCharcoalClamp(Area1BlockoutBuilder.Position(features[CHARCOAL_CLAMP_FEATURE]), terrain, timber, stone, timberworks);
+            Area1Timberworks.BuildCompanyStore(Area1BlockoutBuilder.Position(features[COMPANY_STORE_FEATURE]), terrain, timber, stone, timberworks);
             Transform stoneworks = NewRoot(root.transform, WORKSHOP_YARD);
             Area1Stoneworks.BuildLodge(Area1BlockoutBuilder.Position(features[STONE_LODGE_FEATURE]), terrain, timber, stone, stoneworks);
             Area1Stoneworks.BuildMasonsRow(Area1BlockoutBuilder.Position(features[MASONS_ROW_FEATURE]), terrain, timber, stone, stoneworks);

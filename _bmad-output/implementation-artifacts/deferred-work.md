@@ -468,5 +468,13 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 ## From spec-area-1-hand-edit-capture (2026-11-07)
 
-- **The chamber's terrain holes come back.** The 6 holes near (-4, -46) were removed by hand from the live terrain, but `StartingTownTerrain_Source.asset` still has them and `Build Area 1 Terrain` copies them back without warning. Clear them in the source asset, or stop copying them.
-- **Stale `Barricades/NotWalkable_*`.** The volumes still match the old barricade positions, including the deleted `SM_Barricade_Var5 (2)`, until Sites runs. Capture hand edits first, then run Sites and rebake.
+- **[Done 2026-11-07, `spec-area-1-timberworks.md`] The chamber's terrain holes come back.** The 6 holes near (-4, -46) were removed by hand from the live terrain, but `StartingTownTerrain_Source.asset` still has them and `Build Area 1 Terrain` copies them back without warning. Clear them in the source asset, or stop copying them.
+- **[Done 2026-11-07, `spec-area-1-timberworks.md`] Stale `Barricades/NotWalkable_*`.** The volumes still match the old barricade positions, including the deleted `SM_Barricade_Var5 (2)`, until Sites runs. Capture hand edits first, then run Sites and rebake.
+
+## From spec-area-1-timberworks (2026-11-07)
+
+- **Garrison quarter (next spec, agreed with Valentin).** The ground between the fort road and the south-west palisade, now flat to about x −40 at z −30 and x −35 at z −40. Barracks for rank-and-file guards with a locked armoury, a shared Company house for lower employees (Debt Manager, a new steward under Voss), an alehouse restricted to guards and artisans at the start, a drill yard with pells, a grain store on stilts, and workers' graves by the bank. Keep space for kennels and a barber-surgeon. Voss stays in the fort, out of reach early on. Workers eat at the canteen. The docks and warehouse hold the early theft targets; the armoury, grain store and fort come later.
+- **Traveling merchant's wagon stand.** Waits for the closed pass to have a story answer.
+- **Palisade panels 012-015 stand below the bank.** The hand flatten cut the ground under the line at about (-40..-46, -34..-27), and their tops (y 6.4-8.6) are now at or under the ground just outside (up to y 7.8). A player on the hill can step over and drop into the camp. It's one-way: from inside it's still a 7 m wall. Raising the panels or moving `outer-fence` onto the bank top fixes it, and `BuildPalisade` only checks height along a panel, as noted above. The same bank's panels 021 and 011 keep only 1.2-1.4 m.
+- **Spots left from the removed houses.** `Spot_Storekeeper_Night` stands on the commute at (-12.5, 3), and the Cook's spot dates from the old canteen house.
+- **Charcoal smoke.** The clamp is a shape only. Smoke that reads from the tents is for the art pass.
