@@ -465,3 +465,8 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Low stub panel.** The `outer-fence-stub` panel near (-1.9, -52.1) clears the cliff beside it by 1.23 m, under the 1.27 m jump. It only joins the ramp and the camp, which the open `RampGate` joins anyway. Raise it when `RampGate` is closed by gameplay.
 - **Panels only check height along their length.** `BuildPalisade` sets a panel's top from the ground under it, so a cliff beside a panel isn't counted. That is what leaves the stub panel low.
 - **Fort entrances have no gameplay.** Both gates stand open with no guards. Who may use the cart gate, and when, is for a later spec.
+
+## From spec-area-1-hand-edit-capture (2026-11-07)
+
+- **The chamber's terrain holes come back.** The 6 holes near (-4, -46) were removed by hand from the live terrain, but `StartingTownTerrain_Source.asset` still has them and `Build Area 1 Terrain` copies them back without warning. Clear them in the source asset, or stop copying them.
+- **Stale `Barricades/NotWalkable_*`.** The volumes still match the old barricade positions, including the deleted `SM_Barricade_Var5 (2)`, until Sites runs. Capture hand edits first, then run Sites and rebake.

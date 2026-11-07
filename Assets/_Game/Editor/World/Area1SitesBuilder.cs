@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Core;
 using Game.World;
 using Newtonsoft.Json.Linq;
@@ -52,6 +53,7 @@ namespace Game.Editor.World
         private const string OLD_HOLLOW = "Hollow";  // the rock fold the pit replaced; a run deletes it
         private const string FIRE = "HuntersFire";
         private const string DECK_PREFIX = "SM_WoodPlatformFloorKit";
+        private static readonly HashSet<string> BuiltRoots = new HashSet<string>(); // filled by NewRoot, so it can't drift from what a run rebuilds
         private static readonly string[] DockParts = { "DeckFloor_", "Boat", "MooringPost", "MooringRope" }; // all the tool owns in Docks
         private const string HAND_BRIDGE = "CampBridge/floor";
         private const string BARRICADE_PREFIX = "SM_Barricade_Var";
@@ -172,8 +174,14 @@ namespace Game.Editor.World
                 return;
             }
 
+            if (!Run(GameObject.Find(BLOCKOUT_ROOT), true, out string problem)) GameLog.Error(TAG, problem);
+        }
+
+        /// <summary>Builds into <paramref name="root"/>, which <see cref="Area1HandEditsWindow"/> points at a temporary clone with <paramref name="applyEdits"/> off.</summary>
+        internal static bool Run(GameObject root, bool applyEdits, out string problem)
+        {
+            problem = null;
             Terrain terrain = Terrain.activeTerrain;
-            GameObject root = GameObject.Find(BLOCKOUT_ROOT);
             Material timber = AssetDatabase.LoadAssetAtPath<Material>(TIMBER);
             Material stone = AssetDatabase.LoadAssetAtPath<Material>(STONE);
             WorldFact fact = AssetDatabase.LoadAssetAtPath<WorldFact>(FACT);
@@ -186,34 +194,34 @@ namespace Game.Editor.World
             if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || fact == null || factEvent == null
                 || glow == null || dayNight == null || rockTall == null || rockLow == null || tent == null)
             {
-                GameLog.Error(TAG, $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT}, the rock prefabs and {TENT}; nothing changed.");
-                return;
+                problem = $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT}, the rock prefabs and {TENT}; nothing changed.";
+                return false;
             }
 
-            if (!Area1BlockoutBuilder.TryReadLayout(out Dictionary<string, JObject> features, out string problem))
+            if (!Area1BlockoutBuilder.TryReadLayout(out Dictionary<string, JObject> features, out problem))
             {
-                GameLog.Error(TAG, $"{problem}; nothing changed.");
-                return;
+                problem = $"{problem}; nothing changed.";
+                return false;
             }
 
             if (!features.TryGetValue(CLEFT_FEATURE, out JObject cleft) || !Area1BlockoutBuilder.HasPoints(cleft))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{CLEFT_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{CLEFT_FEATURE}'; nothing changed.";
+                return false;
             }
 
             if (!features.TryGetValue(RUINS2_FEATURE, out JObject ruins2) || !Area1BlockoutBuilder.HasPosition(ruins2)
                 || !Area1BlockoutBuilder.IsNumber(ruins2["w"]) || !Area1BlockoutBuilder.IsNumber(ruins2["d"]))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{RUINS2_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{RUINS2_FEATURE}'; nothing changed.";
+                return false;
             }
 
             foreach (string id in FortWallIds)
             {
                 if (features.TryGetValue(id, out JObject wall) && Area1BlockoutBuilder.HasPoints(wall)) continue;
-                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
             }
 
             foreach (string id in new[] { TOWER_FEATURE, FIRE_FEATURE, ARCH_FEATURE, QUARRY_FEATURE, WOOD_FEATURE, HUNTING_FEATURE, CAVE_FEATURE,
@@ -221,64 +229,64 @@ namespace Game.Editor.World
                                                  COMPOUND_GATE_FEATURE, STAGING_YARD_FEATURE, GUARD_POST_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
-                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
             }
 
             foreach (string id in WalkwayIds)
             {
                 if (features.TryGetValue(id, out JObject walkway) && Area1BlockoutBuilder.HasPoints(walkway) && Area1BlockoutBuilder.IsNumber(walkway["width"]) && (float)walkway["width"] > 0f) continue;
-                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
             }
 
             if (!features.TryGetValue(FORT_HOIST_FEATURE, out JObject fortHoist) || !Area1BlockoutBuilder.HasPoints(fortHoist) || ((JArray)fortHoist["points"]).Count != FORT_HOIST_POINTS)
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{FORT_HOIST_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{FORT_HOIST_FEATURE}'; nothing changed.";
+                return false;
             }
 
             if (!Area1BlockoutBuilder.IsNumber(features[OX_PEN_FEATURE]["yaw"]))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{OX_PEN_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{OX_PEN_FEATURE}'; nothing changed.";
+                return false;
             }
 
             foreach (string id in new[] { RAMP_GATE_FEATURE, CART_GATE_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject gate) && Area1BlockoutBuilder.HasPosition(gate)
                     && Area1BlockoutBuilder.IsNumber(gate["width"]) && (float)gate["width"] > 0f && Area1BlockoutBuilder.IsNumber(gate["yaw"])) continue;
-                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
             }
 
             foreach (string id in FortPathIds)
             {
                 if (features.TryGetValue(id, out JObject path) && Area1BlockoutBuilder.HasPoints(path)) continue;
-                GameLog.Error(TAG, $"Layout has no usable feature '{id}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
             }
 
             // Only the terrain tool reads it, and it skips a missing path without a word.
             if (!features.TryGetValue(SLEDGE_PATH_FEATURE, out JObject sledgePath) || !Area1BlockoutBuilder.HasPoints(sledgePath))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{SLEDGE_PATH_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{SLEDGE_PATH_FEATURE}'; nothing changed.";
+                return false;
             }
 
             JObject compoundGate = features[COMPOUND_GATE_FEATURE];
             if (!Area1BlockoutBuilder.IsNumber(compoundGate["width"]) || (float)compoundGate["width"] <= 0f)
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{COMPOUND_GATE_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{COMPOUND_GATE_FEATURE}'; nothing changed.";
+                return false;
             }
 
             JObject warehouseZone = features[WAREHOUSE_FEATURE];
             if (!Area1BlockoutBuilder.IsNumber(warehouseZone["w"]) || !Area1BlockoutBuilder.IsNumber(warehouseZone["d"])
                 || (float)warehouseZone["w"] < WAREHOUSE_MIN_WIDTH || (float)warehouseZone["d"] < WAREHOUSE_MIN_DEPTH)
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{WAREHOUSE_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{WAREHOUSE_FEATURE}'; nothing changed.";
+                return false;
             }
 
             JObject guardPost = features[GUARD_POST_FEATURE];
@@ -286,8 +294,8 @@ namespace Game.Editor.World
                 || (float)guardPost["w"] < GUARD_POST_MIN_WIDTH || (float)guardPost["w"] > GUARD_POST_MAX_WIDTH
                 || (float)guardPost["d"] < GUARD_POST_MIN_DEPTH || (float)guardPost["d"] > GUARD_POST_MAX_DEPTH)
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{GUARD_POST_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{GUARD_POST_FEATURE}'; nothing changed.";
+                return false;
             }
 
             if (!features.TryGetValue(GANG_HOUSE_FEATURE, out JObject gangHouse) || !Area1BlockoutBuilder.HasPosition(gangHouse)
@@ -295,14 +303,14 @@ namespace Game.Editor.World
                 || (float)gangHouse["w"] < GANG_HOUSE_MIN_WIDTH || (float)gangHouse["w"] > GANG_HOUSE_MAX_WIDTH
                 || (float)gangHouse["d"] < GANG_HOUSE_MIN_DEPTH || (float)gangHouse["d"] > GANG_HOUSE_MAX_DEPTH)
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{GANG_HOUSE_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{GANG_HOUSE_FEATURE}'; nothing changed.";
+                return false;
             }
 
             if (!features.TryGetValue(GANG_DOCK_FEATURE, out JObject gangDock) || !IsUsableGangDock(gangDock))
             {
-                GameLog.Error(TAG, $"Layout has no usable feature '{GANG_DOCK_FEATURE}'; nothing changed.");
-                return;
+                problem = $"Layout has no usable feature '{GANG_DOCK_FEATURE}'; nothing changed.";
+                return false;
             }
 
             Transform docks = root.transform.Find(DOCKS);
@@ -314,10 +322,13 @@ namespace Game.Editor.World
             bool barricadesFound = TryFindBarricades(root, out List<BoxCollider> barricades);
             if (!deckFound || !bridgeFound || !barricadesFound)
             {
-                GameLog.Error(TAG, $"Need {DECK_PREFIX}* twice under {DOCKS}, both rendered, {HAND_BRIDGE} and {BARRICADE_PREFIX}* barricades, each with a box collider; nothing changed.");
-                return;
+                problem = $"Need {DECK_PREFIX}* twice under {DOCKS}, both rendered, {HAND_BRIDGE} and {BARRICADE_PREFIX}* barricades, each with a box collider; nothing changed.";
+                return false;
             }
 
+            if (!Area1HandEdits.TryLoad(out Area1HandEdits edits, out problem)) return false;
+
+            BuiltRoots.Clear();
             Transform quarry = NewRoot(root.transform, QUARRY);
             Vector2[] line = Area1BlockoutBuilder.Points(cleft);
             BuildCleftBlocker(line, terrain, timber, stone, fact, factEvent, quarry);
@@ -364,8 +375,12 @@ namespace Game.Editor.World
             foreach (string id in WalkwayIds)
                 Area1CampInterior.BuildWalkway(id, Area1BlockoutBuilder.Points(features[id]), (float)features[id]["width"], terrain, timber, walkways);
 
+            if (!applyEdits) return true;
+
+            edits.Apply(root.transform, Owns);
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, "Done. Rebake the NavMesh.");
+            return true;
         }
 
         private static Transform NewRoot(Transform parent, string name)
@@ -375,8 +390,35 @@ namespace Game.Editor.World
 
             var root = new GameObject(name).transform;
             root.SetParent(parent, false);
+            BuiltRoots.Add(name);
             return root;
         }
+
+        /// <summary>What the last run owns under <paramref name="root"/>: its roots, and only its own parts of the hand-built Docks.</summary>
+        internal static IEnumerable<Transform> OwnedTops(Transform root)
+        {
+            foreach (string name in BuiltRoots)
+            {
+                Transform top = root.Find(name);
+                if (top != null) yield return top;
+            }
+
+            Transform docks = root.Find(DOCKS);
+            if (docks == null) yield break;
+            foreach (Transform child in docks)
+                if (IsDockPart(child)) yield return child;
+        }
+
+        /// <summary>By the last run's roots, so an entry for a root that left the tool can't touch what is now hand-owned.</summary>
+        private static bool Owns(string path)
+        {
+            string[] segments = path.Split('/');
+            return BuiltRoots.Contains(segments[0]) || (segments[0] == DOCKS && segments.Length > 1 && IsDockPart(segments[1]));
+        }
+
+        private static bool IsDockPart(Transform child) => IsDockPart(child.name);
+
+        private static bool IsDockPart(string name) => DockParts.Any(part => name.StartsWith(part));
 
         /// <summary>
         /// Baked as if it weren't there, so the cleft stays in the NavMesh, and carved at runtime. Removing it needs no rebake.
@@ -581,12 +623,7 @@ namespace Game.Editor.World
             for (int i = docks.childCount - 1; i >= 0; i--)
             {
                 Transform child = docks.GetChild(i);
-                foreach (string part in DockParts)
-                {
-                    if (!child.name.StartsWith(part)) continue;
-                    Object.DestroyImmediate(child.gameObject);
-                    break;
-                }
+                if (IsDockPart(child)) Object.DestroyImmediate(child.gameObject);
             }
         }
 

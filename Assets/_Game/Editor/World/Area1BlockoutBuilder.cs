@@ -78,20 +78,28 @@ namespace Game.Editor.World
                 return;
             }
 
+            if (!Run(GameObject.Find(BLOCKOUT_ROOT), true, out string problem)) GameLog.Error(TAG, problem);
+        }
+
+        /// <summary>Builds into <paramref name="root"/>, which <see cref="Area1HandEditsWindow"/> points at a temporary clone with <paramref name="applyEdits"/> off.</summary>
+        internal static bool Run(GameObject root, bool applyEdits, out string problem)
+        {
+            problem = null;
             Terrain terrain = Terrain.activeTerrain;
-            GameObject root = GameObject.Find(BLOCKOUT_ROOT);
             Material timber = AssetDatabase.LoadAssetAtPath<Material>(TIMBER);
             if (terrain == null || root == null || timber == null)
             {
-                GameLog.Error(TAG, $"Need an active terrain, {BLOCKOUT_ROOT} and {TIMBER}; nothing changed.");
-                return;
+                problem = $"Need an active terrain, {BLOCKOUT_ROOT} and {TIMBER}; nothing changed.";
+                return false;
             }
 
-            if (!TryLoadFeatures(out Dictionary<string, JObject> features, out string problem))
+            if (!TryLoadFeatures(out Dictionary<string, JObject> features, out problem))
             {
-                GameLog.Error(TAG, $"{problem}; nothing changed.");
-                return;
+                problem = $"{problem}; nothing changed.";
+                return false;
             }
+
+            if (!Area1HandEdits.TryLoad(out Area1HandEdits edits, out problem)) return false;
 
             Transform old = root.transform.Find(CAMP_EDGE);
             if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
@@ -106,8 +114,19 @@ namespace Game.Editor.World
             BuildRail("ShoreRail", features[SHORE_RAIL_FEATURE], SHORE_RAIL_GAP_EVERY, SHORE_RAIL_POST_HEIGHT, terrain, timber, edge);
             BuildRail("RampRail", features[RAMP_RAIL_FEATURE], 0, RAMP_RAIL_POST_HEIGHT, terrain, timber, edge);
 
+            if (!applyEdits) return true;
+
+            var hash = PositionHash(edge); // before the edits, which may remove it, and so it still compares two builds
+            edits.Apply(root.transform, Area1HandEdits.IsCampEdge);
             EditorSceneManager.MarkSceneDirty(root.scene);
-            GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {PositionHash(edge)}. Rebake the NavMesh.");
+            GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {hash}. Rebake the NavMesh.");
+            return true;
+        }
+
+        internal static IEnumerable<Transform> OwnedTops(Transform root)
+        {
+            Transform edge = root.Find(CAMP_EDGE);
+            if (edge != null) yield return edge;
         }
 
         private static int BuildPalisade(Dictionary<string, JObject> features, Terrain terrain, Material timber, Transform edge, Vector2 breakPoint)
