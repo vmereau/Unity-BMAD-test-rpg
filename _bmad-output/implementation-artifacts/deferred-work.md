@@ -494,3 +494,14 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Harvest and crops.** Crops are static rows: no growth, harvest, seasons or pickable produce. Tall wheat could later give stealth cover.
 - **Camp hand paint isn't in the source terrain.** Every terrain run repaints the camp ground from `StartingTownTerrain_Source.asset`; this spec restored 5763 hand-painted samples afterwards. Copy the live camp paint into the source asset, or have the tool keep the live alphamap inside the camp.
 - **Wattle fences in the bake.** The 0.12 m wattle pieces may be too thin for a bake, so agents could path through them; the gaps are the intended way in.
+
+## From spec-area-1-tent-camp (2026-11-08)
+
+- **Warden and event-001 at the new square.** The Warden still stands at (−3, 12) by the inner gate. The arrival beating, the escort along the lane and the warden's announcements should move to the stage at (1.5, 25).
+- **Gang house stash.** Where npc-003 keeps it (floor cache, back door onto the deck, or a separate shed) and how quest-001 gets in are undecided; the gang house is unchanged.
+- **Black market operator and stock.** The tent and counter exist; who stands there, opening hours and the trade UI don't.
+- **Lakeside use and the field gang's beds.** The lakeside stays open. Where the field gang sleeps is undecided.
+- **Tent camp NPCs.** The zones have no residents beyond the tent mate and the beaten worker: card players, Wretches, gang members and guards on the lanes are later work.
+- **Company emblem on the flags.** The flags are plain dark red until the emblem is chosen.
+- **Warehouse camp ramp's tip is in the NavMesh.** The bake links the low foot of `Warehouse/Ramp_Camp` (x 15.3–18.8, z 34.8) to the ground at its sides, so a path east from the Player's Zone cuts over the corner where the player's controller can't step. The player walks round the foot. A Not Walkable volume on the ramp's sides, or a skirt, would fix the path.
+- **Company Road past the player's tent.** `company-road` runs (17, 34.8) → (10, 37) → (8, 33), so its cobble paint passes under the player's tent and campfire. Reroute it round the Player's Zone when the road gets art.

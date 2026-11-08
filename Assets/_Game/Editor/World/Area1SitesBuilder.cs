@@ -138,6 +138,8 @@ namespace Game.Editor.World
 
         private const string FARM = "Farm";
         private const string CROP = "Assets/_Game/Art/Materials/Blockout_Crop.mat";
+        private const string CANVAS = "Assets/_Game/Art/Materials/Blockout_Canvas.mat";
+        private const string FLAG = "Assets/_Game/Art/Materials/Blockout_CompanyFlag.mat";
         private const string FARM_WELL_FEATURE = "farm-well";
         private const string FIELD_PREFIX = "field-";
         // Smallest footprint each builder's fixed door, rooms and props fit in. The mill's width is its diameter.
@@ -229,6 +231,8 @@ namespace Game.Editor.World
             Material timber = AssetDatabase.LoadAssetAtPath<Material>(TIMBER);
             Material stone = AssetDatabase.LoadAssetAtPath<Material>(STONE);
             Material crop = AssetDatabase.LoadAssetAtPath<Material>(CROP);
+            Material canvas = AssetDatabase.LoadAssetAtPath<Material>(CANVAS);
+            Material flag = AssetDatabase.LoadAssetAtPath<Material>(FLAG);
             WorldFact fact = AssetDatabase.LoadAssetAtPath<WorldFact>(FACT);
             GameEventSO_Fact factEvent = AssetDatabase.LoadAssetAtPath<GameEventSO_Fact>(FACT_EVENT);
             Material glow = AssetDatabase.LoadAssetAtPath<Material>(GLOW);
@@ -236,7 +240,7 @@ namespace Game.Editor.World
             GameObject rockTall = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_TALL);
             GameObject rockLow = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_LOW);
             GameObject tent = AssetDatabase.LoadAssetAtPath<GameObject>(TENT);
-            if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || crop == null || fact == null || factEvent == null
+            if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || crop == null || canvas == null || flag == null || fact == null || factEvent == null
                 || glow == null || dayNight == null || rockTall == null || rockLow == null || tent == null)
             {
                 problem = $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT}, the rock prefabs and {TENT}; nothing changed.";
@@ -417,6 +421,8 @@ namespace Game.Editor.World
                 return false;
             }
 
+            if (!Area1TentCamp.TryRead(features, out Area1TentCamp.Plan tentCamp, out problem)) return false;
+
             Transform docks = root.transform.Find(DOCKS);
             List<Transform> deck = FindDeck(docks);
             Transform bridge = root.transform.Find(HAND_BRIDGE);
@@ -511,6 +517,8 @@ namespace Game.Editor.World
             Transform house = NewRoot(root.transform, GANG_HOUSE);
             Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
             Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
+            Area1TentCamp.BuildCampCentre(tentCamp, terrain, timber, stone, flag, NewRoot(root.transform, Area1TentCamp.CAMP_CENTRE));
+            Area1TentCamp.BuildTentCamp(tentCamp, tent, terrain, timber, stone, canvas, NewRoot(root.transform, Area1TentCamp.TENT_CAMP));
             Transform walkways = NewRoot(root.transform, WALKWAYS);
             foreach (string id in WalkwayIds)
                 Area1CampInterior.BuildWalkway(id, Area1BlockoutBuilder.Points(features[id]), (float)features[id]["width"], terrain, timber, walkways);

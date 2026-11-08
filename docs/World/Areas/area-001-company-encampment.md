@@ -15,7 +15,7 @@
 
 ## Overview
 
-> **In Unity (2026-11-07):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, the Timberworks by the wood opening, with Edric's forge and the Company store, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop, with the garrison quarter under its ramp.
+> **In Unity (2026-11-07):** graybox in `StartingTown.unity`; zone map in `Assets/_Game/Scenes/CLAUDE.md`. The 1000 m valley terrain, river, lake, roads, forest and the camp's palisade ring are in, along with the quarry cliffs, the sealed Ruins 2 ring, the cleft blocker and the camp-side sites: fort wall and tower, docks, bridge rails, the Fight Pit and the hunter's fire. The remote sites are grayboxed too: the ridge ruins, quarry and Ruins 2 dressing, wood camp, hunting camp and tutorial cave, with the spiders at the cave and the bandit patrol near (−110, 30). Art replaces these one root at a time. The camp interior is grayboxed too: a tall inner palisade with one guarded gate, work-gang tents, latrine, the Timberworks by the wood opening, with Edric's forge and the Company store, the Stoneworks by the quarry opening, and a dock warehouse built into the north palisade. The dock compound has its guard post, tally shed, lockup, smokehouse and net racks. The lake side stands open behind a broken shore rail, with the sunken Fight Pit and the gang house and its dock. The Company house stays on the south outcrop, with the garrison quarter under its ramp. The worker half has its tent camp: Wretches' Corner, the Player's Zone and the Mafia Zone, with the camp square and its sight lanes (2026-11-08).
 
 > **Layout planning (2026-11-04):** [zone planner](https://claude.ai/artifact/FLxhSZ4NDN1EtunT4bukyv) (source in `area-001/planner.html`). The approved valley geography and camp interior are in `area-001/layout.json`.
 >
@@ -82,19 +82,21 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Inner fence** — tall palisade with one guarded gate, separating the worker area from the company area. The real social divide: everyone walks through it each morning.
 
 ### Camp Center
-- Visible from both entrances and the company gate
-- **Punishment post** (stocks / pillory) — slightly elevated. Used for punishments and warden announcements.
-- Company flags visible at all angles
-- Workers do not gather here voluntarily
+- A cleared square at about (1.5, 25), where the arrival path meets the Company Road, between the canteen and the Player's Zone.
+- **Punishment post** (stocks / pillory) on a 1.2 m stage with steps facing the inner gate. Used for punishments and warden announcements.
+- **Sight lanes:** three 6 m strips with no tents run from the post to the arrival gate, the wilderness opening and the inner gate, so the post is seen from both entrances and the Company gate. The arrival walk follows the arrival lane: the Company keeps its own lines of view open.
+- Company flags on poles round the square, on the inner gate and on the warehouse, turned so some always face the viewer.
+- Workers do not gather here voluntarily: the daily path skirts the square.
+- **Arrival walk (event-001):** arrival gate, down the lane to the square (the beating), then on to the player's tent deep in the Player's Zone.
 
 ### Tent Camp Zones (Worker Area)
 | Zone | Description |
 |------|-------------|
-| Player's Zone | Neutral. Worn but not destitute. Card game, tool repair trunk, campfire, low conversation. |
-| Wretches' Corner | Poorest workers. Minimal possessions. Social bottom of the camp. |
-| Mafia Zone | Workers with leverage or muscle. Better-kept tents. Stash owner's territory, run from the gang house. |
+| Player's Zone | The middle, round the Company Road. Neutral. Worn but not destitute: standard tents with crates. The player's tent is at (10, 40), with the tent mate's tent next door, the tool repair trunk between them, and the campfire and card game in front. The tent's back opening faces the hunter's fire, which shows through the broken palisade. A second group of tents shares a fire between the square and the inner fence. |
+| Wretches' Corner | The north-west, between the arrival lane and the latrine. Poorest workers: low lean-tos with bedrolls round one shared fire pit. Social bottom of the camp. |
+| Mafia Zone | The east, past a drainage ditch with plank crossings, in line with the dock spur (x 24.5). Workers with leverage or muscle: wall tents on plank platforms with awnings, round the gang's fire. The black market is its gang-run tent at the north end, on the night path towards the gang house. Stash owner's territory, run from the gang house. |
 | Fight Pit | About (52.5, 24), by the lake: a round sunken floor inside a raised earth bank, with a gap to the north. A placeholder until the detailed pit is designed: mostly out of sight from the fort, but no secret. Runs at night. See **The Company's Tolerance**. |
-| Lakeside | The open ground between the tents and the shore. Reserved: tents and other uses to be decided. |
+| Lakeside | The open ground between the tents and the shore. No tents for now; the night crowd, the gang and the fishing pass through it. |
 
 ### Exits
 | Exit | Direction | Status | Notes |
@@ -212,7 +214,7 @@ The fights are illegal in name only. The Company knows about the pit and lets it
 | Illegal fishing | Night | Far side of the lake (spot TBD) | Out of the Company's sight. Black market outlet. |
 | Fight club | Night | Fight Pit | Out of sight from the fort, tolerated by the Company. Some guards take bets. |
 | Hunter's fire visible | Night | Across river | First contact incentive for independent path. |
-| Black market | Night | Tent area (location TBD) | Different inventory than official shop. |
+| Black market | Night | Gang tent at the Mafia Zone's north end | Different inventory than official shop. Run by the gang. |
 | Theft / sneaking | Night | Camp-wide | Reduced guard coverage. Some guards asleep. |
 
 ---
@@ -241,7 +243,9 @@ No hard resource gate. Endings become available when player's actions and comple
 
 - **Quarry passage interior** — what's inside, civilization lore connection (needs separate ruins/lore session)
 - **Ruins design** — hillside layout, what's inside, the vanished civilization's identity
-- **Black market operator** — who runs it, what they sell, faction alignment
+- **Black market operator** — the gang runs it from its tent; who stands at the counter and what they sell are open
+- **Gang house stash** — where npc-003 keeps it and how quest-001 gets in
+- **Lakeside** — what the open ground is for, and where the field gang sleeps
 - **Camp official shop/trader** — who runs it, company employee or worker?
 - **Fight club design** — rules, opponent roster, reward structure, reputation effects, which guards take bets and where the Company's tolerance ends
 - **NPC roster completion** — names for all stub NPCs, full dialogue seeds

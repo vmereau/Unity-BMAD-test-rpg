@@ -545,29 +545,7 @@
       "w": 28,
       "d": 24,
       "art": [],
-      "note": "Reserved open ground between the tents and the shore. Tents and other uses to be decided. No trees."
-    },
-    {
-      "id": "zone-1",
-      "kind": "zone",
-      "name": "player tent",
-      "x": -41.7,
-      "z": -6.2,
-      "w": 9.6,
-      "d": 7.5,
-      "art": [],
-      "note": ""
-    },
-    {
-      "id": "zone-2",
-      "kind": "zone",
-      "name": "center",
-      "x": -2.4,
-      "z": 4.3,
-      "w": 30,
-      "d": 30,
-      "art": [],
-      "note": ""
+      "note": "Open ground between the tents and the shore. No tents for now; the night crowd, the gang and the fishing pass through it. No trees."
     },
     {
       "id": "zone-3",
@@ -1258,19 +1236,35 @@
       "name": "Path: arrival",
       "width": 3,
       "art": [],
-      "note": "Escort route: arrival opening, stage, Player's Zone.",
+      "note": "Escort route along the arrival lane: arrival opening, past the punishment post, to the player's tent.",
       "points": [
         [
           -38.4,
           36.3
         ],
         [
-          -8,
-          18
+          -20,
+          31.1
         ],
         [
-          14,
-          22
+          -6,
+          28.5
+        ],
+        [
+          1.5,
+          30
+        ],
+        [
+          7,
+          30
+        ],
+        [
+          10.5,
+          33.8
+        ],
+        [
+          11,
+          37.3
         ]
       ]
     },
@@ -1280,11 +1274,19 @@
       "name": "Path: morning commute",
       "width": 4,
       "art": [],
-      "note": "The muddiest. Tents, past the stage, inner gate, yard, then the wood or quarry opening. The Company Road stays clean on top of it at the gate.",
+      "note": "The muddiest. Player's tent, past the square, inner gate, yard, then the wood or quarry opening. The Company Road stays clean on top of it at the gate.",
       "points": [
         [
-          14,
-          27
+          11,
+          37.3
+        ],
+        [
+          10.5,
+          33.8
+        ],
+        [
+          9,
+          30
         ],
         [
           8.5,
@@ -1318,19 +1320,31 @@
       "name": "Path: daily",
       "width": 1,
       "art": [],
-      "note": "Narrow foot-worn line: tents, canteen, latrine.",
+      "note": "Narrow foot-worn line: player's tent, canteen, latrine. It skirts the square's north side.",
       "points": [
         [
-          14,
-          27
+          11,
+          37.3
+        ],
+        [
+          10.5,
+          33.8
+        ],
+        [
+          -1,
+          31.8
+        ],
+        [
+          -6.5,
+          31.8
         ],
         [
           -11,
-          24
+          25
         ],
         [
-          -10,
-          42
+          -10.5,
+          41.5
         ]
       ]
     },
@@ -1377,6 +1391,213 @@
         [
           4,
           57
+        ]
+      ]
+    },
+    {
+      "id": "camp-centre",
+      "kind": "zone",
+      "name": "Camp centre",
+      "x": 1.5,
+      "z": 25,
+      "w": 14,
+      "d": 12,
+      "art": [],
+      "note": "Cleared square where the arrival path meets the Company Road. The raised punishment post stands in the middle, with Company flags round it. Tent-free sight lanes run from the post to the arrival gate, the wilderness opening and the inner gate. Workers don't gather here."
+    },
+    {
+      "id": "path-camp-square",
+      "kind": "road",
+      "name": "Path: camp square",
+      "width": 12,
+      "art": [],
+      "note": "Paint only: the trodden square round the punishment post.",
+      "points": [
+        [
+          -3,
+          25
+        ],
+        [
+          6,
+          25
+        ]
+      ]
+    },
+    {
+      "id": "players-tent",
+      "kind": "point",
+      "name": "Player's tent",
+      "x": 10,
+      "z": 40,
+      "art": [],
+      "note": "Deep in the Player's Zone. The tent mate's tent is next door, with the tool repair trunk between them; the campfire and card game are in front. The back opening looks through the broken palisade at the hunter's fire."
+    },
+    {
+      "id": "tents-players",
+      "kind": "road",
+      "name": "Tents: Player's Zone",
+      "width": 1,
+      "art": [],
+      "note": "Each point is a standard tent, facing the nearest Player's Zone fire. Worn but not destitute.",
+      "points": [
+        [
+          1,
+          36.5
+        ],
+        [
+          12.5,
+          45.5
+        ],
+        [
+          21.5,
+          27.4
+        ],
+        [
+          13,
+          15
+        ],
+        [
+          19.5,
+          14.5
+        ],
+        [
+          13,
+          22
+        ],
+        [
+          19.5,
+          22
+        ]
+      ]
+    },
+    {
+      "id": "fire-players",
+      "kind": "point",
+      "name": "Fire: Player's Zone south",
+      "x": 16.25,
+      "z": 18.25,
+      "art": [],
+      "note": "Shared fire for the tents between the square and the inner fence."
+    },
+    {
+      "id": "tents-wretches",
+      "kind": "road",
+      "name": "Tents: Wretches' Corner",
+      "width": 1,
+      "art": [],
+      "note": "Each point is a low lean-to with a bedroll, facing the shared fire. The latrine is behind them.",
+      "points": [
+        [
+          -5,
+          34.2
+        ],
+        [
+          -5.5,
+          39.5
+        ],
+        [
+          -4,
+          45
+        ],
+        [
+          -13.5,
+          34.5
+        ],
+        [
+          -14,
+          39.5
+        ],
+        [
+          -18.5,
+          36.5
+        ],
+        [
+          -19,
+          41
+        ],
+        [
+          -16,
+          45
+        ],
+        [
+          -22.5,
+          38.5
+        ]
+      ]
+    },
+    {
+      "id": "fire-wretches",
+      "kind": "point",
+      "name": "Fire: Wretches' Corner",
+      "x": -8.5,
+      "z": 36.5,
+      "art": [],
+      "note": "One fire pit for the whole corner."
+    },
+    {
+      "id": "tents-mafia",
+      "kind": "road",
+      "name": "Tents: Mafia Zone",
+      "width": 1,
+      "art": [],
+      "note": "Each point is a wall tent on a plank platform with an awning, facing the gang's fire.",
+      "points": [
+        [
+          28.2,
+          13.5
+        ],
+        [
+          35.8,
+          13.5
+        ],
+        [
+          28.2,
+          21.5
+        ],
+        [
+          35.8,
+          21.5
+        ],
+        [
+          30,
+          30.5
+        ]
+      ]
+    },
+    {
+      "id": "fire-mafia",
+      "kind": "point",
+      "name": "Fire: Mafia Zone",
+      "x": 32,
+      "z": 17.5,
+      "art": [],
+      "note": "The gang's fire, with benches."
+    },
+    {
+      "id": "black-market",
+      "kind": "point",
+      "name": "Black market",
+      "x": 32.5,
+      "z": 37.5,
+      "yaw": 200,
+      "art": [],
+      "note": "Gang-run wall tent with a counter at the Mafia Zone's north end, on the night path towards the gang house. Open at night. Local +Z faces out of the door."
+    },
+    {
+      "id": "zone-ditch",
+      "kind": "road",
+      "name": "Drainage ditch",
+      "width": 0.8,
+      "art": [],
+      "note": "Marks the Player's Zone / Mafia Zone border in line with the dock spur. A dark strip with plank crossings, no collider.",
+      "points": [
+        [
+          24.5,
+          9.8
+        ],
+        [
+          24.5,
+          41
         ]
       ]
     },
