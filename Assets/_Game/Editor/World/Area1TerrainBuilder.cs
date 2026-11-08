@@ -85,6 +85,8 @@ namespace Game.Editor.World
         private const string LAKESIDE_FEATURE = "lakeside";
         private const string FORT_TOWER_FEATURE = "fort-tower";
         private const string FORT_ZONE_FEATURE = "zone-3";
+        private const string FARM_FEATURE = "farm";        // no trees: the farmyard and fields sit inside it
+        private const string FIELD_PREFIX = "field-";      // tilled in Mud, except the hay meadow
         private const string FORT_RAMP_FEATURE = "path-fort-ramp";
         private const float FORT_RAMP_TREE_CLEARANCE = 6.5f; // from its centre line: the road, its rail and the rail's gate end
         private const string GANG_HOUSE_FEATURE = "gang-house";
@@ -163,6 +165,8 @@ namespace Game.Editor.World
             public Vector2 LakesideCenter, LakesideSize;
             public Vector2 GangHouse;
             public Vector2 FortCenter, FortSize;
+            public Vector2 FarmCenter, FarmSize;
+            public (Vector2 center, Vector2 size)[] TilledFields;
             public Vector2[] FortRamp;
             public Vector2[][] Corridors;
             public Vector2 Fire;
@@ -644,6 +648,12 @@ namespace Game.Editor.World
                             w[l] = Mathf.Lerp(w[l], oldAlpha[oz, ox, l], keep);
                     w[(int)Layer.Rock] *= 1f - keep;
 
+                    foreach ((Vector2 center, Vector2 size) in layout.TilledFields)
+                    {
+                        float tilled = 1f - Math.Ramp(Math.RectDistance(p, center, size), 0f, PAINT_EDGE);
+                        if (tilled > 0f) Math.BlendLayer(w, (int)Layer.Mud, tilled);
+                    }
+
                     PaintLines(layout, w, p, true); // mud goes under every road
 
                     float road = 1f - Math.Ramp(roadDistance[z, x], 0.5f, 2f);
@@ -723,6 +733,7 @@ namespace Game.Editor.World
             if (Vector2.Distance(p, layout.Pit.Center) < Math.FightPit.FOOT_RADIUS + 4f) return false;
             if (Vector2.Distance(p, layout.GangHouse) < GANG_HOUSE_TREE_CLEARANCE) return false;
             if (Math.InsideRect(p, layout.FortCenter, layout.FortSize)) return false;
+            if (Math.InsideRect(p, layout.FarmCenter, layout.FarmSize)) return false;
             if (Math.PolylineDistance(p, layout.FortRamp, out _) < FORT_RAMP_TREE_CLEARANCE) return false;
             if (Vector2.Distance(p, CampCenter) < 62f) return false;
             foreach (Shape s in KeptRects)
@@ -798,7 +809,7 @@ namespace Game.Editor.World
                 return false;
             }
 
-            foreach (string id in new[] { FIGHT_PIT_FEATURE, LAKESIDE_FEATURE, FORT_ZONE_FEATURE })
+            foreach (string id in new[] { FIGHT_PIT_FEATURE, LAKESIDE_FEATURE, FORT_ZONE_FEATURE, FARM_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject zone) && Area1BlockoutBuilder.HasPosition(zone)
                     && Area1BlockoutBuilder.IsNumber(zone["w"]) && Area1BlockoutBuilder.IsNumber(zone["d"]) && (float)zone["w"] > 0f && (float)zone["d"] > 0f) continue;
@@ -826,6 +837,33 @@ namespace Game.Editor.World
             }
 
             if (!TryReadPaintedLines(features, out PaintedLine[] paintedLines, out problem)) return false;
+
+            var tilled = new List<(Vector2 center, Vector2 size)>();
+            Vector2 farmCenter = Position(features[FARM_FEATURE]);
+            Vector2 farmSize = new Vector2((float)features[FARM_FEATURE]["w"], (float)features[FARM_FEATURE]["d"]);
+            string stray = features.Keys.FirstOrDefault(id => id.StartsWith(FIELD_PREFIX, StringComparison.Ordinal) && !Area1SitesBuilder.FarmFields.Contains(id));
+            if (stray != null)
+            {
+                problem = $"Layout has '{stray}', which the Sites tool doesn't build; add it there first";
+                return false;
+            }
+
+            foreach (string id in Area1SitesBuilder.FarmFields)
+            {
+                if (!features.TryGetValue(id, out JObject field) || !Area1SitesBuilder.IsUsableField(field, out Area1Farm.Crop crop))
+                {
+                    problem = $"Layout has no usable feature '{id}'";
+                    return false;
+                }
+
+                Vector2 center = Position(field), size = new Vector2((float)field["w"], (float)field["d"]);
+                if (Mathf.Abs(center.x - farmCenter.x) + size.x * 0.5f > farmSize.x * 0.5f || Mathf.Abs(center.y - farmCenter.y) + size.y * 0.5f > farmSize.y * 0.5f)
+                {
+                    problem = $"'{id}' reaches outside '{FARM_FEATURE}', where trees would grow in it";
+                    return false;
+                }
+                if (crop != Area1Farm.Crop.Hay) tilled.Add((center, size));
+            }
 
             Vector2[] wall = Points(features["mountains"]);
             float wallCentre = wall.Max(p => Mathf.Abs(p.x));
@@ -862,6 +900,9 @@ namespace Game.Editor.World
                 FortCenter = Position(features[FORT_ZONE_FEATURE]),
                 FortSize = new Vector2((float)features[FORT_ZONE_FEATURE]["w"], (float)features[FORT_ZONE_FEATURE]["d"]),
                 FortRamp = Points(features[FORT_RAMP_FEATURE]),
+                FarmCenter = farmCenter,
+                FarmSize = farmSize,
+                TilledFields = tilled.ToArray(),
                 LakesideCenter = Position(lakeside),
                 LakesideSize = new Vector2((float)lakeside["w"], (float)lakeside["d"]),
                 Corridors = new[]

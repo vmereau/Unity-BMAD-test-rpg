@@ -1857,20 +1857,8 @@
       "art": [
         "fort"
       ],
-      "note": "Unbroken rail along the ramp's outer edge, built by Camp Edge.",
+      "note": "Unbroken rail along the ramp's outer edge, built by Camp Edge. It starts past the open ramp gate's south leaf, leaving a 3.2 m gap where the farm step leaves the ramp.",
       "points": [
-        [
-          -9.63,
-          -51.37
-        ],
-        [
-          -10.2,
-          -52.4
-        ],
-        [
-          -10,
-          -55
-        ],
         [
           -9,
           -57.5
@@ -2002,6 +1990,273 @@
       ],
       "foot": 0.7,
       "head": 9.95
+    },
+    {
+      "id": "farm",
+      "kind": "zone",
+      "name": "Company farm",
+      "x": -2,
+      "z": -99,
+      "w": 92,
+      "d": 98,
+      "art": [],
+      "note": "The plain behind the fort hill. No trees grow here; the fields and the farmyard sit inside it."
+    },
+    {
+      "id": "farm-manager-house",
+      "kind": "zone",
+      "name": "Farm manager's house",
+      "x": -22,
+      "z": -62,
+      "w": 9,
+      "d": 6,
+      "yaw": 90,
+      "art": [],
+      "note": "The Company reeve's house, outside the palisade by the ramp gate. Door east onto the farm track; kitchen garden behind it."
+    },
+    {
+      "id": "tithe-barn",
+      "kind": "zone",
+      "name": "Tithe barn",
+      "x": 1,
+      "z": -84,
+      "w": 16,
+      "d": 8,
+      "yaw": 180,
+      "art": [],
+      "note": "The camp's main grain store. Closed, solid cart doors on the yard: a later theft target for the worker path."
+    },
+    {
+      "id": "threshing-floor",
+      "kind": "zone",
+      "name": "Threshing floor",
+      "x": 13,
+      "z": -93,
+      "w": 8,
+      "d": 6,
+      "yaw": 0,
+      "art": [],
+      "note": "Open roof on posts over a stone floor, with flails."
+    },
+    {
+      "id": "ox-mill",
+      "kind": "zone",
+      "name": "Ox mill",
+      "x": -16,
+      "z": -95,
+      "w": 10,
+      "d": 10,
+      "yaw": 0,
+      "art": [],
+      "note": "Open round shed: an ox walks the sweep that turns the millstone. w is the diameter."
+    },
+    {
+      "id": "ox-byre",
+      "kind": "zone",
+      "name": "Ox byre",
+      "x": -2,
+      "z": -104,
+      "w": 14,
+      "d": 6,
+      "yaw": 0,
+      "art": [],
+      "note": "Stalls open north to the yard (local +Z). The farm's oxen work the mill and are bred here; the Stoneworks keeps its own team."
+    },
+    {
+      "id": "ox-paddock",
+      "kind": "zone",
+      "name": "Ox paddock",
+      "x": -2,
+      "z": -114,
+      "w": 18,
+      "d": 8,
+      "yaw": 0,
+      "art": [],
+      "note": "Railed paddock behind the byre, with cows and calves."
+    },
+    {
+      "id": "hay-yard",
+      "kind": "point",
+      "name": "Hay yard",
+      "x": 10,
+      "z": -106,
+      "art": [],
+      "note": "Haystacks and an open hay shed: fodder for both herds."
+    },
+    {
+      "id": "dung-heap",
+      "kind": "point",
+      "name": "Dung heap",
+      "x": -13,
+      "z": -106,
+      "art": [],
+      "note": "Byre muck, spread on the fields."
+    },
+    {
+      "id": "farm-well",
+      "kind": "point",
+      "name": "Farm well",
+      "x": -1,
+      "z": -95,
+      "art": [],
+      "note": "Well and trough in the middle of the yard."
+    },
+    {
+      "id": "farm-tally",
+      "kind": "point",
+      "name": "Field gang tally",
+      "x": -14,
+      "z": -82,
+      "art": [],
+      "note": "Tally board, tool rack and water barrel where the field gang is counted out and in."
+    },
+    {
+      "id": "field-wheat",
+      "kind": "zone",
+      "name": "Field: wheat",
+      "x": 31,
+      "z": -100,
+      "w": 24,
+      "d": 34,
+      "crop": "wheat",
+      "art": [],
+      "note": "Bread for the fort."
+    },
+    {
+      "id": "field-barley",
+      "kind": "zone",
+      "name": "Field: barley",
+      "x": 31,
+      "z": -132,
+      "w": 24,
+      "d": 24,
+      "crop": "barley",
+      "art": [],
+      "note": "Ale for The Short Measure and the workers' gruel."
+    },
+    {
+      "id": "field-oats",
+      "kind": "zone",
+      "name": "Field: oats",
+      "x": 2,
+      "z": -133,
+      "w": 26,
+      "d": 18,
+      "crop": "oats",
+      "art": [],
+      "note": "Fodder for the oxen."
+    },
+    {
+      "id": "field-hay",
+      "kind": "zone",
+      "name": "Field: hay meadow",
+      "x": -30,
+      "z": -100,
+      "w": 16,
+      "d": 30,
+      "crop": "hay",
+      "art": [],
+      "note": "Hay for the oxen. Stays grass.",
+      "gate": "n"
+    },
+    {
+      "id": "field-garden",
+      "kind": "zone",
+      "name": "Field: kitchen garden",
+      "x": -31,
+      "z": -66,
+      "w": 10,
+      "d": 12,
+      "crop": "garden",
+      "art": [],
+      "note": "Turnips and cabbages for the canteen, behind the manager's house.",
+      "gate": "s"
+    },
+    {
+      "id": "farm-step",
+      "kind": "road",
+      "name": "Farm step",
+      "width": 2.5,
+      "art": [],
+      "note": "Plank ramp from the cart ramp's lip, in the rail gap, down to the flat ground: the graded ramp drops 1.5 m there. Top point first, on the lip.",
+      "points": [
+        [
+          -12.7,
+          -56.3
+        ],
+        [
+          -17,
+          -56
+        ]
+      ]
+    },
+    {
+      "id": "path-farm",
+      "kind": "road",
+      "name": "Path: farm track",
+      "width": 3,
+      "art": [],
+      "note": "Paint only. Ramp gate, down the farm step in the rail gap, past the manager's house to the farmyard.",
+      "points": [
+        [
+          -9,
+          -55.5
+        ],
+        [
+          -12.7,
+          -56.3
+        ],
+        [
+          -17,
+          -56
+        ],
+        [
+          -15.5,
+          -62
+        ],
+        [
+          -13,
+          -70
+        ],
+        [
+          -12,
+          -78
+        ],
+        [
+          -10,
+          -88
+        ],
+        [
+          -4,
+          -93
+        ]
+      ]
+    },
+    {
+      "id": "path-field-lane",
+      "kind": "road",
+      "name": "Path: field lane",
+      "width": 2.5,
+      "art": [],
+      "note": "Paint only. Yard to the wheat, barley and oats.",
+      "points": [
+        [
+          -2,
+          -96
+        ],
+        [
+          17,
+          -99
+        ],
+        [
+          17,
+          -121
+        ],
+        [
+          -16,
+          -121
+        ]
+      ]
     }
   ],
   "decisions": [

@@ -134,6 +134,24 @@ namespace Game.Editor.World
         private static readonly string[] GarrisonPoints = { GARRISON_WELL_FEATURE, GARRISON_BELL_FEATURE, "reserve-kennels", "reserve-barber" };
         private static readonly string[] GarrisonPaths = { "path-garrison", "path-drill-yard" };
 
+        private const string FARM = "Farm";
+        private const string CROP = "Assets/_Game/Art/Materials/Blockout_Crop.mat";
+        private const string FARM_WELL_FEATURE = "farm-well";
+        private const string FARM_STEP_FEATURE = "farm-step"; // top point on the cart ramp, then the foot
+        private const string FIELD_PREFIX = "field-";
+        // Smallest footprint each builder's fixed door, rooms and props fit in. The mill's width is its diameter.
+        private static readonly (string Id, float MinWidth, float MinDepth)[] FarmPlots =
+        {
+            ("farm-manager-house", 8f, 5f), ("tithe-barn", 10f, 6f), ("threshing-floor", 6f, 6f), ("ox-mill", 9f, 9f),
+            ("ox-byre", 10f, 5f), ("ox-paddock", 12f, 6f),
+        };
+
+        private static readonly string[] FarmPoints = { "hay-yard", "dung-heap", FARM_WELL_FEATURE, "farm-tally" };
+        internal static readonly string[] FarmFields = { "field-wheat", "field-barley", "field-oats", "field-hay", "field-garden" };
+        private static readonly string[] FarmPaths = { "path-farm", "path-field-lane" };
+        private const float FIELD_MIN_SIZE = 6f; // the fence gap and a few rows
+        private const float FARM_STEP_MIN_LENGTH = 1f;
+
         private static readonly string[] WalkwayIds = { "walkway-canteen", "walkway-guard-post" };
         private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
         private const float WAREHOUSE_MIN_WIDTH = 8f;  // doors, landing and hoist are laid out from the middle
@@ -210,6 +228,7 @@ namespace Game.Editor.World
             Terrain terrain = Terrain.activeTerrain;
             Material timber = AssetDatabase.LoadAssetAtPath<Material>(TIMBER);
             Material stone = AssetDatabase.LoadAssetAtPath<Material>(STONE);
+            Material crop = AssetDatabase.LoadAssetAtPath<Material>(CROP);
             WorldFact fact = AssetDatabase.LoadAssetAtPath<WorldFact>(FACT);
             GameEventSO_Fact factEvent = AssetDatabase.LoadAssetAtPath<GameEventSO_Fact>(FACT_EVENT);
             Material glow = AssetDatabase.LoadAssetAtPath<Material>(GLOW);
@@ -217,7 +236,7 @@ namespace Game.Editor.World
             GameObject rockTall = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_TALL);
             GameObject rockLow = AssetDatabase.LoadAssetAtPath<GameObject>(ROCK_LOW);
             GameObject tent = AssetDatabase.LoadAssetAtPath<GameObject>(TENT);
-            if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || fact == null || factEvent == null
+            if (terrain == null || terrain.terrainData == null || root == null || timber == null || stone == null || crop == null || fact == null || factEvent == null
                 || glow == null || dayNight == null || rockTall == null || rockLow == null || tent == null)
             {
                 problem = $"Need an active terrain, {BLOCKOUT_ROOT}, the blockout materials, {FACT}, {FACT_EVENT}, {DAY_NIGHT}, the rock prefabs and {TENT}; nothing changed.";
@@ -310,6 +329,44 @@ namespace Game.Editor.World
 
             // Only the terrain tool reads these, and it skips a missing path without a word.
             foreach (string id in GarrisonPaths)
+            {
+                if (features.TryGetValue(id, out JObject path) && Area1BlockoutBuilder.HasPoints(path)) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            foreach ((string id, float minWidth, float minDepth) in FarmPlots)
+            {
+                if (features.TryGetValue(id, out JObject plot) && Area1BlockoutBuilder.HasPosition(plot)
+                    && Area1BlockoutBuilder.IsNumber(plot["w"]) && (float)plot["w"] >= minWidth && Area1BlockoutBuilder.IsNumber(plot["d"]) && (float)plot["d"] >= minDepth && Area1BlockoutBuilder.IsNumber(plot["yaw"])) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            foreach (string id in FarmPoints)
+            {
+                if (features.TryGetValue(id, out JObject point) && Area1BlockoutBuilder.HasPosition(point)) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            foreach (string id in FarmFields)
+            {
+                if (features.TryGetValue(id, out JObject field) && IsUsableField(field, out _)) continue;
+                problem = $"Layout has no usable feature '{id}'; nothing changed.";
+                return false;
+            }
+
+            if (!features.TryGetValue(FARM_STEP_FEATURE, out JObject farmStep) || !Area1BlockoutBuilder.HasPoints(farmStep) || ((JArray)farmStep["points"]).Count != 2
+                || !Area1BlockoutBuilder.IsNumber(farmStep["width"]) || (float)farmStep["width"] <= 0f
+                || Vector2.Distance(Area1BlockoutBuilder.Points(farmStep)[0], Area1BlockoutBuilder.Points(farmStep)[1]) < FARM_STEP_MIN_LENGTH)
+            {
+                problem = $"Layout has no usable feature '{FARM_STEP_FEATURE}'; nothing changed.";
+                return false;
+            }
+
+            // Only the terrain tool reads these, and it skips a missing path without a word.
+            foreach (string id in FarmPaths)
             {
                 if (features.TryGetValue(id, out JObject path) && Area1BlockoutBuilder.HasPoints(path)) continue;
                 problem = $"Layout has no usable feature '{id}'; nothing changed.";
@@ -429,6 +486,26 @@ namespace Game.Editor.World
             Area1Garrison.BuildGrainStore(Plot(features[GRAIN_STORE_FEATURE]), terrain, timber, stone, garrison);
             Area1Garrison.BuildDrillYard(Plot(features[DRILL_YARD_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_WELL_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_BELL_FEATURE]), terrain, timber, stone, garrison);
             Area1Garrison.BuildGraves(Plot(features[WORKERS_GRAVES_FEATURE]), terrain, timber, stone, garrison);
+            Transform farm = NewRoot(root.transform, FARM);
+            Vector2[] stepLine = Area1BlockoutBuilder.Points(farmStep);
+            Area1Farm.BuildStep(stepLine[0], stepLine[1], (float)farmStep["width"], terrain, timber, farm);
+            Area1Farm.BuildManagerHouse(Plot(features["farm-manager-house"]), terrain, timber, stone, farm);
+            Area1Farm.BuildTitheBarn(Plot(features["tithe-barn"]), terrain, timber, stone, farm);
+            Area1Farm.BuildThreshingFloor(Plot(features["threshing-floor"]), terrain, timber, stone, crop, farm);
+            Area1Farm.BuildOxMill(Plot(features["ox-mill"]), terrain, timber, stone, farm);
+            Area1Farm.BuildByre(Plot(features["ox-byre"]), terrain, timber, stone, farm);
+            Area1Farm.BuildPaddock(Plot(features["ox-paddock"]), terrain, timber, farm);
+            Area1Farm.BuildHayYard(Area1BlockoutBuilder.Position(features["hay-yard"]), terrain, timber, crop, farm);
+            Area1Farm.BuildDungHeap(Area1BlockoutBuilder.Position(features["dung-heap"]), terrain, timber, farm);
+            Vector2 farmWell = Area1BlockoutBuilder.Position(features[FARM_WELL_FEATURE]);
+            Area1Farm.BuildWell(farmWell, terrain, timber, stone, farm);
+            Area1Farm.BuildTally(Area1BlockoutBuilder.Position(features["farm-tally"]), terrain, timber, farm);
+            foreach (string id in FarmFields)
+            {
+                JObject field = features[id];
+                IsUsableField(field, out Area1Farm.Crop kind);
+                Area1Farm.BuildField(FieldName(id), Area1BlockoutBuilder.Position(field), new Vector2((float)field["w"], (float)field["d"]), kind, Gate(field), farmWell, terrain, timber, crop, farm);
+            }
             Transform stoneworks = NewRoot(root.transform, WORKSHOP_YARD);
             Area1Stoneworks.BuildLodge(Area1BlockoutBuilder.Position(features[STONE_LODGE_FEATURE]), terrain, timber, stone, stoneworks);
             Area1Stoneworks.BuildMasonsRow(Area1BlockoutBuilder.Position(features[MASONS_ROW_FEATURE]), terrain, timber, stone, stoneworks);
@@ -486,6 +563,36 @@ namespace Game.Editor.World
 
         private static Area1Garrison.Plot Plot(JObject feature) =>
             new Area1Garrison.Plot(Area1BlockoutBuilder.Position(feature), (float)feature["w"], (float)feature["d"], (float)feature["yaw"]);
+
+        /// <summary>
+        /// A sized footprint with a crop named in letters (a number or a comma list would parse as another crop) and, if set, a
+        /// `gate` of n, s, e or w. The terrain tool reads the same <see cref="FarmFields"/>, so both stop on the same bad entry.
+        /// </summary>
+        internal static bool IsUsableField(JObject field, out Area1Farm.Crop crop)
+        {
+            crop = default;
+            string name = field["crop"]?.Type == JTokenType.String ? (string)field["crop"] : null;
+            JToken gate = field["gate"];
+            return Area1BlockoutBuilder.HasPosition(field)
+                && Area1BlockoutBuilder.IsNumber(field["w"]) && (float)field["w"] >= FIELD_MIN_SIZE
+                && Area1BlockoutBuilder.IsNumber(field["d"]) && (float)field["d"] >= FIELD_MIN_SIZE
+                && !string.IsNullOrEmpty(name) && name.All(char.IsLetter) && System.Enum.TryParse(name, true, out crop)
+                && (gate == null || (gate.Type == JTokenType.String && GateSides.ContainsKey((string)gate)));
+        }
+
+        private static readonly Dictionary<string, Vector2> GateSides = new Dictionary<string, Vector2>
+        {
+            { "n", Vector2.up }, { "s", Vector2.down }, { "e", Vector2.right }, { "w", Vector2.left },
+        };
+
+        private static Vector2? Gate(JObject field) => field["gate"] == null ? (Vector2?)null : GateSides[(string)field["gate"]];
+
+        /// <summary>`field-wheat` becomes `Field_Wheat`, culture-independent.</summary>
+        private static string FieldName(string id)
+        {
+            string crop = id.Substring(FIELD_PREFIX.Length);
+            return "Field_" + char.ToUpperInvariant(crop[0]) + crop.Substring(1);
+        }
 
         private static bool IsDockPart(Transform child) => IsDockPart(child.name);
 

@@ -484,3 +484,12 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Kennels and barber-surgeon.** `reserve-kennels` (−40.5, −27.5) and `reserve-barber` (−32.7, −39.7) are empty plots in the layout. The barber's is only 3.2 × 4 m.
 - **Grave mounds on the gullied bank.** The flatten left gullies on the low bank, so some mounds overhang. Smooth that ground when the graves get art.
 - **Brew shed.** Offered and left out: a shed and barrel yard behind The Short Measure.
+
+## From spec-area-1-grain-fields (2026-11-08)
+
+- **Farm manager NPC and the field gang.** The reeve, the gang roster, the morning count at the tally post and the walk out through the ramp gate need NPCs and routines.
+- **Barn theft.** The tithe barn is closed with no door to open; the worker path's "secure food reserves" quest opens it.
+- **Oxen routines.** The farm and Stoneworks oxen are boxes. The mill ox walking its ring, oxen hauling to the quarry and wood camp, and breeding are later work.
+- **Harvest and crops.** Crops are static rows: no growth, harvest, seasons or pickable produce. Tall wheat could later give stealth cover.
+- **Camp hand paint isn't in the source terrain.** Every terrain run repaints the camp ground from `StartingTownTerrain_Source.asset`; this spec restored 5763 hand-painted samples afterwards. Copy the live camp paint into the source asset, or have the tool keep the live alphamap inside the camp.
+- **Wattle fences in the bake.** The 0.12 m wattle pieces may be too thin for a bake, so agents could path through them; the gaps are the intended way in.

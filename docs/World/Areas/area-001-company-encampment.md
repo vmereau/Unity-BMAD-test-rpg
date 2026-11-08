@@ -65,6 +65,12 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
   - **Grain store** — on capped stilts beside the alehouse.
   - **Workers' graves** — on the low bank, with numbers on stakes and no names.
   - **Reserved ground** — plots are kept for kennels and a barber-surgeon.
+- **Company farm** — the plain behind the fort hill, outside the palisade. It feeds the camp and the oxen. A field gang from the tents goes out each morning through the inner gate and the ramp gate, down a plank step off the ramp's side, under the fort's eye.
+  - **Farm manager's house** — the Company reeve's house beside the track, just outside the palisade by the ramp gate, with a kitchen garden behind it.
+  - **Tithe barn** — the camp's main grain store, locked. It is the target for the worker path's "secure food reserves" preparation quest. The garrison's grain store holds only the guards' ration.
+  - **Threshing floor, ox mill** — grain is threshed under an open roof, then ground by an ox walking the sweep of a round mill shed.
+  - **Ox byre and paddock** — the farm's oxen turn the mill and are bred here, with cows and calves in the paddock. The Stoneworks pen keeps the team that hauls stone. Haystacks, a dung heap, the well and the gang's tally post fill the yard.
+  - **Fields** — wheat (bread for the fort), barley (ale for The Short Measure and the workers' gruel), oats and a hay meadow (fodder), and the kitchen garden (the canteen). Low wattle fences keep the animals out.
 - **Latrine** — trench behind Wretches' Corner.
 - **Gang house** — a small timber house on the lake shore near the wilderness opening, with its own short dock behind it. The camp's top gang members are "allowed" a real roof, and it overlooks the night path and the bridge. npc-003 lives here.
 
@@ -226,6 +232,7 @@ No hard resource gate. Endings become available when player's actions and comple
 |----|------|--------|----------|
 | area-002 | Stone Quarry | Hardest work, desperate workers | Sealed passage to ruins (quest-002) |
 | area-003 | Wood Camp | Physical labor, forest edge | TBD |
+| — | Company farm | Field gang, under the fort's eye | Tithe barn: the food the revolt needs |
 | area-004 | Hunting Grounds | Tracker/ranger flavor | Lead hunter (npc-010) — independent-minded, speaks to player as equal |
 
 ---
@@ -239,4 +246,5 @@ No hard resource gate. Endings become available when player's actions and comple
 - **Fight club design** — rules, opponent roster, reward structure, reputation effects, which guards take bets and where the Company's tolerance ends
 - **NPC roster completion** — names for all stub NPCs, full dialogue seeds
 - **Wood camp quest details** — beyond basic flavor
+- **Farm manager** — the reeve who lives at the farm is unnamed, and the field gang has no roster yet
 - **Work site guard/manager NPCs** — area-002 and area-003 managers unnamed
