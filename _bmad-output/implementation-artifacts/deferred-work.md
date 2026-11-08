@@ -488,7 +488,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 ## From spec-area-1-grain-fields (2026-11-08)
 
 - **Farm manager NPC and the field gang.** The reeve, the gang roster, the morning count at the tally post and the walk out through the fields gate need NPCs and routines.
-- **Fields gate is hand-added.** The fields gate under `RampGate` and the two `RampRail` posts closing the old rail gap are added objects, which hand edits can't save: the next Sites or Camp Edge run deletes them. Move both into `layout.json` and the tools (a second opening on the ramp gate builder, `ramp-rail` back to its full length). Until then, the farm route's paint also still follows the old step: the next terrain run paints the new `path-farm` from the fields gate.
+- [Done 2026-11-08, spec-area-1-grain-fields] **Fields gate is hand-added.** Now `fields-gate` in the layout, built by Sites under `RampGate/FieldsGate`; `ramp-rail` is back to full length, and the terrain run painted the new `path-farm`.
 - **Barn theft.** The tithe barn is closed with no door to open; the worker path's "secure food reserves" quest opens it.
 - **Oxen routines.** The farm and Stoneworks oxen are boxes. The mill ox walking its ring, oxen hauling to the quarry and wood camp, and breeding are later work.
 - **Harvest and crops.** Crops are static rows: no growth, harvest, seasons or pickable produce. Tall wheat could later give stealth cover.

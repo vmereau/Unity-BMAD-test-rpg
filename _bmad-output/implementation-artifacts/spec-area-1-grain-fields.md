@@ -69,7 +69,7 @@ context:
   - Fixed: the garden's fence gap opened about 1 m from the house's back wall, and the hay meadow's faced the mill posts, so fields now take an optional `gate` side (garden s, hay n). Crop names must be letters only, because `Enum.TryParse` accepted "3" and comma lists. The terrain tool now requires the same five fields as Sites, rejects a stray `field-*`, and stops on a field outside `farm`. A degenerate `farm-step` is rejected. `farm` shrank to x 44 to keep the 50 m spider margin. The threshing floor's minimum depth is now 6. The oxen sit clear of the manger, the barn doors stand clear of the plinth, and the paddock corners have no doubled posts. The docs' house distance is corrected.
   - Rejected: a "door on the wrong wall" claim (the shell's side name only labels the west wall; the door is on local +Z, east). Doubts about the step's walkability (the capsule walk and NavMesh paths pass). The chimney constant (same pattern as the garrison). Paddock posts on slopes (the ground there is flat).
   - KEEP: positions, the `Farm` root, the step and the rail start.
-- After shipping (2026-11-08, Valentin, renegotiated): the single ramp gate became twin gates, a fort gate and a fields gate, because it fits the scene better. Hand-built: a second opening under `RampGate`, terrain re-sculpted at it, the rail gap closed, `Farm/FarmStep` and `CampEdge/outer-fence/Panel_001`/`Panel_002` recorded as removed in `hand-edits.json`. Intent, Ask First, the matrix, Design Notes and Review Order now describe the fields gate. Follow-up the same day: `farm-step` left both layouts, Sites no longer builds or checks a step (`Area1Farm.BuildStep` deleted), the `Farm/FarmStep` removed row left `hand-edits.json`, and `path-farm` now starts at the fields gate. The new route paints on the next terrain run. `ramp-rail` stays shortened; moving the hand-added gate and rail posts into the tools is deferred.
+- After shipping (2026-11-08, Valentin, renegotiated): the single ramp gate became twin gates, a fort gate and a fields gate, because it fits the scene better. Hand-built: a second opening under `RampGate`, terrain re-sculpted at it, the rail gap closed, `Farm/FarmStep` and `CampEdge/outer-fence/Panel_001`/`Panel_002` recorded as removed in `hand-edits.json`. Intent, Ask First, the matrix, Design Notes and Review Order now describe the fields gate. Follow-up the same day: `farm-step` left both layouts, Sites no longer builds or checks a step (`Area1Farm.BuildStep` deleted), the `Farm/FarmStep` removed row left `hand-edits.json`, and `path-farm` now starts at the fields gate. Then the gate moved into the tools: `fields-gate` in both layouts, `BuildGate` gained `leaves`, and Sites builds it under `RampGate/FieldsGate`. `ramp-rail` regained its first two points. Before the run, the Scan showed only the layout-caused rows (rail renumbering, the new gate, the hand-added copies). Terrain, Camp Edge and Sites ran: heights unchanged, trees 4394 unchanged, 155 paint samples changed along the old and new track, and the 6664 others put back from the saved alphamap (hand-painted camp ground). The rebake gives complete paths from the inner gate: manager's door 64 m, yard 98 m, mill 97 m, byre 103 m, fields 89–155 m, through the fields gate. Ramp to plain beside it is 17 m round through both gates, so the rail gap is closed. A rescan after the rebuild shows no new rows.
 
 ## Design Notes
 
@@ -91,7 +91,7 @@ context:
 
 Each field has a low wattle fence (0.9 m) with a 3 m gap facing the well, or on its `gate` side (garden s, hay n, clear of the house and mill). Crop rows run the field's length, 1.4 m apart.
 
-**Twin ramp gates (hand-built, 2026-11-08):** the ramp top has two openings under `RampGate`. The **fort gate** (east, posts (−4.2, −50.6) and (−9.6, −51.4), lintel, two leaves) leads up to the fort. The **fields gate** (west, posts (−11.9, −49.3) and (−16.9, −47.9), `Lintel (1)`) leads down to the farm track; Valentin re-sculpted the ground there. The old rail gap is closed (`RampRail` posts back at (−10, −52.4) and (−9.7, −55)), and the outer fence's `Panel_001` and `Panel_002` are removed (saved hand edits) to let the track through. The gate and the two rail posts are added objects, which hand edits can't save: the next Sites or Camp Edge run deletes them until they move into the layout (deferred).
+**Twin ramp gates (2026-11-08):** the ramp top has two openings under `RampGate`. The **fort gate** (east, posts (−4.2, −50.6) and (−9.6, −51.4), lintel, two leaves) leads up to the fort. The **fields gate** (west, posts (−11.9, −49.3) and (−16.9, −47.9), `Lintel (1)`) leads down to the farm track; Valentin re-sculpted the ground there. The old rail gap is closed (`RampRail` posts back at (−10, −52.4) and (−9.7, −55)), and the outer fence's `Panel_001` and `Panel_002` are removed (saved hand edits) to let the track through. Both are now tool-built: `fields-gate` (−14.37, −48.57), width 5.17, yaw 105.3, built by Sites under `RampGate/FieldsGate` with no leaves, and `ramp-rail` back to full length from (−10, −52.36).
 
 ## Verification
 
@@ -123,7 +123,10 @@ Each field has a low wattle fence (0.9 m) with a 3 m gap facing the well, or on 
 
 **Getting out of the camp**
 
-- Rail start from the single-gate layout (the gap is now closed by hand-edit posts).
+- Fields gate beside the fort gate: same `BuildGate`, no leaves.
+  [`Area1SitesBuilder.cs`](../../Assets/_Game/Editor/World/Area1SitesBuilder.cs)
+
+- Unbroken ramp rail, from beside the fort gate's south leaf.
   [`layout.json:1741`](../../docs/World/Areas/area-001/layout.json#L1741)
 
 - Farm track from the fields gate.

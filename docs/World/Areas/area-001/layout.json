@@ -1714,7 +1714,7 @@
     {
       "id": "ramp-gate",
       "kind": "point",
-      "name": "Ramp gate",
+      "name": "Fort gate",
       "x": -6.9,
       "z": -51,
       "width": 5.5,
@@ -1722,7 +1722,20 @@
       "art": [
         "fort"
       ],
-      "note": "Where the fort ramp passes through the palisade, square to the road. Local +X faces out of the camp, so the leaves swing back beside the ramp."
+      "note": "Where the fort ramp passes through the palisade, square to the road. Local +X faces out of the camp, so the leaves swing back beside the ramp. The eastern of the twin ramp gates; fields-gate is the western."
+    },
+    {
+      "id": "fields-gate",
+      "kind": "point",
+      "name": "Fields gate",
+      "x": -14.37,
+      "z": -48.57,
+      "width": 5.17,
+      "yaw": 105.3,
+      "art": [
+        "fort"
+      ],
+      "note": "The western of the twin ramp gates: an open way (posts and lintel, no leaves) through the palisade onto the plain, where path-farm leads to the farm. Built by Sites under RampGate/FieldsGate. Local +X faces out of the camp. outer-fence Panel_001 and Panel_002 are removed by saved hand edits to open it."
     },
     {
       "id": "fort-cart-gate",
@@ -1745,8 +1758,16 @@
       "art": [
         "fort"
       ],
-      "note": "Unbroken rail along the ramp's outer edge, built by Camp Edge. It starts past the open ramp gate's south leaf, leaving a 3.2 m gap where the farm step leaves the ramp.",
+      "note": "Unbroken rail along the ramp's outer edge, built by Camp Edge, from beside the fort gate's open south leaf to the cart gate. The farm track leaves by the fields gate instead.",
       "points": [
+        [
+          -10.0,
+          -52.36
+        ],
+        [
+          -9.72,
+          -55.02
+        ],
         [
           -9,
           -57.5

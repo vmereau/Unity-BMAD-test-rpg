@@ -185,7 +185,7 @@ namespace Game.Editor.World
         /// local +X and the guard post stands on that side. It stands open in the blockout, so the route stays walkable;
         /// restricting it is later gameplay.
         /// </summary>
-        internal static void BuildGate(Vector2 gate, float width, Terrain terrain, Material timber, Transform root, float yaw = 0f, bool guardPost = true)
+        internal static void BuildGate(Vector2 gate, float width, Terrain terrain, Material timber, Transform root, float yaw = 0f, bool guardPost = true, bool leaves = true)
         {
             float half = width * 0.5f;
             Vector2 south = GateOffset(gate, new Vector2(0f, -half), yaw), north = GateOffset(gate, new Vector2(0f, half), yaw);
@@ -196,9 +196,12 @@ namespace Game.Editor.World
             Transform lintel = Area1BlockoutBuilder.Box("Lintel", root, timber, new Vector3(gate.x, top, gate.y), new Vector3(0.35f, 0.35f, width + 0.8f));
             lintel.rotation = Quaternion.Euler(0f, yaw, 0f);
 
-            float leafX = half * 0.5f + 0.15f; // each leaf is half the gate's width, swung back along the road
-            Area1RemoteSites.Column("Leaf_South", root, timber, terrain, GateOffset(gate, new Vector2(leafX, -half - 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw - 4f);
-            Area1RemoteSites.Column("Leaf_North", root, timber, terrain, GateOffset(gate, new Vector2(leafX, half + 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw + 4f);
+            if (leaves)
+            {
+                float leafX = half * 0.5f + 0.15f; // each leaf is half the gate's width, swung back along the road
+                Area1RemoteSites.Column("Leaf_South", root, timber, terrain, GateOffset(gate, new Vector2(leafX, -half - 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw - 4f);
+                Area1RemoteSites.Column("Leaf_North", root, timber, terrain, GateOffset(gate, new Vector2(leafX, half + 0.1f), yaw), new Vector2(half, 0.12f), 2.6f, yaw + 4f);
+            }
 
             if (guardPost)
                 Area1RemoteSites.BuildLeanTo("GuardPost", GateOffset(gate, new Vector2(half + 1.7f, -half - 0.4f), yaw), GateOffset(Vector2.zero, Vector2.up, yaw), terrain, timber, root); // long side along the bank

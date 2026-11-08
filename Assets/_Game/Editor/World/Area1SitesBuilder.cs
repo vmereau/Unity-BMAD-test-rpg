@@ -60,7 +60,9 @@ namespace Game.Editor.World
         private static readonly string[] FortWallIds = { "fort-wall-north", "fort-wall-west", "fort-wall-east" };
         private const string TOWER_FEATURE = "fort-tower";
         private const string RAMP_GATE = "RampGate";
-        private const string RAMP_GATE_FEATURE = "ramp-gate";
+        private const string RAMP_GATE_FEATURE = "ramp-gate";     // the fort gate, up the cart ramp
+        private const string FIELDS_GATE = "FieldsGate";          // a child of RampGate, so the fort gate's paths stay as they were
+        private const string FIELDS_GATE_FEATURE = "fields-gate"; // beside it, onto the plain and the farm
         private const string CART_GATE_FEATURE = "fort-cart-gate";
         private static readonly string[] FortPathIds = { "path-fort-road", "path-fort-ramp" };
         private const string FIRE_FEATURE = "hunter-fire";
@@ -295,7 +297,7 @@ namespace Game.Editor.World
                 return false;
             }
 
-            foreach (string id in new[] { RAMP_GATE_FEATURE, CART_GATE_FEATURE })
+            foreach (string id in new[] { RAMP_GATE_FEATURE, FIELDS_GATE_FEATURE, CART_GATE_FEATURE })
             {
                 if (features.TryGetValue(id, out JObject gate) && Area1BlockoutBuilder.HasPosition(gate)
                     && Area1BlockoutBuilder.IsNumber(gate["width"]) && (float)gate["width"] > 0f && Area1BlockoutBuilder.IsNumber(gate["yaw"])) continue;
@@ -438,7 +440,12 @@ namespace Game.Editor.World
 
             BuildFort(features, terrain, stone, timber, NewRoot(root.transform, FORT));
             JObject rampGate = features[RAMP_GATE_FEATURE];
-            Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(rampGate), (float)rampGate["width"], terrain, timber, NewRoot(root.transform, RAMP_GATE), (float)rampGate["yaw"], guardPost: false); // rocks on one side, the road on the other
+            Transform rampGates = NewRoot(root.transform, RAMP_GATE);
+            Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(rampGate), (float)rampGate["width"], terrain, timber, rampGates, (float)rampGate["yaw"], guardPost: false); // rocks on one side, the road on the other
+            JObject fieldsGate = features[FIELDS_GATE_FEATURE];
+            var fields = new GameObject(FIELDS_GATE).transform;
+            fields.SetParent(rampGates, false);
+            Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(fieldsGate), (float)fieldsGate["width"], terrain, timber, fields, (float)fieldsGate["yaw"], guardPost: false, leaves: false); // an open way to the farm
             ClearDockParts(docks);
             BuildDocks(deck, timber, docks);
             BuildBridgeRails(bridgeDeck, timber, NewRoot(root.transform, RAILS));
