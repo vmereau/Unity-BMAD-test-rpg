@@ -137,7 +137,6 @@ namespace Game.Editor.World
         private const string FARM = "Farm";
         private const string CROP = "Assets/_Game/Art/Materials/Blockout_Crop.mat";
         private const string FARM_WELL_FEATURE = "farm-well";
-        private const string FARM_STEP_FEATURE = "farm-step"; // top point on the cart ramp, then the foot
         private const string FIELD_PREFIX = "field-";
         // Smallest footprint each builder's fixed door, rooms and props fit in. The mill's width is its diameter.
         private static readonly (string Id, float MinWidth, float MinDepth)[] FarmPlots =
@@ -150,7 +149,6 @@ namespace Game.Editor.World
         internal static readonly string[] FarmFields = { "field-wheat", "field-barley", "field-oats", "field-hay", "field-garden" };
         private static readonly string[] FarmPaths = { "path-farm", "path-field-lane" };
         private const float FIELD_MIN_SIZE = 6f; // the fence gap and a few rows
-        private const float FARM_STEP_MIN_LENGTH = 1f;
 
         private static readonly string[] WalkwayIds = { "walkway-canteen", "walkway-guard-post" };
         private const string TENT = "Assets/_Game/Prefabs/World/Tent_Graybox.prefab";
@@ -357,14 +355,6 @@ namespace Game.Editor.World
                 return false;
             }
 
-            if (!features.TryGetValue(FARM_STEP_FEATURE, out JObject farmStep) || !Area1BlockoutBuilder.HasPoints(farmStep) || ((JArray)farmStep["points"]).Count != 2
-                || !Area1BlockoutBuilder.IsNumber(farmStep["width"]) || (float)farmStep["width"] <= 0f
-                || Vector2.Distance(Area1BlockoutBuilder.Points(farmStep)[0], Area1BlockoutBuilder.Points(farmStep)[1]) < FARM_STEP_MIN_LENGTH)
-            {
-                problem = $"Layout has no usable feature '{FARM_STEP_FEATURE}'; nothing changed.";
-                return false;
-            }
-
             // Only the terrain tool reads these, and it skips a missing path without a word.
             foreach (string id in FarmPaths)
             {
@@ -487,8 +477,6 @@ namespace Game.Editor.World
             Area1Garrison.BuildDrillYard(Plot(features[DRILL_YARD_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_WELL_FEATURE]), Area1BlockoutBuilder.Position(features[GARRISON_BELL_FEATURE]), terrain, timber, stone, garrison);
             Area1Garrison.BuildGraves(Plot(features[WORKERS_GRAVES_FEATURE]), terrain, timber, stone, garrison);
             Transform farm = NewRoot(root.transform, FARM);
-            Vector2[] stepLine = Area1BlockoutBuilder.Points(farmStep);
-            Area1Farm.BuildStep(stepLine[0], stepLine[1], (float)farmStep["width"], terrain, timber, farm);
             Area1Farm.BuildManagerHouse(Plot(features["farm-manager-house"]), terrain, timber, stone, farm);
             Area1Farm.BuildTitheBarn(Plot(features["tithe-barn"]), terrain, timber, stone, farm);
             Area1Farm.BuildThreshingFloor(Plot(features["threshing-floor"]), terrain, timber, stone, crop, farm);

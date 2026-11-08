@@ -2173,24 +2173,6 @@
       "gate": "s"
     },
     {
-      "id": "farm-step",
-      "kind": "road",
-      "name": "Farm step",
-      "width": 2.5,
-      "art": [],
-      "note": "Plank ramp from the cart ramp's lip, in the rail gap, down to the flat ground: the graded ramp drops 1.5 m there. Top point first, on the lip.",
-      "points": [
-        [
-          -12.7,
-          -56.3
-        ],
-        [
-          -17,
-          -56
-        ]
-      ]
-    },
-    {
       "id": "path-farm",
       "kind": "road",
       "name": "Path: farm track",
@@ -2199,16 +2181,16 @@
       "note": "Paint only. Ramp gate, down the farm step in the rail gap, past the manager's house to the farmyard.",
       "points": [
         [
-          -9,
-          -55.5
+          -14.1,
+          -46.8
         ],
         [
-          -12.7,
-          -56.3
+          -14.4,
+          -48.6
         ],
         [
-          -17,
-          -56
+          -15.0,
+          -52.5
         ],
         [
           -15.5,

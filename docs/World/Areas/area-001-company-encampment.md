@@ -65,8 +65,8 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
   - **Grain store** — on capped stilts beside the alehouse.
   - **Workers' graves** — on the low bank, with numbers on stakes and no names.
   - **Reserved ground** — plots are kept for kennels and a barber-surgeon.
-- **Company farm** — the plain behind the fort hill, outside the palisade. It feeds the camp and the oxen. A field gang from the tents goes out each morning through the inner gate and the ramp gate, down a plank step off the ramp's side, under the fort's eye.
-  - **Farm manager's house** — the Company reeve's house beside the track, just outside the palisade by the ramp gate, with a kitchen garden behind it.
+- **Company farm** — the plain behind the fort hill, outside the palisade. It feeds the camp and the oxen. A field gang from the tents goes out each morning through the inner gate and the fields gate, the western of the twin gates at the foot of the fort ramp, under the fort's eye.
+  - **Farm manager's house** — the Company reeve's house beside the track, just outside the palisade by the fields gate, with a kitchen garden behind it.
   - **Tithe barn** — the camp's main grain store, locked. It is the target for the worker path's "secure food reserves" preparation quest. The garrison's grain store holds only the guards' ration.
   - **Threshing floor, ox mill** — grain is threshed under an open roof, then ground by an ox walking the sweep of a round mill shed.
   - **Ox byre and paddock** — the farm's oxen turn the mill and are bred here, with cows and calves in the paddock. The Stoneworks pen keeps the team that hauls stone. Haystacks, a dung heap, the well and the gang's tally post fill the yard.
@@ -77,7 +77,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 ### Fences
 - **Outer fence** — tall timber palisade around the camp, with openings where roads cross. West of the fort it stands on top of the bank above the garrison quarter. The fort hill closes it on the south: the palisade runs up onto the hill and round its back, and the fort's stone walls take over on the camp side. An 8 m collapsed stretch on the north side keeps the hunter's fire in view from the tents; it can't be walked through. On the east side the palisade runs from the inner fence's end towards the lake and stops short of the shore, so it marks a line more than it closes one.
 - **Fort entrances** — a narrow foot entrance through the ruin pillars above the Company Road, and a wide cart gate on the south-west of the plateau.
-- **Fort ramp** — a railed 5 m cart ramp from the ramp gate in the palisade up to the cart gate. It runs outside the palisade, under the fort's west wall, so anyone climbing it is exposed; the cart gate is the real defence.
+- **Fort ramp** — a railed 5 m cart ramp from the fort gate (the eastern of the twin ramp gates) up to the cart gate. It runs outside the palisade, under the fort's west wall, so anyone climbing it is exposed; the cart gate is the real defence.
 - **Shore rail** — knee-high broken rail with gaps along the lake side. Workers can reach the water. The Company marks the line but doesn't defend it.
 - **Inner fence** — tall palisade with one guarded gate, separating the worker area from the company area. The real social divide: everyone walks through it each morning.
 

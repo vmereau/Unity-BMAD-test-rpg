@@ -330,22 +330,6 @@ namespace Game.Editor.World
             }
         }
 
-        /// <summary>
-        /// A plank ramp from the cart ramp's edge down to the flat ground, because the graded ramp's side drops 1.5 m in the rail gap.
-        /// <paramref name="top"/> sits on the lip. The planks start at the highest ground along the line, so no part of them dips under the lip.
-        /// </summary>
-        internal static void BuildStep(Vector2 top, Vector2 foot, float width, Terrain terrain, Material timber, Transform root)
-        {
-            float high = float.NegativeInfinity;
-            for (int i = 0; i <= 8; i++)
-                high = Mathf.Max(high, Area1BlockoutBuilder.Ground(terrain, Vector2.Lerp(top, foot, i / 8f)));
-            var a = new Vector3(top.x, high, top.y);
-            var b = new Vector3(foot.x, Area1BlockoutBuilder.Ground(terrain, foot), foot.y);
-            const float thickness = 0.2f;
-            Transform step = Area1BlockoutBuilder.Box("FarmStep", root, timber, (a + b) * 0.5f - Vector3.up * thickness * 0.5f, new Vector3(width, thickness, Vector3.Distance(a, b)));
-            step.rotation = Quaternion.LookRotation(b - a);
-        }
-
         private static void FenceRun(Transform parent, Material timber, Terrain terrain, Vector2 a, Vector2 b, ref int piece)
         {
             float length = Vector2.Distance(a, b);

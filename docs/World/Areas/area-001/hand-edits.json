@@ -1425,7 +1425,7 @@
       ],
       "rot": [
         0.0,
-        0.9086,
+        0.9085,
         0.0,
         0.4178
       ],
@@ -2474,6 +2474,8 @@
     }
   ],
   "removed": [
+    "CampEdge/outer-fence/Panel_001",
+    "CampEdge/outer-fence/Panel_002",
     "Garrison/WorkersGraves",
     "GuardPost/Post_0",
     "Warehouse/Crate_0",
