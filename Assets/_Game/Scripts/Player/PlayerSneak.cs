@@ -17,13 +17,26 @@ namespace Game.Player
     {
         private const string TAG = "[Player]";
         private const float MOVE_INPUT_THRESHOLD_SQR = 0.01f;
+        private const float MAX_PLAUSIBLE_SPEED = 15f; // m/s — above it the frame was a teleport / warp (run speed 6)
+        private const float SPEED_SMOOTHING = 10f; // 1/s, exponential smoothing of the measured speed
 
         [SerializeField] private StealthConfigSO _stealthConfig;
 
         private PlayerStateManager _stateManager;
+        private PlayerSwimming _swimming; // optional: swim-sprint = running noise
         private InputSystem_Actions _input;
+        private Vector3 _lastPosition;
+        private float _horizontalSpeed;
 
         public bool IsSneaking => _stateManager != null && _stateManager.IsSneaking;
+
+        /// <summary>Movement noise from the smoothed flat speed (not the Sprint key): Silent while sneaking or still.</summary>
+        public MovementNoise Noise =>
+            _stealthConfig == null || _stateManager == null
+                ? MovementNoise.Silent
+                : StealthDetection.ClassifyNoise(_stateManager.IsSneaking, _stateManager.IsSwimming,
+                    _swimming != null && _swimming.IsSwimSprinting, _horizontalSpeed,
+                    _stealthConfig.noiseMinSpeed, _stealthConfig.runNoiseSpeed);
 
         public Vector3 VisibilityPoint
         {
@@ -40,6 +53,7 @@ namespace Game.Player
         private void Awake()
         {
             _stateManager = GetComponent<PlayerStateManager>();
+            _swimming = GetComponent<PlayerSwimming>();
             if (_stealthConfig == null)
             {
                 GameLog.Error(TAG, "StealthConfigSO not assigned — PlayerSneak disabled.");
@@ -52,6 +66,8 @@ namespace Game.Player
             _input = new InputSystem_Actions();
             _input.Player.Enable();
             _input.Player.Crouch.started += HandleCrouchStarted;
+            _lastPosition = transform.position;
+            _horizontalSpeed = 0f;
         }
 
         private void OnDisable()
@@ -65,11 +81,27 @@ namespace Game.Player
 
         private void Update()
         {
+            UpdateHorizontalSpeed();
             if (!_stateManager.IsSneaking) return;
             if (_stateManager.IsAirborne)
                 _stateManager.SetSneaking(false); // walked off a ledge (coyote-smoothed — steps don't count)
             else if (IsSprintingWhileMoving())
                 _stateManager.ExitSneakToSprint();
+        }
+
+        // Smoothed flat speed from the position delta (real movement: Shift against a wall or standing still stays silent).
+        // A teleport or warp (respawn, load, controller snap) reads as an implausible speed — speed reset to 0.
+        private void UpdateHorizontalSpeed()
+        {
+            Vector3 position = transform.position;
+            Vector3 delta = position - _lastPosition;
+            _lastPosition = position;
+            delta.y = 0f;
+            float dt = Time.deltaTime;
+            if (dt <= 0f) return; // paused
+            float speed = delta.magnitude / dt;
+            if (speed > MAX_PLAUSIBLE_SPEED) { _horizontalSpeed = 0f; return; }
+            _horizontalSpeed = Mathf.Lerp(_horizontalSpeed, speed, 1f - Mathf.Exp(-SPEED_SMOOTHING * dt));
         }
 
         private void HandleCrouchStarted(InputAction.CallbackContext ctx)

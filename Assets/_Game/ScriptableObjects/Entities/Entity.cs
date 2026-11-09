@@ -40,6 +40,10 @@ namespace _Game.ScriptableObjects.Entities
         [SerializeField] private float _eyeHeight = 1.6f;
         [Tooltip("360° radius inside which a visible target is always noticed, even from behind.")]
         [SerializeField] private float _proximityRadius = 2f;
+        [Tooltip("360° radius inside which a walking player is heard (halved behind walls). 0 = deaf to walking.")]
+        [SerializeField] private float _walkHearingRadius = 4f;
+        [Tooltip("360° radius inside which a running player is heard (halved behind walls). Never below the walk radius.")]
+        [SerializeField] private float _runHearingRadius = 9f;
         [Tooltip("Seconds to fill awareness from 0 to 1 at best visibility (close, on the cone axis, standing).")]
         [SerializeField] private float _awarenessFillTime = 1f;
         [Tooltip("Seconds without line of sight before an alerted entity gives up the chase and searches.")]
@@ -110,6 +114,8 @@ namespace _Game.ScriptableObjects.Entities
         public float EyeHeight                => _eyeHeight;
         public float ProximityRadius          => _proximityRadius;
         public float AwarenessFillTime        => _awarenessFillTime;
+        public float WalkHearingRadius        => _walkHearingRadius;
+        public float RunHearingRadius         => _runHearingRadius;
         public float LoseSightTime            => _loseSightTime;
         public float SearchDuration           => _searchDuration;
         public float EngageStoppingDistance   => _engageStoppingDistance;
@@ -175,6 +181,8 @@ namespace _Game.ScriptableObjects.Entities
             _viewAngle         = Mathf.Clamp(_viewAngle, 1f, 360f);
             _eyeHeight         = Mathf.Max(0f, _eyeHeight);
             _proximityRadius   = Mathf.Max(0f, _proximityRadius);
+            _walkHearingRadius = Mathf.Max(0f, _walkHearingRadius);
+            _runHearingRadius  = Mathf.Max(_walkHearingRadius, _runHearingRadius);
             _awarenessFillTime = Mathf.Max(0.05f, _awarenessFillTime);
             _loseSightTime     = Mathf.Max(0f, _loseSightTime);
             _searchDuration    = Mathf.Max(0f, _searchDuration);

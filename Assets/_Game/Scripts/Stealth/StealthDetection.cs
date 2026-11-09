@@ -69,5 +69,43 @@ namespace Game.Stealth
                 : current - drainPerSecond * dt;
             return Mathf.Clamp01(next);
         }
+
+        // --- Hearing ---
+
+        /// <summary>
+        /// Movement noise from the target's state and flat speed: sneaking or slower than <paramref name="minSpeed"/>
+        /// → Silent; swimming → Run while swim-sprinting, else Walk; on foot → Run from <paramref name="runSpeed"/>, else Walk.
+        /// </summary>
+        public static MovementNoise ClassifyNoise(bool sneaking, bool swimming, bool swimSprinting, float horizontalSpeed,
+            float minSpeed, float runSpeed)
+        {
+            if (sneaking || horizontalSpeed < minSpeed) return MovementNoise.Silent;
+            if (swimming) return swimSprinting ? MovementNoise.Run : MovementNoise.Walk;
+            return horizontalSpeed >= runSpeed ? MovementNoise.Run : MovementNoise.Walk;
+        }
+
+        /// <summary>
+        /// Radius within which <paramref name="noise"/> is heard: 0 when Silent, the walk or run radius otherwise,
+        /// multiplied by <paramref name="occludedFactor"/> when line of sight is blocked (sound muffled by walls).
+        /// </summary>
+        public static float HearingRadius(MovementNoise noise, float walkRadius, float runRadius, bool hasLineOfSight,
+            float occludedFactor)
+        {
+            float radius = noise switch
+            {
+                MovementNoise.Walk => walkRadius,
+                MovementNoise.Run => runRadius,
+                _ => 0f
+            };
+            if (radius <= 0f) return 0f;
+            return hasLineOfSight ? radius : radius * Mathf.Max(0f, occludedFactor);
+        }
+
+        /// <summary>True when <paramref name="distance"/> is inside a positive hearing <paramref name="radius"/>.</summary>
+        public static bool IsHeard(float distance, float radius) => radius > 0f && distance <= radius;
+
+        /// <summary>Awareness gained per second while the target is heard. 0 when <paramref name="hearingFillTime"/> ≤ 0.</summary>
+        public static float HearingFillPerSecond(bool heard, float hearingFillTime) =>
+            heard && hearingFillTime > 0f ? 1f / hearingFillTime : 0f;
     }
 }

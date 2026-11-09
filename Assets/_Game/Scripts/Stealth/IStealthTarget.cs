@@ -14,5 +14,8 @@ namespace Game.Stealth
 
         /// <summary>World point the line-of-sight ray aims at (chest height, lower while sneaking).</summary>
         Vector3 VisibilityPoint { get; }
+
+        /// <summary>How loud the target moves right now (Silent while sneaking or still) — drives AI hearing.</summary>
+        MovementNoise Noise { get; }
     }
 }

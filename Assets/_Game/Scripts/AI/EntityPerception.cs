@@ -22,6 +22,10 @@ namespace Game.AI
     /// <see cref="RestrictedArea"/> this entity owns (restricted now) is perceived with the hostile formula (walking or
     /// sneaking, sneak-shortened) at <see cref="TrespassSightRange"/> (<see cref="IsTrespassing"/>,
     /// <see cref="TrespassArea"/>). Priority: hostile &gt; trespass &gt; witness.
+    /// <b>Hearing</b> (hostile and trespass modes, never witness): a target whose <see cref="IStealthTarget.Noise"/> is
+    /// Walk / Run inside the Entity's walk / run hearing radius (360°, × occludedHearingFactor without line of sight)
+    /// fills the same meter at 1 / hearingFillTime. <see cref="CanSeeTarget"/> stays vision-only; the last seen
+    /// position and <see cref="TimeSinceSeen"/> track the last time the target was <i>sensed</i> (seen or heard).
     /// Inactive (no-op) when DetectionRange ≤ 0 and no witness profile is enabled.
     /// </summary>
     public class EntityPerception : MonoBehaviour
@@ -66,7 +70,11 @@ namespace Game.AI
 
         /// <summary>Current stealth-target candidate (closest hostile stealth target in range, else — witness — the closest non-hostile one), or null.</summary>
         public FactionMember Target { get; private set; }
+        /// <summary>Vision only — hearing never sets it (see <see cref="CanHearTarget"/>).</summary>
         public bool CanSeeTarget { get; private set; }
+        /// <summary>The target's movement noise is inside the current hearing radius (hostile / trespass modes).</summary>
+        public bool CanHearTarget { get; private set; }
+        /// <summary>Last position the target was seen <b>or heard</b> at.</summary>
         public Vector3 LastSeenPosition { get; private set; }
         public bool HasLastSeenPosition { get; private set; }
         public float TimeSinceSeen { get; private set; }
@@ -79,6 +87,18 @@ namespace Game.AI
         public float CurrentSightRange { get; private set; }
         public float CurrentProximityRadius { get; private set; }
         public bool TargetIsSneaking { get; private set; }
+        public MovementNoise TargetNoise { get; private set; }
+        /// <summary>Hearing radius in use against the target's current noise (0 when silent or witnessing).</summary>
+        public float CurrentHearingRadius { get; private set; }
+        /// <summary>Hearing never reaches past the standing sight range (DetectionRange, or TheftSightRange for a
+        /// passive owner): a target heard beyond it would enter Warning and be cancelled at once (dist &gt; DetectionRange).</summary>
+        private float HearingCap => TrespassSightRange;
+        /// <summary>Walk hearing radius in use (Entity value capped at the sight range), before the occlusion factor.</summary>
+        public float WalkHearingRadius => Entity != null ? Mathf.Min(Entity.WalkHearingRadius, HearingCap) : 0f;
+        /// <summary>Run hearing radius in use (Entity value capped at the sight range), before the occlusion factor.</summary>
+        public float RunHearingRadius => Entity != null ? Mathf.Min(Entity.RunHearingRadius, HearingCap) : 0f;
+        /// <summary>Hearing can apply at all: hostile detection, or trespass detection in owned areas (witness-only never hears).</summary>
+        public bool CanHear => HearingCap > 0f;
         public float ViewAngle => Entity != null ? Entity.ViewAngle : 0f;
         /// <summary>Hostile standing sight range (Entity.DetectionRange) — CurrentSightRange is the one in use.</summary>
         public float SightRange => Entity != null ? Entity.DetectionRange : 0f;
@@ -179,6 +199,7 @@ namespace Game.AI
             float distance = toTarget.magnitude;
             DistanceToTarget = distance;
             TargetIsSneaking = stealth.IsSneaking;
+            TargetNoise = stealth.Noise;
 
             _losTimer -= dt;
             if (_losTimer <= 0f)
@@ -195,11 +216,18 @@ namespace Game.AI
                     TargetIsSneaking, _config.sneakSightRangeMultiplier);
             CurrentProximityRadius = StealthDetection.EffectiveProximityRadius(
                 entity.ProximityRadius, witness || TargetIsSneaking, _config.sneakProximityMultiplier);
+            // Hearing: hostile and trespass modes only (a witness only cares about a sneaking, silent target).
+            CurrentHearingRadius = witness ? 0f
+                : StealthDetection.HearingRadius(TargetNoise, WalkHearingRadius, RunHearingRadius,
+                    _hasLineOfSight, _config.occludedHearingFactor);
+            CanHearTarget = StealthDetection.IsHeard(distance, CurrentHearingRadius);
 
             if (engaged)
             {
                 // A watching witness keeps tracking even if the player stands up.
                 CanSeeTarget = _hasLineOfSight && distance <= (witness ? WitnessWatchRange : entity.DisengageRange);
+                // Hearing never holds a target past the disengage range (a run radius above it would never lose it).
+                if (distance > entity.DisengageRange) CanHearTarget = false;
                 LastVisibility = CanSeeTarget ? 1f : 0f;
                 LastFillPerSecond = 0f;
                 Awareness = 1f;
@@ -213,16 +241,20 @@ namespace Game.AI
                             entity.ViewAngle, CurrentProximityRadius, _config.edgeDistanceFactor, _config.peripheralAngleFactor)
                         : StealthDetection.ComputeVisibility(distance, angle, CurrentSightRange, entity.ViewAngle,
                             CurrentProximityRadius, _config.edgeDistanceFactor, _config.peripheralAngleFactor);
-                float fill = StealthDetection.FillPerSecond(
-                    visibility, entity.AwarenessFillTime, TargetIsSneaking, _config.sneakFillRateMultiplier);
+                float fill = Mathf.Max(
+                    StealthDetection.FillPerSecond(visibility, entity.AwarenessFillTime, TargetIsSneaking,
+                        _config.sneakFillRateMultiplier),
+                    StealthDetection.HearingFillPerSecond(CanHearTarget, _config.hearingFillTime));
                 CanSeeTarget = visibility > 0f;
+                bool sensed = CanSeeTarget || CanHearTarget;
                 LastVisibility = visibility;
-                LastFillPerSecond = CanSeeTarget ? fill : -_config.awarenessDrainPerSecond;
+                LastFillPerSecond = sensed ? fill : -_config.awarenessDrainPerSecond;
                 Awareness = StealthDetection.StepAwareness(
-                    Awareness, fill, _config.awarenessDrainPerSecond, CanSeeTarget, dt);
+                    Awareness, fill, _config.awarenessDrainPerSecond, sensed, dt);
             }
 
-            if (CanSeeTarget)
+            // Seen or heard: the brain turns to / chases / searches this point, and does not lose the target.
+            if (CanSeeTarget || CanHearTarget)
             {
                 LastSeenPosition = Target.Transform.position;
                 HasLastSeenPosition = true;
@@ -313,6 +345,9 @@ namespace Game.AI
             IsTrespassing = false;
             TrespassArea = null;
             CanSeeTarget = false;
+            CanHearTarget = false;
+            CurrentHearingRadius = 0f;
+            TargetNoise = MovementNoise.Silent;
             _hasLineOfSight = false;
             LastVisibility = 0f;
             LastFillPerSecond = 0f;
@@ -409,6 +444,19 @@ namespace Game.AI
                 DrawSegments(StealthDebugGeometry.BuildCircle(ground, entity.ProximityRadius, GIZMO_ARC_SEGMENTS, _gizmoBuffer), color);
             }
             DrawSegments(StealthDebugGeometry.BuildCircle(ground, sneakProx, GIZMO_ARC_SEGMENTS, _gizmoBuffer), dim);
+            // Hearing circles (walk solid, run dimmed): awareness colour while the target is heard.
+            // Only entities that can hear (hostile detection, or a trespass range); radii are the unoccluded ones.
+            float hearingCap = entity.DetectionRange > 0f ? entity.DetectionRange
+                : canWitness ? profile.TheftSightRange : 0f;
+            bool canHear = hearingCap > 0f;
+            float walkHearing = Mathf.Min(entity.WalkHearingRadius, hearingCap);
+            float runHearing = Mathf.Min(entity.RunHearingRadius, hearingCap);
+            Color hearing = playing && CanHearTarget ? color : StealthDebugGeometry.HearingCircleColor;
+            Color hearingDim = new Color(hearing.r, hearing.g, hearing.b, hearing.a * 0.6f);
+            if (canHear && walkHearing > 0f)
+                DrawSegments(StealthDebugGeometry.BuildCircle(ground, walkHearing, GIZMO_ARC_SEGMENTS, _gizmoBuffer), hearing);
+            if (canHear && runHearing > 0f)
+                DrawSegments(StealthDebugGeometry.BuildCircle(ground, runHearing, GIZMO_ARC_SEGMENTS, _gizmoBuffer), hearingDim);
             if (canWitness)
             {
                 // Witness cone (non-hostile sneaking player): fixed colour, solid while witnessing.
@@ -435,7 +483,8 @@ namespace Game.AI
             string target = Target == null ? "none" : (TargetIsSneaking ? "sneaking" : "standing");
             UnityEditor.Handles.Label(eye + Vector3.up * GIZMO_LABEL_HEIGHT,
                 $"{(IsWitnessing ? "Witness · " : IsTrespassing ? "Trespass · " : "")}{state}\nAwareness {Awareness * 100f:0}%  Vis {LastVisibility:0.00}  {LastFillPerSecond:+0.00;-0.00}/s\n" +
-                $"Dist {DistanceToTarget:0.0} m  LOS {(_hasLineOfSight ? "yes" : "no")}  Seen {seen}\nTarget: {target}");
+                $"Dist {DistanceToTarget:0.0} m  LOS {(_hasLineOfSight ? "yes" : "no")}  Seen {seen}\nTarget: {target}, noise {TargetNoise}" +
+                (CanHearTarget ? $"  Heard ({CurrentHearingRadius:0.0} m)" : ""));
         }
 
         private static void DrawSegments(int count, Color color)

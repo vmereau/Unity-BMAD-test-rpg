@@ -157,6 +157,7 @@ namespace Game.DevTools
             _sb.Append("  ");
             AppendFixed1(p.DistanceToTarget);
             _sb.Append(" m");
+            if (p.CanHearTarget) _sb.Append("  Heard");
         }
 
         private void BuildSummary(EntityPerception top, IStealthTarget player)
@@ -169,6 +170,7 @@ namespace Game.DevTools
                 return;
             }
             _sb.Append("Player sneaking: ").Append(player.IsSneaking ? "yes" : "no");
+            _sb.Append("\nPlayer noise: ").Append(NoiseName(player.Noise));
             _sb.Append("\nVisibility height: ");
             Vector3 point = player.VisibilityPoint;
             AppendFixed1(top.Target != null ? point.y - top.Target.Transform.position.y : point.y);
@@ -178,6 +180,14 @@ namespace Game.DevTools
             AppendState(top);
             _sb.Append(')');
         }
+
+        // Enum.ToString allocates — constant strings instead.
+        private static string NoiseName(MovementNoise noise) => noise switch
+        {
+            MovementNoise.Walk => "walk",
+            MovementNoise.Run => "run",
+            _ => "silent"
+        };
 
         private void AppendState(EntityPerception p)
         {
@@ -249,6 +259,13 @@ namespace Game.DevTools
                 DrawSegments(StealthDebugGeometry.BuildCircle(ground, proximity, ARC_SEGMENTS, _buffer), color);
             }
             DrawSegments(StealthDebugGeometry.BuildCircle(ground, sneakProximity, ARC_SEGMENTS, _buffer), dim);
+            // Hearing circles (walk solid, run dimmed): awareness colour while the target is heard.
+            Color hearing = p.CanHearTarget ? color : StealthDebugGeometry.HearingCircleColor;
+            if (p.CanHear && p.WalkHearingRadius > 0f)
+                DrawSegments(StealthDebugGeometry.BuildCircle(ground, p.WalkHearingRadius, ARC_SEGMENTS, _buffer), hearing);
+            if (p.CanHear && p.RunHearingRadius > 0f)
+                DrawSegments(StealthDebugGeometry.BuildCircle(ground, p.RunHearingRadius, ARC_SEGMENTS, _buffer),
+                    new Color(hearing.r, hearing.g, hearing.b, hearing.a * 0.6f));
             if (p.CanWitness)
             {
                 // Witness cone (non-hostile sneaking player): fixed colour, awareness colour while witnessing.

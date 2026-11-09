@@ -44,6 +44,16 @@ namespace Game.Stealth
         [Tooltip("Seconds between stealth-target scans in TargetRegistry.")]
         public float targetScanInterval = 0.25f;
 
+        [Header("Hearing")]
+        [Tooltip("Seconds to fill awareness from 0 to 1 while the target is heard (walking / running inside a hearing radius). Hostile and trespass modes only.")]
+        [Min(0.05f)] public float hearingFillTime = 2f;
+        [Tooltip("Hearing radius multiplier when line of sight is blocked (sound muffled by walls).")]
+        [Range(0f, 1f)] public float occludedHearingFactor = 0.5f;
+        [Tooltip("Below this flat speed (m/s) the player makes no noise.")]
+        [Min(0f)] public float noiseMinSpeed = 0.5f;
+        [Tooltip("Flat speed (m/s) from which the player's steps count as running (walk 3, run 6).")]
+        [Min(0f)] public float runNoiseSpeed = 4.5f;
+
         [Header("Target Points")]
         [Tooltip("Height above the target's feet the line-of-sight ray aims at while standing.")]
         public float standingVisibilityHeight = 1.4f;

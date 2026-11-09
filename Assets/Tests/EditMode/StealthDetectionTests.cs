@@ -174,5 +174,88 @@ namespace Tests.EditMode
             foreach (var (d, a) in new[] { (0.5f, 180f), (3f, 0f), (5f, 40f), (7f, 0f), (3f, 70f) })
                 Assert.That(WitnessVis(true, d, a), Is.EqualTo(Vis(d, a, sight: WITNESS)).Within(EPS), $"d {d}, a {a}");
         }
+
+        // --- Hearing ---
+
+        private const float NOISE_MIN = 0.5f;
+        private const float RUN_NOISE = 4.5f;
+        private const float WALK_HEAR = 4f;
+        private const float RUN_HEAR = 9f;
+        private const float OCCLUDED = 0.5f;
+
+        private static MovementNoise Noise(float speed, bool sneaking = false, bool swimming = false, bool swimSprint = false) =>
+            StealthDetection.ClassifyNoise(sneaking, swimming, swimSprint, speed, NOISE_MIN, RUN_NOISE);
+
+        private static float Hear(MovementNoise noise, bool los = true) =>
+            StealthDetection.HearingRadius(noise, WALK_HEAR, RUN_HEAR, los, OCCLUDED);
+
+        [Test]
+        public void ClassifyNoise_StandingStill_IsSilent() => Assert.That(Noise(0f), Is.EqualTo(MovementNoise.Silent));
+
+        [Test]
+        public void ClassifyNoise_BelowMinSpeed_IsSilent() => Assert.That(Noise(0.4f), Is.EqualTo(MovementNoise.Silent));
+
+        [Test]
+        public void ClassifyNoise_Sneaking_IsSilent_EvenFast() =>
+            Assert.That(Noise(6f, sneaking: true), Is.EqualTo(MovementNoise.Silent));
+
+        [Test]
+        public void ClassifyNoise_Walking_IsWalk() => Assert.That(Noise(3f), Is.EqualTo(MovementNoise.Walk));
+
+        [Test]
+        public void ClassifyNoise_AtRunThreshold_IsRun() => Assert.That(Noise(4.5f), Is.EqualTo(MovementNoise.Run));
+
+        [Test]
+        public void ClassifyNoise_Running_IsRun() => Assert.That(Noise(6f), Is.EqualTo(MovementNoise.Run));
+
+        [Test]
+        public void ClassifyNoise_Swimming_IsWalk() =>
+            Assert.That(Noise(2f, swimming: true), Is.EqualTo(MovementNoise.Walk));
+
+        [Test]
+        public void ClassifyNoise_SwimSprinting_IsRun_BelowRunSpeed() =>
+            Assert.That(Noise(3.5f, swimming: true, swimSprint: true), Is.EqualTo(MovementNoise.Run));
+
+        [Test]
+        public void ClassifyNoise_FloatingStill_IsSilent() =>
+            Assert.That(Noise(0f, swimming: true, swimSprint: true), Is.EqualTo(MovementNoise.Silent));
+
+        [Test]
+        public void HearingRadius_Silent_IsZero() => Assert.That(Hear(MovementNoise.Silent), Is.EqualTo(0f));
+
+        [Test]
+        public void HearingRadius_Walk_IsWalkRadius() => Assert.That(Hear(MovementNoise.Walk), Is.EqualTo(WALK_HEAR));
+
+        [Test]
+        public void HearingRadius_Run_IsRunRadius() => Assert.That(Hear(MovementNoise.Run), Is.EqualTo(RUN_HEAR));
+
+        [Test]
+        public void HearingRadius_Occluded_IsScaled() =>
+            Assert.That(Hear(MovementNoise.Run, los: false), Is.EqualTo(RUN_HEAR * OCCLUDED).Within(EPS));
+
+        [Test]
+        public void IsHeard_InsideAndOnEdge_True()
+        {
+            Assert.That(StealthDetection.IsHeard(3f, WALK_HEAR), Is.True);
+            Assert.That(StealthDetection.IsHeard(WALK_HEAR, WALK_HEAR), Is.True);
+        }
+
+        [Test]
+        public void IsHeard_Outside_False() => Assert.That(StealthDetection.IsHeard(4.1f, WALK_HEAR), Is.False);
+
+        [Test]
+        public void IsHeard_ZeroRadius_FalseEvenAtZeroDistance() =>
+            Assert.That(StealthDetection.IsHeard(0f, 0f), Is.False);
+
+        [Test]
+        public void HearingFillPerSecond_Heard_IsInverseFillTime() =>
+            Assert.That(StealthDetection.HearingFillPerSecond(true, 2f), Is.EqualTo(0.5f).Within(EPS));
+
+        [Test]
+        public void HearingFillPerSecond_NotHeardOrZeroTime_IsZero()
+        {
+            Assert.That(StealthDetection.HearingFillPerSecond(false, 2f), Is.EqualTo(0f));
+            Assert.That(StealthDetection.HearingFillPerSecond(true, 0f), Is.EqualTo(0f));
+        }
     }
 }

@@ -47,6 +47,7 @@ namespace Tests.EditMode
         {
             public bool IsSneaking => false;
             public Vector3 VisibilityPoint => transform.position;
+            public MovementNoise Noise => MovementNoise.Silent;
         }
 
         private static readonly PropertyInfo s_stealthTarget = typeof(FactionMember).GetProperty("StealthTarget");

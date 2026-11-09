@@ -163,6 +163,11 @@
   - An owner already **Watching** (perception engaged, no rescans) checks `TryFindTrespassedArea` itself and responds.
   - Unknown-source hits never pick a trespassing (non-hostile) perception target. Known gap: lock-on can't target an
     aggro owner (it only takes hostile factions).
+- **Hearing:** hostile and trespass perception also hear a walking / running player (Entity walk / run hearing radii,
+  360°, halved without LOS) — see `Scripts/Stealth/CLAUDE.md` → Detection formula. It fills the same meter, so the
+  brain needs no change: Suspicious faces `LastSeenPosition` (= last *sensed*), alerted states keep tracking a heard
+  target. Checks that mean "sees" (unknown-source hit retarget, Watching trespass check) read `CanSeeTarget`, which
+  stays vision-only. Hearing radii are capped at the sight range, so Warning's `dist > DetectionRange` cancel can't loop.
 - **Detection while patrolling:** perception ticks every frame in every state and `HandlePatrol` checks it before path
   handling; the cone follows `transform.forward`, which the NavMeshAgent turns along the path (`updateRotation` is never
   disabled) — a walking guard sees ahead, a waiting one keeps its arrival facing. Verified in play mode on the WarehouseGuard.

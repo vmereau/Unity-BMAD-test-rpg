@@ -517,3 +517,10 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 - **Monster patrols.** `EntityBrain` no longer has waypoints and `NpcRoutine` is NPC-only, so monsters can only idle / wander. `TestScene.unity` still holds 4 orphaned `_waypoints` prefab overrides (size 3, incl. `CreatureWaypoints`) on instances that used to patrol; give them a patrol source (routine or a monster-side route) or clean the overrides.
 - **Routine brain behaviour has no automated tests.** Only the pure helpers (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) are tested; route identity, snap advance, deferred nearest pick and the no-clock path were verified in play mode only.
+
+## From spec-npc-hearing-movement-noise (2026-11-09 review)
+
+- Trespass / theft pursuit uses its own LOS timer (`_pursuitHasLos`) and ignores hearing: an owner who reached full awareness by hearing a trespasser behind a fence may give up the chase after `theftChaseLoseSightTime` without ever seeing them.
+- Hearing (like vision) uses flat XZ distance: a player walking on a floor / deck directly above or below an entity is heard through it (radius only halved by the blocked LOS).
+- Player noise comes from any position change: knockback, being pushed, or a future moving platform counts as Walk / Run noise. Classify from the controller's intended velocity if that becomes a problem.
+- Searching walks to the destination set at `TransitionToSearching`; a target heard mid-search doesn't redirect it (it re-engages once the meter refills).
