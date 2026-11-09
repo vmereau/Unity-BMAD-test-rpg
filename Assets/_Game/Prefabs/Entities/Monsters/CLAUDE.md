@@ -58,7 +58,7 @@ Checklist when creating a new monster prefab (as a variant of `Entity_base`):
 
 Recipe for any monster that attacks (see `Scripts/AI/CLAUDE.md`):
 
-1. `EntityMeleeAttacker` on the root; `_selfFactionMember` = root `FactionMember`; assign it to `EntityBrain._meleeAttacker`.
+1. `EntityMeleeAttacker` on the root (it resolves the root `FactionMember` itself); assign it to `EntityBrain._meleeAttacker`.
 2. `EntityAnimationEventReceiver` on the **Animator GO** (`CreatureVisual`), `_attacker` assigned.
 3. `Hitbox_<id>` child under the biting/striking bone: disabled trigger Sphere/Box/Capsule + `WeaponHitbox`,
    Layer Default, **no Rigidbody** (the ragdoll scan grabs every child Rigidbody). Register `<id>` in `_hitboxes`.

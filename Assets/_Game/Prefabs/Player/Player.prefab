@@ -790,7 +790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12e3a179ede4ed64ab054cb920bcd65f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.FactionMember
-  _factionOverride: {fileID: 11400000, guid: 503e951b4df9b64489bbddc766d68580, type: 2}
+  _faction: {fileID: 11400000, guid: 503e951b4df9b64489bbddc766d68580, type: 2}
   _persistentID: {fileID: 0}
 --- !u!114 &8176500476053113911
 MonoBehaviour:

@@ -4,29 +4,32 @@ using Game.Factions;
 using Game.Stealth;
 using Game.World;
 using UnityEngine;
+using UnityEngine.Serialization;
+using _Game.ScriptableObjects.Entities;
 
 namespace Game.AI
 {
     /// <summary>
     /// Tags a GameObject as a targetable participant in faction combat.
     /// Self-registers with TargetRegistry on enable.
-    /// Faction is sourced from PersistentID.Entity.Faction by default; override per-instance with _factionOverride
-    /// (the Player uses _factionOverride because Player.prefab has no PersistentID).
+    /// Single faction source per GameObject: an entity (PersistentID with an Entity SO) always uses
+    /// <c>Entity.Faction</c>; the serialized <c>_faction</c> is only for a GameObject without an Entity — the Player.
     /// </summary>
     public class FactionMember : MonoBehaviour
     {
         private const string TAG = "[Faction]";
 
-        [Tooltip("Optional. If null, faction is read from PersistentID.Entity.Faction.")]
-        [SerializeField] private FactionSO _factionOverride;
-        [Tooltip("Optional. Used to resolve faction from the Entity SO when no override is set.")]
+        [Tooltip("Only for a GameObject without a PersistentID Entity (the Player). Entities use their Entity SO faction.")]
+        [SerializeField, FormerlySerializedAs("_factionOverride")] private FactionSO _faction;
+        [Tooltip("Optional. Auto-resolved on the same GameObject if null. Its Entity SO provides the faction.")]
         [SerializeField] private PersistentID _persistentID;
 
         private IDamageable _damageable;
-        private FactionSO _faction;
+        private FactionSO _resolvedFaction;
         private bool _registered;
+        private bool _misconfigLogged;
 
-        public FactionSO Faction => _faction;
+        public FactionSO Faction => _resolvedFaction;
         public IDamageable Damageable => _damageable;
         public Transform Transform => transform;
 
@@ -47,9 +50,16 @@ namespace Game.AI
             private set => _stealthTarget = value;
         }
 
+        /// <summary>
+        /// True for the player: an <see cref="IStealthTarget"/> component exists on this GameObject, whether or not it
+        /// is enabled (a disabled PlayerSneak must not hide the player's faction from <see cref="TargetRegistry.Player"/>).
+        /// </summary>
+        public bool IsPlayer => _stealthTarget is UnityEngine.Object obj ? obj != null : _stealthTarget != null;
+
         private void Awake()
         {
             if (TryGetComponent(out IStealthTarget stealthTarget)) StealthTarget = stealthTarget;
+            if (_persistentID == null) TryGetComponent(out _persistentID);
 
             _damageable = GetComponent<IDamageable>();
             if (_damageable == null)
@@ -60,37 +70,43 @@ namespace Game.AI
             }
 
             ResolveFaction();
-            if (_faction == null)
+            if (_resolvedFaction == null)
             {
-                GameLog.Error(TAG, $"{gameObject.name}: no faction resolved (override null and Entity SO faction null) — FactionMember disabled");
+                string reason = EntityOrNull != null
+                    ? $"Entity SO '{EntityOrNull.name}' has no faction"
+                    : "no Entity SO and no _faction";
+                GameLog.Error(TAG, $"{gameObject.name}: no faction resolved ({reason}) — FactionMember disabled");
                 enabled = false;
             }
         }
 
-        // Priority: _factionOverride → PersistentID.Entity.Faction. Re-run on enable so a pooled/respawned
-        // entity reused with a different Entity SO refreshes its faction instead of keeping a stale value.
+        // Entity SO faction wins; _faction is only read when there is no Entity. Re-run on enable so a
+        // pooled/respawned entity reused with a different Entity SO refreshes its faction.
+        private Entity EntityOrNull => _persistentID != null ? _persistentID.Entity : null;
+
         private void ResolveFaction()
         {
-            if (_factionOverride != null)
+            Entity entity = EntityOrNull;
+            if (entity != null)
             {
-                _faction = _factionOverride;
-                if (_persistentID != null && _persistentID.Entity != null &&
-                    _persistentID.Entity.Faction != null && _persistentID.Entity.Faction != _factionOverride)
+                _resolvedFaction = entity.Faction;
+                if (_faction != null && !_misconfigLogged)
                 {
-                    GameLog.Warn(TAG, $"{gameObject.name}: _factionOverride ({_factionOverride.factionName}) shadows a different PersistentID faction ({_persistentID.Entity.Faction.factionName}).");
+                    _misconfigLogged = true;
+                    GameLog.Error(TAG, $"{gameObject.name}: _faction ({_faction.factionName}) is set on an entity — ignored, " +
+                                       "only the Entity SO faction counts. Clear the field.");
                 }
                 return;
             }
 
-            if (_persistentID != null && _persistentID.Entity != null)
-                _faction = _persistentID.Entity.Faction;
+            _resolvedFaction = _faction;
         }
 
         private void OnEnable()
         {
             if (_damageable == null) return; // Awake failed to find one — component already disabled
             ResolveFaction();
-            if (_faction == null) return;
+            if (_resolvedFaction == null) return;
             TargetRegistry.Register(this);
             _registered = true;
         }

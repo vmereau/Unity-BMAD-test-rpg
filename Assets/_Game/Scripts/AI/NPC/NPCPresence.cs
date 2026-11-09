@@ -13,14 +13,34 @@ namespace Game.AI
         private const string TAG = "[NPC]";
 
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
-        [Tooltip("The player's faction — an alive NPC hostile to it offers no dialogue (Faction_Player).")]
-        [SerializeField] private FactionSO _playerFaction;
 
         private FactionMember _factionMember;
+        private static bool s_noPlayerWarned;
 
-        /// <summary>True when this NPC's faction and the player's are hostile (either direction).</summary>
-        private bool IsHostileToPlayer =>
-            _factionMember != null && FactionSO.AreHostile(_factionMember.Faction, _playerFaction);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnPlay() => s_noPlayerWarned = false;
+
+        /// <summary>
+        /// True when this NPC's faction and the player's are hostile (either direction). The player's faction is
+        /// read live from <see cref="TargetRegistry.Player"/> — no player gone → not hostile.
+        /// </summary>
+        private bool IsHostileToPlayer
+        {
+            get
+            {
+                FactionMember player = TargetRegistry.Player;
+                if (player == null)
+                {
+                    if (!s_noPlayerWarned)
+                    {
+                        s_noPlayerWarned = true;
+                        GameLog.Warn(TAG, "No player FactionMember registered (TargetRegistry.Player) — hostile NPCs will offer dialogue");
+                    }
+                    return false;
+                }
+                return _factionMember != null && FactionSO.AreHostile(_factionMember.Faction, player.Faction);
+            }
+        }
 
         // Dead with loot → "Loot"; alive & hostile → no prompt; alive → "Talk"; dead-and-empty → no prompt.
         public override string InteractPrompt =>
@@ -34,8 +54,6 @@ namespace Game.AI
         {
             base.Awake();
             _factionMember = GetComponent<FactionMember>();
-            if (_playerFaction == null)
-                GameLog.Warn(TAG, $"{gameObject.name}: _playerFaction not assigned — hostile NPCs will offer dialogue");
         }
 
         public override void Interact()

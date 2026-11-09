@@ -29,8 +29,9 @@ namespace Game.AI
         private const string TAG = "[AI]";
 
         [SerializeField] private PersistentID _persistentID;
-        [SerializeField] private FactionMember _selfFactionMember;
         [SerializeField] private StealthConfigSO _config;
+
+        private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
 
         private static readonly List<EntityPerception> _active = new();
 
@@ -118,7 +119,7 @@ namespace Game.AI
             DebugName = gameObject.name;
             if (TryGetComponent(out EntityBrain brain)) Brain = brain;
             if (_persistentID == null) _persistentID = GetComponent<PersistentID>();
-            if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
+            _selfFactionMember = GetComponent<FactionMember>();
 
             if (_config == null)
             {

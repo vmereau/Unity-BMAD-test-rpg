@@ -41,8 +41,6 @@ namespace Game.AI
 
         [Tooltip("Hitboxes opened by HitboxEnable(id) animation events. An event with an empty id opens all.")]
         [SerializeField] private List<NamedHitbox> _hitboxes = new();
-        [Tooltip("This entity's faction — hits only land on hostile factions. Auto-resolved on the same GO if null.")]
-        [SerializeField] private FactionMember _selfFactionMember;
         [Tooltip("Plays attack/combo steps. Auto-resolved on the same GO if null.")]
         [SerializeField] private AIAnimationDriver _animationDriver;
 
@@ -67,12 +65,13 @@ namespace Game.AI
         private EntityStance _stance;
         private PersistentID _persistentID;
         private readonly HashSet<string> _warnedUnknownIds = new();
+        private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
         private readonly AttackComboPlan _combo = new();
         private int _activeAttackStates;
 
         private void Awake()
         {
-            if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
+            _selfFactionMember = GetComponent<FactionMember>();
             // No warning when missing — driverless setups (tests) are valid and play single hits.
             if (_animationDriver == null) _animationDriver = GetComponent<AIAnimationDriver>();
             _stance = GetComponent<EntityStance>();        // optional — perfect block deals no stance damage without it

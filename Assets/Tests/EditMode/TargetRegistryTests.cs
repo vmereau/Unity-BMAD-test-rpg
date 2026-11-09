@@ -21,11 +21,18 @@ namespace Tests.EditMode
     {
         private const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic;
 
-        private static readonly FieldInfo s_factionOverride = typeof(FactionMember).GetField("_factionOverride", Instance);
         private static readonly FieldInfo s_faction = typeof(FactionMember).GetField("_faction", Instance);
+        private static readonly FieldInfo s_resolvedFaction = typeof(FactionMember).GetField("_resolvedFaction", Instance);
         private static readonly FieldInfo s_damageable = typeof(FactionMember).GetField("_damageable", Instance);
         private static readonly FieldInfo s_members =
             typeof(TargetRegistry).GetField("_members", BindingFlags.Static | BindingFlags.NonPublic);
+        private static readonly PropertyInfo s_player = typeof(TargetRegistry).GetProperty("Player");
+
+        private static void ResetRegistry()
+        {
+            ((HashSet<FactionMember>)s_members.GetValue(null)).Clear();
+            s_player.SetValue(null, null);
+        }
 
         private readonly List<Object> _cleanup = new();
 
@@ -59,8 +66,8 @@ namespace Tests.EditMode
             dmg.IsDead = dead;
             var m = go.AddComponent<FactionMember>();
             // Build a fully-resolved member without depending on Awake/OnEnable firing in Edit Mode.
-            s_factionOverride.SetValue(m, faction);
             s_faction.SetValue(m, faction);
+            s_resolvedFaction.SetValue(m, faction);
             s_damageable.SetValue(m, dmg);
             TargetRegistry.Register(m);
             _cleanup.Add(go);
@@ -79,8 +86,8 @@ namespace Tests.EditMode
         [SetUp]
         public void SetUp()
         {
-            // Guarantee isolation — the registry HashSet is static and survives between Edit Mode tests.
-            ((HashSet<FactionMember>)s_members.GetValue(null)).Clear();
+            // Guarantee isolation — the registry is static and survives between Edit Mode tests.
+            ResetRegistry();
         }
 
         [TearDown]
@@ -88,7 +95,7 @@ namespace Tests.EditMode
         {
             foreach (var o in _cleanup) if (o != null) Object.DestroyImmediate(o);
             _cleanup.Clear();
-            ((HashSet<FactionMember>)s_members.GetValue(null)).Clear();
+            ResetRegistry();
         }
 
         [Test]
@@ -203,6 +210,64 @@ namespace Tests.EditMode
             MakeStealthTarget(friendly);
 
             Assert.That(TargetRegistry.FindClosestHostileStealthTarget(fA, Vector3.zero, 10f), Is.Null);
+        }
+
+        // Builds a resolved player member (stealth target) and registers it — Register reads IsPlayer.
+        private FactionMember MakePlayer(string name, FactionSO faction)
+        {
+            var go = new GameObject(name);
+            var dmg = go.AddComponent<StubDamageable>();
+            var m = go.AddComponent<FactionMember>();
+            s_faction.SetValue(m, faction);
+            s_resolvedFaction.SetValue(m, faction);
+            s_damageable.SetValue(m, dmg);
+            MakeStealthTarget(m);
+            TargetRegistry.Register(m);
+            _cleanup.Add(go);
+            return m;
+        }
+
+        [Test]
+        public void Player_SetOnRegister_ClearedOnUnregister()
+        {
+            var player = MakePlayer("Player", MakeFaction("P"));
+            Assert.That(TargetRegistry.Player, Is.EqualTo(player));
+
+            TargetRegistry.Unregister(player);
+            Assert.That(TargetRegistry.Player, Is.Null);
+        }
+
+        [Test]
+        public void Player_NotSetByNonPlayerMember()
+        {
+            MakeMember("Npc", MakeFaction("A"), Vector3.zero);
+            Assert.That(TargetRegistry.Player, Is.Null);
+        }
+
+        [Test]
+        public void Player_SecondPlayerMember_KeepsFirst()
+        {
+            var first = MakePlayer("Player1", MakeFaction("P"));
+            MakePlayer("Player2", MakeFaction("P2"));
+            Assert.That(TargetRegistry.Player, Is.EqualTo(first));
+        }
+
+        [Test]
+        public void Player_FirstUnregisters_SecondPromoted()
+        {
+            var first = MakePlayer("Player1", MakeFaction("P"));
+            var second = MakePlayer("Player2", MakeFaction("P2"));
+            TargetRegistry.Unregister(first);
+            Assert.That(TargetRegistry.Player, Is.EqualTo(second));
+        }
+
+        [Test]
+        public void Player_DisabledStealthComponent_StillPlayer()
+        {
+            var player = MakePlayer("Player", MakeFaction("P"));
+            ((Behaviour)player.GetComponent<IStealthTarget>()).enabled = false;
+            Assert.That(player.StealthTarget, Is.Null);
+            Assert.That(player.IsPlayer, Is.True);
         }
     }
 }

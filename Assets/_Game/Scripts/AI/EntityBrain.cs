@@ -72,8 +72,6 @@ namespace Game.AI
         [Tooltip("Skip the warning telegraph and engage the instant a target is detected.")]
         [SerializeField] private bool _engageImmediately = false;
 
-        [Tooltip("This entity's faction membership — drives detection & engagement decisions.")]
-        [SerializeField] private FactionMember _selfFactionMember;
         [Tooltip("Seconds between target-acquisition registry scans while Idle/Patrolling. Bounds per-frame scan cost.")]
         [SerializeField] private float _targetScanInterval = 0.25f;
 
@@ -99,6 +97,7 @@ namespace Game.AI
 
         private NavMeshAgent _agent;
         private EntityHealth _entityHealth;
+        private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
         private FactionMember _currentTarget;
         private float _targetScanTimer;
 
@@ -208,7 +207,7 @@ namespace Game.AI
                 return;
             }
 
-            if (_selfFactionMember == null) _selfFactionMember = GetComponent<FactionMember>();
+            _selfFactionMember = GetComponent<FactionMember>();
             if (_selfFactionMember == null)
             {
                 GameLog.Error(TAG, $"{gameObject.name}: FactionMember not found on same GameObject — EntityBrain disabled");

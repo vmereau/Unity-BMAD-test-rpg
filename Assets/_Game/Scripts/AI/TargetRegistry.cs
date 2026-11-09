@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Core;
 using Game.Factions;
 using UnityEngine;
 
@@ -12,21 +13,49 @@ namespace Game.AI
     /// </summary>
     public static class TargetRegistry
     {
+        private const string TAG = "[Faction]";
+
         private static readonly HashSet<FactionMember> _members = new();
 
+        /// <summary>
+        /// The registered player member (<see cref="FactionMember.IsPlayer"/>), or null. Read its <c>Faction</c> at
+        /// query time — never cache the player's faction (it may change at runtime, e.g. joining a faction).
+        /// </summary>
+        public static FactionMember Player { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnPlay() => _members.Clear();
+        private static void ResetOnPlay()
+        {
+            _members.Clear();
+            Player = null;
+        }
 
         public static void Register(FactionMember member)
         {
             if (member == null) return;
             _members.Add(member);
+            if (!member.IsPlayer) return;
+            if (Player != null && Player != member)
+            {
+                GameLog.Warn(TAG, $"Second player member '{member.name}' registered — keeping '{Player.name}'");
+                return;
+            }
+            Player = member;
         }
 
         public static void Unregister(FactionMember member)
         {
             if (member == null) return;
             _members.Remove(member);
+            if (Player != member) return;
+            // Promote another registered player member (e.g. a new Player enabled before the old one went away).
+            Player = null;
+            foreach (var m in _members)
+            {
+                if (m == null || !m.IsPlayer) continue;
+                Player = m;
+                break;
+            }
         }
 
         /// <summary>

@@ -35,8 +35,7 @@ All StartingTown NPCs are direct scene instances of this variant.
 - **Two colliders, never collapse them:** `Hitbox` (Layer 7, trigger capsule — hurtbox for `WeaponHitbox`
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**
-  - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_selfFactionMember` = root
-    `FactionMember`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
+  - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
   - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. **Apply Root Motion off**
     (variant override — the nested model defaults it on; with it on, full-body attack clips move `Character` away from
     the agent root and a cut swing leaves the offset). `HumanoidAIAnimationDriver.Awake` forces it off + warns.
