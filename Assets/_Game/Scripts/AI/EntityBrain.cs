@@ -29,6 +29,9 @@ namespace Game.AI
     /// and goes Pursuing (non-combat chase); the first witness to catch the thief claims the incident
     /// (<see cref="TheftPursuitRegistry"/>) and goes Confronting (forced scold dialogue), the others give up. Escape
     /// (no LOS / too far / too long) → back to Idle / Patrolling.
+    /// Trespass: an owner fully aware of the player inside its <see cref="RestrictedArea"/> (perception trespass mode)
+    /// shouts a warning and runs the same Pursuing → Confronting flow on the area's incident (scold → area grace), or —
+    /// instant-aggression area — engages with the player as its melee aggro target.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EntityBrain : MonoBehaviour, ICombatStateProvider, ISneakAttackTarget
@@ -50,6 +53,8 @@ namespace Game.AI
         // replacing the previously-scattered _animationDriver?.SetInCombat(...) calls. Idempotent.
         private void SetCombatState(bool inCombat)
         {
+            // Leaving combat always ends a trespass aggression (disengage, search end, death, routine return).
+            if (!inCombat && _meleeAttacker != null && _meleeAttacker.AggroTarget != null) _meleeAttacker.SetAggroTarget(null);
             if (IsInCombat == inCombat) return;
             IsInCombat = inCombat;
             _animationDriver?.SetInCombat(inCombat);
@@ -138,6 +143,7 @@ namespace Game.AI
 
         private int _pursuitTheftId;
         private TheftKind _pursuitKind;
+        private RestrictedArea _pursuitArea; // trespass pursuit only
         private float _pursuitElapsed;
         private float _pursuitNoSightTimer;
         private float _pursuitLosTimer;
@@ -151,6 +157,9 @@ namespace Game.AI
 
         /// <summary>Thefts this NPC saw and chased (runtime only, not saved) — hook for future consequences.</summary>
         public int TheftsWitnessed { get; private set; }
+
+        /// <summary>Trespassers this owner spotted in its restricted areas (runtime only, not saved) — escalation hook.</summary>
+        public int TrespassersSpotted { get; private set; }
 
         private bool PerceptionActive => _perception != null && _perception.IsActive;
         private StealthConfigSO StealthConfig => _stealthConfig != null ? _stealthConfig : _perception.Config;
@@ -465,6 +474,7 @@ namespace Game.AI
         // cross-inner-ring engage, or warn.
         private void RespondToDetectedTarget()
         {
+            if (IsTrespassTarget()) { RespondToTrespasser(_perception.TrespassArea); return; }
             if (IsWitnessTarget()) { TransitionToWatching(); return; }
             if (_engageImmediately) { TransitionToEngaging(); return; }
             float dist = Vector3.Distance(transform.position, _currentTarget.Transform.position);
@@ -582,7 +592,19 @@ namespace Game.AI
         private void HandleSearching()
         {
             if (!PerceptionActive) { EndSearch(); return; }
-            if (TryTakePerceptionTarget()) { TransitionToEngaging(); return; } // re-sighted: no warning telegraph
+            if (TryTakePerceptionTarget())
+            {
+                // Re-sighted: no warning telegraph for a hostile, or for the trespasser this owner is already fighting.
+                if (IsTrespassTarget() && (_meleeAttacker == null || _meleeAttacker.AggroTarget != _currentTarget))
+                {
+                    // Searching after another fight: the area's own rules apply (warn / chase / scold, or attack).
+                    SetCombatState(false);
+                    RespondToTrespasser(_perception.TrespassArea);
+                    return;
+                }
+                if (!IsWitnessTarget()) { TransitionToEngaging(); return; }
+                _currentTarget = null;
+            }
             if (TryAcquireTargetThrottled()) { TransitionToEngaging(); return; } // non-stealth hostile
 
             if (!_searchArrived)
@@ -608,6 +630,43 @@ namespace Game.AI
             ResumeNonCombat();
         }
 
+        // The current target is a non-hostile stealth target inside a restricted area this entity owns.
+        private bool IsTrespassTarget() =>
+            PerceptionActive && _perception.IsTrespassing && _perception.TrespassArea != null &&
+            _perception.TrespassArea.IsRestrictedNow && _currentTarget != null && _currentTarget == _perception.Target;
+
+        // Owner fully aware of a trespasser: warning bark, then attack (instant aggression) or chase → scold.
+        private void RespondToTrespasser(RestrictedArea area)
+        {
+            FactionMember trespasser = _currentTarget;
+            TrespassersSpotted++;
+
+            if (area.InstantAggression)
+            {
+                WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+                RaiseAlertBark(profile != null ? profile.TrespassAlertBarks : null);
+                if (_meleeAttacker != null) _meleeAttacker.SetAggroTarget(trespasser);
+                _perception.ForceAware(trespasser); // e.g. from Watching: track at DisengageRange, not the witness range
+                GameLog.Info(TAG, $"{gameObject.name} attacks trespasser {trespasser.Transform.name} in {area.DebugName}");
+                TransitionToEngaging();
+                return;
+            }
+
+            // Owners of one area share its open incident: the first catcher scolds, the others give up.
+            int incident = area.OpenIncidentId != 0 && !TheftPursuitRegistry.IsClaimed(area.OpenIncidentId)
+                ? area.OpenIncidentId
+                : area.OpenIncident();
+            GameLog.Info(TAG, $"{gameObject.name} spotted trespasser {trespasser.Transform.name} in {area.DebugName} (#{TrespassersSpotted})");
+            TransitionToPursuing(trespasser, new TheftCommittedData
+            {
+                theftId = incident,
+                thief = trespasser.Transform,
+                position = trespasser.Transform.position,
+                kind = TheftKind.Trespass,
+                objectName = area.DebugName,
+            }, area);
+        }
+
         // The current target is the non-hostile stealth target the perception is witnessing.
         private bool IsWitnessTarget() =>
             PerceptionActive && _perception.IsWitnessing && _currentTarget != null && _currentTarget == _perception.Target;
@@ -627,6 +686,14 @@ namespace Game.AI
                 return;
             }
             _currentTarget = watched; // TryAcquireTarget clears it when nothing is found
+
+            // Watched (fully aware, perception not rescanning) and now inside one of this owner's restricted areas.
+            if (_perception.CanSeeTarget && RestrictedArea.TryFindTrespassedArea(_currentTarget.Transform.position,
+                    _persistentID.Entity as NPCEntity, _selfFactionMember.Faction, out RestrictedArea trespassed))
+            {
+                RespondToTrespasser(trespassed);
+                return;
+            }
 
             Vector3 toTarget = _currentTarget.Transform.position - transform.position;
             toTarget.y = 0f;
@@ -710,16 +777,17 @@ namespace Game.AI
             {
                 // Already chasing: follow the newest incident and restart the give-up timers.
                 TheftsWitnessed++;
-                StartPursuitTimers(thief, data);
+                StartPursuitTimers(thief, data, _pursuitArea);
                 GameLog.Info(TAG, $"{gameObject.name} saw theft #{data.theftId} — still chasing");
                 return;
             }
             TransitionToPursuing(thief, data);
         }
 
-        private void StartPursuitTimers(FactionMember thief, TheftCommittedData data)
+        private void StartPursuitTimers(FactionMember thief, TheftCommittedData data, RestrictedArea area)
         {
             _currentTarget = thief;
+            _pursuitArea = area;
             _pursuitTheftId = data.theftId;
             _pursuitKind = data.kind;
             _pursuitElapsed = 0f;
@@ -729,28 +797,35 @@ namespace Game.AI
             _pursuitLastSeen = thief.Transform.position;
         }
 
-        private void TransitionToPursuing(FactionMember thief, TheftCommittedData data)
+        private void TransitionToPursuing(FactionMember thief, TheftCommittedData data, RestrictedArea area = null)
         {
             // Suspicious / Watching already captured the state to resume.
             if (_state == EntityState.Idle || _state == EntityState.Patrolling)
                 _disengageState = _state;
             _state = EntityState.Pursuing;
             _perception.ResetPerception();
-            StartPursuitTimers(thief, data);
+            StartPursuitTimers(thief, data, area);
             _agent.isStopped = false;
             _agent.speed = _persistentID.Entity.EngageSpeed;
             _agent.stoppingDistance = StealthConfig.theftCatchDistance * 0.8f;
             _agent.SetDestination(thief.Transform.position);
-            TheftsWitnessed++;
             // No SetCombatState: chasing a thief is not combat (dialogue stays possible).
 
             WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
-            BarkSetSO barks = profile != null ? profile.TheftAlertBarks : null;
+            bool trespass = data.kind == TheftKind.Trespass;
+            if (!trespass) TheftsWitnessed++;
+            RaiseAlertBark(profile == null ? null : trespass ? profile.TrespassAlertBarks : profile.TheftAlertBarks);
+
+            GameLog.Info(TAG, trespass
+                ? $"{gameObject.name} chases the trespasser (incident #{data.theftId})"
+                : $"{gameObject.name} saw theft #{data.theftId} — chasing (#{TheftsWitnessed})");
+        }
+
+        private void RaiseAlertBark(BarkSetSO barks)
+        {
             string line = barks != null ? barks.GetRandomLine(ref _lastAlertBarkIndex) : null;
             if (!string.IsNullOrEmpty(line) && _onSpeechBubbleRequested != null)
                 RaiseSpeechBubble(line, StealthConfig.theftBubbleDuration, StealthConfig.theftAlertBubblePriority);
-
-            GameLog.Info(TAG, $"{gameObject.name} saw theft #{data.theftId} — chasing (#{TheftsWitnessed})");
         }
 
         private void HandlePursuing()
@@ -821,9 +896,10 @@ namespace Game.AI
             WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
             BarkSetSO set = null;
             if (profile != null)
-                set = _pursuitKind == TheftKind.Item && profile.ItemTheftScoldBarks != null
-                    ? profile.ItemTheftScoldBarks
-                    : profile.TheftScoldBarks;
+                set = _pursuitKind == TheftKind.Trespass ? profile.TrespassScoldBarks
+                    : _pursuitKind == TheftKind.Item && profile.ItemTheftScoldBarks != null
+                        ? profile.ItemTheftScoldBarks
+                        : profile.TheftScoldBarks;
             string line = set != null ? set.GetRandomLine(ref _lastScoldBarkIndex) : null;
             if (string.IsNullOrEmpty(line))
             {
@@ -834,6 +910,10 @@ namespace Game.AI
                 }
                 line = DEFAULT_SCOLD_LINE;
             }
+
+            // Grace from the catch on: no other owner re-detects during the scold (held while it is open, restarted when
+            // it closes). Before the channel check, so a misconfigured owner can't loop chase → catch forever.
+            if (_pursuitArea != null) _pursuitArea.StartGrace(StealthConfig.trespassGraceDuration);
 
             if (_onDialogueRequested == null)
             {
@@ -857,15 +937,20 @@ namespace Game.AI
             if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
             FacePoint(_currentTarget.Transform.position, StealthConfig.witnessTurnSpeed);
             _confrontTimer += Time.deltaTime;
+            if (_pursuitArea != null) _pursuitArea.HoldGrace(StealthConfig.trespassGraceDuration);
             if (!CursorManager.IsLocked)
                 _confrontOpened = true;
             else if (_confrontOpened || _confrontTimer >= StealthConfig.theftConfrontOpenTimeout)
+            {
+                if (_pursuitArea != null) _pursuitArea.StartGrace(StealthConfig.trespassGraceDuration);
                 EndPursuit("scolded the thief");
+            }
         }
 
         private void EndPursuit(string reason)
         {
             _currentTarget = null;
+            _pursuitArea = null;
             if (_perception != null) _perception.ResetPerception();
             GameLog.Info(TAG, $"{gameObject.name} ends the theft chase — {reason}");
             ResumeNonCombat();
@@ -908,7 +993,8 @@ namespace Game.AI
             {
                 // Unknown source: the hostile stealth target only if it is in sight (never a witnessed, non-hostile
                 // one), else the closest radius hostile.
-                candidate = PerceptionActive && !_perception.IsWitnessing && _perception.CanSeeTarget && IsLive(_perception.Target)
+                candidate = PerceptionActive && !_perception.IsWitnessing && !_perception.IsTrespassing &&
+                            _perception.CanSeeTarget && IsLive(_perception.Target)
                     ? _perception.Target
                     : TargetRegistry.FindClosestHostile(faction, transform.position,
                         _persistentID.Entity.DisengageRange, skipStealthTargets: PerceptionActive);
@@ -923,6 +1009,8 @@ namespace Game.AI
                 _engageAfterRecovery = true;
                 return;
             }
+            if (_meleeAttacker != null && _meleeAttacker.AggroTarget != null && _meleeAttacker.AggroTarget != candidate)
+                _meleeAttacker.SetAggroTarget(null); // fighting someone else now: stray swings must not hit the trespasser
             GameLog.Info(TAG, $"{gameObject.name} was hit — engaging {candidate.Transform.name}");
             TransitionToEngaging();
         }

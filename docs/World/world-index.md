@@ -29,6 +29,8 @@
 | npc-009 | Quarry Worker | area-002 (quarry) | Quest giver — sealed passage | none | stub |
 | npc-010 | Lead Hunter | area-004 (hunting grounds) | Work site manager | faction-001 (loose) | stub |
 | npc-011 | Camp Cook (Aldric Sorn) | area-001 — Canteen | Service NPC / information broker | none (covert) | draft |
+| npc-012 | Warehouse Guard | area-001 — dock warehouse | Guard / restricted-area owner | faction-001 | draft |
+| npc-013 | Dock Guard | area-001 — dock guard post / docks | Guard / restricted-area owner (night) | faction-001 | draft |
 
 ---
 

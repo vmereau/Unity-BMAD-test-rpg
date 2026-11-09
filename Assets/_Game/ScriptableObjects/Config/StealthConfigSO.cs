@@ -84,6 +84,10 @@ namespace Game.Stealth
         [Tooltip("Speech bubble priority of theft alerts (above witness warnings).")]
         public int theftAlertBubblePriority = 1;
 
+        [Header("Trespass")]
+        [Tooltip("Seconds a restricted area is ignored by its owners after one of them scolded the trespasser (time to leave).")]
+        public float trespassGraceDuration = 15f;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -104,6 +108,7 @@ namespace Game.Stealth
             theftChaseMaxDuration     = Mathf.Max(0f, theftChaseMaxDuration);
             theftConfrontOpenTimeout  = Mathf.Max(0f, theftConfrontOpenTimeout);
             theftBubbleDuration       = Mathf.Max(0f, theftBubbleDuration);
+            trespassGraceDuration     = Mathf.Max(0f, trespassGraceDuration);
         }
 #endif
     }

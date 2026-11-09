@@ -505,3 +505,10 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Company emblem on the flags.** The flags are plain dark red until the emblem is chosen.
 - **Warehouse camp ramp's tip is in the NavMesh.** The bake links the low foot of `Warehouse/Ramp_Camp` (x 15.3–18.8, z 34.8) to the ground at its sides, so a path east from the Player's Zone cuts over the corner where the player's controller can't step. The player walks round the foot. A Not Walkable volume on the ramp's sides, or a skirt, would fix the path.
 - **Company Road past the player's tent.** `company-road` runs (17, 34.8) → (10, 37) → (8, 33), so its cobble paint passes under the player's tent and campfire. Reroute it round the Player's Zone when the road gets art.
+
+## From spec-restricted-areas-trespass (2026-11-09)
+
+- **Grace across overlapping areas.** Grace is per `RestrictedArea`; a point inside two overlapping areas with shared owners is re-detected through the second area right after a scold. Make grace per owner / per trespasser, or share it across areas containing the point.
+- **Lock-on vs aggro owners.** `LockOnSystem` only targets hostile factions, so the player can't lock on to an instant-aggression owner attacking them.
+- **Humanoid unarmed reach.** NPC `AttackRange` 1.5 m stops the attacker just beyond the unarmed hitbox's reach: in play testing the punches whiffed on a standing player at 1.48 m and landed at 0.9 m. Lower `AttackRange` / `EngageStoppingDistance` or extend the unarmed hitbox (affects every humanoid NPC).
+- **Trespass escalation.** `TrespassersSpotted` (runtime) is the hook for repeat-offence escalation, bounty or hostility; nothing reads it yet.

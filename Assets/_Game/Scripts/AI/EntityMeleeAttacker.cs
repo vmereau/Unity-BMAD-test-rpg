@@ -58,6 +58,12 @@ namespace Game.AI
         public int ComboStep => _combo.CurrentStep;
         public int ComboHits => _combo.TotalHits;
 
+        /// <summary>Non-hostile target this entity may hit anyway (owner attacking a trespasser in a highly restricted
+        /// area). Set / cleared by <see cref="EntityBrain"/>; null = faction rules only.</summary>
+        public FactionMember AggroTarget { get; private set; }
+
+        public void SetAggroTarget(FactionMember target) => AggroTarget = target;
+
         private EntityStance _stance;
         private PersistentID _persistentID;
         private readonly HashSet<string> _warnedUnknownIds = new();
@@ -280,6 +286,7 @@ namespace Game.AI
             if (!component.TryGetComponent(out FactionMember member))
                 member = component.GetComponentInParent<FactionMember>();
             if (member == null) return false;
+            if (AggroTarget != null && member == AggroTarget) return true;
             if (_selfFactionMember == null || _selfFactionMember.Faction == null) return true;
             return _selfFactionMember.Faction.IsHostileTo(member.Faction);
         }

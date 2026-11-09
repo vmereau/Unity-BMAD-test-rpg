@@ -34,15 +34,9 @@ namespace Game.AI
             for (int i = 0; i < blocks.Count; i++)
             {
                 NpcRoutineBlock b = blocks[i];
-                if (b != null && Contains(b.startHour, b.endHour, hour)) return i;
+                if (b != null && Game.Core.GameTime.IsHourInWindow(b.startHour, b.endHour, hour)) return i;
             }
             return -1;
-        }
-
-        private static bool Contains(int start, int end, int hour)
-        {
-            if (start == end) return true;
-            return start < end ? hour >= start && hour < end : hour >= start || hour < end;
         }
     }
 }

@@ -50,6 +50,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `Area1_Blockout/InnerGate`, `Warehouse`, `DockGate`, `CompoundGate`, `StagingYard`, `GuardPost`, `WorkGangTents`, `Latrine`, `TimberYard`, `WorkshopYard`, `Garrison`, `Walkways` | Camp interior | Same tool; see **Camp interior**, **Company compound** and **Garrison quarter** below |
 | `Area1_Blockout/Farm` | Plain south of the fort hill, (−48..44, −50..−148) | Same tool; see **Farm** below |
 | `Area1_Blockout/Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave` | Remote | Same tool; see **Remote sites** below |
+| `RestrictedAreas` | Scene root (hand-owned) | `RestrictedArea` volumes: `RA_Warehouse` (warehouse interior, owner `NPC_WarehouseGuard`, always) and `RA_Docks` (layout `docks` rect clipped north of the warehouse, owner `Faction_Company`, 21–06). Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout` (tool-rebuilt) |
 
 Enemies live outside the basin: spiders in and at the mouth of the tutorial cave near (85, −45), bandit patrol around (−110, 30). They aren't tool-owned: a Sites run leaves them alone, and moving a site doesn't move them.
 

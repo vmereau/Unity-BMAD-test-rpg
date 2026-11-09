@@ -149,6 +149,7 @@ namespace Game.DevTools
         {
             _sb.Clear();
             if (p.IsWitnessing) _sb.Append("Witness · ");
+            else if (p.IsTrespassing) _sb.Append("Trespass · ");
             AppendState(p);
             _sb.Append('\n');
             AppendPercent(p.Awareness);

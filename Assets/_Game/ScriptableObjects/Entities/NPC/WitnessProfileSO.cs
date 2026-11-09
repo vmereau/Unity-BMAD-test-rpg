@@ -11,6 +11,8 @@ namespace Game.NPC
     /// another profile. Only used against stealth targets whose faction is not hostile to the NPC.
     /// Also covers <b>thefts</b>: the range at which the NPC notices the player stealing (standing or sneaking), the
     /// alert shouted when it starts chasing and the scold line said when it catches the thief.
+    /// And <b>trespass</b> (owners of a <c>RestrictedArea</c>): the warning shouted when it spots the player inside and
+    /// the scold line said when it catches them.
     /// </summary>
     [CreateAssetMenu(menuName = "Game/NPC/Witness Profile", fileName = "WitnessProfile_")]
     public class WitnessProfileSO : ScriptableObject
@@ -34,6 +36,12 @@ namespace Game.NPC
         [Tooltip("Forced-dialogue line for item pickups. Null = falls back to _theftScoldBarks.")]
         [SerializeField] private BarkSetSO _itemTheftScoldBarks;
 
+        [Header("Trespass")]
+        [Tooltip("Warning shouted in a speech bubble when an owner spots the player inside its restricted area. Null = falls back to _theftAlertBarks.")]
+        [SerializeField] private BarkSetSO _trespassAlertBarks;
+        [Tooltip("Forced-dialogue line said when an owner catches a trespasser. Null = falls back to _theftScoldBarks.")]
+        [SerializeField] private BarkSetSO _trespassScoldBarks;
+
         public float WitnessRange => _witnessRange;
         public float WatchRange => ResolveWatchRange(_witnessRange, _watchRange);
         public BarkSetSO Barks => _barks;
@@ -41,6 +49,8 @@ namespace Game.NPC
         public BarkSetSO TheftAlertBarks => _theftAlertBarks;
         public BarkSetSO TheftScoldBarks => _theftScoldBarks;
         public BarkSetSO ItemTheftScoldBarks => _itemTheftScoldBarks;
+        public BarkSetSO TrespassAlertBarks => _trespassAlertBarks != null ? _trespassAlertBarks : _theftAlertBarks;
+        public BarkSetSO TrespassScoldBarks => _trespassScoldBarks != null ? _trespassScoldBarks : _theftScoldBarks;
 
         /// <summary>Watch range, never below the witness range (otherwise a witness would stop watching at once).</summary>
         public static float ResolveWatchRange(float witnessRange, float watchRange) =>

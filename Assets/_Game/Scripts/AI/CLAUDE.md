@@ -12,7 +12,7 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (the Player — no PersistentID). |
@@ -54,7 +54,8 @@
 - `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 home / 21–06 spot: Storekeeper on the commute north of the Company store and
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Old Hobb (`TentMate`) by the Player's Zone tents, Blacksmith in his room at the Timberworks forge, Warden outside the Company
-  office door on the outcrop (NPCs can't open doors). `RacketGuard` and `BeatenWorker` have no routine.
+  office door on the outcrop (NPCs can't open doors). `RacketGuard` and `BeatenWorker` have no routine. `DockGuard` is the
+  reverse: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 home = its deck patrol (`NpcPatrolRoutes/DockGuard`).
 
 ---
 
@@ -62,6 +63,8 @@
 
 - `_hitboxes` = `Id` + `WeaponHitbox`. Clip events open/close them by id (`""` = all). `RegisterHitbox` /
   `UnregisterHitbox` for runtime (equipped-weapon) hitboxes. Unknown id → one warning per id.
+- `AggroTarget` (`SetAggroTarget`, set by the brain for instant-aggression trespass): hits land on it even when its
+  faction isn't hostile.
 - `BeginAttack(damage, comboHits)` / `EndAttack()` bracket an attack; `OpenWindow` is ignored while
   `!IsAttacking`. Hits are faction-filtered (target's `FactionMember` must be hostile; none → ignored), then
   `TryReceiveHit → TakeDamage(CurrentDamage)` on `NotBlocked`.
@@ -125,6 +128,26 @@
   (cursor locked again) or after `theftConfrontOpenTimeout` if it never opened. A hostile hit while Pursuing /
   Confronting triggers the normal combat reaction. Known gap: the player can still talk to a chasing NPC normally —
   it scolds right after.
+- **Trespass (restricted areas — `Game.World.RestrictedArea`):** perception has a third mode between hostile and witness
+  (priority hostile > trespass > witness): a non-hostile stealth target standing inside an area **this entity owns**
+  (`NPCEntity` listed, or its faction listed; area restricted now = hours window + not in grace) is perceived with the
+  **hostile formula** — walking or sneaking, sneak-shortened — at `TrespassSightRange` (`DetectionRange`, or the witness
+  profile's `TheftSightRange` for a passive owner). `IsTrespassing` / `TrespassArea`; F3 overlay + gizmo label
+  "Trespass". The meter → Suspicious → full awareness → `RespondToTrespasser(area)`: `TrespassersSpotted++`, then
+  - normal area: `TrespassAlertBarks` bubble + **Pursuing** with `TheftKind.Trespass` on the area's open incident
+    (`RestrictedArea.OpenIncidentId`, negative ids, reused until claimed → several owners share one chase, first catcher
+    scolds). Confronting uses `TrespassScoldBarks`; `area.StartGrace(trespassGraceDuration)` at the catch (before the
+    dialogue-channel check), `HoldGrace` every frame while the scold is open, `StartGrace` again when it closes. An escape
+    gives no grace. A theft while chasing a trespasser keeps `_pursuitArea` (the scold still starts its grace).
+    `IsTrespassTarget` re-checks `TrespassArea.IsRestrictedNow` (grace / hours can change between perception scans).
+  - `InstantAggression` area: bubble + `EntityMeleeAttacker.SetAggroTarget(player)` + `ForceAware` + **Engaging** (no
+    warning). The aggro target makes the faction filter accept the non-hostile player. `SetCombatState(false)` clears it
+    (disengage, search end, death, routine return), and so does a damage retarget onto another attacker. Searching
+    re-engages a re-sighted trespasser only if it is the current aggro target; otherwise it leaves combat and applies the
+    area's rules (`RespondToTrespasser`); a witnessed target is ignored.
+  - An owner already **Watching** (perception engaged, no rescans) checks `TryFindTrespassedArea` itself and responds.
+  - Unknown-source hits never pick a trespassing (non-hostile) perception target. Known gap: lock-on can't target an
+    aggro owner (it only takes hostile factions).
 - **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
   `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
   bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.

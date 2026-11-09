@@ -18,6 +18,10 @@ namespace Game.AI
     /// sneak-shortened sight range; otherwise, with an enabled <see cref="WitnessProfileSO"/>, a <b>non-hostile</b>
     /// one is witnessed (<see cref="IsWitnessing"/>) — only while it sneaks (awareness drains while it walks
     /// normally), sight range = the profile's WitnessRange. Hostile targets always win the scan.
+    /// <b>Trespass</b> mode sits between the two: a non-hostile stealth target standing inside a
+    /// <see cref="RestrictedArea"/> this entity owns (restricted now) is perceived with the hostile formula (walking or
+    /// sneaking, sneak-shortened) at <see cref="TrespassSightRange"/> (<see cref="IsTrespassing"/>,
+    /// <see cref="TrespassArea"/>). Priority: hostile &gt; trespass &gt; witness.
     /// Inactive (no-op) when DetectionRange ≤ 0 and no witness profile is enabled.
     /// </summary>
     public class EntityPerception : MonoBehaviour
@@ -48,6 +52,10 @@ namespace Game.AI
         public bool CanWitness => WitnessProfileSO.IsEnabled(WitnessProfile);
         /// <summary>The current <see cref="Target"/> is non-hostile and perceived in witness mode.</summary>
         public bool IsWitnessing { get; private set; }
+        /// <summary>The current <see cref="Target"/> is non-hostile but inside a restricted area this entity owns.</summary>
+        public bool IsTrespassing { get; private set; }
+        /// <summary>Area the current target trespasses in (null unless <see cref="IsTrespassing"/>).</summary>
+        public RestrictedArea TrespassArea { get; private set; }
         public bool IsActive => enabled && _config != null && Entity != null && (Entity.DetectionRange > 0f || CanWitness);
         public StealthConfigSO Config => _config;
 
@@ -84,6 +92,17 @@ namespace Game.AI
         }
         /// <summary>Witness sight range against a sneaking non-hostile target (no sneak multiplier); 0 without a profile.</summary>
         public float WitnessRange => CanWitness ? WitnessProfile.WitnessRange : 0f;
+        /// <summary>Standing sight range against a trespasser: DetectionRange, or the witness profile's TheftSightRange
+        /// for a passive owner (DetectionRange 0).</summary>
+        public float TrespassSightRange
+        {
+            get
+            {
+                if (Entity == null) return 0f;
+                if (Entity.DetectionRange > 0f) return Entity.DetectionRange;
+                return CanWitness ? WitnessProfile.TheftSightRange : 0f;
+            }
+        }
         /// <summary>Range within which a watching witness keeps tracking its target; 0 without a profile.</summary>
         public float WitnessWatchRange => CanWitness ? WitnessProfile.WatchRange : 0f;
         /// <summary>Standing proximity radius — CurrentProximityRadius is the sneak-adjusted one.</summary>
@@ -140,7 +159,7 @@ namespace Game.AI
                 _scanTimer = _config.targetScanInterval;
                 ScanForTarget(entity);
             }
-            if (Target != null && !HasLiveTarget()) { Target = null; IsWitnessing = false; }
+            if (Target != null && !HasLiveTarget()) { Target = null; IsWitnessing = false; IsTrespassing = false; TrespassArea = null; }
             bool witness = IsWitnessing;
 
             if (Target == null)
@@ -171,7 +190,8 @@ namespace Game.AI
             // is always the sneaking one.
             CurrentSightRange = witness
                 ? WitnessRange
-                : StealthDetection.EffectiveSightRange(entity.DetectionRange, TargetIsSneaking, _config.sneakSightRangeMultiplier);
+                : StealthDetection.EffectiveSightRange(IsTrespassing ? TrespassSightRange : entity.DetectionRange,
+                    TargetIsSneaking, _config.sneakSightRangeMultiplier);
             CurrentProximityRadius = StealthDetection.EffectiveProximityRadius(
                 entity.ProximityRadius, witness || TargetIsSneaking, _config.sneakProximityMultiplier);
 
@@ -213,17 +233,32 @@ namespace Game.AI
             }
         }
 
-        // Hostile stealth targets win; otherwise a non-hostile one is witnessed (profile enabled).
+        // Hostile stealth targets win; then a non-hostile one trespassing in an area this entity owns; otherwise a
+        // non-hostile one is witnessed (profile enabled).
         private void ScanForTarget(Entity entity)
         {
             FactionSO faction = _selfFactionMember.Faction;
             FactionMember found = null;
             bool witnessing = false;
+            bool trespassing = false;
+            RestrictedArea area = null;
             if (faction != null)
             {
                 if (entity.DetectionRange > 0f)
                     found = TargetRegistry.FindClosestHostileStealthTarget(faction, transform.position,
                         Mathf.Max(entity.DetectionRange, entity.DisengageRange));
+                float trespassRange = TrespassSightRange;
+                if (found == null && trespassRange > 0f)
+                {
+                    FactionMember candidate = TargetRegistry.FindClosestNonHostileStealthTarget(faction,
+                        transform.position, Mathf.Max(trespassRange, entity.DisengageRange));
+                    if (candidate != null && RestrictedArea.TryFindTrespassedArea(candidate.Transform.position,
+                            entity as NPCEntity, faction, out area))
+                    {
+                        found = candidate;
+                        trespassing = true;
+                    }
+                }
                 if (found == null && CanWitness)
                 {
                     found = TargetRegistry.FindClosestNonHostileStealthTarget(faction, transform.position,
@@ -231,13 +266,15 @@ namespace Game.AI
                     witnessing = found != null;
                 }
             }
-            if (found != Target || witnessing != IsWitnessing)
+            TrespassArea = area;
+            if (found != Target || witnessing != IsWitnessing || trespassing != IsTrespassing)
             {
                 // Switched to another target or mode: awareness belongs to the previous one. Losing the target
                 // (found == null) keeps the meter so it drains gradually.
                 if (Target != null && found != null) Awareness = 0f;
                 Target = found;
                 IsWitnessing = witnessing;
+                IsTrespassing = trespassing;
                 _losTimer = 0f; // fresh target → fresh line-of-sight check this tick
             }
         }
@@ -249,6 +286,8 @@ namespace Game.AI
             if (Target != target) _losTimer = 0f;
             Target = target;
             IsWitnessing = false;
+            IsTrespassing = false;
+            TrespassArea = null;
             Awareness = 1f;
             LastSeenPosition = target.Transform.position;
             HasLastSeenPosition = true;
@@ -270,6 +309,8 @@ namespace Game.AI
         private void ClearTargetReadouts()
         {
             IsWitnessing = false;
+            IsTrespassing = false;
+            TrespassArea = null;
             CanSeeTarget = false;
             _hasLineOfSight = false;
             LastVisibility = 0f;
@@ -392,7 +433,7 @@ namespace Game.AI
             string seen = HasLastSeenPosition ? $"{TimeSinceSeen:0.0} s ago" : "never";
             string target = Target == null ? "none" : (TargetIsSneaking ? "sneaking" : "standing");
             UnityEditor.Handles.Label(eye + Vector3.up * GIZMO_LABEL_HEIGHT,
-                $"{(IsWitnessing ? "Witness · " : "")}{state}\nAwareness {Awareness * 100f:0}%  Vis {LastVisibility:0.00}  {LastFillPerSecond:+0.00;-0.00}/s\n" +
+                $"{(IsWitnessing ? "Witness · " : IsTrespassing ? "Trespass · " : "")}{state}\nAwareness {Awareness * 100f:0}%  Vis {LastVisibility:0.00}  {LastFillPerSecond:+0.00;-0.00}/s\n" +
                 $"Dist {DistanceToTarget:0.0} m  LOS {(_hasLineOfSight ? "yes" : "no")}  Seen {seen}\nTarget: {target}");
         }
 

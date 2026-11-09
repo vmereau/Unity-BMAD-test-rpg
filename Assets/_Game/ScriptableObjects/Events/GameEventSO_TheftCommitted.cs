@@ -2,8 +2,9 @@ using UnityEngine;
 
 namespace Game.Core
 {
-    /// <summary>What was stolen: drives the scold line (item pickups have their own variants).</summary>
-    public enum TheftKind { Other, Item, Container, Door }
+    /// <summary>What was stolen: drives the scold line (item pickups have their own variants). <c>Trespass</c> = an
+    /// owner caught the player inside its <c>RestrictedArea</c> (never raised on the theft channel — pursuit kind only).</summary>
+    public enum TheftKind { Other, Item, Container, Door, Trespass }
 
     [System.Serializable]
     public struct TheftCommittedData

@@ -42,6 +42,17 @@ namespace Game.Core
         /// <summary>Hour of the day (0–23) of an absolute hour index.</summary>
         public static int HourOfAbsolute(long absoluteHour) => (int)(absoluteHour % HOURS_PER_DAY);
 
+        /// <summary>
+        /// True when <paramref name="hour"/> is inside [<paramref name="start"/>, <paramref name="end"/>): start inclusive,
+        /// end exclusive, wraps midnight (21 → 6); start == end covers the whole day. Shared by NPC routines and
+        /// restricted areas.
+        /// </summary>
+        public static bool IsHourInWindow(int start, int end, int hour)
+        {
+            if (start == end) return true;
+            return start < end ? hour >= start && hour < end : hour >= start || hour < end;
+        }
+
         /// <summary>World time of day 1 at <paramref name="startHour"/> (new game).</summary>
         public static double StartTime(int startHour) => Mod(startHour, HOURS_PER_DAY) * SECONDS_PER_HOUR;
 

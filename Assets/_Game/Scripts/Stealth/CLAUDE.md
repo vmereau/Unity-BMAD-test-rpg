@@ -35,6 +35,9 @@ Witness (non-hostile target, `NPCEntity.WitnessProfile`): `ComputeWitnessVisibil
 `ComputeVisibility(…)` with sight range = profile `WitnessRange` while the target sneaks, **0 otherwise**;
 proximity radius is always the sneaking one.
 
+Trespass (non-hostile target inside a `RestrictedArea` the entity owns): the hostile formula with sight range =
+`EntityPerception.TrespassSightRange` — fills whether the target walks or sneaks.
+
 Sneaking multiplies sight range and proximity radius (`sneakSightRangeMultiplier`, `sneakProximityMultiplier`).
 Distance and angle are flat (XZ). Line of sight is a single `Physics.Raycast` from the entity's eye
 (`Entity.EyeHeight`) to `VisibilityPoint` against `lineOfSightMask` (Default), every `losCheckInterval`.
