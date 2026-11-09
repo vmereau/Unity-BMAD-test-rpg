@@ -152,6 +152,7 @@ namespace Game.AI
         private float _confrontTimer;
         private bool _confrontOpened;
         private int _lastAlertBarkIndex = -1;
+        private int _lastFledBarkIndex = -1;
         private int _lastScoldBarkIndex = -1;
         private bool _warnedMissingScold;
 
@@ -828,6 +829,14 @@ namespace Game.AI
                 RaiseSpeechBubble(line, StealthConfig.theftBubbleDuration, StealthConfig.theftAlertBubblePriority);
         }
 
+        // Give-up line when a trespasser leaves; own no-repeat index (a different set from the alert barks).
+        private void RaiseFledBark(BarkSetSO barks)
+        {
+            string line = barks != null ? barks.GetRandomLine(ref _lastFledBarkIndex) : null;
+            if (!string.IsNullOrEmpty(line) && _onSpeechBubbleRequested != null)
+                RaiseSpeechBubble(line, StealthConfig.theftBubbleDuration, StealthConfig.theftAlertBubblePriority);
+        }
+
         private void HandlePursuing()
         {
             if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
@@ -843,6 +852,30 @@ namespace Game.AI
                 return;
             }
             _currentTarget = thief; // TryAcquireTarget clears it when nothing is found
+
+            // Trespass chase: the player left the area (or it stopped being restricted) — let them go.
+            if (_pursuitKind == TheftKind.Trespass && _pursuitArea != null)
+            {
+                Vector3 trespasserPos = _currentTarget.Transform.position;
+                bool restricted = _pursuitArea.IsRestrictedNow;
+                bool inside = _pursuitArea.Contains(trespasserPos);
+                // Crossed into another restricted area this owner also owns: keep chasing under that area.
+                if ((!restricted || !inside) && RestrictedArea.TryFindTrespassedArea(trespasserPos,
+                        _persistentID.Entity as NPCEntity, _selfFactionMember.Faction, out RestrictedArea next))
+                {
+                    _pursuitArea = next;
+                    restricted = inside = true;
+                }
+                if (TheftDetection.ShouldStopTrespassChase(true, true, restricted, inside))
+                {
+                    WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+                    RaiseFledBark(profile != null ? profile.TrespassFledBarks : null);
+                    EndPursuit(inside
+                        ? $"{_pursuitArea.DebugName} is no longer restricted"
+                        : $"trespasser left {_pursuitArea.DebugName}");
+                    return;
+                }
+            }
 
             StealthConfigSO config = StealthConfig;
             float dt = Time.deltaTime;

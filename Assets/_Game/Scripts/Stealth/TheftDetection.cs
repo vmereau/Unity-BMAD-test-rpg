@@ -22,5 +22,10 @@ namespace Game.Stealth
         /// <summary>The thief is caught: close enough and no menu / dialogue open (cursor locked).</summary>
         public static bool CanCatch(float distance, float catchDistance, bool cursorLocked) =>
             cursorLocked && distance <= catchDistance;
+
+        /// <summary>A trespass chase ends once its area no longer restricts the target: the target left every box, or
+        /// the area stopped being restricted (hours / grace). Theft chases and chases without an area never stop here.</summary>
+        public static bool ShouldStopTrespassChase(bool isTrespass, bool hasArea, bool areaRestrictedNow, bool targetInside) =>
+            isTrespass && hasArea && (!areaRestrictedNow || !targetInside);
     }
 }

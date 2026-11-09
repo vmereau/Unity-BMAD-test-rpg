@@ -12,7 +12,7 @@
 |------|------|
 | `IStealthTarget` | `IsSneaking`, `VisibilityPoint`. Implemented by `PlayerSneak`; resolved once into `FactionMember.StealthTarget` (reads null while the component is disabled → plain radius detection). A member with one is acquired **only** through `EntityPerception` (skipped by the radius scan). |
 | `StealthDetection` | Pure static math (no Unity objects, no allocations) — `StealthDetectionTests`. |
-| `TheftDetection` | Pure theft rules — `EffectiveTheftRange`, `IsInView` (cone / proximity geometry, no falloff), `ShouldGiveUp`, `CanCatch`. `TheftDetectionTests`. |
+| `TheftDetection` | Pure theft rules — `EffectiveTheftRange`, `IsInView` (cone / proximity geometry, no falloff), `ShouldGiveUp`, `CanCatch`, `ShouldStopTrespassChase`. `TheftDetectionTests`. |
 | `StealthDebugGeometry` | Cone / circle line-segment builders into caller-owned buffers + `AwarenessColor`. Shared by the gizmos and the F3 overlay — `StealthDebugGeometryTests`. |
 | `StealthDebug` | `#if UNITY_EDITOR` `DrawAllGizmos` flag (menu in `Editor/StealthDebugMenu`). |
 

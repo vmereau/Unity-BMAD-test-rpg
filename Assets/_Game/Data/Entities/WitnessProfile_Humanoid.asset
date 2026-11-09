@@ -21,3 +21,4 @@ MonoBehaviour:
   _itemTheftScoldBarks: {fileID: 11400000, guid: e57344993bef6694b8e9d374469da4da, type: 2}
   _trespassAlertBarks: {fileID: 11400000, guid: 5e5434062eb4b084582f0c5154c152e1, type: 2}
   _trespassScoldBarks: {fileID: 11400000, guid: 72d1f13918da4424d9cc3663de14de4d, type: 2}
+  _trespassFledBarks: {fileID: 11400000, guid: 60451f7330a348859c80b81e28fd48d1, type: 2}

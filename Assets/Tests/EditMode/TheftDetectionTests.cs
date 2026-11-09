@@ -118,5 +118,43 @@ namespace Tests.EditMode
         {
             Assert.IsFalse(TheftDetection.CanCatch(1.81f, 1.8f, true));
         }
+
+        // ── ShouldStopTrespassChase ────────────────────────────────────────────
+
+        [Test]
+        public void ShouldStopTrespassChase_TargetInsideRestrictedArea_False()
+        {
+            Assert.IsFalse(TheftDetection.ShouldStopTrespassChase(true, true, true, true));
+        }
+
+        [Test]
+        public void ShouldStopTrespassChase_TargetLeftArea_True()
+        {
+            Assert.IsTrue(TheftDetection.ShouldStopTrespassChase(true, true, true, false));
+        }
+
+        [Test]
+        public void ShouldStopTrespassChase_AreaNoLongerRestricted_True()
+        {
+            Assert.IsTrue(TheftDetection.ShouldStopTrespassChase(true, true, false, true));
+        }
+
+        [Test]
+        public void ShouldStopTrespassChase_TheftChaseOutsideArea_False()
+        {
+            Assert.IsFalse(TheftDetection.ShouldStopTrespassChase(false, true, true, false));
+        }
+
+        [Test]
+        public void ShouldStopTrespassChase_TheftChaseAreaNoLongerRestricted_False()
+        {
+            Assert.IsFalse(TheftDetection.ShouldStopTrespassChase(false, true, false, true));
+        }
+
+        [Test]
+        public void ShouldStopTrespassChase_NoArea_False()
+        {
+            Assert.IsFalse(TheftDetection.ShouldStopTrespassChase(true, false, false, false));
+        }
     }
 }

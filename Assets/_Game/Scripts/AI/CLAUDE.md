@@ -139,6 +139,11 @@
     scolds). Confronting uses `TrespassScoldBarks`; `area.StartGrace(trespassGraceDuration)` at the catch (before the
     dialogue-channel check), `HoldGrace` every frame while the scold is open, `StartGrace` again when it closes. An escape
     gives no grace. A theft while chasing a trespasser keeps `_pursuitArea` (the scold still starts its grace).
+    **Leaving the area ends the chase:** every Pursuing tick, `TheftDetection.ShouldStopTrespassChase` (trespass kind +
+    area, and the player outside every box or the area no longer `IsRestrictedNow`) → one `TrespassFledBarks` bubble
+    (`Barks_TrespassFled`, own no-repeat index; null = silent) + `EndPursuit` → patrol / routine. Crossing into another
+    area the owner also owns (`TryFindTrespassedArea`) hands the chase over to it instead. No LOS needed, no grace — walking back in
+    refills the meter from 0. A theft seen mid-chase switches `_pursuitKind`, so that chase follows the theft rules.
     `IsTrespassTarget` re-checks `TrespassArea.IsRestrictedNow` (grace / hours can change between perception scans).
   - `InstantAggression` area: bubble + `EntityMeleeAttacker.SetAggroTarget(player)` + `ForceAware` + **Engaging** (no
     warning). The aggro target makes the faction filter accept the non-hostile player. `SetCombatState(false)` clears it
@@ -148,6 +153,9 @@
   - An owner already **Watching** (perception engaged, no rescans) checks `TryFindTrespassedArea` itself and responds.
   - Unknown-source hits never pick a trespassing (non-hostile) perception target. Known gap: lock-on can't target an
     aggro owner (it only takes hostile factions).
+- **Detection while patrolling:** perception ticks every frame in every state and `HandlePatrol` checks it before path
+  handling; the cone follows `transform.forward`, which the NavMeshAgent turns along the path (`updateRotation` is never
+  disabled) — a walking guard sees ahead, a waiting one keeps its arrival facing. Verified in play mode on the WarehouseGuard.
 - **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
   `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
   bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.
