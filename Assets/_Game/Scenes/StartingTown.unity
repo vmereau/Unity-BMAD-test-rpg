@@ -25124,6 +25124,7 @@ Transform:
   - {fileID: 1975031867}
   - {fileID: 756391079}
   - {fileID: 912598659}
+  - {fileID: 1722408603}
   m_Father: {fileID: 853911335}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &202378670
@@ -37979,7 +37980,10 @@ Transform:
   m_LocalPosition: {x: 1.1, y: 1.5, z: 67.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 696690552}
+  - {fileID: 888366105}
+  - {fileID: 533429743}
   m_Father: {fileID: 821129415}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &316085278
@@ -38020,8 +38024,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 18.4, y: 10, z: 21.8}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 63.258873, y: 10, z: 11.058834}
+  m_Center: {x: -9.463711, y: 0, z: -8.296415}
 --- !u!1 &317485728
 GameObject:
   m_ObjectHideFlags: 0
@@ -67113,6 +67117,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 533223773}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &533429742
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 533429743}
+  - component: {fileID: 533429744}
+  m_Layer: 2
+  m_Name: RA docks beach
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &533429743
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533429742}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.08660982, z: -0, w: 0.99624234}
+  m_LocalPosition: {x: -30.328712, y: 0, z: 2.6916428}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 316085277}
+  m_LocalEulerAnglesHint: {x: 0, y: 9.937, z: 0}
+--- !u!65 &533429744
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533429742}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 30.585024, y: 7.1257477, z: 14.6851845}
+  m_Center: {x: 4.757872, y: 0.5491371, z: -0.09083535}
 --- !u!1 &534441917
 GameObject:
   m_ObjectHideFlags: 0
@@ -88582,6 +88639,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 695108451}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &696690551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 696690552}
+  - component: {fileID: 696690553}
+  m_Layer: 2
+  m_Name: RA pier
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &696690552
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696690551}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.16147013, z: -0, w: 0.9868776}
+  m_LocalPosition: {x: 0.5, y: 0, z: 4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 316085277}
+  m_LocalEulerAnglesHint: {x: 0, y: 18.584, z: 0}
+--- !u!65 &696690553
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696690551}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8.76198, y: 5.365979, z: 10.812949}
+  m_Center: {x: -1.3610907, y: -0.79854536, z: -1.9218637}
 --- !u!1 &699736872
 GameObject:
   m_ObjectHideFlags: 0
@@ -112415,6 +112525,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 888084739}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &888366104
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 888366105}
+  - component: {fileID: 888366106}
+  m_Layer: 2
+  m_Name: RA Guard post
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &888366105
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 888366104}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.39093366, z: -0, w: 0.9204189}
+  m_LocalPosition: {x: -35.81, y: 0, z: -18.150002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 316085277}
+  m_LocalEulerAnglesHint: {x: 0, y: -46.025, z: 0}
+--- !u!65 &888366106
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 888366104}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 14.622176, y: 4.132449, z: 11.201245}
+  m_Center: {x: 4.0131264, y: 1.5662484, z: -0.6648475}
 --- !u!1 &888761625
 GameObject:
   m_ObjectHideFlags: 0
@@ -113645,6 +113808,10 @@ PrefabInstance:
       propertyPath: '_waypoints.Array.data[4]'
       value: 
       objectReference: {fileID: 278343162}
+    - target: {fileID: 5167142401029590748, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _factionOverride
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8882236327865726265, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_LocalPosition.x
       value: 17
@@ -164910,7 +165077,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _waypoints.Array.size
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: '_waypoints.Array.data[0]'
@@ -164928,6 +165095,14 @@ PrefabInstance:
       propertyPath: '_waypoints.Array.data[3]'
       value: 
       objectReference: {fileID: 912598659}
+    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: '_waypoints.Array.data[4]'
+      value: 
+      objectReference: {fileID: 1722408603}
+    - target: {fileID: 5167142401029590748, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _factionOverride
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8882236327865726265, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_LocalPosition.x
       value: -34.4
@@ -213664,6 +213839,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1721943329}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1722408602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1722408603}
+  m_Layer: 0
+  m_Name: WP_Docks_GuardPost_Gate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1722408603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722408602}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -36.44, y: 2.78, z: 57.16}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 202020899}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1724501699
 GameObject:
   m_ObjectHideFlags: 0
