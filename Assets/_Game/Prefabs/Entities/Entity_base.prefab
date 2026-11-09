@@ -433,7 +433,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.EntityBrain
   _persistentID: {fileID: 1186952831256218892}
-  _waypoints: []
   _animationDriver: {fileID: 3299999205233303053}
   _meleeAttacker: {fileID: 0}
   _engageImmediately: 0

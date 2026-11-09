@@ -12,7 +12,7 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. Faction from `PersistentID.Entity.Faction`, or `_factionOverride` (the Player — no PersistentID). |
@@ -28,34 +28,44 @@
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, _playerFaction)`, `_playerFaction` = `Faction_Player` wired on `NPC_base Variant`) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
-| `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine — see below. `NpcRoutineSchedule.FindBlock` is pure (`NpcRoutineScheduleTests`). |
+| `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine (Stand / Patrol blocks — owns all patrol routes) — see below. `NpcRoutineSchedule` (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) is pure (`NpcRoutineScheduleTests`). |
 
 ---
 
 ## NPC routines (NpcRoutine → EntityBrain)
 
+- **Patrol routes live only in routines** — `EntityBrain` has no waypoint field. An entity without an `NpcRoutine`
+  (monsters) idles / wanders around its spawn and returns there after a fight. A guard that patrols all day gets an
+  `NpcRoutine` with one `0 → 0` Patrol block (WarehouseGuard, bandit).
 - `NpcRoutine` (scene component on the NPC instance, `[DefaultExecutionOrder(100)]` → after `EntityBrain.Start`) holds
   `NpcRoutineBlock`s: `startHour` (incl.) → `endHour` (excl., wraps midnight, start == end = all day), `NpcActivity`
-  (only `Stand`), `spot` (Transform; **empty = home behaviour**: patrol waypoints, else the spawn spot). First match wins;
-  no match = home. **Stateless, not saved** — the block is derived from `GameClock.Active.Hour`, polled every
+  **`Stand`** (`spot` = position + facing; empty = the spawn spot) or **`Patrol`** (`waypoints` list, looped,
+  `PatrolWaitTime` at each; no non-null waypoint → stands instead, one warning). First match wins; no match = stand at
+  the spawn spot. **Stateless, not saved** — the block is derived from `GameClock.Active.Hour`, polled every
   `_pollInterval` (1 s).
-- Block change → `EntityBrain.SetRoutineSpot(spot, snap)`; the brain stays the only mover. Snap (agent `Warp`) on the
-  first evaluation (region load) and on `OnTimeSkipped` (sleep); otherwise walk. Applied at once while Idle / Patrolling,
-  else on the next non-combat return (`ResumeNonCombat`, `CancelWarning`, `DisengageFromCombat`) — so combat / witness /
-  theft flows need no routine checks. Once routine-driven, a brain always returns to its routine target after a fight
-  (non-routine entities keep the old `_disengageState` behaviour). Idle on a routine target walks there, stops within
+- Block change → `EntityBrain.SetRoutineTarget(spot, route, snap)`; the brain stays the only mover. Snap (agent `Warp`)
+  on the first evaluation (region load) and on `OnTimeSkipped` (sleep); otherwise walk. A **new route** starts at its
+  **nearest waypoint** (flat distance, `NpcRoutineSchedule.NearestIndex`); a snap warps onto it and continues with the
+  following one; resending the same route keeps the current index (post-combat resume). The nearest pick happens when the
+  route is actually applied (after combat / dialogue / a stagger), not when requested. Destroyed waypoints are dropped;
+  none left → stands (one warning). Applied at once while Idle /
+  Patrolling, else on the next non-combat return (`ResumeNonCombat`, `CancelWarning`, `DisengageFromCombat`) — so combat
+  / witness / theft flows need no routine checks. Idle on a stand target walks there, stops within
   `WaypointArrivalThreshold`, then turns to the spot's yaw.
 - Walking changes wait while `CursorManager.IsLocked` is false (dialogue / trade / menus — the NPC never walks off
   mid-conversation); snaps don't. A snap while Suspicious / Watching drops the witness flow (perception reset) and warps;
   combat / Pursuing / Confronting keep the target for their exit (walk). Requests before `Start` completed, on a disabled
   brain or a corpse (`EntityHealth.IsDead`, incl. save-restored ones) are stored only. Pushed > 2× the arrival threshold
   off the spot → walks back; a partial path logs one warning.
-- No clock (region played without Core) → home behaviour, one info log.
+- No clock (region played without Core) → the first all-day block (`FindAllDayBlock`) applies once (snap), else no
+  routine (idle wander); one info log.
 - `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
-- StartingTown (spots under `NpcRoutineSpots`), 06–21 home / 21–06 spot: Storekeeper on the commute north of the Company store and
-  Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Old Hobb (`TentMate`) by the Player's Zone tents, Blacksmith in his room at the Timberworks forge, Warden outside the Company
-  office door on the outcrop (NPCs can't open doors). `RacketGuard` and `BeatenWorker` have no routine. `DockGuard` is the
-  reverse: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 home = its deck patrol (`NpcPatrolRoutes/DockGuard`).
+- StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
+  Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
+  office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol (2 waypoints), 21–06 by the
+  Player's Zone tents. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
+  its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `RacketGuard` and
+  `BeatenWorker` have no routine.
 
 ---
 
@@ -239,7 +249,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - Brain: `Staggered` / `KnockedDown` → `EndAttack()` + `HoldAgentForReaction` (previous `isStopped` saved once; re-held
   every paused tick, so an agent off the NavMesh at the hit is stopped once back on it); `Update` skips state handling
   while `IsIncapacitated`; `Recovered` restores the agent and the state continues. **Event-driven entry points must
-  respect the pause:** a damage reaction stores the target and engages on recovery, `SetRoutineSpot` stores the spot and
+  respect the pause:** a damage reaction stores the target and engages on recovery, `SetRoutineTarget` stores the spot / route and
   walks to it on recovery (never snaps mid-reaction), `HandleTheftCommitted` ignores thefts. `ClearStanceReaction()`
   drops the bookkeeping on recovery, death (`TransitionToDead`) and `OnEnable` (respawn mid-reaction raises no
   `Recovered`). `EntityPresence.IsAliveAndOutOfCombat` is false while incapacitated (no dialogue with a downed NPC).

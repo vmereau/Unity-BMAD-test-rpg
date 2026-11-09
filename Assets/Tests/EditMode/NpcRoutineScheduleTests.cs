@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.AI;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -60,6 +61,36 @@ namespace Tests.EditMode
         {
             Assert.AreEqual(-1, NpcRoutineSchedule.FindBlock(new List<NpcRoutineBlock>(), 10));
             Assert.AreEqual(-1, NpcRoutineSchedule.FindBlock(null, 10));
+        }
+
+        [Test]
+        public void FindAllDayBlock_ReturnsFirstStartEqualsEnd()
+        {
+            var blocks = new List<NpcRoutineBlock> { Block(6, 21), null, Block(0, 0), Block(3, 3) };
+            Assert.AreEqual(2, NpcRoutineSchedule.FindAllDayBlock(blocks));
+        }
+
+        [Test]
+        public void FindAllDayBlock_NoneOrNull_ReturnsMinusOne()
+        {
+            Assert.AreEqual(-1, NpcRoutineSchedule.FindAllDayBlock(DayNight));
+            Assert.AreEqual(-1, NpcRoutineSchedule.FindAllDayBlock(null));
+        }
+
+        [Test]
+        public void NearestIndex_UsesFlatDistance()
+        {
+            var points = new List<Vector3> { new Vector3(10f, 0f, 0f), new Vector3(1f, 50f, 1f), new Vector3(-3f, 0f, 0f) };
+            // Point 1 is far vertically but closest on XZ.
+            Assert.AreEqual(1, NpcRoutineSchedule.NearestIndex(points, Vector3.zero));
+            Assert.AreEqual(0, NpcRoutineSchedule.NearestIndex(points, new Vector3(9f, 0f, 0f)));
+        }
+
+        [Test]
+        public void NearestIndex_EmptyOrNull_ReturnsMinusOne()
+        {
+            Assert.AreEqual(-1, NpcRoutineSchedule.NearestIndex(new List<Vector3>(), Vector3.zero));
+            Assert.AreEqual(-1, NpcRoutineSchedule.NearestIndex(null, Vector3.zero));
         }
     }
 }

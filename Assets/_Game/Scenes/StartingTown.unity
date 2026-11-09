@@ -9015,18 +9015,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: 0.40355402
       objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: _waypoints.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[0]'
-      value: 
-      objectReference: {fileID: 1098259239}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1518797937}
     - target: {fileID: 5670620689684175520, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -78437,12 +78425,16 @@ MonoBehaviour:
   _blocks:
   - startHour: 6
     endHour: 21
-    activity: 0
+    activity: 1
     spot: {fileID: 0}
+    waypoints:
+    - {fileID: 1098259239}
+    - {fileID: 1518797937}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 2015216707}
+    waypoints: []
 --- !u!1 &619327221
 GameObject:
   m_ObjectHideFlags: 0
@@ -113784,30 +113776,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: WarehouseGuard
       objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: _waypoints.Array.size
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[0]'
-      value: 
-      objectReference: {fileID: 781627328}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[1]'
-      value: 
-      objectReference: {fileID: 130523740}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[2]'
-      value: 
-      objectReference: {fileID: 1956065395}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[3]'
-      value: 
-      objectReference: {fileID: 977972228}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[4]'
-      value: 
-      objectReference: {fileID: 278343162}
     - target: {fileID: 5167142401029590748, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _factionOverride
       value: 
@@ -113863,8 +113831,53 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 897056913}
   m_SourcePrefab: {fileID: 100100000, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+--- !u!1 &897056911 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  m_PrefabInstance: {fileID: 897056910}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &897056912 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  m_PrefabInstance: {fileID: 897056910}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 897056911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3a5a08f4b13c0c42bb5b4ba41b82fe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityBrain
+--- !u!114 &897056913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 897056911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00082789ef6b7a469771a511902d8bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.NpcRoutine
+  _brain: {fileID: 897056912}
+  _onTimeSkipped: {fileID: 11400000, guid: 1d660869ef026664f9c5d769bcb98ce7, type: 2}
+  _pollInterval: 1
+  _blocks:
+  - startHour: 0
+    endHour: 0
+    activity: 1
+    spot: {fileID: 0}
+    waypoints:
+    - {fileID: 781627328}
+    - {fileID: 130523740}
+    - {fileID: 1956065395}
+    - {fileID: 977972228}
+    - {fileID: 278343162}
 --- !u!1 &898625698
 GameObject:
   m_ObjectHideFlags: 0
@@ -146988,30 +147001,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: bandit
       objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: _waypoints.Array.size
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[0]'
-      value: 
-      objectReference: {fileID: 141093055}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1828850624}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[2]'
-      value: 
-      objectReference: {fileID: 1844503801}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[3]'
-      value: 
-      objectReference: {fileID: 374487273}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[4]'
-      value: 
-      objectReference: {fileID: 86551670}
     - target: {fileID: 8882236327865726265, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_LocalPosition.x
       value: 8
@@ -147063,8 +147052,53 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1166167710}
   m_SourcePrefab: {fileID: 100100000, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+--- !u!1 &1166167708 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  m_PrefabInstance: {fileID: 1166167707}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1166167709 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  m_PrefabInstance: {fileID: 1166167707}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1166167708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3a5a08f4b13c0c42bb5b4ba41b82fe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityBrain
+--- !u!114 &1166167710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1166167708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00082789ef6b7a469771a511902d8bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.NpcRoutine
+  _brain: {fileID: 1166167709}
+  _onTimeSkipped: {fileID: 11400000, guid: 1d660869ef026664f9c5d769bcb98ce7, type: 2}
+  _pollInterval: 1
+  _blocks:
+  - startHour: 0
+    endHour: 0
+    activity: 1
+    spot: {fileID: 0}
+    waypoints:
+    - {fileID: 141093055}
+    - {fileID: 1828850624}
+    - {fileID: 1844503801}
+    - {fileID: 374487273}
+    - {fileID: 86551670}
 --- !u!1 &1166394198
 GameObject:
   m_ObjectHideFlags: 0
@@ -158403,10 +158437,12 @@ MonoBehaviour:
     endHour: 21
     activity: 0
     spot: {fileID: 0}
+    waypoints: []
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 2014509155}
+    waypoints: []
 --- !u!1 &1265428396
 GameObject:
   m_ObjectHideFlags: 0
@@ -165075,30 +165111,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: DockGuard
       objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: _waypoints.Array.size
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[0]'
-      value: 
-      objectReference: {fileID: 766231848}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1975031867}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[2]'
-      value: 
-      objectReference: {fileID: 756391079}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[3]'
-      value: 
-      objectReference: {fileID: 912598659}
-    - target: {fileID: 3737929497129645320, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
-      propertyPath: '_waypoints.Array.data[4]'
-      value: 
-      objectReference: {fileID: 1722408603}
     - target: {fileID: 5167142401029590748, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _factionOverride
       value: 
@@ -165195,10 +165207,17 @@ MonoBehaviour:
     endHour: 21
     activity: 0
     spot: {fileID: 727387925}
+    waypoints: []
   - startHour: 21
     endHour: 6
-    activity: 0
+    activity: 1
     spot: {fileID: 0}
+    waypoints:
+    - {fileID: 766231848}
+    - {fileID: 1975031867}
+    - {fileID: 756391079}
+    - {fileID: 912598659}
+    - {fileID: 1722408603}
 --- !u!1 &1312860256
 GameObject:
   m_ObjectHideFlags: 0
@@ -182650,10 +182669,12 @@ MonoBehaviour:
     endHour: 21
     activity: 0
     spot: {fileID: 0}
+    waypoints: []
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1919335504}
+    waypoints: []
 --- !u!1 &1456451120
 GameObject:
   m_ObjectHideFlags: 0
@@ -211577,10 +211598,12 @@ MonoBehaviour:
     endHour: 21
     activity: 0
     spot: {fileID: 0}
+    waypoints: []
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 513225476}
+    waypoints: []
 --- !u!1 &1703294115
 GameObject:
   m_ObjectHideFlags: 0
@@ -225648,10 +225671,12 @@ MonoBehaviour:
     endHour: 21
     activity: 0
     spot: {fileID: 0}
+    waypoints: []
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1498708131}
+    waypoints: []
 --- !u!1 &1822544316
 GameObject:
   m_ObjectHideFlags: 0

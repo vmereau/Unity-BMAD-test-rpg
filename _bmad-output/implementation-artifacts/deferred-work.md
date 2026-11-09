@@ -512,3 +512,8 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Lock-on vs aggro owners.** `LockOnSystem` only targets hostile factions, so the player can't lock on to an instant-aggression owner attacking them.
 - **Humanoid unarmed reach.** NPC `AttackRange` 1.5 m stops the attacker just beyond the unarmed hitbox's reach: in play testing the punches whiffed on a standing player at 1.48 m and landed at 0.9 m. Lower `AttackRange` / `EngageStoppingDistance` or extend the unarmed hitbox (affects every humanoid NPC).
 - **Trespass escalation.** `TrespassersSpotted` (runtime) is the hook for repeat-offence escalation, bounty or hostility; nothing reads it yet.
+
+## From spec-npc-routine-patrol-activity (2026-11-09)
+
+- **Monster patrols.** `EntityBrain` no longer has waypoints and `NpcRoutine` is NPC-only, so monsters can only idle / wander. `TestScene.unity` still holds 4 orphaned `_waypoints` prefab overrides (size 3, incl. `CreatureWaypoints`) on instances that used to patrol; give them a patrol source (routine or a monster-side route) or clean the overrides.
+- **Routine brain behaviour has no automated tests.** Only the pure helpers (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) are tested; route identity, snap advance, deferred nearest pick and the no-clock path were verified in play mode only.

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using _Game.ScriptableObjects.Entities;
 using Game.Animations;
 using Game.Combat;
@@ -61,7 +62,6 @@ namespace Game.AI
         }
 
         [SerializeField] private PersistentID _persistentID;
-        [SerializeField] private Transform[] _waypoints;
         [FormerlySerializedAs("_animationBridge")]
         [FormerlySerializedAs("_entityAnimator")]
         [SerializeField] private AIAnimationDriver _animationDriver;
@@ -122,11 +122,14 @@ namespace Game.AI
         private float _lastDamagedTime = float.NegativeInfinity;
 
         private Vector3 _idleOrigin;
-        private EntityState _disengageState = EntityState.Patrolling;
 
-        // Routine (NpcRoutine): once driven, every non-combat return goes to the routine target instead of _disengageState.
+        // Routine (NpcRoutine): once driven, every non-combat return goes to the routine target (stand spot or patrol
+        // route); without a routine the entity idles (wanders) around its idle origin.
         private bool _hasRoutine;
         private Transform _routineSpot;
+        private readonly List<Transform> _route = new List<Transform>(); // empty = stand at _routineSpot / spawn spot
+        private readonly List<Vector3> _routePositions = new List<Vector3>(); // scratch buffer for NearestWaypointIndex
+        private bool _pickNearestWaypoint; // new route / snap: start at the waypoint nearest to where the route is applied
         private Vector3 _spawnPosition;
         private Quaternion _spawnRotation;
         private bool _routineWalk; // Idle anchored on a routine target: walk there, then face its rotation
@@ -242,6 +245,9 @@ namespace Game.AI
                 _stance.Recovered += HandleStanceRecovered;
             }
             _healthSubscribed = true;
+            // Re-enabled (respawn, deactivated GO): a request stored while disabled is applied now — NpcRoutine only
+            // re-sends on a block change, so an all-day patrol would otherwise never resume.
+            if (_started && _hasRoutine) ApplyRoutineRequest(false);
         }
 
         private void OnDisable()
@@ -288,17 +294,8 @@ namespace Game.AI
             if (_persistentID.Entity.ComboHitsMax > maxComboSteps)
                 GameLog.Warn(TAG, $"{gameObject.name}: ComboHitsMax ({_persistentID.Entity.ComboHitsMax}) exceeds the animation driver's MaxComboSteps ({maxComboSteps}) — combos clamped. Check the Entity SO.");
 
-            if (_waypoints == null || _waypoints.Length == 0)
-            {
-                GameLog.Info(TAG, $"{gameObject.name}: No waypoints assigned — entering Idle wander");
-                TransitionToIdle(transform.position);
-                _started = true;
-                return;
-            }
-            // Initialize to last index so the first AdvanceToNextWaypoint() lands at index 0.
-            _currentWaypoint = _waypoints.Length - 1;
-            AdvanceToNextWaypoint();
-            _state = EntityState.Patrolling;
+            // Idle wander until an NpcRoutine (DefaultExecutionOrder 100 → its Start runs after this one) sends a target.
+            TransitionToIdle(transform.position);
             _started = true;
         }
 
@@ -800,9 +797,6 @@ namespace Game.AI
 
         private void TransitionToPursuing(FactionMember thief, TheftCommittedData data, RestrictedArea area = null)
         {
-            // Suspicious / Watching already captured the state to resume.
-            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
-                _disengageState = _state;
             _state = EntityState.Pursuing;
             _perception.ResetPerception();
             StartPursuitTimers(thief, data, area);
@@ -1082,7 +1076,7 @@ namespace Game.AI
             if (_state == EntityState.Dead || _entityHealth.IsDead) return;
             if (restore && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = _agentStoppedBeforeReaction;
             if (engage && HasValidTarget()) TransitionToEngaging();
-            else if (routine) SetRoutineSpot(_routineSpot, false); // walk to it — never snap out of a reaction
+            else if (routine) ApplyRoutineRequest(false); // walk to it — never snap out of a reaction
         }
 
         // Drops the per-reaction bookkeeping (recovery, death, re-enable).
@@ -1131,27 +1125,102 @@ namespace Game.AI
 
         private void AdvanceToNextWaypoint()
         {
-            if (_waypoints == null || _waypoints.Length == 0) return;
+            if (_route.Count == 0) return;
+            _currentWaypoint = (_currentWaypoint + 1) % _route.Count;
+            if (!PrepareRoute()) { ApplyRoutineTarget(); return; } // every waypoint destroyed → stand
+            WalkToCurrentWaypoint();
+        }
 
-            _currentWaypoint = (_currentWaypoint + 1) % _waypoints.Length;
+        // Requires PrepareRoute() == true (current waypoint alive).
+        private void WalkToCurrentWaypoint()
+        {
+            _state = EntityState.Patrolling;
+            _routineWalk = false;
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
             _agent.speed = _persistentID.Entity.BaseSpeed;
-            _agent.SetDestination(_waypoints[_currentWaypoint].position);
+            if (_agent.isOnNavMesh) _agent.SetDestination(_route[_currentWaypoint].position);
             _waitTimer = _persistentID.Entity.PatrolWaitTime;
         }
 
         // --- Routine ---
 
         /// <summary>
-        /// Routine target from <see cref="NpcRoutine"/>: <paramref name="spot"/> = stand there (position + facing),
-        /// null = home behaviour (patrol waypoints, else the spawn spot). Applied now while Idle / Patrolling, otherwise on
-        /// the next non-combat return. <paramref name="snap"/> warps there instead of walking (load / time skip).
+        /// Routine target from <see cref="NpcRoutine"/>: a non-empty <paramref name="route"/> = patrol it (looping), else
+        /// stand at <paramref name="spot"/> (position + facing; null = the spawn spot). Applied now while Idle / Patrolling,
+        /// otherwise on the next non-combat return. <paramref name="snap"/> warps there instead of walking (load / time
+        /// skip) — for a route, to its nearest waypoint. A new route starts at its nearest waypoint; resending the same
+        /// route keeps the current one.
         /// </summary>
-        public void SetRoutineSpot(Transform spot, bool snap)
+        public void SetRoutineTarget(Transform spot, IReadOnlyList<Transform> route, bool snap)
         {
             _hasRoutine = true;
             _routineSpot = spot;
+            bool newRoute = !SameRoute(route);
+            if (newRoute)
+            {
+                _route.Clear();
+                if (route != null)
+                    foreach (Transform waypoint in route)
+                        if (waypoint != null) _route.Add(waypoint);
+            }
+            // Picked when actually applied (now, or after combat / dialogue / a stagger), from where the NPC stands then.
+            if (_route.Count > 0 && (newRoute || snap)) _pickNearestWaypoint = true;
+            ApplyRoutineRequest(snap);
+        }
+
+        // Drops destroyed waypoints and resolves a pending nearest-waypoint pick. False = no live waypoint left (route
+        // cleared, one warning) → the caller stands at the spot / spawn spot instead.
+        private bool PrepareRoute()
+        {
+            if (_route.Count == 0) return false;
+            for (int i = _route.Count - 1; i >= 0; i--)
+            {
+                if (_route[i] != null) continue;
+                _route.RemoveAt(i);
+                if (i < _currentWaypoint) _currentWaypoint--;
+            }
+            if (_route.Count == 0)
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: every patrol waypoint was destroyed — standing instead");
+                return false;
+            }
+            if (_currentWaypoint < 0 || _currentWaypoint >= _route.Count) _currentWaypoint = 0;
+            if (_pickNearestWaypoint)
+            {
+                _pickNearestWaypoint = false;
+                _currentWaypoint = NearestWaypointIndex();
+            }
+            return true;
+        }
+
+        // Same live waypoints in the same order (destroyed entries skipped on both sides).
+        private bool SameRoute(IReadOnlyList<Transform> route)
+        {
+            int own = 0;
+            if (route != null)
+                foreach (Transform waypoint in route)
+                {
+                    if (waypoint == null) continue;
+                    while (own < _route.Count && _route[own] == null) own++;
+                    if (own >= _route.Count || _route[own] != waypoint) return false;
+                    own++;
+                }
+            while (own < _route.Count && _route[own] == null) own++;
+            return own == _route.Count;
+        }
+
+        // Only called by PrepareRoute (route already free of destroyed waypoints).
+        private int NearestWaypointIndex()
+        {
+            _routePositions.Clear();
+            foreach (Transform waypoint in _route) _routePositions.Add(waypoint.position);
+            return Mathf.Max(0, NpcRoutineSchedule.NearestIndex(_routePositions, transform.position));
+        }
+
+        // Applies the stored routine target, or stores it for later (not started, dead, incapacitated, busy).
+        private void ApplyRoutineRequest(bool snap)
+        {
             // Store only: setup failed / brain disabled (Awake, Start, death components) or a corpse (incl. restored ones).
             if (!_started || !isActiveAndEnabled || _entityHealth.IsDead || _state == EntityState.Dead) return;
             if (_stance != null && _stance.IsIncapacitated)
@@ -1175,28 +1244,31 @@ namespace Game.AI
 
         private void SnapToRoutineTarget()
         {
-            Vector3 position = _routineSpot != null ? _routineSpot.position : _spawnPosition;
-            Quaternion rotation = _routineSpot != null ? _routineSpot.rotation : _spawnRotation;
+            Transform routeWaypoint = PrepareRoute() ? _route[_currentWaypoint] : null;
+            Vector3 position = routeWaypoint != null ? routeWaypoint.position
+                : _routineSpot != null ? _routineSpot.position : _spawnPosition;
             if (!_agent.isActiveAndEnabled || !_agent.Warp(position))
             {
-                GameLog.Warn(TAG, $"{gameObject.name}: could not warp to its routine spot {position} — walking instead");
+                GameLog.Warn(TAG, $"{gameObject.name}: could not warp to its routine target {position} — walking instead");
                 return;
             }
+            if (routeWaypoint != null)
+            {
+                // Warped onto the nearest waypoint: the loop continues with the following one.
+                _currentWaypoint = (_currentWaypoint + 1) % _route.Count;
+                return;
+            }
+            Quaternion rotation = _routineSpot != null ? _routineSpot.rotation : _spawnRotation;
             transform.rotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
         }
 
-        // Non-combat state for the current routine target: patrol (home with waypoints) or Idle walking to the target.
+        // Non-combat state for the current routine target: patrol the route, or Idle walking to the stand spot.
         private void ApplyRoutineTarget()
         {
             SetCombatState(false);
-            if (_routineSpot == null && _waypoints != null && _waypoints.Length > 0)
+            if (PrepareRoute())
             {
-                _state = EntityState.Patrolling;
-                _agent.isStopped = false;
-                _agent.stoppingDistance = 0f;
-                _agent.speed = _persistentID.Entity.BaseSpeed;
-                _agent.SetDestination(_waypoints[_currentWaypoint].position);
-                _waitTimer = _persistentID.Entity.PatrolWaitTime;
+                WalkToCurrentWaypoint();
                 return;
             }
             Vector3 target = _routineSpot != null ? _routineSpot.position : _spawnPosition;
@@ -1223,8 +1295,6 @@ namespace Game.AI
 
         private void TransitionToWarning()
         {
-            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
-                _disengageState = _state;
             _state = EntityState.Warning;
             _agent.isStopped = true;
             _warningTimer = _persistentID.Entity.WarningEngageTime;
@@ -1241,18 +1311,13 @@ namespace Game.AI
             if (_perception != null) _perception.ResetPerception();
             GameLog.Info(TAG, $"{gameObject.name} lost target during warning — standing down");
             if (_hasRoutine) ApplyRoutineTarget();
-            else if (_disengageState == EntityState.Idle) TransitionToIdle(_idleOrigin);
-            else TransitionToPatrol();
+            else TransitionToIdle(_idleOrigin);
         }
 
         private void TransitionToEngaging()
         {
             _animationDriver?.SetWarning(false);
             SetCombatState(true);
-            // Only capture return state from non-combat states. Warning→Engaging and Attacking→Engaging
-            // both preserve the disengage state already captured on the original Idle/Patrol entry.
-            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
-                _disengageState = _state;
             _state = EntityState.Engaging;
             _agent.isStopped = false;
             _agent.stoppingDistance = _persistentID.Entity.EngageStoppingDistance;
@@ -1271,8 +1336,6 @@ namespace Game.AI
 
         private void TransitionToSuspicious()
         {
-            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
-                _disengageState = _state;
             _state = EntityState.Suspicious;
             _agent.isStopped = true;
             GameLog.Info(TAG, $"{gameObject.name} is suspicious ({_perception.Awareness * 100f:0}% aware)");
@@ -1281,8 +1344,6 @@ namespace Game.AI
         // Non-hostile witness spotted the sneaking player: stop and watch. No combat state (dialogue stays open).
         private void TransitionToWatching()
         {
-            if (_state == EntityState.Idle || _state == EntityState.Patrolling)
-                _disengageState = _state;
             _state = EntityState.Watching;
             _agent.isStopped = true;
             _watchLostTimer = 0f;
@@ -1309,31 +1370,12 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} lost sight of its target — searching last seen position");
         }
 
-        // Back to the pre-alert behaviour, resuming the current waypoint rather than skipping it.
+        // Back to the pre-alert behaviour: the routine target (a patrol resumes its current waypoint), else Idle.
         private void ResumeNonCombat()
         {
             SetCombatState(false);
-            if (_hasRoutine) { ApplyRoutineTarget(); return; }
-            if (_disengageState == EntityState.Idle || _waypoints == null || _waypoints.Length == 0)
-            {
-                TransitionToIdle(_idleOrigin);
-                return;
-            }
-            _state = EntityState.Patrolling;
-            _agent.isStopped = false;
-            _agent.stoppingDistance = 0f;
-            _agent.speed = _persistentID.Entity.BaseSpeed;
-            _agent.SetDestination(_waypoints[_currentWaypoint].position);
-            _waitTimer = _persistentID.Entity.PatrolWaitTime;
-            GameLog.Info(TAG, $"{gameObject.name} resumed patrol to waypoint {_currentWaypoint}");
-        }
-
-        private void TransitionToPatrol()
-        {
-            _state = EntityState.Patrolling;
-            SetCombatState(false);
-            AdvanceToNextWaypoint();
-            GameLog.Info(TAG, $"{gameObject.name} returned to patrol");
+            if (_hasRoutine) ApplyRoutineTarget();
+            else TransitionToIdle(_idleOrigin);
         }
 
         private void TransitionToDead()
@@ -1360,15 +1402,10 @@ namespace Game.AI
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — returning to its routine");
                 ApplyRoutineTarget();
             }
-            else if (_disengageState == EntityState.Idle)
+            else
             {
                 GameLog.Info(TAG, $"{gameObject.name} disengaged — resuming Idle at origin");
                 TransitionToIdle(_idleOrigin);
-            }
-            else
-            {
-                GameLog.Info(TAG, $"{gameObject.name} disengaged — returning to patrol");
-                TransitionToPatrol();
             }
         }
     }
