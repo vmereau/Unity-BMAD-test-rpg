@@ -35,6 +35,8 @@
 
 ## Rules
 
+- `ContainerTakeFact` listens to `OnContainerItemTaken`, matches its sibling inventory and authored item allowlist, and sets its WorldFact once. It never derives progress from inventory-change or container-open events, which also happen on restore or unsuccessful attempts. Quest Explorer indexes these setters in loaded scenes.
+
 - **Every world enemy, NPC, and container MUST have a `PersistentID` with a `KilledFact` assigned** — otherwise death/looted state won't persist across save/scene reload. (`_guid` string is gone; use `_killedFact`.)
 - Persistence facts are read/written only through `WorldStateManager` → see `Scripts/Core/CLAUDE.md`.
 - New interactables implement `IInteractable` and are discovered by `InteractionSystem`'s raycast — no manual registration.

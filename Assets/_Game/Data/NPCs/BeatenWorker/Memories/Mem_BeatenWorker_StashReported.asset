@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_BeatenWorker_StashReported
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+  - {fileID: 11400000, guid: 82b9f9368a27e2e43ab2ed0359aa323e, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: 7bf88147906c224419488f6098cb0081, type: 2}

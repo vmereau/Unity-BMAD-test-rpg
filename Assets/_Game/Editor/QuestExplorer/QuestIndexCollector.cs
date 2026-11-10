@@ -50,6 +50,19 @@ namespace Game.Editor.QuestExplorer
             s.QuestFacts = s.AllFacts.OfType<QuestFact>().ToArray();
 
             var loadedScenePaths = CollectLoadedScenes(s.KilledBindings);
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                foreach (var root in SceneManager.GetSceneAt(i).GetRootGameObjects())
+                    foreach (var setter in root.GetComponentsInChildren<ContainerTakeFact>(true))
+                    {
+                        using var serialized = new SerializedObject(setter);
+                        var fact = serialized.FindProperty("_fact").objectReferenceValue as WorldFact;
+                        if (fact != null) s.ContainerTakeSetters.Add(new FactLink
+                        {
+                            Fact = fact, Kind = FactLinkKind.Setter, Source = FactLinkSource.ContainerTake,
+                            Owner = setter, ScenePath = setter.gameObject.scene.path,
+                            Label = $"Container take: {setter.name}"
+                        });
+                    }
             CollectPrefabs(s.KilledBindings);
             CollectClosedScenes(s, loadedScenePaths);
 
@@ -135,6 +148,10 @@ namespace Game.Editor.QuestExplorer
         {
             if (!AssetDatabase.IsValidFolder(SCENES_FOLDER)) return;
 
+            string takeScriptGuid = AssetDatabase.AssetPathToGUID("Assets/_Game/Scripts/World/ContainerTakeFact.cs");
+            var worldByGuid = s.AllFacts.OfType<WorldFact>().ToDictionary(
+                fact => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(fact)));
+
             var killedByGuid = new Dictionary<string, KilledFact>();
             foreach (var fact in s.AllFacts.OfType<KilledFact>())
             {
@@ -150,6 +167,18 @@ namespace Game.Editor.QuestExplorer
                 try
                 {
                     string text = File.ReadAllText(path);
+                    // Only the fact field on this component is a setter; unrelated scene fact references are readers.
+                    foreach (Match block in Regex.Matches(text, @"(?ms)^--- !u!114 .*?(?=^---|\z)"))
+                    {
+                        if (string.IsNullOrEmpty(takeScriptGuid) || !block.Value.Contains("guid: " + takeScriptGuid)) continue;
+                        var factRef = Regex.Match(block.Value, @"_fact: \{fileID: \d+, guid: ([0-9a-f]{32}),");
+                        if (factRef.Success && worldByGuid.TryGetValue(factRef.Groups[1].Value, out var worldFact))
+                            s.ContainerTakeSetters.Add(new FactLink
+                            {
+                                Fact = worldFact, Kind = FactLinkKind.Setter, Source = FactLinkSource.ContainerTake,
+                                ScenePath = path, Label = $"Container take in {Path.GetFileNameWithoutExtension(path)}"
+                            });
+                    }
                     var found = new HashSet<KilledFact>();
                     foreach (Match m in GuidRegex.Matches(text))
                     {

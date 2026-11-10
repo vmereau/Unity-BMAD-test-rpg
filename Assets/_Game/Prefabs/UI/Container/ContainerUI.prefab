@@ -614,6 +614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.ContainerUI
   _playerInventory: {fileID: 0}
+  _onItemTaken: {fileID: 11400000, guid: fbb9f92f003ffcc40876982947e237ee, type: 2}
   _containerContentRoot: {fileID: 6523517482475922433}
   _playerContentRoot: {fileID: 5695829354506613612}
   _itemSlotPrefab: {fileID: 6012055389016160358, guid: 89c909c64d6ba1c44ab2c59982127454, type: 3}

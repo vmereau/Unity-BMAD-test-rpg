@@ -48,6 +48,8 @@ QuestSO
 
 ## Naming Convention
 
+`HiddenStash` (quest-001) starts from Tam's hint and completes from his follow-up after `World.HiddenStash.Taken`. The world fact is set by the stash's `ContainerTakeFact` successful-transfer listener, not opening the chest. Full encounter: `docs/World/Quests/HiddenStash.md`.
+
 `Quest_{QuestId}.asset` — e.g. `Quest_FindHerbalist.asset`
 
 `questId` must match the filename suffix and be unique across all quests (used as the key in `QuestFact.ToString()`).

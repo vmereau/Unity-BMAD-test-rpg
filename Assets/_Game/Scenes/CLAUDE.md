@@ -31,6 +31,8 @@ the scene YAML are that instance's components, not separate scene components.
 
 ## StartingTown = Alderath Camp (Area 1 graybox)
 
+`HiddenStashQuest` is a hand-owned root outside the builders: Brann, two routine spots, and `BrannsStash` inside the gang house. Brann watches the chest 06:00–18:00, then stands at the Mafia Zone gang fire 18:00–06:00. Chest stock is five bread/two apples, owned and persistent, with no lock. Recheck these placements if the gang house moves; do not run a builder to author this quest.
+
 The scene keeps the name `StartingTown` (`SceneLoader`, `GameConstants`, save data use it) but is the Company Encampment.
 New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-company-encampment.md`.
 

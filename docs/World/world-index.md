@@ -20,7 +20,7 @@
 |----|------|----------|------|---------|--------|
 | npc-001 | Tent Mate (Old Hobb) | area-001 | Logistics informant (existing narrative NPC) | none | graybox |
 | npc-002 | Beaten Worker (Tam) | area-001 | Social informant | none | graybox |
-| npc-003 | Stash Owner | area-001 | Worker with leverage | company-adjacent | stub |
+| npc-003 | Brann (Stash Owner) | area-001 gang house | Worker with leverage | company-adjacent | implemented |
 | npc-004 | Independent Hunter | wilderness / area-001 edge | Independent path contact | faction-003 | stub |
 | npc-005 | Worker Leader | area-001 | Hidden rebel leader | faction-002 | stub |
 | npc-006 | The Warden (Voss) | area-001 | Main antagonist / camp authority | faction-001 | graybox |
@@ -38,7 +38,7 @@
 
 | ID | Name | Giver | Area | Faction Path | Status |
 |----|------|-------|------|-------------|--------|
-| quest-001 | The Hidden Stash | npc-002 | area-001 | neutral | stub |
+| quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
 | quest-002 | The Sealed Passage | npc-009 | area-002 | worker / independent | stub |
 | SpiderClear | Spider Infestation | NPC_RacketGuard | area-001 | — | implemented |
 

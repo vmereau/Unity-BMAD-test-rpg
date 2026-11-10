@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
+  m_Name: Start_BeatenWorker_StashHint
+  m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
+  text: Anything worth knowing?
+  nextNode: {fileID: 11400000, guid: b2f635164cd424d469a19b7faa54f97a, type: 2}
+  _id: bbed125d47b01f8459d53ec2cced83ea
+  dialogueFact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}

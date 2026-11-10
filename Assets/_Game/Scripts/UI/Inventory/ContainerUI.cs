@@ -11,6 +11,7 @@ namespace Game.UI
         private const string TAG = "[ContainerUI]";
 
         [SerializeField] private InventorySystem _playerInventory;
+        [SerializeField] private GameEventSO_ContainerItemTaken _onItemTaken;
         private InventorySystem _containerInventory;
         private bool _takeOnly;
 
@@ -133,10 +134,12 @@ namespace Game.UI
 
         public void TakeItem(int index)
         {
-            if (_containerInventory == null || index < 0 || index >= _containerInventory.Count) return;
+            if (_containerInventory == null || _playerInventory == null ||
+                _containerInventory == _playerInventory || index < 0 || index >= _containerInventory.Count) return;
             ItemSO item = _containerInventory.Items[index].Item;
+            if (item == null || !_playerInventory.AddItem(item)) return;
             _containerInventory.DecrementStack(index);
-            _playerInventory.AddItem(item);
+            _onItemTaken?.Raise(new ContainerItemTakenData { sourceInventory = _containerInventory, item = item });
             RefreshGrids();
             RefreshDetailPanelAfterAction(item, index, ContainerSide.Container);
             GameLog.Info(TAG, $"Took {item.itemName} from container");

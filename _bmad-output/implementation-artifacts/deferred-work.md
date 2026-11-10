@@ -524,3 +524,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - Hearing (like vision) uses flat XZ distance: a player walking on a floor / deck directly above or below an entity is heard through it (radius only halved by the blocked LOS).
 - Player noise comes from any position change: knockback, being pushed, or a future moving platform counts as Walk / Run noise. Classify from the controller's intended velocity if that becomes a problem.
 - Searching walks to the destination set at `TransitionToSearching`; a target heard mid-search doesn't redirect it (it re-engages once the meter refills).
+## Observed during Hidden Stash verification (2026-11-10)
+
+- Player startup raised `NullReferenceException` in `PlayerAnimationDriver.SetInCombat:85`, via `PlayerStateManager.SetInCombat`, `PlayerCombat.HandleVisualsRefreshed`, and `EquipmentVisuals.OnEnable`. These files are unchanged by the quest work. Baseline reproduction was not separately performed; investigate the startup subscription/initialization order before attributing a cause.
+

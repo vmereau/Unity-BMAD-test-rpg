@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_HiddenStash
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: HiddenStash
+  title: The Hidden Stash
+  description: Tam mentioned Brann's hoard in the gang house by the lake. He keeps watch by day and joins the gang fire after six. There may be an opportunity to help myself.
+  startPart:
+    fact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+    entry: Tam mentioned Brann's stash in the gang house by the lake. Brann leaves for the gang fire at six in the evening.
+  completedParts:
+  - fact: {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
+    entry: 'I took some of Brann''s supplies and told Tam. His advice: keep quiet and keep the bread out of sight.'
+  failedParts: []
+  steps:
+  - title: Help myself to Brann's supplies
+    description: Find the chest in the gang house. Brann leaves at six in the evening.
+    parts:
+    - fact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+      entry: I know where Brann keeps his food.
+    - fact: {fileID: 11400000, guid: 82b9f9368a27e2e43ab2ed0359aa323e, type: 2}
+      entry: I took some of Brann's supplies.
+  - title: Tell Tam
+    description: Tam might appreciate hearing what happened.
+    parts:
+    - fact: {fileID: 11400000, guid: 82b9f9368a27e2e43ab2ed0359aa323e, type: 2}
+      entry: I can tell Tam about the stash.
+    - fact: {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
+      entry: Tam heard what happened.
