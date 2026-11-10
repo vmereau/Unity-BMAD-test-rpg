@@ -829,7 +829,7 @@ The territory's visual identity is built on the principle of **temporal layering
 
 Each faction and era has a distinct visual language for instant player recognition:
 
-- **Ancient Civilization:** Design patterns featuring spirals, circles, and geometric motifs (TBD in detail). Stone construction, weathered surfaces, integrated into the landscape.
+- **Ancient Civilization:** Seamless local grey stone shaped into perfect circles, bores, slots and monoliths at non-human proportions; sparse diagram-like groove notation in sevenfold divisions, one exact spiral per major site. The stone never erodes — sites are displaced (tilted, sunk, sheared), not crumbled. Full design language: `Assets/_Game/Art/Environment/ANCIENT_CIVILIZATION.md`.
 - **The Company:** Banners, signage, uniforms. Marks of control and commerce. Clean, authoritarian, imposed over the old.
 - **Rebels/Workers:** Makeshift, practical, scrappy. Reclaimed spaces, improvised symbols.
 - **The Kingdom:** Military standards, heraldry, formal insignia.

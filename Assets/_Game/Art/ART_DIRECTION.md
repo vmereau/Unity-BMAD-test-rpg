@@ -117,6 +117,11 @@ History in every detail: ruins, repaired fences, worn paths, soot above hearths.
 overgrown and slightly hostile. Act changes are visible (camps, opened gates, scorched areas).
 No floating markers or glowing quest objects — the world itself guides the player.
 
+**Ancient ruins** are the one deliberate exception to *Worn*: seamless local grey stone, perfect
+circles, razor edges, non-human proportions, no erosion — displaced (tilted, sunk, sheared), never
+crumbled, and never figurative. All wear belongs to the natural and human layers on top. Design
+language: `Art/Environment/ANCIENT_CIVILIZATION.md`; templates: `Art/Environment/CLAUDE.md`.
+
 ---
 
 ## Writing Any Prompt — Checklist
@@ -138,3 +143,4 @@ No floating markers or glowing quest objects — the world itself guides the pla
 | Item icons | `Art/UI/Items/CLAUDE.md` | `/items:icon-prompt` |
 | UI sprites (slots, panels, buttons, bars) | `Art/UI/CLAUDE.md` | `/ui:create` |
 | Character concept sheets | `Art/Characters/Humanoids/CLAUDE.md` | `/characters:concept-prompt` |
+| Ancient ruins (mood concepts, image-to-3D sheets) | `Art/Environment/CLAUDE.md` (design: `Art/Environment/ANCIENT_CIVILIZATION.md`) | — |

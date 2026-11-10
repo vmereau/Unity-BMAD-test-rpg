@@ -134,6 +134,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
+| Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log |
 | UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
