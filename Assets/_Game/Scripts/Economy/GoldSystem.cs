@@ -14,6 +14,8 @@ namespace Game.Economy
 
         [SerializeField] private int _startingGold = 500;
         [SerializeField] private GameEventSO_Int _onGoldChanged;
+        [Tooltip("Player only. Must match the inventory's gold collection channel.")]
+        [SerializeField] private GameEventSO_GoldLootRequest _onGoldLootRequested;
 
         public int Gold { get; private set; }
 
@@ -27,6 +29,24 @@ namespace Game.Economy
                 GameLog.Warn(TAG, "OnGoldChanged event not assigned — gold change signals will be silent.");
 
             Gold = _startingGold;
+        }
+
+        private void OnEnable() => _onGoldLootRequested?.AddListener(HandleGoldLootRequested);
+
+        private void OnDisable() => _onGoldLootRequested?.RemoveListener(HandleGoldLootRequested);
+
+        private void HandleGoldLootRequested(GoldLootRequest request)
+        {
+            if (request == null || request.Recipient != gameObject || request.Accepted) return;
+            if (request.Amount <= 0 || Gold > int.MaxValue - request.Amount)
+            {
+                GameLog.Warn(TAG, "Gold collection rejected: amount is invalid or balance would overflow.");
+                return;
+            }
+            if (!request.TryAccept()) return;
+            Gold += request.Amount;
+            GameLog.Info(TAG, $"Looted {request.Amount} gold. Total: {Gold}");
+            _onGoldChanged?.Raise(Gold);
         }
 
         /// <summary>

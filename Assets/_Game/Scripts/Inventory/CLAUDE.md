@@ -21,6 +21,7 @@
 
 ## Rules
 
+- **Gold loot:** `GoldItemSO` stays stacked in containers/NPC inventories. Only the player has `_collectGoldAsCurrency` and `OnGoldLootRequested` wired: `AddItem` raises an acknowledged `GoldLootRequest` addressed to its own GameObject; its sibling `GoldSystem` credits one gold and accepts it. Missing/disabled receiver or overflow rejects the addition, preserving source loot. Starting currency belongs on `GoldSystem`; starting item initialization and slot restoration never pay out. `ItemPickup` consumes itself only after a successful addition.
 - **Cross-system events use `GameEventSO<T>` only** — no plain C# events across `Game.Inventory` → `Game.Combat`/UI boundaries (project-context.md).
 - `EquipmentVisuals` raises `OnVisualsRefreshed` **after** `_weaponVisual` is assigned, so `ActiveWeaponGO` is valid in listeners. `PlayerCombat` binds its hitbox off this SO, NOT `OnEquipmentChanged` (component-order race) — details in `Scripts/Combat/CLAUDE.md`.
 - `GameEventSO<T>.Raise()` iterates listeners **last-added-first** — never rely on listener ordering for correctness.

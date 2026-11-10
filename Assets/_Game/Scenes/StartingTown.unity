@@ -146361,6 +146361,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Economy.GoldSystem
   _startingGold: 0
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
+  _onGoldLootRequested: {fileID: 0}
 --- !u!114 &1138870071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146457,6 +146458,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
   _startingItems: []
   _onInventoryChanged: {fileID: 0}
+  _collectGoldAsCurrency: 0
+  _onGoldLootRequested: {fileID: 0}
 --- !u!114 &1138870078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181168,6 +181171,7 @@ MonoBehaviour:
   _items:
   - {fileID: 11400000, guid: 176d411c700164f47b8c5ba0b73ca22b, type: 2}
   - {fileID: 11400000, guid: c10c4b94977698b488c5b91219c8c8fb, type: 2}
+  - {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
 --- !u!114 &1416371736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181226,7 +181230,11 @@ MonoBehaviour:
     count: 5
   - item: {fileID: 11400000, guid: c10c4b94977698b488c5b91219c8c8fb, type: 2}
     count: 2
+  - item: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
+    count: 25
   _onInventoryChanged: {fileID: 0}
+  _collectGoldAsCurrency: 0
+  _onGoldLootRequested: {fileID: 0}
 --- !u!1 &1416381221
 GameObject:
   m_ObjectHideFlags: 0

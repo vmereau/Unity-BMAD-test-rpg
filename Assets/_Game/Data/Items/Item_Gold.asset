@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1257f9592def2974d89e98875c2777a6, type: 3}
+  m_Name: Item_Gold
+  m_EditorClassIdentifier: Game::Game.Inventory.GoldItemSO
+  itemId: 975adb30a76a42daa80d002dce6ec4fe
+  itemName: Gold
+  description: A worn gold coin. Added to your gold automatically when collected.
+  icon: {fileID: 21300000, guid: 95fc54a67b27ec84eb5d2e46d9ce1591, type: 3}
+  maxStacks: 9999
+  worldItemPrefab: {fileID: 8089850980328487279, guid: 70986dbba4ecf074093ff0be106f96ed, type: 3}
+  buyValue: 1
+  sellValue: 1
+  isIngredient: 0
+  isCraftingMaterial: 0

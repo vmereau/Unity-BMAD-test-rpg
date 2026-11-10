@@ -27,6 +27,8 @@ namespace Game.UI
         private const string CATEGORY_USABLE = "Usable";
         private const string CATEGORY_EQUIPMENT = "Equipment";
         private const string CATEGORY_MISC = "Miscellaneous";
+        private const string CATEGORY_CURRENCY = "Currency";
+        private const string LABEL_GOLD = "Gold on pickup";
 
         private const string LABEL_DAMAGE = "Damage";
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
@@ -58,6 +60,7 @@ namespace Game.UI
             // Any item type can be a cooking ingredient (raw food is a PotionItemSO): the flag wins over the class.
             { isIngredient: true } => CATEGORY_INGREDIENT,
             { isCraftingMaterial: true } => CATEGORY_CRAFTING_MATERIAL,
+            GoldItemSO => CATEGORY_CURRENCY,
             WeaponSO { IsForged: true } => CATEGORY_FORGED_WEAPON,
             WeaponSO => CATEGORY_WEAPON,
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
@@ -84,6 +87,9 @@ namespace Game.UI
 
             switch (item)
             {
+                case GoldItemSO gold:
+                    AddBonus(into, LABEL_GOLD, gold.GoldValue);
+                    break;
                 // Floats are rounded first so the shown value, the polarity and the omission rule agree.
                 case WeaponSO weapon:
                     AddBonus(into, LABEL_DAMAGE, Mathf.RoundToInt(weapon.damageBonus));

@@ -37,6 +37,10 @@ namespace Game.Inventory
         [Tooltip("Optional. Raised after every successful change (not for starting items). Wire on the player only — NPC / monster inventories stay silent.")]
         [SerializeField] private GameEventSO_Void _onInventoryChanged;
 
+        [Tooltip("Player only: collected coins become currency instead of inventory items.")]
+        [SerializeField] private bool _collectGoldAsCurrency;
+        [SerializeField] private GameEventSO_GoldLootRequest _onGoldLootRequested;
+
         private bool _isInitializing;
 
         private readonly List<InventorySlot> _slots = new List<InventorySlot>();
@@ -81,6 +85,26 @@ namespace Game.Inventory
             {
                 GameLog.Warn(TAG, "AddItem called with null item");
                 return false;
+            }
+
+            if (_collectGoldAsCurrency && item is GoldItemSO gold)
+            {
+                // Starting gold belongs to GoldSystem. Never pay during inventory initialization.
+                if (_isInitializing)
+                {
+                    GameLog.Warn(TAG, "Gold in player starting items ignored; configure starting currency on GoldSystem.");
+                    return false;
+                }
+                if (_onGoldLootRequested == null)
+                {
+                    GameLog.Warn(TAG, "Cannot collect gold: assign OnGoldLootRequested on the player inventory and GoldSystem.");
+                    return false;
+                }
+                var request = new GoldLootRequest(gameObject, gold.GoldValue);
+                _onGoldLootRequested.Raise(request);
+                if (!request.Accepted)
+                    GameLog.Warn(TAG, "Gold collection rejected: check the player's enabled GoldSystem, loot channel and balance capacity.");
+                return request.Accepted;
             }
 
             if (item.IsStackable)

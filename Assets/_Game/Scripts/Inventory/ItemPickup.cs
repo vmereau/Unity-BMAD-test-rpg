@@ -62,8 +62,7 @@ namespace Game.Inventory
 
         public void Interact()
         {
-            if (_inventory == null) return;
-            _inventory.AddItem(_item);
+            if (!enabled || _inventory == null || !_inventory.AddItem(_item)) return;
             // Scene-authored pickups carry a SaveableObject — record the pickup so a load doesn't respawn it.
             if (TryGetComponent<SaveableObject>(out var saveable))
                 SaveSystem.Instance?.MarkConsumed(saveable.SaveKey);

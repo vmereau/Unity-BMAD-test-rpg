@@ -72,6 +72,18 @@ namespace Tests.EditMode
             Assert.AreEqual(polarity, line.Polarity);
         }
 
+        [Test]
+        public void GoldShowsCurrencyAndAutomaticPickupValue()
+        {
+            var coin = Create<GoldItemSO>();
+            coin.maxStacks = 100;
+            ItemDetailFormatter.BuildStatLines(coin, _lines);
+            Assert.AreEqual("Currency", ItemDetailFormatter.GetCategory(coin));
+            AssertLine(_lines[0], "Gold on pickup", "+1", StatPolarity.Positive);
+            AssertLine(_lines[1], "Stack", "up to 100", StatPolarity.Neutral);
+            Assert.AreEqual(ItemFilter.Misc, ItemFilterRules.Classify(coin));
+        }
+
         // AC 1
         [Test]
         public void Weapon_ShowsDamageThenBonusesInOrder()

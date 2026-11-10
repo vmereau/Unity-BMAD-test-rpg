@@ -40,6 +40,7 @@ Player.prefab
 
 ## Rules
 
+- Lootable gold: root `InventorySystem._collectGoldAsCurrency` is enabled, and both its `_onGoldLootRequested` and the root `GoldSystem._onGoldLootRequested` reference `OnGoldLootRequested`. Keep this wiring player-only; NPC inventories must retain gold as loot.
 - **Do not add a second Camera or AudioListener** to a scene that uses this prefab — the `Camera` child owns
   both (plus the `CinemachineBrain`).
 - `DialogueSystem` lives on the **Player root** (not on UICanvas or a scene GO). Its `_dialogueUI` and

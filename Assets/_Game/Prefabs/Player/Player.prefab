@@ -445,6 +445,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
   _startingItems: []
   _onInventoryChanged: {fileID: 11400000, guid: 7dd357d00fe84c4a9633e30300ef0bb0, type: 2}
+  _collectGoldAsCurrency: 1
+  _onGoldLootRequested: {fileID: 11400000, guid: 56c4ff4aeaaa4ca458cd0e6ca79fe393, type: 2}
 --- !u!114 &3975145126963483010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -681,6 +683,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Economy.GoldSystem
   _startingGold: 500
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
+  _onGoldLootRequested: {fileID: 11400000, guid: 56c4ff4aeaaa4ca458cd0e6ca79fe393, type: 2}
 --- !u!114 &8613668570026627261
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -155,6 +155,10 @@ consumable. Create via **Assets → Create → Items → Recipe Item**. Details:
 
 ## Adding a New Item Type
 
+### Gold loot
+
+`GoldItemSO : ItemSO` represents one gold coin (`GoldValue = 1`). `Item_Gold.asset` is stackable for container/NPC stock. Player `InventorySystem.AddItem` converts it immediately through `OnGoldLootRequested`; it is not manually usable or stored in player slots. Its detail category is Currency; its filter remains Misc. `Item_Gold.prefab` is a coin-shaped placeholder with normal pickup physics. Icon prompt: `docs/Gold-Icon-Prompt.md`.
+
 ### Usable item (context menu "Use")
 1. Extend `UsableItemSO` (abstract), override `OnUse(GameObject user)`.
 2. Add `[CreateAssetMenu]`.
