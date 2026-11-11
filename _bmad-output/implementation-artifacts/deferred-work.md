@@ -528,3 +528,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 - Player startup raised `NullReferenceException` in `PlayerAnimationDriver.SetInCombat:85`, via `PlayerStateManager.SetInCombat`, `PlayerCombat.HandleVisualsRefreshed`, and `EquipmentVisuals.OnEnable`. These files are unchanged by the quest work. Baseline reproduction was not separately performed; investigate the startup subscription/initialization order before attributing a cause.
 
+## Area 1 arena navigation / rock collider agreement (2026-11-12)
+
+During mafia-zone traversal checks, the direct baked-corner route to the existing arena opening snagged at approximately (45.82, 1.89, 31.5) against an unchanged rim-rock collider. The surface bakes render meshes, so its route can be tighter than the rock collider permits. Walking around via (43,34.8), (52.5,36), then (52.5,34) succeeds. Investigate collider/nav geometry agreement in a separate arena pass; preserve the hand-owned rocks and existing entrance when doing so.
+

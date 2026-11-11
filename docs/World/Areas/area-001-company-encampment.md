@@ -257,6 +257,12 @@ No hard resource gate. Endings become available when player's actions and comple
 
 The saved `StartingTown.unity` scene is now authoritative for `Area1_Blockout/TentCamp`, including PlayersZone, WretchesCorner, MafiaZone, Ditch and Canteen. Valentin expanded and arranged the base into 75 timber huts and 26 canvas bays. The timber cookhouse and covered dining space are west of the square. The player hut remains near (-0.52,47.97), bed (-0.50,47.89); the spawn remains separately placed near (11.06,37.85). Cook (-6,20) and fireplace (-7,22) remain hand-owned.
 
+### Mafia buildings and arena overlooks
+
+The mafia settlement now includes a square-facing timber communal building at (31.5,16.5). Its use remains open between quarters, warehouse and barracks. Rough raised viewing decks stand along the arena's west bank, accessed by stairs from the mafia square. Above the arena's south side, the better-built timber boss residence at (45.5,12.5) connects to an enclosed rear garden and a shaded private overlook with seating and room for an eventual announcer. The private deck projects over the bowl; its floor clears the existing rim rocks. These are blockout spaces, without new NPCs or arena gameplay.
+
+All five additions belong to the hand-owned `TentCamp/MafiaZone` scene hierarchy. The existing lakeside `GangHouse` and Brann's hidden-stash quest are separate and unchanged. Preserve the nearby hut entrances, fire benches and arena entry when refining the new buildings. The one-time editor authoring command refuses to replace existing additions; subsequent layout work edits the saved scene directly.
+
 `settlement-hand-owned` in both layout files protects the entire TentCamp root: full Sites builds skip it, and Build Area 1 Worker Settlement refuses to regenerate it. Edit its scene geometry directly. The earlier `worker-*` plots are historical generation inputs, not a complete current layout: they cannot reproduce duplicates, child edits or current placements. Do not disable ownership merely to refresh another site. Other roots, including CampCentre and Walkways, retain their existing ownership.
 
 Current checks and any remaining navigation/sightline work are recorded in `worker-settlement-verification.md`. The older Tent Camp Zones table above describes the prior tent iteration; the updated scene supersedes its individual placement descriptions.

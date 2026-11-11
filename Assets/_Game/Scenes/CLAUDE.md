@@ -99,3 +99,11 @@ Enemies live outside the basin: spiders in and at the mouth of the tutorial cave
 ## Worker settlement finalized by hand (2026-11-11)
 
 `Area1_Blockout/TentCamp` is hand-owned, including its Canteen and Ditch children. The saved scene contains 75 huts and 26 tarp bays after Valentin's layout pass. `settlement-hand-owned.enabled` in layout.json and layout.seed.json makes full Sites builds skip this root; the scoped Worker Settlement command refuses to overwrite it. Historical worker plots do not reproduce the current scene. Keep this flag enabled when rebuilding unrelated sites. Hand-edits.json cannot preserve added child geometry, so it is not the source for finalized housing. CampCentre and Walkways remain tool-owned. Player hut/bed are near (-0.52,48), spawn remains near (11.06,37.85); do not assume they share an anchor. Cook and cooking station remain outside TentCamp as hand-owned gameplay objects.
+
+### Mafia buildings and arena overlooks (2026-11-11)
+
+Five additional hand-owned children live under `TentCamp/MafiaZone`: `MafiaQuarters` (31.5,16.5), `ArenaSpectatorPlatforms` (west arena rim, 43.1,21.8 and 24.65), `BossHouse` (45.5,12.5), `BossGarden` (51.25,13.2) and `BossOverlook` (51.5,18). Coordinates are world (x,z). The communal building faces the square and remains unfurnished so its eventual quarters/warehouse/barracks function stays open. Its footprint fits between existing hut doors and fire benches; preserve those approaches.
+
+The boss house opens west onto a stair approach and east into the enclosed raised garden, which connects to the shaded arena balcony. Their common floor is y=4.65 to clear hand-placed rim rocks. A taller south garden screen blocks an easy jump towards the nearby palisade. Public viewing decks have separate stairs from the square. These buildings are distinct from the lakeside `Area1_Blockout/GangHouse`, whose stash quest remains in place.
+
+`Tools/World/Author Mafia Buildings And Overlooks` (`Editor/World/Area1MafiaBlockout.cs`) is a one-time additive authoring command with grouped Undo. It refuses if any of its five roots exists and requires both settlement ownership flags. Do not remove roots just to rerun it: edit the saved geometry by hand. It never saves or bakes automatically. Navigation uses the existing `Terrain_StartingArea` surface and asset-manager bake path.
