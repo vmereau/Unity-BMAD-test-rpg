@@ -252,3 +252,11 @@ No hard resource gate. Endings become available when player's actions and comple
 - **Wood camp quest details** — beyond basic flavor
 - **Farm manager** — the reeve who lives at the farm is unnamed, and the field gang has no roster yet
 - **Work site guard/manager NPCs** — area-002 and area-003 managers unnamed
+
+## Finalized worker settlement (2026-11-11)
+
+The saved `StartingTown.unity` scene is now authoritative for `Area1_Blockout/TentCamp`, including PlayersZone, WretchesCorner, MafiaZone, Ditch and Canteen. Valentin expanded and arranged the base into 75 timber huts and 26 canvas bays. The timber cookhouse and covered dining space are west of the square. The player hut remains near (-0.52,47.97), bed (-0.50,47.89); the spawn remains separately placed near (11.06,37.85). Cook (-6,20) and fireplace (-7,22) remain hand-owned.
+
+`settlement-hand-owned` in both layout files protects the entire TentCamp root: full Sites builds skip it, and Build Area 1 Worker Settlement refuses to regenerate it. Edit its scene geometry directly. The earlier `worker-*` plots are historical generation inputs, not a complete current layout: they cannot reproduce duplicates, child edits or current placements. Do not disable ownership merely to refresh another site. Other roots, including CampCentre and Walkways, retain their existing ownership.
+
+Current checks and any remaining navigation/sightline work are recorded in `worker-settlement-verification.md`. The older Tent Camp Zones table above describes the prior tent iteration; the updated scene supersedes its individual placement descriptions.

@@ -211,6 +211,33 @@ namespace Game.Editor.World
         private static readonly Color FireColor = new Color(1f, 0.55f, 0.2f);
         private static readonly Color GlowColor = new Color(3f, 1.3f, 0.35f, 1f);
 
+        [MenuItem("Tools/World/Build Area 1 Worker Settlement")]
+        public static void BuildWorkerSettlement()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByName("StartingTown");
+            if (EditorApplication.isPlaying || !scene.isLoaded) { GameLog.Error(TAG, "Open StartingTown in edit mode first."); return; }
+            GameObject root = scene.GetRootGameObjects().FirstOrDefault(g => g.name == BLOCKOUT_ROOT);
+            if (!RunWorkerSettlement(root, out string problem)) GameLog.Error(TAG, problem);
+        }
+
+        public static bool RunWorkerSettlement(GameObject root, out string problem)
+        {
+            problem = null;
+            if (root == null || EditorApplication.isPlaying) { problem = "Need the StartingTown blockout in edit mode"; return false; }
+            Terrain terrain = root.scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Terrain>()).FirstOrDefault();
+            Material timber = AssetDatabase.LoadAssetAtPath<Material>(TIMBER), canvas = AssetDatabase.LoadAssetAtPath<Material>(CANVAS);
+            Transform camp = root.transform.Find(Area1TentCamp.TENT_CAMP);
+            if (terrain == null || timber == null || canvas == null || camp == null) { problem = "Missing terrain, materials or TentCamp"; return false; }
+            if (!Area1BlockoutBuilder.TryReadLayout(out var features, out problem)) return false;
+            if (Area1WorkerSettlement.IsHandOwned(features))
+            { problem = "TentCamp is hand-owned. Edit the saved scene; rebuilding would overwrite the finalized worker settlement."; return false; }
+            if (!Area1WorkerSettlement.TryRead(features, out var plots, out problem)) return false;
+            if (plots.Count == 0) { problem = "No worker settlement features"; return false; }
+            Area1WorkerSettlement.Build(plots, camp, terrain, timber, canvas);
+            EditorSceneManager.MarkSceneDirty(root.scene);
+            return true;
+        }
+
         [MenuItem("Tools/World/Build Area 1 Sites")]
         public static void Build()
         {
@@ -422,6 +449,9 @@ namespace Game.Editor.World
             }
 
             if (!Area1TentCamp.TryRead(features, out Area1TentCamp.Plan tentCamp, out problem)) return false;
+            bool workerHandOwned = Area1WorkerSettlement.IsHandOwned(features);
+            var workerPlots = new List<Area1WorkerSettlement.Plot>();
+            if (!workerHandOwned && !Area1WorkerSettlement.TryRead(features, out workerPlots, out problem)) return false;
 
             Transform docks = root.transform.Find(DOCKS);
             List<Transform> deck = FindDeck(docks);
@@ -518,14 +548,23 @@ namespace Game.Editor.World
             Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
             Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
             Area1TentCamp.BuildCampCentre(tentCamp, terrain, timber, stone, flag, NewRoot(root.transform, Area1TentCamp.CAMP_CENTRE));
-            Area1TentCamp.BuildTentCamp(tentCamp, tent, terrain, timber, stone, canvas, NewRoot(root.transform, Area1TentCamp.TENT_CAMP));
+            if (!workerHandOwned)
+                Area1TentCamp.BuildTentCamp(tentCamp, tent, terrain, timber, stone, canvas, NewRoot(root.transform, Area1TentCamp.TENT_CAMP));
             Transform walkways = NewRoot(root.transform, WALKWAYS);
             foreach (string id in WalkwayIds)
                 Area1CampInterior.BuildWalkway(id, Area1BlockoutBuilder.Points(features[id]), (float)features[id]["width"], terrain, timber, walkways);
 
-            if (!applyEdits) return true;
+            if (!applyEdits)
+            {
+                if (workerPlots.Count > 0) Area1WorkerSettlement.Build(workerPlots, root.transform.Find(Area1TentCamp.TENT_CAMP), terrain, timber, canvas);
+                return true;
+            }
 
-            edits.Apply(root.transform, Owns);
+            edits.Apply(root.transform, path =>
+                (!workerHandOwned || (path != Area1TentCamp.TENT_CAMP
+                    && !path.StartsWith(Area1TentCamp.TENT_CAMP + "/", System.StringComparison.Ordinal)))
+                && Owns(path));
+            if (workerPlots.Count > 0) Area1WorkerSettlement.Build(workerPlots, root.transform.Find(Area1TentCamp.TENT_CAMP), terrain, timber, canvas);
             EditorSceneManager.MarkSceneDirty(root.scene);
             GameLog.Info(TAG, "Done. Rebake the NavMesh.");
             return true;
