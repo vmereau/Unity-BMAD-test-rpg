@@ -37,11 +37,34 @@ namespace Game.Editor.Characters
             var names = Array.ConvertAll(target.bones, b => b.name);
             var report = SkinnedNeckValidator.ValidateBindSpace(mesh, names, target.sharedMesh, names);
             if (!report.IsValid) { UnityEngine.Object.DestroyImmediate(mesh); throw new InvalidOperationException(string.Join("; ", report.Errors)); }
+            // Calculate at canonical scale before UV repair duplicates corners;
+            // RepairNeckUV copies these smooth normals onto its new vertices.
+            mesh.RecalculateNormals();
             SkinnedNeckBaker.RepairNeckUV(mesh,1.48f,1.62f,.17f);
             var uvReport = SkinnedNeckValidator.ValidateNeckUV(mesh,1.48f,1.62f,.17f);
             if (!uvReport.IsValid) { UnityEngine.Object.DestroyImmediate(mesh); throw new InvalidOperationException(string.Join("; ", uvReport.Errors)); }
             if (mesh.bounds.min.y < -.03f || mesh.bounds.max.y < 1.5f || mesh.bounds.max.y > 1.63f)
             { UnityEngine.Object.DestroyImmediate(mesh); throw new InvalidOperationException("Company outfit extent is outside canonical feet/collar limits."); }
+            try
+            {
+                // A few collapsed-UV corners have cancelling normals before
+                // splitting. Recover those from the isolated faces, retaining
+                // every usable smooth normal copied by the UV repair.
+                var smoothNormals = mesh.normals;
+                mesh.RecalculateNormals();
+                var repairedNormals = mesh.normals;
+                for (int i = 0; i < smoothNormals.Length; i++)
+                    if (smoothNormals[i].sqrMagnitude > .5f) repairedNormals[i] = smoothNormals[i];
+                mesh.normals = repairedNormals;
+                // Tangents must follow final UVs, including repaired corners.
+                mesh.RecalculateTangents();
+                ValidateShadingFrames(mesh);
+            }
+            catch
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+                throw;
+            }
             mesh = SkinnedMeshBaker.SaveMesh(mesh, Folder + "CompanyGrunt_baked.asset");
 
             string materialPath = Folder + "M_CompanyGrunt.mat";
@@ -113,6 +136,53 @@ namespace Game.Editor.Characters
             Game.Editor.Save.ItemCatalogAutoSync.SyncItemCatalog();
             return $"Built Company armor: {mesh.vertexCount} vertices, {mesh.bindposes.Length} canonical bones. Leather-equivalent provisional stats/prices.";
         }
+
+        private static void ValidateShadingFrames(Mesh mesh)
+        {
+            var vertices = mesh.vertices;
+            var normals = mesh.normals;
+            var tangents = mesh.tangents;
+            if (normals.Length != vertices.Length || tangents.Length != vertices.Length)
+                throw new InvalidOperationException("Company outfit needs complete normal and tangent channels.");
+
+            var triangles = mesh.triangles;
+            var referenced = new bool[vertices.Length];
+            double totalArea = 0, opposedArea = 0;
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                int a = triangles[i], b = triangles[i + 1], c = triangles[i + 2];
+                referenced[a] = referenced[b] = referenced[c] = true;
+                var face = Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]);
+                float area = face.magnitude;
+                if (!IsFinite(area)) throw new InvalidOperationException("Company outfit has a non-finite triangle.");
+                // Ignore zero-area remnants; do not let tiny folded triangles
+                // outweigh the visible garment surface in the agreement check.
+                if (area <= 1e-12f) continue;
+                totalArea += area;
+                if (Vector3.Dot(face, normals[a] + normals[b] + normals[c]) < 0)
+                    opposedArea += area;
+            }
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                var normal = normals[i];
+                var tangent = tangents[i];
+                var direction = new Vector3(tangent.x, tangent.y, tangent.z);
+                if (!IsFinite(normal.x) || !IsFinite(normal.y) || !IsFinite(normal.z) ||
+                    !IsFinite(tangent.x) || !IsFinite(tangent.y) || !IsFinite(tangent.z) || !IsFinite(tangent.w))
+                    throw new InvalidOperationException($"Company outfit has a non-finite shading frame at vertex {i}.");
+                // UV repair leaves unused original corners. They need no frame.
+                if (!referenced[i]) continue;
+                if (Mathf.Abs(normal.sqrMagnitude - 1) > .05f || Mathf.Abs(direction.sqrMagnitude - 1) > .05f ||
+                    Mathf.Abs(Vector3.Dot(normal, direction)) > .05f || Mathf.Abs(Mathf.Abs(tangent.w) - 1) > .001f)
+                    throw new InvalidOperationException($"Company outfit has an unusable shading frame at vertex {i}.");
+            }
+            // Permit small folded/degenerate details, but reject broad fallback
+            // directions (the broken import opposed roughly 51% of the area).
+            if (totalArea <= 0 || opposedArea / totalArea > .01)
+                throw new InvalidOperationException("Company outfit normals disagree with more than 1% of its surface area.");
+        }
+
+        private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
 
         private static Mesh MakePickupMesh(Mesh source)
         {

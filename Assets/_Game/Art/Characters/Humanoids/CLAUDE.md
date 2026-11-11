@@ -142,6 +142,15 @@ sampled ring alone does not cover the lower neck in raised-arm poses. Unity
 `Game.Editor.Characters.CompanyGruntArmorBuilder.Build()` bakes and wires the separate armor item.
 See `Tools/Blender/README.md` for reproduction, provisional balance and verification limits.
 
+Company shading: the fitted FBX has tiny mesh coordinates beneath a x100 transform;
+Unity's calculated import normals were mostly the same fallback direction, despite
+the correct displayed size. The Company builder regenerates normals and tangents
+at canonical scale before neck UV repair (which copies the smooth normals), then
+rebuilds tangents after UV repair and validates finite usable frames and
+area-weighted agreement with triangle faces before saving. The pickup copies these
+corrected frames. Do not compensate with brighter textures or scene lighting, or
+apply this repair to the head's deliberately matched seam normals.
+
 Preview gotcha: after sampling an animation in an isolated edit-mode scene, set
 `SkinnedMeshRenderer.forceMatrixRecalculationPerRender = true` on every renderer before rendering.
 Without this, skin matrices can stay stale while bone transforms move, producing misleading
