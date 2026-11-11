@@ -161178,7 +161178,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.size
-      value: 11
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[0].item
@@ -161231,7 +161231,7 @@ PrefabInstance:
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[11].item
       value: 
-      objectReference: {fileID: 11400000, guid: e3ca513a0f162374283b6e549f955576, type: 2}
+      objectReference: {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[1].count
       value: 1
@@ -161274,7 +161274,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _startingItems.Array.data[11].count
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
