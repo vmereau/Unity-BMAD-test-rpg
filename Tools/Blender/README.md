@@ -109,3 +109,29 @@ for the full shared-uniform contract and limits.
 Collar regression guard: sample below the original exposed seam (current profile 1.56 m); reject a sampled radius above 0.10 m. Generated rim weights exclude Head influence and renormalize toward Neck; existing garment weights blend into that rim. Inspect the under-chin silhouette in addition to join diagnostics.
 
 The sample damaged-collar trim radius is 0.16 m, covering the original folded rear rim. The inner lining descends to 1.485 m and tapers into the closed skin stump. Its raised lip must remain below the canonical exposed seam.
+
+## Company grunt outfit
+
+Run `runpy.run_path(root + "Tools/Blender/fit_company_grunt.py")["run"]()` in connected Blender,
+then `Game.Editor.Characters.CompanyGruntArmorBuilder.Build()` through Unity MCP after compilation.
+The immutable Meshy FBX has no rig or weights. Preparation aligns its feet and arm line, removes
+its head, transfers barycentric weights from the canonical body, and exports on the original
+canonical armature. No Mixamo pass is required. All working scenes and intermediate files are temporary.
+
+The Company's generated neckline has concentric layers. Neck finishing opts into choosing the
+outer opening and supplies its own atlas patch/name; leather defaults remain unchanged.
+A separate close-fitting cloth sleeve copies the canonical head's lower surface and influences,
+with 4 mm radial clearance. Its top slopes lower beneath the chin and higher at the sides/back,
+covering the shoulder-weighted skin during attacks without changing the original head asset.
+The source colors, emblem and UVs remain on the main garment. Hands retain the generated skin texture.
+
+The builder creates a separate armor item, canonical baked mesh, visual prefab, compact torso pickup
+and torso-cropped concept icon. Stats/prices initially match leather armor; no NPC, shop, quest or
+player starting-inventory distribution is added. Pickups use the outfit torso's own UVs and material.
+
+`verify_company_grunt.cs` is a Unity MCP method body for four-sided animation previews. Toggle
+`closeups` for neck views and `neutral` to inspect geometry. **Set every preview SMR's
+`forceMatrixRecalculationPerRender = true` before rendering sampled poses.** Edit-mode rendering
+can otherwise retain stale skin matrices even while bone transforms and baked meshes update;
+an apparently motionless sleeve is not proof of incorrect weights. Preview samples are finite,
+not a guarantee for every possible pose or external head/rig.

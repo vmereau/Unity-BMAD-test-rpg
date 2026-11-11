@@ -131,3 +131,18 @@ inventory/equipment migration. No new production NPC head assets are included.
 Collar regression guard: sample below the original exposed seam (current profile 1.56 m); reject a sampled radius above 0.10 m. Generated rim weights exclude Head influence and renormalize toward Neck; existing garment weights blend into that rim. Inspect the under-chin silhouette in addition to join diagnostics.
 
 The sample damaged-collar trim radius is 0.16 m, covering the original folded rear rim. The inner lining descends to 1.485 m and tapers into the closed skin stump. Its raised lip must remain below the canonical exposed seam.
+
+### Company grunt
+
+`Tools/Blender/fit_company_grunt.py` derives `models/Company/Grunt armor/CompanyGrunt_Fitted.fbx`
+from the unrigged Meshy source and canonical player rig. It transfers barycentric weights after
+fitting, preserves the original files/emblem UVs and keeps the player head unchanged. A conforming
+cloth neck sleeve uses the canonical skin's actual influences, including shoulder blends; a single
+sampled ring alone does not cover the lower neck in raised-arm poses. Unity
+`Game.Editor.Characters.CompanyGruntArmorBuilder.Build()` bakes and wires the separate armor item.
+See `Tools/Blender/README.md` for reproduction, provisional balance and verification limits.
+
+Preview gotcha: after sampling an animation in an isolated edit-mode scene, set
+`SkinnedMeshRenderer.forceMatrixRecalculationPerRender = true` on every renderer before rendering.
+Without this, skin matrices can stay stale while bone transforms move, producing misleading
+pose captures. `Tools/Blender/verify_company_grunt.cs` includes this setting.

@@ -274,13 +274,17 @@ def outfit(config, source, canonical, profile, destination):
                     winding += math.atan2(a.x*b.y-a.y*b.x,a.x*b.x+a.y*b.y)
                 openings.append((abs(winding/math.tau), edges, vertices))
             candidates = [o for o in openings if o[0] > .9]
+            if len(candidates) > 1 and config.get('concentric_collar_openings', False):
+                candidates = [max(candidates, key=lambda opening: sum(
+                    math.hypot((matrix@v.co).x, (matrix@v.co).y)
+                    for v in opening[2])/len(opening[2]))]
             if len(candidates) != 1:
                 raise ValueError('Expected one exterior neck opening, found '+str(len(candidates)))
             _, edges, vertices = candidates[0]
             # Close incidental folded holes beneath the collar with their own
             # adjacent UVs; the new exterior loft does not use those islands.
             for winding, hole_edges, hole_vertices in openings:
-                if winding > .9:
+                if hole_edges == edges:
                     continue
                 uv_by_vertex = {}
                 for edge in hole_edges:
@@ -421,7 +425,9 @@ def outfit(config, source, canonical, profile, destination):
                             ub += 1
                         u = ua if original == a else ub
                         v = (ri if k<2 else ri+1)/(len(rows)-1)
-                        corner[uv].uv = (.32+.24*u, .80+.13*v)
+                        origin = config.get('collar_uv_origin', [.32, .80])
+                        span = config.get('collar_uv_span', [.24, .13])
+                        corner[uv].uv = (origin[0]+span[0]*u, origin[1]+span[1]*v)
                         corner[nl] = normal0[original]
             bm.normal_update()
             for face in new_faces:
@@ -478,7 +484,7 @@ def outfit(config, source, canonical, profile, destination):
                     uv[index].uv = (.4+(p[axes[0]]-ps[0][axes[0]])*.005/size,
                                     .85+(p[axes[1]]-ps[0][axes[1]])*.005/size)
                 repaired_uvs += 1
-        armor.name = armor.data.name = 'leather_armor_neck'
+        armor.name = armor.data.name = config.get('outfit_name', 'leather_armor_neck')
         export(destination, (armor,rig), rig)
         return {'removed_faces': removed_count, 'collar_quads': collar_quads,
                 'repaired_uv_triangles': repaired_uvs, 'max_profile_radius_m': max_sampled_radius}

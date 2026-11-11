@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ItemCatalog
   m_EditorClassIdentifier: Game::Game.Inventory.ItemCatalogSO
   _items:
+  - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
   - {fileID: 11400000, guid: 67a927b8f3dd5fd41953e506ae9643d9, type: 2}
   - {fileID: 11400000, guid: 376b91fe377aeaa4d9b2128cc8805a89, type: 2}
   - {fileID: 11400000, guid: c10c4b94977698b488c5b91219c8c8fb, type: 2}
