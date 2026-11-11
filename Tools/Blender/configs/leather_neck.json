@@ -1,0 +1,15 @@
+﻿{
+    "canonical":  "Assets/_Game/Art/Characters/Humanoids/models/test base hero/base hero canonical split.fbx",
+    "outfit_source":  "Assets/_Game/Art/Characters/Humanoids/models/humanoid leather armor/leather armor fitted.fbx",
+    "head_output":  "Assets/_Game/Art/Characters/Humanoids/models/test base hero/base hero split.fbx",
+    "outfit_output":  "Assets/_Game/Art/Characters/Humanoids/models/humanoid leather armor/leather armor neck.fbx",
+    "world_to_m":  100,
+    "original_seam_m":  1.585,
+    "neck_bottom_m":  1.48,
+    "neck_inset":  0.16,
+    "collar_cut_m":  1.49,
+    "collar_cut_radius_m":  0.16,
+    "collar_profile_m":  1.56,
+    "collar_max_profile_radius_m":  0.10,
+    "collar_clearance_m":  0.006
+}

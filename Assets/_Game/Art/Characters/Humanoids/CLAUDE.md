@@ -94,31 +94,40 @@ the same local offsets, set the root `Animator.avatar` and `EquipmentVisuals._bo
 old `Character`. The dev tool `Game/Dev/Wire EquipmentVisuals on Player Prefab` still looks for
 `Beta_Surface` — don't run it on a swapped body.
 
-### Head / body split + skinned armor (implemented 2026-11-03)
+### Head / body split + reusable neck interface
 
-The player is a **Head** SMR + a **Body** SMR (`base_hero`, below the neck) on the original Mixamo skeleton.
-An armor is a skinned mesh covering everything below the neck; equipping it hides the Body
-(`EquipmentVisuals.RefreshBody`, `Scripts/Inventory/CLAUDE.md`). All three meshes live in the **original
-base_hero mesh space with its bind poses**, so they bend identically and share one `bones[]` order.
+The player keeps **Head** and **Body** (`base_hero`) SMRs on the original skeleton. Armor hides only Body;
+Head includes the character's exposed neck skin. All parts use the original base-hero mesh space and bind poses.
 
-- **Split** (done once): `Tools/Blender/split_head_body.py`, level cut at **1.585 m** (Neck bone 1.55, Head 1.63) →
-  `models/test base hero/base hero split.fbx`. Both sides get the smooth normals of the uncut mesh (import with
-  Normals **Import**, scale 100, Generic / no avatar, animation off) — the seam has no crease.
-- **Bake** (every part): `Tools/Characters/Skinned Mesh Baker` (`Editor/Characters/SkinnedMeshBaker`). Target =
-  the base_hero SMR of `rigged test hero with textures.fbx`; it re-expresses the source in the target's mesh space
-  through the **bind poses** (never the FBX rest pose — Blender re-exports moved it ~9 mm), remaps weights by bone
-  name, refuses weights on bones the target lacks, optional ±3% height check against a reference mesh (armor →
-  `base_hero_body_baked.asset`). Optional output: a skeleton-less `SkinnedBodyPart` prefab (bone names only).
-- **Armor fit** (per armor, by hand through the Blender MCP so far — seed script kept for the fit-pass spec):
-  1. Import base split + armor in a separate scene; clear the armor's `mixamo.com` action and **reset both rigs to
-     rest** (the imported Base_Rig pose is not its bind pose).
-  2. Uniform scale to the base height, feet on the floor, then set each armor pose bone's armature-space matrix so
-     its head lands on the base head and it stretches **along its length only** toward the base child (Stretch To
-     constraints don't work: Mixamo bones are unconnected, tails ≠ child heads). Bake the posed mesh.
-  3. Bisect at 1.585 m and delete only the **connected head component** above the plane (Meshy meshes can poke above
-     it elsewhere — the leather armor's left shoulder did), re-weld the rest of the cut.
-  4. Conform the 2 cm band under the cut radially onto the head-ring profile, bridge the outer collar loop to an exact
-     copy of the head ring (positions, weights and normals copied from the head) → watertight join.
-  5. Data Transfer vertex-group weights from `base_hero_body` (nearest face interpolated), parent to Base_Rig, export.
-- Meshy + Mixamo armor imports come in ~2 cm tall with the texture path pointing at Mixamo's server: apply the
-  pipeline import settings and remap `Materialmat` to a URP Lit built from the Meshy PNGs (`M_LeatherArmor`).
+- **Immutable input:** `models/test base hero/base hero canonical split.fbx` is the original 1.585 m split,
+  preserved as a reproducible seed. Never overwrite it or the original Mixamo models.
+- **Neck preparation:** `Tools/Blender/prepare_armor_neck.py` with `configs/leather_neck.json` generates the
+  derived `base hero split.fbx` and `leather armor neck.fbx`. It retains source skin UVs, adds an inset, closed neck
+  stump down to 1.48 m, and leaves the complete original body outside it. The body conceals the extra skin when
+  unequipped. At the exposed 1.585 m skin join, positions, normals, UVs and weights are snapped to the canonical
+  body interface. Changing geometry changes Blender's custom-normal basis: restore the saved vectors afterward.
+- **Garment:** the sample rebuilds the damaged collar from its exterior boundary (identified by winding around
+  the neck axis), with a rounded rim and inner lining. Top profile 1.56 m, authored clearance 6 mm. The collar
+  has proper leather UVs; no outfit-owned skin bridge or collapsed UV (0,0) fan. This is a fitting pass on an
+  already canonical outfit, not an automatic fitter for arbitrary Meshy models. Outputs are staged before copying.
+- **Bake:** after Blender generation run `Tools/Characters/Bake Leather Neck Parts`, or
+  `Game.Editor.Characters.SkinnedNeckBaker.BakeLeather()` through Unity MCP. It bakes all three transient meshes,
+  validates the exposed skin join and canonical bind space, repairs collapsed imported garment UVs inside the
+  neck region, regenerates tangents, aligns the exposed head/body normal-map frames, and validates UVs before saving meshes in place (GUIDs retained).
+  Import new scripts and request compilation before calling them through MCP; a clear console alone does not
+  prove a newly written script was compiled. FBX import can reintroduce a collapsed UV triangle despite Blender checks.
+- **General baker:** `Tools/Characters/Skinned Mesh Baker` remains useful for other parts. Its size/bone checks
+  alone do not certify a neck fit. `SkinnedNeckValidator` supplies separate exact-skin-join, name-remapped bind,
+  neck UV and posed boundary-coverage checks. Coverage rays are a boundary check, not a whole-surface collision proof;
+  inspect textured and neutral close-ups through idle, movement, attacks and dodge as well.
+
+**NPC/shared-uniform contract:** different faces may share this outfit only after fitting/baking to this canonical
+skeleton and neck interface. Preserve the neck geometry and its influences when changing faces; exposed neck skin
+uses the head material so skin tone can vary independently of the uniform. Matching bone names on a separately
+proportioned Mixamo rig is insufficient. For bare variants, also match the body skin material. Other exposed skin
+on an outfit (e.g. hands) needs its own compatible skin treatment; this neck repair does not implement that or NPC
+inventory/equipment migration. No new production NPC head assets are included.
+
+Collar regression guard: sample below the original exposed seam (current profile 1.56 m); reject a sampled radius above 0.10 m. Generated rim weights exclude Head influence and renormalize toward Neck; existing garment weights blend into that rim. Inspect the under-chin silhouette in addition to join diagnostics.
+
+The sample damaged-collar trim radius is 0.16 m, covering the original folded rear rim. The inner lining descends to 1.485 m and tapers into the closed skin stump. Its raised lip must remain below the canonical exposed seam.

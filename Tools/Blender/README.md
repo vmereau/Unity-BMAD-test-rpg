@@ -77,3 +77,35 @@ return sb.ToString(); // "pitch/distance," per frame
 ```
 
 Instantiating `Player.prefab` in edit mode logs one harmless NRE (`EquipmentVisuals.OnEnable` → `PlayerAnimationDriver`).
+
+## Canonical armor neck
+
+`prepare_armor_neck.py` + `configs/leather_neck.json` reproducibly regenerate the sample head-owned neck and
+leather collar from immutable canonical-split and fitted-armor inputs. Paths in JSON are project-relative.
+Run in the connected Blender (it restores the user's active scene and cleans up its temporary scenes):
+
+```python
+import runpy
+root = "D:/github/perso/Unity-BMAD-test-rpg/"
+result = runpy.run_path(root + "Tools/Blender/prepare_armor_neck.py")["run"](
+    root + "Tools/Blender/configs/leather_neck.json")
+```
+
+The original head/body interface remains at 1.585 m. Extra skin is inset inside the original body down to
+1.48 m, concealed by Body when bare and by the garment when armored. The garment collar uses a complete
+neck profile at 1.56 m with 6 mm authoring clearance. It joins its surviving exterior garment boundary,
+rather than floating over a cutout. Skin UVs stay with the head; the collar uses a leather atlas patch.
+
+Run Unity `Tools/Characters/Bake Leather Neck Parts` after generation. Unlike the general mesh baker, this
+sample batch validates the exposed skin interface and neck UVs before replacing any baked assets. Inspect
+posed coverage and close-ups too: successful import/size/name checks do not establish visual continuity.
+`SkinnedNeckValidatorTests` exercises malformed interfaces; `SkinnedMeshRebinderTests` covers runtime binding.
+
+For another outfit, fit and weight it against the canonical rig first, then author its neck finishing inputs.
+For another head, preserve the canonical neck interface and bind poses, change the face above it, and assign
+that head's skin material. Same bone names alone do not establish compatibility. See the humanoid CLAUDE.md
+for the full shared-uniform contract and limits.
+
+Collar regression guard: sample below the original exposed seam (current profile 1.56 m); reject a sampled radius above 0.10 m. Generated rim weights exclude Head influence and renormalize toward Neck; existing garment weights blend into that rim. Inspect the under-chin silhouette in addition to join diagnostics.
+
+The sample damaged-collar trim radius is 0.16 m, covering the original folded rear rim. The inner lining descends to 1.485 m and tapers into the closed skin stump. Its raised lip must remain below the canonical exposed seam.

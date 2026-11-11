@@ -27,7 +27,7 @@ Player.prefab
 ├── Camera               (Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
 ├── Character            (nested Mixamo FBX prefab, Humanoid rig)
 │   ├── base_hero                     (Body SMR below the neck — mesh `base_hero_body_baked`; hidden while armor is worn)
-│   ├── Head                          (added SMR, `base_hero_head_baked`, same 40 bones / material — always visible)
+│   ├── Head                          (added SMR, `base_hero_head_baked`, same canonical bones / skin material; includes inset, closed neck below the garment — always visible)
 │   ├── …/RightHand/WeaponSocket      (right hand — drawn weapon, default)
 │   │   └── UnarmedHitbox             (Layer 0, inactive; disabled SphereCollider r 0.25 + WeaponHitbox)
 │   ├── …/LeftHand/LeftWeaponSocket   (left hand — drawn bow, archetype `drawnHand = Left`; second hand of the two-hand grip)
