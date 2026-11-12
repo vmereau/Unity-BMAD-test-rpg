@@ -40,8 +40,12 @@ namespace Game.AI
         /// </summary>
         public bool IsUnconscious { get; private set; }
 
-        /// <summary>Same-GO notifications for <see cref="EntityBrain"/>: knocked out / back on its feet.</summary>
+        /// <summary>True during the get-up clip at the end of a knockout (still <see cref="IsUnconscious"/>).</summary>
+        public bool IsGettingUp => IsUnconscious && _gettingUp;
+
+        /// <summary>Same-GO notifications: knocked out / get-up clip starts (<see cref="EntityPresence"/>) / back on its feet.</summary>
         public event Action KnockedOut;
+        public event Action GettingUp;
         public event Action RegainedConsciousness;
 
         /// <summary>
@@ -110,6 +114,7 @@ namespace Game.AI
                 _gettingUp = true;
                 _animationDriver?.SetUnconscious(false); // getting up clip
                 GameLog.Info(TAG, $"{gameObject.name} is getting up — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+                GettingUp?.Invoke();
             }
             if (_gettingUp && _unconsciousElapsed >= duration + _combatConfig.getUpDuration)
             {

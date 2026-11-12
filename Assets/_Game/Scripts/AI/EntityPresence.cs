@@ -20,6 +20,8 @@ namespace Game.World
 
         [SerializeField] protected PersistentID _persistentID;
         [SerializeField] private GameEventSO_ContainerOpenRequest _onLootRequested;
+        [Tooltip("Raised with this entity's inventory when a knocked-out body starts getting up — ContainerUI closes its loot window.")]
+        [SerializeField] private GameEventSO_Inventory _onLootSourceLost;
 
         protected Entity Data => _persistentID != null ? _persistentID.Entity : null;
 
@@ -31,8 +33,11 @@ namespace Game.World
         /// <summary>True when this entity has died (corpse remains in the scene as a loot target).</summary>
         protected bool IsDead => _entityHealth != null && _entityHealth.IsDead;
 
-        /// <summary>True while knocked out (spec-unconscious-knockout) — lootable like a corpse until it gets up.</summary>
-        protected bool IsUnconscious => _entityHealth != null && _entityHealth.IsUnconscious;
+        /// <summary>
+        /// True while knocked out on the ground (spec-unconscious-knockout) — lootable like a corpse. False once the
+        /// get-up clip starts: the loot window closes then (<see cref="_onLootSourceLost"/>).
+        /// </summary>
+        protected bool IsUnconscious => _entityHealth != null && _entityHealth.IsUnconscious && !_entityHealth.IsGettingUp;
 
         /// <summary>Dead or knocked out: the body lies on the ground and can be looted.</summary>
         protected bool IsDown => IsDead || IsUnconscious;
@@ -69,6 +74,22 @@ namespace Game.World
             _combatState  = GetComponent<ICombatStateProvider>(); // null-safe: entities without a brain are never in combat
             _stance       = GetComponent<EntityStance>();         // optional — staggered / knocked down blocks dialogue
             _inventory    = GetComponent<InventorySystem>();
+        }
+
+        protected virtual void OnEnable()
+        {
+            if (_entityHealth != null) _entityHealth.GettingUp += HandleGettingUp;
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (_entityHealth != null) _entityHealth.GettingUp -= HandleGettingUp;
+        }
+
+        // The body stands back up: a loot window open on it must close (ContainerUI matches the inventory).
+        private void HandleGettingUp()
+        {
+            if (_inventory != null) _onLootSourceLost?.Raise(_inventory);
         }
 
         // A dead body with loot opens its inventory as a take-only container; otherwise nothing.

@@ -182,7 +182,10 @@
 `EntityPresence` sits on the `Entity_base.prefab` root, so every entity is found by `InteractionSystem` and
 shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` without `PersistentID.Entity`).
 
-- **Loot:** `IsLootable = IsDown && HasLoot` (`IsDown` = dead **or unconscious**) (`HasLoot` = `InventorySystem.Count > 0`). `CanInteract => IsLootable`,
+- **Loot:** `IsLootable = IsDown && HasLoot` (`IsDown` = dead **or unconscious and not yet getting up**) (`HasLoot` = `InventorySystem.Count > 0`).
+  When the get-up clip starts (`EntityHealth.GettingUp`), `EntityPresence` raises `GameEventSO_Inventory _onLootSourceLost`
+  (`OnLootSourceLost`) with its inventory; `ContainerUI` closes if that inventory is the one open. Wired on `Entity_base`,
+  `NPC_base Variant` and non-prefab scene NPCs (Brann). `CanInteract => IsLootable`,
   `InteractPrompt` = `"Loot"` when lootable, else `""`. `Interact()` → `OpenLoot()` raises
   `GameEventSO_ContainerOpenRequest _onLootRequested` with the entity's `InventorySystem` and
   `takeOnly = true` — reusing the container pipeline (`ContainerSystem` / `ContainerUI`). An emptied corpse

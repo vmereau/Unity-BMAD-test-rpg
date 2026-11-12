@@ -27,6 +27,8 @@ namespace Game.UI
 
         // Closes on death: an open loot window would block loading and its Esc would re-lock the death screen's cursor.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        // Closes when the looted body stops being lootable (a knocked-out NPC getting up) — matched by inventory.
+        [SerializeField] private GameEventSO_Inventory _onLootSourceLost;
 
         private GameObject _activeContextMenu;
         private GameObject _contextMenuBlocker;
@@ -49,6 +51,7 @@ namespace Game.UI
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
             _onPlayerDied?.AddListener(HandlePlayerDied);
+            _onLootSourceLost?.AddListener(HandleLootSourceLost);
         }
 
         private void OnDisable()
@@ -57,6 +60,7 @@ namespace Game.UI
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
+            _onLootSourceLost?.RemoveListener(HandleLootSourceLost);
         }
 
         private void OnDestroy()
@@ -73,6 +77,15 @@ namespace Game.UI
         private void HandlePlayerDied(bool _)
         {
             if (IsOpen) Close();
+        }
+
+        private void HandleLootSourceLost(InventorySystem source)
+        {
+            if (IsOpen && source != null && source == _containerInventory)
+            {
+                GameLog.Info(TAG, "Looted body got up — closing loot window");
+                Close();
+            }
         }
 
         public void Open(InventorySystem containerInventory, bool takeOnly = false)

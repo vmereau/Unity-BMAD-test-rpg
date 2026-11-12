@@ -2245,6 +2245,10 @@ PrefabInstance:
       propertyPath: _playerInventory
       value: 
       objectReference: {fileID: 1994668802294238475}
+    - target: {fileID: 6497418583278793278, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _onLootSourceLost
+      value: 
+      objectReference: {fileID: 11400000, guid: 128fa3e78090af04db514e51ce1692b7, type: 2}
     - target: {fileID: 6524494827592562137, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

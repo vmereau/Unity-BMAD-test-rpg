@@ -524,6 +524,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.EntityPresence
   _persistentID: {fileID: 1186952831256218892}
   _onLootRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
+  _onLootSourceLost: {fileID: 11400000, guid: 128fa3e78090af04db514e51ce1692b7, type: 2}
 --- !u!114 &7887146153611111599
 MonoBehaviour:
   m_ObjectHideFlags: 0
