@@ -40,6 +40,9 @@ namespace Game.AI
         /// </summary>
         public bool IsUnconscious { get; private set; }
 
+        /// <summary>Shared combat tunables (null = knockouts disabled). Also read by the brain (knockout loot).</summary>
+        public CombatConfigSO CombatConfig => _combatConfig;
+
         /// <summary>True during the get-up clip at the end of a knockout (still <see cref="IsUnconscious"/>).</summary>
         public bool IsGettingUp => IsUnconscious && _gettingUp;
 

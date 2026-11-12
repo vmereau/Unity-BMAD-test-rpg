@@ -12,7 +12,7 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; knockout winner over the player: **Looting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). Knockout instead of death for a brawl — see **Unconscious** below. |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. **One faction source per GO:** an entity always uses `PersistentID.Entity.Faction` (the `Entity` SO); the serialized `_faction` is only for a GO without an Entity — the Player (`Faction_Player`). `_faction` set on an entity → `GameLog.Error`, ignored. `IsPlayer` = an `IStealthTarget` component exists (even disabled). Brain / perception / attacker resolve the same-GO member in `Awake` (no inspector field). Consumers read `member.Faction` at query time — never copy it into their own field (future runtime faction change). **Only the player may implement `IStealthTarget`** (it is the player marker). |
@@ -288,7 +288,34 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   mechanism as instant-aggression trespass). Passive NPCs still never fight back.
 - `EntityStance` / `PlayerStance` treat unconscious like dead (meter refilled, `Apply` ignored); hit resolvers skip stance
   on an unconscious target. `EntityPresence.IsAliveAndOutOfCombat` is false while down.
-- Known gap: a loot screen open on an NPC that gets up stays open (auto-close needs an event channel).
+- A loot screen open on an NPC that gets up closes (`OnLootSourceLost`, see EntityPresence below).
+
+### Knockout loot — `Looting` state (spec-knockout-gold-looting)
+
+- **Who:** only the NPC whose blow knocked the **player** out. `EntityMeleeAttacker.HandleHit` records the victim when
+  `IsUnconscious` flips inside its own `TakeDamage` call; `TakeKnockedOutVictim()` reads + clears it (also cleared by the
+  next `BeginAttack`). The brain's `!HasValidTarget()` branch in `HandleEngage` / `HandleAttack` calls `TryStartLooting()`
+  before disengaging. Other brawlers disengage as before.
+- **Flow:** combat off (aggro cleared), perception reset, taunt bubble (`CombatConfigSO.knockoutLootTauntBarks`), walk at
+  `BaseSpeed` → flat distance ≤ `knockoutLootReachDistance` → stop, `AIAnimationDriver.TriggerPickUp()` → at
+  `knockoutLootGrabTime` raise `OnGoldTheftRequested` (`GoldTheftRequest`, base + random fraction in
+  `[knockoutLootFractionMin, Max]`; the player's `GoldSystem` deducts with `Game.Economy.GoldTheftRules`) → `Taken` ×
+  `knockoutLootGold` into its own `InventorySystem` → thanks bubble (had ≥ base) or poor bubble → `ResumeNonCombat()` at
+  `knockoutLootClipDuration`. The gold is lootable back like any NPC inventory (and saved with it).
+- **Timing:** the grab / end timers start when the animator is actually in `PickUp` (`AIAnimationDriver.IsPickingUp`;
+  1.5 s fallback) — on arrival the Base Layer is often still blending out of the knockout punch.
+- **Cancel:** the victim must stay "lying" = `IsUnconscious` and not `IKnockoutRecovery.IsGettingUp` (`PlayerHealth`).
+  Up before the grab (walking or mid-clip) → no gold, `EndLooting` → routine. Every exit (end, cancel, hit reaction,
+  hostile spotted by the throttled radius scan, own knockout, death, `OnDisable`) goes through `StopLooting()` →
+  `AIAnimationDriver.CancelPickUp()` (resets the `PickUp` trigger, blends a playing clip back to locomotion — an
+  unconsumed trigger would otherwise fire on the next locomotion entry). The end waits while the cursor is unlocked (the
+  player may be up and talking to the robber). Unreachable body: invalid path, or a partial path ending > 2 × reach away
+  → gives up. The attacker's knockout record is cleared on disengage / own knockout / death / disable, so a stale one
+  can't make it loot someone else's knockout.
+- Setup (warned once if missing): `EntityHealth._combatConfig` with `knockoutLootGold`, a same-GO `InventorySystem`,
+  `EntityBrain._onGoldTheftRequested` (wired on `Entity_base` and unpacked Brann). Looting is reactive to hits (in
+  `HandleHealthChanged`'s list), ignores thefts, stores routine requests; not unaware (no sneak bonus). Bubbles fall back
+  to the default duration / priority without a stealth config.
 
 ---
 

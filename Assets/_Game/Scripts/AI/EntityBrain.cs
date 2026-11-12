@@ -5,6 +5,7 @@ using Game.Combat;
 using Game.Core;
 using Game.Dialogue;
 using Game.Factions;
+using Game.Inventory;
 using Game.NPC;
 using Game.Stealth;
 using Game.World;
@@ -39,7 +40,7 @@ namespace Game.AI
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Dead }
+        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Looting, Dead }
 
         private const string DEFAULT_SCOLD_LINE = "Hey! What do you think you're doing?";
 
@@ -95,7 +96,20 @@ namespace Game.AI
         [Tooltip("Raised to confront a caught thief (forced dialogue).")]
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
 
+        [Header("Knockout loot")]
+        [Tooltip("Raised to take gold from the player this NPC knocked out (tunables in EntityHealth's CombatConfigSO).")]
+        [SerializeField] private GameEventSO_GoldTheftRequest _onGoldTheftRequested;
+
         private NavMeshAgent _agent;
+        private InventorySystem _inventory; // same-GO, optional: receives the stolen gold
+        private FactionMember _lootVictim;
+        private bool _lootArrived;
+        private bool _lootResolved; // grab done — the clip just plays out
+        private bool _lootClipStarted;
+        private float _lootTimer; // seconds since the pick-up clip started
+        private float _lootWait;  // seconds waiting for the clip to start after arrival
+        private int _lastLootBarkIndex = -1;
+        private bool _warnedLootSetup;
         private EntityHealth _entityHealth;
         private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
         private FactionMember _currentTarget;
@@ -224,6 +238,7 @@ namespace Game.AI
 
             if (_perception == null) _perception = GetComponent<EntityPerception>();
             _stance = GetComponent<EntityStance>(); // optional — no stance = never staggered
+            _inventory = GetComponent<InventorySystem>(); // optional — no inventory = never loots a knocked-out player
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
             if (_speechAnchor == null && WitnessProfileSO.IsEnabled(_persistentID.Entity.WitnessProfile))
@@ -254,6 +269,14 @@ namespace Game.AI
         private void OnDisable()
         {
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
+            if (_state == EntityState.Looting)
+            {
+                // Disabled mid-robbery (unload, respawn): drop it, so OnEnable resumes the routine instead.
+                StopLooting();
+                _currentTarget = null;
+                _state = EntityState.Idle;
+            }
+            ClearKnockedOutVictim();
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
             _entityHealth.KnockedOut -= HandleKnockedOut;
@@ -343,6 +366,7 @@ namespace Game.AI
                 case EntityState.Watching:   HandleWatching();   break;
                 case EntityState.Pursuing:   HandlePursuing();   break;
                 case EntityState.Confronting: HandleConfronting(); break;
+                case EntityState.Looting:    HandleLooting();    break;
                 case EntityState.Dead:       HandleDead();       break;
             }
 
@@ -541,6 +565,7 @@ namespace Game.AI
         {
             if (!HasValidTarget())
             {
+                if (TryStartLooting()) return;
                 GameLog.Warn(TAG, "Target lost — disengaging");
                 DisengageFromCombat();
                 return;
@@ -571,6 +596,7 @@ namespace Game.AI
         {
             if (!HasValidTarget())
             {
+                if (TryStartLooting()) return;
                 DisengageFromCombat();
                 return;
             }
@@ -1014,6 +1040,181 @@ namespace Game.AI
             // No-op: death animation and ragdoll handled by the AIAnimationDriver.
         }
 
+        // --- Knockout loot (spec-knockout-gold-looting) ---
+
+        // The target just went down from this NPC's own blow and it is the player: rob the body instead of leaving.
+        private bool TryStartLooting()
+        {
+            FactionMember victim = _meleeAttacker != null ? _meleeAttacker.TakeKnockedOutVictim() : null;
+            if (victim == null || victim != _currentTarget || !victim.IsPlayer || !IsLyingUnconscious(victim)) return false;
+
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null || config.knockoutLootGold == null || _inventory == null || _onGoldTheftRequested == null)
+            {
+                if (!_warnedLootSetup)
+                {
+                    _warnedLootSetup = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: knocked the player out but can't loot (needs CombatConfigSO.knockoutLootGold, an InventorySystem and _onGoldTheftRequested)");
+                }
+                return false;
+            }
+
+            _animationDriver?.SetWarning(false);
+            if (_meleeAttacker != null) _meleeAttacker.EndAttack();
+            SetCombatState(false); // also drops the brawl aggro target
+            if (_perception != null) _perception.ResetPerception();
+            _state = EntityState.Looting;
+            _lootVictim = victim;
+            _currentTarget = victim;
+            _lootArrived = false;
+            _lootResolved = false;
+            _lootClipStarted = false;
+            _lootTimer = 0f;
+            _lootWait = 0f;
+            _agent.stoppingDistance = config.knockoutLootReachDistance * 0.8f;
+            _agent.speed = _persistentID.Entity.BaseSpeed;
+            if (_agent.isActiveAndEnabled && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = false;
+                _agent.SetDestination(victim.Transform.position); // the body doesn't move: one path is enough
+            }
+            RaiseLootBark(config.knockoutLootTauntBarks);
+            GameLog.Info(TAG, $"{gameObject.name} knocked out {victim.Transform.name} — going to loot the body");
+            return true;
+        }
+
+        // Unconscious and not yet getting up (a victim without IKnockoutRecovery counts as lying until it wakes).
+        private static bool IsLyingUnconscious(FactionMember victim) =>
+            IsLive(victim) && victim.Damageable.IsUnconscious &&
+            !(victim.Damageable is IKnockoutRecovery recovery && recovery.IsGettingUp);
+
+        // Seconds to wait for the animator to enter PickUp (e.g. an attack clip still blending out) before timing anyway.
+        private const float LOOT_CLIP_START_TIMEOUT = 1.5f;
+        // A partial path that ends this close (× reach) to the body still counts as arrived.
+        private const float LOOT_PARTIAL_PATH_REACH_FACTOR = 2f;
+
+        // Walk to the body → pickup clip → grab at knockoutLootGrabTime into the clip (if still lying) → routine at its end.
+        private void HandleLooting()
+        {
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null) { EndLooting("no combat config"); return; }
+
+            // A hostile showing up (e.g. a wolf on the downed player) takes over, like Watching / Pursuing.
+            if (TryAcquireTargetThrottled())
+            {
+                GameLog.Info(TAG, $"{gameObject.name} stops looting — hostile {_currentTarget.Transform.name} spotted");
+                StopLooting();
+                RespondToDetectedTarget();
+                return;
+            }
+            _currentTarget = _lootVictim; // TryAcquireTarget clears it when nothing is found
+
+            if (!_lootResolved && !IsLyingUnconscious(_lootVictim))
+            {
+                EndLooting("the player got up before the grab"); // also blends a started clip out
+                return;
+            }
+
+            if (!_lootArrived)
+            {
+                if (!TryArriveAtBody(config)) return;
+                _lootArrived = true;
+                if (_agent.isActiveAndEnabled && _agent.isOnNavMesh)
+                {
+                    _agent.isStopped = true;
+                    _agent.velocity = Vector3.zero;
+                }
+                _animationDriver?.TriggerPickUp();
+            }
+
+            if (!_lootResolved) FacePoint(_lootVictim.Transform.position, _persistentID.Entity.WarningTurnSpeed);
+
+            // Time from the clip's actual start, so the grab lines up with the bend-down.
+            if (!_lootClipStarted)
+            {
+                _lootWait += Time.deltaTime;
+                if (_animationDriver == null || _animationDriver.IsPickingUp || _lootWait >= LOOT_CLIP_START_TIMEOUT)
+                    _lootClipStarted = true;
+                else return;
+            }
+
+            _lootTimer += Time.deltaTime;
+            if (!_lootResolved && _lootTimer >= config.knockoutLootGrabTime)
+            {
+                _lootResolved = true;
+                StealGold(config);
+            }
+            // Never walk off mid-conversation (the player may be up and talking to the robber by now).
+            if (_lootTimer >= Mathf.Max(config.knockoutLootClipDuration, config.knockoutLootGrabTime) && CursorManager.IsLocked)
+                EndLooting("done");
+        }
+
+        // Within reach of the body, or at the end of a partial path close to it. False = keep walking (or gave up).
+        private bool TryArriveAtBody(CombatConfigSO config)
+        {
+            Vector3 toBody = _lootVictim.Transform.position - transform.position;
+            toBody.y = 0f;
+            float distance = toBody.magnitude;
+            if (distance <= config.knockoutLootReachDistance) return true;
+            if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh || _agent.pathPending) return false;
+            if (_agent.pathStatus == NavMeshPathStatus.PathInvalid)
+            {
+                EndLooting("the body is unreachable");
+                return false;
+            }
+            if (_agent.pathStatus == NavMeshPathStatus.PathPartial && _agent.remainingDistance <= _agent.stoppingDistance + 0.1f)
+            {
+                if (distance <= config.knockoutLootReachDistance * LOOT_PARTIAL_PATH_REACH_FACTOR) return true;
+                EndLooting("the body is unreachable");
+            }
+            return false;
+        }
+
+        private void StealGold(CombatConfigSO config)
+        {
+            float min = Mathf.Min(config.knockoutLootFractionMin, config.knockoutLootFractionMax);
+            float max = Mathf.Max(config.knockoutLootFractionMin, config.knockoutLootFractionMax);
+            var request = new GoldTheftRequest(_lootVictim.Transform.gameObject, config.knockoutLootBaseGold, Random.Range(min, max));
+            _onGoldTheftRequested.Raise(request);
+            if (!request.Handled)
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: gold theft not handled — is the player's GoldSystem listening to OnGoldTheftRequested?");
+                return;
+            }
+
+            // GoldItemSO.GoldValue = 1: one unit per coin. NPC inventories have no capacity limit.
+            if (request.Taken > 0) _inventory.AddItems(config.knockoutLootGold, request.Taken);
+
+            bool enough = request.Taken > 0 && request.GoldBefore >= config.knockoutLootBaseGold;
+            RaiseLootBark(enough ? config.knockoutLootThanksBarks : config.knockoutLootPoorBarks);
+            GameLog.Info(TAG, $"{gameObject.name} took {request.Taken} gold from the player (had {request.GoldBefore})");
+        }
+
+        private void EndLooting(string reason)
+        {
+            StopLooting();
+            _currentTarget = null;
+            GameLog.Info(TAG, $"{gameObject.name} stops looting — {reason}");
+            ResumeNonCombat();
+        }
+
+        // Leaving Looting by any path: drop a pending / playing pick-up clip and the victim. Safe outside Looting.
+        private void StopLooting()
+        {
+            if (_state == EntityState.Looting) _animationDriver?.CancelPickUp();
+            _lootVictim = null;
+        }
+
+        // Works without perception / stealth config (default bubble duration and priority then).
+        private void RaiseLootBark(BarkSetSO barks)
+        {
+            string line = barks != null ? barks.GetRandomLine(ref _lastLootBarkIndex) : null;
+            if (string.IsNullOrEmpty(line) || _onSpeechBubbleRequested == null) return;
+            StealthConfigSO config = _stealthConfig != null ? _stealthConfig : _perception != null ? _perception.Config : null;
+            RaiseSpeechBubble(line, config != null ? config.theftBubbleDuration : 0f,
+                config != null ? config.theftAlertBubblePriority : 0);
+        }
+
         // --- Damage reaction ---
 
         // A hit while not engaged (e.g. from outside the cone) makes the entity engage its attacker.
@@ -1032,7 +1233,7 @@ namespace Game.AI
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
                 _state != EntityState.Searching && _state != EntityState.Warning && _state != EntityState.Watching &&
-                _state != EntityState.Pursuing && _state != EntityState.Confronting) return;
+                _state != EntityState.Pursuing && _state != EntityState.Confronting && _state != EntityState.Looting) return;
             FactionSO faction = _selfFactionMember.Faction;
             if (faction == null) return;
 
@@ -1064,6 +1265,7 @@ namespace Game.AI
             if (candidate == null) return;
 
             if (PerceptionActive && candidate.StealthTarget != null) _perception.ForceAware(candidate);
+            StopLooting(); // hit while robbing the player: fight back instead (the clip blends out)
             _currentTarget = candidate;
             if (_meleeAttacker != null)
             {
@@ -1130,6 +1332,8 @@ namespace Game.AI
         {
             if (_state == EntityState.Dead) return;
             _animationDriver?.SetWarning(false);
+            StopLooting();
+            ClearKnockedOutVictim();
             _currentTarget = null;
             _pursuitArea = null; // a theft / trespass chase ends with the knockout
             SetCombatState(false);
@@ -1456,6 +1660,8 @@ namespace Game.AI
         private void TransitionToDead()
         {
             _animationDriver?.SetWarning(false);
+            StopLooting();
+            ClearKnockedOutVictim();
             SetCombatState(false);
             _state = EntityState.Dead;
             // Guarded: a corpse restored from a save may have an agent that is off the NavMesh.
@@ -1466,8 +1672,16 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");
         }
 
+        // A knockout this NPC delivered but didn't act on (left the fight, died, was knocked out) must not make it loot a
+        // later knockout by someone else.
+        private void ClearKnockedOutVictim()
+        {
+            if (_meleeAttacker != null) _meleeAttacker.TakeKnockedOutVictim();
+        }
+
         private void DisengageFromCombat()
         {
+            ClearKnockedOutVictim();
             _currentTarget = null;
             SetCombatState(false);
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();

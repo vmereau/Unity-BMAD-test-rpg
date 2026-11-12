@@ -16,6 +16,8 @@ namespace Game.Economy
         [SerializeField] private GameEventSO_Int _onGoldChanged;
         [Tooltip("Player only. Must match the inventory's gold collection channel.")]
         [SerializeField] private GameEventSO_GoldLootRequest _onGoldLootRequested;
+        [Tooltip("Player only. A robber (NPC that knocked the player out) takes gold through it.")]
+        [SerializeField] private GameEventSO_GoldTheftRequest _onGoldTheftRequested;
 
         public int Gold { get; private set; }
 
@@ -31,9 +33,34 @@ namespace Game.Economy
             Gold = _startingGold;
         }
 
-        private void OnEnable() => _onGoldLootRequested?.AddListener(HandleGoldLootRequested);
+        private void OnEnable()
+        {
+            _onGoldLootRequested?.AddListener(HandleGoldLootRequested);
+            _onGoldTheftRequested?.AddListener(HandleGoldTheftRequested);
+        }
 
-        private void OnDisable() => _onGoldLootRequested?.RemoveListener(HandleGoldLootRequested);
+        private void OnDisable()
+        {
+            _onGoldLootRequested?.RemoveListener(HandleGoldLootRequested);
+            _onGoldTheftRequested?.RemoveListener(HandleGoldTheftRequested);
+        }
+
+        // Knockout robbery (spec-knockout-gold-looting): base + fraction of the balance, capped at what is left.
+        private void HandleGoldTheftRequested(GoldTheftRequest request)
+        {
+            if (request == null || request.Victim != gameObject || request.Handled) return;
+            int before = Gold;
+            int taken = GoldTheftRules.Amount(before, request.BaseAmount, request.Fraction);
+            if (!request.TryHandle(before, taken)) return;
+            if (taken <= 0)
+            {
+                GameLog.Info(TAG, "Robbed while knocked out — no gold to take.");
+                return;
+            }
+            Gold -= taken;
+            GameLog.Info(TAG, $"Robbed of {taken} gold while knocked out. Remaining: {Gold}");
+            _onGoldChanged?.Raise(Gold);
+        }
 
         private void HandleGoldLootRequested(GoldLootRequest request)
         {

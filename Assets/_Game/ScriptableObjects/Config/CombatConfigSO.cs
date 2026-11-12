@@ -1,3 +1,4 @@
+using Game.Dialogue;
 using Game.Inventory;
 using UnityEngine;
 
@@ -82,6 +83,28 @@ namespace Game.Combat
         [Range(0.01f, 1f)] public float unconsciousRecoverHealthFraction = 0.15f;
         [Tooltip("Seconds still incapacitated after the get-up starts (match the 'getting up' clip length).")]
         [Min(0f)] public float getUpDuration = 2.7f;
+
+        [Header("Knockout loot (the NPC that knocked the player out takes gold)")]
+        [Tooltip("Gold taken on top of the fraction (all of it when the player has less).")]
+        [Min(0)] public int knockoutLootBaseGold = 15;
+        [Tooltip("Random fraction of the player's gold added to the base — lower bound.")]
+        [Range(0f, 1f)] public float knockoutLootFractionMin = 0.10f;
+        [Tooltip("Random fraction of the player's gold added to the base — upper bound.")]
+        [Range(0f, 1f)] public float knockoutLootFractionMax = 0.20f;
+        [Tooltip("Flat distance to the player's body at which the robber stops and plays the pickup clip.")]
+        [Min(0.1f)] public float knockoutLootReachDistance = 1.0f;
+        [Tooltip("Seconds into the pickup clip when the gold is taken (the player must still be lying down).")]
+        [Min(0f)] public float knockoutLootGrabTime = 1.75f;
+        [Tooltip("Seconds the robber stays in the pickup clip before returning to its routine (match the 'picking up' clip length).")]
+        [Min(0.1f)] public float knockoutLootClipDuration = 5f;
+        [Tooltip("Gold item the robber puts in its own inventory (one per coin).")]
+        public GoldItemSO knockoutLootGold;
+        [Tooltip("Said when the robber starts walking to the body.")]
+        public BarkSetSO knockoutLootTauntBarks;
+        [Tooltip("Said after the grab when the player had at least the base amount.")]
+        public BarkSetSO knockoutLootThanksBarks;
+        [Tooltip("Said after the grab when the player had less than the base amount (or none).")]
+        public BarkSetSO knockoutLootPoorBarks;
 
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]

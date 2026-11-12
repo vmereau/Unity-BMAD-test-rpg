@@ -15,7 +15,7 @@ namespace Game.Player
     /// Story 2.9: Initial implementation.
     /// Story 7.3: Added Defense reduction via PlayerStats.Defense.
     /// </summary>
-    public class PlayerHealth : MonoBehaviour, IDamageable
+    public class PlayerHealth : MonoBehaviour, IDamageable, IKnockoutRecovery
     {
         private const string TAG = "[Combat]";
 
@@ -54,6 +54,9 @@ namespace Game.Player
         /// True until the get-up clip ends. Not saved — a load clears it.
         /// </summary>
         public bool IsUnconscious { get; private set; }
+
+        /// <summary>The get-up clip has started (still <see cref="IsUnconscious"/>) — a robber gives up.</summary>
+        public bool IsGettingUp => IsUnconscious && _gettingUp;
 
         private void Awake()
         {

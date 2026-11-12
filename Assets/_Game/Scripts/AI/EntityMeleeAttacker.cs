@@ -62,6 +62,19 @@ namespace Game.AI
 
         public void SetAggroTarget(FactionMember target) => AggroTarget = target;
 
+        private FactionMember _knockedOutVictim;
+
+        /// <summary>
+        /// The target the last landed hit knocked out (conscious → unconscious inside that hit), then cleared. Read by
+        /// <see cref="EntityBrain"/> when its target goes down, so only the NPC that delivered the knockout loots it.
+        /// </summary>
+        public FactionMember TakeKnockedOutVictim()
+        {
+            FactionMember victim = _knockedOutVictim;
+            _knockedOutVictim = null;
+            return victim;
+        }
+
         private EntityStance _stance;
         private PersistentID _persistentID;
         private readonly HashSet<string> _warnedUnknownIds = new();
@@ -147,6 +160,7 @@ namespace Game.AI
             CloseAllWindows();
             CurrentDamage = damage;
             IsAttacking = true;
+            _knockedOutVictim = null; // a new swing means the brain saw a valid target: an old knockout is stale
             _combo.Begin(comboHits, _animationDriver != null ? _animationDriver.MaxComboSteps : 1);
         }
 
@@ -255,7 +269,11 @@ namespace Game.AI
                     if (target is Component targetComponent &&
                         targetComponent.TryGetComponent(out ISneakAttackTarget victim))
                         victim.NotifyHitBy(gameObject);
+                    bool wasUnconscious = target.IsUnconscious;
                     target.TakeDamage(CurrentDamage, gameObject);
+                    // This blow knocked the target out: the brain may rob it (spec-knockout-gold-looting).
+                    if (!wasUnconscious && target.IsUnconscious && target is Component knockedOut)
+                        _knockedOutVictim = FactionMember.Of(knockedOut.gameObject);
                     GameLog.Info(TAG, $"{gameObject.name} hit landed at {hitPoint}");
                     // Stance after health, like the player's hits: a lethal or knockout hit skips stance.
                     if (!target.IsDead && !target.IsUnconscious && TryGetStanceTarget(target, out IStanceTarget stanceTarget))

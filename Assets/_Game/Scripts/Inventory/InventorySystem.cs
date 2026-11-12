@@ -79,7 +79,22 @@ namespace Game.Inventory
         /// Adds an item. Stackable items (maxStacks > 1) are merged into an existing slot
         /// if one exists with room. Otherwise a new slot is appended with Count = 1.
         /// </summary>
-        public bool AddItem(ItemSO item)
+        public bool AddItem(ItemSO item) => AddItemCore(item, log: true);
+
+        /// <summary>
+        /// Adds <paramref name="count"/> units one by one (same stacking / gold rules as <see cref="AddItem"/>) with a
+        /// single log line. Stops at the first refused unit; returns how many were added.
+        /// </summary>
+        public int AddItems(ItemSO item, int count)
+        {
+            int added = 0;
+            while (added < count && AddItemCore(item, log: false)) added++;
+            if (added > 0) GameLog.Info(TAG, $"Added {added} × {item.itemName} (total slots: {_slots.Count})");
+            if (added < count) GameLog.Warn(TAG, $"AddItems: only {added}/{count} × {(item != null ? item.itemName : "null")} added");
+            return added;
+        }
+
+        private bool AddItemCore(ItemSO item, bool log)
         {
             if (item == null)
             {
@@ -114,7 +129,7 @@ namespace Game.Inventory
                     if (_slots[i].Item == item && _slots[i].Count < item.maxStacks)
                     {
                         _slots[i] = new InventorySlot(item, _slots[i].Count + 1);
-                        GameLog.Info(TAG, $"Stacked: {item.itemName} (slot {i}, count={_slots[i].Count})");
+                        if (log) GameLog.Info(TAG, $"Stacked: {item.itemName} (slot {i}, count={_slots[i].Count})");
                         RaiseChanged();
                         return true;
                     }
@@ -122,7 +137,7 @@ namespace Game.Inventory
             }
 
             _slots.Add(new InventorySlot(item, 1));
-            GameLog.Info(TAG, $"Picked up: {item.itemName} (total slots: {_slots.Count})");
+            if (log) GameLog.Info(TAG, $"Picked up: {item.itemName} (total slots: {_slots.Count})");
             RaiseChanged();
             return true;
         }

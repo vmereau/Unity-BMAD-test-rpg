@@ -24,6 +24,7 @@ namespace Game.Animations
         private static readonly int StaggerIndexHash = Animator.StringToHash("StaggerIndex");
         private static readonly int KnockDownHash = Animator.StringToHash("KnockDown");
         private static readonly int IsUnconsciousHash = Animator.StringToHash("IsUnconscious");
+        private static readonly int PickUpHash = Animator.StringToHash("PickUp");
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
         private static readonly int Attack2Hash = Animator.StringToHash("Attack_2");
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
@@ -239,6 +240,35 @@ namespace Game.Animations
             _animator.SetBool(IsUnconsciousHash, down);
             if (down) PlayKnockDown();
             else _animator.ResetTrigger(KnockDownHash);
+        }
+
+        /// <summary>
+        /// Plays the Base Layer <c>PickUp</c> state (bend down, take, stand up). Clears pending attack triggers — the Base
+        /// AnyState → Attack_1 would cut the clip.
+        /// </summary>
+        public void PlayPickUp()
+        {
+            if (_animator == null) return;
+            ResetAttackTriggers();
+            _animator.SetTrigger(PickUpHash);
+        }
+
+        /// <summary>True while the Base Layer is in (or blending into) the <c>PickUp</c> state.</summary>
+        public bool IsPickingUp => IsAnimatorLive &&
+            (_animator.GetCurrentAnimatorStateInfo(0).shortNameHash == PickUpHash ||
+             (_animator.IsInTransition(0) && _animator.GetNextAnimatorStateInfo(0).shortNameHash == PickUpHash));
+
+        /// <summary>
+        /// Drops an unconsumed <c>PickUp</c> trigger (it would fire on the next locomotion entry) and blends a playing
+        /// <c>PickUp</c> back to locomotion (loot cancelled / interrupted).
+        /// </summary>
+        public void StopPickUp()
+        {
+            if (_animator == null) return;
+            _animator.ResetTrigger(PickUpHash);
+            if (IsAnimatorLive && !_animator.IsInTransition(0) &&
+                _animator.GetCurrentAnimatorStateInfo(0).shortNameHash == PickUpHash)
+                _animator.CrossFade(LockOnLocomotionHash, 0.25f, 0);
         }
 
         /// <summary>Clears pending Stagger / KnockDown triggers (reaction over before the animator consumed them).</summary>

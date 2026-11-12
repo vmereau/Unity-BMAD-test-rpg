@@ -29,6 +29,14 @@ namespace Game.Animations
         /// are knocked out; default no-op.
         /// </summary>
         public virtual void SetUnconscious(bool down) { }
+        /// <summary>Picks something up from the ground (knockout loot). Only humanoids have the clip; default no-op.</summary>
+        public virtual void TriggerPickUp() { }
+
+        /// <summary>Drops a pending pick-up and blends a playing one out (loot cancelled). Default no-op.</summary>
+        public virtual void CancelPickUp() { }
+
+        /// <summary>The pick-up clip is playing (or blending in). Default false — callers fall back to a timeout.</summary>
+        public virtual bool IsPickingUp => false;
         public virtual void TriggerDeath() { }
         public virtual void EnableRagdoll() { }
         public virtual void SetWarning(bool active) { }

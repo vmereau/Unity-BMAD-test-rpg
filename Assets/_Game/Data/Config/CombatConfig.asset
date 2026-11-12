@@ -40,6 +40,16 @@ MonoBehaviour:
   unconsciousDuration: 8
   unconsciousRecoverHealthFraction: 0.15
   getUpDuration: 2.7
+  knockoutLootBaseGold: 15
+  knockoutLootFractionMin: 0.1
+  knockoutLootFractionMax: 0.2
+  knockoutLootReachDistance: 1
+  knockoutLootGrabTime: 1.75
+  knockoutLootClipDuration: 5
+  knockoutLootGold: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
+  knockoutLootTauntBarks: {fileID: 11400000, guid: 93211b7e511405b4f949b5903205c6c4, type: 2}
+  knockoutLootThanksBarks: {fileID: 11400000, guid: 2f1589398f412d644ae9b2a578c11d89, type: 2}
+  knockoutLootPoorBarks: {fileID: 11400000, guid: 1ca1aa327e86edf4f9c820bb0ac98d18, type: 2}
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
   defaultAttackStep:

@@ -539,3 +539,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - Screens are not closed on a player knockout: a loot / trade / container / inventory screen or dialogue left open stays usable while down, and an equip during the knockout reassigns the Animator controller (resets `IsUnconscious` → the get-up clip plays early while input stays locked). (The loot screen of an NPC that gets up now closes — `OnLootSourceLost`, 2026-11-12.) Fix together with a knockout / got-up event channel that the screens listen to (like `_onPlayerDied`).
 - Knocked out while swimming: the held knockdown plays at the surface under swim physics; `SetUnconscious` doesn't touch `IsSwimming`.
 - A re-enabled NPC (component toggle, respawn tool) mid-knockout without an `NpcRoutine` keeps its agent stopped (brain forced to Idle with `isStopped`).
+
+## From spec-knockout-gold-looting (2026-11-12 review)
+
+- **Robber bends over the player's root, not the body.** The knockdown clip bakes its root motion into the pose, so the lying body can sit up to ~1.5 m from the player root the robber walks to. Play-test; if the pickup misses the body, measure reach to the hips bone (or a `LootAnchor`) instead.
+- **Looting reacts only to hits and radius-scan hostiles.** Unknown-source damage (trap, fall) leaves the robber kneeling; an `EndLooting` on any damage would be simpler if it shows up.

@@ -385285,6 +385285,7 @@ MonoBehaviour:
   _startingGold: 0
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onGoldLootRequested: {fileID: 0}
+  _onGoldTheftRequested: {fileID: 0}
 --- !u!114 &1138870071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -385460,6 +385461,7 @@ MonoBehaviour:
   _speechAnchorFallbackHeight: 2.8
   _onTheftCommitted: {fileID: 11400000, guid: 1aee6a9c3167ca8489f9d05b1e0d66a4, type: 2}
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
+  _onGoldTheftRequested: {fileID: 11400000, guid: cd34007d58164ac478c6ff3b9e0c1ff8, type: 2}
 --- !u!114 &1138870082
 MonoBehaviour:
   m_ObjectHideFlags: 0

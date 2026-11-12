@@ -32,7 +32,7 @@ also replaces `Block Idle` and `unarmed stagger 1/2`.
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
-  `IsUnconscious` (bool).
+  `IsUnconscious` (bool), `PickUp` (trigger).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -117,3 +117,8 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   (non-looping → holds the last, on-the-ground frame) and goes to `GettingUp` on `IsUnconscious == false` with **no exit
   time** (an exit-time transition with a condition is unreliable past the end of a non-looping clip). Tag `FullBody`. Written
   only through `HumanoidAnimationBridge.SetUnconscious(bool)` (false also drops an unconsumed `KnockDown`).
+- **PickUp** (spec-knockout-gold-looting): Base Layer `LockOn Locomotion → PickUp` on the `PickUp` trigger (0.25 s), `PickUp →
+  LockOn Locomotion` at exit time 0.9 (0.4 s). Tag `FullBody`. Clip `Animations/picking up.fbx` trimmed to frames 15–165
+  (5 s; lowest point / grab at 1.75 s), root rotation / Y / XZ baked into pose. Timings mirrored in `CombatConfigSO`
+  `knockoutLootGrabTime` / `knockoutLootClipDuration` — re-measure both if the trim changes. Written only through
+  `HumanoidAnimationBridge.PlayPickUp()` (NPC knockout loot; the player doesn't use it yet).

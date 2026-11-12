@@ -35,7 +35,7 @@
 - `GameEventSO_Int` — `OnXPGained` / `OnLevelUp` (consumed by `NotificationToastUI` for toasts)
 - `GameEventSO_InteractionFocus` — `OnInteractionFocusChanged` (raised by `InteractionSystem` on focus or verb/name/legality change; payload `target` is a runtime scene `Component` ref, null = no focus; `illegal` = theft → red prompt — consumed by `InteractionPromptUI`)
 - `GameEventSO_TheftCommitted` — `OnTheftCommitted` (raised by `InteractionSystem` before an illegal interaction; consumed by `EntityBrain` witnesses — not by the HUD; theft alerts reach the HUD as speech bubbles)
-- `GameEventSO_SpeechBubbleRequest` — `OnSpeechBubbleRequested` (payload `speaker` runtime Transform + `text`, `duration` (≤ 0 = default 3 s), `priority`, `anchorHeight`; raised by `EntityBrain` witness warnings and theft alerts — consumed by `SpeechBubbleUI`)
+- `GameEventSO_SpeechBubbleRequest` — `OnSpeechBubbleRequested` (payload `speaker` runtime Transform + `text`, `duration` (≤ 0 = default 3 s), `priority`, `anchorHeight`; raised by `EntityBrain` witness warnings, theft alerts and knockout-loot taunts — consumed by `SpeechBubbleUI`)
 - `GameEventSO_String` — `OnLockUnlocked` (payload is the noun `"Door"`/`"Chest"`; raised by `DoorSystem` after `Unlock()`, and by `ContainerSystem` only on the **locked-container success path** — never for an already-unlocked container)
 - `GameEventSO_Int` / `GameEventSO_String` — `OnRewardGoldGained` / `OnRewardItemReceived` (raised by `PlayerRewards` when a `PlayerRewardSO` grants gold / items; reward-only — other gold changes have no toast)
 - `GameEventSO_String` — `OnCombatNotification` (verbatim toast text, e.g. "Out of arrows"; raised by `PlayerCombat` — wired on `Player.prefab` and `UICanvas.prefab`)
