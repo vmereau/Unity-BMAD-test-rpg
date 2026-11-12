@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_RacketGuard_TollOtherGate_2
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Thing is, that was that gate. This here is a different gate. Different gate, different protection. Funny how that works.
+  nextNode: {fileID: 11400000, guid: 170d2c7996e14ef47bbb8250f1a3e4a4, type: 2}
+  _id: daf646c90c15e5c40a9f384f79ace614

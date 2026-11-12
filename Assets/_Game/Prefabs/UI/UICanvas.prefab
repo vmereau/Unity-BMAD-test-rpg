@@ -2019,6 +2019,7 @@ MonoBehaviour:
   _cancelButton: {fileID: 9184111214169021692}
   _fade: {fileID: 4607871285209007385}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
+  _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
 --- !u!1 &3567422641584725982
 GameObject:
   m_ObjectHideFlags: 0
@@ -4336,6 +4337,7 @@ MonoBehaviour:
   _gameMenu: {fileID: 3751502076684803242}
   _onLoadStarted: {fileID: 11400000, guid: 1ff9a30a7364fed40ae365d87646d6a7, type: 2}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
+  _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
 --- !u!1 &7138416080532084853
 GameObject:
   m_ObjectHideFlags: 0

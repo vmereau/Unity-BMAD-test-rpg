@@ -12,7 +12,7 @@
 
 | File | Role |
 |------|------|
-| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; knockout winner over the player: **Looting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
+| `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; knockout winner over the player: **Looting** → back; toll collector: **Intercepting** (driven by `TollGate`) → back or brawl; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
 | `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). Knockout instead of death for a brawl — see **Unconscious** below. |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. **One faction source per GO:** an entity always uses `PersistentID.Entity.Faction` (the `Entity` SO); the serialized `_faction` is only for a GO without an Entity — the Player (`Faction_Player`). `_faction` set on an entity → `GameLog.Error`, ignored. `IsPlayer` = an `IStealthTarget` component exists (even disabled). Brain / perception / attacker resolve the same-GO member in `Awake` (no inspector field). Consumers read `member.Faction` at query time — never copy it into their own field (future runtime faction change). **Only the player may implement `IStealthTarget`** (it is the player marker). |
@@ -28,6 +28,7 @@
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, TargetRegistry.Player.Faction)`, read live; no player → not hostile) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
+| `NPC/TollGate`, `NPC/TollGateRules` | Exit toll (spec-racket-guard-exit-toll) — see **Toll gates** below. `TollGateRules` is pure (`TollGateRulesTests`). Racket data: `Game.NPC.TollRacketSO` (`ScriptableObjects/Entities/NPC/`). |
 | `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine (Stand / Patrol blocks — owns all patrol routes) — see below. `NpcRoutineSchedule` (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) is pure (`NpcRoutineScheduleTests`). |
 
 ---
@@ -64,8 +65,9 @@
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
   office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol (2 waypoints), 21–06 by the
   Player's Zone tents. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
-  its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `RacketGuard` and
-  `BeatenWorker` have no routine.
+  its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `RacketGuard` (Harl): 06–14
+  `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
+  The Short Measure. `BeatenWorker` has no routine.
 
 ---
 
@@ -318,6 +320,29 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   to the default duration / priority without a stealth config.
 
 ---
+
+## Toll gates (TollGate → EntityBrain — spec-racket-guard-exit-toll)
+
+- `TollGate` (scene, under the StartingTown root `TollGates`): zone = child `BoxCollider`s (trigger, Ignore Raycast,
+  containment on demand like `RestrictedArea`) spanning the whole gate; `_collector` (Harl's `EntityBrain`), `_post` (his
+  routine spot), `_paidFact` (`WorldFact`), hours, `_racket` (`TollRacketSO`: shared deferred / beaten facts, forced openers,
+  pay / defer / refuse `DialogueSignalSO`s, talk distance, duty radius, timeouts), `_onDialogueSignal`.
+- Flow: player in zone + `CanCollect` (in hours, gate unpaid, racket not beaten, gate **armed**, collector on duty = on its
+  routine, conscious, within `dutyRadius` of the post) → `EntityBrain.BeginIntercept` → **Intercepting** (non-combat walk at
+  `EngageSpeed`, waits for a locked cursor, stops facing the player) → `Reached` → `NPCPresence.RequestForcedTopic` (the
+  "other gate paid" opener when any sibling gate of the same racket is paid) → dialogue closes → last signal: pay → paid fact,
+  defer → racket deferred fact, none / refuse → `EntityBrain.StartBrawl` (aggro + `ForceAware` + Engaging, same mechanism as
+  instant-aggression trespass). Brawl: player unconscious → this gate paid (the normal knockout **Looting** robs them); collector
+  knocked out by the player's blow (`EntityBrain.WasHitThisFrameBy`, any fight incl. a sneak hit) → racket beaten fact. Pay / defer
+  are applied **on the pick** (`OnDialogueSignal`, routed to the last gate that opened the toll dialogue), so an interrupted talk
+  can't take the gold without recording it. The dialogue counts as open only if the cursor unlocked synchronously on the request
+  (else re-armed, never a refusal). While approaching, the player leaving the zone or leading him beyond `dutyRadius` = walked
+  past = brawl; a timeout / hostile / third-party abort keeps the gate armed. A loss only pays when he was fighting the player.
+  Other endings (answered, brawl over) disarm the gate until the player leaves its zone.
+- `EntityBrain.Intercept` reports `Aborted` whenever the state left Intercepting another way (hit, hostile spotted, own knockout,
+  timeout, target lost, disable) until the caller calls `ClearIntercept()`; `EndIntercept()` returns to the routine. Intercepting
+  is in `HandleHealthChanged`'s reactive list, ignores thefts, stores routine requests, gives no sneak-attack bonus.
+- Forced toll topics are not reachable from a memory, so Quest Explorer may list them as unattributed (expected).
 
 ## Code Review Checklist — AI
 

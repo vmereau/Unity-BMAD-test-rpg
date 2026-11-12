@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_RacketGuard_TollOtherGate
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Well, look who it is. Paid up over at the other gate, did you? Good for you, new meat. Real good.
+  nextNode: {fileID: 11400000, guid: daf646c90c15e5c40a9f384f79ace614, type: 2}
+  _id: bcff5b39aa15892449549745a3db3d19

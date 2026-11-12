@@ -33,6 +33,8 @@ namespace Game.UI
         // Closes on death: an open screen would block loading. Close() locks the cursor; DeathScreenUI unlocks it
         // again when it shows (after its realtime delay), like for CookingUI.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): closes like a death.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
 
         private InputSystem_Actions _input;
         private Action<SleepChoice> _onChoice;
@@ -63,6 +65,7 @@ namespace Game.UI
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
             _onPlayerDied?.AddListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.AddListener(HandlePlayerDied);
         }
 
         private void OnDisable()
@@ -72,6 +75,7 @@ namespace Game.UI
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.RemoveListener(HandlePlayerDied);
         }
 
         private void OnDestroy()

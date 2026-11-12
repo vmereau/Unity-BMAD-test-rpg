@@ -67,6 +67,18 @@ namespace Game.UI
             return _sb.ToString();
         }
 
+        /// <summary>" (10g)" for a paid regular choice, red when <paramref name="canAfford"/> is false. Empty when free.</summary>
+        public static string GoldCostLabel(int goldCost, bool canAfford)
+        {
+            if (goldCost <= 0) return string.Empty;
+            _sb.Clear();
+            _sb.Append(" (");
+            bool first = true;
+            AppendPart(ref first, $"{goldCost}g", !canAfford);
+            _sb.Append(')');
+            return _sb.ToString();
+        }
+
         /// <summary>
         /// " (10 LP, 50g, Strength: 30)" — each part the player can't pay (<paramref name="shortfall"/>) in red.
         /// Empty when the choice is free and has no stat requirement.

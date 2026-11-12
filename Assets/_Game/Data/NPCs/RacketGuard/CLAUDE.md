@@ -46,7 +46,11 @@
 
 ## Background
 
-Harl abuses his small authority: he skims food and coin and sells "protection" to new arrivals. He gives the spider job today; the exit-tax encounter comes in a later spec.
+Harl abuses his small authority: he skims food and coin and sells "protection" to new arrivals. He gives the spider job,
+and works two exit tolls (spec-racket-guard-exit-toll): the quarry opening by the tally post 06–14 and the wilderness opening
+(bridge head) 14–21; nights outside The Short Measure. The fee is 10 gold per gate, paid once. "Can't pay" works once across
+both gates. Refusing or walking off means a brawl: if the player loses, Harl robs them and that gate counts as paid. If Harl
+loses any fight to the player, he never collects again.
 
 ---
 
@@ -68,3 +72,5 @@ Harl abuses his small authority: he skims food and coin and sells "protection" t
 | Dialogues | `Assets/_Game/Data/NPCs/RacketGuard/Dialogues/` |
 | Memories | `Assets/_Game/Data/NPCs/RacketGuard/Memories/` |
 | Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |
+| Toll racket | `TollRacket_Harl.asset` (facts `WorldFact_Toll_*`, signals in `Dialogues/Toll/`); scene gates under `StartingTown/TollGates` |
+| Toll dialogue | `Dialogues/Toll/` — **forced** topics (`Start_RacketGuard_Toll`, `_TollOtherGate`) opened by `TollGate`, not exposed by a memory (Quest Explorer may list them as unattributed — expected). `Memories/Toll/Mem_RacketGuard_TollCanDefer` gates the "can't pay" choice; `Mem_RacketGuard_TollBeaten` + `Dialogues/TollBeaten/` = his grudging line after losing |

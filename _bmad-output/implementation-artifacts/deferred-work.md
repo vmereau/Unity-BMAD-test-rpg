@@ -544,3 +544,10 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 - **Robber bends over the player's root, not the body.** The knockdown clip bakes its root motion into the pose, so the lying body can sit up to ~1.5 m from the player root the robber walks to. Play-test; if the pickup misses the body, measure reach to the hips bone (or a `LootAnchor`) instead.
 - **Looting reacts only to hits and radius-scan hostiles.** Unknown-source damage (trap, fall) leaves the robber kneeling; an `EndLooting` on any damage would be simpler if it shows up.
+
+## From spec-racket-guard-exit-toll (2026-11-12 review)
+
+- **Toll dialogue left open when the encounter aborts mid-talk.** If Harl is hit or spots a hostile while the forced toll topic is open, the gate ends the encounter but the panel stays up. A pay / defer pick still applies (answers go to the last gate that opened the dialogue). A refusal shows the "lumps" line with no brawl. Closing the dialogue from AI needs a new request channel (`OnDialogueCloseRequested`).
+- **Misleading log on topics without a `dialogueFact`** (pre-existing). `DialogueSystem.NotifyTopicCompleted` logs "WorldStateManager unavailable" for every repeatable topic (`dialogueFact` null), including every forced toll topic. Split the null-fact case from the missing-manager case.
+- **Paid choice row is evaluated at render.** If gold drops while the choice node is shown, the row stays enabled and does nothing (`SelectChoice` returns false), with no feedback. Re-render on `OnGoldChanged`, or show a toast.
+- **Run-past not covered in Play mode.** In the smoke test Harl reached the player before the scripted teleport out of the zone, so the "walked past → brawl" branch is verified by code only.

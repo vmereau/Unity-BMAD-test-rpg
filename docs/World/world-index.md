@@ -24,7 +24,7 @@
 | npc-004 | Independent Hunter | wilderness / area-001 edge | Independent path contact | faction-003 | stub |
 | npc-005 | Worker Leader | area-001 | Hidden rebel leader | faction-002 | stub |
 | npc-006 | The Warden (Voss) | area-001 | Main antagonist / camp authority | faction-001 | graybox |
-| npc-007 | Racket Guard (Harl) | area-001 exit | Antagonist / extortionist | faction-001 | graybox |
+| npc-007 | Racket Guard (Harl) | area-001 exits (quarry gate 06–14, wilderness gate 14–21) | Antagonist / extortionist — one-time exit toll per gate | faction-001 | implemented |
 | npc-008 | The False Friend | area-001 | Antagonist / betrayer | none | stub |
 | npc-009 | Quarry Worker | area-002 (quarry) | Quest giver — sealed passage | none | stub |
 | npc-010 | Lead Hunter | area-004 (hunting grounds) | Work site manager | faction-001 (loose) | stub |

@@ -18,6 +18,11 @@ namespace Game.Player
         [SerializeField] private PlayerConfigSO _config;
 
         private HumanoidAnimationBridge _humanoidBridge;
+
+        // Resolved lazily: EquipmentVisuals.OnEnable → PlayerCombat → PlayerStateManager.SetInCombat can reach this driver
+        // before its Awake ran (component order on the Player root), which used to throw at play start.
+        private HumanoidAnimationBridge Bridge =>
+            _humanoidBridge != null ? _humanoidBridge : (_humanoidBridge = GetComponent<HumanoidAnimationBridge>());
         private CharacterController _characterController;
         private PlayerStateManager _stateManager;
         private float _upperBodyWeight;
@@ -63,48 +68,48 @@ namespace Game.Player
             float normX = Mathf.Clamp(localVelocity.x / _config.runSpeed, -1f, 1f);
             float normZ = Mathf.Clamp(localVelocity.z / _config.runSpeed, -1f, 1f);
 
-            _humanoidBridge.SetMovement(normX, normZ);
-            _humanoidBridge.SetGrounded(!_stateManager.IsAirborne);
-            _humanoidBridge.SetRising(_characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
+            Bridge.SetMovement(normX, normZ);
+            Bridge.SetGrounded(!_stateManager.IsAirborne);
+            Bridge.SetRising(_characterController.velocity.y > RISING_VELOCITY_THRESHOLD);
             // Every frame: an equip change or a revive resets all Animator parameters. Off during a stance reaction, or
             // the held bool would retake the Base AnyState right after the reaction's blend and hide the clip.
-            _humanoidBridge.SetSwimming(_stateManager.IsSwimming && !_stateManager.IsIncapacitated);
+            Bridge.SetSwimming(_stateManager.IsSwimming && !_stateManager.IsIncapacitated);
 
             // UpperBody layer: combat carry pose / block / aim / draw-sheathe over the legs; 0 while the Base Layer plays an
             // attack, dodge, jump, reaction or death full-body. Read from the Animator's state tags (same rule as NPCs).
-            float target = UpperBodyWeight.Target(_humanoidBridge.IsBaseFullBody, _humanoidBridge.IsUpperBodyAction,
+            float target = UpperBodyWeight.Target(Bridge.IsBaseFullBody, Bridge.IsUpperBodyAction,
                 _stateManager.IsInCombat);
             _upperBodyWeight = UpperBodyWeight.Step(_upperBodyWeight, target, Time.deltaTime, _config.upperBodyBlendTime);
-            _humanoidBridge.SetUpperBodyWeight(_upperBodyWeight);
+            Bridge.SetUpperBodyWeight(_upperBodyWeight);
         }
 
-        public void SetBlocking(bool value) => _humanoidBridge.SetBlocking(value);
-        public void PlayAttack(int triggerHash) => _humanoidBridge.PlayAttack(triggerHash);
-        public void ResetAttackTriggers() => _humanoidBridge.ResetAttackTriggers();
-        public void PlayDodge(bool isBackwardRoll = false) => _humanoidBridge.PlayDodge(isBackwardRoll);
-        public void SetInCombat(bool value) => _humanoidBridge.SetInCombat(value);
-        public void PlayWeaponSwitch(bool draw, float speed) => _humanoidBridge.PlayWeaponSwitch(draw, speed);
-        public void ResetWeaponSwitchTriggers() => _humanoidBridge.ResetWeaponSwitchTriggers();
-        public void SetSneaking(bool value) => _humanoidBridge.SetSneaking(value);
-        public void SetAiming(bool value) => _humanoidBridge.SetAiming(value);
-        public void PlayBowFire() => _humanoidBridge.PlayBowFire();
-        public void ResetBowFireTrigger() => _humanoidBridge.ResetBowFireTrigger();
+        public void SetBlocking(bool value) => Bridge.SetBlocking(value);
+        public void PlayAttack(int triggerHash) => Bridge.PlayAttack(triggerHash);
+        public void ResetAttackTriggers() => Bridge.ResetAttackTriggers();
+        public void PlayDodge(bool isBackwardRoll = false) => Bridge.PlayDodge(isBackwardRoll);
+        public void SetInCombat(bool value) => Bridge.SetInCombat(value);
+        public void PlayWeaponSwitch(bool draw, float speed) => Bridge.PlayWeaponSwitch(draw, speed);
+        public void ResetWeaponSwitchTriggers() => Bridge.ResetWeaponSwitchTriggers();
+        public void SetSneaking(bool value) => Bridge.SetSneaking(value);
+        public void SetAiming(bool value) => Bridge.SetAiming(value);
+        public void PlayBowFire() => Bridge.PlayBowFire();
+        public void ResetBowFireTrigger() => Bridge.ResetBowFireTrigger();
 
         /// <summary>Leaves sneak through the <c>sneak to sprint</c> clip instead of <c>sneak to stand</c>.</summary>
         public void PlaySneakToSprint()
         {
-            _humanoidBridge.SetSneaking(false);
-            _humanoidBridge.TriggerSneakToSprint();
+            Bridge.SetSneaking(false);
+            Bridge.TriggerSneakToSprint();
         }
-        public void PlayDeath() => _humanoidBridge.TriggerDeath();
-        public void PlayStagger(int variant) => _humanoidBridge.PlayStagger(variant);
-        public void PlayKnockDown() => _humanoidBridge.PlayKnockDown();
-        public void ClearStanceReaction() => _humanoidBridge.ResetStanceTriggers();
+        public void PlayDeath() => Bridge.TriggerDeath();
+        public void PlayStagger(int variant) => Bridge.PlayStagger(variant);
+        public void PlayKnockDown() => Bridge.PlayKnockDown();
+        public void ClearStanceReaction() => Bridge.ResetStanceTriggers();
         /// <summary>Knocked out (held knocked down clip) / gets up (getting up clip) — spec-unconscious-knockout.</summary>
-        public void SetUnconscious(bool down) => _humanoidBridge.SetUnconscious(down);
+        public void SetUnconscious(bool down) => Bridge.SetUnconscious(down);
         public void ResetAfterRevive()
         {
-            _humanoidBridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)
+            Bridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)
             _upperBodyWeight = 0f;
         }
     }

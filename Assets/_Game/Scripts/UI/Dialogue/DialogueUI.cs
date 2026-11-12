@@ -48,6 +48,7 @@ namespace Game.UI
         private DialogueNode _pendingNextNode;
         private StartDialogueNode[] _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
         private bool _forcedLine; // NPC-initiated single line: any advance / Escape closes the dialogue
+        private bool _forcedTopic; // NPC-initiated topic: no topic list; Escape closes at any point, the chain's end closes
 
         private float _shownAt;
         private bool _revealing;
@@ -137,7 +138,7 @@ namespace Game.UI
 
         private void HandleCancel(InputAction.CallbackContext ctx)
         {
-            if (_state != DisplayState.Topics && !_forcedLine) return;
+            if (_state != DisplayState.Topics && !_forcedLine && !_forcedTopic) return;
             if (_dialogueSystem != null)
                 _dialogueSystem.Close();
         }
@@ -177,6 +178,7 @@ namespace Game.UI
             }
 
             _forcedLine = false;
+            _forcedTopic = false;
             _cachedStartNodes = startNodes;
 
             _panel.SetActive(true);
@@ -201,6 +203,7 @@ namespace Game.UI
             }
 
             _forcedLine = true;
+            _forcedTopic = false;
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
             _panel.SetActive(true);
 
@@ -218,6 +221,31 @@ namespace Game.UI
 
             ShowNpcLine(line, LABEL_END);
             GameLog.Info(TAG, "DialogueUI opened on a forced line");
+        }
+
+        /// <summary>
+        /// Opens the panel for an NPC-initiated topic (no topic list): the caller then starts the topic. Escape closes the
+        /// dialogue at any point, and the end of the chain closes it instead of showing the topic list.
+        /// </summary>
+        public void OpenForcedTopic(string npcName)
+        {
+            if (_panel == null)
+            {
+                GameLog.Error(TAG, "Panel not assigned — cannot open dialogue UI");
+                return;
+            }
+
+            _forcedLine = false;
+            _forcedTopic = true;
+            _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
+            _panel.SetActive(true);
+
+            if (_npcNameText != null)
+                _npcNameText.text = npcName;
+
+            ClearContents();
+            _pendingNextNode = null;
+            GameLog.Info(TAG, "DialogueUI opened on a forced topic");
         }
 
         /// <summary>Displays a TextDialogueNode: shows text and waits for key/click to advance.</summary>
@@ -299,6 +327,7 @@ namespace Game.UI
             _pendingNextNode = null;
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
             _forcedLine = false;
+            _forcedTopic = false;
             SetState(DisplayState.Topics);
 
             GameLog.Info(TAG, "DialogueUI closed");
@@ -362,6 +391,14 @@ namespace Game.UI
 
         private void RestoreTopics()
         {
+            // A forced topic has no topic list to go back to: its end closes the dialogue.
+            if (_forcedTopic)
+            {
+                if (_dialogueSystem != null)
+                    _dialogueSystem.Close();
+                return;
+            }
+
             ClearContents();
             _pendingNextNode = null;
 
@@ -449,12 +486,18 @@ namespace Game.UI
             var captured = choice;
             DialogueOptionTag tag = DialogueOptionFormat.Classify(choice.nextNode);
             bool seen = tag == DialogueOptionTag.None && _dialogueSystem != null && _dialogueSystem.IsChoiceSeen(node, choice);
-            AddOptionButton(choice.text, slot, () =>
-            {
-                _dialogueSystem.SelectChoice(captured, node);
-                if (captured.nextNode == null)
-                    RestoreTopics();
-            }, tag, seen);
+            // A paid choice the player can't afford is shown disabled and dimmed, with its cost in red (like teach rows).
+            bool canAfford = choice.goldCost <= 0 || (_dialogueSystem != null && _dialogueSystem.CanAffordGold(choice.goldCost));
+            System.Action action = null;
+            if (canAfford)
+                action = () =>
+                {
+                    if (!_dialogueSystem.SelectChoice(captured, node)) return;
+                    if (captured.nextNode == null)
+                        RestoreTopics();
+                };
+            AddOptionButton(choice.text, slot, action, tag, seen || !canAfford,
+                DialogueOptionFormat.GoldCostLabel(choice.goldCost, canAfford));
         }
 
         private void AddTeachChoiceButton(TeachChoiceOption choice, int slot)

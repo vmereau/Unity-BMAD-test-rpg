@@ -40,13 +40,37 @@ namespace Game.AI
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Looting, Dead }
+        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Looting, Intercepting, Dead }
 
         private const string DEFAULT_SCOLD_LINE = "Hey! What do you think you're doing?";
 
         private static readonly string[] STATE_NAMES = System.Enum.GetNames(typeof(EntityState));
 
         public bool IsInCombat { get; private set; }
+
+        /// <summary>Progress of an intercept requested by <see cref="BeginIntercept"/> (e.g. a toll gate).</summary>
+        public enum InterceptStatus { None, Approaching, Reached, Aborted }
+
+        /// <summary>
+        /// Approaching / Reached while intercepting; Aborted once the intercept ended any other way (hit, hostile, own
+        /// knockout, target lost, timeout, death, disable) until the caller acknowledges it with <see cref="ClearIntercept"/>.
+        /// </summary>
+        public InterceptStatus Intercept =>
+            _state == EntityState.Intercepting ? _interceptStatus
+            : _interceptStatus == InterceptStatus.None ? InterceptStatus.None : InterceptStatus.Aborted;
+
+        /// <summary>Idle or patrolling (on its routine): free for a new encounter.</summary>
+        public bool IsInNonCombatRoutine => _state == EntityState.Idle || _state == EntityState.Patrolling;
+
+        /// <summary>True while fighting <paramref name="member"/> (engaging / attacking it).</summary>
+        public bool IsFighting(FactionMember member) => member != null && IsInCombat && _currentTarget == member;
+
+        /// <summary>
+        /// True when <paramref name="member"/> dealt the hit being resolved this frame (set by <see cref="NotifyHitBy"/>,
+        /// which every damage source calls right before <c>TakeDamage</c>), e.g. who delivered a knockout blow.
+        /// </summary>
+        public bool WasHitThisFrameBy(FactionMember member) =>
+            member != null && _lastHitBy == member && _lastHitFrame == Time.frameCount;
 
         /// <summary>Current state name for the stealth debug views (no per-frame allocation).</summary>
         public string DebugStateName => STATE_NAMES[(int)_state];
@@ -110,6 +134,13 @@ namespace Game.AI
         private float _lootWait;  // seconds waiting for the clip to start after arrival
         private int _lastLootBarkIndex = -1;
         private bool _warnedLootSetup;
+        private InterceptStatus _interceptStatus;
+        private FactionMember _lastHitBy;
+        private int _lastHitFrame = -1;
+        private FactionMember _interceptTarget;
+        private float _interceptElapsed;
+        private float _interceptTalkDistance;
+        private float _interceptTimeout;
         private EntityHealth _entityHealth;
         private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
         private FactionMember _currentTarget;
@@ -276,6 +307,13 @@ namespace Game.AI
                 _currentTarget = null;
                 _state = EntityState.Idle;
             }
+            if (_state == EntityState.Intercepting)
+            {
+                // Disabled mid-intercept: reported as Aborted to the caller; OnEnable resumes the routine.
+                _currentTarget = null;
+                _interceptTarget = null;
+                _state = EntityState.Idle;
+            }
             ClearKnockedOutVictim();
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
@@ -367,6 +405,7 @@ namespace Game.AI
                 case EntityState.Pursuing:   HandlePursuing();   break;
                 case EntityState.Confronting: HandleConfronting(); break;
                 case EntityState.Looting:    HandleLooting();    break;
+                case EntityState.Intercepting: HandleIntercepting(); break;
                 case EntityState.Dead:       HandleDead();       break;
             }
 
@@ -1215,6 +1254,142 @@ namespace Game.AI
                 config != null ? config.theftAlertBubblePriority : 0);
         }
 
+        // --- Intercept (spec-racket-guard-exit-toll) ---
+
+        /// <summary>
+        /// Walks up to <paramref name="target"/> (non-combat, <c>EngageSpeed</c>) and stops facing it once within
+        /// <paramref name="talkDistance"/> with the cursor locked → <see cref="Intercept"/> = Reached. The caller opens the
+        /// conversation, then calls <see cref="EndIntercept"/> or <see cref="StartBrawl"/>. Gives up (Aborted) after
+        /// <paramref name="timeout"/> seconds without reaching it. False when the brain isn't free (not on its routine, down,
+        /// staggered) or the target isn't a live, conscious member.
+        /// </summary>
+        public bool BeginIntercept(FactionMember target, float talkDistance, float timeout)
+        {
+            if (!_started || !isActiveAndEnabled || !IsInNonCombatRoutine) return false;
+            if (_entityHealth.IsDead || _entityHealth.IsUnconscious || (_stance != null && _stance.IsIncapacitated)) return false;
+            if (!IsLive(target) || target.Damageable.IsUnconscious) return false;
+            if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return false;
+
+            _state = EntityState.Intercepting;
+            _interceptStatus = InterceptStatus.Approaching;
+            _interceptTarget = target;
+            _currentTarget = target;
+            _interceptElapsed = 0f;
+            _interceptTalkDistance = Mathf.Max(0.5f, talkDistance);
+            _interceptTimeout = timeout;
+            _routineWalk = false;
+            if (_perception != null) _perception.ResetPerception();
+            _agent.isStopped = false;
+            _agent.speed = _persistentID.Entity.EngageSpeed;
+            _agent.stoppingDistance = _interceptTalkDistance * 0.8f;
+            _agent.SetDestination(target.Transform.position);
+            GameLog.Info(TAG, $"{gameObject.name} intercepts {target.Transform.name}");
+            return true;
+        }
+
+        /// <summary>Ends a Reached / Approaching intercept peacefully: back to the routine. Clears the status.</summary>
+        public void EndIntercept()
+        {
+            bool wasIntercepting = _state == EntityState.Intercepting;
+            ClearIntercept();
+            if (!wasIntercepting) return;
+            _currentTarget = null;
+            GameLog.Info(TAG, $"{gameObject.name} ends the intercept");
+            ResumeNonCombat();
+        }
+
+        /// <summary>Acknowledges an Aborted (or finished) intercept so <see cref="Intercept"/> reads None again.</summary>
+        public void ClearIntercept()
+        {
+            _interceptStatus = InterceptStatus.None;
+            _interceptTarget = null;
+        }
+
+        /// <summary>
+        /// Starts a non-lethal brawl with a non-hostile humanoid (melee aggro target + forced awareness + Engaging), like an
+        /// instant-aggression trespass. Ends any intercept. False when it can't fight (passive, no attacker, down, dead,
+        /// target not live / conscious).
+        /// </summary>
+        public bool StartBrawl(FactionMember target)
+        {
+            if (!_started || !isActiveAndEnabled || _state == EntityState.Dead) return false;
+            if (_entityHealth.IsDead || _entityHealth.IsUnconscious) return false;
+            if (_meleeAttacker == null || _persistentID.Entity.DetectionRange <= 0f) return false;
+            if (!IsLive(target) || target.Damageable.IsUnconscious) return false;
+
+            ClearIntercept();
+            StopLooting();
+            _currentTarget = target;
+            _meleeAttacker.SetAggroTarget(target);
+            if (PerceptionActive && target.StealthTarget != null) _perception.ForceAware(target);
+            GameLog.Info(TAG, $"{gameObject.name} starts a brawl with {target.Transform.name}");
+            if (_stance != null && _stance.IsIncapacitated)
+            {
+                // Mid-reaction: already in combat (leaves Intercepting); the agent moves once recovered.
+                _state = EntityState.Engaging;
+                SetCombatState(true);
+                _engageAfterRecovery = true;
+                return true;
+            }
+            TransitionToEngaging();
+            return true;
+        }
+
+        private void HandleIntercepting()
+        {
+            FactionMember target = _interceptTarget;
+            if (!IsLive(target) || target.Damageable.IsUnconscious) { AbortIntercept("target lost"); return; }
+
+            // A hostile showing up takes over, like Watching / Pursuing / Looting.
+            if (TryAcquireTargetThrottled())
+            {
+                GameLog.Info(TAG, $"{gameObject.name} stops the intercept — hostile {_currentTarget.Transform.name} spotted");
+                _interceptStatus = InterceptStatus.Aborted;
+                _interceptTarget = null;
+                RespondToDetectedTarget();
+                return;
+            }
+            _currentTarget = target; // TryAcquireTarget clears it when nothing is found
+
+            if (_interceptStatus == InterceptStatus.Reached)
+            {
+                FacePoint(target.Transform.position, _persistentID.Entity.WarningTurnSpeed);
+                return;
+            }
+
+            _interceptElapsed += Time.deltaTime;
+            if (_interceptElapsed >= _interceptTimeout) { AbortIntercept("could not reach the target in time"); return; }
+
+            Vector3 toTarget = target.Transform.position - transform.position;
+            toTarget.y = 0f;
+            // Waits while a menu / another dialogue is open (the caller opens one once reached).
+            if (toTarget.sqrMagnitude <= _interceptTalkDistance * _interceptTalkDistance && CursorManager.IsLocked)
+            {
+                _interceptStatus = InterceptStatus.Reached;
+                if (_agent.isActiveAndEnabled && _agent.isOnNavMesh)
+                {
+                    _agent.isStopped = true;
+                    _agent.velocity = Vector3.zero;
+                }
+                GameLog.Info(TAG, $"{gameObject.name} reached {target.Transform.name}");
+                return;
+            }
+            if (_agent.isActiveAndEnabled && _agent.isOnNavMesh && !_agent.pathPending)
+            {
+                if (_agent.pathStatus == NavMeshPathStatus.PathInvalid) { AbortIntercept("target unreachable"); return; }
+                _agent.SetDestination(target.Transform.position);
+            }
+        }
+
+        private void AbortIntercept(string reason)
+        {
+            _interceptStatus = InterceptStatus.Aborted;
+            _interceptTarget = null;
+            _currentTarget = null;
+            GameLog.Info(TAG, $"{gameObject.name} aborts the intercept — {reason}");
+            ResumeNonCombat();
+        }
+
         // --- Damage reaction ---
 
         // A hit while not engaged (e.g. from outside the cone) makes the entity engage its attacker.
@@ -1233,7 +1408,8 @@ namespace Game.AI
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
                 _state != EntityState.Searching && _state != EntityState.Warning && _state != EntityState.Watching &&
-                _state != EntityState.Pursuing && _state != EntityState.Confronting && _state != EntityState.Looting) return;
+                _state != EntityState.Pursuing && _state != EntityState.Confronting && _state != EntityState.Looting &&
+                _state != EntityState.Intercepting) return;
             FactionSO faction = _selfFactionMember.Faction;
             if (faction == null) return;
 
@@ -1382,6 +1558,8 @@ namespace Game.AI
                 member = attacker.GetComponentInParent<FactionMember>();
             _pendingAttacker = member;
             _pendingAttackerFrame = Time.frameCount;
+            _lastHitBy = member; // not consumed by HandleHealthChanged (read by TollGate on a knockout)
+            _lastHitFrame = Time.frameCount;
         }
 
         // --- Combat ---

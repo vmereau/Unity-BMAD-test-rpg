@@ -26,8 +26,8 @@ namespace Game.Dialogue
         [Tooltip("Select SkillBased to teach a skill; StatBased to upgrade a stat.")]
         public TeachingType teachingType;
 
-        [Tooltip("Gold deducted on selection (0 = free).")]
-        public int goldCost;
+        // goldCost (gold deducted on selection, 0 = free) is inherited from ChoiceOption — same serialized name, so
+        // existing teach assets keep their values.
 
         [Tooltip("If set, this choice calls PlayerSkills.LearnSkill(). Visible only when teachingType = SkillBased.")]
         public SkillSO skill;

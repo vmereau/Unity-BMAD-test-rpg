@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 487d83b009eaee442b4d2ab385beec61, type: 3}
+  m_Name: TollRacket_Harl
+  m_EditorClassIdentifier: Game::Game.NPC.TollRacketSO
+  deferredFact: {fileID: 11400000, guid: 4a09894a1de5dce44a5b782729907c71, type: 2}
+  beatenFact: {fileID: 11400000, guid: 50712673cc5c88d46b2745120b6bb541, type: 2}
+  firstStart: {fileID: 11400000, guid: 6ac18562f2cc84a4cb83d527f823f853, type: 2}
+  otherGatePaidStart: {fileID: 11400000, guid: 976b647641afece4aacf9e6e31bb6e54, type: 2}
+  paySignal: {fileID: 11400000, guid: fcce56eed57c59743ba553bbf48e8d8a, type: 2}
+  deferSignal: {fileID: 11400000, guid: 9d99b2ce2f751274cae6b3643cd389cd, type: 2}
+  refuseSignal: {fileID: 11400000, guid: 6040588cb36842d4dad4d5c646c6d524, type: 2}
+  talkDistance: 2.5
+  dutyRadius: 12
+  interceptTimeout: 12

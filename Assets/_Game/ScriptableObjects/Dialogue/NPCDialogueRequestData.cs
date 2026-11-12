@@ -13,5 +13,6 @@ namespace Game.Core
         public InventorySystem npcInventory;    // Optional: for shop/trade system
         public GoldSystem npcGoldSystem;        // Optional: null if NPC has no economy component
         public string forcedLine;               // non-empty → NPC-initiated: show only this line, the player closes it (no topics)
+        public Game.Dialogue.StartDialogueNode forcedStartNode; // non-null → NPC-initiated topic: opens straight into it (full graph context)
     }
 }

@@ -68,6 +68,8 @@ namespace Game.UI
 
         // Closes on death: an open screen would block loading and its Esc would re-lock the death screen's cursor.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): closes like a death.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
         // Action bar hotkeys stay live while the screen is open (and Cook must refresh the HUD bar): both sides use this channel.
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
 
@@ -108,6 +110,7 @@ namespace Game.UI
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
             _onPlayerDied?.AddListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.AddListener(HandlePlayerDied);
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
         }
 
@@ -117,6 +120,7 @@ namespace Game.UI
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.RemoveListener(HandlePlayerDied);
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
         }
 

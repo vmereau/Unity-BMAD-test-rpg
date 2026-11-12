@@ -29,6 +29,10 @@
 - **Row prefab** `TopicButtonPrefab`: `HorizontalLayoutGroup` (padding 16/16/6/6, controls child size) so rows grow with wrapped text; label parchment `#D8CCB0`, `raycastTarget` off; Button Color Tint normal transparent, highlighted brass α .35, pressed / selected α .5 (plain white `Image`, no sprite yet). `TopicsContent` VLG controls child height, spacing 4.
 - **Advance label** `_nextNodeLabel`: "Continue" (more nodes), "End" (last node / forced line), "Trade" (shop node).
 - **Teach `[Leave]`** plays the teach node's `nextNode` when set, else completes the topic.
+- **Forced topic** (`OpenForcedTopic(npcName)`, then `DialogueSystem.StartTopic`): no topic list; `_forcedTopic` lets Escape close
+  in any state and makes `RestoreTopics` close the dialogue instead (chain end / `[Leave]`). Reset by `Open()` / `OpenLine()` / `Close()`.
+- **Paid choices** (`ChoiceOption.goldCost`): `DialogueOptionFormat.GoldCostLabel` suffix, disabled + dimmed while
+  `DialogueSystem.CanAffordGold` is false; `SelectChoice` returns false when the payment fails (the row does nothing).
 - **Forced line** (`OpenLine(npcName, line)`, NPC-initiated, e.g. a theft scold): opens straight in `Text` with no topic list; `_forcedLine` makes click, slot 1, `_nextNodeButton` and Escape all call `DialogueSystem.Close()`. Reset by `Open()` / `Close()`.
 
 ## Cursor

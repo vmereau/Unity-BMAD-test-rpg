@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_RacketGuard_Toll
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Ten coins and nobody bothers you at this gate. A bargain, really. So?
+  nextNode: {fileID: 0}
+  _id: 170d2c7996e14ef47bbb8250f1a3e4a4
+  choices:
+  - text: Fine. Take your money.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 45f9f24022dd2104eba10b6fce9005a4, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 10
+    signal: {fileID: 11400000, guid: fcce56eed57c59743ba553bbf48e8d8a, type: 2}
+  - text: I don't have that kind of money.
+    requiredMemory: {fileID: 11400000, guid: 309bd7654a6580e4fa6d4acb736d0a70, type: 2}
+    nextNode: {fileID: 11400000, guid: f97285218dce26e4f939c33da01d113e, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    signal: {fileID: 11400000, guid: 9d99b2ce2f751274cae6b3643cd389cd, type: 2}
+  - text: I'm not paying you anything.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 189231228854fa941aa81e7a0aeaff57, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    signal: {fileID: 11400000, guid: 6040588cb36842d4dad4d5c646c6d524, type: 2}

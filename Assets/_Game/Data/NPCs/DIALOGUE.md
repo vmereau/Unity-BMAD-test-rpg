@@ -105,6 +105,8 @@ choices. Each `ChoiceOption` routes to its own sub-chain.
 | `requiredMemory` | `NPCMemoryEntrySO` | If set, choice is hidden unless this memory `IsActive()`. Null = always shown |
 | `nextNode` | `DialogueNode` | Node to advance to when selected. Null = close dialogue |
 | `dialogueFact` | `DialogueFact` | When set, written to `WorldStateManager` when this choice is selected. Use to track which branch the player took. |
+| `goldCost` | `int` | Gold the player pays the NPC on pick (coins go into the NPC's `InventorySystem` as `Item_Gold`, lootable back). The row shows " (Ng)" and is disabled + red while unaffordable. 0 = free. Teach choices inherit the same field. |
+| `signal` | `DialogueSignalSO` | Raised on `OnDialogueSignal` after the gold is paid — how gameplay systems react to an answer (e.g. `TollGate`). Never use a `DialogueFact` for that: they are permanent. Menu `Game/Dialogue/Signal`, name `Signal_<Topic>_<Answer>`, stored in the topic folder. |
 
 `ChoiceDialogueNode.IsEndNode()` always returns `false` — the chain continues via each
 choice's own `nextNode`.
@@ -139,6 +141,13 @@ Shows its `text` (NPC line), then opens the trade window on the NPC's `Inventory
   `[Teach]` (walk follows `nextNode` through text nodes, stops at a choice node). Tagged options are never dimmed
   — they are services the player returns to. There is no quest tag.
 - Teach costs: the part the player can't pay (LP / gold / stat requirements) is shown in red.
+
+## NPC-Initiated Topics (forced)
+
+A system can open a topic on the player: `NPCPresence.RequestForcedTopic(startNode)` → `NPCDialogueRequestData.forcedStartNode`.
+The panel opens straight into the chain (no topic list), Escape closes it at any point, and the end of the chain closes the
+dialogue. The start node's `text` is never shown. Such topics are not exposed through a memory (Quest Explorer may flag them
+as unattributed). Example: `RacketGuard/Dialogues/Toll/` (Harl's exit toll, `TollRacket_Harl`).
 
 ## Shop Topics
 

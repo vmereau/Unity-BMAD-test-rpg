@@ -15,6 +15,12 @@ namespace Game.Dialogue
         public DialogueNode nextNode;
         [Tooltip("Fact asset used to track and check played state in WorldStateManager. Null = not tracked.")]
         public DialogueFact dialogueFact;
+        [Tooltip("Gold the player pays the NPC when picking this choice (coins go into the NPC's inventory). 0 = free. " +
+                 "The button shows the cost and is disabled while the player can't afford it.")]
+        [Min(0)] public int goldCost;
+        [Tooltip("Raised on OnDialogueSignal when this choice is picked (after the gold is paid), for gameplay systems " +
+                 "reacting to the answer. Null = none.")]
+        public DialogueSignalSO signal;
     }
 
     [CreateAssetMenu(menuName = "Game/Dialogue/Choice Node", fileName = "Choice_")]

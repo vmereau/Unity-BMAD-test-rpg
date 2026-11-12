@@ -82,7 +82,8 @@ the Animator). Systems outside the `Can*` gates check `IsIncapacitated` themselv
 A 0-HP blow from a non-hostile humanoid knocks the player out (rule in `Scripts/AI/CLAUDE.md` → Unconscious): no
 `_onPlayerDied`, no death screen. `PlayerHealth.KnockOut` → `PlayerCombat.InterruptForStance()` +
 `PlayerStateManager.SetUnconscious(true)` (`IsUnconscious` is part of `IsIncapacitated` → every gate closes; clears
-block / attack / aim / sneak / stance flags; held knocked down clip). `PlayerHealth.Update` regains HP (HUD event each
+block / attack / aim / sneak / stance flags; held knocked down clip) and raises `OnPlayerKnockedOut` (`GameEventSO_Void`):
+`UIScreenManager`, `ContainerUI`, `CookingUI`, `SleepUI`, `NPCTradeUI` and `DialogueSystem` close like on a death. `PlayerHealth.Update` regains HP (HUD event each
 tick), then `BeginGetUp()` (get-up clip), then `SetUnconscious(false)`. Monster / hostile hits still kill a downed player
 (`SetDead` clears the flag). Not saved: `RestoreHealth` clears it with `resetAnimator: true`. `PlayerStance` refills and
 ignores stance while unconscious.
@@ -105,6 +106,8 @@ Consequences:
 `PlayerAnimationDriver` is the **player-specific driver** for `HumanoidAnimationBridge` (`Assets/_Game/Scripts/Core/Animations/HumanoidAnimationBridge.cs`). `HumanoidAnimationBridge` owns every `Animator.Set*` call for humanoids (Player and, eventually, humanoid NPCs); `PlayerAnimationDriver` reads `CharacterController` velocity and `PlayerStateManager.IsAirborne` and forwards normalized values into it. `PlayerStateManager` calls `PlayerAnimationDriver`'s combat methods — no other class should reach into `HumanoidAnimationBridge` or `Animator` directly for the player.
 
 `[RequireComponent(typeof(HumanoidAnimationBridge))]` guarantees the sibling component exists on the Player prefab.
+The bridge is resolved **lazily** (`Bridge` property): `EquipmentVisuals.OnEnable → PlayerCombat → PlayerStateManager.SetInCombat`
+can call the driver before its `Awake` — never read `_humanoidBridge` directly.
 
 ### Locomotion — Unified 2D Blend Tree
 

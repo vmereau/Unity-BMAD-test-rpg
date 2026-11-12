@@ -21,6 +21,8 @@ namespace Game.Player
 
         [SerializeField] private CombatConfigSO _config;
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [Tooltip("Raised when a knockout starts (OnPlayerKnockedOut): open screens / dialogue close.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
         [SerializeField] private GameEventSO_Float _onPlayerHealthChanged;
 
         [Header("Audio")]
@@ -166,6 +168,8 @@ namespace Game.Player
             GameLog.Info(TAG, "Player knocked out");
             _playerCombat?.InterruptForStance();
             _playerStateManager?.SetUnconscious(true);
+            if (_onPlayerKnockedOut != null) _onPlayerKnockedOut.Raise(true);
+            else GameLog.Warn(TAG, "OnPlayerKnockedOut not assigned — open screens stay open during the knockout");
         }
 
         /// <summary>

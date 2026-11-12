@@ -28,6 +28,8 @@ namespace Game.UI
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_Void _onLoadStarted;
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): closes like a death.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
 
         private InputSystem_Actions _input;
         private ScreenTab? _activeTab = null;
@@ -54,6 +56,7 @@ namespace Game.UI
             WireTabButtons();
             _onLoadStarted?.AddListener(HandleLoadStarted);
             _onPlayerDied?.AddListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.AddListener(HandlePlayerDied);
         }
 
         private void OnDisable()
@@ -68,6 +71,7 @@ namespace Game.UI
             _input.UI.Disable();
             _onLoadStarted?.RemoveListener(HandleLoadStarted);
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.RemoveListener(HandlePlayerDied);
         }
 
         private void LateUpdate()

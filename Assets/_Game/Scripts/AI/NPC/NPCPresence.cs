@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Dialogue;
 using Game.Economy;
 using Game.Factions;
 using Game.Inventory;
@@ -76,10 +77,26 @@ namespace Game.AI
                 GameLog.Info(TAG, $"{gameObject.name} is in combat — dialogue interaction blocked");
                 return;
             }
+            RaiseDialogueRequest(null);
+        }
+
+        /// <summary>
+        /// NPC-initiated topic (e.g. a toll collector stopping the player): opens the dialogue straight into
+        /// <paramref name="startNode"/>, with this NPC's memories / graph / inventory as context. False when it can't be
+        /// raised (no data, down, no channel). The caller checks the dialogue actually opened (cursor unlocked).
+        /// </summary>
+        public bool RequestForcedTopic(StartDialogueNode startNode)
+        {
+            if (Data == null || startNode == null || IsDown) return false;
+            return RaiseDialogueRequest(startNode);
+        }
+
+        private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode)
+        {
             if (_onDialogueRequested == null)
             {
                 GameLog.Warn(TAG, $"No dialogue event assigned on {gameObject.name} — cannot open dialogue");
-                return;
+                return false;
             }
             var memComponent   = GetComponent<NPCMemoryComponent>();
             var graphComponent = GetComponent<NPCDialogueGraphComponent>();
@@ -88,12 +105,14 @@ namespace Game.AI
 
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
-                npcName       = Data.entityName,
-                memories      = memComponent,
-                graph         = graphComponent,
-                npcInventory  = invComponent,
-                npcGoldSystem = goldComponent
+                npcName         = Data.entityName,
+                memories        = memComponent,
+                graph           = graphComponent,
+                npcInventory    = invComponent,
+                npcGoldSystem   = goldComponent,
+                forcedStartNode = forcedStartNode,
             });
+            return true;
         }
     }
 }

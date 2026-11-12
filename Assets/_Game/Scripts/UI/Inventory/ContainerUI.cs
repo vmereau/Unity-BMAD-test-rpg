@@ -27,6 +27,8 @@ namespace Game.UI
 
         // Closes on death: an open loot window would block loading and its Esc would re-lock the death screen's cursor.
         [SerializeField] private GameEventSO_Void _onPlayerDied;
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): closes like a death.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
         // Closes when the looted body stops being lootable (a knocked-out NPC getting up) — matched by inventory.
         [SerializeField] private GameEventSO_Inventory _onLootSourceLost;
 
@@ -51,6 +53,7 @@ namespace Game.UI
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
             _onPlayerDied?.AddListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.AddListener(HandlePlayerDied);
             _onLootSourceLost?.AddListener(HandleLootSourceLost);
         }
 
@@ -60,6 +63,7 @@ namespace Game.UI
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
+            _onPlayerKnockedOut?.RemoveListener(HandlePlayerDied);
             _onLootSourceLost?.RemoveListener(HandleLootSourceLost);
         }
 

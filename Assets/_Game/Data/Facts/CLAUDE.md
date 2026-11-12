@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | `KilledFact` | `Killed.{guid}` | stored | `PersistentID.RegisterDeath()` → `WorldStateManager.RegisterKill` | quest steps, memory conditions, `PlayerRewardSO` |
 | `DialogueFact` | `Dialogue.Played.{nodeId}` | stored | `DialogueSystem` when a `StartDialogueNode.dialogueFact` plays or a `ChoiceOption.dialogueFact` is picked | quest start/completed parts, memory conditions, rewards |
-| `WorldFact` | `World.{eventKey}` | stored | **nothing yet** — `SetWorldEvent` has no callers | quest parts (always reported "never set"), `FactRemovedObject` (`WorldFact_QuarryPassageOpened`: quest-002 must set it to open the quarry cleft) |
+| `WorldFact` | `World.{eventKey}` | stored | `TollGate` (`WorldFact_Toll_QuarryPaid` / `_WildernessPaid` / `_Deferred` / `_HarlBeaten`) via `SetWorldEvent`; nothing else yet (`WorldFact_QuarryPassageOpened` has no setter) | toll gates, Harl's memories, quest parts, `FactRemovedObject` (`WorldFact_QuarryPassageOpened`: quest-002 must set it to open the quarry cleft) |
 | `RecipeFact` | `Recipe.Known.{recipeId}` | stored | `CookingUI` Experiment tab on first discovery, or using a `RecipeItemSO` → `WorldStateManager.SetRecipeKnown` (setter shown as the `RecipeSO` in Quest Explorer) | cooking Recipes tab, quest parts, memory conditions |
 | `QuestFact` | `Quest.{questId}.{State\|StepN}` | computed | derived from the quest's parts | memory conditions, other quests, rewards |
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |

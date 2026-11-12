@@ -38,6 +38,10 @@ namespace Game.UI
         [SerializeField] private TMP_Text _goldText;
         [SerializeField] private TMP_Text _npcGoldText;
 
+        [Header("Knockout")]
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): the trade window closes. Listened to while open (GO active).")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
+
         private GoldSystem _npcGoldSystem;
 
         private GameObject _activeContextMenu;
@@ -55,6 +59,7 @@ namespace Game.UI
 
         private void OnEnable()
         {
+            _onPlayerKnockedOut?.AddListener(HandlePlayerKnockedOut);
             if (_input == null) return;
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
@@ -63,6 +68,7 @@ namespace Game.UI
 
         private void OnDisable()
         {
+            _onPlayerKnockedOut?.RemoveListener(HandlePlayerKnockedOut);
             if (_input == null) return;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
@@ -75,6 +81,11 @@ namespace Game.UI
         }
 
         private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
+
+        private void HandlePlayerKnockedOut(bool _)
+        {
+            if (gameObject.activeInHierarchy) Close();
+        }
 
         private void HandleCancel(UnityEngine.InputSystem.InputAction.CallbackContext context)
         {

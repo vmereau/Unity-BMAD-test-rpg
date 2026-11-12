@@ -24,6 +24,12 @@ namespace Game.World
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private NPCTradeUI _tradeUI;
+        [Tooltip("Coin item added to the NPC's inventory when the player pays a ChoiceOption.goldCost (Item_Gold).")]
+        [SerializeField] private ItemSO _goldItem;
+        [Tooltip("Raised when a picked ChoiceOption carries a DialogueSignalSO (OnDialogueSignal).")]
+        [SerializeField] private GameEventSO_DialogueSignal _onDialogueSignal;
+        [Tooltip("Player knocked out (OnPlayerKnockedOut): an open dialogue closes.")]
+        [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
 
         public bool IsOpen { get; private set; }
 
@@ -32,6 +38,7 @@ namespace Game.World
         private InventorySystem _currentNPCInventory;
         private GoldSystem _currentNPCGoldSystem;
         private StartDialogueNode _currentStartNode;
+        private string _currentNPCName;
         private readonly System.Collections.Generic.HashSet<DialogueNode> _warnedNoId = new();
 
         private void OnEnable()
@@ -42,12 +49,21 @@ namespace Game.World
                 return;
             }
             _onDialogueRequested.AddListener(HandleDialogueRequested);
+            if (_onPlayerKnockedOut != null) _onPlayerKnockedOut.AddListener(HandlePlayerKnockedOut);
         }
 
         private void OnDisable()
         {
+            if (_onPlayerKnockedOut != null) _onPlayerKnockedOut.RemoveListener(HandlePlayerKnockedOut);
             if (_onDialogueRequested == null) return;
             _onDialogueRequested.RemoveListener(HandleDialogueRequested);
+        }
+
+        private void HandlePlayerKnockedOut(bool _)
+        {
+            if (!IsOpen) return;
+            GameLog.Info(TAG, "Player knocked out — closing the dialogue");
+            Close();
         }
 
         private void HandleDialogueRequested(NPCDialogueRequestData data)
@@ -85,6 +101,26 @@ namespace Game.World
             _currentGraph = data.graph;
             _currentNPCInventory = data.npcInventory;
             _currentNPCGoldSystem = data.npcGoldSystem;
+            _currentNPCName = data.npcName;
+
+            // NPC-initiated topic (e.g. a toll collector stopping the player): straight into the chain, no topic list.
+            if (data.forcedStartNode != null)
+            {
+                if (data.forcedStartNode.nextNode == null)
+                {
+                    GameLog.Warn(TAG, $"Forced topic '{data.forcedStartNode.name}' from {data.npcName} has no nextNode — ignored");
+                    ClearContext();
+                    return;
+                }
+                _dialogueUI.OpenForcedTopic(data.npcName);
+                IsOpen = true;
+                if (_playerStateManager != null)
+                    _playerStateManager.SetInDialogue(true);
+                CursorManager.Unlock();
+                GameLog.Info(TAG, $"{data.npcName} forces topic '{data.forcedStartNode.name}' on the player");
+                StartTopic(data.forcedStartNode);
+                return;
+            }
 
             StartDialogueNode[] startNodes = _currentGraph != null
                 ? _currentGraph.GetAvailableStartNodes(_currentNPCMemory)
@@ -210,9 +246,11 @@ namespace Game.World
         /// Marks the choice seen, records its dialogueFact as played (if assigned), then advances the chain.
         /// <paramref name="node"/> = the choice node that offered it (null = not tracked as seen).
         /// </summary>
-        public void SelectChoice(ChoiceOption choice, ChoiceDialogueNode node = null)
+        /// <returns>False when the choice wasn't applied (null, or its gold cost could not be paid).</returns>
+        public bool SelectChoice(ChoiceOption choice, ChoiceDialogueNode node = null)
         {
-            if (choice == null) return;
+            if (choice == null) return false;
+            if (choice.goldCost > 0 && !PayChoiceGold(choice.goldCost)) return false;
             if (node != null)
                 MarkSeen(node, node.ChoiceSeenId(choice));
 
@@ -222,10 +260,43 @@ namespace Game.World
                 GameLog.Info(TAG, $"Choice '{choice.text}' marked as played via fact '{choice.dialogueFact}'");
             }
 
+            if (choice.signal != null)
+            {
+                if (_onDialogueSignal != null)
+                    _onDialogueSignal.Raise(new DialogueSignalData { signal = choice.signal, npcName = _currentNPCName });
+                else
+                    GameLog.Warn(TAG, $"Choice '{choice.text}' carries signal '{choice.signal.name}' but _onDialogueSignal is not assigned");
+            }
+
             if (choice.nextNode != null)
                 AdvanceToNode(choice.nextNode);
             else
                 NotifyTopicCompleted();
+            return true;
+        }
+
+        /// <summary>True when the player has at least <paramref name="amount"/> gold (a ChoiceOption.goldCost).</summary>
+        public bool CanAffordGold(int amount) => amount <= 0 || (_goldSystem != null && _goldSystem.Gold >= amount);
+
+        // The player pays the NPC: deducted from the player's GoldSystem, coins added to the NPC's inventory (lootable back).
+        private bool PayChoiceGold(int amount)
+        {
+            if (_goldSystem == null)
+            {
+                GameLog.Error(TAG, $"Choice costs {amount} gold but GoldSystem is not assigned — choice refused");
+                return false;
+            }
+            if (!_goldSystem.TrySpend(amount))
+            {
+                GameLog.Warn(TAG, $"Choice costs {amount} gold — the player can't pay it");
+                return false;
+            }
+            if (_currentNPCInventory != null && _goldItem != null)
+                _currentNPCInventory.AddItems(_goldItem, amount);
+            else
+                GameLog.Warn(TAG, $"Paid {amount} gold but the NPC has no InventorySystem or _goldItem is unassigned — coins not stored");
+            GameLog.Info(TAG, $"Player paid {amount} gold to {_currentNPCName}");
+            return true;
         }
 
         /// <summary>
@@ -394,6 +465,16 @@ namespace Game.World
             AdvanceToNode(choice.confirmNextNode);
         }
 
+        private void ClearContext()
+        {
+            _currentNPCMemory = null;
+            _currentGraph = null;
+            _currentNPCInventory = null;
+            _currentNPCGoldSystem = null;
+            _currentStartNode = null;
+            _currentNPCName = null;
+        }
+
         private TeachChoiceOption[] FilterLearnedSkillChoices(TeachChoiceOption[] choices)
         {
             if (_playerSkills == null || choices.Length == 0) return choices;
@@ -415,11 +496,7 @@ namespace Game.World
             IsOpen = false;
             if (_playerStateManager != null)
                 _playerStateManager.SetInDialogue(false);
-            _currentNPCMemory = null;
-            _currentGraph = null;
-            _currentNPCInventory = null;
-            _currentNPCGoldSystem = null;
-            _currentStartNode = null;
+            ClearContext();
             CursorManager.Lock();
             GameLog.Info(TAG, "Closed dialogue");
         }

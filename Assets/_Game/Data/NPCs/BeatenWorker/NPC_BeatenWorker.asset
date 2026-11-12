@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Tam
   _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
-  _baseHealth: 50
+  _baseHealth: 200
   _attackDamage: 10
   _detectionRange: 8
   _disengageRange: 12

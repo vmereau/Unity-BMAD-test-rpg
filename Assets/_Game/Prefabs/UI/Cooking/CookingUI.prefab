@@ -3279,6 +3279,7 @@ MonoBehaviour:
   _recipeItemPanel: {fileID: 8015019417215617971}
   _recipeActions: {fileID: 1029080358405156191}
   _onPlayerDied: {fileID: 11400000, guid: cdfd40fa21998884ba086a3430342c99, type: 2}
+  _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
   _onActionBarUsed: {fileID: 11400000, guid: d33d89798b722c2429f69c5af4824e7d, type: 2}
 --- !u!1 &8870941244133701824
 GameObject:

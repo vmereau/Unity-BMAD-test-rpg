@@ -599,6 +599,7 @@ MonoBehaviour:
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _goldText: {fileID: 9060036903446254687}
   _npcGoldText: {fileID: 7509789243758396210}
+  _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
 --- !u!114 &6296141117780770101
 MonoBehaviour:
   m_ObjectHideFlags: 0
