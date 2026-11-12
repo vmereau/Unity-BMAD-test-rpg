@@ -60,6 +60,15 @@ Voss runs Alderath Camp for the Company. He uses punishment as theater: every be
 
 ---
 
+## Gameplay Notes
+
+- event-001: snapped to `ArrivalSequence/WardenStageSpot` for the arrival; forced topic `Dialogues/Arrival/Start_Warden_ArrivalSpeech`,
+  then beats Tam; closing bubble `Barks_Warden_ArrivalClosing`. His routine resumes afterwards.
+- `_engageStoppingDistance` 0.9 / `_attackRange` 1.1 (not the humanoid 1.3 / 1.5): at the default range his unarmed punches
+  whiffed (known humanoid reach gap, `deferred-work.md`).
+
+---
+
 ## Asset Reference
 
 | Asset | Path |

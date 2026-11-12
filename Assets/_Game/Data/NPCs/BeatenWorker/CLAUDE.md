@@ -60,6 +60,16 @@ Tam worked out how little he can do before the Warden beats him, and stopped pre
 
 ---
 
+## Gameplay Notes (event-001)
+
+- Beaten unconscious by the Warden on the stage during the arrival (`ArrivalSequence`). Not talkable until
+  `WorldFact_Arrival_Done` (`NPCPresence._availableAfter`); then he gets up and walks to the campfire (all-day routine,
+  `Spot_BeatenWorker_Campfire`).
+- **Passive** (`_detectionRange` 0): he never fights back, against the Warden or the player. `_baseHealth` 25 so the
+  Warden's unarmed hits (10) knock him out in 2–3 blows.
+
+---
+
 ## Asset Reference
 
 | Asset | Path |

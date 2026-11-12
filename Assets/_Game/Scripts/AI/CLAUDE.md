@@ -61,13 +61,16 @@
 - No clock (region played without Core) → the first all-day block (`FindAllDayBlock`) applies once (snap), else no
   routine (idle wander); one info log.
 - `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
+- **Story sequences own NPCs through `Suspend()` / `Resume(snap)`** (e.g. `Game.World.ArrivalSequence`): while
+  `IsSuspended` no block is sent, so the sequence's own `SetRoutineTarget` calls stick; `Resume` re-sends the current
+  block at once (snap = warp). Always resume what you suspend (also from `OnDisable`).
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
   office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol (2 waypoints), 21–06 by the
   Player's Zone tents. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
-  its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `RacketGuard` (Harl): 06–14
+  its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
-  The Short Measure. `BeatenWorker` has no routine.
+  The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`.
 
 ---
 
@@ -107,7 +110,7 @@
   then engages **that attacker** if it is hostile (never a bystander), while Idle/Patrolling/Suspicious/
   Searching/Warning. Unknown source → the stealth target only if in sight, else the closest radius hostile.
   Skipped for passive entities. **Any new damage source must call `NotifyHitBy`.**
-- **Witness mode is per target, not per entity.** Every StartingTown NPC uses its own `NPCEntity` asset with
+- **Witness mode is per target, not per entity.** Every StartingTown NPC (except Tam, `NPC_BeatenWorker`: passive `DetectionRange 0` since event-001, so he never witnesses thefts or trespass) uses its own `NPCEntity` asset with
   `DetectionRange 8` (they fight monsters) — never gate witnessing on `DetectionRange <= 0`. `ScanForTarget`:
   closest **hostile** stealth target first (`DetectionRange > 0`); none and `CanWitness` (enabled
   `WitnessProfileSO` on the `NPCEntity`) → closest **non-hostile** one, `IsWitnessing = true`. Witnessing only
@@ -192,6 +195,12 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `GameEventSO_ContainerOpenRequest _onLootRequested` with the entity's `InventorySystem` and
   `takeOnly = true` — reusing the container pipeline (`ContainerSystem` / `ContainerUI`). An emptied corpse
   is inert (no prompt, `Interact()` no-op).
+- **`NPCPresence._availableAfter`** (optional `WorldFact`): no "Talk" prompt / dialogue until the fact is true (Tam before
+  event-001). Loot and NPC-forced topics (`RequestForcedTopic`) ignore it. No `WorldStateManager` → available.
+- **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
+  scripted brawl); no-op otherwise.
+- **`EntityBrain.Say(line, duration, priority)`**: scripted speech bubble over the NPC (story sequences); false without a
+  line or `_onSpeechBubbleRequested`.
 - **`NPCPresence`** overrides `Interact()`: dead / unconscious → `base.Interact()` (loot, never dialogue); alive and out of
   combat → raises `_onDialogueRequested`; in combat → blocked. Prompt `"Loot"` / `"Talk"` / `""`;
   `CanInteract => IsLootable || IsAliveAndOutOfCombat`.

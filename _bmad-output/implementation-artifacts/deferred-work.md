@@ -370,7 +370,11 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 
 Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
-- **Arrival sequence** — escorted arrival, the public beating at the center stage, escort to the tent, Tent Mate briefing.
+- **Arrival sequence** — split 2026-11-12. Part 1 (gate spawn, escort to the stage, Warden speech, beating, Tam gating,
+  dev skip) is `spec-area-1-arrival-escort-beating`. **Part 2 (deferred):** after the beating the escort walks the player
+  to the tent (part 1 ends with the guards back at their posts at the arrival gate); Hobb opens a forced topic there —
+  introduces himself and shows where the player sleeps — then the player can close it or follow up on his other topics.
+  The "stripped" beat / empty starting inventory is to be designed later.
 - **Warden's errand tour** — report to each work site manager; tools issued as Company property.
 - **First work site** — Stone Quarry recommended (hidden find, first contact with the ruins mystery).
 - **Racket guard encounter** — exit-tax interception, pay / refuse / attack-on-sight branches.
@@ -551,3 +555,26 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Misleading log on topics without a `dialogueFact`** (pre-existing). `DialogueSystem.NotifyTopicCompleted` logs "WorldStateManager unavailable" for every repeatable topic (`dialogueFact` null), including every forced toll topic. Split the null-fact case from the missing-manager case.
 - **Paid choice row is evaluated at render.** If gold drops while the choice node is shown, the row stays enabled and does nothing (`SelectChoice` returns false), with no feedback. Re-render on `OnGoldChanged`, or show a toast.
 - **Run-past not covered in Play mode.** In the smoke test Harl reached the player before the scripted teleport out of the zone, so the "walked past → brawl" branch is verified by code only.
+
+## From spec-area-1-arrival-escort-beating (2026-11-13)
+
+- **Escort guards wear no Company armor.** NPCs have no equipment visuals (only the player's `EquipmentVisuals` binds
+  `CompanyGruntArmor_Visual`, fitted to the player rig). An NPC outfit component (instantiate a `SkinnedBodyPart`, bind with
+  `SkinnedMeshRebinder`, hide the body) would dress the guards, after checking the armor binds to the `NPC_base Variant` rig.
+- **No camera direction at the stage.** The player is held but the camera stays wherever it was, so the beating can happen
+  behind them. A soft look-at (or a camera nudge toward the stage when the hold starts) would frame it.
+- **Dragged body pops.** A player knocked out on the escort is teleported to the watch spot while lying down, in view of the
+  camera. A fade (none exists yet) would hide it.
+- **Water is a free escape from the escort.** A straying player who swims makes the chasing guard give up (same gap as
+  "Enemies stay engaged at the shore"); the stray rules then warn and send a guard again, forever.
+- **Humanoid unarmed reach** (see spec-restricted-areas-trespass) — only the Warden got tighter ranges (0.9 / 1.1) for the
+  beating; every other humanoid still stops at 1.3 m and can whiff.
+
+## Deferred from: review of spec-area-1-arrival-escort-beating (2026-11-13)
+
+- **Save block isn't airtight at region entry.** `SaveSystem` can autosave in the first frames after a region load, before
+  `ArrivalSequence.TryStart` (3-frame settle) calls `BlockSaving`. Harmless today (the fact is unset, so the arrival replays
+  on load), but a sequence that changes state in its first frames would need the block earlier (e.g. in `Awake`).
+- **Knocking the Warden or Tam out before the stage consumes the event.** Emergent and accepted for now: a downed Warden
+  skips the speech and the beating; a downed Tam skips the beating and the closing line.
+

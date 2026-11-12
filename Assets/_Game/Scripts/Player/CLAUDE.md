@@ -25,7 +25,7 @@
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
-- `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
+- `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), held by a story sequence (`IsScriptedHold`, `SetScriptedHold` — camera stays free), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.

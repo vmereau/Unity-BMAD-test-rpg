@@ -66,7 +66,15 @@ namespace Game.Player
         /// True when the player cannot perform any action (dead, staggered / knocked down, cursor unlocked, or a dialogue
         /// closed this frame).
         /// </summary>
-        public bool IsBusy => IsDead || IsIncapacitated || !CursorManager.IsLocked || DialogueEndedThisFrame;
+        public bool IsBusy => IsDead || IsIncapacitated || IsScriptedHold || !CursorManager.IsLocked || DialogueEndedThisFrame;
+
+        /// <summary>
+        /// Held in place by a story sequence (e.g. made to watch the arrival beating): no movement or action, camera free.
+        /// Written through <see cref="SetScriptedHold"/>.
+        /// </summary>
+        public bool IsScriptedHold { get; private set; }
+
+        public void SetScriptedHold(bool value) => IsScriptedHold = value;
 
         /// <summary>True from death until a save is loaded. Blocks every action through IsBusy.</summary>
         public bool IsDead { get; private set; }

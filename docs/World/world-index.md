@@ -48,7 +48,7 @@
 
 | ID | Name | Area | Trigger | Status |
 |----|------|------|---------|--------|
-| event-001 | Arrival Beating | area-001 | Scripted — player escort on arrival | stub |
+| event-001 | Arrival Beating | area-001 | Scripted — player escort on arrival | part 1 implemented (`spec-area-1-arrival-escort-beating`: gate → stage escort, beating); part 2 (tent, Hobb briefing) deferred |
 | event-002 | Workers' Revolt | area-001 | Player-triggered — worker path ending | stub |
 | event-003 | Company Crackdown | area-001 | Player-triggered — company path ending | stub |
 

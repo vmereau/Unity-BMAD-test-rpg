@@ -32,7 +32,7 @@ namespace Game.World
         private PlayerStateManager _playerState;
 
         // Dead, or staggered / knocked down (stance reaction): no focus, no interaction.
-        private bool IsPlayerUnable => _playerState != null && (_playerState.IsDead || _playerState.IsIncapacitated);
+        private bool IsPlayerUnable => _playerState != null && (_playerState.IsDead || _playerState.IsIncapacitated || _playerState.IsScriptedHold);
         private IInteractable _previousInteractable;
         private InputSystem_Actions _input;
         private float _scanTimer;

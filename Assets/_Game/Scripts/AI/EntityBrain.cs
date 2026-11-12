@@ -829,6 +829,17 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} warns the player (#{WarnedCount})");
         }
 
+        /// <summary>
+        /// Scripted line over this NPC's head (story sequences). <paramref name="duration"/> ≤ 0 = the bubble's default.
+        /// False when there is no line or no speech bubble channel.
+        /// </summary>
+        public bool Say(string line, float duration, int priority = 0)
+        {
+            if (string.IsNullOrEmpty(line) || _onSpeechBubbleRequested == null) return false;
+            RaiseSpeechBubble(line, duration, priority);
+            return true;
+        }
+
         private void RaiseSpeechBubble(string line, float duration, int priority)
         {
             _onSpeechBubbleRequested.Raise(new SpeechBubbleRequest
@@ -1333,6 +1344,17 @@ namespace Game.AI
             }
             TransitionToEngaging();
             return true;
+        }
+
+        /// <summary>
+        /// Ends a fight with <paramref name="target"/> (e.g. a story sequence calling off a scripted brawl): disengages to the
+        /// routine. No-op when not fighting that target.
+        /// </summary>
+        public void EndBrawl(FactionMember target)
+        {
+            if (!IsFighting(target) || _state == EntityState.Dead) return;
+            GameLog.Info(TAG, $"{gameObject.name} ends its brawl with {target.Transform.name}");
+            DisengageFromCombat();
         }
 
         private void HandleIntercepting()

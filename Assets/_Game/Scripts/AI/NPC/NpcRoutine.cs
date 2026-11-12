@@ -62,6 +62,24 @@ namespace Game.AI
 
         private float PollInterval => Mathf.Max(0.1f, _pollInterval);
 
+        /// <summary>True while a story sequence owns this NPC (<see cref="Suspend"/>): no block is sent.</summary>
+        public bool IsSuspended { get; private set; }
+
+        /// <summary>Stops sending blocks to the brain until <see cref="Resume"/> (a scripted sequence moves the NPC).</summary>
+        public void Suspend() => IsSuspended = true;
+
+        /// <summary>Hands the NPC back: the current block is re-sent at once (warped there when <paramref name="snap"/>).</summary>
+        public void Resume(bool snap)
+        {
+            if (!IsSuspended) return;
+            IsSuspended = false;
+            _evaluated = false; // force a re-send even if the block didn't change
+            _warnedNoClock = false; // no clock: the all-day block is applied once more
+            _snapNext |= snap;
+            _pollTimer = PollInterval;
+            if (isActiveAndEnabled) Evaluate();
+        }
+
         private void Update()
         {
             _pollTimer -= Time.deltaTime;
@@ -78,6 +96,7 @@ namespace Game.AI
 
         private void Evaluate()
         {
+            if (IsSuspended) return;
             GameClock clock = GameClock.Active;
             if (clock == null)
             {

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faa110a15dd756c4c8f53e5431791a81, type: 3}
+  m_Name: ArrivalSequence_Event001
+  m_EditorClassIdentifier: Game::Game.World.ArrivalSequenceSO
+  completedFact: {fileID: 11400000, guid: 422824fa208b3a141a51cd803d410b49, type: 2}
+  wardenSpeech: {fileID: 11400000, guid: a2872631c789a8748b8008af3c462b48, type: 2}
+  moveBarks: {fileID: 11400000, guid: 97e5a8586bc703c4095e7f5c730d0e53, type: 2}
+  waitBarks: {fileID: 11400000, guid: 21ba771939daf6346ba773db6f8b9d73, type: 2}
+  strayBarks: {fileID: 11400000, guid: a005b30f085284d47a1a957d205b883c, type: 2}
+  wardenClosingBarks: {fileID: 11400000, guid: b074d3ab5c4ab6d4583a3dae428fffad, type: 2}
+  bubbleDuration: 3.5
+  playerStartTolerance: 2
+  arriveDistance: 1.2
+  followDistance: 7
+  waitBarkCooldown: 8
+  strayDistance: 14
+  strayGraceSeconds: 4
+  chaseReachDistance: 2
+  chaseTimeout: 15
+  speechOpenTimeout: 5
+  beatingTimeout: 25
+  closingDelay: 3

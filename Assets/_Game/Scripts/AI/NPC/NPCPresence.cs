@@ -14,6 +14,9 @@ namespace Game.AI
         private const string TAG = "[NPC]";
 
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
+        [Tooltip("Optional: the player can't talk to this NPC until this fact is true (e.g. Tam before the arrival event). " +
+                 "Loot and NPC-forced topics are unaffected.")]
+        [SerializeField] private WorldFact _availableAfter;
 
         private FactionMember _factionMember;
         private static bool s_noPlayerWarned;
@@ -46,11 +49,22 @@ namespace Game.AI
         // Dead / unconscious with loot → "Loot"; empty → no prompt; alive & hostile → no prompt; alive → "Talk"
         // (CanInteract still hides "Talk" while in combat or staggered).
         public override string InteractPrompt =>
-            IsDown ? (IsLootable ? "Loot" : string.Empty) : (IsHostileToPlayer ? string.Empty : "Talk");
+            IsDown ? (IsLootable ? "Loot" : string.Empty) : (IsHostileToPlayer || !IsAvailable ? string.Empty : "Talk");
 
         // Interactable when a non-empty corpse (loot) OR alive, out of combat and not hostile (dialogue).
         // In combat, hostile & alive, or an emptied corpse → no interaction.
-        public override bool CanInteract => IsLootable || (IsAliveAndOutOfCombat && !IsHostileToPlayer);
+        public override bool CanInteract => IsLootable || (IsAliveAndOutOfCombat && !IsHostileToPlayer && IsAvailable);
+
+        // No gate, or its fact is set. No WorldStateManager (scene played alone) → available.
+        private bool IsAvailable
+        {
+            get
+            {
+                if (_availableAfter == null) return true;
+                WorldStateManager wsm = WorldStateManager.Instance;
+                return wsm == null || wsm.GetFact(_availableAfter);
+            }
+        }
 
         protected override void Awake()
         {
@@ -75,6 +89,11 @@ namespace Game.AI
             if (_combatState != null && _combatState.IsInCombat)
             {
                 GameLog.Info(TAG, $"{gameObject.name} is in combat — dialogue interaction blocked");
+                return;
+            }
+            if (!IsAvailable)
+            {
+                GameLog.Info(TAG, $"{gameObject.name} is not available until {_availableAfter.name} — dialogue blocked");
                 return;
             }
             RaiseDialogueRequest(null);

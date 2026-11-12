@@ -34,6 +34,9 @@ Spec: `_bmad-output/implementation-artifacts/tech-spec-save-load-system.md`.
   ran) → player → `QuestEventsManager.ReseedState`. Raises `OnLoadStarted` / `OnLoadFinished` (menus, death screen,
   loading overlay listen) and `OnSaveNotification` (toasts). `FinishLoad` / `FailLoad` always reset
   `Time.timeScale = 1` and lock the cursor.
+- `SaveSystem.BlockSaving(owner)` / `UnblockSaving(owner)` (static, reset on play): `CanSave` refuses ("Can't save right
+  now") while any owner holds a block — for region-scene story sequences that can't be saved mid-way (`ArrivalSequence`).
+  Loading stays allowed; the owner must unblock from `OnDisable` too.
 - `CanSave(out reason)` reasons are player-facing (F5 toast, Game Menu Save button subtitle). Loading is allowed
   while dead but not in dialogue / trade / looting.
 - `SaveFileStore` — static, synchronous, never throws. Files `Application.persistentDataPath/Saves/save_{slot}.json`

@@ -60,6 +60,23 @@ namespace Game.Core
         public float PlaytimeSeconds { get; private set; }
         public bool HasNewGameSnapshot => _newGameSnapshot != null;
 
+        // Story sequences (e.g. the arrival) that can't be saved mid-way. Static: region-scene owners can't reference Core.
+        private static readonly HashSet<object> s_saveBlockers = new HashSet<object>();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetSaveBlockers() => s_saveBlockers.Clear();
+
+        /// <summary>Refuses saving (manual, quick and auto) until the same <paramref name="owner"/> calls <see cref="UnblockSaving"/>.</summary>
+        public static void BlockSaving(object owner)
+        {
+            if (owner != null) s_saveBlockers.Add(owner);
+        }
+
+        public static void UnblockSaving(object owner)
+        {
+            if (owner != null) s_saveBlockers.Remove(owner);
+        }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -149,6 +166,7 @@ namespace Game.Core
             else if (_containerUI != null && _containerUI.IsOpen) reason = "Can't save while looting";
             else if (_cookingUI != null && _cookingUI.IsOpen) reason = "Can't save while cooking";
             else if (_sleepUI != null && _sleepUI.IsOpen) reason = "Can't save while sleeping";
+            else if (s_saveBlockers.Count > 0) reason = "Can't save right now";
             return reason == null;
         }
 
