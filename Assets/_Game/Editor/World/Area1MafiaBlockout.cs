@@ -11,11 +11,18 @@ using UnityEngine.SceneManagement;
 
 namespace Game.Editor.World
 {
-    /// <summary>One-time authoring of hand-owned mafia buildings. Never regenerates existing content.</summary>
+    /// <summary>
+    /// Authoring of hand-owned mafia buildings. <see cref="Build"/> is one-time and never replaces
+    /// existing content; <see cref="RebuildQuarters"/> deliberately replaces the quarters only.
+    /// </summary>
     public static class Area1MafiaBlockout
     {
         private const string TAG = "[Area1MafiaBlockout]";
         private const float QUARTERS_X = 31.5f, QUARTERS_Z = 16.5f, QUARTERS_WIDTH = 4.1f, QUARTERS_DEPTH = 3f;
+        // The rebuilt hall is turned 90°, so its width (local X) runs along world Z and its
+        // door wall (local +Z) faces east, into the lane that leads to the mafia fire.
+        private const float HALL_X = 24.925f, HALL_Z = 13.225f, HALL_WIDTH = 7.45f, HALL_DEPTH = 6.05f, HALL_EAVE = 3.4f;
+        private const float HALL_DOOR_AT = -2.175f, HALL_DOOR_WIDTH = 2f, HALL_DOOR_HEIGHT = 2.4f, HALL_PITCH = 30f;
         private const string MATERIALS = "Assets/_Game/Art/Materials/";
         private static readonly string[] ROOTS =
             { "MafiaQuarters", "ArenaSpectatorPlatforms", "BossHouse", "BossGarden", "BossOverlook" };
@@ -23,28 +30,10 @@ namespace Game.Editor.World
         [MenuItem("Tools/World/Author Mafia Buildings And Overlooks")]
         public static void Build()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
-                throw new InvalidOperationException("Author the mafia blockout in edit mode after compilation.");
-            Scene scene = SceneManager.GetSceneByPath("Assets/_Game/Scenes/StartingTown.unity");
-            if (!scene.IsValid() || !scene.isLoaded)
-                throw new InvalidOperationException("Load StartingTown before authoring the mafia blockout.");
-            Transform camp = scene.GetRootGameObjects().SingleOrDefault(g => g.name == "Area1_Blockout")?.transform;
-            Transform mafia = camp?.Find("TentCamp/MafiaZone");
-            Terrain terrain = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Terrain>(true)).SingleOrDefault();
-            if (mafia == null || terrain == null)
-                throw new InvalidOperationException("Expected the hand-owned MafiaZone and one terrain in StartingTown.");
+            (Scene scene, Transform mafia, Terrain terrain) = Context();
             foreach (string name in ROOTS)
                 if (mafia.Find(name) != null)
                     throw new InvalidOperationException(name + " already exists. Its hand edits are authoritative; authoring refuses to replace it.");
-            foreach (string file in new[] { "layout.json", "layout.seed.json" })
-            {
-                string path = Path.Combine(Application.dataPath, "../docs/World/Areas/area-001/", file);
-                JObject layout = JObject.Parse(File.ReadAllText(path));
-                JObject ownership = ((JArray)layout["features"]).OfType<JObject>()
-                    .SingleOrDefault(f => (string)f["id"] == Area1WorkerSettlement.HAND_OWNED);
-                if ((bool?)ownership?["enabled"] != true)
-                    throw new InvalidOperationException("Keep settlement-hand-owned.enabled true in " + file + ".");
-            }
             Material timber = RequiredMaterial("Blockout_Timber");
             Material canvas = RequiredMaterial("Blockout_Canvas");
             Material stone = RequiredMaterial("Blockout_Stone");
@@ -118,6 +107,186 @@ namespace Game.Editor.World
             {
                 Undo.RevertAllDownToGroup(undo);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Moves the existing MafiaQuarters root onto its plot and replaces its children with the
+        /// plot-filling barracks/warehouse. Changes no other object and never saves or bakes.
+        /// </summary>
+        [MenuItem("Tools/World/Rebuild Mafia Quarters")]
+        public static void RebuildQuarters()
+        {
+            (Scene scene, Transform mafia, Terrain terrain) = Context();
+            Transform quarters = mafia.Find(ROOTS[0])
+                ?? throw new InvalidOperationException("MafiaQuarters is missing; this command only rebuilds the existing root.");
+            Material timber = RequiredMaterial("Blockout_Timber");
+            Material canvas = RequiredMaterial("Blockout_Canvas");
+            float floor = MaxGround(terrain, new Vector2(HALL_X, HALL_Z), new Vector2(HALL_DEPTH, HALL_WIDTH)) + 0.12f;
+
+            // The plot is hand-arranged: stop rather than build into a neighbour that moved.
+            Physics.SyncTransforms();
+            foreach (Collider hit in Physics.OverlapBox(new Vector3(HALL_X, floor + HALL_EAVE * 0.5f, HALL_Z),
+                         new Vector3(HALL_DEPTH * 0.5f, HALL_EAVE * 0.5f - 0.2f, HALL_WIDTH * 0.5f),
+                         Quaternion.identity, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+                if (!hit.transform.IsChildOf(quarters) && !(hit is TerrainCollider))
+                    throw new InvalidOperationException("The quarters plot is not clear: " + hit.name + " under " +
+                        (hit.transform.parent != null ? hit.transform.parent.name : "the scene root") + " stands in the footprint.");
+
+            Undo.IncrementCurrentGroup();
+            int undo = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("Rebuild mafia quarters");
+            bool cleared = false;
+            try
+            {
+                for (int i = quarters.childCount - 1; i >= 0; i--)
+                    Undo.DestroyObjectImmediate(quarters.GetChild(i).gameObject);
+                cleared = true;
+                Undo.RecordObject(quarters, "Move mafia quarters");
+                quarters.SetPositionAndRotation(new Vector3(HALL_X, floor, HALL_Z), Quaternion.Euler(0, 90, 0));
+                quarters.localScale = Vector3.one;
+                Hall(quarters, timber, canvas, terrain);
+                foreach (Transform child in quarters)
+                    Undo.RegisterCreatedObjectUndo(child.gameObject, "Rebuild mafia quarters");
+                Undo.CollapseUndoOperations(undo);
+                EditorSceneManager.MarkSceneDirty(scene);
+                GameLog.Info(TAG, "Rebuilt MafiaQuarters as the plot-filling hall. Inspect and bake navigation before saving StartingTown.");
+            }
+            catch
+            {
+                // New geometry is only registered with Undo once the hall is complete, so a
+                // half-built hall has to be removed by hand before the old children come back.
+                if (cleared)
+                    for (int i = quarters.childCount - 1; i >= 0; i--)
+                        UnityEngine.Object.DestroyImmediate(quarters.GetChild(i).gameObject);
+                Undo.RevertAllDownToGroup(undo);
+                throw;
+            }
+        }
+
+        private static (Scene scene, Transform mafia, Terrain terrain) Context()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
+                throw new InvalidOperationException("Author the mafia blockout in edit mode after compilation.");
+            Scene scene = SceneManager.GetSceneByPath("Assets/_Game/Scenes/StartingTown.unity");
+            if (!scene.IsValid() || !scene.isLoaded)
+                throw new InvalidOperationException("Load StartingTown before authoring the mafia blockout.");
+            Transform camp = scene.GetRootGameObjects().SingleOrDefault(g => g.name == "Area1_Blockout")?.transform;
+            Transform mafia = camp?.Find("TentCamp/MafiaZone");
+            Terrain terrain = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Terrain>(true)).SingleOrDefault();
+            if (mafia == null || terrain == null)
+                throw new InvalidOperationException("Expected the hand-owned MafiaZone and one terrain in StartingTown.");
+            foreach (string file in new[] { "layout.json", "layout.seed.json" })
+            {
+                string path = Path.Combine(Application.dataPath, "../docs/World/Areas/area-001/", file);
+                JObject layout = JObject.Parse(File.ReadAllText(path));
+                JObject ownership = ((JArray)layout["features"]).OfType<JObject>()
+                    .SingleOrDefault(f => (string)f["id"] == Area1WorkerSettlement.HAND_OWNED);
+                if ((bool?)ownership?["enabled"] != true)
+                    throw new InvalidOperationException("Keep settlement-hand-owned.enabled true in " + file + ".");
+            }
+            return (scene, mafia, terrain);
+        }
+
+        /// <summary>Child group that shares its parent's frame. Undo is registered by the caller.</summary>
+        private static Transform Group(string name, Transform parent, Vector3 local)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = local;
+            return go.transform;
+        }
+
+        private static void Hall(Transform root, Material timber, Material canvas, Terrain terrain)
+        {
+            float hx = HALL_WIDTH * 0.5f, hz = HALL_DEPTH * 0.5f;
+            Box("Floor", root, timber, new Vector3(0, -0.12f, 0), new Vector3(HALL_WIDTH, 0.24f, HALL_DEPTH));
+            foreach (float x in new[] { -hx, hx })
+                Area1WorkerHut.PlankWall("SideWall", root, timber, new Vector3(x, HALL_EAVE * 0.5f, 0), HALL_DEPTH, HALL_EAVE, x > 0 ? 90 : 270);
+            // Yaws turn each wall's plank relief outwards, where the neighbours see it.
+            Area1WorkerHut.PlankWall("RearWall", root, timber, new Vector3(0, HALL_EAVE * 0.5f, -hz), HALL_WIDTH, HALL_EAVE, 180);
+
+            // The only way in. It sits off-centre so it opens north of worker-hut-25's side wall.
+            float doorMin = HALL_DOOR_AT - HALL_DOOR_WIDTH * 0.5f, doorMax = HALL_DOOR_AT + HALL_DOOR_WIDTH * 0.5f;
+            Transform front = Group("FireFacingEntrance", root, new Vector3(0, 0, hz));
+            Area1WorkerHut.PlankWall("DoorSide", front, timber, new Vector3((doorMin - hx) * 0.5f, HALL_EAVE * 0.5f, 0), doorMin + hx, HALL_EAVE, 0);
+            Area1WorkerHut.PlankWall("DoorSide", front, timber, new Vector3((doorMax + hx) * 0.5f, HALL_EAVE * 0.5f, 0), hx - doorMax, HALL_EAVE, 0);
+            Box("DoorLintel", front, timber, new Vector3(HALL_DOOR_AT, (HALL_DOOR_HEIGHT + HALL_EAVE) * 0.5f, 0),
+                new Vector3(HALL_DOOR_WIDTH, HALL_EAVE - HALL_DOOR_HEIGHT, 0.18f));
+            foreach (float x in new[] { doorMin - 0.11f, doorMax + 0.11f })
+                Box("DoorPost", front, timber, new Vector3(x, HALL_EAVE * 0.5f, 0), new Vector3(0.22f, HALL_EAVE, 0.26f));
+            Vector3 step = root.TransformPoint(new Vector3(HALL_DOOR_AT, 0, hz + 0.37f));
+            float stepBottom = Ground(terrain, step.x, step.z) - 0.15f, stepTop = root.position.y - 0.02f;
+            if (stepTop - stepBottom > 0.43f)
+                throw new InvalidOperationException("The lane outside the quarters door lies too far below the floor for a single doorstep.");
+            if (stepTop > stepBottom)
+                WorldBox("Doorstep", root, timber, new Vector3(step.x, (stepTop + stepBottom) * 0.5f, step.z),
+                    new Vector3(HALL_DOOR_WIDTH + 0.3f, stepTop - stepBottom, 0.6f));
+
+            // Gable ends face the fire and the Player's Zone; the eaves run along the palisade.
+            float rise = hx * Mathf.Tan(HALL_PITCH * Mathf.Deg2Rad);
+            foreach (float side in new[] { -1f, 1f })
+            {
+                Transform roof = Box("BoardedRoof", root, timber, new Vector3(side * hx * 0.5f, HALL_EAVE + rise * 0.5f, 0),
+                    new Vector3(hx / Mathf.Cos(HALL_PITCH * Mathf.Deg2Rad) + 0.2f, 0.16f, HALL_DEPTH + 0.2f));
+                roof.localRotation = Quaternion.Euler(0, 0, -side * HALL_PITCH);
+                NotWalkable(roof);
+            }
+            const int TIERS = 8;
+            for (int tier = 0; tier < TIERS; tier++)
+                foreach (float z in new[] { -hz, hz })
+                    Box("ClosedGable", root, timber, new Vector3(0, HALL_EAVE + rise / TIERS * (tier + 0.5f), z),
+                        new Vector3(HALL_WIDTH * (1f - (tier + 0.75f) / TIERS), rise / TIERS, 0.14f));
+            Box("RidgeBeam", root, timber, new Vector3(0, HALL_EAVE + rise - 0.2f, 0), new Vector3(0.2f, 0.24f, HALL_DEPTH));
+            foreach (float z in new[] { -1f, 1f })
+            {
+                Box("TieBeam", root, timber, new Vector3(0, HALL_EAVE - 0.11f, z), new Vector3(HALL_WIDTH, 0.22f, 0.2f));
+                Box("KingPost", root, timber, new Vector3(0, HALL_EAVE + rise * 0.5f - 0.1f, z), new Vector3(0.16f, rise - 0.2f, 0.16f));
+                foreach (float x in new[] { -hx + 0.17f, hx - 0.17f })
+                    Box("WallPost", root, timber, new Vector3(x, HALL_EAVE * 0.5f, z), new Vector3(0.2f, HALL_EAVE, 0.2f));
+            }
+            foreach (float x in new[] { -hx, hx })
+                foreach (float z in new[] { -hz, hz })
+                    Box("CornerFrame", root, timber, new Vector3(x, HALL_EAVE * 0.5f, z), new Vector3(0.24f, HALL_EAVE, 0.24f));
+            SupportFloor(root, timber, terrain, new Vector2(HALL_WIDTH, HALL_DEPTH));
+            // worker-hut-11 stands askew, leaving a wedge up to 1 m wide along the rear wall that
+            // a capsule can enter past the hut's north corner. Board it there, down into the
+            // ground; every other gap around the hall is under 0.5 m.
+            Area1WorkerHut.PlankWall("GapBoards", root, timber, new Vector3(-0.725f, 0.9f, -hz - 0.6f), 1.1f, 2.6f, 270);
+
+            // Barracks along the rear wall, crates at the palisade end, barrels beside the door.
+            // Everything stays out of the lane from the door, and nothing by the palisade wall
+            // rises above 1.2 m.
+            Transform props = Group("Furnishings", root, Vector3.zero);
+            NotWalkable(props);
+            foreach (float x in new[] { -2.6f, -0.5f, 1.6f })
+                Bunk(props, timber, canvas, new Vector3(x, 0, -hz + 0.58f));
+            Box("MessTable", props, timber, new Vector3(0.3f, 0.71f, 0.5f), new Vector3(1.8f, 0.08f, 0.8f));
+            foreach (float x in new[] { -0.45f, 1.05f })
+                Box("TableTrestle", props, timber, new Vector3(x, 0.335f, 0.5f), new Vector3(0.12f, 0.67f, 0.7f));
+            foreach (float z in new[] { -0.2f, 1.2f })
+                Box("MessBench", props, timber, new Vector3(0.3f, 0.225f, z), new Vector3(1.6f, 0.45f, 0.3f));
+            foreach (float z in new[] { -1.3f, -0.2f, 0.9f, 2f })
+            {
+                Box("StoreCrate", props, timber, new Vector3(hx - 0.75f, 0.4f, z), new Vector3(0.9f, 0.8f, 0.9f));
+                if (z < 0)
+                    Box("StoreCrate", props, timber, new Vector3(hx - 0.7f, 0.975f, z + 0.1f), new Vector3(0.6f, 0.35f, 0.6f));
+            }
+            foreach (float x in new[] { 0.5f, 1.2f, 1.9f })
+                Box("StoreBarrel", props, timber, new Vector3(x, 0.425f, hz - 0.45f), new Vector3(0.55f, 0.85f, 0.55f));
+            Area1RemoteSites.Thin("SackPile", props, canvas, new Vector3(hx - 1.83f, 0.2f, 1.7f), new Vector3(0.8f, 0.4f, 1f));
+        }
+
+        private static void Bunk(Transform parent, Material timber, Material canvas, Vector3 floor)
+        {
+            Transform bunk = Group("BunkFrame", parent, floor);
+            foreach (float x in new[] { -0.9f, 0.9f })
+                foreach (float z in new[] { -0.36f, 0.36f })
+                    Box("BunkPost", bunk, timber, new Vector3(x, 0.85f, z), new Vector3(0.1f, 1.7f, 0.1f));
+            foreach (float y in new[] { 0.4f, 1.3f })
+            {
+                Box("BunkBoards", bunk, timber, new Vector3(0, y, 0), new Vector3(1.9f, 0.1f, 0.82f));
+                Area1RemoteSites.Thin("Bedding", bunk, canvas, new Vector3(0, y + 0.08f, 0), new Vector3(1.7f, 0.06f, 0.7f));
             }
         }
 
@@ -251,8 +420,9 @@ namespace Game.Editor.World
             float bottom = float.PositiveInfinity;
             for (int i = 0; i <= 8; i++)
             {
-                Vector3 p = world + new Vector3(size.x > size.y ? size.x * (i / 8f - 0.5f) : 0, 0,
-                    size.y >= size.x ? size.y * (i / 8f - 0.5f) : 0);
+                // Sample along the skirt in the root's frame: the rebuilt quarters are turned 90°.
+                Vector3 p = root.TransformPoint(center + new Vector3(size.x > size.y ? size.x * (i / 8f - 0.5f) : 0, 0,
+                    size.y >= size.x ? size.y * (i / 8f - 0.5f) : 0));
                 bottom = Mathf.Min(bottom, Ground(terrain, p.x, p.z) - 0.12f);
             }
             float top = root.position.y - 0.24f;
