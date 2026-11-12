@@ -420,6 +420,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.EntityHealth
   _persistentID: {fileID: 1186952831256218892}
   _animationDriver: {fileID: 3299999205233303053}
+  _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
 --- !u!114 &6892060459904109189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -537,6 +538,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
   _startingItems: []
   _onInventoryChanged: {fileID: 0}
+  _collectGoldAsCurrency: 0
+  _onGoldLootRequested: {fileID: 0}
 --- !u!114 &3775384477627673643
 MonoBehaviour:
   m_ObjectHideFlags: 0

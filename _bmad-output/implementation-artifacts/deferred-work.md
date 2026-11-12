@@ -532,3 +532,10 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 During mafia-zone traversal checks, the direct baked-corner route to the existing arena opening snagged at approximately (45.82, 1.89, 31.5) against an unchanged rim-rock collider. The surface bakes render meshes, so its route can be tighter than the rock collider permits. Walking around via (43,34.8), (52.5,36), then (52.5,34) succeeds. Investigate collider/nav geometry agreement in a separate arena pass; preserve the hand-owned rocks and existing entrance when doing so.
 
+
+## From spec-unconscious-knockout (2026-11-12 review)
+
+- Loot of an unconscious NPC is free and reads the same `InventorySystem` as shop stock: punch a merchant down, take the stock, repeat. Needs a theft / crime rule (raise `OnTheftCommitted` for loot taken from a living NPC) or a shop-stock exclusion — user chose "free for now".
+- Screens are not closed on a player knockout: a loot / trade / container / inventory screen or dialogue left open stays usable while down, and an equip during the knockout reassigns the Animator controller (resets `IsUnconscious` → the get-up clip plays early while input stays locked). Also the loot screen of an NPC that gets up stays open. Fix together with a knockout / got-up event channel that the screens listen to (like `_onPlayerDied`).
+- Knocked out while swimming: the held knockdown plays at the surface under swim physics; `SetUnconscious` doesn't touch `IsSwimming`.
+- A re-enabled NPC (component toggle, respawn tool) mid-knockout without an `NpcRoutine` keeps its agent stopped (brain forced to Idle with `isStopped`).

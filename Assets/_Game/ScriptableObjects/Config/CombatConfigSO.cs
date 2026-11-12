@@ -75,6 +75,14 @@ namespace Game.Combat
         [Tooltip("Seconds the player is down: knocked down + getting up clips (match their combined length).")]
         [Min(0.1f)] public float playerKnockdownDuration = 4.6f;
 
+        [Header("Unconscious (non-lethal humanoid knockouts — player and NPCs)")]
+        [Tooltip("Seconds a knocked-out humanoid lies on the ground (knocked down clip held) before getting up.")]
+        [Min(0.1f)] public float unconsciousDuration = 8f;
+        [Tooltip("Fraction of max health regained, linearly, while unconscious.")]
+        [Range(0.01f, 1f)] public float unconsciousRecoverHealthFraction = 0.15f;
+        [Tooltip("Seconds still incapacitated after the get-up starts (match the 'getting up' clip length).")]
+        [Min(0f)] public float getUpDuration = 2.7f;
+
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;

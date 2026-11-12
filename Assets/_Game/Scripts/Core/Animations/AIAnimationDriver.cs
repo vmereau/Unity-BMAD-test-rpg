@@ -23,6 +23,12 @@ namespace Game.Animations
 
         /// <summary>Recovered: drops a Stagger / KnockDown trigger that was never consumed, so it can't replay later.</summary>
         public virtual void ClearStanceReaction() { }
+
+        /// <summary>
+        /// Knocked out (true: knocked down clip held on the ground) / gets up (false: getting up clip). Only humanoids
+        /// are knocked out; default no-op.
+        /// </summary>
+        public virtual void SetUnconscious(bool down) { }
         public virtual void TriggerDeath() { }
         public virtual void EnableRagdoll() { }
         public virtual void SetWarning(bool active) { }

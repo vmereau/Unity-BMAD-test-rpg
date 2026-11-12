@@ -40,6 +40,8 @@ namespace Tests.EditMode
         {
             public bool IsDead { get; set; }
             public void TakeDamage(float amount) { }
+            public void TakeDamage(float amount, GameObject attacker) { }
+            public bool IsUnconscious => false;
             public HitResult TryReceiveHit(GameObject attacker) => HitResult.NotBlocked;
         }
 

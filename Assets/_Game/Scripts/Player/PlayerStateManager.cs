@@ -81,7 +81,13 @@ namespace Game.Player
         /// </summary>
         public bool IsStaggered { get; private set; }
         public bool IsKnockedDown { get; private set; }
-        public bool IsIncapacitated => IsStaggered || IsKnockedDown;
+
+        /// <summary>
+        /// Knocked out by a non-hostile humanoid (spec-unconscious-knockout), written by <c>PlayerHealth</c> through
+        /// <see cref="SetUnconscious"/>. True until the get-up clip ends. Part of <see cref="IsIncapacitated"/>.
+        /// </summary>
+        public bool IsUnconscious { get; private set; }
+        public bool IsIncapacitated => IsStaggered || IsKnockedDown || IsUnconscious;
 
         // Written by PlayerCombat via SetBlocking / SetAttacking / SetDodging / SetInCombat
         public bool IsBlocking { get; private set; }
@@ -305,6 +311,52 @@ namespace Game.Player
         }
 
         /// <summary>
+        /// Knockout (true): clears every action state, exits sneak and holds the knocked down clip — all gates close
+        /// through <see cref="IsIncapacitated"/>. Back up (false): control returns; <paramref name="resetAnimator"/> (load
+        /// while unconscious) snaps the Animator out of the clip and re-applies the combat stance.
+        /// </summary>
+        public void SetUnconscious(bool value, bool resetAnimator = false)
+        {
+            if (IsDead && value) return;
+            bool was = IsUnconscious;
+            IsUnconscious = value;
+            if (was != value) GameLog.Info(TAG, $"IsUnconscious: {value}");
+            if (value)
+            {
+                IsBlocking = false;
+                IsAttacking = false;
+                IsAttackCommitted = false;
+                IsDodging = false;
+                IsAiming = false;
+                IsStaggered = false;   // the knockout overrides a stance reaction
+                IsKnockedDown = false;
+                SetSneaking(false);
+            }
+            if (_playerAnimator == null) return;
+            if (value)
+            {
+                _playerAnimator.SetBlocking(false);
+                _playerAnimator.SetAiming(false);
+                _playerAnimator.ClearStanceReaction();
+                _playerAnimator.SetUnconscious(true);
+                return;
+            }
+            _playerAnimator.SetUnconscious(false);
+            if (resetAnimator && was && !IsDead)
+            {
+                _playerAnimator.ResetAfterRevive();
+                _playerAnimator.SetInCombat(IsInCombat);
+            }
+        }
+
+        /// <summary>Unconscious time is over: the getting up clip plays; the player stays locked until SetUnconscious(false).</summary>
+        public void BeginGetUp()
+        {
+            if (!IsUnconscious || _playerAnimator == null) return;
+            _playerAnimator.SetUnconscious(false);
+        }
+
+        /// <summary>
         /// Called by PlayerHealth on death (true) and by the save system on revive (false). Death clears action
         /// states and plays the death animation; revive resets the Animator and re-applies the combat stance.
         /// </summary>
@@ -324,6 +376,7 @@ namespace Game.Player
                 IsSwimming = false;    // the body sinks under normal gravity
                 IsStaggered = false;   // death overrides the stance reaction
                 IsKnockedDown = false;
+                IsUnconscious = false; // killed on the ground (monster hit)
                 // IsSwitchingWeapon is kept: IsBusy already blocks R, and the PlayerCombat watchdog (or the load) still
                 // has to move the weapon visual to match IsInCombat.
             }
@@ -335,6 +388,7 @@ namespace Game.Player
                 _playerAnimator.SetSneaking(false);
                 _playerAnimator.SetAiming(false);
                 _playerAnimator.ClearStanceReaction(); // an untaken Stagger / KnockDown must not fire after Death
+                _playerAnimator.SetUnconscious(false); // release the held knockdown; Death (AnyState) takes over
                 _playerAnimator.PlayDeath();
             }
             else

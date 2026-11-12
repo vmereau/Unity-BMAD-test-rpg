@@ -27,10 +27,22 @@ namespace Game.AI
         [FormerlySerializedAs("_animationBridge")]
         [FormerlySerializedAs("_entityAnimator")]
         [SerializeField] private AIAnimationDriver _animationDriver;
+        [Tooltip("Unconscious timings (spec-unconscious-knockout). Null → every 0-HP blow kills.")]
+        [SerializeField] private CombatConfigSO _combatConfig;
 
         public float CurrentHealth { get; private set; }
         public float MaxHealth => _persistentID != null && _persistentID.Entity != null ? _persistentID.Entity.BaseHealth : 100f;
         public bool IsDead { get; private set; }
+
+        /// <summary>
+        /// Knocked out by a non-hostile humanoid (spec-unconscious-knockout): on the ground, regaining health, then
+        /// getting up. True until the get-up clip ends. Runtime only — a re-enable resets it.
+        /// </summary>
+        public bool IsUnconscious { get; private set; }
+
+        /// <summary>Same-GO notifications for <see cref="EntityBrain"/>: knocked out / back on its feet.</summary>
+        public event Action KnockedOut;
+        public event Action RegainedConsciousness;
 
         /// <summary>
         /// Raised whenever CurrentHealth changes (damage, heal, or respawn reset).
@@ -41,10 +53,14 @@ namespace Game.AI
         public event Action<float, float> HealthChanged;
 
         private EntityStance _stance;
+        private FactionMember _factionMember;
+        private float _unconsciousElapsed;
+        private bool _gettingUp;
 
         private void Awake()
         {
             _stance = GetComponent<EntityStance>(); // optional
+            _factionMember = GetComponent<FactionMember>(); // optional — none = never knocked out
             if (_persistentID.Entity == null)
             {
                 GameLog.Error(TAG, $"Entity SO not assigned on {gameObject.name} — EntityHealth disabled");
@@ -67,23 +83,70 @@ namespace Game.AI
             if (_persistentID.Entity == null) return;
             CurrentHealth = _persistentID.Entity.BaseHealth;
             IsDead = false;
+            if (IsUnconscious) _animationDriver?.SetUnconscious(false); // re-enabled mid-knockout: release the held clip
+            IsUnconscious = false;
+            _gettingUp = false;
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
         }
 
+        // Unconscious: health climbs to the recovery fraction, then the get-up clip plays, then the entity is back.
+        private void Update()
+        {
+            if (!IsUnconscious || _combatConfig == null) return;
+
+            float duration = _combatConfig.unconsciousDuration;
+            float before = _unconsciousElapsed;
+            _unconsciousElapsed += Time.deltaTime;
+            float regained = KnockoutRules.RecoveryHealth(MaxHealth, _combatConfig.unconsciousRecoverHealthFraction, _unconsciousElapsed, duration)
+                           - KnockoutRules.RecoveryHealth(MaxHealth, _combatConfig.unconsciousRecoverHealthFraction, before, duration);
+            if (regained > 0f)
+            {
+                CurrentHealth = Mathf.Min(CurrentHealth + regained, MaxHealth);
+                HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+            }
+
+            if (!_gettingUp && _unconsciousElapsed >= duration)
+            {
+                _gettingUp = true;
+                _animationDriver?.SetUnconscious(false); // getting up clip
+                GameLog.Info(TAG, $"{gameObject.name} is getting up — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+            }
+            if (_gettingUp && _unconsciousElapsed >= duration + _combatConfig.getUpDuration)
+            {
+                IsUnconscious = false;
+                _gettingUp = false;
+                GameLog.Info(TAG, $"{gameObject.name} regained consciousness");
+                RegainedConsciousness?.Invoke();
+            }
+        }
+
         /// <summary>
-        /// Applies damage to this entity. Triggers death when health reaches zero.
-        /// Calls are ignored if the entity is already dead.
+        /// Applies damage from an unknown source — lethal at zero health. Ignored if the entity is already dead.
         /// </summary>
-        public void TakeDamage(float amount)
+        public void TakeDamage(float amount) => TakeDamage(amount, null);
+
+        /// <summary>
+        /// Applies damage from <paramref name="attacker"/>. At zero health a non-hostile humanoid attacker knocks a
+        /// humanoid out instead of killing it (<see cref="FactionMember.IsKnockoutPair"/>); its hits on an unconscious
+        /// entity are ignored, any other hit still lands (and can kill). Ignored if the entity is already dead.
+        /// </summary>
+        public void TakeDamage(float amount, GameObject attacker)
         {
             if (IsDead) return;
+            bool knockout = _combatConfig != null && FactionMember.IsKnockoutPair(FactionMember.Of(attacker), _factionMember);
+            if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
 
             CurrentHealth -= amount;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_persistentID.Entity.BaseHealth:F0}");
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
-            if (CurrentHealth <= 0f) { Die(); return; }  // death path — no GetHit
+            if (CurrentHealth <= 0f)
+            {
+                if (knockout) KnockOut(); else Die(); // no GetHit either way
+                return;
+            }
+            if (IsUnconscious) return; // lying on the ground: no hit reaction
             // Hit reaction only if still alive, and not while staggered / knocked down (GetHit would cut the clip).
             if (_stance == null || !_stance.IsIncapacitated) _animationDriver?.TriggerGetHit();
         }
@@ -112,6 +175,8 @@ namespace Game.AI
         public void RestoreAsCorpse()
         {
             IsDead = true;
+            IsUnconscious = false;
+            _gettingUp = false;
             CurrentHealth = 0f;
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
@@ -123,9 +188,31 @@ namespace Game.AI
             _animationDriver?.EnableRagdoll();
         }
 
+        // Non-lethal blow at zero health: down on the ground, the brain pauses (KnockedOut). No kill registered.
+        private void KnockOut()
+        {
+            CurrentHealth = 0f;
+            IsUnconscious = true;
+            _gettingUp = false;
+            _unconsciousElapsed = 0f;
+            GameLog.Info(TAG, $"{gameObject.name} knocked out");
+
+            _animationDriver?.SetWarning(false);
+            _animationDriver?.SetInCombat(false);
+            _animationDriver?.SetUnconscious(true);
+            KnockedOut?.Invoke();
+        }
+
         private void Die()
         {
             IsDead = true;
+            if (IsUnconscious)
+            {
+                // Killed on the ground (monster / hostile hit): the death clip replaces the held knockdown.
+                IsUnconscious = false;
+                _gettingUp = false;
+                _animationDriver?.SetUnconscious(false);
+            }
             GameLog.Info(TAG, $"{gameObject.name} died — registering kill");
 
             // Stop NavMeshAgent so it doesn't thrash during death animation

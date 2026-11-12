@@ -37,8 +37,8 @@ layer-collision-matrix dependency.
 
 ### Hit resolution
 
-Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` → `TakeDamage(...)`
-**only on `NotBlocked`**; other results deal no damage. Player: `PlayerCombat.OnWeaponHit`. AI:
+Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` → `TakeDamage(amount, attacker)`
+**only on `NotBlocked`** (the attacker overload lets the victim choose knockout vs death — `Scripts/AI/CLAUDE.md` → Unconscious); other results deal no damage. Player: `PlayerCombat.OnWeaponHit`. AI:
 `EntityMeleeAttacker` (see `Scripts/AI/CLAUDE.md`).
 
 **Stance** (player → AI; AI → player / NPC is in `Scripts/AI/CLAUDE.md` → Stance): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.

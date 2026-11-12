@@ -592,10 +592,10 @@ namespace Game.Combat
                 }
                 sneakTarget.NotifyHitBy(gameObject);
             }
-            target.TakeDamage(damage);
+            target.TakeDamage(damage, gameObject);
             GameLog.Info(TAG, $"Weapon hit landed at {hitPoint} ({damage} dmg)");
-            // Stance after health: the damage reaction acquires the attacker first; a lethal hit skips stance.
-            if (!target.IsDead && target is Component stanceComponent &&
+            // Stance after health: the damage reaction acquires the attacker first; a lethal or knockout hit skips stance.
+            if (!target.IsDead && !target.IsUnconscious && target is Component stanceComponent &&
                 stanceComponent.TryGetComponent(out IStanceTarget stanceTarget))
                 stanceTarget.ApplyStanceDamage(stanceDamage, canKnockDown);
         }

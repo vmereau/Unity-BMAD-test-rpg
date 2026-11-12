@@ -31,7 +31,8 @@ also replaces `Block Idle` and `unarmed stagger 1/2`.
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
-  `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool).
+  `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
+  `IsUnconscious` (bool).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -111,3 +112,8 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
   `applyRootMotion` off; so does the Player). The Player sets them through `PlayerStance` → `PlayerStateManager` →
   `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance).
+- **Unconscious** (spec-unconscious-knockout): AnyState → `Unconscious` (`KnockDown` + `IsUnconscious`, listed just before
+  AnyState → `KnockedDown`, which now requires `IsUnconscious == false`). `Unconscious` plays the same `Knocked Down` clip
+  (non-looping → holds the last, on-the-ground frame) and goes to `GettingUp` on `IsUnconscious == false` with **no exit
+  time** (an exit-time transition with a condition is unreliable past the end of a non-looping clip). Tag `FullBody`. Written
+  only through `HumanoidAnimationBridge.SetUnconscious(bool)` (false also drops an unconsumed `KnockDown`).

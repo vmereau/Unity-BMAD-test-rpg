@@ -1,3 +1,4 @@
+using Game.AI;
 using Game.Audio;
 using Game.Combat;
 using Game.Core;
@@ -37,6 +38,9 @@ namespace Game.Player
         [SerializeField] private PlayerStateManager _playerStateManager;
 
         private int _bonusMaxHealth;
+        private FactionMember _factionMember;
+        private float _unconsciousElapsed;
+        private bool _gettingUp;
 
         public float CurrentHealth { get; private set; }
         /// <summary>Config base health + permanent bonuses (first-meal bonuses), which are saved.</summary>
@@ -44,6 +48,12 @@ namespace Game.Player
         /// <summary>Permanent max-health bonus on top of the config base (saved by PlayerSaveAdapter).</summary>
         public int BonusMaxHealth => _bonusMaxHealth;
         public bool IsDead { get; private set; }
+
+        /// <summary>
+        /// Knocked out by a non-hostile humanoid (spec-unconscious-knockout): down, regaining health, then getting up.
+        /// True until the get-up clip ends. Not saved — a load clears it.
+        /// </summary>
+        public bool IsUnconscious { get; private set; }
 
         private void Awake()
         {
@@ -69,7 +79,42 @@ namespace Game.Player
             if (_playerStateManager == null)
                 GameLog.Warn(TAG, "PlayerStateManager not assigned and none on this GameObject — death will not block input");
 
+            _factionMember = GetComponent<FactionMember>();
+            if (_factionMember == null)
+                GameLog.Warn(TAG, "No FactionMember on the Player — every 0-HP blow will kill (no knockout)");
+
             CurrentHealth = _config.baseHealth;
+        }
+
+        // Unconscious: health climbs to the recovery fraction, then the get-up clip plays, then control comes back.
+        private void Update()
+        {
+            if (!IsUnconscious) return;
+
+            float duration = _config.unconsciousDuration;
+            float before = _unconsciousElapsed;
+            _unconsciousElapsed += Time.deltaTime;
+            float regained = KnockoutRules.RecoveryHealth(MaxHealth, _config.unconsciousRecoverHealthFraction, _unconsciousElapsed, duration)
+                           - KnockoutRules.RecoveryHealth(MaxHealth, _config.unconsciousRecoverHealthFraction, before, duration);
+            if (regained > 0f)
+            {
+                CurrentHealth = Mathf.Min(CurrentHealth + regained, MaxHealth);
+                _onPlayerHealthChanged?.Raise(CurrentHealth);
+            }
+
+            if (!_gettingUp && _unconsciousElapsed >= duration)
+            {
+                _gettingUp = true;
+                _playerStateManager?.BeginGetUp();
+                GameLog.Info(TAG, $"Player is getting up — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+            }
+            if (_gettingUp && _unconsciousElapsed >= duration + _config.getUpDuration)
+            {
+                IsUnconscious = false;
+                _gettingUp = false;
+                _playerStateManager?.SetUnconscious(false);
+                GameLog.Info(TAG, "Player regained consciousness");
+            }
         }
 
         private void Start()
@@ -82,9 +127,19 @@ namespace Game.Player
         /// Applies damage to the player, reduced by Defense. Minimum 1 damage always gets through.
         /// Triggers death when health reaches zero. Calls are ignored if the player is already dead.
         /// </summary>
-        public void TakeDamage(float amount)
+        public void TakeDamage(float amount) => TakeDamage(amount, null);
+
+        /// <summary>
+        /// Damage from <paramref name="attacker"/>, reduced by Defense. At zero health a non-hostile humanoid attacker
+        /// knocks the player out instead of killing (no death event); its hits on an unconscious player are ignored, any
+        /// other hit (monster, hostile, unknown) still lands and can kill.
+        /// </summary>
+        public void TakeDamage(float amount, GameObject attacker)
         {
             if (IsDead) return;
+            // Disabled (no config): no Update would ever end the knockout — always lethal.
+            bool knockout = enabled && FactionMember.IsKnockoutPair(FactionMember.Of(attacker), _factionMember);
+            if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
             float defense = _playerStats != null ? _playerStats.Defense : 0f;
             float effective = Mathf.Max(1f, amount - defense);
             CurrentHealth -= effective;
@@ -93,7 +148,21 @@ namespace Game.Player
             _onPlayerHealthChanged?.Raise(CurrentHealth);
             if (CurrentHealth > 0f && _onSfxRequested != null && _combatAudio != null) // no grunt on the killing blow
                 _onSfxRequested.Play(_combatAudio.playerHurt, transform.position);
-            if (CurrentHealth <= 0f) Die();
+            if (CurrentHealth > 0f) return;
+            if (knockout && !IsUnconscious) KnockOut();
+            else Die();
+        }
+
+        // Non-lethal blow at zero health: actions interrupted, input locked, knocked down clip held. No death event.
+        private void KnockOut()
+        {
+            CurrentHealth = 0f;
+            IsUnconscious = true;
+            _gettingUp = false;
+            _unconsciousElapsed = 0f;
+            GameLog.Info(TAG, "Player knocked out");
+            _playerCombat?.InterruptForStance();
+            _playerStateManager?.SetUnconscious(true);
         }
 
         /// <summary>
@@ -159,12 +228,21 @@ namespace Game.Player
             if (_config == null) return;
             CurrentHealth = Mathf.Clamp(health, 1f, MaxHealth);
             IsDead = false;
+            if (IsUnconscious)
+            {
+                // Loaded while knocked out: the unconscious state is not saved — stand up at once.
+                IsUnconscious = false;
+                _gettingUp = false;
+                _playerStateManager?.SetUnconscious(false, resetAnimator: true);
+            }
             _onPlayerHealthChanged?.Raise(CurrentHealth);
         }
 
         private void Die()
         {
             IsDead = true;
+            IsUnconscious = false; // SetDead clears the state manager's unconscious flag and animator bool
+            _gettingUp = false;
             GameLog.Info(TAG, "Player has died");
 
             // Raise event so the death screen / save system can react

@@ -237,6 +237,8 @@ namespace Game.AI
             ClearStanceReaction(); // disabled mid-reaction (respawn): no Recovered was raised
             _previousHealth = _entityHealth.CurrentHealth;
             _entityHealth.HealthChanged += HandleHealthChanged;
+            _entityHealth.KnockedOut += HandleKnockedOut;
+            _entityHealth.RegainedConsciousness += HandleRegainedConsciousness;
             if (_stance != null)
             {
                 _stance.Staggered += HandleStanceBroken;
@@ -254,6 +256,8 @@ namespace Game.AI
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
+            _entityHealth.KnockedOut -= HandleKnockedOut;
+            _entityHealth.RegainedConsciousness -= HandleRegainedConsciousness;
             if (_stance != null)
             {
                 _stance.Staggered -= HandleStanceBroken;
@@ -303,6 +307,15 @@ namespace Game.AI
             if (_entityHealth.IsDead && _state != EntityState.Dead)
             {
                 TransitionToDead();
+                return;
+            }
+
+            // Unconscious: no perception, no state logic; RegainedConsciousness resumes the routine.
+            if (_entityHealth.IsUnconscious)
+            {
+                HoldAgentForReaction();
+                HandleCooldowns();
+                if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
                 return;
             }
 
@@ -405,8 +418,11 @@ namespace Game.AI
         private bool HasLostSightOfTarget() =>
             IsTrackingPerceptionTarget() && _perception.TimeSinceSeen >= _persistentID.Entity.LoseSightTime;
 
+        // A brawl opponent lying unconscious is no longer a target: the fight is won (no finishing blow). Monsters and
+        // hostiles keep attacking a downed target - their hits still kill.
         private bool HasValidTarget() =>
-            _currentTarget != null && _currentTarget.Damageable != null && !_currentTarget.Damageable.IsDead;
+            _currentTarget != null && _currentTarget.Damageable != null && !_currentTarget.Damageable.IsDead &&
+            !(_currentTarget.Damageable.IsUnconscious && FactionMember.IsKnockoutPair(_selfFactionMember, _currentTarget));
 
         // --- State handlers ---
 
@@ -636,6 +652,13 @@ namespace Game.AI
         private void RespondToTrespasser(RestrictedArea area)
         {
             FactionMember trespasser = _currentTarget;
+            if (trespasser != null && trespasser.Damageable != null && trespasser.Damageable.IsUnconscious)
+            {
+                // Lying unconscious in the area: nothing to chase or fight (no bark, not counted).
+                if (_perception != null) _perception.ResetPerception();
+                ResumeNonCombat();
+                return;
+            }
             TrespassersSpotted++;
 
             if (area.InstantAggression)
@@ -761,6 +784,7 @@ namespace Game.AI
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
                 _state != EntityState.Watching && _state != EntityState.Pursuing) return;
             if (_stance != null && _stance.IsIncapacitated) return; // staggered / knocked down: misses the theft
+            if (_entityHealth.IsUnconscious) return;
             if (!PerceptionActive || !_perception.CanWitness) return;
 
             FactionMember thief = data.thief != null ? data.thief.GetComponentInParent<FactionMember>() : null;
@@ -833,6 +857,8 @@ namespace Game.AI
         private void HandlePursuing()
         {
             if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
+            // A knocked-out thief can't be scolded (no dialogue while down) — the chase ends.
+            if (_currentTarget.Damageable.IsUnconscious) { EndPursuit("thief knocked out"); return; }
             if (TheftPursuitRegistry.IsClaimed(_pursuitTheftId)) { EndPursuit("another witness caught the thief"); return; }
 
             // A hostile (non-stealth, radius scan) showing up takes over: normal warning / engage reaction.
@@ -961,6 +987,7 @@ namespace Game.AI
         private void HandleConfronting()
         {
             if (!IsLive(_currentTarget)) { EndPursuit("thief lost"); return; }
+            if (!_confrontOpened && _currentTarget.Damageable.IsUnconscious) { EndPursuit("thief knocked out"); return; }
             FacePoint(_currentTarget.Transform.position, StealthConfig.witnessTurnSpeed);
             _confrontTimer += Time.deltaTime;
             if (_pursuitArea != null) _pursuitArea.HoldGrace(StealthConfig.trespassGraceDuration);
@@ -1000,6 +1027,7 @@ namespace Game.AI
             _lastDamagedTime = Time.time; // ends sneak-attack eligibility, even for passive / neutral entities
             FactionMember attacker = _pendingAttackerFrame == Time.frameCount ? _pendingAttacker : null;
             _pendingAttacker = null;
+            if (_entityHealth.IsUnconscious) return; // hit while down (monster): no reaction until it gets up
 
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
@@ -1009,10 +1037,18 @@ namespace Game.AI
             if (faction == null) return;
 
             FactionMember candidate;
+            bool brawl = false;
             if (attacker != null)
             {
                 // Known attacker: fight back only if it is hostile — never redirect onto a bystander.
-                if (!IsLive(attacker) || attacker.Faction == null || !faction.IsHostileTo(attacker.Faction)) return;
+                if (!IsLive(attacker) || attacker.Faction == null) return;
+                if (!faction.IsHostileTo(attacker.Faction))
+                {
+                    // Brawl (spec-unconscious-knockout): a humanoid fights back a non-hostile humanoid attacker, with it
+                    // as melee aggro target (the faction filter would skip it). Knockouts end it, never kills.
+                    if (!FactionMember.IsKnockoutPair(attacker, _selfFactionMember) || attacker.Damageable.IsUnconscious) return;
+                    brawl = true;
+                }
                 candidate = attacker;
             }
             else
@@ -1029,15 +1065,19 @@ namespace Game.AI
 
             if (PerceptionActive && candidate.StealthTarget != null) _perception.ForceAware(candidate);
             _currentTarget = candidate;
+            if (_meleeAttacker != null)
+            {
+                if (brawl) _meleeAttacker.SetAggroTarget(candidate);
+                else if (_meleeAttacker.AggroTarget != null && _meleeAttacker.AggroTarget != candidate)
+                    _meleeAttacker.SetAggroTarget(null); // fighting someone else now: stray swings must not hit the trespasser
+            }
             if (_stance != null && _stance.IsIncapacitated)
             {
                 // Engaging now would restart the agent mid-stagger — engage once recovered.
                 _engageAfterRecovery = true;
                 return;
             }
-            if (_meleeAttacker != null && _meleeAttacker.AggroTarget != null && _meleeAttacker.AggroTarget != candidate)
-                _meleeAttacker.SetAggroTarget(null); // fighting someone else now: stray swings must not hit the trespasser
-            GameLog.Info(TAG, $"{gameObject.name} was hit — engaging {candidate.Transform.name}");
+            GameLog.Info(TAG, $"{gameObject.name} was hit — engaging {candidate.Transform.name}{(brawl ? " (brawl)" : string.Empty)}");
             TransitionToEngaging();
         }
 
@@ -1075,7 +1115,41 @@ namespace Game.AI
             if (_state == EntityState.Dead || _entityHealth.IsDead) return;
             if (restore && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = _agentStoppedBeforeReaction;
             if (engage && HasValidTarget()) TransitionToEngaging();
-            else if (routine) ApplyRoutineRequest(false); // walk to it — never snap out of a reaction
+            else
+            {
+                // A brawl retaliation stored mid-reaction whose target is gone / knocked out: drop its aggro.
+                if (engage && !IsInCombat && _meleeAttacker != null) _meleeAttacker.SetAggroTarget(null);
+                if (routine) ApplyRoutineRequest(false); // walk to it — never snap out of a reaction
+            }
+        }
+
+        // --- Unconscious (EntityHealth, same GO — spec-unconscious-knockout) ---
+
+        // Knocked out: every flow ends (fight, chase, witness) and the agent holds until the entity is back up.
+        private void HandleKnockedOut()
+        {
+            if (_state == EntityState.Dead) return;
+            _animationDriver?.SetWarning(false);
+            _currentTarget = null;
+            _pursuitArea = null; // a theft / trespass chase ends with the knockout
+            SetCombatState(false);
+            if (_meleeAttacker != null) _meleeAttacker.EndAttack();
+            if (_perception != null) _perception.ResetPerception();
+            ClearStanceReaction();
+            HoldAgentForReaction();
+            _state = EntityState.Idle; // resumed by ResumeNonCombat once up — never a stale combat / chase state
+            GameLog.Info(TAG, $"{gameObject.name} knocked out — brain paused");
+        }
+
+        // Back on its feet: the fight is over — back to the routine (or idle), never a re-attack.
+        private void HandleRegainedConsciousness()
+        {
+            ClearStanceReaction();
+            if (_state == EntityState.Dead || _entityHealth.IsDead) return;
+            if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
+            _lastDamagedTime = Time.time; // just out of a fight: no sneak-attack bonus on the next punch
+            GameLog.Info(TAG, $"{gameObject.name} back up — resuming its routine");
+            ResumeNonCombat();
         }
 
         // Drops the per-reaction bookkeeping (recovery, death, re-enable).
@@ -1222,6 +1296,8 @@ namespace Game.AI
         {
             // Store only: setup failed / brain disabled (Awake, Start, death components) or a corpse (incl. restored ones).
             if (!_started || !isActiveAndEnabled || _entityHealth.IsDead || _state == EntityState.Dead) return;
+            // Unconscious: stored; RegainedConsciousness walks to it (ResumeNonCombat).
+            if (_entityHealth.IsUnconscious) return;
             if (_stance != null && _stance.IsIncapacitated)
             {
                 // A warp / new path mid-reaction would slide the body: apply (walking) once recovered.

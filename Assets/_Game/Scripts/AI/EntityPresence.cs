@@ -31,11 +31,17 @@ namespace Game.World
         /// <summary>True when this entity has died (corpse remains in the scene as a loot target).</summary>
         protected bool IsDead => _entityHealth != null && _entityHealth.IsDead;
 
+        /// <summary>True while knocked out (spec-unconscious-knockout) — lootable like a corpse until it gets up.</summary>
+        protected bool IsUnconscious => _entityHealth != null && _entityHealth.IsUnconscious;
+
+        /// <summary>Dead or knocked out: the body lies on the ground and can be looted.</summary>
+        protected bool IsDown => IsDead || IsUnconscious;
+
         /// <summary>True when this entity carries at least one item to loot.</summary>
         protected bool HasLoot => _inventory != null && _inventory.Count > 0;
 
-        /// <summary>A dead body is lootable only while it still holds items — an empty corpse is inert.</summary>
-        protected bool IsLootable => IsDead && HasLoot;
+        /// <summary>A dead or unconscious body is lootable only while it still holds items — an empty one is inert.</summary>
+        protected bool IsLootable => IsDown && HasLoot;
 
         // A non-empty dead body is lootable; an alive (or emptied) base entity offers no prompt.
         public virtual string InteractPrompt => IsLootable ? "Loot" : string.Empty;
@@ -71,7 +77,7 @@ namespace Game.World
             if (IsLootable) OpenLoot();
         }
 
-        /// <summary>Opens the dead entity's inventory as a take-only container (corpse loot).</summary>
+        /// <summary>Opens the dead / unconscious entity's inventory as a take-only container (loot).</summary>
         protected void OpenLoot()
         {
             if (_onLootRequested == null)
@@ -95,7 +101,7 @@ namespace Game.World
 
         /// <summary>True when this entity is alive and not currently in combat.</summary>
         protected bool IsAliveAndOutOfCombat =>
-            (_entityHealth == null || !_entityHealth.IsDead) &&
+            (_entityHealth == null || (!_entityHealth.IsDead && !_entityHealth.IsUnconscious)) &&
             (_combatState  == null || !_combatState.IsInCombat) &&
             (_stance       == null || !_stance.IsIncapacitated);
     }

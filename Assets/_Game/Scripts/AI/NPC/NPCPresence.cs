@@ -42,9 +42,10 @@ namespace Game.AI
             }
         }
 
-        // Dead with loot → "Loot"; alive & hostile → no prompt; alive → "Talk"; dead-and-empty → no prompt.
+        // Dead / unconscious with loot → "Loot"; empty → no prompt; alive & hostile → no prompt; alive → "Talk"
+        // (CanInteract still hides "Talk" while in combat or staggered).
         public override string InteractPrompt =>
-            IsDead ? (IsLootable ? "Loot" : string.Empty) : (IsHostileToPlayer ? string.Empty : "Talk");
+            IsDown ? (IsLootable ? "Loot" : string.Empty) : (IsHostileToPlayer ? string.Empty : "Talk");
 
         // Interactable when a non-empty corpse (loot) OR alive, out of combat and not hostile (dialogue).
         // In combat, hostile & alive, or an emptied corpse → no interaction.
@@ -60,9 +61,9 @@ namespace Game.AI
         {
             if (Data == null) return;
 
-            if (IsDead)
+            if (IsDown)
             {
-                base.Interact(); // loot the corpse via the shared container pipeline
+                base.Interact(); // loot the corpse / unconscious body via the shared container pipeline
                 return;
             }
             if (IsHostileToPlayer)

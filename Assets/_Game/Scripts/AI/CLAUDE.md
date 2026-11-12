@@ -14,7 +14,7 @@
 |------|------|
 | `EntityBrain` | State machine Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses: (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back; Dead. Implements `ICombatStateProvider` and `Game.Combat.ISneakAttackTarget`. Targets from `TargetRegistry` (radius) and `EntityPerception` (stealth targets). `DebugStateName` for debug views. Patrolling only on an `NpcRoutine` Patrol route (`SetRoutineTarget`) — no waypoints of its own; without a routine it idles / wanders. A stored routine request is re-applied in `OnEnable` (respawn). |
 | `EntityPerception` | Vision-cone awareness (0..1) of **stealth targets** (the player) — cone + LOS raycast + 360° proximity radius, math in `Game.Stealth.StealthDetection`. Ticked by the brain; never changes brain state itself. Static `Active` list for the F3 overlay; detection gizmos. On `Entity_base` root. |
-| `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). |
+| `EntityHealth` | Health for any entity; `IDamageable`. On death: stops NavMeshAgent (optional), `PersistentID.RegisterDeath()`, death anim. Body stays (ragdoll, never `SetActive(false)`). Knockout instead of death for a brawl — see **Unconscious** below. |
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. **One faction source per GO:** an entity always uses `PersistentID.Entity.Faction` (the `Entity` SO); the serialized `_faction` is only for a GO without an Entity — the Player (`Faction_Player`). `_faction` set on an entity → `GameLog.Error`, ignored. `IsPlayer` = an `IStealthTarget` component exists (even disabled). Brain / perception / attacker resolve the same-GO member in `Awake` (no inspector field). Consumers read `member.Faction` at query time — never copy it into their own field (future runtime faction change). **Only the player may implement `IStealthTarget`** (it is the player marker). |
 | `TheftPursuitRegistry` | **Static** claim set of theft ids (reset on play). `TryClaim(id)` — first catcher wins; `IsClaimed(id)` tells the other pursuers to give up. `TheftPursuitRegistryTests`. |
 | `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `Player` = the registered `IsPlayer` member (null when absent; a second one is ignored with a warning, promoted if the first unregisters) — how non-player systems (`NPCPresence`) get the player's faction; Player-side systems (`LockOnSystem`, `SleepSystem`) read their own same-GO `FactionMember`, the same component. `NPCPresence` warns once if it is null. `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget` / `FindClosestNonHostileStealthTarget` (witnesses). |
@@ -77,7 +77,7 @@
   faction isn't hostile.
 - `BeginAttack(damage, comboHits)` / `EndAttack()` bracket an attack; `OpenWindow` is ignored while
   `!IsAttacking`. Hits are faction-filtered (target's `FactionMember` must be hostile; none → ignored), then
-  `TryReceiveHit → TakeDamage(CurrentDamage)` on `NotBlocked`.
+  `TryReceiveHit → TakeDamage(CurrentDamage, gameObject)` on `NotBlocked`.
 - **Combo:** `comboHits` is clamped to `AIAnimationDriver.MaxComboSteps` (no driver → 1).
   `OnComboWindowOpen()` advances and calls `TriggerComboStep(next)`; each step's clip opens its own
   window → damage per hit.
@@ -182,12 +182,12 @@
 `EntityPresence` sits on the `Entity_base.prefab` root, so every entity is found by `InteractionSystem` and
 shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` without `PersistentID.Entity`).
 
-- **Loot:** `IsLootable = IsDead && HasLoot` (`HasLoot` = `InventorySystem.Count > 0`). `CanInteract => IsLootable`,
+- **Loot:** `IsLootable = IsDown && HasLoot` (`IsDown` = dead **or unconscious**) (`HasLoot` = `InventorySystem.Count > 0`). `CanInteract => IsLootable`,
   `InteractPrompt` = `"Loot"` when lootable, else `""`. `Interact()` → `OpenLoot()` raises
   `GameEventSO_ContainerOpenRequest _onLootRequested` with the entity's `InventorySystem` and
   `takeOnly = true` — reusing the container pipeline (`ContainerSystem` / `ContainerUI`). An emptied corpse
   is inert (no prompt, `Interact()` no-op).
-- **`NPCPresence`** overrides `Interact()`: dead → `base.Interact()` (loot, never dialogue); alive and out of
+- **`NPCPresence`** overrides `Interact()`: dead / unconscious → `base.Interact()` (loot, never dialogue); alive and out of
   combat → raises `_onDialogueRequested`; in combat → blocked. Prompt `"Loot"` / `"Talk"` / `""`;
   `CanInteract => IsLootable || IsAliveAndOutOfCombat`.
 - **Wiring gotcha:** `_onLootRequested` must be wired on **both** `Entity_base.prefab` (monsters) and the NPC
@@ -264,12 +264,38 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 
 ---
 
+## Unconscious (spec-unconscious-knockout)
+
+- **Who decides:** the victim. Hits go through `IDamageable.TakeDamage(amount, attacker)` (`PlayerCombat.ResolveHit`,
+  `EntityMeleeAttacker.HandleHit`); `TakeDamage(amount)` = unknown source = lethal. A 0-HP blow is a **knockout** when
+  `FactionMember.IsKnockoutPair(attacker, victim)`: both `IsHumanoid` (`IsPlayer` or `Entity is NPCEntity`) and not
+  `FactionSO.AreHostile` (pure rule `Game.Combat.KnockoutRules`, `KnockoutRulesTests`). Monsters / hostiles / unknown
+  always kill, even a downed target. No `RegisterDeath`, no kill, no XP.
+- `EntityHealth` (needs `_combatConfig`, wired on `Entity_base` + unpacked scene NPCs like Brann — null = always lethal):
+  `IsUnconscious` from the knockout until the get-up clip ends. HP regains linearly to
+  `CombatConfigSO.unconsciousRecoverHealthFraction` over `unconsciousDuration`, then `AIAnimationDriver.SetUnconscious(false)`
+  (get-up), then `getUpDuration` later `RegainedConsciousness`. A knockout-pair hit while down is ignored (finishing blow
+  deferred). Same-GO events `KnockedOut` / `RegainedConsciousness`. `OnEnable` resets it (not saved).
+- `EntityBrain`: `KnockedOut` → target dropped, combat off, attack ended, perception reset, agent held, state Idle;
+  `Update` returns early while unconscious (no perception); `RegainedConsciousness` → `ResumeNonCombat()` (routine, never
+  a re-attack). Routine requests / thefts / damage reactions are stored or ignored while down. `HasValidTarget` is false for
+  an unconscious target this brain could only knock out → the winner disengages to its routine.
+- **Brawl retaliation:** `HandleHealthChanged` with a known, live, conscious, **non-hostile** attacker forming a knockout
+  pair with this entity (and `DetectionRange > 0`) → `EntityMeleeAttacker.SetAggroTarget(attacker)` + engage (same aggro
+  mechanism as instant-aggression trespass). Passive NPCs still never fight back.
+- `EntityStance` / `PlayerStance` treat unconscious like dead (meter refilled, `Apply` ignored); hit resolvers skip stance
+  on an unconscious target. `EntityPresence.IsAliveAndOutOfCombat` is false while down.
+- Known gap: a loot screen open on an NPC that gets up stays open (auto-close needs an event channel).
+
+---
+
 ## Code Review Checklist — AI
 
 | Severity | Pattern |
 |----------|---------|
 | HIGH | Attacking entity without `EntityMeleeAttacker` on the root or `EntityAnimationEventReceiver` on the Animator GO — attacks animate but deal no damage |
 | HIGH | `EntityBrain` (or any AI code) calling `TakeDamage` directly |
+| HIGH | A damage source calling `TakeDamage(amount)` with a known attacker — use `TakeDamage(amount, attacker)` or brawls kill |
 | MEDIUM | Hitbox GO under a ragdoll bone carrying a `Rigidbody` — drivers collect every child Rigidbody for the ragdoll |
 | MEDIUM | Clip event id (`HitboxEnable("Bite")`) not matching a registered `_hitboxes` id — one warning, then silent misses |
 | MEDIUM | `_onLootRequested` unwired on a prefab that has its own `EntityPresence` / `NPCPresence` — corpse never opens |

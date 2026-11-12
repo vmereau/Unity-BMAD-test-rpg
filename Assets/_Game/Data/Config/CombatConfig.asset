@@ -37,8 +37,25 @@ MonoBehaviour:
   blockStanceMultiplier: 0.5
   playerStaggerDuration: 1.1
   playerKnockdownDuration: 4.6
+  unconsciousDuration: 8
+  unconsciousRecoverHealthFraction: 0.15
+  getUpDuration: 2.7
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
+  defaultAttackStep:
+    distance: 0.5
+    startTime: 0.35
+    duration: 0.35
+  unarmedAttackSteps:
+  - distance: 0.3
+    startTime: 0.2
+    duration: 0.25
+  - distance: 0.35
+    startTime: 0.25
+    duration: 0.25
+  - distance: 0.3
+    startTime: 0.2
+    duration: 0.25
   weaponSwitchAnimSpeed: 1.5
   weaponSwitchTimeout: 2.5
   aimFieldOfView: 30

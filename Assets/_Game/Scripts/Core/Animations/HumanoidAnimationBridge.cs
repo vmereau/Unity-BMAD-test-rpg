@@ -23,6 +23,7 @@ namespace Game.Animations
         private static readonly int StaggerHash = Animator.StringToHash("Stagger");
         private static readonly int StaggerIndexHash = Animator.StringToHash("StaggerIndex");
         private static readonly int KnockDownHash = Animator.StringToHash("KnockDown");
+        private static readonly int IsUnconsciousHash = Animator.StringToHash("IsUnconscious");
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
         private static readonly int Attack2Hash = Animator.StringToHash("Attack_2");
         private static readonly int Attack3Hash = Animator.StringToHash("Attack_3");
@@ -225,6 +226,19 @@ namespace Game.Animations
             _animator.ResetTrigger(StaggerHash);
             ResetAttackTriggers(); // a latched Attack_1 would cut the reaction through the Base AnyState
             _animator.SetTrigger(KnockDownHash);
+        }
+
+        /// <summary>
+        /// Unconscious (spec-unconscious-knockout). <c>true</c>: KnockDown + the bool take AnyState → <c>Unconscious</c>
+        /// (the Knocked Down clip, non-looping → holds its last, on-the-ground frame). <c>false</c>: <c>Unconscious →
+        /// GettingUp</c> plays, and an unconsumed KnockDown trigger is dropped so it can't replay once standing.
+        /// </summary>
+        public void SetUnconscious(bool down)
+        {
+            if (_animator == null) return;
+            _animator.SetBool(IsUnconsciousHash, down);
+            if (down) PlayKnockDown();
+            else _animator.ResetTrigger(KnockDownHash);
         }
 
         /// <summary>Clears pending Stagger / KnockDown triggers (reaction over before the animator consumed them).</summary>

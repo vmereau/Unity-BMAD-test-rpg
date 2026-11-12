@@ -25,7 +25,7 @@
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
-- `IsBusy` is `true` when dead, staggered / knocked down (`IsIncapacitated`), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
+- `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
@@ -76,6 +76,16 @@ flags (and the meter refills while dead); `PlayerSaveAdapter.Restore` calls `Res
 the Animator). Systems outside the `Can*` gates check `IsIncapacitated` themselves: `DodgeController`, `InteractionSystem`
 (no focus / E), `ActionBarSystem.TryUseSlot`, `UIScreenManager.OpenTab` (an equip mid-reaction would swap the controller),
 `PlayerController` lock-on rotation. Hidden — no UI, not saved.
+
+### Unconscious — PlayerHealth (spec-unconscious-knockout)
+
+A 0-HP blow from a non-hostile humanoid knocks the player out (rule in `Scripts/AI/CLAUDE.md` → Unconscious): no
+`_onPlayerDied`, no death screen. `PlayerHealth.KnockOut` → `PlayerCombat.InterruptForStance()` +
+`PlayerStateManager.SetUnconscious(true)` (`IsUnconscious` is part of `IsIncapacitated` → every gate closes; clears
+block / attack / aim / sneak / stance flags; held knocked down clip). `PlayerHealth.Update` regains HP (HUD event each
+tick), then `BeginGetUp()` (get-up clip), then `SetUnconscious(false)`. Monster / hostile hits still kill a downed player
+(`SetDead` clears the flag). Not saved: `RestoreHealth` clears it with `resetAnimator: true`. `PlayerStance` refills and
+ignores stance while unconscious.
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
 

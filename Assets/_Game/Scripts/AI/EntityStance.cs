@@ -77,6 +77,12 @@ namespace Game.AI
                 _meter.ClearReaction();
                 return;
             }
+            if (_health != null && _health.IsUnconscious)
+            {
+                // The knockout overrides the reaction (no Recovered — the brain handles KnockedOut); full stance on waking.
+                _meter.Reset(Settings);
+                return;
+            }
 
             if (_meter.Tick(Time.deltaTime, Settings)) Recover();
         }
@@ -95,7 +101,7 @@ namespace Game.AI
         private void Apply(float amount, bool canKnockDown, bool hyperArmor)
         {
             if (!enabled || IsKnockedDown || amount <= 0f) return;
-            if (_health != null && _health.IsDead) return;
+            if (_health != null && (_health.IsDead || _health.IsUnconscious)) return;
 
             Entity entity = _persistentID.Entity;
             if (hyperArmor && _attacker != null && _attacker.IsInAttackState)

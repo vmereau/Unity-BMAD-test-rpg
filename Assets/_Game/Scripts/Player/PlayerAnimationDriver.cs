@@ -100,6 +100,8 @@ namespace Game.Player
         public void PlayStagger(int variant) => _humanoidBridge.PlayStagger(variant);
         public void PlayKnockDown() => _humanoidBridge.PlayKnockDown();
         public void ClearStanceReaction() => _humanoidBridge.ResetStanceTriggers();
+        /// <summary>Knocked out (held knocked down clip) / gets up (getting up clip) — spec-unconscious-knockout.</summary>
+        public void SetUnconscious(bool down) => _humanoidBridge.SetUnconscious(down);
         public void ResetAfterRevive()
         {
             _humanoidBridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)

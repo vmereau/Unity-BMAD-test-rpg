@@ -1,6 +1,7 @@
 using Game.Combat;
 using Game.Core;
 using Game.Factions;
+using Game.NPC;
 using Game.Stealth;
 using Game.World;
 using UnityEngine;
@@ -55,6 +56,27 @@ namespace Game.AI
         /// is enabled (a disabled PlayerSneak must not hide the player's faction from <see cref="TargetRegistry.Player"/>).
         /// </summary>
         public bool IsPlayer => _stealthTarget is UnityEngine.Object obj ? obj != null : _stealthTarget != null;
+
+        /// <summary>The player or an NPC (<see cref="NPCEntity"/>) — monsters are not. Humanoids can be knocked out.</summary>
+        public bool IsHumanoid => IsPlayer || EntityOrNull is NPCEntity;
+
+        /// <summary>
+        /// True when a lethal blow from <paramref name="attacker"/> knocks <paramref name="victim"/> out instead of killing
+        /// it (spec-unconscious-knockout): both humanoids and their factions not hostile. Either side or faction null → false (lethal).
+        /// </summary>
+        public static bool IsKnockoutPair(FactionMember attacker, FactionMember victim)
+        {
+            if (attacker == null || victim == null || attacker.Faction == null || victim.Faction == null) return false;
+            return KnockoutRules.IsNonLethal(attacker.IsHumanoid, victim.IsHumanoid,
+                FactionSO.AreHostile(attacker.Faction, victim.Faction));
+        }
+
+        /// <summary>The FactionMember of <paramref name="go"/> (same GO, else a parent). Null-safe.</summary>
+        public static FactionMember Of(GameObject go)
+        {
+            if (go == null) return null;
+            return go.TryGetComponent(out FactionMember member) ? member : go.GetComponentInParent<FactionMember>();
+        }
 
         private void Awake()
         {

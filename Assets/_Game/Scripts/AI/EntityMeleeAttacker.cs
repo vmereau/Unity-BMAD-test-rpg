@@ -255,10 +255,10 @@ namespace Game.AI
                     if (target is Component targetComponent &&
                         targetComponent.TryGetComponent(out ISneakAttackTarget victim))
                         victim.NotifyHitBy(gameObject);
-                    target.TakeDamage(CurrentDamage);
+                    target.TakeDamage(CurrentDamage, gameObject);
                     GameLog.Info(TAG, $"{gameObject.name} hit landed at {hitPoint}");
-                    // Stance after health, like the player's hits: a lethal hit skips stance.
-                    if (!target.IsDead && TryGetStanceTarget(target, out IStanceTarget stanceTarget))
+                    // Stance after health, like the player's hits: a lethal or knockout hit skips stance.
+                    if (!target.IsDead && !target.IsUnconscious && TryGetStanceTarget(target, out IStanceTarget stanceTarget))
                         stanceTarget.ApplyStanceDamage(ResolveStanceDamage(out bool canKnockDown), canKnockDown);
                     break;
             }

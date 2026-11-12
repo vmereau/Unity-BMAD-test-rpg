@@ -56,10 +56,10 @@ namespace Game.Player
 
         private void Update()
         {
-            if (IsDead)
+            if (IsDead || IsUnconscious)
             {
-                // Death overrides the reaction (SetDead already cleared the state manager's flags). Refilled so any
-                // revive path starts at full stance, not only a save load.
+                // Death / knockout overrides the reaction (SetDead / SetUnconscious already cleared the state manager's
+                // flags). Refilled so the player gets up — or any revive path starts — at full stance.
                 _meter.Reset(Settings);
                 return;
             }
@@ -92,10 +92,11 @@ namespace Game.Player
         }
 
         private bool IsDead => _health != null && _health.IsDead;
+        private bool IsUnconscious => _health != null && _health.IsUnconscious;
 
         private void Apply(float amount, bool canKnockDown, bool blocked)
         {
-            if (!enabled || IsDead || amount <= 0f) return;
+            if (!enabled || IsDead || IsUnconscious || amount <= 0f) return;
 
             if (blocked) amount = StanceMath.ApplyBlockMultiplier(amount, _config.blockStanceMultiplier);
             if (_stateManager.IsAttacking)
