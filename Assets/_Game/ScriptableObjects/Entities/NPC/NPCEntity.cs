@@ -29,22 +29,25 @@ namespace Game.NPC
 
         public override WitnessProfileSO WitnessProfile => _witnessProfile;
 
+        [Header("Loadout")]
+        [Tooltip("Equipped when the NPC spawns (NpcArmament): armor is worn, a weapon is wielded in every fight unless the " +
+                 "caller asks for fists. Empty = unarmed. Needs EquipmentSystem + EquipmentVisuals + NpcArmament on the NPC.")]
+        [SerializeField] private List<EquipableItemSO> _startingEquipment = new();
+
         [Header("Combat")]
-        [Tooltip("Data only — no visual or hitbox (NPCs fight unarmed). Adds its stance damage to the entity's attack stance " +
-                 "and decides knockdown. Null = unarmed (never knocks down).")]
-        [SerializeField] private WeaponSO _weapon;
         [Tooltip("Stance damage multiplier on the last hit of a multi-hit combo (finisher), like the player's.")]
         [SerializeField, Min(1f)] private float _finisherStanceMultiplier = 1.5f;
 
-        public WeaponSO Weapon => _weapon;
+        public IReadOnlyList<EquipableItemSO> StartingEquipment => _startingEquipment;
 
-        /// <summary>Humanoid: entity base + weapon stance, × finisher on the last hit of a multi-hit combo.</summary>
-        public override float ResolveAttackStance(int step, int hits, out bool canKnockDown)
+        /// <summary>Humanoid: entity base + wielded weapon stance, × finisher on the last hit of a multi-hit combo.
+        /// Knockdown only with a weapon that can knock down (fists never).</summary>
+        public override float ResolveAttackStance(int step, int hits, WeaponSO wielded, out bool canKnockDown)
         {
-            canKnockDown = _weapon != null && _weapon.ResolvedCanKnockDown;
+            canKnockDown = wielded != null && wielded.ResolvedCanKnockDown;
             bool isFinisher = hits > 1 && step >= hits;
             return StanceMath.ComputeHumanoidStanceDamage(AttackStanceDamage,
-                _weapon != null ? _weapon.ResolvedStanceDamage : 0f, isFinisher, _finisherStanceMultiplier);
+                wielded != null ? wielded.ResolvedStanceDamage : 0f, isFinisher, _finisherStanceMultiplier);
         }
 
 #if UNITY_EDITOR

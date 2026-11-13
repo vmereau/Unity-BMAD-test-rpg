@@ -3,6 +3,7 @@ using Game.Animations;
 using Game.Audio;
 using Game.Combat;
 using Game.Core;
+using Game.Inventory;
 using Game.World;
 using UnityEngine;
 
@@ -61,6 +62,11 @@ namespace Game.AI
         public FactionMember AggroTarget { get; private set; }
 
         public void SetAggroTarget(FactionMember target) => AggroTarget = target;
+
+        /// <summary>Weapon in hand for stance / knockdown (set by <see cref="NpcArmament"/>); null = fists / monster.</summary>
+        public WeaponSO WieldedWeapon { get; private set; }
+
+        public void SetWieldedWeapon(WeaponSO weapon) => WieldedWeapon = weapon;
 
         private FactionMember _knockedOutVictim;
 
@@ -134,6 +140,9 @@ namespace Game.AI
             _hitboxes.Add(new NamedHitbox { Id = id, Hitbox = hitbox });
         }
 
+        /// <summary>True when a hitbox is registered under <paramref name="id"/> (null = "").</summary>
+        public bool HasHitbox(string id) => IndexOf(id ?? string.Empty) >= 0;
+
         /// <summary>Runtime remove — closes the hitbox's window and unsubscribes it.</summary>
         public void UnregisterHitbox(string id)
         {
@@ -183,6 +192,16 @@ namespace Game.AI
             if (!IsAttacking) return;
             if (!_combo.TryAdvance(out int next)) return;
             if (_animationDriver != null) _animationDriver.TriggerComboStep(next);
+        }
+
+        /// <summary>
+        /// The animator controller was swapped (NPC weapon / fists): its states restart without SMB exits, so the attack
+        /// ends and the active attack-state count is cleared — a stuck count would block every later attack.
+        /// </summary>
+        public void ResetAttackStates()
+        {
+            EndAttack();
+            _activeAttackStates = 0;
         }
 
         /// <summary>An attack animator state was entered (SMB_EntityAttackState).</summary>
@@ -282,13 +301,13 @@ namespace Game.AI
             }
         }
 
-        // Stance damage of the combo step being played (Entity: monster fixed / humanoid base + weapon + finisher).
+        // Stance damage of the combo step being played (Entity: monster fixed / humanoid base + wielded weapon + finisher).
         private float ResolveStanceDamage(out bool canKnockDown)
         {
             canKnockDown = false;
             if (_persistentID == null || _persistentID.Entity == null) return 0f;
             return _persistentID.Entity.ResolveAttackStance(Mathf.Max(1, _combo.CurrentStep), Mathf.Max(1, _combo.TotalHits),
-                out canKnockDown);
+                WieldedWeapon, out canKnockDown);
         }
 
         private static bool TryGetStanceTarget(IDamageable target, out IStanceTarget stanceTarget)

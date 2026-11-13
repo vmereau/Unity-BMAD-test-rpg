@@ -184,9 +184,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3698d187bb02ff4f9d9218ca603f3fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.WeaponHitbox
+--- !u!4 &435211451790436353 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7647306391725045702, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &466875423056237121 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7660678621767290246, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &2074702169421064367 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 8133585067226036072, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2314248321141933825 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5491931599564658886, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3251420969866523213 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4698872901612907914, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &3994166075755843726 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6576591110564024137, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4327316888193716590 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5775631154844208809, guid: 4578669239067934bb258f24941010fe, type: 3}
   m_PrefabInstance: {fileID: 7794215995819614151}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &4711098196374235247 stripped
@@ -207,6 +237,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.EntityAnimationEventReceiver
   _attacker: {fileID: 2207314383247992086}
+--- !u!4 &4765939337473225429 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3318760075892894994, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5344363690494718677 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2738294482755661074, guid: 4578669239067934bb258f24941010fe, type: 3}
@@ -336,7 +371,27 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2207314383247992086}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5690686823848695740}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8531843112707779696}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8772967254062050560}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+--- !u!114 &76150843049530146 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7887146153611111599, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+  m_PrefabInstance: {fileID: 7816647421093773197}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bb7168ca149809449a28fc126185f40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.InventorySystem
 --- !u!1 &2202085857188219662 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
@@ -456,6 +511,62 @@ MonoBehaviour:
   _animationDriver: {fileID: 3766970546440902038}
   _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
   _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
+--- !u!114 &5690686823848695740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8990bc815d87a44081e784aacd478a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.EquipmentSystem
+  _inventorySystem: {fileID: 76150843049530146}
+  _onEquipmentChanged: {fileID: 0}
+  _playerStats: {fileID: 0}
+  _npcOwned: 1
+--- !u!114 &8531843112707779696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89813cdc2bb801d498bd3dbe7f7dc1da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Inventory.EquipmentVisuals
+  _equipmentSystem: {fileID: 5690686823848695740}
+  _onEquipmentChanged: {fileID: 0}
+  _weaponSocket: {fileID: 435211451790436353}
+  _leftWeaponSocket: {fileID: 4327316888193716590}
+  _undrawnWeaponSocket: {fileID: 3251420969866523213}
+  _backWeaponSocket: {fileID: 2314248321141933825}
+  _helmetSocket: {fileID: 4765939337473225429}
+  _bodyRenderer: {fileID: 3994166075755843726}
+  _skeletonRoot: {fileID: 466875423056237121}
+  _animator: {fileID: 2074702169421064367}
+  _defaultAnimatorController: {fileID: 22100000, guid: a1e21731965ee4d449b674675d66155c, type: 2}
+  _onVisualsRefreshed: {fileID: 0}
+--- !u!114 &8772967254062050560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88336344d5db8a2478aa1d6a20cdf1f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.NpcArmament
+  _equipment: {fileID: 5690686823848695740}
+  _visuals: {fileID: 8531843112707779696}
+  _inventory: {fileID: 76150843049530146}
+  _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}

@@ -18,8 +18,11 @@ namespace Game.AI
         [Tooltip("Auto-resolved from the parents if null.")]
         [SerializeField] private EntityMeleeAttacker _attacker;
 
+        private NpcArmament _armament; // optional (equipped NPCs) — resolved from the parents
+
         private void Awake()
         {
+            _armament = GetComponentInParent<NpcArmament>();
             if (_attacker == null) _attacker = GetComponentInParent<EntityMeleeAttacker>();
             if (_attacker == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: no EntityMeleeAttacker in parents — hitbox events will be no-ops");
@@ -63,5 +66,22 @@ namespace Game.AI
 
         // Player attack clips also fire this — no-op (the next step is requested on open).
         public void ComboWindowClose() { }
+
+        private const string DRAW_STATE = "Draw_State";
+        private const string SHEATHE_STATE = "Sheathe_State";
+
+        // Draw / sheathe clips: the hand reached the hilt / sheath — the weapon visual moves now. No armament → no-op.
+        // The firing state tells draw from sheathe, so a reversed switch ignores the old clip's event.
+        public void WeaponSwap(AnimationEvent evt)
+        {
+            if (_armament == null) return;
+            bool? fromDraw = null;
+            if (evt != null)
+            {
+                if (evt.animatorStateInfo.IsName(DRAW_STATE)) fromDraw = true;
+                else if (evt.animatorStateInfo.IsName(SHEATHE_STATE)) fromDraw = false;
+            }
+            _armament.CompleteWeaponSwitch(fromDraw);
+        }
     }
 }

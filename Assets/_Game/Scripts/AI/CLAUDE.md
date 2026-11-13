@@ -21,7 +21,8 @@
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
 | `AttackComboPlan` | Pure combo bookkeeping (`Begin`, `TryAdvance`, `Reset`) for `EntityMeleeAttacker`. `AttackComboPlanTests`. |
-| `EntityAnimationEventReceiver` | On the **Animator GO**. Hit-window events by id → attacker; SMB notifications → attacker state counter; `ComboWindowOpen()` → `attacker.OnComboWindowOpen()`. |
+| `EntityAnimationEventReceiver` | On the **Animator GO**. Hit-window events by id → attacker; SMB notifications → attacker state counter; `ComboWindowOpen()` → `attacker.OnComboWindowOpen()`; `WeaponSwap(AnimationEvent)` (draw / sheathe clips) → `NpcArmament.CompleteWeaponSwitch(fromDraw)` — draw vs sheathe read from the firing state name (`Draw_State` / `Sheathe_State` in `Humanoid_Template`; **renaming them** makes a superseded clip's event complete a reversed switch); no armament → no-op. |
+| `NpcArmament` | Equipped NPCs: loadout, weapon vs fists, draw / sheathe, weapon loot — see **NPC equipment** below. |
 | `SMB_EntityAttackState` | On attack states of `EntityBase.controller` and `Humanoid_Template`. Enter/exit → receiver → attacker counter. Receiver lookup cached; no-op on the Player. |
 | `SMB_DeathState` | On the death animator state. |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
@@ -236,9 +237,9 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `max(cooldown, attack duration)`.
 - **The brain faces its target while Attacking** (`FaceTarget()` every tick, `Entity.WarningTurnSpeed`) — a
   non-facing attacker whiffs.
-- **Humanoid NPCs fight unarmed** (`Unarmed` hitbox, right hand, random 1–3 hit Jab → Uppercut → Jab). Armed
-  NPCs (future): `RegisterHitbox("Weapon", hitbox)`.
-- One damage value per attack (`Entity.AttackDamage`). Two open hitboxes can each hit the same target once
+- **Humanoid NPCs without a weapon fight unarmed** (`Unarmed` hitbox, right hand, random 1–3 hit Jab → Uppercut → Jab).
+  Armed NPCs: `NpcArmament` (see **NPC equipment**).
+- One damage value per attack (`Entity.AttackDamage`, + the wielded weapon's `damageBonus` for an armed NPC). Two open hitboxes can each hit the same target once
   (dedupe is per `WeaponHitbox`).
 - **Known gap:** spider `AttackRange` 0.8 is root-to-root, but agent avoidance holds it ≈ 1.0 m from an NPC →
   spiders engage NPCs but never bite them (they do bite the player). Retune the spider SO if needed.
@@ -262,11 +263,11 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   already at/below the threshold deals nothing.
 - **AI hits deal stance damage** to any `IStanceTarget` (player or another NPC): `EntityMeleeAttacker.HandleHit` →
   `ApplyStanceDamage` after `TakeDamage` on `NotBlocked` (skipped on a lethal hit), `ApplyBlockedStanceDamage` on
-  `Blocked` (player: × `blockStanceMultiplier`, never knockdown). Amount = `Entity.ResolveAttackStance(step, hits)`:
+  `Blocked` (player: × `blockStanceMultiplier`, never knockdown). Amount = `Entity.ResolveAttackStance(step, hits, wielded)`:
   monsters → fixed `_attackStanceDamage` / `_attackCanKnockDown` (rat 10, viper 15, spider 20, wolf 25 KD, grunt 30 KD);
-  `NPCEntity` → `_attackStanceDamage` (15) + data-only `_weapon` (`WeaponSO.ResolvedStanceDamage`, no visual / hitbox),
-  × `_finisherStanceMultiplier` on the last hit of a multi-hit combo; knockdown = the weapon's `ResolvedCanKnockDown`
-  (no weapon = never). Step / hits come from `AttackComboPlan` (`CurrentStep` advances at `ComboWindowOpen`).
+  `NPCEntity` → `_attackStanceDamage` (15) + the **wielded** weapon (`EntityMeleeAttacker.WieldedWeapon`, set by
+  `NpcArmament`; `WeaponSO.ResolvedStanceDamage`), × `_finisherStanceMultiplier` on the last hit of a multi-hit combo;
+  knockdown = the wielded weapon's `ResolvedCanKnockDown` (fists = never). `ResolveAttackStance(step, hits, wielded, out kd)`. Step / hits come from `AttackComboPlan` (`CurrentStep` advances at `ComboWindowOpen`).
 - Reaction: `AIAnimationDriver.TriggerStagger(variant 0/1)` / `TriggerKnockDown()` (base default = `TriggerGetHit`, so
   monsters fall back to GetHit). Timed by `_staggerDuration` / `_knockdownDuration` — **match the clip lengths**
   (humanoid 1.1 / 4.6 s, monsters 0.6 / 1.5 s).
@@ -357,6 +358,32 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   timeout, target lost, disable) until the caller calls `ClearIntercept()`; `EndIntercept()` returns to the routine. Intercepting
   is in `HandleHealthChanged`'s reactive list, ignores thefts, stores routine requests, gives no sneak-attack bonus.
 - Forced toll topics are not reachable from a memory, so Quest Explorer may list them as unattributed (expected).
+
+## NPC equipment (NpcArmament — spec-npc-equipment)
+
+- `NPC_base Variant` root: `EquipmentSystem` (`_npcOwned` = no warnings for the unwired player channels / `PlayerStats`),
+  `EquipmentVisuals` (the base hero's 5 sockets, `base_hero` body, `mixamorig:Hips`, default controller `Humanoid_Base`,
+  **`_onEquipmentChanged` / `_onVisualsRefreshed` unwired**) and `NpcArmament`, which refreshes the visuals directly.
+- **Loadout:** `NPCEntity._startingEquipment` is added to the NPC inventory and equipped in `NpcArmament.Start` (skipped on a
+  corpse). Equipped items leave the inventory → not lootable. Guards (all `Faction_Company`: CompanyGuard_ArrivalLeft /
+  Right, DockGuard, WarehouseGuard, Harl, Warden) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword`; nobody else is equipped.
+- **Mode:** armed (weapon equipped with a `WeaponHitbox` under its visual → registered as `Weapon`, weapon animator override)
+  unless the current fight asked for fists — `EntityBrain.StartBrawl(target, useFists: true)` (only the arrival sequence's
+  Warden → Tam beating today) — or there is no weapon: `Unarmed` + the default controller. **Only one of the two hitboxes is
+  registered** (sword clips fire `HitboxEnable` with an empty id = every hitbox). The fists request ends with the fight
+  (`SetCombatState(false)`). Every fight is armed by default, brawls included.
+- **Controller swaps** (`EquipmentVisuals.ForceDefaultController` / `Refresh`) reset every animator parameter and state:
+  `NpcArmament` re-pushes `IsInCombat` and calls `EntityMeleeAttacker.ResetAttackStates()` (attack states restart without
+  SMB exits — a stuck counter blocks every attack). Never swapped while unconscious / dead (it would stand the body up),
+  attacking or in a stagger / knockdown — a mode change then waits (`_modePending`, applied in `Update`). A re-enabled
+  NPC rebuilds its mode in `OnEnable` (the visual and its hitbox were recreated).
+- **Draw / sheathe:** armed NPCs play the clips on combat entry / exit (`AIAnimationDriver.TriggerWeaponSwitch`); the visual
+  moves on `WeaponSwap`, or after `CombatConfigSO.weaponSwitchTimeout / weaponSwitchAnimSpeed`. `HandleAttack` waits while
+  `IsSwitchingWeapon`.
+- **Down:** knockout / death → `OnDowned`: weapon unequipped into the inventory (lootable), visual removed with
+  `Refresh(false)` (controller kept), armor stays equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon
+  still in the inventory is re-equipped, a looted one leaves the NPC on fists for good; full refresh.
+- **Not saved:** NPC equipment is rebuilt from the loadout on every load (`deferred-work.md`). Brann (unpacked) has none.
 
 ## Code Review Checklist — AI
 

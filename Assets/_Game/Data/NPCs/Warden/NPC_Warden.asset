@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: NPC_Warden
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Warden Voss
-  _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
+  _faction: {fileID: 11400000, guid: 25566c71b5ac7e74f948117616c16d27, type: 2}
   _baseHealth: 50
   _attackDamage: 10
   _detectionRange: 8
@@ -24,6 +24,8 @@ MonoBehaviour:
   _viewAngle: 110
   _eyeHeight: 1.6
   _proximityRadius: 2
+  _walkHearingRadius: 4
+  _runHearingRadius: 9
   _awarenessFillTime: 1
   _loseSightTime: 2
   _searchDuration: 6
@@ -55,5 +57,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1e3474f0e08ed6d4fbeb563cf42e15b9, type: 2}
   _killedFact: {fileID: 11400000, guid: afb2003e2ace22947848dd666dca4eac, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
-  _weapon: {fileID: 0}
+  _startingEquipment:
+  - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
+  - {fileID: 11400000, guid: 1ea9fe10628f3ef479ceb5b0d0b44ce8, type: 2}
   _finisherStanceMultiplier: 1.5

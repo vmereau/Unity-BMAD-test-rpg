@@ -42,6 +42,15 @@ namespace Game.Animations
         public virtual void SetWarning(bool active) { }
         public virtual void SetInCombat(bool active) { }
 
+        /// <summary>
+        /// Plays the draw (true) / sheathe (false) clip at <paramref name="speed"/>; the clip's <c>WeaponSwap</c> event moves
+        /// the weapon visual. Only humanoids have the clips; default no-op.
+        /// </summary>
+        public virtual void TriggerWeaponSwitch(bool draw, float speed) { }
+
+        /// <summary>Drops a pending draw / sheathe trigger so it can't replay later. Default no-op.</summary>
+        public virtual void ClearWeaponSwitch() { }
+
         /// <summary>Highest combo step this driver can play (1 = single attacks only).</summary>
         public virtual int MaxComboSteps => 1;
 

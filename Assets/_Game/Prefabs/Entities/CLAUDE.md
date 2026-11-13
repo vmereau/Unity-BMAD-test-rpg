@@ -45,6 +45,11 @@ All StartingTown NPCs are direct scene instances of this variant.
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**
   - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
+    At runtime `NpcArmament` swaps `Unarmed` ↔ `Weapon` (the equipped sword's hitbox) — never both registered.
+  - Root equipment (spec-npc-equipment): `EquipmentSystem` (`_inventorySystem` = root inventory, `_npcOwned`),
+    `EquipmentVisuals` (sockets / `base_hero` / `mixamorig:Hips` / `Character` Animator under the nested model,
+    `_defaultAnimatorController` = `Humanoid_Base`, both GameEvent channels **empty**), `NpcArmament` (those + root
+    inventory + `CombatConfig`). Re-wire all three after a model swap (`Scripts/AI/CLAUDE.md` → NPC equipment).
   - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. **Apply Root Motion off**
     (variant override — the nested model defaults it on; with it on, full-body attack clips move `Character` away from
     the agent root and a cut swing leaves the offset). `HumanoidAIAnimationDriver.Awake` forces it off + warns.

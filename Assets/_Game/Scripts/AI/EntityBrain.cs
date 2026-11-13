@@ -84,6 +84,7 @@ namespace Game.AI
             if (IsInCombat == inCombat) return;
             IsInCombat = inCombat;
             _animationDriver?.SetInCombat(inCombat);
+            if (_armament != null) _armament.OnCombatStateChanged(inCombat); // draw / sheathe, fists request ends with the fight
         }
 
         [SerializeField] private PersistentID _persistentID;
@@ -126,6 +127,7 @@ namespace Game.AI
 
         private NavMeshAgent _agent;
         private InventorySystem _inventory; // same-GO, optional: receives the stolen gold
+        private NpcArmament _armament; // same-GO, optional: equipped NPCs (weapon / fists, draw / sheathe, weapon loot)
         private FactionMember _lootVictim;
         private bool _lootArrived;
         private bool _lootResolved; // grab done — the clip just plays out
@@ -270,6 +272,7 @@ namespace Game.AI
             if (_perception == null) _perception = GetComponent<EntityPerception>();
             _stance = GetComponent<EntityStance>(); // optional — no stance = never staggered
             _inventory = GetComponent<InventorySystem>(); // optional — no inventory = never loots a knocked-out player
+            _armament = GetComponent<NpcArmament>(); // optional — no armament = unarmed humanoid / monster
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
             if (_speechAnchor == null && WitnessProfileSO.IsEnabled(_persistentID.Entity.WitnessProfile))
@@ -661,6 +664,7 @@ namespace Game.AI
             FaceTarget();
 
             if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // never cut an attack/combo mid-swing
+            if (_armament != null && _armament.IsSwitchingWeapon) return; // drawing: the weapon isn't in hand yet
             if (_attackCooldownTimer > 0f) return;
 
             ExecuteAttack();
@@ -1319,9 +1323,10 @@ namespace Game.AI
         /// <summary>
         /// Starts a non-lethal brawl with a non-hostile humanoid (melee aggro target + forced awareness + Engaging), like an
         /// instant-aggression trespass. Ends any intercept. False when it can't fight (passive, no attacker, down, dead,
-        /// target not live / conscious).
+        /// target not live / conscious). An equipped NPC fights with its weapon unless <paramref name="useFists"/> (until
+        /// this fight ends).
         /// </summary>
-        public bool StartBrawl(FactionMember target)
+        public bool StartBrawl(FactionMember target, bool useFists = false)
         {
             if (!_started || !isActiveAndEnabled || _state == EntityState.Dead) return false;
             if (_entityHealth.IsDead || _entityHealth.IsUnconscious) return false;
@@ -1330,6 +1335,7 @@ namespace Game.AI
 
             ClearIntercept();
             StopLooting();
+            if (_armament != null) _armament.SetFists(useFists);
             _currentTarget = target;
             _meleeAttacker.SetAggroTarget(target);
             if (PerceptionActive && target.StealthTarget != null) _perception.ForceAware(target);
@@ -1536,6 +1542,7 @@ namespace Game.AI
             _pursuitArea = null; // a theft / trespass chase ends with the knockout
             SetCombatState(false);
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
+            if (_armament != null) _armament.OnDowned(); // the weapon goes into the lootable inventory
             if (_perception != null) _perception.ResetPerception();
             ClearStanceReaction();
             HoldAgentForReaction();
@@ -1551,6 +1558,7 @@ namespace Game.AI
             if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
             _lastDamagedTime = Time.time; // just out of a fight: no sneak-attack bonus on the next punch
             GameLog.Info(TAG, $"{gameObject.name} back up — resuming its routine");
+            if (_armament != null) _armament.OnWokeUp(); // re-equips the weapon if it wasn't looted, else fists
             ResumeNonCombat();
         }
 
@@ -1592,7 +1600,9 @@ namespace Game.AI
         {
             Entity entity = _persistentID.Entity;
             int hits = Random.Range(entity.ComboHitsMin, entity.ComboHitsMax + 1);
-            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(entity.AttackDamage, hits);
+            // Armed NPC: + the wielded weapon's damage bonus (fists / monsters: 0).
+            float damage = entity.AttackDamage + (_armament != null ? _armament.DamageBonus : 0f);
+            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(damage, hits);
             _animationDriver?.TriggerAttack();
             _attackCooldownTimer = entity.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name} ({hits}-hit combo)");
@@ -1867,6 +1877,7 @@ namespace Game.AI
             // Guarded: a corpse restored from a save may have an agent that is off the NavMesh.
             if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = true;
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
+            if (_armament != null) _armament.OnDowned(); // the weapon goes into the corpse inventory, armor stays on
             if (_perception != null) _perception.ResetPerception();
             ClearStanceReaction();
             GameLog.Info(TAG, $"{gameObject.name} transitioned to Dead state");

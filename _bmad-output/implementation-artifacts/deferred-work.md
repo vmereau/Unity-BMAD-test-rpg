@@ -620,3 +620,20 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   on `Humanoid_BaseHero` (perf cost: every NPC animates) or only while in combat.
 - **Brann is unpacked** — still the Mixamo `Idle.fbx` dummy with his own wiring; rebuild him on `Humanoid_BaseHero`
   (or re-instance `NPC_base Variant`) before goal B gives him equipment, and before ever deleting `Idle.fbx`'s mesh.
+
+## From spec-npc-equipment (2026-11-13)
+
+- **NPC equipment is not saved.** The loadout is re-granted on every region load; the NPC inventory is saved. A save made
+  while a guard lies knocked out (sword moved into his inventory) restores the sword in the inventory **and** a fresh one
+  equipped → duplicate. A looted sword comes back on reload. A save-restored corpse may get the same duplicate if the
+  corpse restore lands after `NpcArmament.Start`. Fix: save `EquipmentSystem.Equipped` per NPC (`SaveableObject`).
+- **Brann** is unpacked and still on the Mixamo dummy — no `EquipmentSystem` / `NpcArmament`; rebuild him on
+  `Humanoid_BaseHero` before giving him equipment.
+- **Off-screen Animator culling** (`CullUpdateTransforms`, see the spec-npc-base-hero-model review entry) also affects the
+  sword sweep of an off-camera guard.
+- **Fists last the whole fight:** if the player hits the Warden during the Tam beating, the retaliation keeps fists (the
+  request ends only when combat ends).
+- **Draw / sheathe play-mode loop not verified by the agent** (editor unfocused → no frames); verified: loadouts, hitbox /
+  controller per mode, draw started on combat entry.
+- **Revive after death (review):** `EntityHealth` can revive (`IsDead = false`), but nothing calls `NpcArmament.OnWokeUp`
+  then — a respawned guard keeps its sword in the inventory and fights with fists. Hook the revive path if respawn ships.

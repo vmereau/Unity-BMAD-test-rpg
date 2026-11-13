@@ -441,7 +441,8 @@ namespace Game.World
         private void StartBeating()
         {
             EnterPhase(Phase.Beating);
-            if (_victimMember == null || !_warden.StartBrawl(_victimMember))
+            // Fists: a beating, not a sword fight (the Warden keeps his sword sheathed).
+            if (_victimMember == null || !_warden.StartBrawl(_victimMember, useFists: true))
             {
                 // Victim already down, Warden down / unable: nothing to watch, close at once (no closing line).
                 GameLog.Warn(TAG, $"{_warden.name} could not start the beating (victim down or Warden unable to fight)");

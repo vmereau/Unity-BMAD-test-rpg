@@ -26,6 +26,8 @@ namespace Game.Inventory
 
         private GameObject _weaponVisual;
         private WeaponArchetypeSO _currentArchetype;
+        private AnimatorOverrideController _currentWeaponOverride; // equipped weapon's override, applied unless forced default
+        private bool _forceDefaultController; // NPC fists with a weapon equipped (ForceDefaultController)
         private bool _backSocketWarned; // warn once per equipped weapon, not on every sheathe
         private bool _leftSocketWarned; // warn once per equipped weapon, not on every draw
         private GameObject _helmetVisual;
@@ -44,6 +46,8 @@ namespace Game.Inventory
         public bool IsDrawn => _isInCombat;
         /// <summary>Hand socket the drawn weapon uses for the current archetype (no warning side effect).</summary>
         public Transform DrawnSocket => ResolveDrawnSocket(_currentArchetype, _weaponSocket, _leftWeaponSocket);
+        /// <summary>Controller currently on the animator (null without one) — lets NPC callers detect a swap.</summary>
+        public RuntimeAnimatorController AppliedController => _animator != null ? _animator.runtimeAnimatorController : null;
         /// <summary>Left-hand socket (mirror of the right one), or null when unassigned.</summary>
         public Transform LeftHandSocket => _leftWeaponSocket;
 
@@ -79,7 +83,7 @@ namespace Game.Inventory
             _onEquipmentChanged.RemoveListener(HandleEquipmentChanged);
         }
 
-        private void HandleEquipmentChanged(bool _) => Refresh();
+        private void HandleEquipmentChanged(bool _) => Refresh(true);
 
         public void SetCombatState(bool isInCombat)
         {
@@ -98,24 +102,40 @@ namespace Game.Inventory
             GameLog.Info(TAG, $"Weapon visual moved to {targetSocket.name}");
         }
 
-        public void Refresh()
+        /// <summary>
+        /// Rebuilds the weapon / helmet / armor visuals from the equipped items. <paramref name="applyAnimatorController"/>
+        /// false keeps the current controller (NPC knocked out / dying: a swap resets every animator parameter and state,
+        /// which would stand the body up) — call again with true once that is safe.
+        /// </summary>
+        public void Refresh(bool applyAnimatorController = true)
         {
             if (_equipmentSystem == null) return;
-            RefreshWeapon();
+            RefreshWeapon(applyAnimatorController);
             RefreshHelmet();
             RefreshBody();
             _onVisualsRefreshed?.Raise(false);
         }
 
-        private void RefreshWeapon()
+        /// <summary>
+        /// Fists while a weapon is equipped (NPC brawl asked with fists): forces the default controller instead of the
+        /// weapon's override. Applied at once; the caller re-pushes the animator parameters it needs (IsInCombat).
+        /// </summary>
+        public void ForceDefaultController(bool force)
+        {
+            _forceDefaultController = force;
+            ApplyAnimatorOverride(_currentWeaponOverride);
+        }
+
+        private void RefreshWeapon(bool applyAnimatorController)
         {
             if (_weaponVisual != null)
                 Destroy(_weaponVisual);
             _weaponVisual = null;
             _currentArchetype = null;
+            _currentWeaponOverride = null;
             _backSocketWarned = false;
             _leftSocketWarned = false;
-            ApplyAnimatorOverride(null); // Restore default controller when weapon removed
+            if (applyAnimatorController) ApplyAnimatorOverride(null); // Restore default controller when weapon removed
 
             var weapon = _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as EquipableItemSO;
             if (weapon == null || _weaponSocket == null) return;
@@ -137,7 +157,8 @@ namespace Game.Inventory
                 _weaponVisual = CreatePlaceholder(PrimitiveType.Cube, targetSocket, new Vector3(0.07f, 0.07f, 0.5f), Color.yellow);
                 GameLog.Info(TAG, "Weapon visual attached (placeholder)");
             }
-            ApplyAnimatorOverride((weapon as WeaponSO)?.ResolvedAnimatorOverride);
+            _currentWeaponOverride = (weapon as WeaponSO)?.ResolvedAnimatorOverride;
+            if (applyAnimatorController) ApplyAnimatorOverride(_currentWeaponOverride);
         }
 
         private void RefreshHelmet()
@@ -242,9 +263,11 @@ namespace Game.Inventory
         private void ApplyAnimatorOverride(AnimatorOverrideController overrideController)
         {
             if (_animator == null) return;
-            _animator.runtimeAnimatorController = overrideController != null
+            RuntimeAnimatorController target = overrideController != null && !_forceDefaultController
                 ? overrideController
                 : _defaultAnimatorController;
+            if (_animator.runtimeAnimatorController == target) return; // a same-controller assign would still reset params
+            _animator.runtimeAnimatorController = target;
         }
 
         private Transform CurrentDrawnSocket()

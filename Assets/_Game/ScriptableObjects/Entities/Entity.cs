@@ -1,5 +1,6 @@
 ﻿using Game.Core;
 using Game.Factions;
+using Game.Inventory;
 using Game.NPC;
 using UnityEngine;
 using UnityEngine.AI;
@@ -147,9 +148,10 @@ namespace _Game.ScriptableObjects.Entities
         /// <summary>
         /// Stance damage of combo hit <paramref name="step"/> (1-based) out of <paramref name="hits"/>. Default
         /// (monsters): the fixed <see cref="AttackStanceDamage"/> / <see cref="AttackCanKnockDown"/>.
-        /// <see cref="NPCEntity"/> adds its weapon and the finisher multiplier.
+        /// <see cref="NPCEntity"/> adds the weapon it wields (<paramref name="wielded"/>, null = fists) and the finisher
+        /// multiplier; monsters ignore <paramref name="wielded"/>.
         /// </summary>
-        public virtual float ResolveAttackStance(int step, int hits, out bool canKnockDown)
+        public virtual float ResolveAttackStance(int step, int hits, WeaponSO wielded, out bool canKnockDown)
         {
             canKnockDown = _attackCanKnockDown;
             return _attackStanceDamage;

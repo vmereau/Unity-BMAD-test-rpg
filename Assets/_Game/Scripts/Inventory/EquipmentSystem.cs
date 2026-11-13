@@ -16,6 +16,10 @@ namespace Game.Inventory
         // Prototype exception. Replace with a StatBonusProvider event channel.
         [SerializeField] private PlayerStats _playerStats;
 
+        [Tooltip("NPC equipment (NpcArmament): the player-only channel and stats stay unassigned on purpose — no warnings. " +
+                 "The NPC refreshes its EquipmentVisuals directly.")]
+        [SerializeField] private bool _npcOwned;
+
         private readonly Dictionary<EquipmentSlot, ItemSO> _equipped = new();
 
         private void Awake()
@@ -26,6 +30,8 @@ namespace Game.Inventory
                 enabled = false;
                 return;
             }
+
+            if (_npcOwned) return;
 
             if (_onEquipmentChanged == null)
                 GameLog.Warn(TAG, "EquipmentSystem: _onEquipmentChanged is not assigned — equipment changes will not broadcast");

@@ -127,6 +127,8 @@ namespace Game.Animations
         public override void CancelPickUp() => _bridge?.StopPickUp();
         public override bool IsPickingUp => _bridge != null && _bridge.IsPickingUp;
         public override void ClearStanceReaction() => _bridge?.ResetStanceTriggers();
+        public override void TriggerWeaponSwitch(bool draw, float speed) => _bridge?.PlayWeaponSwitch(draw, speed);
+        public override void ClearWeaponSwitch() => _bridge?.ResetWeaponSwitchTriggers();
         public override void SetInCombat(bool active)
         {
             _isInCombat = active;
