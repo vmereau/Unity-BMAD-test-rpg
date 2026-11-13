@@ -191,7 +191,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **Loot:** `IsLootable = IsDown && HasLoot` (`IsDown` = dead **or unconscious and not yet getting up**) (`HasLoot` = `InventorySystem.Count > 0`).
   When the get-up clip starts (`EntityHealth.GettingUp`), `EntityPresence` raises `GameEventSO_Inventory _onLootSourceLost`
   (`OnLootSourceLost`) with its inventory; `ContainerUI` closes if that inventory is the one open. Wired on `Entity_base`,
-  `NPC_base Variant` and non-prefab scene NPCs (Brann). `CanInteract => IsLootable`,
+  `NPC_base Variant` and any non-prefab scene NPC. `CanInteract => IsLootable`,
   `InteractPrompt` = `"Loot"` when lootable, else `""`. `Interact()` → `OpenLoot()` raises
   `GameEventSO_ContainerOpenRequest _onLootRequested` with the entity's `InventorySystem` and
   `takeOnly = true` — reusing the container pipeline (`ContainerSystem` / `ContainerUI`). An emptied corpse
@@ -201,7 +201,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **`NPCPresence.RequestForcedTopic(node, thenTopics = false)`**: `thenTopics` → the chain ends on the NPC's normal topic
   list (Farewell included) instead of closing (Hobb's arrival briefing). Toll and Warden topics keep the default.
 - **`NPCPresence.RequestDialogueClose()`** (`_onDialogueCloseRequested` → `OnDialogueCloseRequested`, wired on `NPC_base Variant`
-  and unpacked Brann): closes the dialogue this NPC opened (forced topic or the player's Talk); ignored for another NPC's.
+  and any non-prefab scene NPC): closes the dialogue this NPC opened (forced topic or the player's Talk); ignored for another NPC's.
   `TollGate` calls it when Harl is disturbed mid-talk, `ArrivalSequence` on region unload mid speech / briefing.
 - **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
   scripted brawl); no-op otherwise.
@@ -291,7 +291,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `FactionMember.IsKnockoutPair(attacker, victim)`: both `IsHumanoid` (`IsPlayer` or `Entity is NPCEntity`) and not
   `FactionSO.AreHostile` (pure rule `Game.Combat.KnockoutRules`, `KnockoutRulesTests`). Monsters / hostiles / unknown
   always kill, even a downed target. No `RegisterDeath`, no kill, no XP.
-- `EntityHealth` (needs `_combatConfig`, wired on `Entity_base` + unpacked scene NPCs like Brann — null = always lethal):
+- `EntityHealth` (needs `_combatConfig`, wired on `Entity_base` + any non-prefab scene NPC — null = always lethal):
   `IsUnconscious` from the knockout until the get-up clip ends. HP regains linearly to
   `CombatConfigSO.unconsciousRecoverHealthFraction` over `unconsciousDuration`, then `AIAnimationDriver.SetUnconscious(false)`
   (get-up), then `getUpDuration` later `RegainedConsciousness`. A knockout-pair hit while down is ignored (finishing blow
@@ -330,7 +330,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   → gives up. The attacker's knockout record is cleared on disengage / own knockout / death / disable, so a stale one
   can't make it loot someone else's knockout.
 - Setup (warned once if missing): `EntityHealth._combatConfig` with `knockoutLootGold`, a same-GO `InventorySystem`,
-  `EntityBrain._onGoldTheftRequested` (wired on `Entity_base` and unpacked Brann). Looting is reactive to hits (in
+  `EntityBrain._onGoldTheftRequested` (wired on `Entity_base` and any non-prefab scene NPC). Looting is reactive to hits (in
   `HandleHealthChanged`'s list), ignores thefts, stores routine requests; not unaware (no sneak bonus). Bubbles fall back
   to the default duration / priority without a stealth config.
 
@@ -383,7 +383,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **Down:** knockout / death → `OnDowned`: weapon unequipped into the inventory (lootable), visual removed with
   `Refresh(false)` (controller kept), armor stays equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon
   still in the inventory is re-equipped, a looted one leaves the NPC on fists for good; full refresh.
-- **Not saved:** NPC equipment is rebuilt from the loadout on every load (`deferred-work.md`). Brann (unpacked) has none.
+- **Not saved:** NPC equipment is rebuilt from the loadout on every load (`deferred-work.md`). Brann (`NPC_StashOwner`) has no loadout.
 
 ## Code Review Checklist — AI
 

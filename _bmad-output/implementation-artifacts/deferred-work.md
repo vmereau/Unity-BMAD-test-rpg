@@ -618,8 +618,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   the player from behind, the event-001 beating out of view) can whiff. Player and `Entity_base` use AlwaysAnimate.
   Confirmed in play: a knocked-out NPC off screen still read lying-down hips after getting up. Consider AlwaysAnimate
   on `Humanoid_BaseHero` (perf cost: every NPC animates) or only while in combat.
-- **Brann is unpacked** — still the Mixamo `Idle.fbx` dummy with his own wiring; rebuild him on `Humanoid_BaseHero`
-  (or re-instance `NPC_base Variant`) before goal B gives him equipment, and before ever deleting `Idle.fbx`'s mesh.
+- ~~**Brann is unpacked**~~ — **resolved 2026-11-13:** re-instanced from `NPC_base Variant` (base-hero model, NpcArmament,
+  `Hitbox`). No scene NPC uses the `Idle.fbx` dummy any more.
 
 ## From spec-npc-equipment (2026-11-13)
 
@@ -627,8 +627,7 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   while a guard lies knocked out (sword moved into his inventory) restores the sword in the inventory **and** a fresh one
   equipped → duplicate. A looted sword comes back on reload. A save-restored corpse may get the same duplicate if the
   corpse restore lands after `NpcArmament.Start`. Fix: save `EquipmentSystem.Equipped` per NPC (`SaveableObject`).
-- **Brann** is unpacked and still on the Mixamo dummy — no `EquipmentSystem` / `NpcArmament`; rebuild him on
-  `Humanoid_BaseHero` before giving him equipment.
+- ~~**Brann** unpacked~~ — resolved: re-instanced from `NPC_base Variant` (no loadout; he's not a guard).
 - **Off-screen Animator culling** (`CullUpdateTransforms`, see the spec-npc-base-hero-model review entry) also affects the
   sword sweep of an off-camera guard.
 - **Fists last the whole fight:** if the player hits the Warden during the Tam beating, the retaliation keeps fists (the
