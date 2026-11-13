@@ -20,8 +20,8 @@ namespace Tests.EditMode
             Assert.AreEqual(EscortStep.Advance, ArrivalSequenceRules.EvaluateEscort(true, 3f, 7f, false));
 
         [Test]
-        public void Escort_LastPointPlayerClose_ReachedStage() =>
-            Assert.AreEqual(EscortStep.ReachedStage, ArrivalSequenceRules.EvaluateEscort(true, 7f, 7f, true));
+        public void Escort_LastPointPlayerClose_ReachedEnd() =>
+            Assert.AreEqual(EscortStep.ReachedEnd, ArrivalSequenceRules.EvaluateEscort(true, 7f, 7f, true));
 
         [Test]
         public void Escort_LastPointPlayerLagging_Waits() =>
@@ -74,5 +74,27 @@ namespace Tests.EditMode
         [Test]
         public void Beating_Timeout_Interrupted() =>
             Assert.AreEqual(BeatingOutcome.Interrupted, ArrivalSequenceRules.EvaluateBeating(false, false, 26f, 25f));
+
+        // --- Hut briefing ---
+
+        [Test]
+        public void Briefing_SpeakerDown_Skips() =>
+            Assert.AreEqual(BriefingStep.Skip, ArrivalSequenceRules.EvaluateBriefing(true, true, true, 0f, 8f));
+
+        [Test]
+        public void Briefing_PlayerOutOfRange_Waits() =>
+            Assert.AreEqual(BriefingStep.Wait, ArrivalSequenceRules.EvaluateBriefing(false, false, true, 0f, 8f));
+
+        [Test]
+        public void Briefing_InRangeButBlocked_Waits() =>
+            Assert.AreEqual(BriefingStep.Wait, ArrivalSequenceRules.EvaluateBriefing(false, true, false, 1f, 8f));
+
+        [Test]
+        public void Briefing_InRangeAndFree_Opens() =>
+            Assert.AreEqual(BriefingStep.Open, ArrivalSequenceRules.EvaluateBriefing(false, true, true, 1f, 8f));
+
+        [Test]
+        public void Briefing_Timeout_Skips() =>
+            Assert.AreEqual(BriefingStep.Skip, ArrivalSequenceRules.EvaluateBriefing(false, true, true, 8.5f, 8f));
     }
 }

@@ -66,8 +66,8 @@
   block at once (snap = warp). Always resume what you suspend (also from `OnDisable`).
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
-  office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol (2 waypoints), 21–06 by the
-  Player's Zone tents. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
+  office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol between his hut door (`worker-mate`) and the Player's Zone campfire, 21–06
+  `Spot_TentMate_Night` outside his hut door. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
   The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`.
@@ -197,6 +197,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   is inert (no prompt, `Interact()` no-op).
 - **`NPCPresence._availableAfter`** (optional `WorldFact`): no "Talk" prompt / dialogue until the fact is true (Tam before
   event-001). Loot and NPC-forced topics (`RequestForcedTopic`) ignore it. No `WorldStateManager` → available.
+- **`NPCPresence.RequestForcedTopic(node, thenTopics = false)`**: `thenTopics` → the chain ends on the NPC's normal topic
+  list (Farewell included) instead of closing (Hobb's arrival briefing). Toll and Warden topics keep the default.
 - **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
   scripted brawl); no-op otherwise.
 - **`EntityBrain.Say(line, duration, priority)`**: scripted speech bubble over the NPC (story sequences); false without a

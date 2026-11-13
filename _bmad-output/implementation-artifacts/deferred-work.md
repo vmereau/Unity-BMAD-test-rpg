@@ -371,10 +371,8 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
 Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 - **Arrival sequence** — split 2026-11-12. Part 1 (gate spawn, escort to the stage, Warden speech, beating, Tam gating,
-  dev skip) is `spec-area-1-arrival-escort-beating`. **Part 2 (deferred):** after the beating the escort walks the player
-  to the tent (part 1 ends with the guards back at their posts at the arrival gate); Hobb opens a forced topic there —
-  introduces himself and shows where the player sleeps — then the player can close it or follow up on his other topics.
-  The "stripped" beat / empty starting inventory is to be designed later.
+  dev skip) is `spec-area-1-arrival-escort-beating`; part 2 (escort to the hut, Hobb's briefing) is
+  `spec-area-1-arrival-hut-briefing` (done 2026-11-13). Still open: the "stripped" beat / empty starting inventory.
 - **Warden's errand tour** — report to each work site manager; tools issued as Company property.
 - **First work site** — Stone Quarry recommended (hidden find, first contact with the ruins mystery).
 - **Racket guard encounter** — exit-tax interception, pay / refuse / attack-on-sight branches.
@@ -578,3 +576,10 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Knocking the Warden or Tam out before the stage consumes the event.** Emergent and accepted for now: a downed Warden
   skips the speech and the beating; a downed Tam skips the beating and the closing line.
 
+## Deferred from: review of spec-area-1-arrival-hut-briefing (2026-11-13)
+
+- **Region unload during Hobb's briefing leaves the dialogue open.** `ArrivalSequence.OnDisable` → `Release` resumes routines
+  and unblocks saving but can't close the Core-owned dialogue; the next load replays the arrival. Same gap as the Warden's
+  speech in part 1, but the topic list can stay open indefinitely. Needs a dialogue-close channel the sequence can raise.
+- **`DialogueSystem.NotifyTopicCompleted` warns "WorldStateManager unavailable" for any topic without a `dialogueFact`**
+  (seen on Hobb's briefing; the WSM is there). Misleading log, pre-existing.

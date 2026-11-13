@@ -87,7 +87,7 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 - **Sight lanes:** three 6 m strips with no tents run from the post to the arrival gate, the wilderness opening and the inner gate, so the post is seen from both entrances and the Company gate. The arrival walk follows the arrival lane: the Company keeps its own lines of view open.
 - Company flags on poles round the square, on the inner gate and on the warehouse, turned so some always face the viewer.
 - Workers do not gather here voluntarily: the daily path skirts the square.
-- **Arrival walk (event-001):** arrival gate, down the lane to the square (the beating), then on to the player's tent deep in the Player's Zone.
+- **Arrival walk (event-001):** arrival gate, down the lane to the square (the beating), then on to the player's hut in the Player's Zone, where Hobb briefs them.
 
 ### Tent Camp Zones (Worker Area)
 | Zone | Description |

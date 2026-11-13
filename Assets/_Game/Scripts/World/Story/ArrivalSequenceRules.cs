@@ -1,7 +1,7 @@
 namespace Game.World
 {
     /// <summary>Escort decision for the current lane point (spec-area-1-arrival-escort-beating).</summary>
-    public enum EscortStep { Walking, WaitForPlayer, Advance, ReachedStage }
+    public enum EscortStep { Walking, WaitForPlayer, Advance, ReachedEnd }
 
     /// <summary>What the escort does about a player wandering off.</summary>
     public enum StrayAction { None, Warn, Brawl, Clear }
@@ -9,18 +9,21 @@ namespace Game.World
     /// <summary>State of the beating at the stage.</summary>
     public enum BeatingOutcome { Ongoing, VictimDown, Interrupted }
 
+    /// <summary>What the hut briefing does this frame (spec-area-1-arrival-hut-briefing).</summary>
+    public enum BriefingStep { Wait, Open, Skip }
+
     /// <summary>Pure decisions behind <see cref="ArrivalSequence"/> (tested by <c>ArrivalSequenceRulesTests</c>).</summary>
     public static class ArrivalSequenceRules
     {
         /// <summary>
         /// Guards still walking → Walking. Arrived but the player is beyond <paramref name="followDistance"/> → WaitForPlayer.
-        /// Arrived with the player close → Advance, or ReachedStage on the last lane point.
+        /// Arrived with the player close → Advance, or ReachedEnd on the last lane point (the stage, or the hut).
         /// </summary>
         public static EscortStep EvaluateEscort(bool guardsArrived, float playerDistance, float followDistance, bool isLastPoint)
         {
             if (!guardsArrived) return EscortStep.Walking;
             if (playerDistance > followDistance) return EscortStep.WaitForPlayer;
-            return isLastPoint ? EscortStep.ReachedStage : EscortStep.Advance;
+            return isLastPoint ? EscortStep.ReachedEnd : EscortStep.Advance;
         }
 
         /// <summary>
@@ -46,6 +49,18 @@ namespace Game.World
             if (victimDown) return BeatingOutcome.VictimDown;
             if (beaterDown || elapsed > timeout) return BeatingOutcome.Interrupted;
             return BeatingOutcome.Ongoing;
+        }
+
+        /// <summary>
+        /// Speaker down (or no briefing) → Skip. Waited past <paramref name="timeout"/> (time counted only while it could
+        /// open) → Skip. Player within range and nothing blocking (<paramref name="canOpen"/>: calm, no menu, speaker not
+        /// fighting) → Open. Otherwise Wait.
+        /// </summary>
+        public static BriefingStep EvaluateBriefing(bool speakerDown, bool playerInRange, bool canOpen, float waitTime,
+            float timeout)
+        {
+            if (speakerDown || waitTime > timeout) return BriefingStep.Skip;
+            return playerInRange && canOpen ? BriefingStep.Open : BriefingStep.Wait;
         }
     }
 }

@@ -225,9 +225,10 @@ namespace Game.UI
 
         /// <summary>
         /// Opens the panel for an NPC-initiated topic (no topic list): the caller then starts the topic. Escape closes the
-        /// dialogue at any point, and the end of the chain closes it instead of showing the topic list.
+        /// dialogue at any point, and the end of the chain closes it instead of showing the topic list — unless
+        /// <paramref name="thenTopics"/>: then the chain ends on the NPC's normal topic list, like a picked topic.
         /// </summary>
-        public void OpenForcedTopic(string npcName)
+        public void OpenForcedTopic(string npcName, bool thenTopics = false)
         {
             if (_panel == null)
             {
@@ -236,7 +237,7 @@ namespace Game.UI
             }
 
             _forcedLine = false;
-            _forcedTopic = true;
+            _forcedTopic = !thenTopics; // RestoreTopics re-queries the topics at the chain's end
             _cachedStartNodes = System.Array.Empty<StartDialogueNode>();
             _panel.SetActive(true);
 
@@ -245,7 +246,7 @@ namespace Game.UI
 
             ClearContents();
             _pendingNextNode = null;
-            GameLog.Info(TAG, "DialogueUI opened on a forced topic");
+            GameLog.Info(TAG, thenTopics ? "DialogueUI opened on a forced topic (then topics)" : "DialogueUI opened on a forced topic");
         }
 
         /// <summary>Displays a TextDialogueNode: shows text and waits for key/click to advance.</summary>

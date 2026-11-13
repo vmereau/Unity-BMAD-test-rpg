@@ -103,14 +103,16 @@ namespace Game.AI
         /// NPC-initiated topic (e.g. a toll collector stopping the player): opens the dialogue straight into
         /// <paramref name="startNode"/>, with this NPC's memories / graph / inventory as context. False when it can't be
         /// raised (no data, down, no channel). The caller checks the dialogue actually opened (cursor unlocked).
+        /// <paramref name="thenTopics"/>: the chain's end shows this NPC's normal topic list (the player leaves with
+        /// Farewell) instead of closing the dialogue.
         /// </summary>
-        public bool RequestForcedTopic(StartDialogueNode startNode)
+        public bool RequestForcedTopic(StartDialogueNode startNode, bool thenTopics = false)
         {
             if (Data == null || startNode == null || IsDown) return false;
-            return RaiseDialogueRequest(startNode);
+            return RaiseDialogueRequest(startNode, thenTopics);
         }
 
-        private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode)
+        private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode, bool thenTopics = false)
         {
             if (_onDialogueRequested == null)
             {
@@ -130,6 +132,7 @@ namespace Game.AI
                 npcInventory    = invComponent,
                 npcGoldSystem   = goldComponent,
                 forcedStartNode = forcedStartNode,
+                forcedTopicThenTopics = thenTopics,
             });
             return true;
         }

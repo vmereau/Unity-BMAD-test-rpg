@@ -112,7 +112,7 @@ namespace Game.World
                     ClearContext();
                     return;
                 }
-                _dialogueUI.OpenForcedTopic(data.npcName);
+                _dialogueUI.OpenForcedTopic(data.npcName, data.forcedTopicThenTopics);
                 IsOpen = true;
                 if (_playerStateManager != null)
                     _playerStateManager.SetInDialogue(true);

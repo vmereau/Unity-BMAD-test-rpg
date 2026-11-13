@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.ArrivalSequenceSO
   completedFact: {fileID: 11400000, guid: 422824fa208b3a141a51cd803d410b49, type: 2}
   wardenSpeech: {fileID: 11400000, guid: a2872631c789a8748b8008af3c462b48, type: 2}
+  hutBriefing: {fileID: 11400000, guid: c6c6b53b7585c0f4f8a89242c61b0077, type: 2}
   moveBarks: {fileID: 11400000, guid: 97e5a8586bc703c4095e7f5c730d0e53, type: 2}
   waitBarks: {fileID: 11400000, guid: 21ba771939daf6346ba773db6f8b9d73, type: 2}
   strayBarks: {fileID: 11400000, guid: a005b30f085284d47a1a957d205b883c, type: 2}
   wardenClosingBarks: {fileID: 11400000, guid: b074d3ab5c4ab6d4583a3dae428fffad, type: 2}
+  tentMateCallBarks: {fileID: 11400000, guid: 40bc30643530f784e8ac413d23ed7363, type: 2}
   bubbleDuration: 3.5
   playerStartTolerance: 2
   arriveDistance: 1.2
@@ -30,3 +32,5 @@ MonoBehaviour:
   speechOpenTimeout: 5
   beatingTimeout: 25
   closingDelay: 3
+  briefingDistance: 3
+  briefingOpenTimeout: 8

@@ -14,7 +14,7 @@
 | **Nickname / Known As** | Hobb |
 | **Profession** | Veteran laborer, the player's tent mate (npc-001) |
 | **Faction / Affiliation** | Unaffiliated |
-| **Location** | Player's Zone, the shared tent |
+| **Location** | Player's Zone, his hut (`worker-mate`) next to the player's |
 | **Age** | Early 60s |
 
 ---
@@ -65,6 +65,6 @@ Hobb signed the same false contract years ago. He knows where everything is, and
 | Asset | Path |
 |-------|------|
 | NPCEntity | `Assets/_Game/Data/NPCs/TentMate/NPC_TentMate.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/TentMate/Dialogues/` |
+| Dialogues | `Assets/_Game/Data/NPCs/TentMate/Dialogues/` — `Arrival/Start_TentMate_ArrivalBriefing` is event-001's forced briefing (`ArrivalSequence_Event001.hutBriefing`), in no memory |
 | Memories | `Assets/_Game/Data/NPCs/TentMate/Memories/` |
 | Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |
