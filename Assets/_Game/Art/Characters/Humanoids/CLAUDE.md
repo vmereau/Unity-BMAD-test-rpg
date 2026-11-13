@@ -94,6 +94,14 @@ the same local offsets, set the root `Animator.avatar` and `EquipmentVisuals._bo
 old `Character`. The dev tool `Game/Dev/Wire EquipmentVisuals on Player Prefab` still looks for
 `Beta_Surface` — don't run it on a swapped body.
 
+### NPC model prefab
+
+`Prefabs/Characters/Humanoid_BaseHero.prefab` = the base-hero FBX set up like the player's `Character` (body / Head
+SMRs, sockets, fist hitbox) + an 11-body ragdoll; nested as `Character` in `NPC_base Variant`
+(`Prefabs/Entities/CLAUDE.md`). A body change on the player (mesh, material, socket offsets) is **not** propagated —
+redo it on this prefab too. Built once via MCP `execute_code` (no builder script); the ragdoll was copied by bone
+name from the old Mixamo dummy (proportions match the hero within ~3 %).
+
 ### Head / body split + reusable neck interface
 
 The player keeps **Head** and **Body** (`base_hero`) SMRs on the original skeleton. Armor hides only Body;

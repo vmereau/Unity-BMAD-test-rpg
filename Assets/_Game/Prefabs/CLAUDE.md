@@ -11,6 +11,7 @@
 |--------|--------|
 | `Player/` | Player prefab hierarchy, camera/audio ownership, sockets, hurtbox |
 | `UI/` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
+| `Characters/` | Humanoid model prefabs (`Humanoid_BaseHero` — NPC body), documented in `Entities/CLAUDE.md` |
 | `Entities/` | `Entity_base`, `NPC_base Variant`, variant-editing gotchas |
 | `Entities/Monsters/` | Monster hierarchy, hit-detection contract, monster attack recipe |
 | `Items/` | World-item (drop / pickup) prefab requirements |

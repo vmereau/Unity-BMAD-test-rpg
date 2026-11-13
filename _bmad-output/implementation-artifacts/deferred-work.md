@@ -593,3 +593,30 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Player-opened Talk on an unloading NPC.** Only `TollGate` and `ArrivalSequence` raise close requests; a normal
   conversation open when the region unloads stays up with a destroyed context. `NPCPresence.OnDisable` calling
   `RequestDialogueClose()` would cover every NPC.
+
+## From spec-npc-base-hero-model (2026-11-13 split — goal B, next spec)
+
+- **NPC equipment: armor + weapon, armed / fists combat, loot rule.** Answers already given by Valentin:
+  - Guards = Company faction: CompanyGuard_ArrivalLeft / Right, DockGuard, WarehouseGuard, **plus Harl (RacketGuard) and
+    the Warden, moved to Faction_Company** (check hostility side effects: Warden beating Tam, toll brawl). All get
+    `Armor_CompanyGrunt` + `Weapon_ShortIronSword`; other NPCs nothing.
+  - Reuse `EquipmentSystem` + `EquipmentVisuals` on `NPC_base Variant` with the player-only channels
+    (`OnEquipmentChanged`, `OnVisualsRefreshed`) left unwired; refresh directly.
+  - Fight style: weapon is the general case (every fight / brawl); fists only on explicit request (arrival sequence's
+    Warden beating Tam now, arena later). Clip events open "" = all hitboxes → only one of Unarmed / Weapon registered.
+  - NPCs play draw / sheathe clips; the visual moves on `WeaponSwap` (add it to `EntityAnimationEventReceiver`).
+  - Knocked out / killed: the weapon moves into the NPC inventory (lootable); armor stays equipped (not lootable).
+    Wakes with it still there → re-equips; looted → fists.
+  - Armed damage = `AttackDamage + weapon.damageBonus`; stance / knockdown from the wielded weapon (fists never KD) —
+    replaces the data-only `NPCEntity._weapon`.
+  - Known gaps: NPC equipment not saved (save mid-knockout can duplicate the sword); Brann is unpacked (no model swap).
+
+## From spec-npc-base-hero-model (2026-11-13 review)
+
+- **NPC Animator culling `CullUpdateTransforms` (pre-existing, kept by the model swap)** — off-screen NPCs don't pose
+  bones, so `UnarmedHitbox` / weapon sweeps and hip-pinned colliders use a frozen pose: off-camera punches (NPC hitting
+  the player from behind, the event-001 beating out of view) can whiff. Player and `Entity_base` use AlwaysAnimate.
+  Confirmed in play: a knocked-out NPC off screen still read lying-down hips after getting up. Consider AlwaysAnimate
+  on `Humanoid_BaseHero` (perf cost: every NPC animates) or only while in combat.
+- **Brann is unpacked** — still the Mixamo `Idle.fbx` dummy with his own wiring; rebuild him on `Humanoid_BaseHero`
+  (or re-instance `NPC_base Variant`) before goal B gives him equipment, and before ever deleting `Idle.fbx`'s mesh.

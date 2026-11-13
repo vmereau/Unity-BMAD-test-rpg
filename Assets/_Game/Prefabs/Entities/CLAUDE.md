@@ -32,6 +32,15 @@ All StartingTown NPCs are direct scene instances of this variant.
   and adds its own `NPCPresence : EntityPresence` + a hip-pinned `InteractionCollider` (referenced by
   `HumanoidAIAnimationDriver._transformsToPinToHips` — do **not** delete it). `NPCPresence._onLootRequested`
   must be wired on the variant itself (the base wiring is removed with the base component).
+- **Model = nested `Prefabs/Characters/Humanoid_BaseHero.prefab`** (child `Character`, spec-npc-base-hero-model;
+  replaced the Mixamo `Idle.fbx` dummy). The model prefab owns the Animator (base-hero avatar, `Humanoid_Base`, root
+  motion off), body `base_hero` + `Head` SMRs (player meshes / materials), the player's 5 sockets (same bones / offsets),
+  `WeaponSocket/UnarmedHitbox` and the 11-body ragdoll (layer 0). The variant adds only `EntityAnimationEventReceiver`
+  on `Character` and the `Hitbox` child (L7). Placeholder until real NPC bodies exist; Brann is unpacked in the scene
+  and still uses the dummy. Swapping the model: instantiate the new model prefab as `Character` in the variant's
+  contents (`PrefabUtility.LoadPrefabContents`), re-add the receiver + `Hitbox`, retarget every root reference that
+  pointed into the old `Character` (bridge `_animator`, driver `_transformsToPinToHips`, attacker `Unarmed`), delete the
+  old one, then `PrefabUtility.RemoveUnusedOverrides` on the scene NPC instances. `NpcModelPrefabTests` guards it.
 - **Two colliders, never collapse them:** `Hitbox` (Layer 7, trigger capsule — hurtbox for `WeaponHitbox`
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**
