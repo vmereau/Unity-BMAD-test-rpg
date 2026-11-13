@@ -754,6 +754,7 @@ MonoBehaviour:
   _goldItem: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
   _onDialogueSignal: {fileID: 11400000, guid: fc6e04a585688194e9bfa886ca614015, type: 2}
   _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
+  _onDialogueCloseRequested: {fileID: 11400000, guid: 8a2b5e40d7331bf418092e0a81a0e36c, type: 2}
 --- !u!114 &6376491736541447869
 MonoBehaviour:
   m_ObjectHideFlags: 0

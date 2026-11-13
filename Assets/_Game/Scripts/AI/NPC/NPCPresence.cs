@@ -14,11 +14,14 @@ namespace Game.AI
         private const string TAG = "[NPC]";
 
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
+        [Tooltip("Raised by RequestDialogueClose (OnDialogueCloseRequested): closes the dialogue this NPC opened.")]
+        [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
         [Tooltip("Optional: the player can't talk to this NPC until this fact is true (e.g. Tam before the arrival event). " +
                  "Loot and NPC-forced topics are unaffected.")]
         [SerializeField] private WorldFact _availableAfter;
 
         private FactionMember _factionMember;
+        private bool _closeEventWarned;
         private static bool s_noPlayerWarned;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -112,6 +115,26 @@ namespace Game.AI
             return RaiseDialogueRequest(startNode, thenTopics);
         }
 
+        /// <summary>
+        /// Closes the dialogue this NPC opened (forced topic or the player's "Talk"), e.g. an encounter aborted mid-talk or
+        /// a scripted sequence interrupted. No effect when no dialogue is open or another NPC's is.
+        /// </summary>
+        public void RequestDialogueClose()
+        {
+            if (_onDialogueCloseRequested == null)
+            {
+                if (!_closeEventWarned)
+                {
+                    _closeEventWarned = true;
+                    // May run on a destroyed NPC during a region unload, where name / gameObject throw.
+                    string who = this != null ? name : "a destroyed NPC";
+                    GameLog.Warn(TAG, $"No dialogue close event assigned on {who} — its dialogue can't be closed from AI");
+                }
+                return;
+            }
+            _onDialogueCloseRequested.Raise(this);
+        }
+
         private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode, bool thenTopics = false)
         {
             if (_onDialogueRequested == null)
@@ -133,6 +156,7 @@ namespace Game.AI
                 npcGoldSystem   = goldComponent,
                 forcedStartNode = forcedStartNode,
                 forcedTopicThenTopics = thenTopics,
+                requester       = this,
             });
             return true;
         }

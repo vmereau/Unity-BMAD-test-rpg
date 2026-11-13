@@ -30,6 +30,8 @@ namespace Game.World
         [SerializeField] private GameEventSO_DialogueSignal _onDialogueSignal;
         [Tooltip("Player knocked out (OnPlayerKnockedOut): an open dialogue closes.")]
         [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
+        [Tooltip("An NPC asks to close the dialogue it opened (OnDialogueCloseRequested): closes only that NPC's dialogue.")]
+        [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
 
         public bool IsOpen { get; private set; }
 
@@ -39,6 +41,7 @@ namespace Game.World
         private GoldSystem _currentNPCGoldSystem;
         private StartDialogueNode _currentStartNode;
         private string _currentNPCName;
+        private NPCPresence _currentRequester; // the NPC whose request opened this dialogue (null: forced line, none)
         private readonly System.Collections.Generic.HashSet<DialogueNode> _warnedNoId = new();
 
         private void OnEnable()
@@ -50,11 +53,14 @@ namespace Game.World
             }
             _onDialogueRequested.AddListener(HandleDialogueRequested);
             if (_onPlayerKnockedOut != null) _onPlayerKnockedOut.AddListener(HandlePlayerKnockedOut);
+            if (_onDialogueCloseRequested != null) _onDialogueCloseRequested.AddListener(HandleDialogueCloseRequested);
+            else GameLog.Warn(TAG, "OnDialogueCloseRequested not assigned — NPCs can't close the dialogue they opened");
         }
 
         private void OnDisable()
         {
             if (_onPlayerKnockedOut != null) _onPlayerKnockedOut.RemoveListener(HandlePlayerKnockedOut);
+            if (_onDialogueCloseRequested != null) _onDialogueCloseRequested.RemoveListener(HandleDialogueCloseRequested);
             if (_onDialogueRequested == null) return;
             _onDialogueRequested.RemoveListener(HandleDialogueRequested);
         }
@@ -65,6 +71,24 @@ namespace Game.World
             GameLog.Info(TAG, "Player knocked out — closing the dialogue");
             Close();
         }
+
+        private void HandleDialogueCloseRequested(NPCPresence requester)
+        {
+            if (!ShouldCloseFor(IsOpen, _currentRequester, requester))
+            {
+                if (IsOpen) GameLog.Info(TAG, "Dialogue close request ignored — the open dialogue belongs to another NPC");
+                return;
+            }
+            GameLog.Info(TAG, $"{_currentNPCName} closes the dialogue");
+            Close();
+        }
+
+        /// <summary>
+        /// A close request applies only to the dialogue its requester opened. Reference identity, not Unity's ==: during a
+        /// region unload the requester may already be destroyed, and Unity treats two destroyed objects as equal.
+        /// </summary>
+        public static bool ShouldCloseFor(bool isOpen, object current, object requester) =>
+            isOpen && current != null && ReferenceEquals(current, requester);
 
         private void HandleDialogueRequested(NPCDialogueRequestData data)
         {
@@ -88,6 +112,7 @@ namespace Game.World
                 _currentNPCInventory = null;
                 _currentNPCGoldSystem = null;
                 _currentStartNode = null;
+                _currentRequester = null;
                 _dialogueUI.OpenLine(data.npcName, data.forcedLine);
                 IsOpen = true;
                 if (_playerStateManager != null)
@@ -102,6 +127,7 @@ namespace Game.World
             _currentNPCInventory = data.npcInventory;
             _currentNPCGoldSystem = data.npcGoldSystem;
             _currentNPCName = data.npcName;
+            _currentRequester = data.requester;
 
             // NPC-initiated topic (e.g. a toll collector stopping the player): straight into the chain, no topic list.
             if (data.forcedStartNode != null)
@@ -228,7 +254,11 @@ namespace Game.World
                 return;
             }
             
-            if (_currentStartNode.dialogueFact && WorldStateManager.Instance != null)
+            if (_currentStartNode.dialogueFact == null)
+            {
+                // Repeatable topic (no fact to record) — nothing to do.
+            }
+            else if (WorldStateManager.Instance != null)
             {
                 WorldStateManager.Instance.SetDialoguePlayed(_currentStartNode.dialogueFact);
                 GameLog.Info(TAG, $"Dialogue topic '{_currentStartNode.name}' marked as played");
@@ -473,6 +503,7 @@ namespace Game.World
             _currentNPCGoldSystem = null;
             _currentStartNode = null;
             _currentNPCName = null;
+            _currentRequester = null;
         }
 
         private TeachChoiceOption[] FilterLearnedSkillChoices(TeachChoiceOption[] choices)

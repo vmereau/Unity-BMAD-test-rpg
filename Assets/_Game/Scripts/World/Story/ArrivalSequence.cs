@@ -142,7 +142,19 @@ namespace Game.World
         private void OnDisable()
         {
             // Region unloaded / reloaded mid-sequence (F9): hand everything back; the next load decides again.
-            if (IsRunning) Release(snap: false);
+            if (IsRunning)
+            {
+                // Release first (unblocks saving, frees the player) so nothing below can skip it.
+                Release(snap: false);
+                // Core owns the dialogue and outlives the region: close the speech / briefing the sequence opened. The
+                // speaker may already be destroyed during the unload — still raise (matched by reference).
+                if (_topicOpened && !CursorManager.IsLocked)
+                {
+                    NPCPresence speaker = _phase == Phase.Speech ? _wardenPresence
+                                        : _phase == Phase.Briefing ? _tentMatePresence : null;
+                    if (speaker is not null) speaker.RequestDialogueClose();
+                }
+            }
             _phase = Phase.WaitingToStart;
             _framesWaited = 0;
         }

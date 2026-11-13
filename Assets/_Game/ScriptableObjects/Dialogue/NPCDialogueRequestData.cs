@@ -15,5 +15,6 @@ namespace Game.Core
         public string forcedLine;               // non-empty → NPC-initiated: show only this line, the player closes it (no topics)
         public Game.Dialogue.StartDialogueNode forcedStartNode; // non-null → NPC-initiated topic: opens straight into it (full graph context)
         public bool forcedTopicThenTopics;      // with forcedStartNode: the chain's end shows the NPC's normal topic list instead of closing
+        public NPCPresence requester;           // the NPC that raised the request — only its close request closes this dialogue
     }
 }

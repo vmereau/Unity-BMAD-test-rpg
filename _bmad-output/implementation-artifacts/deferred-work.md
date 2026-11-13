@@ -246,7 +246,7 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
   brain's hold / restore / deferred-event paths and `PlayerStance` side effects are manual play checks only.
 - **Weapon stance 0** — `WeaponSO.stanceDamage = 0` means "use archetype", so a weapon can't be authored with zero stance
   damage on an archetype that has some (use a flag like `KnockDownOverride` if ever needed).
-- **Pre-existing NRE at play start** — `PlayerAnimationDriver.SetInCombat` (line 74) via `EquipmentVisuals.OnEnable` →
+- [Resolved in `c91fb90`: `PlayerAnimationDriver.Bridge` resolves lazily] **Pre-existing NRE at play start** — `PlayerAnimationDriver.SetInCombat` (line 74) via `EquipmentVisuals.OnEnable` →
   `PlayerCombat.HandleVisualsRefreshed`, seen while testing stance (path not touched by it).
 
 ## Player stance follow-ups (from spec-player-stance-stagger-knockdown, 2026-10-30)
@@ -298,7 +298,7 @@ Trade, container and crafting screens (and the shared `ItemDetailPanel`):
   `attackStallTimeout` (1.5 s) for every weapon, not only 2H (pre-existing watchdog, wider impact now).
 - **Attack step is time-based** — `AttackStep` runs on seconds since the state entered, not clip time: an Animator speed
   change (future attack-speed stat, hit-stop) would desync the lunge from the swing. Switch to normalized time if speeds vary.
-- **PlayerAnimationDriver NRE at startup** — `EquipmentVisuals.OnEnable → PlayerCombat.HandleVisualsRefreshed →
+- [Resolved in `c91fb90`: `PlayerAnimationDriver.Bridge` resolves lazily] **PlayerAnimationDriver NRE at startup** — `EquipmentVisuals.OnEnable → PlayerCombat.HandleVisualsRefreshed →
   PlayerStateManager.SetInCombat → PlayerAnimationDriver.SetInCombat` runs before the driver's `Awake` cached the bridge
   (seen on entering Play mode; code unchanged since a8a6bc5). Guard `_humanoidBridge` or resolve it lazily.
 
@@ -424,7 +424,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Remove `outcrop-edge` when the fort wall exists** (done in spec-area-1-blockout-camp-sites) — an invisible stopgap in `Area1_Blockout/CampEdge`; the sites spec's curtain wall replaces it.
 - **Magenta tree: cause found and fixed** — `SM_MountainTree_*` and `SM_LeafTree_*` had HDRP materials (`InternalErrorShader`). Valentin reimported the packs as URP on 2026-11-04 and they now render. The forest uses beech instead; see the spec.
 - **Recorder sample blocks all compilation after a pack reimport** — `Assets/Hivemind/Defaults/Samples/Recorder/3.0.3/Movie Recorder Sample/MovieRecorderExample.cs` needs `com.unity.recorder`, which the project lacks. It is wrapped in `#if false` locally; `Assets/Hivemind` is gitignored, so a fresh pack import brings the error back. Delete the sample, or install the package.
-- **`PlayerAnimationDriver.SetInCombat` null reference at startup** — `EquipmentVisuals.OnEnable` → `Refresh` → `PlayerCombat.HandleVisualsRefreshed` reaches `_humanoidBridge` before it is set, once per play session. Seen in the blockout's play test, outside the code it changed.
+- [Resolved in `c91fb90`: `PlayerAnimationDriver.Bridge` resolves lazily] **`PlayerAnimationDriver.SetInCombat` null reference at startup** — `EquipmentVisuals.OnEnable` → `Refresh` → `PlayerCombat.HandleVisualsRefreshed` reaches `_humanoidBridge` before it is set, once per play session. Seen in the blockout's play test, outside the code it changed.
 - **29 camp ferns and trees left the scene before the blockout** — root-level `SM_EagleFern_*`, `SM_EuropeanBeech_*`, `SM_SilverFir_*` instances were already gone from the unsaved editor state and were saved as Valentin chose. They are in `ffdd42e` if wanted back.
 - **Forest is all beech** — `SM_SilverFir_*` prefabs exist and would suit the art's dark conifers better. Check they work as terrain trees and add them to `TreePrefabs`.
 - **`Application.runInBackground` is off in the Editor** — play mode doesn't tick while Unity is unfocused, so MCP play tests sit at frame 2 unless a test sets it to true first.
@@ -528,7 +528,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - Searching walks to the destination set at `TransitionToSearching`; a target heard mid-search doesn't redirect it (it re-engages once the meter refills).
 ## Observed during Hidden Stash verification (2026-11-10)
 
-- Player startup raised `NullReferenceException` in `PlayerAnimationDriver.SetInCombat:85`, via `PlayerStateManager.SetInCombat`, `PlayerCombat.HandleVisualsRefreshed`, and `EquipmentVisuals.OnEnable`. These files are unchanged by the quest work. Baseline reproduction was not separately performed; investigate the startup subscription/initialization order before attributing a cause.
+- [Resolved in `c91fb90`: `PlayerAnimationDriver.Bridge` resolves lazily] Player startup raised `NullReferenceException` in `PlayerAnimationDriver.SetInCombat:85`, via `PlayerStateManager.SetInCombat`, `PlayerCombat.HandleVisualsRefreshed`, and `EquipmentVisuals.OnEnable`. These files are unchanged by the quest work. Baseline reproduction was not separately performed; investigate the startup subscription/initialization order before attributing a cause.
 
 ## Area 1 arena navigation / rock collider agreement (2026-11-12)
 
@@ -538,7 +538,7 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 ## From spec-unconscious-knockout (2026-11-12 review)
 
 - Loot of an unconscious NPC is free and reads the same `InventorySystem` as shop stock: punch a merchant down, take the stock, repeat. Needs a theft / crime rule (raise `OnTheftCommitted` for loot taken from a living NPC) or a shop-stock exclusion — user chose "free for now".
-- Screens are not closed on a player knockout: a loot / trade / container / inventory screen or dialogue left open stays usable while down, and an equip during the knockout reassigns the Animator controller (resets `IsUnconscious` → the get-up clip plays early while input stays locked). (The loot screen of an NPC that gets up now closes — `OnLootSourceLost`, 2026-11-12.) Fix together with a knockout / got-up event channel that the screens listen to (like `_onPlayerDied`).
+- [Resolved in `c91fb90`: `OnPlayerKnockedOut` closes the screens and dialogue; the action bar and screen toggles ignore input while incapacitated] Screens are not closed on a player knockout: a loot / trade / container / inventory screen or dialogue left open stays usable while down, and an equip during the knockout reassigns the Animator controller (resets `IsUnconscious` → the get-up clip plays early while input stays locked). (The loot screen of an NPC that gets up now closes — `OnLootSourceLost`, 2026-11-12.) Fix together with a knockout / got-up event channel that the screens listen to (like `_onPlayerDied`).
 - Knocked out while swimming: the held knockdown plays at the surface under swim physics; `SetUnconscious` doesn't touch `IsSwimming`.
 - A re-enabled NPC (component toggle, respawn tool) mid-knockout without an `NpcRoutine` keeps its agent stopped (brain forced to Idle with `isStopped`).
 
@@ -549,8 +549,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-racket-guard-exit-toll (2026-11-12 review)
 
-- **Toll dialogue left open when the encounter aborts mid-talk.** If Harl is hit or spots a hostile while the forced toll topic is open, the gate ends the encounter but the panel stays up. A pay / defer pick still applies (answers go to the last gate that opened the dialogue). A refusal shows the "lumps" line with no brawl. Closing the dialogue from AI needs a new request channel (`OnDialogueCloseRequested`).
-- **Misleading log on topics without a `dialogueFact`** (pre-existing). `DialogueSystem.NotifyTopicCompleted` logs "WorldStateManager unavailable" for every repeatable topic (`dialogueFact` null), including every forced toll topic. Split the null-fact case from the missing-manager case.
+- [Resolved 2026-11-13, `spec-npc-dialogue-close-request.md`] **Toll dialogue left open when the encounter aborts mid-talk.** If Harl is hit or spots a hostile while the forced toll topic is open, the gate ends the encounter but the panel stays up. A pay / defer pick still applies (answers go to the last gate that opened the dialogue). A refusal shows the "lumps" line with no brawl. Closing the dialogue from AI needs a new request channel (`OnDialogueCloseRequested`).
+- [Resolved 2026-11-13, `spec-npc-dialogue-close-request.md`] **Misleading log on topics without a `dialogueFact`** (pre-existing). `DialogueSystem.NotifyTopicCompleted` logs "WorldStateManager unavailable" for every repeatable topic (`dialogueFact` null), including every forced toll topic. Split the null-fact case from the missing-manager case.
 - **Paid choice row is evaluated at render.** If gold drops while the choice node is shown, the row stays enabled and does nothing (`SelectChoice` returns false), with no feedback. Re-render on `OnGoldChanged`, or show a toast.
 - **Run-past not covered in Play mode.** In the smoke test Harl reached the player before the scripted teleport out of the zone, so the "walked past → brawl" branch is verified by code only.
 
@@ -578,8 +578,18 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## Deferred from: review of spec-area-1-arrival-hut-briefing (2026-11-13)
 
-- **Region unload during Hobb's briefing leaves the dialogue open.** `ArrivalSequence.OnDisable` → `Release` resumes routines
+- [Resolved 2026-11-13, `spec-npc-dialogue-close-request.md`] **Region unload during Hobb's briefing leaves the dialogue open.** `ArrivalSequence.OnDisable` → `Release` resumes routines
   and unblocks saving but can't close the Core-owned dialogue; the next load replays the arrival. Same gap as the Warden's
   speech in part 1, but the topic list can stay open indefinitely. Needs a dialogue-close channel the sequence can raise.
-- **`DialogueSystem.NotifyTopicCompleted` warns "WorldStateManager unavailable" for any topic without a `dialogueFact`**
+- [Resolved 2026-11-13, `spec-npc-dialogue-close-request.md`] **`DialogueSystem.NotifyTopicCompleted` warns "WorldStateManager unavailable" for any topic without a `dialogueFact`**
   (seen on Hobb's briefing; the WSM is there). Misleading log, pre-existing.
+
+## Deferred from: review of spec-npc-dialogue-close-request (2026-11-13)
+
+- **Trade window survives its NPC.** A shop node closes the dialogue before `NPCTradeUI.Open`, so a close request (encounter
+  abort, `ArrivalSequence` region unload after Hobb's topic list) can't reach an open trade window. After a region unload the
+  window keeps a destroyed `_npcInventory` and a refresh / buy can throw `MissingReferenceException`. Have the trade UI close
+  itself when its inventory is Unity-null, or track the trade's NPC for close requests too.
+- **Player-opened Talk on an unloading NPC.** Only `TollGate` and `ArrivalSequence` raise close requests; a normal
+  conversation open when the region unloads stays up with a destroyed context. `NPCPresence.OnDisable` calling
+  `RequestDialogueClose()` would cover every NPC.

@@ -199,6 +199,9 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   event-001). Loot and NPC-forced topics (`RequestForcedTopic`) ignore it. No `WorldStateManager` → available.
 - **`NPCPresence.RequestForcedTopic(node, thenTopics = false)`**: `thenTopics` → the chain ends on the NPC's normal topic
   list (Farewell included) instead of closing (Hobb's arrival briefing). Toll and Warden topics keep the default.
+- **`NPCPresence.RequestDialogueClose()`** (`_onDialogueCloseRequested` → `OnDialogueCloseRequested`, wired on `NPC_base Variant`
+  and unpacked Brann): closes the dialogue this NPC opened (forced topic or the player's Talk); ignored for another NPC's.
+  `TollGate` calls it when Harl is disturbed mid-talk, `ArrivalSequence` on region unload mid speech / briefing.
 - **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
   scripted brawl); no-op otherwise.
 - **`EntityBrain.Say(line, duration, priority)`**: scripted speech bubble over the NPC (story sequences); false without a

@@ -1711,6 +1711,8 @@ MonoBehaviour:
   _onLootRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
   _onLootSourceLost: {fileID: 11400000, guid: 128fa3e78090af04db514e51ce1692b7, type: 2}
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
+  _onDialogueCloseRequested: {fileID: 11400000, guid: 8a2b5e40d7331bf418092e0a81a0e36c, type: 2}
+  _availableAfter: {fileID: 0}
 --- !u!114 &4585579539212275391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1752,6 +1754,7 @@ MonoBehaviour:
   _startingGold: 500
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onGoldLootRequested: {fileID: 0}
+  _onGoldTheftRequested: {fileID: 0}
 --- !u!114 &3168899758345796514
 MonoBehaviour:
   m_ObjectHideFlags: 0

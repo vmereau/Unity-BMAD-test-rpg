@@ -94,6 +94,8 @@ namespace Game.AI
             _onDialogueSignal.RemoveListener(HandleDialogueSignal);
             if (_subscribedKnockout) _collectorHealth.KnockedOut -= HandleCollectorKnockedOut;
             _subscribedKnockout = false;
+            // Region unload mid-talk: the Core-owned dialogue outlives Harl — close his toll panel (no gate hears a late pick).
+            if (_phase == Phase.Talking) _collectorPresence.RequestDialogueClose();
             if (_phase == Phase.Approaching || _phase == Phase.Talking) _collector.EndIntercept();
             _phase = Phase.Watching;
             if (s_answeringGate == this) s_answeringGate = null;
@@ -186,9 +188,12 @@ namespace Game.AI
 
         private void TickTalking(FactionMember player)
         {
-            // Hit / disturbed while talking: the intercept ends under us (a pay / defer picked later still applies).
+            // Hit / disturbed while talking: the intercept ends under us. Close the toll panel he opened (a pay / defer already
+            // picked has been applied on the pick); no answer can come in after this.
             if (_collector.Intercept != EntityBrain.InterceptStatus.Reached)
             {
+                if (!CursorManager.IsLocked) _collectorPresence.RequestDialogueClose();
+                if (s_answeringGate == this) s_answeringGate = null;
                 _collector.ClearIntercept();
                 if (_collector.IsFighting(player)) { EnterBrawl(); return; }
                 EndEncounter("collector disturbed during the toll talk");
