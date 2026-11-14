@@ -657,7 +657,7 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-npc-portrait-faces (2026-11-14)
 
-- **Portrait faces for the other 10 NPCs** (Cook, Blacksmith, TentMate, Brann, Harl, DockGuard, GuardLeft, GuardRight,
+- **Portrait faces for the other 9 NPCs** (Cook, Blacksmith, Brann, Harl, DockGuard, GuardLeft, GuardRight,
   WarehouseGuard, Bandit): same recipe as the pilot (Humanoids/CLAUDE.md → NPC portrait faces). Each needs 2 user-made
   portraits. Branded guards keep their `decal` layer (it is painted on the neck, outside the projection).
 - **Portrait warp leaves ears / temples unanchored (review):** pins cover only the back of the skull and crown, so the RBF

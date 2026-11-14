@@ -204,7 +204,7 @@ body; hair, beard, eyes and ink keep their colour.
 Landmarks (game metres, face toward −Y in Blender): seam 1.585, chin underside ≈ 1.595, mouth 1.635, nose tip 1.68,
 iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86; side of the neck x ≈ 0.062 at y 0–0.03,
 z 1.60–1.64 (the Company collar hides everything below z ≈ 1.615 from the side: keep a neck decal above it).
-Shipped (13): Warden (portrait face), Cook, Blacksmith, TentMate, Tam (portrait), Brann, Storekeeper (portrait), Harl, DockGuard, GuardLeft /
+Shipped (13): Warden (portrait face), Cook, Blacksmith, TentMate (portrait), Tam (portrait), Brann, Storekeeper (portrait), Harl, DockGuard, GuardLeft /
 GuardRight (`CompanyGuard_ArrivalLeft` / `Right`), WarehouseGuard, Bandit. Company brand on the five rank-and-file
 guards (Harl, DockGuard, both arrival guards, WarehouseGuard), not on the Warden (officer).
 
@@ -238,7 +238,7 @@ Run it end to end with `/characters:portrait-face [NPC]` (prompts → landmarks 
 
 Fixes the "same man, different hair" look: the face's eyes, nose, lips and skin come from a portrait instead of the
 shared Meshy texture, and its shape follows the portrait's landmarks. Same neck contract and bake as the head variants
-above. Pilot: Warden, Tam, Storekeeper.
+above. Pilot: Warden, Tam, Storekeeper; then TentMate (Old Hobb).
 
 1. **Portraits:** prompts from *Face Portrait Prompt* above (the filled `{FACE}` lines are kept in `refs/PROMPTS.md`);
    the user generates `refs/<name>_front.png` and `refs/<name>_side.png` (side made image-to-image from the front),
@@ -281,6 +281,14 @@ Gotchas:
 - Per-channel std matching tints dark hair teal; auto contrast overshoots. Use white balance + mean luminance only.
 - Identity test: `_base_landmarks.json` as its own portrait → warp 0, texture within ~1.3/255 of the base.
 - Blender lights wash out Fair tones; judge on the Unity sheet.
+- **Base hero beard / sideburn behind the side projection:** the side region stops in front of the ear, so the base
+  hero's own sideburn and jaw-angle beard survive there. A `grey` / `tint` beard or sideburn layer recolours them into a
+  light band (white hair: a white stripe at the jaw angle). When the portrait shows skin there, clear them first with
+  `skin` + `hair_only` layers (one over the sideburn, one centred on the jaw angle ≈ x 0.066, y −0.04, z 1.625), placed
+  **before** the beard layer (`tentmate.json`). Light hair: keep `grey` `contrast` ≤ 0.5 or the base hair's dark detail
+  shows as speckles.
+- `run()` renders only the man's left; to see his right, exec the script with `("r34", -40), ("rside", -90)` added to
+  the `_render` angle tuple in memory (rendering after `run()` returns gives magenta: the preview image is freed).
 
 ### NPC skin tones (spec-npc-skin-tones)
 
