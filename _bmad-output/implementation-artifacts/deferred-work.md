@@ -654,3 +654,16 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   EditMode test catches it). Create it with `SG_SkinLit`, `T_SkinMask_CompanyGrunt` and its ref luminance instead.
 - **`make_skin_masks.py` reads only the first UV mesh of an outfit FBX** (review): an outfit split into several meshes
   (separate gloves) would get a partial mask. Bake every mesh of the import into the same mask.
+
+## From spec-npc-portrait-faces (2026-11-14)
+
+- **Portrait faces for the other 10 NPCs** (Cook, Blacksmith, TentMate, Brann, Harl, DockGuard, GuardLeft, GuardRight,
+  WarehouseGuard, Bandit): same recipe as the pilot (Humanoids/CLAUDE.md → NPC portrait faces). Each needs 2 user-made
+  portraits. Branded guards keep their `decal` layer (it is painted on the neck, outside the projection).
+- **Portrait warp leaves ears / temples unanchored (review):** pins cover only the back of the skull and crown, so the RBF
+  interpolates the ears and temples (oval landmarks 234 / 454 are ray-cast at a grazing angle). Fine on the pilot (max
+  reshape 11 mm); add ear-ring pins if a portrait drives a large width change.
+- **StartingTown play-mode pass for the portrait pilot** (AC1 of spec-npc-portrait-faces): heads are baked in place and the
+  runtime is unchanged, but no in-game capture was taken.
+- **Ears and the back of the head stay painted:** the side projection stops in front of the ear. A portrait with
+  distinctive ears or a long hairstyle won't carry them.

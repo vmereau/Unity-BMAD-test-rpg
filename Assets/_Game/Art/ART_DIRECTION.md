@@ -143,4 +143,5 @@ language: `Art/Environment/ANCIENT_CIVILIZATION.md`; templates: `Art/Environment
 | Item icons | `Art/UI/Items/CLAUDE.md` | `/items:icon-prompt` |
 | UI sprites (slots, panels, buttons, bars) | `Art/UI/CLAUDE.md` | `/ui:create` |
 | Character concept sheets | `Art/Characters/Humanoids/CLAUDE.md` | `/characters:concept-prompt` |
+| NPC face portraits (front + side, for portrait faces) | `Art/Characters/Humanoids/CLAUDE.md` → *Face Portrait Prompt* | — |
 | Ancient ruins (mood concepts, image-to-3D sheets) | `Art/Environment/CLAUDE.md` (design: `Art/Environment/ANCIENT_CIVILIZATION.md`) | — |

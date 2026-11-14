@@ -52,6 +52,10 @@ BASE_MATERIAL = BASE_DIR / "M_TestBaseHero.mat"  # its _SkinRefLuminance: varian
 CACHE = PROJECT / "Temp/HeadVariants/_posmap.npz"
 SCENE = "HeadVariant"
 FREEZE = {"seam_m": 1.585, "distance_m": 0.012, "ramp_m": 0.035}
+# The ring is stored at z = 1.5850001: a strict "<= seam" test leaves it out of the frozen seed, and a large warp near the
+# neck (portrait RBF) then moves it by its tiny ramp weight. Portrait faces seed everything within this tolerance of the
+# seam (legacy configs keep the strict seed: see _freeze_weights).
+SEAM_TOL_M = 1e-4
 
 
 # ---------------------------------------------------------------------------------------------- scene
@@ -99,8 +103,10 @@ def _set_positions(head, unit, pos):
 
 # ---------------------------------------------------------------------------------------------- shape
 
-def _freeze_weights(pos):
-    frozen = np.where(pos[:, 2] <= FREEZE["seam_m"])[0]
+def _freeze_weights(pos, seam_tol=0.0):
+    """seam_tol: SEAM_TOL_M for portrait faces. Legacy (painted) configs keep the strict seed, so their regenerated
+    FBXs stay identical to the shipped ones (their deforms barely reach the neck, so the ring's tiny weight is moot)."""
+    frozen = np.where(pos[:, 2] <= FREEZE["seam_m"] + seam_tol)[0]
     if len(frozen) == 0:
         raise RuntimeError(f"No head vertex at or below the seam ({FREEZE['seam_m']} m): wrong input or seam height")
     tree = KDTree(len(frozen))
@@ -109,7 +115,7 @@ def _freeze_weights(pos):
     tree.balance()
     w = np.zeros(len(pos))
     for i, p in enumerate(pos):
-        if pos[i, 2] <= FREEZE["seam_m"]:
+        if pos[i, 2] <= FREEZE["seam_m"] + seam_tol:
             continue
         d = tree.find(Vector(p))[2] - FREEZE["distance_m"]
         t = min(max(d / FREEZE["ramp_m"], 0.0), 1.0)
@@ -555,7 +561,8 @@ def _blur(mask, px):
     return out
 
 
-def _paint(config, scene, head, body, unit):
+def _paint(config, scene, head, body, unit, project=None):
+    """project: optional callable (p, n, c, c0, s) -> (c, s, report) run after the paint layers (portrait faces)."""
     img = bpy.data.images.load(str(BASE_TEX), check_existing=False)
     size = img.size[0]
     if img.size[0] != img.size[1]:
@@ -576,8 +583,12 @@ def _paint(config, scene, head, body, unit):
     # from the blurred PNG leaves a half-masked (untoned) band wherever paint moves a hair edge (receding / shaved).
     sm_cfg = json.loads(SKIN_MASKS_CONFIG.read_text(encoding="utf-8-sig"))["base"]
     s = _base_head_skin(p, c, sm_cfg["head"])
+    c0 = c.copy()
     for layer in config.get("paint", []):
         c, s = _paint_layer(c, p, layer, skin, s)
+    proj_report = None
+    if project is not None:
+        c, s, proj_report = project(p, nrm[idx].astype(np.float64), c, c0, s)
     for e in sm_cfg["head"]["eyes"]:  # eyes are never skin, whatever a later layer's region covered
         for sx in (1, -1):
             s *= 1 - _ellipsoid_in(p * np.array([sx, 1, 1]), e["center"], e["radius"])
@@ -588,7 +599,7 @@ def _paint(config, scene, head, body, unit):
     blurred[idx] = np.clip(s, 0, 1)
     blurred = _blur(blurred, sm_cfg.get("blur_px", 2))
     mask[idx] = np.clip(blurred[idx], 0, 1)
-    return out, size, mask
+    return out, size, mask, proj_report
 
 
 def _load_grey(path, size):
@@ -638,6 +649,506 @@ def _toned(pixels, mask, tone_hex):
     m = mask[..., None]
     out[..., :3] = _linear_to_srgb(lin * (1 - m) + toned * m)
     return out
+
+
+# ---------------------------------------------------------------------------------------------- portrait
+# spec-npc-portrait-faces: a front portrait + side profile (user-generated, refs/) drive the shape through MediaPipe
+# landmarks and are projected onto the face as its texture. Landmarks come from Tools/FaceRef/face_landmarks.py
+# (uv, Python 3.12), run on the portraits AND on flat ortho renders of the base head (render_base_refs), so no
+# landmark is placed by hand.
+
+REFS = PROJECT / "Tools/Blender/configs/heads/refs"
+BASE_LANDMARKS = REFS / "_base_landmarks.json"
+# Ortho cameras of the base head renders: centre (x or y, z) in game metres, ortho scale (m), square pixel size.
+ORTHO = {"front": {"center": (0.0, 1.70), "scale": 0.36, "px": 1024},
+         "side": {"center": (-0.01, 1.70), "scale": 0.36, "px": 1024}}
+# MediaPipe Face Mesh indices.
+MP_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176,
+           149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109]
+MP_EYE_R = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]   # the man's right
+MP_EYE_L = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466]
+MP_LIPS = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185]
+MP_BROWS = [70, 63, 105, 66, 107, 55, 65, 52, 53, 46, 300, 293, 334, 296, 336, 285, 295, 282, 283, 276]
+MP_NOSE = [168, 6, 197, 195, 5, 4, 1, 19, 94, 2, 98, 327, 129, 358, 49, 279, 48, 278, 64, 294]
+MP_CHEEKS = [50, 280, 205, 425, 123, 352, 116, 345, 187, 411]
+MP_EYE_KEYS = [33, 133, 159, 145, 362, 263, 386, 374]
+MP_MIDLINE = [10, 151, 9, 8, 168, 6, 197, 195, 5, 4, 1, 19, 94, 2, 164, 0, 11, 12, 13, 14, 15, 16, 17, 18, 200, 199,
+              175, 152]
+MP_UNDER_CHIN = [152, 175, 199, 200, 18]  # midline points on / under the chin: the profile there is the throat
+MP_ALIGN = [33, 133, 362, 263, 168]  # eye corners + nasion: the face's own proportions survive the alignment
+MP_CONTROLS = sorted(set(MP_OVAL + MP_EYE_KEYS + MP_LIPS + MP_BROWS + MP_NOSE + MP_CHEEKS + MP_MIDLINE))
+PORTRAIT_DEFAULTS = {"shape_strength": 1.0, "depth_strength": 1.0, "max_depth_mm": 8.0, "max_mm": 25.0, "facing": [0.25, 0.55],
+                     "erode_m": 0.002, "feather_m": 0.006, "feather_top_m": 0.02, "forehead_extend_m": 0.02, "delight": 0.3, "delight_radius_m": 0.03,
+                     "skin_patch_m": 0.012, "contrast": 1.0,
+                     # Side profile projection (cheeks, jaw): |normal.x| ramp, region in game metres (stops in front of
+                     # the ear and below the eyes), overall strength. The profile shows the man's left; side_mirror
+                     # also paints it on his right (turn off when one-sided marks fall in the region).
+                     "side_facing": [0.3, 0.65], "side_strength": 1.0, "side_mirror": True,
+                     "side_region": {"z_min_m": 1.59, "z_max_m": 1.715, "y_max_m": -0.005}}
+
+
+def render_base_refs(out_dir=None):
+    """Flat (emission) ortho renders of the base head, front and side (facing left), on a plain light grey background.
+    Then run: uv run Tools/FaceRef/face_landmarks.py <front> <side> --out Tools/Blender/configs/heads/refs/_base_landmarks.json
+    The ORTHO table above maps their pixels back to game metres."""
+    out_dir = Path(out_dir or PROJECT / "Temp/FaceRef")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    scene, rig, head, body, unit = _load()
+    body.hide_render = True
+    rig.scale = (1, 1, 1)
+    bpy.context.view_layer.update()
+    img = bpy.data.images.load(str(BASE_TEX), check_existing=True)
+    mat = bpy.data.materials.new("_HV_flat")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    emit = nt.nodes.new("ShaderNodeEmission")
+    tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = img
+    nt.links.new(tex.outputs["Color"], emit.inputs["Color"])
+    nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+    saved = list(head.data.materials)
+    head.data.materials.clear(); head.data.materials.append(mat)
+    cd = bpy.data.cameras.new("_HV_Ortho"); cd.type = 'ORTHO'
+    cam = bpy.data.objects.new("_HV_Ortho", cd); scene.collection.objects.link(cam)
+    scene.camera = cam
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("_HV_World")
+    scene.world.use_nodes = False
+    scene.world.color = (0.6, 0.6, 0.6)
+    scene.render.engine = 'BLENDER_EEVEE'
+    scene.render.film_transparent = False
+    scene.view_settings.view_transform = 'Standard'
+    files = []
+    try:
+        for view in ("front", "side"):
+            o = ORTHO[view]
+            cd.ortho_scale = o["scale"]
+            scene.render.resolution_x = scene.render.resolution_y = o["px"]
+            if view == "front":  # looking +Y: image right = +X (the man's left), up = +Z
+                cam.location = (o["center"][0], -2.0, o["center"][1])
+                cam.rotation_euler = (math.radians(90), 0, 0)
+            else:  # looking -X: image right = +Y (back of the head), so the face points left
+                cam.location = (2.0, o["center"][0], o["center"][1])
+                cam.rotation_euler = (math.radians(90), 0, math.radians(90))
+            scene.render.filepath = str(out_dir / f"base_{view}.png")
+            bpy.ops.render.render(write_still=True)
+            files.append(scene.render.filepath)
+    finally:
+        head.data.materials.clear()
+        for m in saved:
+            head.data.materials.append(m)
+        bpy.data.objects.remove(cam, do_unlink=True)
+        bpy.data.materials.remove(mat)
+        rig.scale = (unit, unit, unit)
+        body.hide_render = False
+    return files
+
+
+def _ortho_to_game(view, u, v):
+    """Pixel (u right, v down) of a base ortho render -> (horizontal, z) game metres."""
+    o = ORTHO[view]
+    s, n = o["scale"], o["px"]
+    return o["center"][0] + ((np.asarray(u) + 0.5) / n - 0.5) * s, o["center"][1] + (0.5 - (np.asarray(v) + 0.5) / n) * s
+
+
+def _similarity(src, dst):
+    """2D Umeyama: dst ~ s * R @ src + t."""
+    mu_s, mu_d = src.mean(0), dst.mean(0)
+    a, b = src - mu_s, dst - mu_d
+    u, sig, vt = np.linalg.svd(b.T @ a / len(src))
+    d = np.diag([1, np.sign(np.linalg.det(u @ vt))])
+    rot = u @ d @ vt
+    s = (sig * np.diag(d)).sum() / (a ** 2).sum(1).mean()
+    return s, rot, mu_d - s * rot @ mu_s
+
+
+def _poly_inside_dist(pts, poly):
+    """Signed distance (positive inside) of pts (N,2) to a closed polygon (E,2)."""
+    a, b = poly, np.roll(poly, -1, axis=0)
+    inside = np.zeros(len(pts), dtype=bool)
+    for (x1, y1), (x2, y2) in zip(a, b):
+        cross = ((y1 > pts[:, 1]) != (y2 > pts[:, 1]))
+        xint = x1 + (pts[:, 1] - y1) * (x2 - x1) / np.where(y2 == y1, 1e-12, y2 - y1)
+        inside ^= cross & (pts[:, 0] < xint)
+    ab = b - a
+    t = np.clip(((pts[:, None, :] - a[None]) * ab[None]).sum(-1) / np.maximum((ab ** 2).sum(-1), 1e-12), 0, 1)
+    d = np.linalg.norm(pts[:, None, :] - (a[None] + t[..., None] * ab[None]), axis=-1).min(1)
+    return np.where(inside, d, -d)
+
+
+def _box_blur2d(a, r):
+    """Separable box blur (3 passes ~ gaussian) of an (H, W) array with radius r pixels."""
+    r = max(int(r), 1)
+    out = a.astype(np.float64)
+    for _ in range(3):
+        for axis in (0, 1):
+            pad = np.pad(out, [(r, r) if i == axis else (0, 0) for i in range(2)], mode='edge')
+            cs = np.cumsum(pad, axis=axis)
+            cs = np.insert(cs, 0, 0, axis=axis)
+            n = out.shape[axis]
+            hi = np.take(cs, np.arange(2 * r + 1, 2 * r + 1 + n), axis=axis)
+            lo = np.take(cs, np.arange(0, n), axis=axis)
+            out = (hi - lo) / (2 * r + 1)
+    return out
+
+
+def _bilinear(img, u, v):
+    """Sample img (H, W, C) at pixel coordinates (u right, v down)."""
+    h, w = img.shape[:2]
+    u = np.clip(u - 0.5, 0, w - 1.001)
+    v = np.clip(v - 0.5, 0, h - 1.001)
+    u0, v0 = np.floor(u).astype(int), np.floor(v).astype(int)
+    fu, fv = (u - u0)[:, None], (v - v0)[:, None]
+    return (img[v0, u0] * (1 - fu) * (1 - fv) + img[v0, u0 + 1] * fu * (1 - fv)
+            + img[v0 + 1, u0] * (1 - fu) * fv + img[v0 + 1, u0 + 1] * fu * fv)
+
+
+def _load_rgb(path):
+    """Image as (H, W, 3) top-down array of stored (sRGB-encoded) values. Transparent pixels are composited over the
+    same light grey as face_landmarks.py, so both tools see one image."""
+    img = bpy.data.images.load(str(path), check_existing=False)
+    try:
+        if img.is_float:
+            raise ValueError(f"{Path(path).name}: 16-bit / float images are stored linear by Blender; save an 8-bit PNG")
+        w, h = img.size
+        px = np.empty(w * h * 4, dtype=np.float32)
+        img.pixels.foreach_get(px)
+        a = px.reshape(h, w, 4)[::-1].astype(np.float64)
+        return a[..., :3] * a[..., 3:] + (200 / 255) * (1 - a[..., 3:])
+    finally:
+        bpy.data.images.remove(img)
+
+
+def _profile(side, to_game):
+    """Side edge rows -> (z ascending, y) arrays in game metres."""
+    e = np.array(side["edge"], dtype=np.float64)
+    y, z = to_game(e[:, 1], e[:, 0])
+    order = np.argsort(z)
+    return z[order], y[order]
+
+
+def _portrait_inputs(config):
+    """Validate and load every portrait input BEFORE the scene is touched."""
+    pc = config.get("portrait")
+    if pc is None:
+        return None
+    if not isinstance(pc, dict) or "landmarks" not in pc:
+        raise ValueError("portrait: expected {\"landmarks\": \".../refs/<name>_landmarks.json\", ...}")
+    cfg = dict(PORTRAIT_DEFAULTS, **pc)
+    cfg["side_region"] = dict(PORTRAIT_DEFAULTS["side_region"], **pc.get("side_region", {}))
+    paths = {"landmarks": PROJECT / cfg["landmarks"], "base": BASE_LANDMARKS}
+    for k, p in paths.items():
+        if not p.is_file():
+            raise FileNotFoundError(f"portrait {k}: {p} not found (run Tools/FaceRef/face_landmarks.py)")
+    ref = json.loads(paths["landmarks"].read_text(encoding="utf-8"))
+    base = json.loads(paths["base"].read_text(encoding="utf-8"))
+    for which, data in (("portrait", ref), ("base", base)):
+        try:
+            ok = (len(data["front"]["points"]) == 478 and "crown_row" in data["front"] and len(data["side"]["edge"]) > 0
+                  and all(f in data["side"]["features"] for f in ("nose_tip", "crown")))
+        except (KeyError, TypeError):
+            ok = False
+        if not ok:
+            raise ValueError(f"{which} landmarks: missing front points / crown_row or side edge / features "
+                             "(re-run Tools/FaceRef/face_landmarks.py)")
+    for view in ("front", "side"):
+        if base[view]["size"] != [ORTHO[view]["px"]] * 2:
+            raise ValueError(f"base landmarks: {view} size {base[view]['size']} does not match ORTHO (re-run render_base_refs)")
+    positive = ("max_mm", "feather_m", "feather_top_m", "skin_patch_m", "delight_radius_m", "contrast")
+    bad = [k for k in positive if not cfg[k] > 0]
+    bad += [k for k in ("max_depth_mm", "erode_m", "forehead_extend_m", "delight") if not cfg[k] >= 0]
+    bad += [k for k in ("shape_strength", "depth_strength", "side_strength") if not 0 <= cfg[k] <= 1]
+    bad += [k for k in ("facing", "side_facing") if not (len(cfg[k]) == 2 and cfg[k][0] < cfg[k][1])]
+    sr = cfg["side_region"]
+    if not sr["z_min_m"] < sr["z_max_m"]:
+        bad.append("side_region")
+    if bad:
+        raise ValueError(f"portrait: invalid {bad} (positive, >= 0, strengths 0-1, ramps [low, high])")
+    cfg["ref"], cfg["base"] = ref, base
+    for view, key in (("front", "image"), ("side", "side_image")):
+        path = PROJECT / ref[view]["image"]
+        if not path.is_file():
+            raise FileNotFoundError(f"portrait {view} image {path} not found")
+        cfg[key] = _load_rgb(path)
+        if [cfg[key].shape[1], cfg[key].shape[0]] != ref[view]["size"]:
+            raise ValueError(f"{path.name}: {cfg[key].shape[1]}x{cfg[key].shape[0]} but its landmarks were measured on "
+                             f"{ref[view]['size']} (image replaced? re-run face_landmarks.py)")
+    if cfg["side_mirror"] not in (True, False):
+        raise ValueError("portrait side_mirror must be true or false")
+    return cfg
+
+
+def _portrait_fit(cfg, head, base_pos, freeze):
+    """Landmark-fitted RBF warp. Returns (warp(points, freeze_w) -> displaced points, report, align)."""
+    from mathutils.bvhtree import BVHTree
+    ref, base = cfg["ref"], cfg["base"]
+    bpts = np.array(base["front"]["points"])
+    rpts = np.array(ref["front"]["points"])
+    bx, bz = _ortho_to_game("front", bpts[:, 0], bpts[:, 1])
+    base2d = np.stack([bx, bz], 1)
+    s, rot, t = _similarity(np.stack([rpts[MP_ALIGN, 0], -rpts[MP_ALIGN, 1]], 1), base2d[MP_ALIGN])
+    to_game = lambda u, v: (s * (rot @ np.stack([u, -v])).T + t)
+    ref2d = to_game(rpts[:, 0], rpts[:, 1])
+    # 3D anchors: ray-cast each base landmark onto the rest-pose head along +Y.
+    polys = [list(p.vertices) for p in head.data.polygons]
+    bvh = BVHTree.FromPolygons([Vector(p) for p in base_pos], polys)
+    anchors, disp = [], []
+    # Side profiles. The base is mapped by its ortho camera. The portrait's profile is scaled so crown -> nose tip
+    # matches its own front image (front crown row -> landmark 1, once aligned): a long, unambiguous distance in both
+    # photos (a nasion-based scale broke on the Warden's broken nose, ~1.7x off). The silhouette tip and MediaPipe's
+    # landmark 1 are not the same point, so both the scale and the tip height are calibrated on the base head.
+    # The profile is placed at the glabella (landmark 9), then depth deltas are re-centred on their median below.
+    bz_prof, by_prof = _profile(base["side"], lambda u, v: _ortho_to_game("side", u, v))
+    rf, bf = ref["side"]["features"], base["side"]["features"]
+    _, b_tip_z = _ortho_to_game("side", bf["nose_tip"][1], bf["nose_tip"][0])
+    _, b_crown_side_z = _ortho_to_game("side", 0, bf["crown"][0])
+    _, b_crown_front_z = _ortho_to_game("front", 0, base["front"]["crown_row"])
+    calib = (b_crown_side_z - b_tip_z) / (b_crown_front_z - base2d[1, 1])
+    r_crown_z = to_game(np.array([rpts[9, 0]]), np.array([float(ref["front"]["crown_row"])]))[0, 1]
+    if rf["nose_tip"][0] - rf["crown"][0] < 0.1 * ref["side"]["size"][1]:
+        raise ValueError(f"side profile: crown row {rf['crown'][0]} -> nose tip row {rf['nose_tip'][0]} is too short "
+                         "(check the _debug_side overlay)")
+    k = (r_crown_z - ref2d[1, 1]) * calib / (rf["nose_tip"][0] - rf["crown"][0])
+    tip_z = ref2d[1, 1] + (b_tip_z - base2d[1, 1])
+    row_of = lambda z: rf["nose_tip"][0] - (z - tip_z) / k
+    redge = np.array(ref["side"]["edge"], dtype=np.float64)
+    g_row = row_of(ref2d[9, 1])
+    g_col = float(np.interp(g_row, redge[:, 0], redge[:, 1]))
+    g_y = float(np.interp(base2d[9, 1], bz_prof, by_prof))
+    ref_side = lambda col, row: (g_y + (np.asarray(col) - g_col) * k, tip_z - (np.asarray(row) - rf["nose_tip"][0]) * k)
+    rz_prof, ry_prof = _profile(ref["side"], ref_side)
+    # Depth delta per midline landmark, re-centred on its median: generated profiles are not exact (slight pitch, a
+    # brow level with the nose tip), so no single anchor point is trusted, only the shape. Landmarks under the chin are
+    # skipped (the profile there is the throat line), and each correction is capped.
+    depth_ids = [i for i in MP_MIDLINE if i not in MP_UNDER_CHIN]
+    dys = {i: float(np.interp(ref2d[i, 1], rz_prof, ry_prof) - np.interp(base2d[i, 1], bz_prof, by_prof)) for i in depth_ids}
+    dy0 = float(np.median(list(dys.values())))
+    cap = cfg["max_depth_mm"] / 1000.0
+    for i in MP_CONTROLS:
+        hit = bvh.ray_cast(Vector((base2d[i, 0], -1.0, base2d[i, 1])), Vector((0, 1, 0)))
+        if hit[0] is None:
+            continue
+        a = np.array(hit[0])
+        d = np.array([ref2d[i, 0] - base2d[i, 0], 0.0, ref2d[i, 1] - base2d[i, 1]]) * cfg["shape_strength"]
+        if i in dys:
+            d[1] = float(np.clip(dys[i] - dy0, -cap, cap)) * cfg["depth_strength"]
+        anchors.append(a); disp.append(d)
+    if len(anchors) < 40:
+        raise RuntimeError(f"portrait: only {len(anchors)} landmarks hit the base head (wrong base landmarks?)")
+    # Zero-displacement pins: back of the skull and the crown keep the head's mass where the face doesn't reach.
+    pin_idx = np.where(((base_pos[:, 1] > 0.04) | (base_pos[:, 2] > 1.84)) & (freeze > 0))[0][::25]
+    ctrl = np.vstack([np.array(anchors), base_pos[pin_idx]])
+    vals = np.vstack([np.array(disp), np.zeros((len(pin_idx), 3))])
+    m = len(ctrl)
+    phi = np.linalg.norm(ctrl[:, None] - ctrl[None], axis=-1)
+    poly = np.hstack([np.ones((m, 1)), ctrl])
+    A = np.zeros((m + 4, m + 4))
+    A[:m, :m] = phi + 1e-5 * np.eye(m)
+    A[:m, m:] = poly
+    A[m:, :m] = poly.T
+    rhs = np.vstack([vals, np.zeros((4, 3))])
+    coef = np.linalg.solve(A, rhs)
+    max_m = cfg["max_mm"] / 1000.0
+    stats = {"clamped": 0}
+
+    def warp(points, fw):
+        out = np.empty_like(points)
+        step = 10000  # (step, controls, 3) float64 temporaries: ~40 MB
+        for a0 in range(0, len(points), step):
+            p = points[a0:a0 + step]
+            d = np.linalg.norm(p[:, None] - ctrl[None], axis=-1) @ coef[:m] + np.hstack([np.ones((len(p), 1)), p]) @ coef[m:]
+            n = np.linalg.norm(d, axis=1)
+            over = n > max_m
+            stats["clamped"] += int((over & (fw[a0:a0 + step] > 0)).sum())
+            d[over] *= (max_m / n[over])[:, None]
+            out[a0:a0 + step] = p + d * fw[a0:a0 + step, None]
+        return out
+
+    align = {"to_game": to_game, "s": s, "rot": rot, "t": t, "ref_px": rpts[:, :2],
+             "side": {"k": k, "col0": g_col, "row0": rf["nose_tip"][0], "y0": g_y - dy0, "z0": tip_z}}
+    return warp, {"anchors": len(anchors), "pins": int(len(pin_idx)), "scale_m_per_px": float(s),
+                  "side_scale_m_per_px": float(k), "depth_offset_mm": dy0 * 1000, "stats": stats}, align
+
+
+def _freeze_at(points, base_pos):
+    """FREEZE weight at arbitrary points (texels), from the head's seam vertices."""
+    frozen = np.where(base_pos[:, 2] <= FREEZE["seam_m"] + SEAM_TOL_M)[0]
+    tree = KDTree(len(frozen))
+    for i, idx in enumerate(frozen):
+        tree.insert(Vector(base_pos[idx]), i)
+    tree.balance()
+    w = np.empty(len(points))
+    for i, p in enumerate(points):
+        d = tree.find(Vector(p))[2] - FREEZE["distance_m"]
+        t = min(max(d / FREEZE["ramp_m"], 0.0), 1.0)
+        w[i] = 0.0 if p[2] <= FREEZE["seam_m"] + SEAM_TOL_M else t * t * (3 - 2 * t)
+    return w
+
+
+def _delit(img, mask, cfg, px_per_m):
+    """Linear image with broad lighting gradients divided out (relative to the mean luminance under `mask`)."""
+    lin = _srgb_to_linear(img)
+    lum = (lin * np.array([0.299, 0.587, 0.114])).sum(-1)
+    if not mask.any():
+        raise ValueError("portrait: empty skin / silhouette mask (plain light background expected)")
+    if cfg["delight"] > 0:
+        ref = max(float(lum[mask].mean()), 1e-4)
+        low = _box_blur2d(lum, cfg["delight_radius_m"] * px_per_m)
+        lin = lin / (np.clip(low / ref, 0.5, 2.0) ** cfg["delight"])[..., None]
+    return lin
+
+
+def _silhouette(img, erode_px):
+    """Soft foreground weight of a plain-background portrait, eroded so edge samples never pick up background."""
+    border = np.concatenate([img[0], img[-1], img[:, 0], img[:, -1]])
+    fg = (np.abs(img - np.median(border, axis=0)).max(-1) > 28 / 255).astype(np.float64)
+    return _smooth(_box_blur2d(fg, erode_px), 0.92, 1.0)
+
+
+def _project_portrait(cfg, align, warp, deforms, p, n, c, c0, s_weight, base_pos):
+    """Project the portrait onto head texels: the front image where the face points forward, the side profile on the
+    cheeks and jaw (the man's left, and his right too unless side_mirror is off).
+    p / n: rest positions / normals, c: painted colours, c0: base colours, s_weight: skin weight so far.
+    Returns (colours, skin weight, report)."""
+    img = cfg["image"]
+    rpx = align["ref_px"]
+    near = (p[:, 1] < 0.01) & (p[:, 2] > 1.57) & (p[:, 2] < 1.82) & (np.abs(p[:, 0]) < 0.11)
+    idx = np.where(near)[0]
+    q = p[idx]
+    fw = _freeze_at(q, base_pos)
+    q = _deform(warp(q, fw), fw, deforms)
+    lw = np.array([0.299, 0.587, 0.114])
+    # ---- front: game (x, z) -> portrait pixel (inverse similarity; v is down).
+    inv = align["rot"].T @ ((np.stack([q[:, 0], q[:, 2]], 1) - align["t"]).T) / align["s"]
+    u, v = inv[0], -inv[1]
+    uv = np.stack([u, v], 1)
+    px_per_m = 1.0 / align["s"]
+    # MediaPipe's oval stops mid-forehead: raise its upper points (above the glabella) toward the hairline so the
+    # portrait's own forehead skin covers the band up to the painted scalp.
+    oval = rpx[MP_OVAL].copy()
+    lift = _smooth(rpx[9, 1] - oval[:, 1], 0, 0.04 * px_per_m)
+    oval[:, 1] -= lift * cfg["forehead_extend_m"] * px_per_m
+    region = _poly_inside_dist(uv, oval)
+    # Tight edge at the jaw (the base beard must not show through), wide at the forehead: the base forehead between
+    # the oval and the painted hairline differs in colour from the projected skin, so a short blend shows a band.
+    above = _smooth(rpx[9, 1] - v, 0, 0.02 * px_per_m)  # 0 below the glabella, 1 well above it
+    erode = cfg["erode_m"] * px_per_m
+    feather = (cfg["feather_m"] + (cfg["feather_top_m"] - cfg["feather_m"]) * above) * px_per_m
+    w_region = np.clip((region - erode) / feather, 0, 1)
+    w_region = w_region * w_region * (3 - 2 * w_region)
+    wf = w_region * _smooth(-n[idx, 1], cfg["facing"][0], cfg["facing"][1])
+    wf *= (u >= 0) & (v >= 0) & (u < img.shape[1]) & (v < img.shape[0])
+    # Patches of clean skin (cheeks, forehead) for colour statistics.
+    patch_r = cfg["skin_patch_m"] * px_per_m
+    hh, ww = np.mgrid[0:img.shape[0], 0:img.shape[1]]
+    patch = np.zeros(img.shape[:2], dtype=bool)
+    for lm in (50, 280, 151):
+        patch |= (hh - rpx[lm, 1]) ** 2 + (ww - rpx[lm, 0]) ** 2 < patch_r ** 2
+    lin = _delit(img, patch, cfg, px_per_m)
+    ref_mu = lin[patch].mean(0)
+    front = _bilinear(lin, u, v)
+    # Base statistics: the base texture's texels that land in the same patches.
+    tex_patch = np.zeros(len(idx), dtype=bool)
+    for lm in (50, 280, 151):
+        tex_patch |= ((uv - rpx[lm]) ** 2).sum(1) < patch_r ** 2
+    tex_patch &= wf > 0.9
+    if tex_patch.sum() < 50:
+        raise RuntimeError(f"portrait: only {int(tex_patch.sum())} base texels in the skin patches (alignment off?)")
+    b_mu = _srgb_to_linear(c0[idx][tex_patch]).mean(0)
+    # Luminance: the skin mean moves to the base skin's, with a contrast gamma around it (config `contrast`; auto
+    # matching the spread overshoots: the delighted, resampled portrait patches are smoother than the atlas).
+    # Chroma: multiplicative white balance toward the base skin (a per-channel std gain tints dark hair teal).
+    gamma = float(cfg["contrast"])
+    lr, lb = (ref_mu * lw).sum(), (b_mu * lw).sum()
+    wb = (b_mu / lb) / (ref_mu / lr)
+    chroma_mu = ref_mu / max(ref_mu.sum(), 1e-4)
+
+    def skin_map(sample):
+        """(skin weight, colour moved to the base skin). Skin = near the portrait's skin colour and not much darker
+        (hair / beard); freckles, bags and bruises stay mostly skin."""
+        s_l = np.maximum((sample * lw).sum(1), 1e-5)
+        scaled = np.clip(sample / s_l[:, None] * wb * (lb * (s_l / lr) ** gamma)[:, None], 0, 1)
+        chroma = sample / np.maximum(sample.sum(1, keepdims=True), 1e-4)
+        dist = 2 * np.linalg.norm(chroma - chroma_mu, axis=1) + np.maximum(0, 1 - s_l / max(lr, 1e-4))
+        return 1 - _smooth(dist, 0.35, 0.7), scaled
+
+    # Only skin moves to the base skin (the game tones it); hair, beard and eyes are never toned, so they keep the
+    # portrait's own colour (scaling them with the skin blows out eye whites on a dark-skinned portrait).
+    kf, scaled = skin_map(front)
+    for eye in (MP_EYE_R, MP_EYE_L):
+        kf *= 1 - _smooth(_poly_inside_dist(uv, rpx[eye]), -0.0015 * px_per_m, 0.0005 * px_per_m)
+    kf = np.minimum(kf, 1 - 0.3 * _smooth(_poly_inside_dist(uv, rpx[MP_LIPS]), 0, 0.002 * px_per_m))
+    mapped_f = scaled * kf[:, None] + front * (1 - kf[:, None])
+    # ---- side: game (y, z) -> profile pixel (crown -> tip scale, glabella / median depth from _portrait_fit). The
+    # projection ignores x, so the man's left profile also lands on his right unless side_mirror is off.
+    sd = align["side"]
+    simg = cfg["side_image"]
+    col = sd["col0"] + (q[:, 1] - sd["y0"]) / sd["k"]
+    row = sd["row0"] + (sd["z0"] - q[:, 2]) / sd["k"]
+    spx_per_m = 1.0 / sd["k"]
+    sil = _silhouette(simg, cfg["erode_m"] * spx_per_m * 2)
+    sr = cfg["side_region"]
+    w_sr = (_smooth(q[:, 2], sr["z_min_m"], sr["z_min_m"] + 0.01)
+            * (1 - _smooth(q[:, 2], sr["z_max_m"] - 0.015, sr["z_max_m"]))
+            * (1 - _smooth(q[:, 1], sr["y_max_m"] - 0.015, sr["y_max_m"])))
+    inside = (col >= 0) & (row >= 0) & (col < simg.shape[1] - 1) & (row < simg.shape[0] - 1)
+    ws_raw = w_sr * _smooth(np.abs(n[idx, 0]), cfg["side_facing"][0], cfg["side_facing"][1]) * inside
+    ws_raw = ws_raw * _bilinear(sil[..., None], col, row)[:, 0]
+    if not cfg["side_mirror"]:
+        ws_raw = ws_raw * (p[idx, 0] > 0)
+    slin = _delit(simg, sil > 0.5, cfg, spx_per_m)
+    side = _bilinear(slin, col, row)
+    # Exposure: the side image is a separate generation. Match skin to skin: the lighter half of what each image
+    # projects (drops beard, brows and eyes). Matching where both overlap uses the front's shaded, grazing edge and
+    # leaves the side too dark.
+    def skin_mean(samples):
+        l = (samples * lw).sum(1)
+        return samples[l >= np.median(l)].mean(0)
+    f_sel, s_sel = wf > 0.9, ws_raw > 0.7
+    band = int(s_sel.sum())
+    expo = np.ones(3)
+    if f_sel.sum() >= 50 and band >= 50:
+        expo = np.clip(skin_mean(front[f_sel]) / np.maximum(skin_mean(side[s_sel]), 1e-4), 0.33, 3.0)
+    side = np.clip(side * expo, 0, 1)
+    ks, scaled_s = skin_map(side)
+    mapped_s = scaled_s * ks[:, None] + side * (1 - ks[:, None])
+    ws = ws_raw * (1 - wf) * cfg["side_strength"]
+    # ---- blend: front, then the side on what the front leaves, then the painted colour.
+    c = c.copy(); s_weight = s_weight.copy()
+    rest = 1 - wf - ws
+    c[idx] = c[idx] * rest[:, None] + _linear_to_srgb(mapped_f) * wf[:, None] + _linear_to_srgb(mapped_s) * ws[:, None]
+    s_weight[idx] = s_weight[idx] * rest + kf * wf + ks * ws
+    return c, s_weight, {"projected_texels": int((wf > 0.5).sum()), "side_texels": int((ws > 0.5).sum()),
+                         "side_exposure_texels": band, "side_exposure": expo.round(3).tolist(),
+                         "white_balance_rgb_gamma": np.append(wb, gamma).round(3).tolist()}
+
+
+def _portrait_sheet(name, out_dir, renders, cfg):
+    """Mockup renders beside the portrait (front | portrait front | side | portrait side) in one PNG."""
+    ref = cfg["ref"]
+    imgs = []
+    for path in (renders[0], PROJECT / ref["front"]["image"], renders[2], PROJECT / ref["side"]["image"]):
+        a = _load_rgb(path)
+        hgt = 520
+        ys = (np.arange(hgt) * a.shape[0] / hgt).astype(int)
+        wd = int(a.shape[1] * hgt / a.shape[0])
+        xs = (np.arange(wd) * a.shape[1] / wd).astype(int)
+        imgs.append(a[ys][:, xs])
+    sheet = np.concatenate(imgs, axis=1)
+    h, w = sheet.shape[:2]
+    out = bpy.data.images.new("_HV_sheet", w, h, alpha=False)
+    try:
+        rgba = np.ones((h, w, 4), dtype=np.float32)
+        rgba[..., :3] = sheet[::-1]
+        out.pixels.foreach_set(rgba.ravel())
+        out.filepath_raw = str(Path(out_dir) / f"{name}_portrait.png")
+        out.file_format = 'PNG'
+        out.save()
+    finally:
+        bpy.data.images.remove(out)
+    return str(Path(out_dir) / f"{name}_portrait.png")
 
 
 # ---------------------------------------------------------------------------------------------- render / export
@@ -784,18 +1295,34 @@ def run(config_path, export=False, render=True, preview_tone=None):
     if config.get("preview_tone"):
         _tone_rgb(config["preview_tone"])  # fail before the paint pass, not after
     name = config["name"]
+    portrait = _portrait_inputs(config)  # every portrait input is checked before the scene is touched
     scene, rig, head, body, unit = _load()
     base_pos = _positions(head, unit)
     base_normals = [Vector(c.vector) for c in head.data.corner_normals]
     base_uv = [Vector(l.uv) for l in head.data.uv_layers.active.data]
-    freeze = _freeze_weights(base_pos)
-    pixels, size, mask = _paint(config, scene, head, body, unit)  # masks use the rest (undeformed) positions
-    pos = _deform(base_pos, freeze, config.get("deforms", []))
+    freeze = _freeze_weights(base_pos, SEAM_TOL_M if portrait is not None else 0.0)
+    deforms = config.get("deforms", [])
+    project, fit_report = None, None
+    start = base_pos
+    if portrait is not None:
+        warp, fit_report, align = _portrait_fit(portrait, head, base_pos, freeze)
+        start = warp(base_pos, freeze)  # landmark warp first, then the config's own deforms
+        fit_report["clamped_vertices"] = fit_report.pop("stats")["clamped"]
+        project = lambda p, n, c, c0, s: _project_portrait(portrait, align, warp, deforms, p, n, c, c0, s, base_pos)
+    # Paint / masks use the rest (undeformed) positions; the projection maps them through the same warp.
+    pixels, size, mask, proj_report = _paint(config, scene, head, body, unit, project)
+    pos = _deform(start, freeze, deforms)
     _set_positions(head, unit, pos)
     _fix_normals(head, freeze, base_normals)
     # Frozen interface check: positions, corner normals and UVs of every frozen vertex are unchanged.
     after = _positions(head, unit)
     frozen = freeze <= 0.0
+    # The exposed ring itself (z within SEAM_TOL_M of the seam) must not move, whatever its weight: a moved ring fails
+    # the bake's exact join ("No compatible opposite vertex").
+    ring = base_pos[:, 2] <= FREEZE["seam_m"] + SEAM_TOL_M
+    ring_shift = float(np.abs(after[ring] - base_pos[ring]).max())
+    if ring_shift > 1e-6:
+        raise RuntimeError(f"{name}: neck ring moved {ring_shift * 1000:.4f} mm (bake would fail the exact join)")
     max_shift = float(np.abs(after[frozen] - base_pos[frozen]).max())
     normals = [Vector(c.vector) for c in head.data.corner_normals]
     max_normal = max((normals[i] - base_normals[i]).length for i, l in enumerate(head.data.loops)
@@ -808,6 +1335,14 @@ def run(config_path, export=False, render=True, preview_tone=None):
     report = {"name": name, "frozen_vertices": int(frozen.sum()), "max_frozen_shift_m": max_shift,
               "max_frozen_normal_delta": max_normal,
               "max_deform_m": float(np.linalg.norm(after - base_pos, axis=1).max())}
+    if portrait is not None:
+        report["portrait"] = dict(fit_report, **(proj_report or {}))
+        if fit_report["clamped_vertices"]:
+            report.setdefault("warnings", []).append(
+                f"{fit_report['clamped_vertices']} vertices clamped to max_mm {portrait['max_mm']}")
+        if report["max_deform_m"] * 1000 > portrait["max_mm"] + 0.01:  # config deforms on top of the warp
+            report.setdefault("warnings", []).append(
+                f"max deform {report['max_deform_m'] * 1000:.1f} mm exceeds max_mm {portrait['max_mm']} (config deforms)")
     preview = _toned(pixels, mask, config["preview_tone"]) if config.get("preview_tone") else pixels
     img, mat = _preview_material(name, preview, size)
     saved = {o: list(o.data.materials) for o in (head, body)}
@@ -819,6 +1354,8 @@ def run(config_path, export=False, render=True, preview_tone=None):
             out_dir = PROJECT / config.get("render", {}).get("out_dir", "Temp/HeadVariants")
             out_dir.mkdir(parents=True, exist_ok=True)
             report["renders"] = _render(scene, rig, head, name, out_dir)
+            if portrait is not None:
+                report["renders"].append(_portrait_sheet(name, out_dir, report["renders"], portrait))
     finally:
         rig.scale = (unit, unit, unit)
         bpy.context.view_layer.update()

@@ -68,6 +68,37 @@ from what image-to-3D and auto-rigging can handle:
 
 ---
 
+## Face Portrait Prompt (NPC portrait faces → `make_head_variant.py` `portrait`)
+
+Two images per NPC, a front and a side profile of the same man. They feed MediaPipe landmarks (shape) and a texture
+projection (face detail), so they are written for **measurement**, not mood. Keep every line verbatim; only
+`{VIEW}`, `{FACE}` and the reference line change. Generate the front first, then the side **image-to-image from
+the front** so it is the same man. Save as `Tools/Blender/configs/heads/refs/<name>_front.png` / `<name>_side.png`
+(square, ≥ 1024 px).
+
+```
+Head-and-shoulders photographic portrait, {VIEW}, of a realistic adult man for a dark medieval fantasy RPG
+in the style of Gothic 1 and 2.
+{REFERENCE}
+{FACE}
+Neutral relaxed expression, mouth closed, eyes open looking straight ahead, head level, not tilted.
+Forehead, eyebrows, ears and jawline fully visible, nothing covering the face, no hood, no hat, no jewelry.
+Bare neck and shoulders, no clothing visible.
+Realistic skin texture with pores, natural muted skin colour, no makeup.
+Flat, even, shadowless studio lighting from the front, no rim light, no dramatic shadows, no specular shine.
+Long-lens orthographic-like camera at eye level with no perspective distortion, head centered and filling
+about two thirds of the image height, with margin above the hair.
+Plain solid light gray background, no text, no frame.
+```
+
+| Slot | Value |
+|------|-------|
+| `{VIEW}` | `straight front view, face square to the camera` — or `exact side profile view, facing left, only one eye visible` |
+| `{REFERENCE}` | Front: empty line. Side: `Same man as the reference image: same face, head shape, hair, beard, scars and skin.` |
+| `{FACE}` | Age, build of the face (jaw, cheekbones, brow, nose, lips, eyes), then hair / beard, then marks. Sides are the **man's own** left / right. Concrete shapes only, no qualities ("handsome", "menacing"). Hair must match the head config's scalp paint (the projection stops at the hairline). |
+
+---
+
 ## Pipeline: Meshy → Mixamo → Unity (learned on the base hero)
 
 1. **Meshy** (image-to-3D, free tier for tests): front image (+ back view if multi-image). Download the
@@ -173,7 +204,7 @@ body; hair, beard, eyes and ink keep their colour.
 Landmarks (game metres, face toward −Y in Blender): seam 1.585, chin underside ≈ 1.595, mouth 1.635, nose tip 1.68,
 iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86; side of the neck x ≈ 0.062 at y 0–0.03,
 z 1.60–1.64 (the Company collar hides everything below z ≈ 1.615 from the side: keep a neck decal above it).
-Shipped (13): Warden (+ lip scar), Cook, Blacksmith, TentMate, Tam, Brann, Storekeeper, Harl, DockGuard, GuardLeft /
+Shipped (13): Warden (portrait face), Cook, Blacksmith, TentMate, Tam (portrait), Brann, Storekeeper (portrait), Harl, DockGuard, GuardLeft /
 GuardRight (`CompanyGuard_ArrivalLeft` / `Right`), WarehouseGuard, Bandit. Company brand on the five rank-and-file
 guards (Harl, DockGuard, both arrival guards, WarehouseGuard), not on the Warden (officer).
 
@@ -186,7 +217,8 @@ Gotchas:
   texel a body face covers (otherwise speckles appear on the chest).
 - Base hair is about 0.4 luminance darker than skin, and its edges are blurred. Recolour hair as a skin/hair mix with a
   luminance ratio capped at 1, or the hairline gets a light halo or a cyan cast.
-- Shape changes above ~9 mm stretch the texture's eye / nose detail. For bigger silhouettes, use new geometry
+- Shape changes above ~9 mm stretch the texture's eye / nose detail (painted variants). Portrait faces re-project
+  the texture after the warp, so they go further (see *NPC portrait faces*). For bigger silhouettes, use new geometry
   (image-to-3D + fitting).
 - **Head masks:** the skin weight starts from the **unblurred** base head rule (`_base_head_skin`, shared with
   `make_skin_masks.py`) and is blurred once at the end. Tracking from the blurred base PNG leaves a half-masked, untoned
@@ -199,6 +231,54 @@ Gotchas:
   Clean-shaven = a `skin` layer with a tight `hair_range` over the jaw and lower sideburns (see `dockguard.json`).
 - The Blender mockup lights wash Fair / Olive out (both are lighter than the base hero's average skin); judge tones on
   the Unity sheet (`verify_head_tones.cs`).
+
+### NPC portrait faces (spec-npc-portrait-faces)
+
+Fixes the "same man, different hair" look: the face's eyes, nose, lips and skin come from a portrait instead of the
+shared Meshy texture, and its shape follows the portrait's landmarks. Same neck contract and bake as the head variants
+above. Pilot: Warden, Tam, Storekeeper.
+
+1. **Portraits:** prompts from *Face Portrait Prompt* above (the filled `{FACE}` lines are kept in `refs/PROMPTS.md`);
+   the user generates `refs/<name>_front.png` and `refs/<name>_side.png` (side made image-to-image from the front),
+   8-bit PNG, face pointing left on the side image.
+2. **Landmarks:** `uv run Tools/FaceRef/face_landmarks.py <front> <side> --out
+   Tools/Blender/configs/heads/refs/<name>_landmarks.json`. Check the `_debug_front` / `_debug_side` overlays (gitignored).
+   Base landmarks (`refs/_base_landmarks.json`) come from `render_base_refs()` (flat ortho renders of the base head); redo
+   them only if the base head changes.
+3. **Config:** `"portrait": {"landmarks": ".../refs/<name>_landmarks.json"}` (+ overrides of `PORTRAIT_DEFAULTS`), `deforms: []`,
+   paint only for what the portrait doesn't cover: scalp hair, the back of the head, sideburns. Clear the base hero's own
+   sideburn with a `skin` layer if the portrait has none (`tam.json`).
+4. Then mockup → export → `Bake Head Variants` → `verify_head_variants.cs` / `verify_head_tones.cs`, as for any variant.
+
+How it works (`make_head_variant.py`, portrait section):
+- **Shape:** front landmarks are aligned on the eye corners + nasion (so the face's own proportions survive), then a 3D
+  RBF warp (kernel r + affine, ~130 landmark anchors ray-cast on the base head) moves them; back of the skull and crown
+  pinned, the neck held by the freeze weight. Ears and the back of the head are not anchored. Depth: midline landmarks follow the side profile
+  (scaled crown → nose tip, calibrated on the base), re-centred on the median, capped at `max_depth_mm` (8), chin underside
+  skipped. Whole warp capped at `max_mm` (25).
+- **Texture:** front portrait where the face points forward (MediaPipe oval, raised to the hairline; tight edge at the
+  jaw, wide at the forehead), side profile on the cheeks / jaw below the eyes (both sides unless `side_mirror` is off),
+  painted texture elsewhere. Lighting
+  gradients divided out (`delight`). Only **skin** texels move to the base skin colour (they get toned in game); hair,
+  beard and eyes keep the portrait's colour. Skin weight (the mask) from the portrait: eyes 0, lips 0.7.
+
+Gotchas:
+- **Seam tolerance:** the neck ring is stored at z = 1.5850001, so a strict `<= 1.585` test left it out of the frozen seed
+  and a large warp moved it ~0.3 mm (bake: "No compatible opposite vertex"). Portrait configs seed within `SEAM_TOL_M`
+  (legacy configs keep the strict seed, so they regenerate unchanged); `run()` fails on any config if the ring moves.
+- **Side mirroring:** the side projection ignores x, so the profile (the man's left) also lands on his right cheek. Set
+  `"side_mirror": false` when a one-sided mark (scar, bruise) falls in the side region (cheeks / jaw, below the eyes).
+- **Inputs are checked against their landmarks:** a portrait replaced or resized after `face_landmarks.py` ran is refused
+  (size mismatch). The landmark tool refuses a profile with no nose point on its left edge (facing right: mirror it),
+  a crown or nose touching the image edge, and zero or several faces. Always look at the `_debug_side` overlay: the nose
+  tip window is a fraction of the image height, so a jutting beard or chest can win it on loose framing.
+- **Generated profiles are not exact** (slight pitch, a brow level with the nose tip): never trust a single profile point.
+  A nasion-based scale was 1.7x off on the Warden (broken nose). Crown → tip is robust.
+- Side exposure: match skin to skin (lighter half of each projection). Matching on the overlap band uses the front's
+  shaded grazing edge and darkens the side.
+- Per-channel std matching tints dark hair teal; auto contrast overshoots. Use white balance + mean luminance only.
+- Identity test: `_base_landmarks.json` as its own portrait → warp 0, texture within ~1.3/255 of the base.
+- Blender lights wash out Fair tones; judge on the Unity sheet.
 
 ### NPC skin tones (spec-npc-skin-tones)
 
