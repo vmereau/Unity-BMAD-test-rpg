@@ -56,6 +56,8 @@ MonoBehaviour:
   memories:
   - {fileID: 11400000, guid: 1738e37e721dd3740b2b8dd005f3974e, type: 2}
   _killedFact: {fileID: 11400000, guid: 99aa20bd89baf0e408d019125d85bdb2, type: 2}
+  _head: {fileID: 0}
+  _skinTone: {fileID: 11400000, guid: cae8b7adcc50da74198893873c272014, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
-  _weapon: {fileID: 0}
+  _startingEquipment: []
   _finisherStanceMultiplier: 1.5

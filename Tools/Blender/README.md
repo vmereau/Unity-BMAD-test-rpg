@@ -10,6 +10,8 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | `split_head_body.py` | Cuts a Mixamo character at a level neck plane into `<name>_head` / `<name>_body` on the same armature, copies the uncut smooth normals to both, exports one FBX (no animation, no leaf bones). Base hero: 1.585 m → `base hero split.fbx` |
 | `make_head_variant.py` | NPC face from the neck-prepared base head: reshape above a frozen neck + repaint a texture copy (hair, beard, brows, eyes, scars), render mockups, export `models/heads/<Name>/`. Configs in `configs/heads/`; recipe and gotchas in `Humanoids/CLAUDE.md` → NPC head variants |
 | `verify_head_variants.cs` | Unity MCP `execute_code` body: posed neck-join gap + neck / portrait captures of every `HeadAppearance_*`, bare and Company armor |
+| `make_skin_masks.py` + `configs/skin_masks.json` | Skin masks for `SG_SkinLit` (NPC skin tones): body + base head atlas, plus one per outfit that shows skin (hand bone weights). Prints each atlas's `_SkinRefLuminance`. Recipe in `Humanoids/CLAUDE.md` → NPC skin tones |
+| `verify_skin_tones.cs` | Unity MCP `execute_code` body: untoned `SG_SkinLit` vs URP Lit pixel diff + tone sheet (face, hands, body, armor) of every `Tone_*` → `Temp/SkinTones/` |
 | `configs/2hand_attack_1.json` | Final inputs that produced `two handed/2hand attack refined.fbx` (Attack_1) — constant `target_pitch_deg` |
 | `configs/2hand_attack_2.json` | Final inputs that produced `two handed/2hand attack 2 refined.fbx` (Attack_2 finisher) — `pitch_curve` |
 

@@ -59,6 +59,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c93fe109f1631b74c8f04d23e069fded, type: 2}
   - {fileID: 11400000, guid: 630181b458fd65b41a011364d934e01e, type: 2}
   _killedFact: {fileID: 11400000, guid: 35c8370b8d9b2954fa9dae179d541021, type: 2}
+  _head: {fileID: 0}
+  _skinTone: {fileID: 11400000, guid: 757a3676542f40b44a7b7a066980daf0, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
-  _weapon: {fileID: 0}
+  _startingEquipment: []
   _finisherStanceMultiplier: 1.5

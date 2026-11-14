@@ -37,6 +37,9 @@ namespace Game.Inventory
         private readonly List<string> _missingBones = new List<string>();
         private bool _isInCombat = false;
 
+        /// <summary>The currently instantiated armor visual, or null. Polled by NpcSkinTone to tone a newly built armor.</summary>
+        public GameObject ArmorVisual => _armorVisual;
+
         /// <summary>The currently instantiated weapon visual GO. Exposed for PlayerCombat (story 7-9) to locate WeaponHitbox.</summary>
         public GameObject ActiveWeaponGO => _weaponVisual;
 

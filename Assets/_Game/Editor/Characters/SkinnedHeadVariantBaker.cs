@@ -216,6 +216,10 @@ namespace Game.Editor.Characters
             }
             if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
             if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+            // The base hero's skin mask matches its own hair, not the variant's repainted hair / beard (spec-npc-skin-tones):
+            // a variant has no mask until it gets its own, so toned NPCs keep the variant head's skin.
+            if (material.HasProperty("_SkinMask")) material.SetTexture("_SkinMask", null);
+            if (material.HasProperty("_SkinToneStrength")) material.SetFloat("_SkinToneStrength", 0f);
             EditorUtility.SetDirty(material);
             return material;
         }

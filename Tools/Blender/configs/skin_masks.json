@@ -1,0 +1,34 @@
+{
+  "base": {
+    "texture": "Assets/_Game/Art/Characters/Humanoids/models/test base hero/Meshy_AI_Neutral_Figure_T_Pose_1009121619_texture.png",
+    "out": "Assets/_Game/Art/Characters/Humanoids/models/test base hero/T_SkinMask_BaseHero.png",
+    "blur_px": 2,
+    "body": {
+      "hem_band": [0.28, 0.31],
+      "waist_band": [1.0, 1.09],
+      "skin_saturation": [0.2, 0.27]
+    },
+    "head": {
+      "hair_dark_lo": 0.35,
+      "hair_dark_hi": 0.55,
+      "hair_zones": [
+        {"center": [0.0, 0.01, 1.82], "radius": [0.115, 0.135, 0.105]},
+        {"center": [0.03, -0.09, 1.735], "radius": [0.032, 0.025, 0.012], "mirror_x": true}
+      ],
+      "eyes": [
+        {"center": [0.0353, -0.095, 1.7197], "radius": [0.014, 0.03, 0.008]}
+      ]
+    }
+  },
+  "armor": [
+    {
+      "name": "CompanyGrunt",
+      "fbx": "Assets/_Game/Art/Characters/Humanoids/models/Company/Grunt armor/CompanyGrunt_Fitted.fbx",
+      "texture": "Assets/_Game/Art/Characters/Humanoids/models/Company/Grunt armor/Meshy_AI_Armored_Medieval_Guard_20261111_texture.png",
+      "out": "Assets/_Game/Art/Characters/Humanoids/models/Company/Grunt armor/T_SkinMask_CompanyGrunt.png",
+      "skin_bones": ["LeftHand", "RightHand"],
+      "weight_range": [0.3, 0.6],
+      "blur_px": 2
+    }
+  ]
+}

@@ -55,6 +55,8 @@ MonoBehaviour:
   prefab: {fileID: 0}
   memories: []
   _killedFact: {fileID: 11400000, guid: 739693e956e647a4ab8b5c88f4dbffaa, type: 2}
+  _head: {fileID: 0}
+  _skinTone: {fileID: 11400000, guid: 757a3676542f40b44a7b7a066980daf0, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
   _startingEquipment:
   - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}

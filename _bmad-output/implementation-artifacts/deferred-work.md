@@ -639,3 +639,18 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Head variants — posed neck checks are not an automated test (spec-npc-head-variants review):** AC2 (no seam through
   idle / walk / attack / dodge, bare and Company armor) is verified by the MCP script `Tools/Blender/verify_head_variants.cs`
   only. Promote it to an EditMode test if head variants multiply.
+
+## From spec-npc-skin-tones (2026-11-14, split at clarify)
+
+- **Second face batch on the toned skins** (agreed with Valentin): a head-variant spec on top of the skin-tone system.
+  Tam (Fair, red hair + stubble, freckles, black eye, eye bags), Brann (Olive, dark brown hair, fuller cheeks, neat short
+  beard), Storekeeper (Deep, short black hair greying at the temples, short beard, narrow face), Harl (Weathered,
+  dirty-blonde cropped hair, stubble, brow scar), DockGuard (Fair, ash-blonde, clean-shaven, younger angular face).
+  Blonde risk: the hair recolour caps luminance at skin level (halo guard), so try relaxing it with edge blending in the
+  mockups, with darker blonde as the fallback. Each new head needs its own skin mask written by `make_head_variant.py`
+  from its paint layers, so the hair doesn't take the tone.
+- **`CompanyGruntArmorBuilder` recreates `M_CompanyGrunt` as URP Lit** (spec-npc-skin-tones review): only when the
+  material is missing. It would lose `SG_SkinLit` and the hand mask, so toned guards' hands stay base-hero colour (the
+  EditMode test catches it). Create it with `SG_SkinLit`, `T_SkinMask_CompanyGrunt` and its ref luminance instead.
+- **`make_skin_masks.py` reads only the first UV mesh of an outfit FBX** (review): an outfit split into several meshes
+  (separate gloves) would get a partial mask. Bake every mesh of the import into the same mask.

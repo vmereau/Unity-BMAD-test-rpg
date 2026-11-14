@@ -29,6 +29,11 @@ namespace Game.NPC
 
         public HeadAppearanceSO Head => _head;
 
+        [Tooltip("Skin tone of this NPC (NpcSkinTone recolours the masked skin at spawn). Empty = the base-hero skin.")]
+        [SerializeField] private SkinToneSO _skinTone;
+
+        public SkinToneSO SkinTone => _skinTone;
+
         [Header("Witness")]
         [Tooltip("Reaction to a sneaking, non-hostile player (WitnessProfile_Humanoid for every humanoid). Swap the profile to tune one NPC. Null = never reacts.")]
         [SerializeField] private WitnessProfileSO _witnessProfile;

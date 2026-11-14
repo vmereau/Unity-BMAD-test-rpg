@@ -43,6 +43,9 @@ All StartingTown NPCs are direct scene instances of this variant.
   old one, then `PrefabUtility.RemoveUnusedOverrides` on the scene NPC instances. `NpcModelPrefabTests` guards it.
 - **Face:** root `NpcHeadAppearance` (`_headRenderer` = `Character/Head`) swaps that SMR's mesh and material in `Awake` from
   `NPCEntity._head` (spec-npc-head-variants; empty = base head). Re-wire `_headRenderer` after a model swap.
+- **Skin tone:** root `NpcSkinTone` (`_model` = `Character`, `_visuals` = root `EquipmentVisuals`) tones every masked
+  `SG_SkinLit` material under `Character` in `Start` from `NPCEntity._skinTone` (spec-npc-skin-tones; empty = base skin),
+  and re-tones a rebuilt armor visual (polls `EquipmentVisuals.ArmorVisual` in `LateUpdate`). Re-wire `_model` after a model swap.
 - **Two colliders, never collapse them:** `Hitbox` (Layer 7, trigger capsule — hurtbox for `WeaponHitbox`
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**
