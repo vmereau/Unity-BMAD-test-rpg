@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_QuarryOverseer_Notice
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Another pair of hands. You're standing in my quarry. State your business.
+  nextNode: {fileID: 11400000, guid: 49e5a12cb811b6a44b530e5fc4ff94b9, type: 2}
+  _id: 49a71efa148bd1c43a26ede4acd6f11d

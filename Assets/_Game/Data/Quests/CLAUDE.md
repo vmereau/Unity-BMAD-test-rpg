@@ -48,8 +48,10 @@ QuestSO
 
 ## Naming Convention
 
+`WardensErrand` starts on `WorldFact_Arrival_Done` (end of event-001), steps through the four notice deliveries and completes on the work-site choice in Voss's report topic. Full flow: `docs/World/Quests/WardensErrand.md`.
+
 `HiddenStash` (quest-001) starts from Tam's hint and completes from his follow-up after `World.HiddenStash.Taken`. The world fact is set by the stash's `ContainerTakeFact` successful-transfer listener, not opening the chest. Full encounter: `docs/World/Quests/HiddenStash.md`.
 
-`Quest_{QuestId}.asset` — e.g. `Quest_FindHerbalist.asset`
+`Quest_{QuestId}.asset` — e.g. `Quest_WardensErrand.asset`
 
 `questId` must match the filename suffix and be unique across all quests (used as the key in `QuestFact.ToString()`).

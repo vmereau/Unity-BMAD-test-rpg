@@ -106,6 +106,7 @@ choices. Each `ChoiceOption` routes to its own sub-chain.
 | `nextNode` | `DialogueNode` | Node to advance to when selected. Null = close dialogue |
 | `dialogueFact` | `DialogueFact` | When set, written to `WorldStateManager` when this choice is selected. Use to track which branch the player took. |
 | `goldCost` | `int` | Gold the player pays the NPC on pick (coins go into the NPC's `InventorySystem` as `Item_Gold`, lootable back). The row shows " (Ng)" and is disabled + red while unaffordable. 0 = free. Teach choices inherit the same field. |
+| `requiredItem` | `ItemSO` | Item the player hands over on pick: one unit is removed from the player's inventory (consumed, not given to the NPC). The row shows " (item name)" and is disabled + red while the player doesn't hold it. Checked before the gold is paid. Null = none. Not used by teach choices. Use it with a quest item (`isQuestItem`) so the player can't lose it, e.g. the Warden's-errand notices (`<Manager>/Dialogues/Notice/`). |
 | `signal` | `DialogueSignalSO` | Raised on `OnDialogueSignal` after the gold is paid — how gameplay systems react to an answer (e.g. `TollGate`). Never use a `DialogueFact` for that: they are permanent. Menu `Game/Dialogue/Signal`, name `Signal_<Topic>_<Answer>`, stored in the topic folder. |
 
 `ChoiceDialogueNode.IsEndNode()` always returns `false` — the chain continues via each

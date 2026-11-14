@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_FarmReeve_Notice
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: A notice? Give it here. Carefully.
+  nextNode: {fileID: 0}
+  _id: 866b7c260f14dc445902c054d168afa7
+  choices:
+  - text: Hand over the Warden's notice.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: af4f7b6dafc9c5b46a698128d956dc0c, type: 2}
+    dialogueFact: {fileID: 11400000, guid: d8ab2624234f50a47a1a635a532fb7dd, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 11400000, guid: 7ba1403f7992f2b4891d193e5ed5df63, type: 2}
+    signal: {fileID: 0}
+  - text: Not yet.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    signal: {fileID: 0}

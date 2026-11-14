@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_LeadHunter_Notice
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 05a797baa5a499740bf21cc8e22f0eab, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: 056808f2671bc034eb4fa16d3b247f7e, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: c7aad91baab6b694dacf220f11182c03, type: 2}

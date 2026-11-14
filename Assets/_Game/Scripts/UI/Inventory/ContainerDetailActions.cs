@@ -37,7 +37,7 @@ namespace Game.UI
                 if (_takeButton != null) _takeButton.gameObject.SetActive(false);
                 if (_putButton != null)
                 {
-                    bool showPut = !takeOnly;
+                    bool showPut = !takeOnly && ItemSO.CanPlayerPart(item); // quest items stay with the player
                     _putButton.gameObject.SetActive(showPut);
                     if (showPut) _putButton.onClick.AddListener(() => owner.PutItem(slotIndex));
                 }

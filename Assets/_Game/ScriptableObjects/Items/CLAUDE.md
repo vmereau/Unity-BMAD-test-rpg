@@ -69,6 +69,7 @@ prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `We
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
 | `isCraftingMaterial` | `bool` | Smithing material (`Item_IronIngot`): the only items an anvil's grid lists. Detail category **Crafting Material** (after the ingredient rule) |
+| `isQuestItem` | `bool` | Quest item: detail category **Quest Item** (wins over every other rule), Misc filter tab. It can't be sold (`NPCTradeUI.SellItem`), dropped (`InventoryUI.DropItem`), put into a container (`ContainerUI.PutItem`) or bound to the action bar (`ActionBarSystem.Assign`); the matching buttons are hidden. It only leaves the player through a dialogue choice's `requiredItem`. One rule: `ItemSO.CanPlayerPart`. Example: `Data/Items/Quest/Item_Notice_*` (Warden's errand), `sellValue` 0, no world prefab |
 | `isIngredient` | `bool` | Accepted by the cooking Experiment slots and the only items the cooking grid lists (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (raw food `PotionItemSO`, future non-edible ingredients) can be one. Its detail category is **Ingredient**, whatever the class. Never set it on a cooked meal |
 
 Create via **Assets → Create → Items → Item**.

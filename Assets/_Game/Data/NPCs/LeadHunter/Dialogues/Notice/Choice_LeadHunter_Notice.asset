@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_LeadHunter_Notice
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: From the Warden? Go on, then.
+  nextNode: {fileID: 0}
+  _id: 27b070d79d0daaa40ac07349e2d9b1ca
+  choices:
+  - text: Hand over the Warden's notice.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 29be3f4bdca0c3d4d853dc14c5f3be17, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 056808f2671bc034eb4fa16d3b247f7e, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 11400000, guid: 86842a7e4a9643d4a9820e272113c87c, type: 2}
+    signal: {fileID: 0}
+  - text: Not yet.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    signal: {fileID: 0}

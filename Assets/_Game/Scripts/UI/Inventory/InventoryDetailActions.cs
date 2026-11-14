@@ -39,8 +39,9 @@ namespace Game.UI
             if (_dropButton == null) return;
             _dropButton.onClick.RemoveAllListeners();
 
-            _dropButton.gameObject.SetActive(true);
-            _dropButton.onClick.AddListener(() => owner.DropItem(slotIndex));
+            bool canDrop = ItemSO.CanPlayerPart(item); // quest items can't be dropped
+            _dropButton.gameObject.SetActive(canDrop);
+            if (canDrop) _dropButton.onClick.AddListener(() => owner.DropItem(slotIndex));
         }
 
         private void ManageUseButton(InventoryUI owner, int slotIndex, ItemSO item)

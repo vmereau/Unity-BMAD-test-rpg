@@ -27,6 +27,7 @@ namespace Game.UI
         private const string CATEGORY_USABLE = "Usable";
         private const string CATEGORY_EQUIPMENT = "Equipment";
         private const string CATEGORY_MISC = "Miscellaneous";
+        private const string CATEGORY_QUEST_ITEM = "Quest Item";
         private const string CATEGORY_CURRENCY = "Currency";
         private const string LABEL_GOLD = "Gold on pickup";
 
@@ -57,6 +58,7 @@ namespace Game.UI
         public static string GetCategory(ItemSO item) => item switch
         {
             null => "",
+            { isQuestItem: true } => CATEGORY_QUEST_ITEM,
             // Any item type can be a cooking ingredient (raw food is a PotionItemSO): the flag wins over the class.
             { isIngredient: true } => CATEGORY_INGREDIENT,
             { isCraftingMaterial: true } => CATEGORY_CRAFTING_MATERIAL,

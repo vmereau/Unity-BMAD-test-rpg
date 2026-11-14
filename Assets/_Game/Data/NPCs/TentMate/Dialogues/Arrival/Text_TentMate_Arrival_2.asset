@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Text_TentMate_Arrival_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
   text: "This one's yours. Bed's against the back wall. Don't sleep anywhere else \u2014 the Corner behind us is where they put the ones who stopped working."
-  nextNode: {fileID: 0}
+  nextNode: {fileID: 11400000, guid: cc4aa5d540ebc4346bbcc6cd58c04a6a, type: 2}
   _id: 6f616def895dd6c459fb680bc3e77b83

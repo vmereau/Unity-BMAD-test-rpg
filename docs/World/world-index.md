@@ -1,6 +1,6 @@
 # World Index — Echoes of the Fallen
 
-> Last updated: 2026-05-02
+> Last updated: 2026-11-15
 > Source of truth for all world entities. Read this first before any design or implementation task.
 > Full docs at `docs/World/`. Quest specs at `docs/World/Quests/`. Unity assets at `Assets/_Game/Data/`.
 
@@ -10,7 +10,7 @@
 
 | ID | Name | Region | Status | Key NPCs | Key Quests |
 |----|------|--------|--------|----------|------------|
-| area-001 | Company Encampment | Frontier | draft | npc-001..010 | quest-001, quest-002 |
+| area-001 | Company Encampment | Frontier | draft | npc-001..016 | quest-001, quest-002, WardensErrand |
 
 ---
 
@@ -27,10 +27,13 @@
 | npc-007 | Racket Guard (Harl) | area-001 exits (quarry gate 06–14, wilderness gate 14–21) | Antagonist / extortionist — one-time exit toll per gate | faction-001 | implemented |
 | npc-008 | The False Friend | area-001 | Antagonist / betrayer | none | stub |
 | npc-009 | Quarry Worker | area-002 (quarry) | Quest giver — sealed passage | none | stub |
-| npc-010 | Lead Hunter | area-004 (hunting grounds) | Work site manager | faction-001 (loose) | stub |
+| npc-010 | Lead Hunter (Corvin Ash) | area-004 (hunting camp) | Work site manager; independent-minded | faction-001 (loose) | graybox |
 | npc-011 | Camp Cook (Aldric Sorn) | area-001 — Canteen | Service NPC / information broker | none (covert) | draft |
 | npc-012 | Warehouse Guard | area-001 — dock warehouse | Guard / restricted-area owner | faction-001 | draft |
 | npc-013 | Dock Guard | area-001 — dock guard post / docks | Guard / restricted-area owner (night) | faction-001 | draft |
+| npc-014 | Overseer Dace | area-002 (quarry floor) | Quarry manager | faction-001 | graybox |
+| npc-015 | Gorm Holl | area-003 (wood camp) | Wood camp gang boss | none | graybox |
+| npc-016 | Reeve Odo Pell | Company farm (manager's house) | Farm manager | faction-001 | graybox |
 
 ---
 
@@ -41,6 +44,7 @@
 | quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
 | quest-002 | The Sealed Passage | npc-009 | area-002 | worker / independent | stub |
 | SpiderClear | Spider Infestation | NPC_RacketGuard | area-001 | — | implemented |
+| WardensErrand | The Warden's Errand | npc-006 (Voss) | area-001 + work sites | neutral | implemented |
 
 ---
 
@@ -68,6 +72,6 @@
 
 | ID | Name | Type | Manager | Status |
 |----|------|------|---------|--------|
-| area-002 | Stone Quarry | Work site | Guard (unnamed) | stub |
-| area-003 | Wood Camp | Work site | Guard (unnamed) | stub |
+| area-002 | Stone Quarry | Work site | npc-014 (Overseer Dace) | stub |
+| area-003 | Wood Camp | Work site | npc-015 (Gorm Holl) | stub |
 | area-004 | Hunting Grounds | Work site | npc-010 (Lead Hunter) | stub |

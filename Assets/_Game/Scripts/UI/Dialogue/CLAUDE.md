@@ -33,8 +33,9 @@
   in any state and makes `RestoreTopics` close the dialogue instead (chain end / `[Leave]`). Reset by `Open()` / `OpenLine()` / `Close()`.
   `thenTopics` (request `forcedTopicThenTopics`) leaves `_forcedTopic` false: the chain behaves like a picked topic (Escape only on the
   list) and its end shows the NPC's topics, re-queried by `RestoreTopics`.
-- **Paid choices** (`ChoiceOption.goldCost`): `DialogueOptionFormat.GoldCostLabel` suffix, disabled + dimmed while
-  `DialogueSystem.CanAffordGold` is false; `SelectChoice` returns false when the payment fails (the row does nothing).
+- **Paid choices** (`ChoiceOption.goldCost`, `requiredItem`): `DialogueOptionFormat.ChoiceCostLabel` suffix (" (10g, Notice for …)"),
+  each part red while unpayable; the row is disabled + dimmed while `DialogueSystem.CanAffordGold` or `HasChoiceItem` is false;
+  `SelectChoice` returns false when the payment fails (the row does nothing).
 - **Forced line** (`OpenLine(npcName, line)`, NPC-initiated, e.g. a theft scold): opens straight in `Text` with no topic list; `_forcedLine` makes click, slot 1, `_nextNodeButton` and Escape all call `DialogueSystem.Close()`. Reset by `Open()` / `Close()`.
 
 ## Cursor

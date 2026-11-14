@@ -93,6 +93,11 @@ namespace Game.Inventory
                 GameLog.Warn(TAG, $"Assign: slotIndex {slotIndex} is out of range [0,5].");
                 return;
             }
+            if (item != null && item.isQuestItem)
+            {
+                GameLog.Warn(TAG, $"Assign: {item.itemName} is a quest item — it can't go on the action bar.");
+                return;
+            }
             _slots[slotIndex] = new ActionBarSlotData { InventoryIndex = inventoryIndex, Item = item };
             GameLog.Info(TAG, $"Assigned slot {slotIndex + 1}: {item?.name ?? "null"} at inventory index {inventoryIndex}.");
         }

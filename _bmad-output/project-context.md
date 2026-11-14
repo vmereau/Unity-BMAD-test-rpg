@@ -130,7 +130,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Event handler methods: `Handle` + EventName (e.g. `HandleEntityKilled()`, `HandleQuestStateChanged()`)
 - Coroutines: `PascalCase` + `Coroutine` suffix (e.g. `LoadRegionCoroutine()`)
 - GameLog TAG constants: `[SystemName]` in brackets (e.g. `[Combat]`, `[WorldState]`)
-- SO asset instances: `PascalCase_Description` (e.g. `Sword_IronBlade.asset`, `Quest_FindHerbalist.asset`)
+- SO asset instances: `PascalCase_Description` (e.g. `Sword_IronBlade.asset`, `Quest_WardensErrand.asset`)
 - Event SO assets: `On` + EventName (e.g. `OnEntityKilled.asset`, `OnActAdvanced.asset`)
 - Config SO assets: `SystemName` + `Config` (e.g. `CombatConfig.asset`, `ProgressionConfig.asset`)
 - Prefabs: `PascalCase` or `Category_Name` (e.g. `Player.prefab`, `Enemy_Skeleton.prefab`)

@@ -167,6 +167,11 @@ namespace Game.UI
             if (_takeOnly) return; // loot is take-only
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
+            if (!ItemSO.CanPlayerPart(item))
+            {
+                GameLog.Warn(TAG, $"PutItem blocked: {item?.itemName} is a quest item");
+                return;
+            }
             _playerInventory.DecrementStack(index);
             _containerInventory.AddItem(item);
             RefreshGrids();
@@ -217,7 +222,9 @@ namespace Game.UI
             }
             else
             {
-                if (putBtn != null)
+                if (putBtn != null && !ItemSO.CanPlayerPart(inv.Items[slotIndex].Item))
+                    putBtn.gameObject.SetActive(false); // quest items stay with the player
+                else if (putBtn != null)
                 {
                     putBtn.gameObject.SetActive(true);
                     putBtn.onClick.AddListener(() => { PutItem(_contextMenuSlotIndex); HideContextMenu(); });

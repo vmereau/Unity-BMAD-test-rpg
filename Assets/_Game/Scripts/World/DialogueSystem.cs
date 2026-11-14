@@ -24,6 +24,8 @@ namespace Game.World
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private NPCTradeUI _tradeUI;
+        [Tooltip("The player's inventory: a ChoiceOption.requiredItem is taken from it.")]
+        [SerializeField] private InventorySystem _playerInventory;
         [Tooltip("Coin item added to the NPC's inventory when the player pays a ChoiceOption.goldCost (Item_Gold).")]
         [SerializeField] private ItemSO _goldItem;
         [Tooltip("Raised when a picked ChoiceOption carries a DialogueSignalSO (OnDialogueSignal).")]
@@ -276,11 +278,19 @@ namespace Game.World
         /// Marks the choice seen, records its dialogueFact as played (if assigned), then advances the chain.
         /// <paramref name="node"/> = the choice node that offered it (null = not tracked as seen).
         /// </summary>
-        /// <returns>False when the choice wasn't applied (null, or its gold cost could not be paid).</returns>
+        /// <returns>False when the choice wasn't applied (null, its gold cost could not be paid or its required item
+        /// is missing).</returns>
         public bool SelectChoice(ChoiceOption choice, ChoiceDialogueNode node = null)
         {
             if (choice == null) return false;
+            // Item first: a missing item must not cost the player gold.
+            if (choice.requiredItem != null && !HasChoiceItem(choice.requiredItem))
+            {
+                GameLog.Warn(TAG, $"Choice '{choice.text}' needs {choice.requiredItem.itemName} — the player doesn't have it");
+                return false;
+            }
             if (choice.goldCost > 0 && !PayChoiceGold(choice.goldCost)) return false;
+            if (choice.requiredItem != null && !TakeChoiceItem(choice.requiredItem)) return false;
             if (node != null)
                 MarkSeen(node, node.ChoiceSeenId(choice));
 
@@ -307,6 +317,27 @@ namespace Game.World
 
         /// <summary>True when the player has at least <paramref name="amount"/> gold (a ChoiceOption.goldCost).</summary>
         public bool CanAffordGold(int amount) => amount <= 0 || (_goldSystem != null && _goldSystem.Gold >= amount);
+
+        /// <summary>True when the player holds at least one <paramref name="item"/> (a ChoiceOption.requiredItem).</summary>
+        public bool HasChoiceItem(ItemSO item) =>
+            item == null || (_playerInventory != null && _playerInventory.CountOf(item) > 0);
+
+        // The player hands the item over: one unit leaves the player's inventory (consumed, not given to the NPC).
+        private bool TakeChoiceItem(ItemSO item)
+        {
+            if (_playerInventory == null)
+            {
+                GameLog.Error(TAG, $"Choice needs {item.itemName} but _playerInventory is not assigned — choice refused");
+                return false;
+            }
+            if (!_playerInventory.TryConsume(item))
+            {
+                GameLog.Warn(TAG, $"Choice needs {item.itemName} — it couldn't be taken from the player");
+                return false;
+            }
+            GameLog.Info(TAG, $"Player handed {item.itemName} to {_currentNPCName}");
+            return true;
+        }
 
         // The player pays the NPC: deducted from the player's GoldSystem, coins added to the NPC's inventory (lootable back).
         private bool PayChoiceGold(int amount)

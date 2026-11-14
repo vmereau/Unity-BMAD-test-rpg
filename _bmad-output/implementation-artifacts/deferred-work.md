@@ -373,7 +373,8 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 - **Arrival sequence** — split 2026-11-12. Part 1 (gate spawn, escort to the stage, Warden speech, beating, Tam gating,
   dev skip) is `spec-area-1-arrival-escort-beating`; part 2 (escort to the hut, Hobb's briefing) is
   `spec-area-1-arrival-hut-briefing` (done 2026-11-13). Still open: the "stripped" beat / empty starting inventory.
-- **Warden's errand tour** — report to each work site manager; tools issued as Company property.
+- ~~**Warden's errand tour**~~ — shipped as `spec-area-1-wardens-errand` (2026-11-15): four named managers, quest-item
+  notices, work-site choice. Tools issued as Company property are still open (with the work shifts).
 - **First work site** — Stone Quarry recommended (hidden find, first contact with the ruins mystery).
 - **Racket guard encounter** — exit-tax interception, pay / refuse / attack-on-sight branches.
 
@@ -667,3 +668,32 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   runtime is unchanged, but no in-game capture was taken.
 - **Ears and the back of the head stay painted:** the side projection stops in front of the ear. A portrait with
   distinctive ears or a long hairstyle won't carry them.
+
+## From spec-area-1-wardens-errand (2026-11-15)
+
+- **Stripped beat** — empty starting inventory on arrival (event-001); split out at clarify, next spec.
+- **Manager quests** — Dace (sealed south-face crack, ties to quest-002 / npc-009), Holl (trees falling against the cut),
+  Ash (snares taken whole), Pell (tithe barn short every week). Each manager only plants the hook today.
+- **Work shifts** — the `DialogueFact_Warden_Errand_Work*` choice is recorded but nothing reads it yet.
+- **Portrait faces for the managers** — `HeadAppearance_QuarryOverseer` / `_TimberBoss` / `_LeadHunter` / `_FarmReeve`
+  reuse the Bandit / GuardRight / DockGuard / WarehouseGuard meshes (lookalikes) until `/characters:portrait-face`.
+- **Placeholder notice icon** — the four notices reuse the trout-recipe icon; needs an `items:icon-prompt` icon.
+- **Managers have no night routine** — one all-day Stand block; they stand at their site through the night.
+- **No inventory tab for quest items** — notices sit in Misc; add a Quest filter tab if quest items multiply.
+
+### Deferred from: review of spec-area-1-wardens-errand (2026-11-15)
+
+- **Quest items are guarded in the UI, not in `InventorySystem`** — `InventoryUI.UseItem` (double-click / Use) would consume
+  a usable quest item, `Equip` would take an equippable one out of the inventory (then a `requiredItem` choice reads it as
+  missing), and lockpick / ammo `TryConsume` callers ignore the flag. Cooking / smithing now skip quest items and `ItemSO`
+  warns on these flag combinations; move the rule into `InventorySystem` if a usable or equippable quest item is ever made.
+- **`TeachChoiceOption` inherits `requiredItem`** but teach choices ignore it (drawer hides it); a value set by script is
+  silently unused. Hide it or honour it.
+- **`requiredItem` = `Item_Gold` can never be held** (the player inventory turns coins into `GoldSystem`); use `goldCost`.
+  A validator could flag it.
+- **Gold paid before the item is taken** — safe today (`TryConsume` can't fail after `CountOf` in the same frame), but a
+  refund on failure would make `SelectChoice` atomic.
+- **Quest Explorer V3 on `WorldFact_Arrival_Done`** — the index doesn't list `ArrivalSequenceSO.completedFact` as a setter,
+  so `quest_report audit` reports "never set" for WardensErrand's start. Editor-tool fix pending Valentin's go-ahead.
+- **Herbalist placeholder text in the quest-log prefabs** — `QuestLogUI.prefab` / `QuestPartPrefab.prefab` still hold the old
+  design-time TMP strings (overwritten at runtime).

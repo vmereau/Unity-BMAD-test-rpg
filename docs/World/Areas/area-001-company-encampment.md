@@ -165,7 +165,7 @@ The fights are illegal in name only. The Company knows about the pit and lets it
 | Task | Type | Hidden Value |
 |------|------|-------------|
 | Hauling goods to warehouse | Access task | Unlocks storage area, reveals guard positions |
-| Delivering notices to work sites | Access task | Forces tour of all three work sites |
+| Delivering notices to work sites | Access task (quest `WardensErrand`, implemented) | Forces a tour of the four work sites and introduces each manager; ends with the player choosing a site |
 | Latrine cleaning | Degrading | None — atmospheric |
 | Canteen cleanup | Degrading | None — atmospheric |
 
@@ -232,10 +232,10 @@ No hard resource gate. Endings become available when player's actions and comple
 
 | ID | Name | Flavor | Key Hook |
 |----|------|--------|----------|
-| area-002 | Stone Quarry | Hardest work, desperate workers | Sealed passage to ruins (quest-002) |
-| area-003 | Wood Camp | Physical labor, forest edge | TBD |
-| — | Company farm | Field gang, under the fort's eye | Tithe barn: the food the revolt needs |
-| area-004 | Hunting Grounds | Tracker/ranger flavor | Lead hunter (npc-010) — independent-minded, speaks to player as equal |
+| area-002 | Stone Quarry | Hardest work, desperate workers; manager Overseer Dace | Sealed passage to ruins (quest-002); the men won't work the south face |
+| area-003 | Wood Camp | Physical labor, forest edge; boss Gorm Holl | Notched trees fall against the cut |
+| — | Company farm | Field gang, under the fort's eye; Reeve Odo Pell | Tithe barn: the food the revolt needs; the counts come up short every week |
+| area-004 | Hunting Grounds | Tracker/ranger flavor | Lead hunter Corvin Ash (npc-010) — independent-minded, speaks to player as equal; something takes his snares whole |
 
 ---
 
@@ -250,8 +250,8 @@ No hard resource gate. Endings become available when player's actions and comple
 - **Fight club design** — rules, opponent roster, reward structure, reputation effects, which guards take bets and where the Company's tolerance ends
 - **NPC roster completion** — names for all stub NPCs, full dialogue seeds
 - **Wood camp quest details** — beyond basic flavor
-- **Farm manager** — the reeve who lives at the farm is unnamed, and the field gang has no roster yet
-- **Work site guard/manager NPCs** — area-002 and area-003 managers unnamed
+- **Field gang** — the farm's workers have no roster yet (the reeve is Odo Pell)
+- **Work site manager quests** — Dace, Holl, Ash and Pell each have a planted hook but no quest yet
 
 ## Finalized worker settlement (2026-11-11)
 

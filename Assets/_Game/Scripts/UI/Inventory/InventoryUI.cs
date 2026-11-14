@@ -141,6 +141,11 @@ namespace Game.UI
             // Capture slot BEFORE decrement — index may become invalid after removal
             var slot = _inventorySystem.Items[slotIndex];
             var item = slot.Item;
+            if (!ItemSO.CanPlayerPart(item))
+            {
+                GameLog.Warn(TAG, $"Drop skipped: {item?.itemName} is a quest item");
+                return;
+            }
             if (item.worldItemPrefab == null)
             {
                 GameLog.Warn(TAG, $"Drop skipped: {item.itemName} has no worldItemPrefab");
@@ -269,6 +274,7 @@ namespace Game.UI
 
             // Wire drop button by name
             var dropBtn = _activeContextMenu.transform.Find("DropButton").GetComponent<Button>();
+            dropBtn.gameObject.SetActive(ItemSO.CanPlayerPart(item)); // quest items can't be dropped
             dropBtn.onClick.AddListener(() => { DropItem(_contextMenuSlotIndex); HideContextMenu(); });
 
             // Use button — shown only for UsableItemSO; disabled when the use would be rejected (e.g. recipe known)

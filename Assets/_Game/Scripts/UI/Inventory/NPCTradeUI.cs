@@ -245,7 +245,9 @@ namespace Game.UI
             }
             else
             {
-                if (sellBtn != null)
+                if (sellBtn != null && !ItemSO.CanPlayerPart(item))
+                    sellBtn.gameObject.SetActive(false); // quest items can't be sold
+                else if (sellBtn != null)
                 {
                     sellBtn.gameObject.SetActive(true);
                     sellBtn.GetComponentInChildren<TMP_Text>().text = $"Sell ({item.sellValue}g)";
@@ -276,6 +278,11 @@ namespace Game.UI
         {
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
+            if (!ItemSO.CanPlayerPart(item))
+            {
+                GameLog.Warn(TAG, $"SellItem blocked: {item?.itemName} is a quest item");
+                return;
+            }
 
             if (_npcGoldSystem == null || !_npcGoldSystem.TrySpend(item.sellValue))
             {

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_WardensErrand
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: WardensErrand
+  title: The Warden's Errand
+  description: Warden Voss puts every newcomer to work. Before he decides where, he has me carry the Company's notices to the four work-site managers.
+  startPart:
+    fact: {fileID: 11400000, guid: 422824fa208b3a141a51cd803d410b49, type: 2}
+    entry: I've just arrived. I should report to Warden Voss for work.
+  completedParts:
+  - fact: {fileID: 11400000, guid: 11ac4962abbe50d4695ae9bc4732a15f, type: 2}
+    entry: I'll work at the quarry, under Overseer Dace.
+  - fact: {fileID: 11400000, guid: e59a01453334d894d9a54a397f707d8d, type: 2}
+    entry: I'll work at the wood camp, in Gorm Holl's crew.
+  - fact: {fileID: 11400000, guid: 44123c89e39f5b54487683163adf4ea1, type: 2}
+    entry: I'll work the hunting grounds with Corvin Ash.
+  - fact: {fileID: 11400000, guid: 37e4c48a2daf76c40a73344dc2b2e242, type: 2}
+    entry: I'll work the farm, under Reeve Pell.
+  failedParts: []
+  steps:
+  - title: Deliver the Warden's notices
+    description: Hand each manager their notice in person.
+    parts:
+    - fact: {fileID: 11400000, guid: 05a797baa5a499740bf21cc8e22f0eab, type: 2}
+      entry: Voss gave me notices for Overseer Dace at the quarry, Gorm Holl at the wood camp, Corvin Ash at the hunting camp and Reeve Pell at the farm.
+    - fact: {fileID: 11400000, guid: 9876db198013f9442862ac3b73c131f8, type: 2}
+      entry: Delivered the notice to Overseer Dace at the quarry.
+    - fact: {fileID: 11400000, guid: 272aff8aa35c10344aee41ad8d9f6313, type: 2}
+      entry: Delivered the notice to Gorm Holl at the wood camp.
+    - fact: {fileID: 11400000, guid: 056808f2671bc034eb4fa16d3b247f7e, type: 2}
+      entry: Delivered the notice to Corvin Ash at the hunting camp.
+    - fact: {fileID: 11400000, guid: d8ab2624234f50a47a1a635a532fb7dd, type: 2}
+      entry: Delivered the notice to Reeve Pell at the farm.
+  - title: Report back to Voss
+    description: Tell the Warden the notices are delivered.
+    parts:
+    - fact: {fileID: 11400000, guid: 25c62c6b97cbaf0469d825fb8fad0fa2, type: 2}
+      entry: All four notices are delivered. I should report back to Voss.
+    - fact: {fileID: 11400000, guid: 544887acd4574594fa336a0184c07167, type: 2}
+      entry: Reported back to Voss.

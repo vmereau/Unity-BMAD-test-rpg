@@ -52,7 +52,9 @@ namespace Game.UI
         private void ShowSell(NPCTradeUI owner, int slotIndex, ItemSO item, GoldSystem npcGold)
         {
             if (_sellButton == null) { GameLog.Warn(TAG, "Bind: SellButton is not assigned"); return; }
-            _sellButton.gameObject.SetActive(true);
+            bool canSell = ItemSO.CanPlayerPart(item); // quest items can't be sold
+            _sellButton.gameObject.SetActive(canSell);
+            if (!canSell) return;
             if (_sellLabel == null) _sellLabel = _sellButton.GetComponentInChildren<TMP_Text>(true);
             if (_sellLabel != null) _sellLabel.text = "Sell";
             _sellButton.interactable = npcGold != null && npcGold.Gold >= item.sellValue;

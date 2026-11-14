@@ -489,16 +489,20 @@ namespace Game.UI
             bool seen = tag == DialogueOptionTag.None && _dialogueSystem != null && _dialogueSystem.IsChoiceSeen(node, choice);
             // A paid choice the player can't afford is shown disabled and dimmed, with its cost in red (like teach rows).
             bool canAfford = choice.goldCost <= 0 || (_dialogueSystem != null && _dialogueSystem.CanAffordGold(choice.goldCost));
+            // A choice that hands over an item is disabled the same way while the player doesn't hold it.
+            bool hasItem = choice.requiredItem == null || (_dialogueSystem != null && _dialogueSystem.HasChoiceItem(choice.requiredItem));
+            bool canPick = canAfford && hasItem;
             System.Action action = null;
-            if (canAfford)
+            if (canPick)
                 action = () =>
                 {
                     if (!_dialogueSystem.SelectChoice(captured, node)) return;
                     if (captured.nextNode == null)
                         RestoreTopics();
                 };
-            AddOptionButton(choice.text, slot, action, tag, seen || !canAfford,
-                DialogueOptionFormat.GoldCostLabel(choice.goldCost, canAfford));
+            AddOptionButton(choice.text, slot, action, tag, seen || !canPick,
+                DialogueOptionFormat.ChoiceCostLabel(choice.goldCost, canAfford,
+                    choice.requiredItem != null ? choice.requiredItem.itemName : null, hasItem));
         }
 
         private void AddTeachChoiceButton(TeachChoiceOption choice, int slot)

@@ -27,6 +27,7 @@ namespace Game.UI
         public static ItemFilter Classify(ItemSO item) => item switch
         {
             null => ItemFilter.Misc,
+            { isQuestItem: true } => ItemFilter.Misc,
             { isIngredient: true } => ItemFilter.Ingredients,
             { isCraftingMaterial: true } => ItemFilter.CraftingMaterials,
             WeaponSO => ItemFilter.Weapons,

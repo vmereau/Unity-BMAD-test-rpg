@@ -42,7 +42,7 @@ namespace Game.Quest
     [CreateAssetMenu(menuName = "Game/Quest/Quest", fileName = "Quest_")]
     public class QuestSO : ScriptableObject
     {
-        [Tooltip("Unique quest identifier. Used as key in QuestFact. E.g. 'FindHerbalist'.")]
+        [Tooltip("Unique quest identifier. Used as key in QuestFact. E.g. 'WardensErrand'.")]
         public string questId;
 
         [Tooltip("Display title shown in Quest Log (Story 6-5).")]

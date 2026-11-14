@@ -31,6 +31,8 @@ the scene YAML are that instance's components, not separate scene components.
 
 ## StartingTown = Alderath Camp (Area 1 graybox)
 
+`WorkSiteManagers` is a hand-owned root outside the builders (Warden's errand): the four work-site managers (`NPC_base Variant` instances) and their all-day Stand spots — `QuarryOverseer` by the quarry sledge (219, −99), `TimberBoss` by the wood camp's east shelter (−214, 2), `LeadHunter` by the hunting camp fire (31, 222.5), `FarmReeve` outside the farm manager's house east door (−17.5, −62). Recheck them if a site layout moves.
+
 `HiddenStashQuest` is a hand-owned root outside the builders: Brann, two routine spots, and `BrannsStash` inside the gang house. Brann watches the chest 06:00–18:00, then stands at the Mafia Zone gang fire 18:00–06:00. Chest stock is five bread/two apples/25 gold coins, owned and persistent, with no lock. Food and gold are in its quest-take allowlist. Recheck these placements if the gang house moves; do not run a builder to author this quest.
 
 The scene keeps the name `StartingTown` (`SceneLoader`, `GameConstants`, save data use it) but is the Company Encampment.

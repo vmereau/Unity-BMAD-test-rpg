@@ -68,13 +68,22 @@ namespace Game.UI
         }
 
         /// <summary>" (10g)" for a paid regular choice, red when <paramref name="canAfford"/> is false. Empty when free.</summary>
-        public static string GoldCostLabel(int goldCost, bool canAfford)
+        public static string GoldCostLabel(int goldCost, bool canAfford) => ChoiceCostLabel(goldCost, canAfford, null, true);
+
+        /// <summary>
+        /// " (10g, Notice for Overseer Dace)" for a regular choice: its gold cost and the item it hands over, each part
+        /// in red when the player can't pay it / doesn't hold it. Empty when the choice is free and needs no item.
+        /// </summary>
+        public static string ChoiceCostLabel(int goldCost, bool canAfford, string requiredItemName, bool hasItem)
         {
-            if (goldCost <= 0) return string.Empty;
+            bool hasGold = goldCost > 0;
+            bool needsItem = !string.IsNullOrEmpty(requiredItemName);
+            if (!hasGold && !needsItem) return string.Empty;
             _sb.Clear();
             _sb.Append(" (");
             bool first = true;
-            AppendPart(ref first, $"{goldCost}g", !canAfford);
+            if (hasGold) AppendPart(ref first, $"{goldCost}g", !canAfford);
+            if (needsItem) AppendPart(ref first, requiredItemName, !hasItem);
             _sb.Append(')');
             return _sb.ToString();
         }

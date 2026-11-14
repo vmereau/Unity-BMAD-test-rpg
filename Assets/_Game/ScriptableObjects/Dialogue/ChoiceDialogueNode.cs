@@ -18,6 +18,9 @@ namespace Game.Dialogue
         [Tooltip("Gold the player pays the NPC when picking this choice (coins go into the NPC's inventory). 0 = free. " +
                  "The button shows the cost and is disabled while the player can't afford it.")]
         [Min(0)] public int goldCost;
+        [Tooltip("Item the player hands over when picking this choice (one unit, removed from the player's inventory). " +
+                 "Null = none. The button names the item and is disabled while the player doesn't have it.")]
+        public Game.Inventory.ItemSO requiredItem;
         [Tooltip("Raised on OnDialogueSignal when this choice is picked (after the gold is paid), for gameplay systems " +
                  "reacting to the answer. Null = none.")]
         public DialogueSignalSO signal;
