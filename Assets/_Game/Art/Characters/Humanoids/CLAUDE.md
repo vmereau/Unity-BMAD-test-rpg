@@ -234,6 +234,8 @@ Gotchas:
 
 ### NPC portrait faces (spec-npc-portrait-faces)
 
+Run it end to end with `/characters:portrait-face [NPC]` (prompts → landmarks → config → mockups → bake → verify).
+
 Fixes the "same man, different hair" look: the face's eyes, nose, lips and skin come from a portrait instead of the
 shared Meshy texture, and its shape follows the portrait's landmarks. Same neck contract and bake as the head variants
 above. Pilot: Warden, Tam, Storekeeper.

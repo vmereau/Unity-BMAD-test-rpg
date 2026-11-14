@@ -72,6 +72,7 @@ The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 | `items:icon-prompt <item>` | Build a Gothic-style icon prompt + `generate_image` call from the `Art/UI/Items` template |
 | `ui:create <element\|screen> [state]` | Build prompts for implementable UI sprites (full-bleed, 9-slice, shared across screens) from the `Art/UI` sprite catalog, with `generate_image` calls and Unity import settings |
 | `characters:concept-prompt <outfit>` | Build a T-pose character concept prompt (base hero + outfit) for Meshy image-to-3D, from the `Art/Characters/Humanoids` template |
+| `characters:portrait-face [NPC]` | Give an NPC a portrait-matched face: front + side portrait prompts, then MediaPipe fit, projection, bake and assign (asks which NPC when none is given) |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
 | `perso:claude-md-audit` | Periodic doc maintenance — find oversized, misplaced, duplicated or stale CLAUDE.md content and restructure it (one commit per part) |
