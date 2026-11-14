@@ -1,0 +1,331 @@
+{
+    "name": "TentMate",
+    "note": "TentMate, early 60s: gaunt, sunken cheeks, thinning white hair, white stubble",
+    "deforms": [
+        {
+            "center": [
+                0.046,
+                -0.09,
+                1.66
+            ],
+            "radius": [
+                0.032,
+                0.04,
+                0.032
+            ],
+            "offset": [
+                -0.007,
+                0.006,
+                0
+            ],
+            "mirror_x": true
+        },
+        {
+            "center": [
+                0.054,
+                -0.088,
+                1.695
+            ],
+            "radius": [
+                0.018,
+                0.025,
+                0.014
+            ],
+            "offset": [
+                0.002,
+                -0.002,
+                0
+            ],
+            "mirror_x": true
+        },
+        {
+            "center": [
+                0.068,
+                -0.06,
+                1.74
+            ],
+            "radius": [
+                0.02,
+                0.03,
+                0.025
+            ],
+            "offset": [
+                -0.004,
+                0.001,
+                0
+            ],
+            "mirror_x": true
+        },
+        {
+            "center": [
+                0,
+                -0.06,
+                1.62
+            ],
+            "radius": [
+                0.11,
+                0.09,
+                0.045
+            ],
+            "pivot": [
+                0,
+                -0.02,
+                1.64
+            ],
+            "scale": [
+                0.93,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "center": [
+                0.032,
+                -0.118,
+                1.705
+            ],
+            "radius": [
+                0.016,
+                0.012,
+                0.008
+            ],
+            "offset": [
+                0,
+                0.002,
+                -0.001
+            ],
+            "mirror_x": true
+        },
+        {
+            "center": [
+                0,
+                -0.14,
+                1.678
+            ],
+            "radius": [
+                0.018,
+                0.03,
+                0.02
+            ],
+            "offset": [
+                0,
+                -0.003,
+                -0.003
+            ]
+        }
+    ],
+    "paint": [
+        {
+            "op": "skin",
+            "hair_only": true,
+            "strength": 0.85,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.03,
+                    1.86
+                ],
+                "radius": [
+                    0.07,
+                    0.09,
+                    0.06
+                ],
+                "inner": 0.25
+            }
+        },
+        {
+            "op": "skin",
+            "hair_only": true,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.1,
+                    1.8
+                ],
+                "radius": [
+                    0.065,
+                    0.065,
+                    0.035
+                ],
+                "inner": 0.4
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.6,
+                0.58,
+                0.55
+            ],
+            "strength": 1.0,
+            "contrast": 1.2,
+            "hairline": {
+                "z_front": 1.765,
+                "z_temple": 1.745,
+                "z_back": 1.6,
+                "soft": 0.01
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.6,
+                0.58,
+                0.55
+            ],
+            "strength": 1.0,
+            "contrast": 1.2,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.072,
+                    -0.05,
+                    1.67
+                ],
+                "radius": [
+                    0.03,
+                    0.04,
+                    0.075
+                ],
+                "inner": 0.35
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.55,
+                0.52,
+                0.48
+            ],
+            "strength": 1.0,
+            "contrast": 0.6,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.03,
+                    -0.12,
+                    1.735
+                ],
+                "radius": [
+                    0.024,
+                    0.03,
+                    0.0048
+                ],
+                "inner": 0.5
+            },
+            "brows": true,
+            "noise": {
+                "freq": 2600,
+                "seed": 22,
+                "lo": 0.2,
+                "hi": 0.45
+            },
+            "detail": {
+                "freq": 3000,
+                "seed": 23,
+                "amount": 0.25
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.52,
+                0.5,
+                0.47
+            ],
+            "strength": 0.9,
+            "contrast": 1.3,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.07,
+                    1.625
+                ],
+                "radius": [
+                    0.1,
+                    0.09,
+                    0.06
+                ],
+                "inner": 0.5
+            },
+            "exclude": [
+                {
+                    "center": [
+                        0,
+                        -0.122,
+                        1.636
+                    ],
+                    "radius": [
+                        0.026,
+                        0.02,
+                        0.009
+                    ],
+                    "inner": 0.4
+                }
+            ],
+            "z_above": [
+                1.59,
+                1.605
+            ]
+        },
+        {
+            "op": "darken",
+            "amount": 0.88,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.032,
+                    -0.118,
+                    1.702
+                ],
+                "radius": [
+                    0.017,
+                    0.013,
+                    0.008
+                ],
+                "inner": 0.2
+            }
+        },
+        {
+            "op": "darken",
+            "amount": 0.92,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.046,
+                    -0.095,
+                    1.66
+                ],
+                "radius": [
+                    0.02,
+                    0.03,
+                    0.025
+                ],
+                "inner": 0.3
+            }
+        },
+        {
+            "op": "iris",
+            "color": [
+                0.27,
+                0.3,
+                0.32
+            ],
+            "contrast": 1.1,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.0353,
+                    -0.105,
+                    1.7202
+                ],
+                "radius": [
+                    0.0034,
+                    0.03,
+                    0.003
+                ],
+                "inner": 0.6
+            }
+        }
+    ]
+}

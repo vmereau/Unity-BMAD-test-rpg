@@ -636,3 +636,6 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   controller per mode, draw started on combat entry.
 - **Revive after death (review):** `EntityHealth` can revive (`IsDead = false`), but nothing calls `NpcArmament.OnWokeUp`
   then — a respawned guard keeps its sword in the inventory and fights with fists. Hook the revive path if respawn ships.
+- **Head variants — posed neck checks are not an automated test (spec-npc-head-variants review):** AC2 (no seam through
+  idle / walk / attack / dodge, bare and Company armor) is verified by the MCP script `Tools/Blender/verify_head_variants.cs`
+  only. Promote it to an EditMode test if head variants multiply.

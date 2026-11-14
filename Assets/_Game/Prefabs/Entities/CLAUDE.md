@@ -41,6 +41,8 @@ All StartingTown NPCs are direct scene instances of this variant.
   contents (`PrefabUtility.LoadPrefabContents`), re-add the receiver + `Hitbox`, retarget every root reference that
   pointed into the old `Character` (bridge `_animator`, driver `_transformsToPinToHips`, attacker `Unarmed`), delete the
   old one, then `PrefabUtility.RemoveUnusedOverrides` on the scene NPC instances. `NpcModelPrefabTests` guards it.
+- **Face:** root `NpcHeadAppearance` (`_headRenderer` = `Character/Head`) swaps that SMR's mesh and material in `Awake` from
+  `NPCEntity._head` (spec-npc-head-variants; empty = base head). Re-wire `_headRenderer` after a model swap.
 - **Two colliders, never collapse them:** `Hitbox` (Layer 7, trigger capsule — hurtbox for `WeaponHitbox`
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**

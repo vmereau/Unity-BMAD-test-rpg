@@ -1,0 +1,377 @@
+{
+    "name": "Blacksmith",
+    "note": "Edric, mid-50s: broad face, wide nose, grey hair, full grey beard (slight jaw volume), small burn scar",
+    "deforms": [
+        {
+            "center": [
+                0,
+                -0.06,
+                1.68
+            ],
+            "radius": [
+                0.13,
+                0.12,
+                0.11
+            ],
+            "pivot": [
+                0,
+                -0.03,
+                1.68
+            ],
+            "scale": [
+                1.08,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "center": [
+                0,
+                -0.136,
+                1.676
+            ],
+            "radius": [
+                0.026,
+                0.028,
+                0.02
+            ],
+            "pivot": [
+                0,
+                -0.13,
+                1.676
+            ],
+            "scale": [
+                1.32,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "center": [
+                0,
+                -0.132,
+                1.668
+            ],
+            "radius": [
+                0.022,
+                0.02,
+                0.012
+            ],
+            "offset": [
+                0,
+                0,
+                -0.002
+            ]
+        },
+        {
+            "center": [
+                0,
+                -0.1,
+                1.605
+            ],
+            "radius": [
+                0.07,
+                0.05,
+                0.03
+            ],
+            "offset": [
+                0,
+                -0.008,
+                -0.005
+            ]
+        },
+        {
+            "center": [
+                0.06,
+                -0.06,
+                1.62
+            ],
+            "radius": [
+                0.035,
+                0.05,
+                0.035
+            ],
+            "offset": [
+                0.005,
+                -0.002,
+                -0.002
+            ],
+            "mirror_x": true
+        },
+        {
+            "center": [
+                0,
+                -0.12,
+                1.735
+            ],
+            "radius": [
+                0.06,
+                0.025,
+                0.014
+            ],
+            "offset": [
+                0,
+                -0.004,
+                -0.002
+            ]
+        }
+    ],
+    "paint": [
+        {
+            "op": "grey",
+            "color": [
+                0.4,
+                0.39,
+                0.37
+            ],
+            "strength": 1.0,
+            "contrast": 1.4,
+            "hairline": {
+                "z_front": 1.765,
+                "z_temple": 1.745,
+                "z_back": 1.6,
+                "soft": 0.01
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.4,
+                0.39,
+                0.37
+            ],
+            "strength": 1.0,
+            "contrast": 1.4,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.072,
+                    -0.05,
+                    1.67
+                ],
+                "radius": [
+                    0.03,
+                    0.04,
+                    0.075
+                ],
+                "inner": 0.35
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.47,
+                0.44,
+                0.4
+            ],
+            "strength": 1.0,
+            "contrast": 0.6,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.03,
+                    -0.12,
+                    1.735
+                ],
+                "radius": [
+                    0.024,
+                    0.03,
+                    0.0048
+                ],
+                "inner": 0.5
+            },
+            "brows": true,
+            "noise": {
+                "freq": 2600,
+                "seed": 21,
+                "lo": 0.35,
+                "hi": 0.6
+            },
+            "detail": {
+                "freq": 3000,
+                "seed": 23,
+                "amount": 0.25
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.36,
+                0.35,
+                0.33
+            ],
+            "strength": 0.85,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.08,
+                    1.615
+                ],
+                "radius": [
+                    0.095,
+                    0.07,
+                    0.055
+                ],
+                "inner": 0.35
+            },
+            "exclude": [
+                {
+                    "center": [
+                        0,
+                        -0.124,
+                        1.636
+                    ],
+                    "radius": [
+                        0.022,
+                        0.018,
+                        0.007
+                    ],
+                    "inner": 0.4
+                },
+                {
+                    "center": [
+                        0,
+                        -0.11,
+                        1.69
+                    ],
+                    "radius": [
+                        0.07,
+                        0.05,
+                        0.03
+                    ],
+                    "inner": 0.35
+                }
+            ],
+            "detail": {
+                "freq": 1400,
+                "seed": 6,
+                "amount": 0.5
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.22,
+                0.21,
+                0.2
+            ],
+            "strength": 0.55,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.08,
+                    1.615
+                ],
+                "radius": [
+                    0.095,
+                    0.07,
+                    0.055
+                ],
+                "inner": 0.35
+            },
+            "exclude": [
+                {
+                    "center": [
+                        0,
+                        -0.124,
+                        1.636
+                    ],
+                    "radius": [
+                        0.022,
+                        0.018,
+                        0.007
+                    ],
+                    "inner": 0.4
+                },
+                {
+                    "center": [
+                        0,
+                        -0.11,
+                        1.69
+                    ],
+                    "radius": [
+                        0.07,
+                        0.05,
+                        0.03
+                    ],
+                    "inner": 0.35
+                }
+            ],
+            "noise": {
+                "freq": 2200,
+                "seed": 7,
+                "lo": 0.55,
+                "hi": 0.7
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.58,
+                0.38,
+                0.34
+            ],
+            "strength": 0.8,
+            "ellipsoid": {
+                "center": [
+                    0.05,
+                    -0.1,
+                    1.676
+                ],
+                "radius": [
+                    0.013,
+                    0.03,
+                    0.022
+                ],
+                "inner": 0.15
+            },
+            "noise": {
+                "freq": 300,
+                "seed": 2,
+                "lo": 0.25,
+                "hi": 0.45
+            }
+        },
+        {
+            "op": "darken",
+            "amount": 0.93,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.03,
+                    -0.118,
+                    1.703
+                ],
+                "radius": [
+                    0.016,
+                    0.012,
+                    0.007
+                ],
+                "inner": 0.2
+            }
+        },
+        {
+            "op": "iris",
+            "color": [
+                0.22,
+                0.14,
+                0.08
+            ],
+            "contrast": 1.3,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.0353,
+                    -0.105,
+                    1.7202
+                ],
+                "radius": [
+                    0.0034,
+                    0.03,
+                    0.003
+                ],
+                "inner": 0.6
+            }
+        }
+    ]
+}

@@ -23,6 +23,7 @@
 | `AttackComboPlan` | Pure combo bookkeeping (`Begin`, `TryAdvance`, `Reset`) for `EntityMeleeAttacker`. `AttackComboPlanTests`. |
 | `EntityAnimationEventReceiver` | On the **Animator GO**. Hit-window events by id → attacker; SMB notifications → attacker state counter; `ComboWindowOpen()` → `attacker.OnComboWindowOpen()`; `WeaponSwap(AnimationEvent)` (draw / sheathe clips) → `NpcArmament.CompleteWeaponSwitch(fromDraw)` — draw vs sheathe read from the firing state name (`Draw_State` / `Sheathe_State` in `Humanoid_Template`; **renaming them** makes a superseded clip's event complete a reversed switch); no armament → no-op. |
 | `NpcArmament` | Equipped NPCs: loadout, weapon vs fists, draw / sheathe, weapon loot — see **NPC equipment** below. |
+| `NpcHeadAppearance` | NPC face: in `Awake` swaps the model's Head SMR mesh + material to `NPCEntity.Head` (`HeadAppearanceSO`). An incompatible mesh (bind-pose count / values, bone indices) → warning, default head kept. Asset pipeline: `Art/Characters/Humanoids/CLAUDE.md` → NPC head variants. |
 | `SMB_EntityAttackState` | On attack states of `EntityBase.controller` and `Humanoid_Template`. Enter/exit → receiver → attacker counter. Receiver lookup cached; no-op on the Player. |
 | `SMB_DeathState` | On the death animator state. |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |

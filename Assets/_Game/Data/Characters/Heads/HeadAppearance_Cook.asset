@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a8c49e9fbb5ce84893da3c8749ce2cb, type: 3}
+  m_Name: HeadAppearance_Cook
+  m_EditorClassIdentifier: Game::Game.NPC.HeadAppearanceSO
+  _mesh: {fileID: 4300000, guid: a3a8d31d0c4753644ab180dfce49003c, type: 2}
+  _material: {fileID: 2100000, guid: 854013461a323914e89fcafd78f2c25e, type: 2}

@@ -134,11 +134,45 @@ skeleton and neck interface. Preserve the neck geometry and its influences when 
 uses the head material so skin tone can vary independently of the uniform. Matching bone names on a separately
 proportioned Mixamo rig is insufficient. For bare variants, also match the body skin material. Other exposed skin
 on an outfit (e.g. hands) needs its own compatible skin treatment; this neck repair does not implement that or NPC
-inventory/equipment migration. No new production NPC head assets are included.
+inventory/equipment migration. NPC faces built on this contract: *NPC head variants* below.
 
 Collar regression guard: sample below the original exposed seam (current profile 1.56 m); reject a sampled radius above 0.10 m. Generated rim weights exclude Head influence and renormalize toward Neck; existing garment weights blend into that rim. Inspect the under-chin silhouette in addition to join diagnostics.
 
 The sample damaged-collar trim radius is 0.16 m, covering the original folded rear rim. The inner lining descends to 1.485 m and tapers into the closed skin stump. Its raised lip must remain below the canonical exposed seam.
+
+### NPC head variants (spec-npc-head-variants)
+
+Per-NPC faces derived from the neck-prepared base head, with no new geometry: reshaping plus repainting a copy of the
+skin texture. Skin tone is never changed, so heads still match the bare body and hands.
+
+1. **Config:** `Tools/Blender/configs/heads/<name>.json`. `deforms` = soft ellipsoid scale / offset regions (jaw, brow,
+   nose, cheeks, skull). `paint` = layers `skin` (bald / receding / shaved), `grey` / `tint` (hair recolour), `fill`
+   (beard, scar), `darken` (eye bags), `iris` (eye colour); any layer takes `noise`, `detail`, `mirror_x`, `exclude`.
+   Recolour the brows (`BROW` region) whenever the hair colour changes.
+2. **Mockup:** `Tools/Blender/make_head_variant.py` `run(config)` renders front / ¾ / side / eye close-up to
+   `Temp/HeadVariants/`. Get approval, then `run(config, export=True)` → `models/heads/<Name>/Head_<Name>.fbx` +
+   `T_Head_<Name>_BaseColor.png`.
+3. **Bake:** `Tools/Characters/Bake Head Variants` (`SkinnedHeadVariantBaker.BakeAll()`) bakes every `heads/` folder against
+   the canonical target. It validates the exact join with `base_hero_body_baked` plus neck UV and bind space, then
+   writes `Head_<Name>_baked.asset`, `M_Head_<Name>.mat` (copy of `M_TestBaseHero` with the variant texture) and
+   `Data/Characters/Heads/HeadAppearance_<Name>.asset`.
+4. **Assign:** `NPCEntity._head`. `NpcHeadAppearance` on `NPC_base Variant` swaps the Head SMR in `Awake`.
+5. **Verify:** `Tools/Blender/verify_head_variants.cs` (posed join gap + neck / portrait sheets, bare and Company armor).
+
+Landmarks (game metres, face toward −Y in Blender): seam 1.585, chin underside ≈ 1.595, mouth 1.635, nose tip 1.68,
+iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86. Shipped: Warden, Cook, Blacksmith, TentMate.
+
+Gotchas:
+- Frozen = within 12 mm of any vertex at or below the seam (distance-based; the chin overhangs the neck).
+  Read smooth normals from a mesh **copy**: zeroing custom normals on the real mesh re-bases its fans and shifts the
+  frozen normals by ~1°.
+- The Meshy atlas is fragmented, so painting goes through a baked texel → rest-position map (`Temp/HeadVariants/_posmap.npz`).
+  Coverage comes from a margin-0 **colour** bake (Cycles fills alpha over the whole image), dilated 3 px, minus every
+  texel a body face covers (otherwise speckles appear on the chest).
+- Base hair is about 0.4 luminance darker than skin, and its edges are blurred. Recolour hair as a skin/hair mix with a
+  luminance ratio capped at 1, or the hairline gets a light halo or a cyan cast.
+- Shape changes above ~9 mm stretch the texture's eye / nose detail. For bigger silhouettes, use new geometry
+  (image-to-3D + fitting).
 
 ### Company grunt
 

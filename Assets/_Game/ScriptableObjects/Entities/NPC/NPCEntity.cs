@@ -23,6 +23,12 @@ namespace Game.NPC
 
         public KilledFact KilledFact => _killedFact;
 
+        [Header("Appearance")]
+        [Tooltip("Face of this NPC (NpcHeadAppearance swaps the Head SMR at spawn). Empty = the base-hero head.")]
+        [SerializeField] private HeadAppearanceSO _head;
+
+        public HeadAppearanceSO Head => _head;
+
         [Header("Witness")]
         [Tooltip("Reaction to a sneaking, non-hostile player (WitnessProfile_Humanoid for every humanoid). Swap the profile to tune one NPC. Null = never reacts.")]
         [SerializeField] private WitnessProfileSO _witnessProfile;

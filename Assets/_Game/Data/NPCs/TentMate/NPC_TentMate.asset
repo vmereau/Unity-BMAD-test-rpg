@@ -24,6 +24,8 @@ MonoBehaviour:
   _viewAngle: 110
   _eyeHeight: 1.6
   _proximityRadius: 2
+  _walkHearingRadius: 4
+  _runHearingRadius: 9
   _awarenessFillTime: 1
   _loseSightTime: 2
   _searchDuration: 6
@@ -56,6 +58,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b783c91f2d581624e92f54d864ad9e9b, type: 2}
   - {fileID: 11400000, guid: 09f5e89cfd1e63e4e8f89be0511b05a7, type: 2}
   _killedFact: {fileID: 11400000, guid: df86a1f722ae4104f8ed33c61e1c647b, type: 2}
+  _head: {fileID: 11400000, guid: 4b670dd5b3f1d6146a9d6e7c66174ccc, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
-  _weapon: {fileID: 0}
+  _startingEquipment: []
   _finisherStanceMultiplier: 1.5

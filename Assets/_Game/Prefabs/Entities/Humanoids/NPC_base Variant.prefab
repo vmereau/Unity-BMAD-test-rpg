@@ -247,6 +247,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2738294482755661074, guid: 4578669239067934bb258f24941010fe, type: 3}
   m_PrefabInstance: {fileID: 7794215995819614151}
   m_PrefabAsset: {fileID: 0}
+--- !u!137 &8500010968667885139 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1863510408856424852, guid: 4578669239067934bb258f24941010fe, type: 3}
+  m_PrefabInstance: {fileID: 7794215995819614151}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7816647421093773197
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -380,6 +385,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8772967254062050560}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6050203362294857150}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!114 &76150843049530146 stripped
 MonoBehaviour:
@@ -567,6 +575,19 @@ MonoBehaviour:
   _visuals: {fileID: 8531843112707779696}
   _inventory: {fileID: 76150843049530146}
   _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+--- !u!114 &6050203362294857150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f090bb221ff90e4f871d2e380a19278, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.NpcHeadAppearance
+  _headRenderer: {fileID: 8500010968667885139}
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
