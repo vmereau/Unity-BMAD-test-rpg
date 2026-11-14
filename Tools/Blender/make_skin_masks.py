@@ -23,7 +23,8 @@ import bpy
 import numpy as np
 
 PROJECT = Path(r"D:/github/perso/Unity-BMAD-test-rpg")
-HV = runpy.run_path(str(PROJECT / "Tools/Blender/make_head_variant.py"))  # _load, _coverage, _dilate, _smooth
+HV = runpy.run_path(str(PROJECT / "Tools/Blender/make_head_variant.py"))  # _load, _coverage, _dilate, _smooth,
+#   _base_head_skin, _blur, _save_mask (shared with the per-head masks)
 
 
 def _srgb_to_linear(c):
@@ -97,11 +98,6 @@ def _load_texture(path):
         bpy.data.images.remove(img)
 
 
-def _ellipsoid_in(p, center, radius):
-    d2 = (((p - np.array(center)) / np.array(radius)) ** 2).sum(axis=-1)
-    return 1 - HV["_smooth"](d2, 0.6, 1.0)
-
-
 def _saturation(c):
     return (c.max(axis=-1) - c.min(axis=-1)) / np.maximum(c.max(axis=-1), 1e-6)
 
@@ -119,53 +115,6 @@ def _body_mask(p, c, cfg):
     band = ((z >= hem_lo) & (z <= hem_hi)) | ((z >= waist_lo) & (z <= waist_hi))
     m[band] = by_colour[band]
     return m
-
-
-def _head_mask(p, c, cfg):
-    """1 = face skin. Hair = texels darker than the forehead skin inside the scalp / brow zones; eyes excluded."""
-    lum = _lum(c)
-    fore = (np.abs(p[:, 0]) < 0.025) & (p[:, 2] > 1.745) & (p[:, 2] < 1.76) & (p[:, 1] < -0.08)
-    skin = np.median(lum[fore]) if fore.any() else 0.55
-    dark = HV["_smooth"](skin - lum, cfg["hair_dark_lo"] * skin, cfg["hair_dark_hi"] * skin)
-    zone = np.zeros(len(p))
-    for e in cfg["hair_zones"]:
-        zone = np.maximum(zone, _ellipsoid_in(p, e["center"], e["radius"]))
-        if e.get("mirror_x"):
-            zone = np.maximum(zone, _ellipsoid_in(p * np.array([-1, 1, 1]), e["center"], e["radius"]))
-    m = 1 - dark * zone
-    for e in cfg["eyes"]:
-        for sx in (1, -1):
-            m *= 1 - _ellipsoid_in(p * np.array([sx, 1, 1]), e["center"], e["radius"])
-    return m
-
-
-def _save_mask(mask, path):
-    size = mask.shape[0]
-    img = bpy.data.images.new("_SM_out", size, size, alpha=False)
-    try:
-        img.colorspace_settings.name = 'Non-Color'  # before writing pixels: changing it resets a generated image
-        rgba = np.zeros((size, size, 4), dtype=np.float32)
-        rgba[..., 0] = rgba[..., 1] = rgba[..., 2] = np.clip(mask, 0, 1)
-        rgba[..., 3] = 1
-        img.pixels.foreach_set(rgba.ravel())
-        img.filepath_raw = str(path)
-        img.file_format = 'PNG'
-        img.save()
-    finally:
-        bpy.data.images.remove(img)
-
-
-def _blur(mask, px):
-    """Box blur of `px` texels (soft mask edges)."""
-    out = mask.copy()
-    for _ in range(px):
-        acc = out.copy()
-        acc[1:, :] += out[:-1, :]
-        acc[:-1, :] += out[1:, :]
-        acc[:, 1:] += out[:, :-1]
-        acc[:, :-1] += out[:, 1:]
-        out = acc / 5
-    return out
 
 
 def _ref_luminance(c, mask):
@@ -186,9 +135,9 @@ def _base(cfg):
     bcov &= ~hcov
     mask[bcov] = _body_mask(bp[bcov], tex[bcov], cfg["body"])
     idx = np.where(hcov)
-    mask[idx] = _head_mask(hp[idx], tex[idx], cfg["head"])
-    mask = _blur(mask, cfg.get("blur_px", 2)) * (bcov | hcov)
-    _save_mask(mask, PROJECT / cfg["out"])
+    mask[idx] = HV["_base_head_skin"](hp[idx], tex[idx], cfg["head"])
+    mask = HV["_blur"](mask, cfg.get("blur_px", 2)) * (bcov | hcov)
+    HV["_save_mask"](mask, PROJECT / cfg["out"])
     return {"out": cfg["out"], "ref_luminance": _ref_luminance(tex, (mask > 0.9) & (bcov | hcov)), "coverage": int((mask > 0.5).sum())}
 
 
@@ -205,8 +154,8 @@ def _armor(cfg):
         lo, hi = cfg["weight_range"]
         vals = np.repeat(HV["_smooth"](w, lo, hi)[:, None], 3, axis=1)
         m, cov = _bake_vertex_values(scene, mesh, vals, size)
-        mask = _blur(m[..., 0] * cov, cfg.get("blur_px", 2)) * cov
-        _save_mask(mask, PROJECT / cfg["out"])
+        mask = HV["_blur"](m[..., 0] * cov, cfg.get("blur_px", 2)) * cov
+        HV["_save_mask"](mask, PROJECT / cfg["out"])
         return {"out": cfg["out"], "ref_luminance": _ref_luminance(tex, mask > 0.9), "coverage": int((mask > 0.5).sum())}
     finally:
         for o in new:

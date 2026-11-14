@@ -24,6 +24,9 @@ public class NpcSkinToneTests
         ("BeatenWorker/NPC_BeatenWorker", "Fair"), ("StashOwner/NPC_StashOwner", "Olive"),
         ("Storekeeper/NPC_Storekeeper", "Deep"), ("RacketGuard/NPC_RacketGuard", "Weathered"),
         ("DockGuard/NPC_DockGuard", "Fair"),
+        // spec-npc-faces-second-batch
+        ("CompanyGuard/NPC_CompanyGuard_ArrivalLeft", "Fair"), ("CompanyGuard/NPC_CompanyGuard_ArrivalRight", "Olive"),
+        ("WarehouseGuard/NPC_WarehouseGuard", "Deep"), ("Bandit/NPC_Bandit", "Weathered"),
     };
 
     private GameObject _root;
@@ -189,16 +192,36 @@ public class NpcSkinToneTests
     [Test]
     public void VariantHeadWithoutMask_KeepsItsMaterial_WarnsOnce()
     {
+        // Every shipped head has a mask now (spec-npc-faces-second-batch): a legacy / unbaked one is simulated.
+        var headMat = new Material(Load(HEAD_MAT)) { name = "M_Head_Unmasked" };
+        headMat.SetTexture("_SkinMask", null);
+        try
+        {
+            Assert.IsFalse(SkinToneMaterials.HasMask(headMat));
+            var head = AddRenderer("Head", headMat);
+            var body = AddRenderer("base_hero", Load(BASE_MAT));
+
+            LogAssert.Expect(LogType.Warning, new Regex("M_Head_Unmasked has no skin mask"));
+            _skin.Apply(_tone);
+            _skin.Apply(_tone); // second apply: no second warning (LogAssert fails on an unexpected one)
+
+            Assert.AreSame(headMat, head.sharedMaterial);
+            Assert.IsTrue(SkinToneMaterials.IsToned(body.sharedMaterial));
+        }
+        finally { Object.DestroyImmediate(headMat); }
+    }
+
+    [Test]
+    public void MaskedVariantHead_IsToned_LikeTheBody()
+    {
         var headMat = Load(HEAD_MAT);
-        Assert.IsFalse(SkinToneMaterials.HasMask(headMat), "head variants have no skin mask yet");
         var head = AddRenderer("Head", headMat);
         var body = AddRenderer("base_hero", Load(BASE_MAT));
 
-        LogAssert.Expect(LogType.Warning, new Regex("M_Head_Cook has no skin mask"));
-        _skin.Apply(_tone);
-        _skin.Apply(_tone); // second apply: no second warning (LogAssert fails on an unexpected one)
+        _skin.Apply(_tone); // no warning expected: LogAssert fails on an unexpected one
 
-        Assert.AreSame(headMat, head.sharedMaterial);
+        Assert.IsTrue(SkinToneMaterials.IsToned(head.sharedMaterial), "M_Head_Cook has its own mask");
+        Assert.AreSame(headMat, SkinToneMaterials.SourceOf(head.sharedMaterial));
         Assert.IsTrue(SkinToneMaterials.IsToned(body.sharedMaterial));
     }
 
@@ -212,12 +235,22 @@ public class NpcSkinToneTests
             Assert.Greater(m.GetFloat("_SkinRefLuminance"), 0.01f, path);
             Assert.AreEqual(0f, m.GetFloat("_SkinToneStrength"), 1e-6f, $"{path}: untoned by default");
         }
+        var baseMask = Load(BASE_MAT).GetTexture("_SkinMask");
+        float baseRef = Load(BASE_MAT).GetFloat("_SkinRefLuminance");
+        int heads = 0;
         foreach (var guid in AssetDatabase.FindAssets("t:Material M_Head_", new[] { MODELS + "heads" }))
         {
             var head = Load(AssetDatabase.GUIDToAssetPath(guid));
             Assert.IsTrue(SkinToneMaterials.IsSkin(head), $"{head.name} uses SG_SkinLit");
-            Assert.IsFalse(SkinToneMaterials.HasMask(head), $"{head.name}: variant heads have no skin mask until they get their own");
+            Assert.IsTrue(SkinToneMaterials.HasMask(head), $"{head.name}: has a skin mask (spec-npc-faces-second-batch)");
+            Assert.AreNotSame(baseMask, head.GetTexture("_SkinMask"), $"{head.name}: never the base hero's mask");
+            Assert.AreEqual("T_SkinMask_" + head.name.Substring(2), head.GetTexture("_SkinMask").name,
+                $"{head.name}: its own mask, not another head's");
+            heads++;
+            Assert.AreEqual(baseRef, head.GetFloat("_SkinRefLuminance"), 1e-6f, $"{head.name}: base ref luminance (same tone transform at the neck)");
+            Assert.AreEqual(0f, head.GetFloat("_SkinToneStrength"), 1e-6f, $"{head.name}: untoned by default");
         }
+        Assert.AreEqual(13, heads, "shipped head materials (spec-npc-faces-second-batch)");
     }
 
     [Test]
@@ -230,6 +263,18 @@ public class NpcSkinToneTests
             var expected = AssetDatabase.LoadAssetAtPath<SkinToneSO>($"{TONES}Tone_{tone}.asset");
             Assert.IsTrue(expected != null, $"Missing Tone_{tone}");
             Assert.AreSame(expected, entity.SkinTone, npc);
+        }
+    }
+
+    [Test]
+    public void FirstBatchFaces_StayUntoned()
+    {
+        // spec-npc-faces-second-batch Never: no tones on the Warden, Cook, Blacksmith or TentMate (toneable heads only).
+        foreach (var npc in new[] { "Warden/NPC_Warden", "Cook/NPC_Cook", "BlackSmith/NPC_Blacksmith", "TentMate/NPC_TentMate" })
+        {
+            var entity = AssetDatabase.LoadAssetAtPath<NPCEntity>($"Assets/_Game/Data/NPCs/{npc}.asset");
+            Assert.IsTrue(entity != null, $"Missing {npc}");
+            Assert.IsTrue(entity.SkinTone == null, $"{npc} should keep the base skin");
         }
     }
 

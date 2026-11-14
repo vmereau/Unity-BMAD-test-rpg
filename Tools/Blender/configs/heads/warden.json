@@ -1,6 +1,6 @@
 {
     "name": "Warden",
-    "note": "Warden Voss, late 40s: heavy jaw, thick brow, broken nose, shaved head, grey-flecked stubble",
+    "note": "Warden Voss, late 40s: heavy jaw, thick brow, broken nose, shaved head, grey-flecked stubble, lip scar (right)",
     "deforms": [
         {
             "center": [
@@ -188,6 +188,30 @@
                 "seed": 9,
                 "lo": 0.5,
                 "hi": 0.62
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.74,
+                0.52,
+                0.48
+            ],
+            "strength": 0.85,
+            "skin": 0.5,
+            "ellipsoid": {
+                "center": [
+                    -0.013,
+                    -0.124,
+                    1.632
+                ],
+                "radius": [
+                    0.0025,
+                    0.03,
+                    0.011
+                ],
+                "inner": 0.3,
+                "rot_y": 8
             }
         },
         {

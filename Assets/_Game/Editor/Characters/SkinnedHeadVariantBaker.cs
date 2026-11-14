@@ -11,13 +11,15 @@ namespace Game.Editor.Characters
     /// <summary>
     /// Bakes NPC head variants (spec-npc-head-variants). A folder under <c>models/heads/&lt;Name&gt;/</c> holds
     /// <c>Head_&lt;Name&gt;.fbx</c> + <c>T_Head_&lt;Name&gt;_BaseColor.png</c> from <c>Tools/Blender/make_head_variant.py</c>
-    /// (a folder without that FBX is skipped with a warning). For each head: apply the FBX import contract (importer
-    /// settings are written even if validation later fails - they are the fixed contract, not baked data), bake the head
+    /// (a folder without that FBX is skipped with a warning). For each head: apply the FBX and mask import contracts
+    /// (importer settings are written even if validation later fails - they are the fixed contract, not baked data, and
+    /// rollback does not revert them), bake the head
     /// into the canonical bind space, repair the hidden cap UVs, share the canonical body's seam normals / tangents and
     /// validate the exact skin join + neck UVs + bind space. Only when every head and texture is valid are the outputs
     /// written: <c>Head_&lt;Name&gt;_baked.asset</c> (GUID kept), <c>M_Head_&lt;Name&gt;.mat</c> (base-hero material
-    /// with the variant texture) and <c>Data/Characters/Heads/HeadAppearance_&lt;Name&gt;.asset</c>. A failed save
-    /// restores or deletes every output already written.
+    /// with the variant texture and its skin mask <c>T_SkinMask_Head_&lt;Name&gt;.png</c>, spec-npc-faces-second-batch) and
+    /// <c>Data/Characters/Heads/HeadAppearance_&lt;Name&gt;.asset</c>. A failed save restores or deletes every output
+    /// already written.
     /// </summary>
     public static class SkinnedHeadVariantBaker
     {
@@ -39,6 +41,7 @@ namespace Game.Editor.Characters
             public string Name, Folder;
             public Mesh Mesh;
             public Texture2D Texture;
+            public Texture2D Mask; // null = legacy head without a mask: keeps its own skin when toned
         }
 
         [MenuItem("Tools/Characters/Bake Head Variants")]
@@ -75,13 +78,16 @@ namespace Game.Editor.Characters
                     string texturePath = $"{folder}/T_Head_{name}_BaseColor.png";
                     var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
                     if (texture == null) throw new InvalidOperationException($"{name}: missing {texturePath}.");
+                    string maskPath = $"{folder}/T_SkinMask_Head_{name}.png";
+                    var mask = ConfigureMask(maskPath);
+                    if (mask == null) GameLog.Warn(TAG, $"{name}: no {maskPath} - its material gets no skin mask (not toneable)");
                     ConfigureModel(fbx);
                     var model = AssetDatabase.LoadAssetAtPath<GameObject>(fbx);
                     var source = model != null ? model.GetComponentInChildren<SkinnedMeshRenderer>() : null;
                     if (source == null) throw new InvalidOperationException($"{name}: {fbx} has no SkinnedMeshRenderer.");
                     var mesh = SkinnedMeshBaker.Bake(source, target, null, $"Head_{name}_baked", out string error);
                     if (mesh == null) throw new InvalidOperationException($"{name}: {error}");
-                    heads.Add(new Head { Name = name, Folder = folder, Mesh = mesh, Texture = texture });
+                    heads.Add(new Head { Name = name, Folder = folder, Mesh = mesh, Texture = texture, Mask = mask });
                     SkinnedNeckBaker.RepairNeckUV(mesh, STUMP_BOTTOM, SEAM - .0001f, NECK_RADIUS);
                     SkinnedNeckBaker.AlignSeamTangents(mesh, body, SEAM);
                     Require(name, SkinnedNeckValidator.ValidateExactJoin(mesh, names, body, names, SEAM));
@@ -125,6 +131,30 @@ namespace Game.Editor.Characters
         }
 
         /// <summary>
+        /// Same import as <c>T_SkinMask_BaseHero</c>: Single Channel (Red), linear (not sRGB). Returns null when absent.
+        /// </summary>
+        private static Texture2D ConfigureMask(string path)
+        {
+            if (!File.Exists(path)) return null;
+            // Just written by Blender, not refreshed yet: import it now rather than baking the head without its mask.
+            if (AssetImporter.GetAtPath(path) == null) AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            if (!(AssetImporter.GetAtPath(path) is TextureImporter importer))
+                throw new InvalidOperationException($"{path} exists but is not imported as a texture.");
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            if (settings.textureType != TextureImporterType.SingleChannel || settings.singleChannelComponent !=
+                TextureImporterSingleChannelComponent.Red || settings.sRGBTexture)
+            {
+                settings.textureType = TextureImporterType.SingleChannel;
+                settings.singleChannelComponent = TextureImporterSingleChannelComponent.Red;
+                settings.sRGBTexture = false;
+                importer.SetTextureSettings(settings);
+                importer.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        /// <summary>
         /// Writes every head's mesh, material and appearance. Each output path is snapshotted first (a copy of the
         /// existing asset, or "did not exist"); on any failure all snapshots are restored, then the original error is
         /// rethrown (rollback failures are attached, never replace it).
@@ -152,7 +182,7 @@ namespace Game.Editor.Characters
                     var saved = SkinnedMeshBaker.SaveMesh(head.Mesh, meshPath);
                     head.Mesh = null; // SaveMesh transfers ownership or destroys the temporary
                     heads[i] = head;
-                    var material = BuildMaterial(materialPath, head.Texture, baseMaterial);
+                    var material = BuildMaterial(materialPath, head.Texture, head.Mask, baseMaterial);
                     BuildAppearance(appearancePath, saved, material);
                 }
                 AssetDatabase.SaveAssets();
@@ -201,7 +231,7 @@ namespace Game.Editor.Characters
             EditorUtility.SetDirty(current);
         }
 
-        private static Material BuildMaterial(string path, Texture2D texture, Material baseMaterial)
+        private static Material BuildMaterial(string path, Texture2D texture, Texture2D mask, Material baseMaterial)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
@@ -216,9 +246,10 @@ namespace Game.Editor.Characters
             }
             if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
             if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
-            // The base hero's skin mask matches its own hair, not the variant's repainted hair / beard (spec-npc-skin-tones):
-            // a variant has no mask until it gets its own, so toned NPCs keep the variant head's skin.
-            if (material.HasProperty("_SkinMask")) material.SetTexture("_SkinMask", null);
+            // Never the base hero's mask (copied above): it matches the base hair, not the variant's repainted hair / beard.
+            // The variant's own mask, or none. _SkinRefLuminance stays the base hero's, so the tone transform is
+            // identical on both sides of the neck seam (spec-npc-faces-second-batch).
+            if (material.HasProperty("_SkinMask")) material.SetTexture("_SkinMask", mask);
             if (material.HasProperty("_SkinToneStrength")) material.SetFloat("_SkinToneStrength", 0f);
             EditorUtility.SetDirty(material);
             return material;

@@ -129,6 +129,7 @@ portraits.Apply();
 System.IO.File.WriteAllBytes($"{folder}/unity_portraits.png", portraits.EncodeToPNG());
 }
 finally { UnityEngine.Object.DestroyImmediate(portraits); }
+System.IO.File.WriteAllText($"{folder}/unity_report.txt", report.ToString()); // survives an MCP response timeout
 return report.ToString();
 }
 finally

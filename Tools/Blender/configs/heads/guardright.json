@@ -1,0 +1,218 @@
+{
+    "name": "GuardRight",
+    "preview_tone": "#B08A66",
+    "note": "CompanyGuard_ArrivalRight, 30s-40s: dark cropped hair, stubble, broken nose, Company neck brand",
+    "deforms": [
+        {
+            "center": [
+                0,
+                -0.138,
+                1.685
+            ],
+            "radius": [
+                0.022,
+                0.03,
+                0.018
+            ],
+            "offset": [
+                0.004,
+                0,
+                0
+            ]
+        },
+        {
+            "center": [
+                0,
+                -0.135,
+                1.675
+            ],
+            "radius": [
+                0.025,
+                0.025,
+                0.014
+            ],
+            "pivot": [
+                0,
+                -0.13,
+                1.675
+            ],
+            "scale": [
+                1.12,
+                1,
+                1
+            ]
+        }
+    ],
+    "paint": [
+        {
+            "op": "tint",
+            "color": [
+                0.12,
+                0.09,
+                0.07
+            ],
+            "strength": 1.0,
+            "contrast": 0.8,
+            "hairline": {
+                "z_front": 1.765,
+                "z_temple": 1.745,
+                "z_back": 1.6,
+                "soft": 0.01
+            }
+        },
+        {
+            "op": "tint",
+            "color": [
+                0.12,
+                0.09,
+                0.07
+            ],
+            "strength": 1.0,
+            "contrast": 0.8,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.072,
+                    -0.05,
+                    1.67
+                ],
+                "radius": [
+                    0.03,
+                    0.04,
+                    0.075
+                ],
+                "inner": 0.35
+            }
+        },
+        {
+            "op": "tint",
+            "brows": true,
+            "color": [
+                0.11,
+                0.08,
+                0.06
+            ],
+            "strength": 0.9,
+            "contrast": 0.8,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.03,
+                    -0.12,
+                    1.735
+                ],
+                "radius": [
+                    0.024,
+                    0.03,
+                    0.0048
+                ],
+                "inner": 0.5
+            },
+            "detail": {
+                "freq": 3000,
+                "seed": 91,
+                "amount": 0.2
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.12,
+                0.09,
+                0.07
+            ],
+            "strength": 0.2,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.07,
+                    1.625
+                ],
+                "radius": [
+                    0.1,
+                    0.09,
+                    0.06
+                ],
+                "inner": 0.5
+            },
+            "exclude": [
+                {
+                    "center": [
+                        0,
+                        -0.122,
+                        1.636
+                    ],
+                    "radius": [
+                        0.026,
+                        0.02,
+                        0.009
+                    ],
+                    "inner": 0.4
+                }
+            ],
+            "z_above": [
+                1.59,
+                1.605
+            ],
+            "noise": {
+                "freq": 1600,
+                "seed": 92,
+                "lo": 0.45,
+                "hi": 0.65
+            }
+        },
+        {
+            "op": "decal",
+            "image": "Assets/_Game/Art/Artworks/Company/Emblem.png",
+            "crop": [
+                0.29,
+                0.14,
+                0.71,
+                0.86
+            ],
+            "center": [
+                0.061,
+                0.012,
+                1.628
+            ],
+            "size": [
+                0.024,
+                0.022
+            ],
+            "depth": 0.02,
+            "threshold": [
+                0.35,
+                0.65
+            ],
+            "color": [
+                0.07,
+                0.08,
+                0.11
+            ],
+            "opacity": 0.78
+        },
+        {
+            "op": "iris",
+            "color": [
+                0.2,
+                0.13,
+                0.07
+            ],
+            "contrast": 1.3,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.0353,
+                    -0.105,
+                    1.7202
+                ],
+                "radius": [
+                    0.0034,
+                    0.03,
+                    0.003
+                ],
+                "inner": 0.6
+            }
+        }
+    ]
+}

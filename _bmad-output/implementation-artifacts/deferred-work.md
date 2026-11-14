@@ -642,7 +642,7 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-npc-skin-tones (2026-11-14, split at clarify)
 
-- **Second face batch on the toned skins** (agreed with Valentin): a head-variant spec on top of the skin-tone system.
+- [Resolved 2026-11-14, `spec-npc-faces-second-batch.md`] **Second face batch on the toned skins** (agreed with Valentin): a head-variant spec on top of the skin-tone system.
   Tam (Fair, red hair + stubble, freckles, black eye, eye bags), Brann (Olive, dark brown hair, fuller cheeks, neat short
   beard), Storekeeper (Deep, short black hair greying at the temples, short beard, narrow face), Harl (Weathered,
   dirty-blonde cropped hair, stubble, brow scar), DockGuard (Fair, ash-blonde, clean-shaven, younger angular face).

@@ -1,0 +1,241 @@
+{
+    "name": "Storekeeper",
+    "preview_tone": "#5A3A28",
+    "note": "Storekeeper: short black hair greying at the temples, short beard, narrow face",
+    "deforms": [
+        {
+            "center": [
+                0,
+                -0.06,
+                1.68
+            ],
+            "radius": [
+                0.13,
+                0.12,
+                0.11
+            ],
+            "pivot": [
+                0,
+                -0.03,
+                1.68
+            ],
+            "scale": [
+                0.94,
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "paint": [
+        {
+            "op": "tint",
+            "color": [
+                0.07,
+                0.06,
+                0.06
+            ],
+            "strength": 1.0,
+            "contrast": 0.9,
+            "hairline": {
+                "z_front": 1.765,
+                "z_temple": 1.745,
+                "z_back": 1.6,
+                "soft": 0.01
+            }
+        },
+        {
+            "op": "tint",
+            "color": [
+                0.07,
+                0.06,
+                0.06
+            ],
+            "strength": 1.0,
+            "contrast": 0.9,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.072,
+                    -0.05,
+                    1.67
+                ],
+                "radius": [
+                    0.03,
+                    0.04,
+                    0.075
+                ],
+                "inner": 0.35
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.5,
+                0.49,
+                0.47
+            ],
+            "strength": 0.9,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.07,
+                    -0.04,
+                    1.725
+                ],
+                "radius": [
+                    0.022,
+                    0.05,
+                    0.05
+                ],
+                "inner": 0.3
+            },
+            "noise": {
+                "freq": 900,
+                "seed": 51,
+                "lo": 0.35,
+                "hi": 0.55
+            }
+        },
+        {
+            "op": "tint",
+            "brows": true,
+            "color": [
+                0.07,
+                0.06,
+                0.06
+            ],
+            "strength": 0.9,
+            "contrast": 0.8,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.03,
+                    -0.12,
+                    1.735
+                ],
+                "radius": [
+                    0.024,
+                    0.03,
+                    0.0048
+                ],
+                "inner": 0.5
+            },
+            "detail": {
+                "freq": 3000,
+                "seed": 52,
+                "amount": 0.2
+            }
+        },
+        {
+            "op": "fill",
+            "color": [
+                0.07,
+                0.06,
+                0.06
+            ],
+            "strength": 0.85,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.08,
+                    1.615
+                ],
+                "radius": [
+                    0.08,
+                    0.06,
+                    0.045
+                ],
+                "inner": 0.35
+            },
+            "exclude": [
+                {
+                    "center": [
+                        0,
+                        -0.122,
+                        1.636
+                    ],
+                    "radius": [
+                        0.026,
+                        0.02,
+                        0.009
+                    ],
+                    "inner": 0.4
+                },
+                {
+                    "center": [
+                        0,
+                        -0.11,
+                        1.69
+                    ],
+                    "radius": [
+                        0.07,
+                        0.05,
+                        0.03
+                    ],
+                    "inner": 0.35
+                }
+            ],
+            "z_above": [
+                1.588,
+                1.6
+            ],
+            "detail": {
+                "freq": 1400,
+                "seed": 53,
+                "amount": 0.45
+            }
+        },
+        {
+            "op": "grey",
+            "color": [
+                0.48,
+                0.47,
+                0.45
+            ],
+            "strength": 0.4,
+            "hair_only": false,
+            "ellipsoid": {
+                "center": [
+                    0,
+                    -0.08,
+                    1.615
+                ],
+                "radius": [
+                    0.08,
+                    0.06,
+                    0.045
+                ],
+                "inner": 0.35
+            },
+            "noise": {
+                "freq": 800,
+                "seed": 54,
+                "lo": 0.6,
+                "hi": 0.68
+            }
+        },
+        {
+            "op": "iris",
+            "color": [
+                0.16,
+                0.1,
+                0.06
+            ],
+            "contrast": 1.3,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.0353,
+                    -0.105,
+                    1.7202
+                ],
+                "radius": [
+                    0.0034,
+                    0.03,
+                    0.003
+                ],
+                "inner": 0.6
+            }
+        }
+    ]
+}

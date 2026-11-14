@@ -144,24 +144,38 @@ The sample damaged-collar trim radius is 0.16 m, covering the original folded re
 
 Per-NPC faces derived from the neck-prepared base head, with no new geometry: reshaping plus repainting a copy of the
 skin texture. The painted skin keeps the base hero's colour; per-NPC skin colour comes from *NPC skin tones* below.
-Variant heads have no skin mask yet, so a toned NPC with a variant head keeps that head's own tone (one warning).
+Every variant head has its own skin mask (spec-npc-faces-second-batch), so a variant face takes the NPC's tone like the
+body; hair, beard, eyes and ink keep their colour.
 
 1. **Config:** `Tools/Blender/configs/heads/<name>.json`. `deforms` = soft ellipsoid scale / offset regions (jaw, brow,
    nose, cheeks, skull). `paint` = layers `skin` (bald / receding / shaved), `grey` / `tint` (hair recolour), `fill`
-   (beard, scar), `darken` (eye bags), `iris` (eye colour); any layer takes `noise`, `detail`, `mirror_x`, `exclude`.
-   Recolour the brows (`BROW` region) whenever the hair colour changes.
+   (beard, scar), `darken` (eye bags), `iris` (eye colour), `decal` (image projected along ±X: the Company neck brand);
+   any layer takes `noise`, `detail`, `mirror_x`, `exclude`; an ellipsoid takes `rot_y` (degrees, tilt in the face
+   plane: diagonal scars). Each layer also sets the **skin weight** of the texels it paints (see the mask gotchas below):
+   per-op default, or `skin` 0–1 (scars 0.5, freckles 0.8, bruises 0.4 keep part of their hue once toned). Optional
+   `preview_tone` (`#RRGGBB`) renders the mockup through the `SG_SkinLit` maths. Recolour the brows (`BROW` region)
+   whenever the hair colour changes.
 2. **Mockup:** `Tools/Blender/make_head_variant.py` `run(config)` renders front / ¾ / side / eye close-up to
    `Temp/HeadVariants/`. Get approval, then `run(config, export=True)` → `models/heads/<Name>/Head_<Name>.fbx` +
-   `T_Head_<Name>_BaseColor.png`.
+   `T_Head_<Name>_BaseColor.png` + `T_SkinMask_Head_<Name>.png`. `export=["mask"]` / `["texture", "mask"]` rewrites only
+   those files (a shipped head's FBX never needs re-exporting for a paint or mask change). Renders include a left-neck
+   close-up (brand side).
 3. **Bake:** `Tools/Characters/Bake Head Variants` (`SkinnedHeadVariantBaker.BakeAll()`) bakes every `heads/` folder against
    the canonical target. It validates the exact join with `base_hero_body_baked` plus neck UV and bind space, then
-   writes `Head_<Name>_baked.asset`, `M_Head_<Name>.mat` (copy of `M_TestBaseHero` with the variant texture) and
+   writes `Head_<Name>_baked.asset`, `M_Head_<Name>.mat` (copy of `M_TestBaseHero` with the variant texture, the variant's
+   mask imported Single Channel R / linear, and the **base** `_SkinRefLuminance`: same tone transform on both sides of the
+   neck seam) and
    `Data/Characters/Heads/HeadAppearance_<Name>.asset`.
 4. **Assign:** `NPCEntity._head`. `NpcHeadAppearance` on `NPC_base Variant` swaps the Head SMR in `Awake`.
-5. **Verify:** `Tools/Blender/verify_head_variants.cs` (posed join gap + neck / portrait sheets, bare and Company armor).
+5. **Verify:** `Tools/Blender/verify_head_variants.cs` (posed join gap + neck / portrait sheets, bare and Company armor);
+   `Tools/Blender/verify_head_tones.cs` (untoned diff of every head = 0, tone sheet of each planned face + tone).
 
 Landmarks (game metres, face toward −Y in Blender): seam 1.585, chin underside ≈ 1.595, mouth 1.635, nose tip 1.68,
-iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86. Shipped: Warden, Cook, Blacksmith, TentMate.
+iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86; side of the neck x ≈ 0.062 at y 0–0.03,
+z 1.60–1.64 (the Company collar hides everything below z ≈ 1.615 from the side: keep a neck decal above it).
+Shipped (13): Warden (+ lip scar), Cook, Blacksmith, TentMate, Tam, Brann, Storekeeper, Harl, DockGuard, GuardLeft /
+GuardRight (`CompanyGuard_ArrivalLeft` / `Right`), WarehouseGuard, Bandit. Company brand on the five rank-and-file
+guards (Harl, DockGuard, both arrival guards, WarehouseGuard), not on the Warden (officer).
 
 Gotchas:
 - Frozen = within 12 mm of any vertex at or below the seam (distance-based; the chin overhangs the neck).
@@ -174,6 +188,17 @@ Gotchas:
   luminance ratio capped at 1, or the hairline gets a light halo or a cyan cast.
 - Shape changes above ~9 mm stretch the texture's eye / nose detail. For bigger silhouettes, use new geometry
   (image-to-3D + fitting).
+- **Head masks:** the skin weight starts from the **unblurred** base head rule (`_base_head_skin`, shared with
+  `make_skin_masks.py`) and is blurred once at the end. Tracking from the blurred base PNG leaves a half-masked, untoned
+  band wherever paint moves a hair edge (receding / shaved hairlines).
+- Mixed hair / skin edge texels: for **dark** hair, tone everything but clearly-hair texels (toning a mixed texel keeps it
+  dark; leaving it untoned shows its light skin share as a halo on dark tones). For **light** hair (blonde, grey, white),
+  the reverse: a toned light texel turns tone-coloured (salmon band on Deep), so a noticeable hair share stays untoned.
+  `grey` / `tint` pick the range from the hair colour's lightness (`skin_hair_range` overrides).
+- Light / red hair: also recolour the base hero's jaw beard shadow, or a brown "beard" shows under blonde hair.
+  Clean-shaven = a `skin` layer with a tight `hair_range` over the jaw and lower sideburns (see `dockguard.json`).
+- The Blender mockup lights wash Fair / Olive out (both are lighter than the base hero's average skin); judge tones on
+  the Unity sheet (`verify_head_tones.cs`).
 
 ### NPC skin tones (spec-npc-skin-tones)
 
@@ -182,7 +207,7 @@ Skin colour is a shader parameter, not a texture: no per-tone textures or materi
 - **Shader:** `Assets/_Game/Shaders/SG_SkinLit.shadergraph` (`Game/SG_SkinLit`, URP Lit target, Lit property names) +
   `_SkinMask` (R8, 1 = skin), `_SkinTone`, `_SkinToneStrength` (0 = untoned), `_SkinRefLuminance`. Masked texels become
   `tone × luminance / ref` (detail kept), so average skin lands exactly on the tone colour. Untoned it renders
-  pixel-identical to URP Lit. Used by `M_TestBaseHero` (body + base head, player included), the 4 `M_Head_*` (no mask) and
+  pixel-identical to URP Lit. Used by `M_TestBaseHero` (body + base head, player included), every `M_Head_*` (own mask, base ref luminance) and
   `M_CompanyGrunt`. Generated by a scratch script from the Shader Graph sample `DefaultMaterial` (Lit blocks + one inline
   Custom Function); edit it in the Shader Graph window.
 - **Masks:** `Tools/Blender/make_skin_masks.py` + `configs/skin_masks.json` → `T_SkinMask_BaseHero.png`,
@@ -194,7 +219,8 @@ Skin colour is a shader parameter, not a texture: no per-tone textures or materi
 - **Tones:** `SkinToneSO` (`Data/Characters/SkinTones/Tone_*`: Fair `#CFA58A`, Olive `#B08A66`, Weathered `#A8704E`, Deep
   `#5A3A28`) on `NPCEntity._skinTone`. Runtime: `NpcSkinTone` (on `NPC_base Variant`) → `SkinToneMaterials` (static cache,
   one material copy per source × tone, SRP Batcher-safe). Shipped: Tam Fair, Brann Olive, Storekeeper Deep, Harl Weathered,
-  DockGuard Fair.
+  DockGuard Fair, CompanyGuard_ArrivalLeft Fair, CompanyGuard_ArrivalRight Olive, WarehouseGuard Deep, Bandit Weathered.
+  Warden, Cook, Blacksmith and TentMate are untoned (their heads are toneable).
 - **Verify:** `Tools/Blender/verify_skin_tones.cs` → `Temp/SkinTones/` (untoned diff must be 0).
 
 Gotchas:

@@ -19,6 +19,12 @@ public class NpcHeadAppearanceTests
     {
         ("Warden/NPC_Warden", "Warden"), ("Cook/NPC_Cook", "Cook"),
         ("BlackSmith/NPC_Blacksmith", "Blacksmith"), ("TentMate/NPC_TentMate", "TentMate"),
+        // spec-npc-faces-second-batch
+        ("BeatenWorker/NPC_BeatenWorker", "Tam"), ("StashOwner/NPC_StashOwner", "Brann"),
+        ("Storekeeper/NPC_Storekeeper", "Storekeeper"), ("RacketGuard/NPC_RacketGuard", "Harl"),
+        ("DockGuard/NPC_DockGuard", "DockGuard"), ("CompanyGuard/NPC_CompanyGuard_ArrivalLeft", "GuardLeft"),
+        ("CompanyGuard/NPC_CompanyGuard_ArrivalRight", "GuardRight"),
+        ("WarehouseGuard/NPC_WarehouseGuard", "WarehouseGuard"), ("Bandit/NPC_Bandit", "Bandit"),
     };
 
     private GameObject _root;
