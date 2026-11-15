@@ -6,6 +6,7 @@ namespace Game.World
     public class InteractionConfigSO : ScriptableObject
     {
         [Header("Detection")]
+        [Tooltip("Reach in metres, measured from the player's CameraTarget (InteractionSystem._reachOrigin), not the camera.")]
         public float interactionRange = 3f;
         public float nameRange = 8f;
         public float scanRadius = 0.5f;

@@ -136,7 +136,8 @@ namespace Game.Combat
         [Header("Bow Aim")]
         [Tooltip("Camera vertical field of view while aiming (the default lens FOV is restored when the aim ends).")]
         [Range(10f, 90f)] public float aimFieldOfView = 30f;
-        [Tooltip("CinemachineFollow offset while aiming — closer, over the right shoulder.")]
+        [Tooltip("Camera rig while aiming — x, y = ThirdPersonFollow shoulder offset, -z = arm distance " +
+                 "(closer, over the right shoulder).")]
         public Vector3 aimFollowOffset = new Vector3(0.6f, 0.3f, -1.8f);
         [Tooltip("Mouse look sensitivity multiplier while aiming.")]
         [Range(0.05f, 1f)] public float aimSensitivityMultiplier = 0.5f;

@@ -302,5 +302,27 @@ namespace Tests.EditMode
         {
             Assert.AreEqual(0f, InteractionFocus.OcclusionProbeLength(0.01f, 0.02f, 0.05f));
         }
+
+        [Test]
+        public void ReachStartDistance_PlayerAhead_IsProjectionOnRay()
+        {
+            // Camera 4.5 m behind and 1 m to the side of the head, looking forward: start 4.5 m along the ray.
+            float d = InteractionFocus.ReachStartDistance(new Vector3(1f, 0f, -4.5f), Vector3.forward, Vector3.zero);
+            Assert.AreEqual(4.5f, d, 0.001f);
+        }
+
+        [Test]
+        public void ReachStartDistance_PlayerBehindCamera_IsZero()
+        {
+            float d = InteractionFocus.ReachStartDistance(Vector3.zero, Vector3.forward, new Vector3(0f, 0f, -2f));
+            Assert.AreEqual(0f, d);
+        }
+
+        [Test]
+        public void ReachStartDistance_UnnormalizedDirection_SameResult()
+        {
+            float d = InteractionFocus.ReachStartDistance(Vector3.zero, new Vector3(0f, 0f, 10f), new Vector3(0f, 0f, 3f));
+            Assert.AreEqual(3f, d, 0.001f);
+        }
     }
 }

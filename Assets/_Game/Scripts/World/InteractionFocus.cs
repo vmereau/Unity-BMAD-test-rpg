@@ -36,6 +36,15 @@ namespace Game.World
         public static float OcclusionProbeLength(float hitDistance, float distanceToPoint, float backoff) =>
             hitDistance <= 0f ? 0f : Mathf.Max(0f, distanceToPoint - backoff);
 
+        /// <summary>
+        /// Distance along the camera ray to start the interaction scan: the point closest to
+        /// <paramref name="reachOrigin"/> (the player's head), never behind the camera. The orbit camera sits
+        /// metres behind the player, so measuring the reach from the camera made it depend on pitch and arm length
+        /// (looking down at the floor put items out of range).
+        /// </summary>
+        public static float ReachStartDistance(Vector3 rayOrigin, Vector3 rayDirection, Vector3 reachOrigin) =>
+            Mathf.Max(0f, Vector3.Dot(reachOrigin - rayOrigin, rayDirection.normalized));
+
         public static uint WithLayer(uint mask, uint bits) => mask | bits;
 
         public static uint WithoutLayer(uint mask, uint bits) => mask & ~bits;

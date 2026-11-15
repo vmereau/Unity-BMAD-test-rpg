@@ -23,7 +23,7 @@ Player.prefab
 │   FootstepEmitter (distance-based steps, gated by PlayerStateManager as IFootstepGate — Scripts/Audio/CLAUDE.md)
 ├── UICanvas             (nested prefab Prefabs/UI/UICanvas.prefab — see Prefabs/UI/CLAUDE.md)
 ├── CameraTarget         (pure Transform pivot, local Y 1.6 — Cinemachine Follow/LookAt target)
-├── Virtual Camera       (CinemachineCamera + CinemachineFollow + CinemachineRotateWithFollowTarget)
+├── Virtual Camera       (CinemachineCamera + CinemachineThirdPersonFollow + CinemachineRotateWithFollowTarget — no Deoccluder / Decollider, see Scripts/Player/CLAUDE.md)
 ├── Camera               (Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
 ├── Character            (nested Mixamo FBX prefab, Humanoid rig)
 │   ├── base_hero                     (Body SMR below the neck — mesh `base_hero_body_baked`; hidden while armor is worn)

@@ -19,6 +19,9 @@ namespace Game.World
         [SerializeField] private LayerMask _raycastMask;
         [Tooltip("Layers that hide an interactable behind them (walls, floors, terrain).")]
         [SerializeField] private LayerMask _occlusionMask = 1; // Default
+        [Tooltip("Reach is measured from the point of the screen-centre ray closest to this (the player's CameraTarget), " +
+                 "not from the orbit camera. Null → measured from the camera.")]
+        [SerializeField] private Transform _reachOrigin;
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_InteractionFocus _onFocusChanged;
@@ -115,6 +118,9 @@ namespace Game.World
             if (_occlusionMask == 0)
                 GameLog.Warn(TAG, "_occlusionMask is 0 (Nothing) — interactables can be reached through walls");
 
+            if (_reachOrigin == null)
+                GameLog.Warn(TAG, "_reachOrigin is null — reach measured from the camera (floor items may be out of range)");
+
             if (_onFocusChanged == null)
                 GameLog.Warn(TAG, "_onFocusChanged is null — outline still works but no prompt card will be shown");
 
@@ -133,9 +139,10 @@ namespace Game.World
             _scanTimer = 0f;
 
             Ray ray = _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-            
-            // 1. Interaction Scan (Center of Screen)
-            int hitCount = Physics.SphereCastNonAlloc(ray, _config.scanRadius,
+            Ray reachRay = ReachRay(ray);
+
+            // 1. Interaction Scan (Center of Screen, reach measured from the player)
+            int hitCount = Physics.SphereCastNonAlloc(reachRay, _config.scanRadius,
                                                       _sphereHitBuffer, _config.interactionRange,
                                                       _raycastMask);
 
@@ -147,9 +154,9 @@ namespace Game.World
                 var candidate = _sphereHitBuffer[i].collider.GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
                 if (!candidate.CanInteract) continue; // in-combat NPCs (or dead) offer no prompt/interaction
-                if (IsOccluded(ray.origin, _sphereHitBuffer[i], candidate)) continue;
+                if (IsOccluded(reachRay.origin, _sphereHitBuffer[i], candidate)) continue;
 
-                Vector3 toCollider = (_sphereHitBuffer[i].collider.bounds.center - ray.origin).normalized;
+                Vector3 toCollider = (_sphereHitBuffer[i].collider.bounds.center - reachRay.origin).normalized;
                 float angle = Vector3.Angle(ray.direction, toCollider);
                 if (angle < bestAngle)
                 {
@@ -248,6 +255,14 @@ namespace Game.World
             return !ReferenceEquals(blocker.collider.GetComponentInParent<IInteractable>(), candidate);
         }
 
+        // The screen-centre ray, advanced to the point closest to the player (reach is a player distance).
+        private Ray ReachRay(Ray cameraRay)
+        {
+            if (_reachOrigin == null) return cameraRay;
+            float skip = InteractionFocus.ReachStartDistance(cameraRay.origin, cameraRay.direction, _reachOrigin.position);
+            return new Ray(cameraRay.GetPoint(skip), cameraRay.direction);
+        }
+
         private static Ownership GetOwnership(IInteractable interactable)
         {
             if (interactable is Component component && component != null &&
@@ -327,8 +342,9 @@ namespace Game.World
             bool hit = CurrentInteractable != null;
 
             Gizmos.color = hit ? Color.green : Color.yellow;
-            Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * _config.interactionRange);
-            Gizmos.DrawWireSphere(ray.origin + ray.direction * _config.interactionRange,
+            Ray reachRay = ReachRay(ray);
+            Gizmos.DrawLine(reachRay.origin, reachRay.origin + reachRay.direction * _config.interactionRange);
+            Gizmos.DrawWireSphere(reachRay.origin + reachRay.direction * _config.interactionRange,
                                   _config.scanRadius);
 
             Gizmos.color = Color.cyan;

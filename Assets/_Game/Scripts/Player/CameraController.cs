@@ -2,14 +2,14 @@ using Unity.Cinemachine;
 using Game.Combat;
 using Game.Core;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 
 namespace Game.Player
 {
     /// <summary>
     /// Reads mouse Look input and drives the CameraTarget pivot rotation (yaw + pitch).
-    /// Cinemachine follows CameraTarget — this script does NOT move the camera directly.
+    /// Cinemachine (CinemachineThirdPersonFollow) orbits the camera around CameraTarget and owns
+    /// obstacle collision. This script does NOT move the camera directly: it only sets the rig
+    /// shoulder offset and arm distance (look-up shortening, bow aim).
     /// Cursor is locked on start; Escape unlocks, left-click re-locks.
     /// </summary>
     public class CameraController : MonoBehaviour
@@ -20,12 +20,20 @@ namespace Game.Player
         [SerializeField] private float _mouseSensitivity = 1f;
         [SerializeField] private float _pitchMin = -70f;
         [SerializeField] private float _pitchMax = 70f;
-        [SerializeField] private float _lookDownHeightRise = 0.7f;
-        [SerializeField] private float _lookDownZoomIn = 1.5f;
-        [SerializeField] private CinemachineFollow _cinemachineFollow;
+        [Tooltip("Arm distance multiplier at full look-up (pitch = Pitch Min). 1 = constant distance.")]
+        [SerializeField, Range(0.1f, 1f)] private float _lookUpDistanceScale = 0.5f;
+        [Tooltip("Most upward pitch allowed while swimming, so the camera stays above the water surface " +
+                 "(-5° keeps a 4.5 m arm ≈ 0.25 m above it at swimFloatDepth 1.45).")]
+        [SerializeField, Range(-70f, 0f)] private float _swimPitchMin = -5f;
+        [Tooltip("Degrees per second the pitch limit eases to / from the swim limit (no snap on entering water).")]
+        [SerializeField, Min(1f)] private float _swimPitchEaseSpeed = 180f;
+        [Tooltip("A CameraTarget jump longer than this in one frame (teleport, load, spawn) warps the camera " +
+                 "instead of letting the rig damping sweep it across the distance.")]
+        [SerializeField, Min(0.5f)] private float _warpDistance = 3f;
+        [SerializeField] private CinemachineThirdPersonFollow _thirdPersonFollow;
         [SerializeField] private LockOnSystem _lockOnSystem;
         [SerializeField] private CombatConfigSO _combatConfig;
-        [Tooltip("Bow aim zoom: reads IsAiming. Optional — no aim camera without it.")]
+        [Tooltip("Bow aim zoom + swimming: reads IsAiming / IsSwimming. Optional — no aim camera or swim limit without it.")]
         [SerializeField] private PlayerStateManager _stateManager;
         [Tooltip("Lens owner for the bow aim FOV. Optional — no FOV change without it.")]
         [SerializeField] private CinemachineCamera _cinemachineCamera;
@@ -33,12 +41,12 @@ namespace Game.Player
         private InputSystem_Actions _input;
         private float _yaw;
         private float _pitch;
-        private float _defaultCameraTargetLocalY;
-        private float _defaultFollowOffsetZ;
-        private float _defaultFollowOffsetY;
-        private float _defaultFollowOffsetX;
+        private float _pitchFloor; // current most-upward pitch (eases between _pitchMin and the swim limit)
+        private Vector3 _defaultShoulderOffset;
+        private float _defaultCameraDistance;
         private float _defaultFieldOfView;
         private float _aimBlend; // 0 = normal camera, 1 = full bow aim (blended at CombatConfigSO.aimBlendSpeed)
+        private Vector3 _lastTargetPosition;
 
         private void Awake()
         {
@@ -53,6 +61,8 @@ namespace Game.Player
                 GameLog.Warn(TAG, "CameraController: _lockOnSystem not assigned — lock-on tracking unavailable (free-look still works)");
             if (_combatConfig == null)
                 GameLog.Warn(TAG, "CameraController: _combatConfig not assigned — lockOnLerpSpeed will use fallback value");
+            if (_thirdPersonFollow == null)
+                GameLog.Warn(TAG, "CameraController: _thirdPersonFollow not assigned — no look-up shortening or aim offset");
 
             CursorManager.Lock();
 
@@ -61,18 +71,18 @@ namespace Game.Player
             // so an initial downward tilt (e.g. 350°) is read as -10° instead of clamping to +70°.
             _yaw   = _cameraTarget.eulerAngles.y;
             _pitch = Mathf.DeltaAngle(0f, _cameraTarget.eulerAngles.x);
-            _defaultCameraTargetLocalY = _cameraTarget.localPosition.y;
-            
-            if (_cinemachineFollow != null)
+            _pitchFloor = _pitchMin;
+            _lastTargetPosition = _cameraTarget.position;
+
+            if (_thirdPersonFollow != null)
             {
-                _defaultFollowOffsetZ = _cinemachineFollow.FollowOffset.z;
-                _defaultFollowOffsetY = _cinemachineFollow.FollowOffset.y;
-                _defaultFollowOffsetX = _cinemachineFollow.FollowOffset.x;
+                _defaultShoulderOffset = _thirdPersonFollow.ShoulderOffset;
+                _defaultCameraDistance = _thirdPersonFollow.CameraDistance;
             }
             if (_cinemachineCamera != null)
                 _defaultFieldOfView = _cinemachineCamera.Lens.FieldOfView;
             if (_stateManager == null)
-                GameLog.Warn(TAG, "CameraController: _stateManager not assigned — no bow aim zoom");
+                GameLog.Warn(TAG, "CameraController: _stateManager not assigned — no bow aim zoom or swim pitch limit");
         }
 
         private void OnEnable()
@@ -92,19 +102,20 @@ namespace Game.Player
 
         private void LateUpdate()
         {
+            DetectWarp();
             UpdateAimBlend();
+            UpdatePitchFloor();
 
-            // Only rotate camera when cursor is locked (the aim blend still eases back while a menu is open)
-            if (!CursorManager.IsLocked)
+            // Only rotate camera when cursor is locked (the rig still eases back from aim while a menu is open)
+            if (CursorManager.IsLocked)
             {
-                UpdateCameraTargetHeight();
-                return;
+                if (_lockOnSystem != null && _lockOnSystem.IsLockedOn)
+                    TrackLockedTarget();
+                else
+                    RotateCamera();
             }
 
-            if (_lockOnSystem != null && _lockOnSystem.IsLockedOn)
-                TrackLockedTarget();
-            else
-                RotateCamera();
+            ApplyRig();
         }
 
         private void RotateCamera()
@@ -116,10 +127,9 @@ namespace Game.Player
             _yaw   += lookDelta.x * sensitivity;
             _yaw   %= 360f; // Prevent float precision loss over extended play sessions
             _pitch -= lookDelta.y * sensitivity; // inverted: mouse up = look up
-            _pitch  = Mathf.Clamp(_pitch, _pitchMin, _pitchMax);
+            _pitch  = Mathf.Clamp(_pitch, _pitchFloor, _pitchMax);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
-            UpdateCameraTargetHeight();
         }
 
         private void TrackLockedTarget()
@@ -132,7 +142,7 @@ namespace Game.Player
 
             float desiredYaw   = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
             float desiredPitch = -Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
-            desiredPitch = Mathf.Clamp(desiredPitch, _pitchMin, _pitchMax);
+            desiredPitch = Mathf.Clamp(desiredPitch, _pitchFloor, _pitchMax);
 
             float lerpSpeed = _combatConfig != null ? _combatConfig.lockOnLerpSpeed : 5f;
 
@@ -140,56 +150,46 @@ namespace Game.Player
             _pitch = Mathf.Lerp(_pitch,       desiredPitch, lerpSpeed * Time.deltaTime);
 
             _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
-            UpdateCameraTargetHeight();
         }
 
-        private void UpdateCameraTargetHeight()
+        // Teleports (load, spawn, story sequences) move the player in one frame: tell Cinemachine, so the rig
+        // damping doesn't sweep the camera across the whole distance (and through the geometry on the way).
+        private void DetectWarp()
         {
-            float t;
-            float heightSign;
-            if (_pitch > 0f)
-            {
-                t = Mathf.InverseLerp(0f, _pitchMax, _pitch);
-                heightSign = 1f;
-            }
-            else if (_pitch < 0f)
-            {
-                t = Mathf.InverseLerp(0f, _pitchMin, _pitch);
-                heightSign = -1f;
-            }
-            else
-            {
-                t = 0f;
-                heightSign = 0f;
-            }
+            Vector3 position = _cameraTarget.position;
+            Vector3 delta = position - _lastTargetPosition;
+            _lastTargetPosition = position;
+            if (delta.sqrMagnitude > _warpDistance * _warpDistance)
+                CinemachineCore.OnTargetObjectWarped(_cameraTarget, delta);
+        }
 
-            // Keep the raycast origin (CameraTarget) at a constant height to prevent it from entering the ceiling
-            Vector3 pos = _cameraTarget.localPosition;
-            pos.y = _defaultCameraTargetLocalY;
-            _cameraTarget.localPosition = pos;
+        // Eases the upward pitch limit to the swim limit (and back) and keeps the pitch above it — also while a
+        // menu is open — so entering water never snaps the view.
+        private void UpdatePitchFloor()
+        {
+            bool swimming = _stateManager != null && _stateManager.IsSwimming;
+            float target = CameraRigMath.EffectivePitchMin(_pitchMin, swimming, _swimPitchMin);
+            float before = _pitch;
+            CameraRigMath.StepPitchFloor(ref _pitchFloor, ref _pitch, target, _swimPitchEaseSpeed * Time.deltaTime);
+            if (!Mathf.Approximately(before, _pitch))
+                _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+        }
 
-            if (_cinemachineFollow != null)
-            {
-                Vector3 offset = _cinemachineFollow.FollowOffset;
-                // Apply the height adjustment to the camera offset instead
-                // Swimming: no drop when looking up, the water surface is invisible from below.
-                bool swimming = _stateManager != null && _stateManager.IsSwimming;
-                offset.y = _defaultFollowOffsetY + ((swimming ? Mathf.Max(0f, heightSign) : heightSign) * t * _lookDownHeightRise);
-                offset.z = _defaultFollowOffsetZ + (t * _lookDownZoomIn);
-                // Bow aim: shift towards the aim offset on top of the look-down adjustment (the two compose)
-                if (_aimBlend > 0f && _combatConfig != null)
-                {
-                    Vector3 aim = _combatConfig.aimFollowOffset;
-                    offset.x = Mathf.Lerp(_defaultFollowOffsetX, aim.x, _aimBlend);
-                    offset.y += (aim.y - _defaultFollowOffsetY) * _aimBlend;
-                    offset.z += (aim.z - _defaultFollowOffsetZ) * _aimBlend;
-                }
-                else
-                {
-                    offset.x = _defaultFollowOffsetX;
-                }
-                _cinemachineFollow.FollowOffset = offset;
-            }
+        // Sets the ThirdPersonFollow shoulder / distance: bow aim blend, then the look-up shortening.
+        private void ApplyRig()
+        {
+            if (_thirdPersonFollow == null) return;
+
+            Vector3 shoulder = _defaultShoulderOffset;
+            float distance = _defaultCameraDistance;
+            if (_aimBlend > 0f && _combatConfig != null)
+                CameraRigMath.BlendRig(_defaultShoulderOffset, _defaultCameraDistance,
+                    _combatConfig.aimFollowOffset, _aimBlend, out shoulder, out distance);
+
+            distance *= CameraRigMath.RigDistanceScale(_pitch, _pitchMin, _lookUpDistanceScale, _aimBlend);
+
+            _thirdPersonFollow.ShoulderOffset = shoulder;
+            _thirdPersonFollow.CameraDistance = distance;
         }
 
         // Eases _aimBlend towards IsAiming and applies the aim FOV.
