@@ -13,27 +13,22 @@ MonoBehaviour:
   m_Name: Quest_HiddenStash
   m_EditorClassIdentifier: Game::Game.Quest.QuestSO
   questId: HiddenStash
-  title: The Hidden Stash
-  description: Tam is hungry and doesn't care where his food comes from. I told him I had no money, so he pointed me at Brann's hoard in the gang house by the lake. Brann keeps watch by day and joins the gang fire after six. If I get caught, Tam never met me.
+  title: Food for Tam
+  description: 'Tam took a beating from the Warden and he''s hungry. He doesn''t care where the food comes from: bread or an apple would do, and something cooked would surprise him. Brann''s chest in the gang house is there for the taking, if I''m willing to steal.'
   startPart:
-    fact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
-    entry: Tam is hungry. With no money for food, he pointed me at Brann's stash in the gang house by the lake. Brann leaves for the gang fire at six in the evening.
+    fact: {fileID: 11400000, guid: a0698f51b32c5f44fb6c0f3dd4a99c7e, type: 2}
+    entry: Tam is hungry. Bread or an apple would do.
   completedParts:
-  - fact: {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
-    entry: 'I took some of Brann''s supplies and told Tam. His advice: keep quiet and keep the bread out of sight.'
+  - fact: {fileID: 11400000, guid: fd03526f28e9bdc42adce7684f3636ac, type: 2}
+    entry: I gave Tam something to eat.
+  - fact: {fileID: 11400000, guid: af6aba729f8d36a4ba040005ebcff2cb, type: 2}
+    entry: I gave Tam a cooked meal. He looked like he'd remember it.
   failedParts: []
   steps:
-  - title: Help myself to Brann's supplies
-    description: Find the chest in the gang house. Brann leaves at six in the evening.
+  - title: 'Optional: Brann''s supplies'
+    description: Brann keeps food in a chest in the gang house by the lake. He leaves for the gang fire at six.
     parts:
     - fact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
-      entry: I know where Brann keeps his food.
+      entry: Tam told me about Brann's chest.
     - fact: {fileID: 11400000, guid: 82b9f9368a27e2e43ab2ed0359aa323e, type: 2}
-      entry: I took some of Brann's supplies.
-  - title: Tell Tam
-    description: Tam might appreciate hearing what happened.
-    parts:
-    - fact: {fileID: 11400000, guid: 82b9f9368a27e2e43ab2ed0359aa323e, type: 2}
-      entry: I can tell Tam about the stash.
-    - fact: {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
-      entry: Tam heard what happened.
+      entry: I helped myself to Brann's supplies.

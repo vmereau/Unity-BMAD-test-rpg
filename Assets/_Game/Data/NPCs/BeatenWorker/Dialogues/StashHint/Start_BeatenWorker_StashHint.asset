@@ -15,4 +15,4 @@ MonoBehaviour:
   text: Is there really nothing I can do for you?
   nextNode: {fileID: 11400000, guid: b2f635164cd424d469a19b7faa54f97a, type: 2}
   _id: bbed125d47b01f8459d53ec2cced83ea
-  dialogueFact: {fileID: 0}
+  dialogueFact: {fileID: 11400000, guid: a0698f51b32c5f44fb6c0f3dd4a99c7e, type: 2}

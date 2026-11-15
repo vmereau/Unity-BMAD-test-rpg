@@ -24,6 +24,8 @@ namespace Game.World
         [SerializeField] private LearningPointSystem _lpSystem;
         [SerializeField] private PlayerSkills _playerSkills;
         [SerializeField] private NPCTradeUI _tradeUI;
+        [Tooltip("Give window opened by a ChoiceOption.requiredCategory choice (the player picks the item to hand over).")]
+        [SerializeField] private GiveItemUI _giveItemUI;
         [Tooltip("The player's inventory: a ChoiceOption.requiredItem is taken from it.")]
         [SerializeField] private InventorySystem _playerInventory;
         [Tooltip("Coin item added to the NPC's inventory when the player pays a ChoiceOption.goldCost (Item_Gold).")]
@@ -36,6 +38,12 @@ namespace Game.World
         [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
 
         public bool IsOpen { get; private set; }
+
+        /// <summary>True while the Give window of a category choice is open over the dialogue (DialogueUI ignores input).</summary>
+        public bool IsGiveWindowOpen => _giveItemUI != null && _giveItemUI.IsOpen;
+
+        /// <summary>Give window open, or closed this frame (its Escape must not also close the dialogue).</summary>
+        public bool IsGiveWindowOpenOrJustClosed => _giveItemUI != null && _giveItemUI.IsOpenOrJustClosed;
 
         private NPCMemoryComponent _currentNPCMemory;
         private NPCDialogueGraphComponent _currentGraph;
@@ -202,7 +210,7 @@ namespace Game.World
                     ChoiceOption[] availableChoices = _currentGraph != null
                         ? _currentGraph.GetAvailableChoices(choiceNode, _currentNPCMemory)
                         : choiceNode.choices ?? System.Array.Empty<ChoiceOption>();
-                    _dialogueUI.ShowChoiceNode(choiceNode, availableChoices);
+                    _dialogueUI.ShowChoiceNode(choiceNode, FilterMissingGoodsChoices(availableChoices));
                     break;
 
                 case TeachChoiceDialogueNode teachNode:
@@ -283,6 +291,8 @@ namespace Game.World
         public bool SelectChoice(ChoiceOption choice, ChoiceDialogueNode node = null)
         {
             if (choice == null) return false;
+            if (choice.requiredItem == null && choice.requiredCategory != GiveItemCategory.None)
+                return OpenGiveWindow(choice, node);
             // Item first: a missing item must not cost the player gold.
             if (choice.requiredItem != null && !HasChoiceItem(choice.requiredItem))
             {
@@ -291,6 +301,59 @@ namespace Game.World
             }
             if (choice.goldCost > 0 && !PayChoiceGold(choice.goldCost)) return false;
             if (choice.requiredItem != null && !TakeChoiceItem(choice.requiredItem)) return false;
+            ApplyChoice(choice, node);
+            return true;
+        }
+
+        /// <summary>
+        /// Called by the Give window when the player confirms <paramref name="item"/> for a category choice: re-checks the
+        /// item, pays the gold, moves one unit to the NPC's inventory, then applies the choice (seen, fact, signal, next
+        /// node). A choice that ends the chain returns the dialogue to its topic list.
+        /// </summary>
+        /// <returns>False when the dialogue was closed meanwhile or the item can no longer be given.</returns>
+        public bool CompleteGiveChoice(ChoiceOption choice, ChoiceDialogueNode node, ItemSO item)
+        {
+            if (!IsOpen || choice == null) return false;
+            if (!GiveItemRules.Matches(item, choice.requiredCategory) || _playerInventory == null
+                || _playerInventory.CountOf(item) <= 0)
+            {
+                string itemName = item != null ? item.itemName : "null";
+                GameLog.Warn(TAG, $"Choice '{choice.text}': {itemName} can't be given for {choice.requiredCategory}");
+                return false;
+            }
+            if (!CanAffordGold(choice.goldCost)) return false;
+            // Item before gold: a failed hand-over must not cost the player gold (PayChoiceGold can't fail after the check).
+            if (!GiveItemToNpc(item)) return false;
+            if (choice.goldCost > 0) PayChoiceGold(choice.goldCost);
+            ApplyChoice(choice, node);
+            if (choice.nextNode == null && IsOpen && _dialogueUI != null)
+                _dialogueUI.RestoreTopics();
+            return true;
+        }
+
+        // Category choice: nothing is applied yet, the Give window calls CompleteGiveChoice on Give. Returns false so
+        // DialogueUI doesn't treat the choice as done.
+        private bool OpenGiveWindow(ChoiceOption choice, ChoiceDialogueNode node)
+        {
+            if (!HasChoiceCategory(choice.requiredCategory))
+            {
+                GameLog.Warn(TAG, $"Choice '{choice.text}' needs a {choice.requiredCategory} item — the player has none");
+                return false;
+            }
+            if (!CanAffordGold(choice.goldCost)) return false;
+            if (_giveItemUI == null)
+            {
+                GameLog.Error(TAG, $"Choice '{choice.text}' needs the Give window but _giveItemUI is not assigned — choice refused");
+                return false;
+            }
+            _giveItemUI.Open(_currentNPCName, choice.requiredCategory, _playerInventory,
+                item => CompleteGiveChoice(choice, node, item));
+            return false;
+        }
+
+        // Shared tail of a picked choice: seen state, dialogueFact, signal, then the next node (or topic completion).
+        private void ApplyChoice(ChoiceOption choice, ChoiceDialogueNode node)
+        {
             if (node != null)
                 MarkSeen(node, node.ChoiceSeenId(choice));
 
@@ -312,6 +375,53 @@ namespace Game.World
                 AdvanceToNode(choice.nextNode);
             else
                 NotifyTopicCompleted();
+        }
+
+        /// <summary>True when the player holds at least one item of <paramref name="category"/> (a ChoiceOption.requiredCategory).</summary>
+        public bool HasChoiceCategory(GiveItemCategory category)
+        {
+            if (category == GiveItemCategory.None) return true;
+            if (_playerInventory == null) return false;
+            foreach (var slot in _playerInventory.Items)
+                if (GiveItemRules.Matches(slot.Item, category)) return true;
+            return false;
+        }
+
+        /// <summary>True when the player holds what <paramref name="choice"/> hands over: its requiredItem, else its category.</summary>
+        public bool HasChoiceGoods(ChoiceOption choice)
+        {
+            if (choice == null) return false;
+            if (choice.requiredItem != null) return HasChoiceItem(choice.requiredItem);
+            return HasChoiceCategory(choice.requiredCategory);
+        }
+
+        // ChoiceOption.hideWhenMissing: the row disappears while the player doesn't hold its item / category.
+        private ChoiceOption[] FilterMissingGoodsChoices(ChoiceOption[] choices)
+        {
+            if (choices == null) return System.Array.Empty<ChoiceOption>();
+            var kept = new System.Collections.Generic.List<ChoiceOption>(choices.Length);
+            foreach (var c in choices)
+                if (c != null && !(c.hideWhenMissing && !HasChoiceGoods(c))) kept.Add(c);
+            return kept.Count == choices.Length ? choices : kept.ToArray();
+        }
+
+        // A category choice's item goes to the NPC (lootable back), unlike requiredItem which is consumed.
+        private bool GiveItemToNpc(ItemSO item)
+        {
+            if (!_playerInventory.TryConsume(item))
+            {
+                GameLog.Warn(TAG, $"{item.itemName} couldn't be taken from the player");
+                return false;
+            }
+            if (_currentNPCInventory == null)
+                GameLog.Warn(TAG, $"{_currentNPCName} has no InventorySystem — {item.itemName} is consumed");
+            else if (!_currentNPCInventory.AddItem(item))
+            {
+                _playerInventory.AddItem(item); // the NPC can't take it: give it back, nothing applied
+                GameLog.Warn(TAG, $"{_currentNPCName}'s inventory refused {item.itemName} — returned to the player");
+                return false;
+            }
+            GameLog.Info(TAG, $"Player gave {item.itemName} to {_currentNPCName}");
             return true;
         }
 
@@ -553,6 +663,7 @@ namespace Game.World
 
         public void Close()
         {
+            if (_giveItemUI != null && _giveItemUI.IsOpen) _giveItemUI.Close();
             if (_dialogueUI == null) return;
             _dialogueUI.Close();
             IsOpen = false;

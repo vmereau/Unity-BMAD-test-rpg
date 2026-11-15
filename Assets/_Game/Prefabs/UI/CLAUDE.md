@@ -25,6 +25,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 │   └── HealthBar (Fill + PendingFill) / StatusEffectBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50; CanvasGroup ignoreParentGroups)
 ├── CookingUI / NPCTradeUI / ContainerUI   (nested prefabs, inactive by default, AFTER Game so they win over the HUD; each root has HideHudWhileOpen → Game; CookingUI._playerInventory is a Player.prefab override)
 ├── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
+├── GiveItemUI           (nested Prefabs/UI/Give/GiveItemUI.prefab, inactive — AFTER DialoguePanel so it covers it; HideHudWhileOpen → Game is a Player.prefab override)
 ├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList / OptionsUI / BackButton
 ├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
 ├── ConfirmDialog        (ConfirmDialogUI, inactive — shared Yes/No)

@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_BeatenWorker_Feed
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Let's see it, then.
+  nextNode: {fileID: 0}
+  _id: 1dc829f3089fb754faeb83c3ffad25af
+  choices:
+  - text: Here, this should help.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 074b72610b985594d916fa9df7b791ec, type: 2}
+    dialogueFact: {fileID: 11400000, guid: fd03526f28e9bdc42adce7684f3636ac, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 1
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: Here, I have even better than what you were asking for.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: fbe452dda2e92084baac1b6a998b2595, type: 2}
+    dialogueFact: {fileID: 11400000, guid: af6aba729f8d36a4ba040005ebcff2cb, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 2
+    hideWhenMissing: 1
+    signal: {fileID: 0}
+  - text: Not yet.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: e6200922954909a4997caa34447b0782, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: I don't have any money for food.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: acba6f261c5727748b73f46becd6956c, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

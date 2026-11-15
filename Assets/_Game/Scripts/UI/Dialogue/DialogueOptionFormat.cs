@@ -89,6 +89,18 @@ namespace Game.UI
         }
 
         /// <summary>
+        /// Name of what <paramref name="choice"/> hands over, for <see cref="ChoiceCostLabel"/>: its requiredItem's name,
+        /// else its category label ("Food" / "Meal"). Null when it hands over nothing.
+        /// </summary>
+        public static string ChoiceGoodsName(ChoiceOption choice)
+        {
+            if (choice == null) return null;
+            if (choice.requiredItem != null) return choice.requiredItem.itemName;
+            string label = Game.Inventory.GiveItemRules.Label(choice.requiredCategory);
+            return string.IsNullOrEmpty(label) ? null : label;
+        }
+
+        /// <summary>
         /// " (10 LP, 50g, Strength: 30)" — each part the player can't pay (<paramref name="shortfall"/>) in red.
         /// Empty when the choice is free and has no stat requirement.
         /// </summary>

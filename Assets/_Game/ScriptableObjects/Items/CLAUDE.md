@@ -109,6 +109,7 @@ Adds to `UsableItemSO`:
 |---|---|---|
 | `_kind` / `Kind` | `ConsumableKind` | `Potion` (default) or `Meal` (cooked food) — the detail category. Raw food stays `Potion` but is `isIngredient`, so it shows "Ingredient". `OnValidate` warns on `Meal` + `isIngredient` |
 | `_healAmount` | `float` | HP restored on use (default 30) |
+| `_readyToEat` / `IsReadyToEat` | `bool` | Eaten as is (`Item_Apple`, `Item_Bread`): matches `GiveItemCategory.ReadyFood`, the food a dialogue Give choice accepts. Leave off raw fish, mushrooms, herbs and meals (`OnValidate` warns on Meal + readyToEat). Category rules: `GiveItemCategory.cs` (`GiveItemRules.Matches` / `Label`, `GiveItemRulesTests`) |
 | `HealAmount` (property) | `float` | Public read accessor |
 
 `OnUse` heals `_healAmount`: **instantly** (potions, `Item_HealingPlant`) or, when `_overTimeEffect` + `_durationMinutes`

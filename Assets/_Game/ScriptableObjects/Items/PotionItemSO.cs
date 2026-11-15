@@ -30,6 +30,9 @@ namespace Game.Inventory
         [Tooltip("Meal = cooked food (never an ingredient). Raw food is flagged isIngredient and shown as Ingredient.")]
         [SerializeField] private ConsumableKind _kind = ConsumableKind.Potion;
         [SerializeField] private float _healAmount = 30f;
+        [Tooltip("Eaten as is (apple, bread): accepted by dialogue choices asking for food (GiveItemCategory.ReadyFood). " +
+                 "Leave off raw fish, mushrooms, herbs and cooked meals.")]
+        [SerializeField] private bool _readyToEat;
 
         [Header("Heal over time (food)")]
         [Tooltip("Status effect that delivers the heal over time. Empty = instant heal (potions).")]
@@ -48,6 +51,7 @@ namespace Game.Inventory
 
         public ConsumableKind Kind => _kind;
         public float HealAmount => _healAmount;
+        public bool IsReadyToEat => _readyToEat;
 
         /// <summary>True when the heal is delivered over time instead of instantly.</summary>
         public bool HealsOverTime => _overTimeEffect != null && _durationMinutes > 0f;
@@ -177,6 +181,8 @@ namespace Game.Inventory
             base.OnValidate();
             if (_kind == ConsumableKind.Meal && isIngredient)
                 GameLog.Warn(TAG, $"{name}: a Meal is flagged isIngredient — cooked meals shouldn't be cooking ingredients");
+            if (_kind == ConsumableKind.Meal && _readyToEat)
+                GameLog.Warn(TAG, $"{name}: a Meal is flagged readyToEat — it counts as a Meal, never as plain food");
             if ((_overTimeEffect != null) != (_durationMinutes > 0f))
                 GameLog.Warn(TAG, $"{name}: heal over time needs both an effect and a duration — it heals instantly");
             if (_permanentBonuses == null) return;

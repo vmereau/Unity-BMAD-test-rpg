@@ -35,7 +35,9 @@
   list) and its end shows the NPC's topics, re-queried by `RestoreTopics`.
 - **Paid choices** (`ChoiceOption.goldCost`, `requiredItem`): `DialogueOptionFormat.ChoiceCostLabel` suffix (" (10g, Notice for …)"),
   each part red while unpayable; the row is disabled + dimmed while `DialogueSystem.CanAffordGold` or `HasChoiceItem` is false;
-  `SelectChoice` returns false when the payment fails (the row does nothing).
+  `SelectChoice` returns false when the payment fails (the row does nothing). A `requiredCategory` row reads " (Food)" / " (Meal)"
+  (`ChoiceGoodsName`, `HasChoiceGoods`); picking it opens `GiveItemUI` and `SelectChoice` returns false, and while that window
+  is open `IsInputAllowed` is false. After a give whose choice ends the chain, `DialogueSystem` calls the public `RestoreTopics()`.
 - **Forced line** (`OpenLine(npcName, line)`, NPC-initiated, e.g. a theft scold): opens straight in `Text` with no topic list; `_forcedLine` makes click, slot 1, `_nextNodeButton` and Escape all call `DialogueSystem.Close()`. Reset by `Open()` / `Close()`.
 
 ## Cursor

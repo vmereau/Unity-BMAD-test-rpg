@@ -87,12 +87,15 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 |----------|---------|---------|
 | dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he refuses, warns about helping strangers; unlocks camp-people + stash), mock him (closes both; only "Not for you." remains), or leave (opener stays) |
 | dlg-npc002-camp-people | After offering help in the opener | Impressions of key NPCs — warden, stash owner, guards |
-| dlg-npc002-stash-hint | After offering help in the opener | He's hungry and doesn't care where food comes from. Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest (starts quest-001): "if you get caught, you never met me" |
+| dlg-npc002-stash-hint | After offering help in the opener | He's hungry and doesn't care where food comes from; either answer starts quest-001 (Food for Tam). Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest: "if you get caught, you never met me" |
+| dlg-npc002-feed | quest-001 started | Player hands him food through the Give window: bread or an apple (base ending) or a cooked meal ("even better than what you were asking for": better ending, he won't forget it). Completes quest-001 |
+| dlg-npc002-stash-reported | Hint + stash taken | "You were right about Brann's supplies." Dry approval, small XP, doesn't complete the quest |
 | dlg-npc002-rebel-mention | Player asks about resistance | "Heard there's people who've had enough." No more than that. |
 
 ---
 
 ## Open Threads
 
-- Opener, camp-people, stash-hint and stash follow-up exist; rebel mention not written yet
+- Opener, camp-people, stash-hint, feed and stash follow-up exist; rebel mention not written yet
+- The meal ending (`DialogueFact_HiddenStash_FedMeal`) is meant to open something later: a favour, a tip, a contact
 - Potential: does he have a personal quest of his own, or is he purely a support NPC?

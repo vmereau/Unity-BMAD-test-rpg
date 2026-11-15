@@ -64,8 +64,9 @@ Tam worked out how little he can do before the Warden beats him, and stopped pre
 |-------|--------------|
 | `Greeting/` "Are you alright?" (opener) | until `DialogueFact_BeatenWorker_OfferedHelp` or `_Mocked` is set. Choices: help (sets OfferedHelp), mock (sets Mocked), leave (no fact) |
 | `CampPeople/` "Who should I watch out for?" | OfferedHelp, not Mocked |
-| `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Hint`. The Hint fact (quest start) is set by the "I don't have any money for food." choice, not by the start node |
-| `StashReported/` | Hint + `WorldFact_HiddenStash_Taken` (unchanged) |
+| `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Asked`. The start node sets Asked at chain end (quest start, either answer); the "I don't have any money for food." choice also sets `DialogueFact_HiddenStash_Hint` (Brann's chest) |
+| `Feed/` "I brought you something to eat." | Asked, not FedFood / FedMeal / Mocked. "Here, this should help." = Give window for ReadyFood (Apple / Bread) → `DialogueFact_HiddenStash_FedFood` (+50 XP); "Here, I have even better than what you were asking for." = Meal, hidden without a meal → `_FedMeal` (+100 XP, kept for later content); "Not yet."; "I don't have any money for food." → Hint + the chest lines. Either Fed fact completes the quest; the item ends in Tam's inventory |
+| `StashReported/` "You were right about Brann's supplies..." | Asked + Hint + `WorldFact_HiddenStash_Taken`, not Reported / Mocked. Side line: +25 XP (`PlayerReward_HiddenStash_Reported`), does not complete the quest |
 | `Cold/` "Got a moment?" → "Not for you." (repeatable) | Mocked |
 
 ---

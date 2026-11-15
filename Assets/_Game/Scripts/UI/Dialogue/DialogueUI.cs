@@ -139,6 +139,8 @@ namespace Game.UI
         private void HandleCancel(InputAction.CallbackContext ctx)
         {
             if (_state != DisplayState.Topics && !_forcedLine && !_forcedTopic) return;
+            // This Escape belongs to the Give window (it may have closed it earlier in this frame).
+            if (_dialogueSystem != null && _dialogueSystem.IsGiveWindowOpenOrJustClosed) return;
             if (_dialogueSystem != null)
                 _dialogueSystem.Close();
         }
@@ -336,7 +338,9 @@ namespace Game.UI
 
         // ── Private Helpers ─────────────────────────────────────────────────────
 
-        private bool IsInputAllowed() => DialogueReveal.IsInputAllowed(Time.unscaledTime - _shownAt, _inputGrace);
+        // The Give window sits over the dialogue: keys / clicks must not reach the choices behind it.
+        private bool IsInputAllowed() => DialogueReveal.IsInputAllowed(Time.unscaledTime - _shownAt, _inputGrace)
+                                         && !(_dialogueSystem != null && _dialogueSystem.IsGiveWindowOpen);
 
         private void MarkShown() => _shownAt = Time.unscaledTime;
 
@@ -390,7 +394,8 @@ namespace Game.UI
                 _responseText.maxVisibleCharacters = int.MaxValue;
         }
 
-        private void RestoreTopics()
+        /// <summary>Back to the NPC's topic list after a chain ends (also called by DialogueSystem after a Give-window choice).</summary>
+        public void RestoreTopics()
         {
             // A forced topic has no topic list to go back to: its end closes the dialogue.
             if (_forcedTopic)
@@ -489,8 +494,9 @@ namespace Game.UI
             bool seen = tag == DialogueOptionTag.None && _dialogueSystem != null && _dialogueSystem.IsChoiceSeen(node, choice);
             // A paid choice the player can't afford is shown disabled and dimmed, with its cost in red (like teach rows).
             bool canAfford = choice.goldCost <= 0 || (_dialogueSystem != null && _dialogueSystem.CanAffordGold(choice.goldCost));
-            // A choice that hands over an item is disabled the same way while the player doesn't hold it.
-            bool hasItem = choice.requiredItem == null || (_dialogueSystem != null && _dialogueSystem.HasChoiceItem(choice.requiredItem));
+            // A choice that hands over an item (or an item of a category) is disabled the same way while the player
+            // doesn't hold one.
+            bool hasItem = _dialogueSystem != null && _dialogueSystem.HasChoiceGoods(choice);
             bool canPick = canAfford && hasItem;
             System.Action action = null;
             if (canPick)
@@ -502,7 +508,7 @@ namespace Game.UI
                 };
             AddOptionButton(choice.text, slot, action, tag, seen || !canPick,
                 DialogueOptionFormat.ChoiceCostLabel(choice.goldCost, canAfford,
-                    choice.requiredItem != null ? choice.requiredItem.itemName : null, hasItem));
+                    DialogueOptionFormat.ChoiceGoodsName(choice), hasItem));
         }
 
         private void AddTeachChoiceButton(TeachChoiceOption choice, int slot)

@@ -643,6 +643,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a78a8477861ed6a4da4bce53b45e6540, type: 2}
   - {fileID: 11400000, guid: 9cc06fd79b542ee4492762602eaacf87, type: 2}
   - {fileID: 11400000, guid: 36727ae989b4d5f4ba08e6a83360b05b, type: 2}
+  - {fileID: 11400000, guid: 3a23962b747a12d4cac50cd5d4a23ea4, type: 2}
+  - {fileID: 11400000, guid: 7664698c6f623ae45a116348c96cf46d, type: 2}
+  - {fileID: 11400000, guid: 1993fa74ae4bb1a43b68aac3b9d13c18, type: 2}
 --- !u!114 &1472871286454628577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -756,6 +759,7 @@ MonoBehaviour:
   _lpSystem: {fileID: 7805096736339071647}
   _playerSkills: {fileID: 660869248586365014}
   _tradeUI: {fileID: 32427112177887266}
+  _giveItemUI: {fileID: 395777248026035747}
   _playerInventory: {fileID: 1994668802294238475}
   _goldItem: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
   _onDialogueSignal: {fileID: 11400000, guid: fc6e04a585688194e9bfa886ca614015, type: 2}
@@ -2373,6 +2377,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15f38a8204470ae4ea4facad0c5705fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Game.UI.NPCTradeUI
+--- !u!114 &395777248026035747 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6389042916303897090, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+  m_PrefabInstance: {fileID: 6761140961654539297}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8d8755cae9b9614389b8211da911dc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.UI.GiveItemUI
 --- !u!114 &576199237022889503 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6497418583278793278, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
