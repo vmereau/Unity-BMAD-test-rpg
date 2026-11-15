@@ -49,6 +49,9 @@ namespace Game.UI
         private int _contextMenuSlotIndex = -1;
 
         private ItemSlotUI _selectedSlotUI;
+        private int _selectedIndex = -1;
+        private TradeSide _selectedSide;
+        private bool _bulkHeld; // Shift: buy / sell up to BulkTransferRules.BulkSize affordable units
 
         private InputSystem_Actions _input;
 
@@ -80,7 +83,21 @@ namespace Game.UI
             _input?.Dispose();
         }
 
-        private void HandleGoldChanged(int newGold) => UpdateGoldDisplay();
+        // Shift is polled (no callback on hand-added UI actions); repaint the selection's label + price on change.
+        private void Update()
+        {
+            if (_input == null) return;
+            bool bulk = _input.UI.BulkModifier.IsPressed();
+            if (bulk == _bulkHeld) return;
+            _bulkHeld = bulk;
+            RepaintSelection();
+        }
+
+        private void HandleGoldChanged(int newGold)
+        {
+            UpdateGoldDisplay();
+            RepaintSelection(); // the affordable batch follows the player's gold
+        }
 
         private void HandlePlayerKnockedOut(bool _)
         {
@@ -98,7 +115,8 @@ namespace Game.UI
         {
             _npcInventory = npcInventory;
             _npcGoldSystem = npcGoldSystem;
-            gameObject.SetActive(true);
+            gameObject.SetActive(true); // enables the UI map (OnEnable)
+            _bulkHeld = _input != null && _input.UI.BulkModifier.IsPressed();
             OnScreenOpen();
         }
 
@@ -147,6 +165,8 @@ namespace Game.UI
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotUI = root.GetChild(index).GetComponent<ItemSlotUI>();
             _selectedSlotUI?.SetSelected(true);
+            _selectedIndex = index;
+            _selectedSide = side;
 
             UpdateDetailPanel(inv.Items[index].Item, index, side);
         }
@@ -158,27 +178,59 @@ namespace Game.UI
 
         public void OnSlotDoubleClicked(int index, TradeSide side)
         {
-            if (side == TradeSide.NPC) BuyItem(index);
-            else SellItem(index);
+            if (side == TradeSide.NPC) BuyBatch(index);
+            else SellBatch(index);
         }
+
+        /// <summary>
+        /// Units one buy / sell on this slot moves right now: 1, or with Shift up to 10 the buyer can afford
+        /// (player gold for NPC-side items, NPC gold for player-side items). Never below 1 while the slot exists.
+        /// </summary>
+        public int BatchSize(int index, TradeSide side)
+        {
+            InventorySystem inv = (side == TradeSide.NPC) ? _npcInventory : _playerInventory;
+            if (inv == null || index < 0 || index >= inv.Count || inv.Items[index].Item == null) return 0;
+            ItemSO item = inv.Items[index].Item;
+            bool buying = side == TradeSide.NPC;
+            GoldSystem buyer = buying ? _goldSystem : _npcGoldSystem;
+            int unitPrice = buying ? item.buyValue : item.sellValue;
+            // GoldSystem.TrySpend refuses 0g, so a free item can't be traded in bulk: never advertise a batch.
+            bool bulk = _bulkHeld && unitPrice > 0;
+            return BulkTransferRules.Quantity(bulk, inv.Items[index].Count, unitPrice, buyer != null ? buyer.Gold : 0);
+        }
+
+        public void BuyBatch(int index) => BuyItems(index, BatchSize(index, TradeSide.NPC));
+        public void SellBatch(int index) => SellItems(index, BatchSize(index, TradeSide.Player));
 
         private void UpdateDetailPanel(ItemSO item, int slotIndex, TradeSide side)
         {
             if (_detailPanelUI == null) return;
-            _detailPanelUI.Show(item, side == TradeSide.NPC ? ItemPriceContext.Buy : ItemPriceContext.Sell);
-            _tradeActions?.Bind(this, slotIndex, item, side, _goldSystem, _npcGoldSystem);
+            int qty = BatchSize(slotIndex, side);
+            _detailPanelUI.Show(item, side == TradeSide.NPC ? ItemPriceContext.Buy : ItemPriceContext.Sell, qty);
+            _tradeActions?.Bind(this, slotIndex, item, side, _goldSystem, _npcGoldSystem, qty);
+        }
+
+        // Shift pressed / released: repaint the selected slot's button label and price row.
+        private void RepaintSelection()
+        {
+            if (_selectedIndex < 0) return;
+            InventorySystem inv = (_selectedSide == TradeSide.NPC) ? _npcInventory : _playerInventory;
+            if (inv == null || _selectedIndex >= inv.Count) return;
+            UpdateDetailPanel(inv.Items[_selectedIndex].Item, _selectedIndex, _selectedSide);
         }
 
         private void ClearSelection()
         {
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotUI = null;
+            _selectedIndex = -1;
             _detailPanelUI?.Hide();
         }
 
         private void RefreshGrids()
         {
             _selectedSlotUI = null;
+            _selectedIndex = -1;
             RefreshGrid(_npcContentRoot, _npcInventory);
             RefreshGrid(_playerContentRoot, _playerInventory);
         }
@@ -232,14 +284,16 @@ namespace Game.UI
             if (buyBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'BuyButton' not found in context menu prefab");
             if (sellBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'SellButton' not found in context menu prefab");
 
+            int qty = BatchSize(slotIndex, side); // captured at open: the label is what the click does
             if (side == TradeSide.NPC)
             {
                 if (buyBtn != null)
                 {
+                    int total = item.buyValue * qty;
                     buyBtn.gameObject.SetActive(true);
-                    buyBtn.GetComponentInChildren<TMP_Text>().text = $"Buy ({item.buyValue}g)";
-                    buyBtn.interactable = _goldSystem != null && _goldSystem.Gold >= item.buyValue;
-                    buyBtn.onClick.AddListener(() => { BuyItem(_contextMenuSlotIndex); HideContextMenu(); });
+                    buyBtn.GetComponentInChildren<TMP_Text>().text = $"{BulkTransferRules.ActionLabel("Buy", qty)} ({total}g)";
+                    buyBtn.interactable = _goldSystem != null && _goldSystem.Gold >= total;
+                    buyBtn.onClick.AddListener(() => { BuyItems(_contextMenuSlotIndex, qty); HideContextMenu(); });
                 }
                 sellBtn?.gameObject.SetActive(false);
             }
@@ -249,10 +303,11 @@ namespace Game.UI
                     sellBtn.gameObject.SetActive(false); // quest items can't be sold
                 else if (sellBtn != null)
                 {
+                    int total = item.sellValue * qty;
                     sellBtn.gameObject.SetActive(true);
-                    sellBtn.GetComponentInChildren<TMP_Text>().text = $"Sell ({item.sellValue}g)";
-                    sellBtn.interactable = _npcGoldSystem != null && _npcGoldSystem.Gold >= item.sellValue;
-                    sellBtn.onClick.AddListener(() => { SellItem(_contextMenuSlotIndex); HideContextMenu(); });
+                    sellBtn.GetComponentInChildren<TMP_Text>().text = $"{BulkTransferRules.ActionLabel("Sell", qty)} ({total}g)";
+                    sellBtn.interactable = _npcGoldSystem != null && _npcGoldSystem.Gold >= total;
+                    sellBtn.onClick.AddListener(() => { SellItems(_contextMenuSlotIndex, qty); HideContextMenu(); });
                 }
                 buyBtn?.gameObject.SetActive(false);
             }
@@ -264,17 +319,23 @@ namespace Game.UI
             if (_contextMenuBlocker != null) { Destroy(_contextMenuBlocker); _contextMenuBlocker = null; }
         }
 
-        public void BuyItem(int index)
-        {
-            if (_npcInventory == null || index < 0 || index >= _npcInventory.Count) return;
-            ItemSO item = _npcInventory.Items[index].Item;
+        public void BuyItem(int index) => BuyItems(index, 1);
+        public void SellItem(int index) => SellItems(index, 1);
 
-            if (_goldSystem == null || !_goldSystem.TrySpend(item.buyValue)) return;
-            CommitTrade(_npcInventory, _playerInventory, _npcGoldSystem, item, index, item.buyValue, TradeSide.NPC,
-                        $"Bought {item.itemName} for {item.buyValue}g");
+        /// <summary>Buys up to <paramref name="quantity"/> units, one at a time, stopping when gold runs out.</summary>
+        public void BuyItems(int index, int quantity)
+        {
+            if (_npcInventory == null || _goldSystem == null || index < 0 || index >= _npcInventory.Count) return;
+            ItemSO item = _npcInventory.Items[index].Item;
+            if (item == null) return;
+            int units = TradeUnits(_npcInventory, _playerInventory, _goldSystem, _npcGoldSystem, item, index,
+                                   item.buyValue, quantity);
+            if (units == 0) return;
+            FinishTrade(item, index, TradeSide.NPC, $"Bought {units} x {item.itemName} for {units * item.buyValue}g");
         }
 
-        public void SellItem(int index)
+        /// <summary>Sells up to <paramref name="quantity"/> units, one at a time, stopping when the NPC runs out of gold.</summary>
+        public void SellItems(int index, int quantity)
         {
             if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
@@ -283,22 +344,39 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"SellItem blocked: {item?.itemName} is a quest item");
                 return;
             }
-
-            if (_npcGoldSystem == null || !_npcGoldSystem.TrySpend(item.sellValue))
+            if (_npcGoldSystem == null)
+            {
+                GameLog.Warn(TAG, $"SellItem blocked: NPC has no gold system ({item.itemName})");
+                return;
+            }
+            int units = TradeUnits(_playerInventory, _npcInventory, _npcGoldSystem, _goldSystem, item, index,
+                                   item.sellValue, quantity);
+            if (units == 0)
             {
                 GameLog.Warn(TAG, $"SellItem blocked: NPC cannot afford {item.itemName} ({item.sellValue}g)");
                 return;
             }
-            CommitTrade(_playerInventory, _npcInventory, _goldSystem, item, index, item.sellValue, TradeSide.Player,
-                        $"Sold {item.itemName} for {item.sellValue}g");
+            FinishTrade(item, index, TradeSide.Player, $"Sold {units} x {item.itemName} for {units * item.sellValue}g");
         }
 
-        private void CommitTrade(InventorySystem fromInv, InventorySystem toInv, GoldSystem receiverGold,
-                                  ItemSO item, int index, int goldAmount, TradeSide fromSide, string logMessage)
+        // Moves units one at a time with the one-unit rules (payer spends, receiver gets paid, item changes hands).
+        private static int TradeUnits(InventorySystem fromInv, InventorySystem toInv, GoldSystem payer,
+                                      GoldSystem receiverGold, ItemSO item, int index, int unitPrice, int quantity)
         {
-            receiverGold?.Add(goldAmount);
-            fromInv.DecrementStack(index);
-            toInv?.AddItem(item);
+            int units = 0;
+            while (units < quantity && index < fromInv.Count && fromInv.Items[index].Item == item &&
+                   payer.TrySpend(unitPrice))
+            {
+                receiverGold?.Add(unitPrice);
+                fromInv.DecrementStack(index);
+                toInv?.AddItem(item);
+                units++;
+            }
+            return units;
+        }
+
+        private void FinishTrade(ItemSO item, int index, TradeSide fromSide, string logMessage)
+        {
             RefreshGrids();
             UpdateGoldDisplay();
             RefreshDetailPanelAfterTrade(item, index, fromSide);

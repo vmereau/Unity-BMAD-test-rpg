@@ -38,7 +38,8 @@ If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFou
   `IPlayerActions` callback entries — read them through `_input.Player.<Action>`.
 - **UI:** Navigate, Submit, **Cancel** (Escape), Point, **Click** (left mouse), RightClick, MiddleClick,
   ScrollWheel, TrackedDevice*, DialogueOption1–9 / DialogueOption0, DialogueAdvance (Space / Enter / Numpad
-  Enter / E — hand-added, no `IUIActions` callback; read through `_input.UI.DialogueAdvance`).
+  Enter / E — hand-added, no `IUIActions` callback; read through `_input.UI.DialogueAdvance`), BulkModifier
+  (left / right Shift) and TakeAll (R) — both hand-added, polled by `ContainerUI` / `NPCTradeUI` in `Update`.
 
 Consequences: Escape / menu-close logic reads `_input.UI.Cancel`, and cursor re-lock on click reads
 `_input.UI.Click` — so any script reading those must `Enable()` / `Disable()` the **UI** map alongside the

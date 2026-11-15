@@ -985,6 +985,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "BulkModifier",
+                    "type": "Button",
+                    "id": "b0c10000-b0c1-b0c1-b0c1-b0c1b0c1b0c1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "TakeAll",
+                    "type": "Button",
+                    "id": "7a110000-7a11-7a11-7a11-7a117a117a11",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1557,6 +1575,39 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "DialogueAdvance",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b0c1b001-b0c1-b0c1-b0c1-b0c1b0c1b001",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "BulkModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b0c1b002-b0c1-b0c1-b0c1-b0c1b0c1b002",
+                    "path": "<Keyboard>/rightShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "BulkModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7a11b001-7a11-7a11-7a11-7a117a11b001",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "TakeAll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

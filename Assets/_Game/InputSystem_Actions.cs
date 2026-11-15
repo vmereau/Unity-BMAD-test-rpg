@@ -1072,6 +1072,24 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BulkModifier"",
+                    ""type"": ""Button"",
+                    ""id"": ""b0c10000-b0c1-b0c1-b0c1-b0c1b0c1b0c1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""TakeAll"",
+                    ""type"": ""Button"",
+                    ""id"": ""7a110000-7a11-7a11-7a11-7a117a117a11"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1646,6 +1664,39 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""DialogueAdvance"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b0c1b001-b0c1-b0c1-b0c1-b0c1b0c1b001"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""BulkModifier"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b0c1b002-b0c1-b0c1-b0c1-b0c1b0c1b002"",
+                    ""path"": ""<Keyboard>/rightShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""BulkModifier"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7a11b001-7a11-7a11-7a11-7a117a11b001"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""TakeAll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1764,6 +1815,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_UI_DialogueOption9 = m_UI.FindAction("DialogueOption9", throwIfNotFound: true);
         m_UI_DialogueOption0 = m_UI.FindAction("DialogueOption0", throwIfNotFound: true);
         m_UI_DialogueAdvance = m_UI.FindAction("DialogueAdvance", throwIfNotFound: true);
+        m_UI_BulkModifier = m_UI.FindAction("BulkModifier", throwIfNotFound: true);
+        m_UI_TakeAll = m_UI.FindAction("TakeAll", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -2101,6 +2154,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_DialogueOption9;
     private readonly InputAction m_UI_DialogueOption0;
     private readonly InputAction m_UI_DialogueAdvance;
+    private readonly InputAction m_UI_BulkModifier;
+    private readonly InputAction m_UI_TakeAll;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -2164,6 +2219,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @DialogueOption0 => m_Wrapper.m_UI_DialogueOption0;
         /// <summary>Provides access to the underlying input action "UI/DialogueAdvance" (hand-added, no IUIActions callback).</summary>
         public InputAction @DialogueAdvance => m_Wrapper.m_UI_DialogueAdvance;
+        /// <summary>Provides access to the underlying input action "UI/BulkModifier" (Shift, hand-added, no IUIActions callback).</summary>
+        public InputAction @BulkModifier => m_Wrapper.m_UI_BulkModifier;
+        /// <summary>Provides access to the underlying input action "UI/TakeAll" (R, hand-added, no IUIActions callback).</summary>
+        public InputAction @TakeAll => m_Wrapper.m_UI_TakeAll;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>

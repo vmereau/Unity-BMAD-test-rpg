@@ -703,3 +703,12 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Old dev saves** that completed HiddenStash through `Reported` now show it in progress (completion moved to FedFood / FedMeal).
 - **Give window has no keyboard selection** (mouse only); Escape cancels. Add arrow-key / number navigation if controller support comes.
 - **Meal ending payoff**: `DialogueFact_HiddenStash_FedMeal` is set but nothing reads it yet (planned opportunity with Tam).
+
+## From spec-bulk-loot-and-trade (2026-11-15)
+
+- **Free items can't be traded** (pre-existing): `GoldSystem.TrySpend(0)` returns false, so a `buyValue` / `sellValue` of 0
+  makes Buy / Sell silently do nothing while the button stays enabled. Bulk now shows ×1 for them.
+- **Trade pays before the item lands** (pre-existing): `NPCTradeUI.TradeUnits` ignores `AddItem`'s result, so buying a
+  `GoldItemSO` whose currency collection is rejected loses item and gold. Check / refund per unit.
+- **Context-menu batch is fixed when the menu opens** (by design): toggling Shift while the trade / container menu is
+  open doesn't repaint or change its quantity; the detail buttons recompute on click.

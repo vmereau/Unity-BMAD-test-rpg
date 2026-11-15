@@ -153,18 +153,25 @@ namespace Game.UI
         /// <summary>False for <see cref="ItemPriceContext.None"/>: the panel hides its price section.</summary>
         public static bool ShowsPrice(ItemPriceContext context) => context != ItemPriceContext.None;
 
-        public static string GetPriceLabel(ItemPriceContext context) => context switch
+        /// <summary>Price row label; a <paramref name="quantity"/> above 1 (Shift bulk trade) appends " (×N)".</summary>
+        public static string GetPriceLabel(ItemPriceContext context, int quantity = 1)
         {
-            ItemPriceContext.Buy => PRICE_LABEL_BUY,
-            ItemPriceContext.Sell => PRICE_LABEL_SELL,
-            ItemPriceContext.None => "",
-            _ => PRICE_LABEL_VALUE
-        };
+            string label = context switch
+            {
+                ItemPriceContext.Buy => PRICE_LABEL_BUY,
+                ItemPriceContext.Sell => PRICE_LABEL_SELL,
+                ItemPriceContext.None => "",
+                _ => PRICE_LABEL_VALUE
+            };
+            return quantity > 1 && label.Length > 0 ? $"{label} (×{quantity})" : label;
+        }
 
-        public static int GetPrice(ItemSO item, ItemPriceContext context)
+        /// <summary>Total price for <paramref name="quantity"/> units (values below 1 count as 1).</summary>
+        public static int GetPrice(ItemSO item, ItemPriceContext context, int quantity = 1)
         {
             if (item == null || context == ItemPriceContext.None) return 0;
-            return context == ItemPriceContext.Buy ? item.buyValue : item.sellValue;
+            int unit = context == ItemPriceContext.Buy ? item.buyValue : item.sellValue;
+            return unit * (quantity < 1 ? 1 : quantity);
         }
 
         private static ItemStatLine FirstMealLine(PotionItemSO meal, bool claimed)

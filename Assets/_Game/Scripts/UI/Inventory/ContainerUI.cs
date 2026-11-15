@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Inventory;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -21,6 +22,8 @@ namespace Game.UI
 
         [SerializeField] private ItemDetailPanelUI _detailPanelUI;
         [SerializeField] private ContainerDetailActions _containerActions;
+        [Tooltip("Container pane button: takes every unit, then closes the window (also R).")]
+        [SerializeField] private Button _takeAllButton;
 
         [SerializeField] private GameObject _contextMenuPrefab;
         [SerializeField] private Canvas _canvas;
@@ -38,6 +41,8 @@ namespace Game.UI
 
         private ItemSlotUI _selectedSlotUI;
         private ContainerSide _selectedSide;
+        private int _selectedIndex = -1;
+        private bool _bulkHeld; // Shift: actions move up to BulkTransferRules.BulkSize units
         private InputSystem_Actions _input;
 
         public bool IsOpen { get; private set; }
@@ -45,6 +50,22 @@ namespace Game.UI
         private void Awake()
         {
             _input = new InputSystem_Actions();
+            if (_takeAllButton != null) _takeAllButton.onClick.AddListener(TakeAll);
+            else GameLog.Warn(TAG, "Take All button is not assigned");
+        }
+
+        // Shift / R are polled (not callbacks) so the Take All close runs after the Player map's R (DrawWeapon)
+        // callback already saw an unlocked cursor (PlayerStateManager.IsBusy) and refused to draw.
+        private void Update()
+        {
+            if (!IsOpen || _input == null) return;
+            bool bulk = _input.UI.BulkModifier.IsPressed();
+            if (bulk != _bulkHeld)
+            {
+                _bulkHeld = bulk;
+                RepaintSelection();
+            }
+            if (_input.UI.TakeAll.WasPressedThisFrame()) TakeAll();
         }
 
         private void OnEnable()
@@ -96,7 +117,8 @@ namespace Game.UI
         {
             _containerInventory = containerInventory;
             _takeOnly = takeOnly;
-            gameObject.SetActive(true);
+            gameObject.SetActive(true); // enables the UI map (OnEnable)
+            _bulkHeld = _input != null && _input.UI.BulkModifier.IsPressed();
             OnScreenOpen();
         }
 
@@ -134,6 +156,7 @@ namespace Game.UI
             _selectedSlotUI = root.GetChild(index).GetComponent<ItemSlotUI>();
             _selectedSlotUI?.SetSelected(true);
             _selectedSide = side;
+            _selectedIndex = index;
 
             UpdateDetailPanel(inv.Items[index].Item, index, side);
         }
@@ -145,38 +168,102 @@ namespace Game.UI
 
         public void OnSlotDoubleClicked(int index, ContainerSide side)
         {
-            if (side == ContainerSide.Container) TakeItem(index);
-            else if (!_takeOnly) PutItem(index);
+            if (side == ContainerSide.Container) TakeBatch(index);
+            else if (!_takeOnly) PutBatch(index);
         }
 
-        public void TakeItem(int index)
+        /// <summary>Units one action on this slot moves right now: 1, or up to 10 while Shift is held.</summary>
+        public int BatchSize(int index, ContainerSide side)
+        {
+            InventorySystem inv = (side == ContainerSide.Container) ? _containerInventory : _playerInventory;
+            if (inv == null || index < 0 || index >= inv.Count) return 0;
+            return BulkTransferRules.Quantity(_bulkHeld, inv.Items[index].Count, 0, 0);
+        }
+
+        public void TakeBatch(int index) => TakeItems(index, BatchSize(index, ContainerSide.Container));
+        public void PutBatch(int index) => PutItems(index, BatchSize(index, ContainerSide.Player));
+
+        public void TakeItem(int index) => TakeItems(index, 1);
+        public void PutItem(int index) => PutItems(index, 1);
+
+        /// <summary>Takes up to <paramref name="quantity"/> units of the slot's item, one unit at a time.</summary>
+        public void TakeItems(int index, int quantity)
         {
             if (_containerInventory == null || _playerInventory == null ||
                 _containerInventory == _playerInventory || index < 0 || index >= _containerInventory.Count) return;
             ItemSO item = _containerInventory.Items[index].Item;
-            if (item == null || !_playerInventory.AddItem(item)) return;
-            _containerInventory.DecrementStack(index);
-            _onItemTaken?.Raise(new ContainerItemTakenData { sourceInventory = _containerInventory, item = item });
+            if (item == null) return;
+            int taken = 0;
+            while (taken < quantity && index < _containerInventory.Count &&
+                   _containerInventory.Items[index].Item == item && TakeUnit(index, item))
+                taken++;
+            if (taken == 0) return;
             RefreshGrids();
             RefreshDetailPanelAfterAction(item, index, ContainerSide.Container);
-            GameLog.Info(TAG, $"Took {item.itemName} from container");
+            GameLog.Info(TAG, $"Took {taken} x {item.itemName} from container");
         }
 
-        public void PutItem(int index)
+        /// <summary>Moves every unit to the player (R / Take All button), then closes once the container is empty.</summary>
+        public void TakeAll()
+        {
+            if (!IsOpen || _containerInventory == null || _playerInventory == null ||
+                _containerInventory == _playerInventory || _containerInventory.Count == 0) return;
+            HideContextMenu();
+            int taken = 0;
+            int i = 0;
+            while (IsOpen && i < _containerInventory.Count)
+            {
+                ItemSO item = _containerInventory.Items[i].Item;
+                int units = _containerInventory.Items[i].Count;
+                int moved = 0;
+                while (IsOpen && moved < units && item != null && TakeUnit(i, item)) moved++;
+                taken += moved;
+                // A refused unit (or null item / empty slot) stays: move on to the next slot.
+                if (units <= 0 || moved < units) i++;
+            }
+            if (!IsOpen) return; // a take reaction (quest, loot source lost) already closed the window
+            GameLog.Info(TAG, $"Take All: {taken} unit(s) taken, {_containerInventory.Count} slot(s) left");
+            if (_containerInventory.Count == 0)
+            {
+                Close();
+                return;
+            }
+            RefreshGrids();
+            ClearSelection();
+        }
+
+        // One unit: add to the player first, remove from the container only once accepted.
+        private bool TakeUnit(int index, ItemSO item)
+        {
+            if (!_playerInventory.AddItem(item)) return false;
+            _containerInventory.DecrementStack(index);
+            _onItemTaken?.Raise(new ContainerItemTakenData { sourceInventory = _containerInventory, item = item });
+            return true;
+        }
+
+        /// <summary>Puts up to <paramref name="quantity"/> units of the player slot's item into the container.</summary>
+        public void PutItems(int index, int quantity)
         {
             if (_takeOnly) return; // loot is take-only
-            if (_playerInventory == null || index < 0 || index >= _playerInventory.Count) return;
+            if (_playerInventory == null || _containerInventory == null ||
+                index < 0 || index >= _playerInventory.Count) return;
             ItemSO item = _playerInventory.Items[index].Item;
             if (!ItemSO.CanPlayerPart(item))
             {
                 GameLog.Warn(TAG, $"PutItem blocked: {item?.itemName} is a quest item");
                 return;
             }
-            _playerInventory.DecrementStack(index);
-            _containerInventory.AddItem(item);
+            int put = 0;
+            while (put < quantity && index < _playerInventory.Count && _playerInventory.Items[index].Item == item)
+            {
+                _playerInventory.DecrementStack(index);
+                _containerInventory.AddItem(item);
+                put++;
+            }
+            if (put == 0) return;
             RefreshGrids();
             RefreshDetailPanelAfterAction(item, index, ContainerSide.Player);
-            GameLog.Info(TAG, $"Put {item.itemName} into container");
+            GameLog.Info(TAG, $"Put {put} x {item.itemName} into container");
         }
 
         private void ShowContextMenu(int slotIndex, Vector2 screenPos, ContainerSide side)
@@ -211,12 +298,14 @@ namespace Game.UI
             if (takeBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'TakeButton' not found in context menu prefab");
             if (putBtn == null) GameLog.Warn(TAG, "ShowContextMenu: 'PutButton' not found in context menu prefab");
 
+            int qty = BatchSize(slotIndex, side); // captured at open: the label is what the click does
             if (side == ContainerSide.Container)
             {
                 if (takeBtn != null)
                 {
                     takeBtn.gameObject.SetActive(true);
-                    takeBtn.onClick.AddListener(() => { TakeItem(_contextMenuSlotIndex); HideContextMenu(); });
+                    SetButtonLabel(takeBtn, BulkTransferRules.ActionLabel("Take", qty));
+                    takeBtn.onClick.AddListener(() => { TakeItems(_contextMenuSlotIndex, qty); HideContextMenu(); });
                 }
                 putBtn?.gameObject.SetActive(false);
             }
@@ -227,10 +316,17 @@ namespace Game.UI
                 else if (putBtn != null)
                 {
                     putBtn.gameObject.SetActive(true);
-                    putBtn.onClick.AddListener(() => { PutItem(_contextMenuSlotIndex); HideContextMenu(); });
+                    SetButtonLabel(putBtn, BulkTransferRules.ActionLabel("Put", qty));
+                    putBtn.onClick.AddListener(() => { PutItems(_contextMenuSlotIndex, qty); HideContextMenu(); });
                 }
                 takeBtn?.gameObject.SetActive(false);
             }
+        }
+
+        private static void SetButtonLabel(Button button, string text)
+        {
+            var label = button.GetComponentInChildren<TMP_Text>(true);
+            if (label != null) label.text = text;
         }
 
         private void HideContextMenu()
@@ -243,8 +339,11 @@ namespace Game.UI
         private void RefreshGrids()
         {
             _selectedSlotUI = null;
+            _selectedIndex = -1;
             RefreshGrid(_containerContentRoot, _containerInventory);
             RefreshGrid(_playerContentRoot, _playerInventory);
+            if (_takeAllButton != null)
+                _takeAllButton.interactable = _containerInventory != null && _containerInventory.Count > 0;
         }
 
         private void RefreshGrid(Transform root, InventorySystem inv)
@@ -269,13 +368,23 @@ namespace Game.UI
         {
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotUI = null;
+            _selectedIndex = -1;
             _detailPanelUI?.Hide();
         }
 
         private void UpdateDetailPanel(ItemSO item, int slotIndex, ContainerSide side)
         {
             _detailPanelUI?.Show(item);
-            _containerActions?.Bind(this, slotIndex, item, side, _takeOnly);
+            _containerActions?.Bind(this, slotIndex, item, side, _takeOnly, BatchSize(slotIndex, side));
+        }
+
+        // Shift pressed / released: repaint the selected slot's button labels.
+        private void RepaintSelection()
+        {
+            if (_selectedIndex < 0) return;
+            InventorySystem inv = (_selectedSide == ContainerSide.Container) ? _containerInventory : _playerInventory;
+            if (inv == null || _selectedIndex >= inv.Count) return;
+            UpdateDetailPanel(inv.Items[_selectedIndex].Item, _selectedIndex, _selectedSide);
         }
 
         private void RefreshDetailPanelAfterAction(ItemSO item, int index, ContainerSide side)

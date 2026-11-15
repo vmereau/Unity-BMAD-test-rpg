@@ -12,7 +12,7 @@
 | `InventoryFilterBarUI` / `InventoryFilterTabUI` | Icon filter tabs at the top of the inventory grid panel (`InventoryFilterTab.prefab`, built from the bar's `_entries` in `Awake`). Shared hover tooltip "Weapons (3)" (slot counts pushed by `InventoryUI.RefreshSlots`), active = brass tint, empty category = dimmed icon. `ResetToAll()` on every `OnScreenOpen` (no event); `FilterChanged` → `InventoryUI` closes the context menu and repaints. |
 | `ItemFilter` / `ItemFilterRules` | Pure tab logic: `Classify` (same precedence as `ItemDetailFormatter.GetCategory` — keep the two in sync), `Matches`, `Label`, `TooltipText`. Covered by `ItemFilterRulesTests`. |
 | `ItemSlotUI` | Single inventory slot. Supports drag-and-drop, hover highlight, selection, stack count display. Notifies parent `InventoryUI` on click/drag events. |
-| `ItemDetailPanelUI` | Shared display-only detail panel (header / stats / description / price). Call `Show(ItemSO, ItemPriceContext = Value)` / `Hide()`. Paints only. |
+| `ItemDetailPanelUI` | Shared display-only detail panel (header / stats / description / price). Call `Show(ItemSO, ItemPriceContext = Value, int quantity = 1)` / `Hide()` (quantity > 1 totals the price row). Paints only. |
 | `ItemDetailFormatter` | Pure static display logic for the panel: category line, stat rows, skill description (tome: taught skill's description + effect text), price label/value. Player-dependent rows get their state injected (`BuildStatLines(item, into, isRecipeKnown, isMealBonusClaimed)` → recipe "Status: Already known / Not learned", food "First meal: +5 Max HP" / Muted "… (gained)"; the panel passes `WorldStateManager` checks) so it stays pure. Covered by `ItemDetailFormatterTests`. |
 | `ItemStatRowUI` | One label/value stat row (`ItemStatRow.prefab`). Hides the value for tag rows (empty value). |
 | `ItemStatLine` / `StatPolarity` | Row data (label, value, polarity → green/red/neutral/muted gray). |
@@ -62,7 +62,7 @@ InventoryUI  (IScreenPanel)
 ## ItemDetailPanelUI Notes
 
 - Layout (root `VerticalLayoutGroup`): `Header` (icon + name + category) → `StatsSection` → `DescriptionSection` → `Spacer` (flexible) → `PriceSection` → `ActionsContainer`. Empty sections hide with their divider.
-- `Show(item, ItemPriceContext)`: `NPCTradeUI` passes `Buy` (NPC side) / `Sell` (player side); inventory, equipment and containers use the default `Value`; `CookingUI`'s recipe card passes `None` (`_priceSection` → `PriceSection` hidden). The trade buttons read plain `Buy` / `Sell` (price lives in the panel).
+- `Show(item, ItemPriceContext)`: `NPCTradeUI` passes `Buy` (NPC side) / `Sell` (player side); inventory, equipment and containers use the default `Value`; `CookingUI`'s recipe card passes `None` (`_priceSection` → `PriceSection` hidden). The trade buttons read `Buy` / `Sell` (`Buy ×N` with Shift — see Bulk Transfer; price lives in the panel).
 - All display decisions (category, rows, order, polarity, price) live in `ItemDetailFormatter` — change and test them there, not in the MonoBehaviour.
 - Stat rows are pooled under `StatsSection/StatRows`: instantiated only when more are needed, extras `SetActive(false)`. Never destroy rows on `Show`.
 - **`ActionsContainer` must never be deleted/recreated** — each host statically nests its actions prefab under it (by fileID). Move/reorder only. It has no `ContentSizeFitter` (the root layout group sizes it).
@@ -78,10 +78,27 @@ InventoryUI  (IScreenPanel)
 
 - `ContainerUI.Open(InventorySystem containerInventory, bool takeOnly = false)` — the two-pane take/put screen. `takeOnly = true` is **corpse loot**: the player can take from the container side but cannot deposit. World containers pass `false` (full take/put).
 - The flag arrives via `ContainerOpenRequestData.takeOnly` (raised by `ContainerInteractable` = `false`, by `EntityPresence`/`NPCPresence` corpse loot = `true`), forwarded through `ContainerSystem.HandleContainerOpenRequested` → `ContainerUI.Open(inv, takeOnly)`.
-- In take-only mode all four player→container Put paths are suppressed: double-click (`OnSlotDoubleClicked`), context menu (`ShowContextMenu` early-returns for the player side), the `PutItem` backstop guard, and the detail-action Put button (`ContainerDetailActions.Bind(..., takeOnly)` hides it). Take paths stay fully functional; the player grid stays visible (you see your own inventory while looting).
+- In take-only mode all four player→container Put paths are suppressed: double-click (`OnSlotDoubleClicked`), context menu (`ShowContextMenu` early-returns for the player side), the `PutItems` backstop guard (behind `PutItem` / `PutBatch`), and the detail-action Put button (`ContainerDetailActions.Bind(..., takeOnly)` hides it). Take paths stay fully functional; the player grid stays visible (you see your own inventory while looting).
 - Auto-close: `_onPlayerDied` always; `_onLootSourceLost` (`GameEventSO_Inventory`) when the raised inventory is the open
   one — a knocked-out NPC starting to get up.
 - `_takeOnly` is reset on **every** `Open`, so a corpse open never leaks take-only state into a later world-container open (and vice-versa).
+
+---
+
+## Bulk Transfer (Take All + Shift ×10)
+
+- `BulkTransferRules` (pure, `BulkTransferRulesTests`): `Quantity(bulk, slotCount, unitPrice, budget)` = 1 without Shift,
+  else `min(10, slot units, budget / unitPrice)`, never below 1 while the slot exists (unaffordable → ×1, button
+  disabled by the caller); price ≤ 0 = no cap. `ActionLabel("Buy", 7)` → `Buy ×7`.
+- `ContainerUI` / `NPCTradeUI` poll `UI.BulkModifier` in `Update` and repaint the selected slot's buttons (and the
+  trade price row: `ItemDetailPanelUI.Show(item, ctx, quantity)` → `Price (×7)` + total) when Shift changes.
+  Double-click / detail buttons call `TakeBatch` / `PutBatch` / `BuyBatch` / `SellBatch` (batch recomputed at click);
+  the context menu captures its quantity when it opens. Each unit still goes through the one-unit rules, so
+  `OnContainerItemTaken` fires once per unit.
+- **Take All** (`ContainerSide/TakeAllButton`, an `ActionButton` with an added label, + `UI.TakeAll` = R): moves every
+  unit, closes the window once the container is empty (a refused unit, e.g. gold, keeps it open). R is polled in
+  `Update` on purpose: the Player map's R (`DrawWeapon`) callback runs first and is refused while the cursor is
+  unlocked (`IsBusy`) — closing from a callback could re-lock the cursor first and draw the weapon.
 
 ---
 

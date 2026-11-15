@@ -56,7 +56,8 @@ namespace Game.UI
             _canvasGroup = GetComponent<CanvasGroup>();
         }
 
-        public void Show(ItemSO item, ItemPriceContext priceContext = ItemPriceContext.Value)
+        /// <param name="quantity">Units the price row totals (Shift bulk trade); 1 = unit price.</param>
+        public void Show(ItemSO item, ItemPriceContext priceContext = ItemPriceContext.Value, int quantity = 1)
         {
             if (item == null)
             {
@@ -68,7 +69,7 @@ namespace Game.UI
             PaintHeader(item);
             PaintStats(item);
             PaintDescription(item);
-            PaintPrice(item, priceContext);
+            PaintPrice(item, priceContext, quantity);
 
             if (_canvasGroup != null)
             {
@@ -151,7 +152,7 @@ namespace Game.UI
             if (hasDescription && _descriptionText != null) _descriptionText.text = item.description;
         }
 
-        private void PaintPrice(ItemSO item, ItemPriceContext context)
+        private void PaintPrice(ItemSO item, ItemPriceContext context, int quantity)
         {
             bool showPrice = ItemDetailFormatter.ShowsPrice(context);
             if (_priceSection != null) _priceSection.SetActive(showPrice);
@@ -163,9 +164,9 @@ namespace Game.UI
             }
             if (!showPrice) return;
 
-            if (_priceLabelText != null) _priceLabelText.text = ItemDetailFormatter.GetPriceLabel(context);
+            if (_priceLabelText != null) _priceLabelText.text = ItemDetailFormatter.GetPriceLabel(context, quantity);
             if (_priceValueText == null) return;
-            _priceValueText.text = $"{ItemDetailFormatter.GetPrice(item, context)}g";
+            _priceValueText.text = $"{ItemDetailFormatter.GetPrice(item, context, quantity)}g";
             _priceValueText.color = _priceColor;
         }
 

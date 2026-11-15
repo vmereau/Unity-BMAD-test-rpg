@@ -375,6 +375,23 @@ namespace Tests.EditMode
             Assert.AreEqual(5, ItemDetailFormatter.GetPrice(item, ItemPriceContext.Sell));
         }
 
+        // Shift bulk trade: the price row totals the batch and the label carries the count.
+        [Test]
+        public void Price_TotalsQuantity()
+        {
+            var item = Create<ItemSO>();
+            item.buyValue = 15;
+            item.sellValue = 5;
+
+            Assert.AreEqual("Price (×4)", ItemDetailFormatter.GetPriceLabel(ItemPriceContext.Buy, 4));
+            Assert.AreEqual(60, ItemDetailFormatter.GetPrice(item, ItemPriceContext.Buy, 4));
+            Assert.AreEqual("Sells for (×6)", ItemDetailFormatter.GetPriceLabel(ItemPriceContext.Sell, 6));
+            Assert.AreEqual(30, ItemDetailFormatter.GetPrice(item, ItemPriceContext.Sell, 6));
+            Assert.AreEqual("Price", ItemDetailFormatter.GetPriceLabel(ItemPriceContext.Buy, 1));
+            Assert.AreEqual(15, ItemDetailFormatter.GetPrice(item, ItemPriceContext.Buy, 0));
+            Assert.AreEqual("", ItemDetailFormatter.GetPriceLabel(ItemPriceContext.None, 3));
+        }
+
         // Crafting recipe card: None hides the price section, every other context shows it.
         [TestCase(ItemPriceContext.Value, true)]
         [TestCase(ItemPriceContext.Buy, true)]
