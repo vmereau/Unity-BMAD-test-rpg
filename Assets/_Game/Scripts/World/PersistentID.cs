@@ -63,5 +63,20 @@ namespace Game.World
 
             WorldStateManager.Instance?.RegisterKill(_killedFact, entityType);
         }
+
+        /// <summary>
+        /// Call when the player's blow knocks this entity out. The first knockout per identity raises the
+        /// OnEntityKnockedOut reward event (knockout XP); WorldStateManager ignores later ones.
+        /// </summary>
+        public void RegisterKnockout()
+        {
+            if (_killedFact == null)
+            {
+                GameLog.Warn(TAG, $"RegisterKnockout called on {gameObject.name} but KilledFact is not assigned — knockout reward ignored");
+                return;
+            }
+
+            WorldStateManager.Instance?.RegisterKnockout(_killedFact, entityType);
+        }
     }
 }

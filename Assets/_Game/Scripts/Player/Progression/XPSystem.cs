@@ -27,12 +27,15 @@ namespace Game.Progression
                 GameLog.Warn(TAG, "OnXPGained event is not assigned — XP signals will be silent.");
         }
 
-        public void GiveExperience(int amount)
+        /// <summary>Awards XP. <paramref name="countAsKill"/> false (e.g. a knockout) leaves <see cref="TotalKills"/> unchanged.</summary>
+        public void GiveExperience(int amount, bool countAsKill = true)
         {
             if (amount <= 0) return;
-            TotalKills++;
+            if (countAsKill) TotalKills++;
             CurrentXP += amount;
-            GameLog.Info(TAG, $"XP gained: +{amount} (kill #{TotalKills}) — Total XP: {CurrentXP}");
+            GameLog.Info(TAG, countAsKill
+                ? $"XP gained: +{amount} (kill #{TotalKills}) — Total XP: {CurrentXP}"
+                : $"XP gained: +{amount} — Total XP: {CurrentXP}");
             _onXPGained?.Raise(amount);
         }
 

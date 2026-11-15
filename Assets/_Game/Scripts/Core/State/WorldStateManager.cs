@@ -22,6 +22,8 @@ namespace Game.Core
 
         [SerializeField] private GameEventSO_Fact _onFactChanged;
         [SerializeField] private GameEventSO_EntityKilled _onEntityKilled;
+        [Tooltip("Raised the first time the player knocks out each entity (knockout XP, spec-knockout-xp-reward).")]
+        [SerializeField] private GameEventSO_EntityKilled _onEntityKnockedOut;
         [SerializeField] private GameEventSO_DialogueFact _onDialoguePlayed;
 
         [SerializeField] private PlayerSkills _playerSkills;
@@ -57,6 +59,27 @@ namespace Game.Core
             SetFact(fact, true);
             _onEntityKilled?.Raise(new EntityKilled(entity, fact));
         }
+
+        /// <summary>
+        /// The player knocked out the entity identified by <paramref name="fact"/>. The first time per identity, records
+        /// the claim (key <c>Knockout.XpClaimed.{killedFact}</c>, saved with the facts, no fact event — not a quest /
+        /// memory condition) and raises <c>OnEntityKnockedOut</c>. Later knockouts of the same entity do nothing.
+        /// </summary>
+        public void RegisterKnockout(KilledFact fact, Entity entity = null)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "RegisterKnockout called with null fact"); return; }
+            if (IsKnockoutClaimed(fact)) return;
+            // Unwired channel: keep the claim free, or the saved claim would burn the reward for good.
+            if (_onEntityKnockedOut == null) { GameLog.Warn(TAG, "OnEntityKnockedOut not assigned — knockout not claimed, no reward"); return; }
+            _worldFacts[KnockoutKey(fact)] = true;
+            GameLog.Info(TAG, $"first knockout recorded: {fact}");
+            _onEntityKnockedOut?.Raise(new EntityKilled(entity, fact));
+        }
+
+        public bool IsKnockoutClaimed(KilledFact fact) =>
+            fact != null && _worldFacts.TryGetValue(KnockoutKey(fact), out var v) && v;
+
+        private static string KnockoutKey(KilledFact fact) => $"{WorldFactPrefix.Knockout}.XpClaimed.{fact}";
 
         // ── Typed read/write ───────────────────────────────────────────────────
 

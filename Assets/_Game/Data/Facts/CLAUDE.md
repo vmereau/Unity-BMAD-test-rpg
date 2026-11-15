@@ -23,6 +23,9 @@
 `WorldStateManager.MarkDialogueSeen` (from `DialogueSystem` when a topic / choice is picked), raise **no**
 event, and must never be used as quest / memory conditions. UI-only (`DialogueUI` dimming).
 
+**Knockout XP claims** (`Knockout.XpClaimed.{killedFactKey}`) too: written only by `WorldStateManager.RegisterKnockout`
+(first player knockout of an NPC), read by `IsKnockoutClaimed`, no fact event, not a fact, not a kill.
+
 **Meal bonus claims** (`Meal.BonusClaimed.{itemId}`) follow the same rule: saved in `_worldFacts`, written only by
 `WorldStateManager.ClaimMealBonus` (first eat of a `PotionItemSO` with a permanent bonus), read by
 `IsMealBonusClaimed`, no event, not a fact. The max-HP part of the bonus is saved separately

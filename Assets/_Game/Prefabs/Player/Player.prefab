@@ -625,6 +625,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Progression.PlayerRewards
   _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
+  _onEntityKnockedOut: {fileID: 11400000, guid: 16959fa0edf30e5449dcad301b79e2e7, type: 2}
   _xpSystem: {fileID: 867121166079641131}
   _onDialoguePlayed: {fileID: 11400000, guid: a7162e7af5d3c39498dbe23bb751bfb2, type: 2}
   _onQuestStarted: {fileID: 11400000, guid: 67aad4bc5c2e30b4aaed68fd09a6b30e, type: 2}

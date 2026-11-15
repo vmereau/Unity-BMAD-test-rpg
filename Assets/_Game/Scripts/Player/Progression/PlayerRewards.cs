@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Economy;
 using Game.Inventory;
+using Game.NPC;
 using Game.Player;
 using Game.Quest;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace Game.Progression
 
         // ── Required ──────────────────────────────────────────────────────────
         [SerializeField] private GameEventSO_EntityKilled _onEntityKilled;
+        [Tooltip("First knockout of an NPC by the player (WorldStateManager) → NPCEntity.XpOnKnockout.")]
+        [SerializeField] private GameEventSO_EntityKilled _onEntityKnockedOut;
         [SerializeField] private XPSystem                 _xpSystem;
 
         // ── Dialogue event channel ────────────────────────────────────────────
@@ -47,6 +50,7 @@ namespace Game.Progression
                 return;
             }
             if (_onEntityKilled       == null) GameLog.Warn(TAG, "OnEntityKilled not assigned — no XP from kills.");
+            if (_onEntityKnockedOut   == null) GameLog.Warn(TAG, "OnEntityKnockedOut not assigned — no XP from knockouts.");
             if (_onDialoguePlayed     == null) GameLog.Warn(TAG, "OnDialoguePlayed not assigned — no dialogue rewards.");
             if (_onQuestStarted       == null) GameLog.Warn(TAG, "OnQuestStarted not assigned — no quest-started rewards.");
             if (_onQuestCompleted     == null) GameLog.Warn(TAG, "OnQuestCompleted not assigned — no quest-completed rewards.");
@@ -63,6 +67,7 @@ namespace Game.Progression
         private void OnEnable()
         {
             if (_onEntityKilled       != null) _onEntityKilled.AddListener(HandleEntityKilled);
+            if (_onEntityKnockedOut   != null) _onEntityKnockedOut.AddListener(HandleEntityKnockedOut);
             if (_onDialoguePlayed     != null) _onDialoguePlayed.AddListener(HandleDialoguePlayed);
             if (_onQuestStarted       != null) _onQuestStarted.AddListener(HandleQuestStarted);
             if (_onQuestCompleted     != null) _onQuestCompleted.AddListener(HandleQuestCompleted);
@@ -74,6 +79,7 @@ namespace Game.Progression
         {
             // Guard: Awake may disable before OnEnable runs
             if (_onEntityKilled       != null) _onEntityKilled.RemoveListener(HandleEntityKilled);
+            if (_onEntityKnockedOut   != null) _onEntityKnockedOut.RemoveListener(HandleEntityKnockedOut);
             if (_onDialoguePlayed     != null) _onDialoguePlayed.RemoveListener(HandleDialoguePlayed);
             if (_onQuestStarted       != null) _onQuestStarted.RemoveListener(HandleQuestStarted);
             if (_onQuestCompleted     != null) _onQuestCompleted.RemoveListener(HandleQuestCompleted);
@@ -97,6 +103,16 @@ namespace Game.Progression
                 if (reward != null && reward.MatchesKilledFact(e.fact))
                     ApplyRewards(reward);
             }
+        }
+
+        // ── Knockout handler ──────────────────────────────────────────────────
+
+        // Raised once per NPC by WorldStateManager (first player knockout) — not a kill.
+        private void HandleEntityKnockedOut(EntityKilled e)
+        {
+            int xp = e.entity is NPCEntity npc ? npc.XpOnKnockout : 0;
+            if (xp > 0)
+                _xpSystem.GiveExperience(xp, countAsKill: false);
         }
 
         // ── Dialogue handler ──────────────────────────────────────────────────

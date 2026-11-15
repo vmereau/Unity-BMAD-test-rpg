@@ -292,7 +292,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `EntityMeleeAttacker.HandleHit`); `TakeDamage(amount)` = unknown source = lethal. A 0-HP blow is a **knockout** when
   `FactionMember.IsKnockoutPair(attacker, victim)`: both `IsHumanoid` (`IsPlayer` or `Entity is NPCEntity`) and not
   `FactionSO.AreHostile` (pure rule `Game.Combat.KnockoutRules`, `KnockoutRulesTests`). Monsters / hostiles / unknown
-  always kill, even a downed target. No `RegisterDeath`, no kill, no XP.
+  always kill, even a downed target. No `RegisterDeath`, no kill, no kill XP. A knockout by the **player** calls
+  `PersistentID.RegisterKnockout()` → one-time knockout XP per NPC (spec-knockout-xp-reward, `Player/Progression/CLAUDE.md`).
 - `EntityHealth` (needs `_combatConfig`, wired on `Entity_base` + any non-prefab scene NPC — null = always lethal):
   `IsUnconscious` from the knockout until the get-up clip ends. HP regains linearly to
   `CombatConfigSO.unconsciousRecoverHealthFraction` over `unconsciousDuration`, then `AIAnimationDriver.SetUnconscious(false)`

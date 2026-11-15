@@ -237,6 +237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Core.WorldStateManager
   _onFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}
   _onEntityKilled: {fileID: 11400000, guid: 297346452c9af3343b927f16cfa5fa1e, type: 2}
+  _onEntityKnockedOut: {fileID: 11400000, guid: 16959fa0edf30e5449dcad301b79e2e7, type: 2}
   _onDialoguePlayed: {fileID: 11400000, guid: a7162e7af5d3c39498dbe23bb751bfb2, type: 2}
   _playerSkills: {fileID: 1467251765}
   _playerStats: {fileID: 1467251766}

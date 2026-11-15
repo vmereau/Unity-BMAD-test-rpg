@@ -45,6 +45,13 @@ namespace Game.NPC
                  "caller asks for fists. Empty = unarmed. Needs EquipmentSystem + EquipmentVisuals + NpcArmament on the NPC.")]
         [SerializeField] private List<EquipableItemSO> _startingEquipment = new();
 
+        [Header("Rewards (knockout)")]
+        [Tooltip("XP granted once, the first time the player's blow knocks this NPC out (spec-knockout-xp-reward). " +
+                 "Separate from XpOnKill, which is still paid if the NPC dies.")]
+        [SerializeField, Min(0)] private int _xpOnKnockout = 25;
+
+        public int XpOnKnockout => _xpOnKnockout;
+
         [Header("Combat")]
         [Tooltip("Stance damage multiplier on the last hit of a multi-hit combo (finisher), like the player's.")]
         [SerializeField, Min(1f)] private float _finisherStanceMultiplier = 1.5f;

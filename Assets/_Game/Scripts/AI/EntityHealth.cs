@@ -151,7 +151,7 @@ namespace Game.AI
 
             if (CurrentHealth <= 0f)
             {
-                if (knockout) KnockOut(); else Die(); // no GetHit either way
+                if (knockout) KnockOut(attacker); else Die(); // no GetHit either way
                 return;
             }
             if (IsUnconscious) return; // lying on the ground: no hit reaction
@@ -196,8 +196,9 @@ namespace Game.AI
             _animationDriver?.EnableRagdoll();
         }
 
-        // Non-lethal blow at zero health: down on the ground, the brain pauses (KnockedOut). No kill registered.
-        private void KnockOut()
+        // Non-lethal blow at zero health: down on the ground, the brain pauses (KnockedOut). No kill registered; a
+        // knockout by the player registers the one-time knockout reward (spec-knockout-xp-reward).
+        private void KnockOut(GameObject attacker)
         {
             CurrentHealth = 0f;
             IsUnconscious = true;
@@ -209,6 +210,9 @@ namespace Game.AI
             _animationDriver?.SetInCombat(false);
             _animationDriver?.SetUnconscious(true);
             KnockedOut?.Invoke();
+
+            var by = FactionMember.Of(attacker);
+            if (by != null && by.IsPlayer) _persistentID?.RegisterKnockout();
         }
 
         private void Die()

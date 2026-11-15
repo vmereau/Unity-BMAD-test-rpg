@@ -712,3 +712,6 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   `GoldItemSO` whose currency collection is rejected loses item and gold. Check / refund per unit.
 - **Context-menu batch is fixed when the menu opens** (by design): toggling Shift while the trade / container menu is
   open doesn't repaint or change its quantity; the detail buttons recompute on click.
+- **`EntityHealth` dereferences `_persistentID` before its null check** (pre-existing, found in
+  spec-knockout-xp-reward review): `Awake` / `OnEnable` / `TakeDamage` read `_persistentID.Entity` first, so an entity
+  without a `PersistentID` throws in `Awake` instead of hitting the intended warning.
