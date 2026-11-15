@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_RacketGuard_SpiderReward_Recipe
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: "And something better than coin \u2014 my own recipe. Trout from the river, a crisp apple, good bread. My mother swore by it. Eat it and you'll swing that blade harder."
+  text: And something better than coin. My own recipe. Trout from the river, a crisp apple, good bread. My mother swore by it. Eat it and you'll swing that blade harder.
   nextNode: {fileID: 0}
   _id: 928678606a9ccba4085f15d1ef56d562

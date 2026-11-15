@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
   m_Name: Mem_BeatenWorker_StashHint
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
-  unlockConditions: []
+  unlockConditions:
+  - {fileID: 11400000, guid: 154afc27c406ecd4fbed8b401efbf59b, type: 2}
   invalidationConditions:
   - {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+  - {fileID: 11400000, guid: 5f3af7d3cd827614fa3f0183980811d4, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: bbed125d47b01f8459d53ec2cced83ea, type: 2}

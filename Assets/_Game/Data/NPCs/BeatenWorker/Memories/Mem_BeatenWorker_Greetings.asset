@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Mem_BeatenWorker_Greetings
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions: []
-  invalidationConditions: []
+  invalidationConditions:
+  - {fileID: 11400000, guid: 154afc27c406ecd4fbed8b401efbf59b, type: 2}
+  - {fileID: 11400000, guid: 5f3af7d3cd827614fa3f0183980811d4, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: c6ab033ae6353e74b8ad858f3efe9361, type: 2}

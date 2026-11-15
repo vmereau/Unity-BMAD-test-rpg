@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_BeatenWorker_StashHint
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Bring me something to eat, if you want. I don't care where it comes from.
+  nextNode: {fileID: 0}
+  _id: 58e288db9d82972428dfa80885fc0000
+  choices:
+  - text: I'll find you something.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 1da065f081cc82543ab3fab919b080d5, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    signal: {fileID: 0}
+  - text: I don't have any money for food.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: acba6f261c5727748b73f46becd6956c, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    signal: {fileID: 0}

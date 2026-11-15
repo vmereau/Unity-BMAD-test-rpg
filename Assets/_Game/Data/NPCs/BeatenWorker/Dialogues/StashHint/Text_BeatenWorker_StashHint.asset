@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashHint
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Brann keeps bread and apples in a chest inside the gang house, by the lake. Guards his corner all day. After six he joins the gang fire. If you're feeling brave. Or stupid. About the same thing here.
-  nextNode: {fileID: 0}
+  text: Hm. You don't give up. Fine. I'm hungry. That's the truth of it.
+  nextNode: {fileID: 11400000, guid: 58e288db9d82972428dfa80885fc0000, type: 2}
   _id: b2f635164cd424d469a19b7faa54f97a

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Quest.QuestSO
   questId: HiddenStash
   title: The Hidden Stash
-  description: Tam mentioned Brann's hoard in the gang house by the lake. He keeps watch by day and joins the gang fire after six. There may be an opportunity to help myself.
+  description: Tam is hungry and doesn't care where his food comes from. I told him I had no money, so he pointed me at Brann's hoard in the gang house by the lake. Brann keeps watch by day and joins the gang fire after six. If I get caught, Tam never met me.
   startPart:
     fact: {fileID: 11400000, guid: 5f34ce168f54de643ba99ea684ac6c2a, type: 2}
-    entry: Tam mentioned Brann's stash in the gang house by the lake. Brann leaves for the gang fire at six in the evening.
+    entry: Tam is hungry. With no money for food, he pointed me at Brann's stash in the gang house by the lake. Brann leaves for the gang fire at six in the evening.
   completedParts:
   - fact: {fileID: 11400000, guid: e303787570d7e6041ab9691f1314b40a, type: 2}
     entry: 'I took some of Brann''s supplies and told Tam. His advice: keep quiet and keep the bread out of sight.'

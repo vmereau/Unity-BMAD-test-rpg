@@ -697,3 +697,11 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   so `quest_report audit` reports "never set" for WardensErrand's start. Editor-tool fix pending Valentin's go-ahead.
 - **Herbalist placeholder text in the quest-log prefabs** — `QuestLogUI.prefab` / `QuestPartPrefab.prefab` still hold the old
   design-time TMP strings (overwritten at runtime).
+
+## From spec-tam-greeting-opener (2026-11-15)
+
+- HiddenStash: let the quest accept any food item handed to Tam (from the stash or not), instead of requiring `World.HiddenStash.Taken`. Tam's stash topic already says he doesn't care where the food comes from.
+  - Do it in the same pass as: the "I'll find you something." branch has no payoff yet (no fact, quest not started);
+    mocking Tam blocks the quest for good, and `Mem_BeatenWorker_StashReported` isn't invalidated by
+    `DialogueFact_BeatenWorker_Mocked` (hostile Tam can still take the report on old dev saves where Hint was set);
+    the Hint fact is now set when the "no money" choice is clicked, before the chest lines show.

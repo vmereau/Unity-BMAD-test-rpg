@@ -23,6 +23,19 @@ All dialogue assets live inside the NPC's dedicated folder:
 
 ---
 
+## Writing Rules
+
+- **No em-dashes (—) in any dialogue text**: speech lines, choice labels and topic labels. Use a comma, a period, a
+  colon or "..." instead. Check with `grep -rlE 'u2014|—' Assets/_Game/Data/NPCs --include=*.asset` (Unity stores the
+  character as the escape `\u2014` in YAML).
+- **Greeting opener pattern** (most NPCs): a stranger doesn't share secrets on the first meeting. Give the NPC one
+  opener topic (e.g. Tam's "Are you alright?") that ends on a `ChoiceDialogueNode` with attitude choices, each setting
+  its own `ChoiceOption.dialogueFact` (`DialogueFact_<NPC>_<Attitude>`). The opener memory is invalidated by any of
+  those facts; deeper topics (quest hints, gossip) unlock on the favourable fact and are invalidated by the hostile
+  one. A neutral "leave" choice with no fact keeps the opener available. Example: `BeatenWorker/` (see its `CLAUDE.md`).
+
+---
+
 ## Node Types
 
 ### StartDialogueNode
@@ -133,8 +146,10 @@ Shows its `text` (NPC line), then opens the trade window on the NPC's `Inventory
 
 - **Node id:** every `DialogueNode` has a hidden `_id` synced to its asset GUID by `OnValidate` (duplicates get
   their own). Nothing to author — but the id is only written to disk on **Save Project**: after creating
-  nodes by script / MCP, save (`AssetDatabase.SaveAssets()`) and check the `.asset` has an `_id:` line before
-  committing. A node with no id is never tracked (`DialogueSystem` warns once).
+  nodes by script / MCP, save (`AssetDatabase.SaveAssets()`) and check the `.asset` has a **non-empty** `_id:` line
+  before committing. Nodes made with `CreateInstance` + `CreateAsset` get `_id:` empty (`OnValidate` ran before the
+  asset had a GUID): set `_id` to the asset GUID through `SerializedObject`, then save.
+  A node with no id is never tracked (`DialogueSystem` warns once).
 - **Seen:** picking a topic or a choice marks it seen (persisted with the save, no fact event). Seen options are
   drawn dimmed; seen topics sort below unseen ones (`[Farewell]` stays last). A choice is keyed by
   `{nodeId}.{index}` — **reordering a node's `choices` moves their seen state** to whatever lands on that index.

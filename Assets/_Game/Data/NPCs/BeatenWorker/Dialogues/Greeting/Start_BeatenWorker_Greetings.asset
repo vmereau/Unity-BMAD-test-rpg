@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_BeatenWorker_Greetings
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: Greetings
-  nextNode: {fileID: 11400000, guid: 1f2f9ab1f75d884418a093baa19bafe3, type: 2}
+  text: Are you alright?
+  nextNode: {fileID: 11400000, guid: 1ece443ac43f36640ae2247fdf072e3d, type: 2}
   _id: c6ab033ae6353e74b8ad858f3efe9361
   dialogueFact: {fileID: 0}

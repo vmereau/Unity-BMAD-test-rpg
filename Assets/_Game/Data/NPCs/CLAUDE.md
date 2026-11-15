@@ -88,6 +88,7 @@ Manual path (if not using the command):
 ## Before Working on Dialogues
 
 Read **`DIALOGUE.md`** in this folder. It describes:
+- Writing rules: **no em-dashes in dialogue text**, and the greeting-opener pattern most NPCs start with
 - `StartDialogueNode`, `TextDialogueNode`, `ChoiceDialogueNode` usage
 - Text length limits and chaining rules
 - Naming conventions and folder layout

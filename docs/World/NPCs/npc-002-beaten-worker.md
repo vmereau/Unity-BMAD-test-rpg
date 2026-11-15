@@ -30,7 +30,7 @@ Named Tam: an ordinary laborer's name, nothing remarkable.
 
 Social intelligence layer. Distinct from npc-001 (tent mate), who covers logistics.
 
-This NPC knows the *people* — who to trust, who to avoid, who's hiding something. He shares freely, not because he's kind, but because he stopped caring about consequences. Information is the one currency he still has and can't be beaten out of him.
+This NPC knows the *people* — who to trust, who to avoid, who's hiding something. He doesn't open up to a stranger: the player has to offer help first (greeting opener). After that he shares freely, not because he's kind, but because he stopped caring about consequences. Information is the one currency he still has and can't be beaten out of him.
 
 He is **not a quest giver** — he points toward quests (the stash) and toward awareness (the rebel group), but doesn't assign them.
 
@@ -50,8 +50,8 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 **Taboo topics:** None visible — but he deflects anything that requires him to admit he still cares.
 
 **Sample lines:**
-- "Yeah, he does that. You get used to it. Well — most people do."
-- "The stash? Sure. If you're feeling brave. Or stupid. About the same thing here."
+- "Tam. And yes, that was the Warden. Not my first time. I'll manage."
+- "Nobody said you had to pay. And if you get caught, you never met me."
 - "There's people in this camp who've had enough. Not me. But people."
 
 ---
@@ -81,18 +81,18 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 
 ---
 
-## Dialogue Topics (to be written)
+## Dialogue Topics
 
 | Topic ID | Trigger | Summary |
 |----------|---------|---------|
-| dlg-npc002-first-meeting | First interaction after event-001 | Who he is, what happened, what the camp is |
-| dlg-npc002-camp-people | Player asks about others | Impressions of key NPCs — warden, stash owner, guards |
-| dlg-npc002-stash-hint | Player asks what's worth doing | Mentions quest-001 casually |
+| dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he refuses, warns about helping strangers; unlocks camp-people + stash), mock him (closes both; only "Not for you." remains), or leave (opener stays) |
+| dlg-npc002-camp-people | After offering help in the opener | Impressions of key NPCs — warden, stash owner, guards |
+| dlg-npc002-stash-hint | After offering help in the opener | He's hungry and doesn't care where food comes from. Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest (starts quest-001): "if you get caught, you never met me" |
 | dlg-npc002-rebel-mention | Player asks about resistance | "Heard there's people who've had enough." No more than that. |
 
 ---
 
 ## Open Threads
 
-- Only greeting and camp-people topics exist so far — see Dialogue Topics above
+- Opener, camp-people, stash-hint and stash follow-up exist; rebel mention not written yet
 - Potential: does he have a personal quest of his own, or is he purely a support NPC?

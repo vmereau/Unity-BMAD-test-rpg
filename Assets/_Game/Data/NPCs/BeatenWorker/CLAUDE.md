@@ -40,7 +40,7 @@
 | **Taboo Topics** | Anything that would make him admit he still cares |
 
 **Sample line:**
-> "You get used to it. Well — most people do."
+> "Not my first time. I'll manage."
 
 ---
 
@@ -57,6 +57,16 @@ Tam worked out how little he can do before the Warden beats him, and stopped pre
 - Never dramatic, never asks for help
 - Covers the who and why of the camp; leaves logistics to Hobb
 - Points toward things, never assigns them: he is not a quest giver
+
+## Topic Flow (gating)
+
+| Topic | Visible when |
+|-------|--------------|
+| `Greeting/` "Are you alright?" (opener) | until `DialogueFact_BeatenWorker_OfferedHelp` or `_Mocked` is set. Choices: help (sets OfferedHelp), mock (sets Mocked), leave (no fact) |
+| `CampPeople/` "Who should I watch out for?" | OfferedHelp, not Mocked |
+| `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Hint`. The Hint fact (quest start) is set by the "I don't have any money for food." choice, not by the start node |
+| `StashReported/` | Hint + `WorldFact_HiddenStash_Taken` (unchanged) |
+| `Cold/` "Got a moment?" → "Not for you." (repeatable) | Mocked |
 
 ---
 
