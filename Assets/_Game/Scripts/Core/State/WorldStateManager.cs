@@ -53,11 +53,15 @@ namespace Game.Core
             return GetFact(fact);
         }
 
-        public void RegisterKill(KilledFact fact, Entity entity = null)
+        /// <summary>
+        /// Records the kill (always — quests / memories read the fact) and raises <c>OnEntityKilled</c>.
+        /// <paramref name="playerCredited"/> decides whether the player earns the kill XP (spec-kill-xp-credit-assist).
+        /// </summary>
+        public void RegisterKill(KilledFact fact, Entity entity = null, bool playerCredited = false)
         {
             if (fact == null) { GameLog.Warn(TAG, "RegisterKill called with null fact"); return; }
             SetFact(fact, true);
-            _onEntityKilled?.Raise(new EntityKilled(entity, fact));
+            _onEntityKilled?.Raise(new EntityKilled(entity, fact, playerCredited));
         }
 
         /// <summary>
@@ -73,7 +77,7 @@ namespace Game.Core
             if (_onEntityKnockedOut == null) { GameLog.Warn(TAG, "OnEntityKnockedOut not assigned — knockout not claimed, no reward"); return; }
             _worldFacts[KnockoutKey(fact)] = true;
             GameLog.Info(TAG, $"first knockout recorded: {fact}");
-            _onEntityKnockedOut?.Raise(new EntityKilled(entity, fact));
+            _onEntityKnockedOut?.Raise(new EntityKilled(entity, fact, playerCredited: true)); // only credited knockouts reach here
         }
 
         public bool IsKnockoutClaimed(KilledFact fact) =>

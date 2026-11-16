@@ -144,7 +144,7 @@ namespace Tests.EditMode
         {
             var method = typeof(PlayerRewards).GetMethod("ApplyRewards", PRIVATE);
             Assert.IsNotNull(method, "PlayerRewards.ApplyRewards not found");
-            method.Invoke(_rewards, new object[] { reward });
+            method.Invoke(_rewards, new object[] { reward, true }); // countAsKill (reflection ignores the default)
         }
 
         private T Create<T>() where T : ScriptableObject

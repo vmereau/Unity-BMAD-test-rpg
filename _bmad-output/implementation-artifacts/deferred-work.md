@@ -809,5 +809,10 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-stat-scaling-balance (2026-11-16 review)
 
-- **NPC-on-NPC kills pay the player XP** (pre-existing, amplified) — `PlayerRewards` pays `Entity.XpOnKill` on every `OnEntityKilled`, whoever landed the kill. With level-derived XP (level × 10) and faction mutual defense, guards killing a bandit or wolves hand the player 60–100 XP for free. Record the killer in `EntityHealth.Die` and pay kill XP only for player kills.
+- ~~**NPC-on-NPC kills pay the player XP**~~ **Resolved by spec-kill-xp-credit-assist (2026-11-16).** (pre-existing, amplified) — `PlayerRewards` pays `Entity.XpOnKill` on every `OnEntityKilled`, whoever landed the kill. With level-derived XP (level × 10) and faction mutual defense, guards killing a bandit or wolves hand the player 60–100 XP for free. Record the killer in `EntityHealth.Die` and pay kill XP only for player kills.
 - **Pre-rebalance saves keep base stats 5** — `PlayerStats.RestoreBaseStats` restores the saved STR/DEX/END/INT, so an old save sits 5 below the new base (10). Bump the save version or clamp restored base stats to the config base if old saves must keep working.
+
+## From spec-kill-xp-credit-assist review (2026-11-16)
+
+- `EntityHealth.TakeDamage` / `OnEnable` dereference `_persistentID.Entity` without a null guard (the `Awake` check reads `_persistentID.Entity` before testing `_persistentID == null`) — an entity without a `PersistentID` throws instead of logging. Pre-existing.
+- Kill-credit tuning ideas, not requested: Friendly credit has no distance / presence limit (dormant today — no faction alliances, Tam is passive); assist never expires within a region visit; stance-only hits (stagger / knockdown with no HP loss) give no assist.

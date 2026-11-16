@@ -7,7 +7,7 @@ namespace Game.World
     /// <summary>
     /// Marks a world entity as permanently tracked by WorldStateManager.
     /// On Awake: checks if this entity was previously killed and deactivates silently if so.
-    /// Call RegisterDeath() when the entity is killed — before playing death effects.
+    /// Call RegisterDeath(playerCredited) when the entity is killed — before playing death effects.
     /// Every world enemy, NPC, and container MUST have this component with a KilledFact assigned.
     /// Story 2.8: Initial implementation.
     /// MIGRATION NOTE: The previous _guid string field has been replaced by _killedFact.
@@ -51,9 +51,10 @@ namespace Game.World
 
         /// <summary>
         /// Call when this entity is killed. Registers the kill in WorldStateManager
-        /// and raises the OnEntityKilled event channel if assigned.
+        /// and raises the OnEntityKilled event channel if assigned. <paramref name="playerCredited"/> = the player
+        /// earns the kill XP (spec-kill-xp-credit-assist); the kill is recorded either way.
         /// </summary>
-        public void RegisterDeath()
+        public void RegisterDeath(bool playerCredited)
         {
             if (_killedFact == null)
             {
@@ -61,11 +62,12 @@ namespace Game.World
                 return;
             }
 
-            WorldStateManager.Instance?.RegisterKill(_killedFact, entityType);
+            WorldStateManager.Instance?.RegisterKill(_killedFact, entityType, playerCredited);
         }
 
         /// <summary>
-        /// Call when the player's blow knocks this entity out. The first knockout per identity raises the
+        /// Call when a knockout credited to the player (own blow, Friendly blow or assist) knocks this entity out.
+        /// The first knockout per identity raises the
         /// OnEntityKnockedOut reward event (knockout XP); WorldStateManager ignores later ones.
         /// </summary>
         public void RegisterKnockout()

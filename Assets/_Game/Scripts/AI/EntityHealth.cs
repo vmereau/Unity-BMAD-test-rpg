@@ -13,7 +13,7 @@ namespace Game.AI
 {
     /// <summary>
     /// Generic health component for any world entity (enemies, NPCs, neutral).
-    /// On death: stops NavMeshAgent if present, calls PersistentID.RegisterDeath(), triggers death animation.
+    /// On death: stops NavMeshAgent if present, calls PersistentID.RegisterDeath(playerCredited) (KillCredit), triggers death animation.
     /// Body remains in scene permanently after ragdoll activates (no SetActive(false)).
     /// Attach to entity root. Entity SO drives BaseHealth; AIAnimationDriver and PersistentID are optional.
     /// Story 2.9: Initial implementation as EnemyHealth.
@@ -87,6 +87,11 @@ namespace Game.AI
         private Transform _executeBone;
         private float _unconsciousElapsed;
         private bool _gettingUp;
+        // The player landed damage since this entity was enabled → assist credit (spec-kill-xp-credit-assist).
+        private bool _playerDamaged;
+
+        /// <summary>True once the player landed damage on this entity (cleared on re-enable). Assist credit.</summary>
+        public bool PlayerDamaged => _playerDamaged;
 
         private void Awake()
         {
@@ -118,6 +123,7 @@ namespace Game.AI
             if (IsUnconscious) _animationDriver?.SetUnconscious(false); // re-enabled mid-knockout: release the held clip
             IsUnconscious = false;
             _gettingUp = false;
+            _playerDamaged = false;
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
         }
 
@@ -166,11 +172,13 @@ namespace Game.AI
         public void TakeDamage(float amount, GameObject attacker)
         {
             if (IsDead) return;
-            bool knockout = _combatConfig != null && FactionMember.IsKnockoutPair(FactionMember.Of(attacker), _factionMember);
+            FactionMember by = FactionMember.Of(attacker);
+            bool knockout = _combatConfig != null && FactionMember.IsKnockoutPair(by, _factionMember);
             if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
 
             float armor = _persistentID.Entity.Armor;
             float effective = DamageMath.Mitigate(amount, armor, _combatConfig != null ? _combatConfig.minDamageFraction : 0f);
+            if (effective > 0f && by != null && by.IsPlayer) _playerDamaged = true;
             CurrentHealth -= effective;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"{gameObject.name} took {effective:F1} damage (raw {amount:F1} - armor {armor:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
@@ -178,7 +186,7 @@ namespace Game.AI
 
             if (CurrentHealth <= 0f)
             {
-                if (knockout) KnockOut(attacker); else Die(); // no GetHit either way
+                if (knockout) KnockOut(attacker); else Die(attacker); // no GetHit either way
                 return;
             }
             if (IsUnconscious) return; // lying on the ground: no hit reaction
@@ -224,7 +232,8 @@ namespace Game.AI
         }
 
         // Non-lethal blow at zero health: down on the ground, the brain pauses (KnockedOut). No kill registered; a
-        // knockout by the player registers the one-time knockout reward (spec-knockout-xp-reward).
+        // knockout credited to the player (own blow, Friendly blow or assist — spec-kill-xp-credit-assist) registers the
+        // one-time knockout reward (spec-knockout-xp-reward). An uncredited one leaves the claim free.
         private void KnockOut(GameObject attacker)
         {
             CurrentHealth = 0f;
@@ -238,8 +247,9 @@ namespace Game.AI
             _animationDriver?.SetUnconscious(true);
             KnockedOut?.Invoke();
 
-            var by = FactionMember.Of(attacker);
-            if (by != null && by.IsPlayer) _persistentID?.RegisterKnockout();
+            KillCreditKind credit = KillCredit.Resolve(attacker, _playerDamaged);
+            GameLog.Info(TAG, $"{gameObject.name} knockout — player credit: {credit}");
+            if (credit != KillCreditKind.None) _persistentID?.RegisterKnockout();
         }
 
         /// <summary>
@@ -252,11 +262,12 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} executed by {(executor != null ? executor.name : "unknown")}");
             CurrentHealth = 0f;
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
-            Die(ragdollNow: true);
+            Die(executor, ragdollNow: true);
             return true;
         }
 
-        private void Die(bool ragdollNow = false)
+        // killer = the killing blow's source (null = unknown) — decides the player's kill credit.
+        private void Die(GameObject killer, bool ragdollNow = false)
         {
             IsDead = true;
             if (IsUnconscious)
@@ -268,13 +279,14 @@ namespace Game.AI
                 // ragdoll fallback (no bodies cached) would then play on the corpse.
                 if (!ragdollNow) _animationDriver?.SetUnconscious(false);
             }
-            GameLog.Info(TAG, $"{gameObject.name} died — registering kill");
+            KillCreditKind credit = KillCredit.Resolve(killer, _playerDamaged);
+            GameLog.Info(TAG, $"{gameObject.name} died — registering kill (player credit: {credit})");
 
             // Stop NavMeshAgent so it doesn't thrash during death animation
             if (TryGetComponent<NavMeshAgent>(out var agent))
                 agent.isStopped = true;
 
-            _persistentID?.RegisterDeath();
+            _persistentID?.RegisterDeath(credit != KillCreditKind.None);
 
             // Guarantee the warning telegraph clears at the instant of death, independent of
             // EntityBrain.Update() timing — avoids a stuck warning pose if the brain is disabled

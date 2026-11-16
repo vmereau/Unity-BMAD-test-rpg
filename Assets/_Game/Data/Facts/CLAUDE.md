@@ -10,7 +10,7 @@
 
 | Type | Key (`ToString()`) | Stored? | Who sets it | Typical readers |
 |---|---|---|---|---|
-| `KilledFact` | `Killed.{guid}` | stored | `PersistentID.RegisterDeath()` → `WorldStateManager.RegisterKill` | quest steps, memory conditions, `PlayerRewardSO` |
+| `KilledFact` | `Killed.{guid}` | stored | `PersistentID.RegisterDeath(credited)` → `WorldStateManager.RegisterKill` (always; credit only gates kill XP) | quest steps, memory conditions, `PlayerRewardSO` |
 | `DialogueFact` | `Dialogue.Played.{nodeId}` | stored | `DialogueSystem` when a `StartDialogueNode.dialogueFact` plays or a `ChoiceOption.dialogueFact` is picked | quest start/completed parts, memory conditions, rewards |
 | `WorldFact` | `World.{eventKey}` | stored | `TollGate` (`WorldFact_Toll_QuarryPaid` / `_WildernessPaid` / `_Deferred` / `_HarlBeaten`) and `ArrivalSequence` (`WorldFact_Arrival_Done`, set when event-001 ends — after Hobb's hut briefing — or is dev-skipped) via `SetWorldEvent`; `PlayerSaveAdapter.ApplyOrigin` on the new-game boot (`WorldFact_Origin_Blacksmith` / `_Joiner` / `_Wretch`, from `OriginSO.originFact`, and `WorldFact_Origin_HadBelongings`, from `SaveSystem._hadBelongingsFact`, when the origin had belongings); nothing else yet (`WorldFact_QuarryPassageOpened` has no setter) | toll gates, Harl's memories, `ArrivalSequence` (plays when unset), `NPCPresence._availableAfter` (Tam: `WorldFact_Arrival_Done`), `Quest_WardensErrand.startPart` + `Mem_Warden_ErrandAssign` (also `WorldFact_Arrival_Done`), `Mem_Warden_Belongings` (`Arrival_Done` + `Origin_HadBelongings`), quest parts, `FactRemovedObject` (`WorldFact_QuarryPassageOpened`: quest-002 must set it to open the quarry cleft) |
 | `RecipeFact` | `Recipe.Known.{recipeId}` | stored | `CookingUI` Experiment tab on first discovery, or using a `RecipeItemSO` → `WorldStateManager.SetRecipeKnown` (setter shown as the `RecipeSO` in Quest Explorer) | cooking Recipes tab, quest parts, memory conditions |
@@ -51,7 +51,7 @@ Never build a fact key by hand — always go through the typed `WorldStateManage
 
 ## `RegisterKill` vs `SetFact`
 
-`RegisterKill(fact, entity)` records the kill **and** raises `OnEntityKilled` (XP, rewards).
+`RegisterKill(fact, entity, playerCredited)` records the kill **and** raises `OnEntityKilled` (rewards; kill XP only when `playerCredited` — `Game.AI.KillCredit`).
 `SetFact(killedFact, true)` only records it — no XP, no rewards, no despawn. Quest Explorer's
 play-mode **Toggle** uses the raw `SetFact`.
 

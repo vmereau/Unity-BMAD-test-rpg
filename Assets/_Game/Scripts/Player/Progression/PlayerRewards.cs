@@ -93,15 +93,17 @@ namespace Game.Progression
         {
             // Base XP from the entity definition — works for every Entity subclass
             // (MonsterEntity, NPCEntity, …), sourced from PersistentID.Entity. (always fires first)
-            int baseXp = e.entity != null ? e.entity.XpOnKill : 0;
+            // Only with player credit: own kill, Friendly NPC's kill or assist (spec-kill-xp-credit-assist).
+            int baseXp = e.playerCredited && e.entity != null ? e.entity.XpOnKill : 0;
             if (baseXp > 0)
                 _xpSystem.GiveExperience(baseXp);
 
-            // Bonus rewards from matching PlayerRewardSO (e.g. special boss also gives LP)
+            // Bonus rewards from matching PlayerRewardSO (e.g. special boss also gives LP) — paid whoever killed it.
+            // The kill itself is counted by the base XP above (only when credited), never by the bonus.
             foreach (var reward in _rewards)
             {
                 if (reward != null && reward.MatchesKilledFact(e.fact))
-                    ApplyRewards(reward);
+                    ApplyRewards(reward, countAsKill: false);
             }
         }
 
@@ -166,10 +168,10 @@ namespace Game.Progression
 
         // ── Reward applicator ─────────────────────────────────────────────────
 
-        private void ApplyRewards(PlayerRewardSO reward)
+        private void ApplyRewards(PlayerRewardSO reward, bool countAsKill = true)
         {
             if (reward.XpReward > 0)
-                _xpSystem.GiveExperience(reward.XpReward);
+                _xpSystem.GiveExperience(reward.XpReward, countAsKill);
 
             if (reward.LpReward > 0 && _lpSystem != null)
                 _lpSystem.GiveLp(reward.LpReward);

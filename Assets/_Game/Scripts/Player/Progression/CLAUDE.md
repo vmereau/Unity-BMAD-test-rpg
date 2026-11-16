@@ -15,7 +15,10 @@ kill → XPSystem.GiveExperience()         (per-enemy XP routed via PlayerReward
      → OnLevelUp  → LearningPointSystem   (awards LP per level-up)
                   → PlayerHealth          (AddMaxHealthBonus(ProgressionConfigSO.healthPerLevel): +max and
                                            +current HP, saved via bonusMaxHealth; loads never raise OnLevelUp)
-player knockout → PersistentID.RegisterKnockout → WorldStateManager.RegisterKnockout (first time per
+entity death → EntityHealth resolves KillCredit (Scripts/AI) → PersistentID.RegisterDeath(credited) →
+     WorldStateManager.RegisterKill (fact always set) → OnEntityKilled (EntityKilled.playerCredited) → PlayerRewards:
+     XpOnKill + kill count only if credited; matching PlayerRewardSO bonus always  (spec-kill-xp-credit-assist)
+credited knockout → PersistentID.RegisterKnockout → WorldStateManager.RegisterKnockout (first time per
      KilledFact only, claim saved) → OnEntityKnockedOut → PlayerRewards → GiveExperience(
      NPCEntity.XpOnKnockout, countAsKill: false)   (TotalKills unchanged; kill XP still paid on a later death)
 

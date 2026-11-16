@@ -14,11 +14,17 @@ namespace Game.Core
     {
         public Entity entity;
         public KilledFact fact;
+        /// <summary>
+        /// The player earned the kill XP: own blow, a Friendly NPC's blow, or an assist (spec-kill-xp-credit-assist).
+        /// Bonus rewards matched on <see cref="fact"/> ignore it.
+        /// </summary>
+        public bool playerCredited;
 
-        public EntityKilled(Entity entity, KilledFact fact)
+        public EntityKilled(Entity entity, KilledFact fact, bool playerCredited = false)
         {
             this.entity = entity;
             this.fact = fact;
+            this.playerCredited = playerCredited;
         }
     }
 }
