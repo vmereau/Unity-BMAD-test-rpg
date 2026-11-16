@@ -16,8 +16,8 @@ Combat/
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
-├── Unarmed/    — lead jab, Hook, Uppercut (the combo), draw unarmed, sheath unarmed, Unarmed Idle, stagger 1/2;
-│                 `(old) Jab.fbx` is retired (unreferenced, kept on disk)
+├── Unarmed/    — lead jab, Hook, Uppercut (the combo), draw unarmed, sheath unarmed, stagger 1/2,
+│                 Unarmed Idle (source) → baked `Unarmed Idle Guard.anim` (the CombatIdle clip, see below)
 ├── Block Idle.fbx
 ├── dodge roll.fbx
 ├── Dodge back.fbx
@@ -136,6 +136,25 @@ baked**. The Mixamo boxing clips lunge up to 0.5 m and step back; with XZ unbake
 drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement (the lead jab's
 0.30 m keeps the rear foot planted). Orientation based on **Body** turned the bladed stance square and sent the jab 35°
 to the left. No Blender edit was needed.
+
+### Unarmed guard idle (`Unarmed Idle Guard.anim`, spec-unarmed-idle-posture-fix)
+
+`CombatIdle` (UpperBody layer) plays **`Unarmed Idle Guard.anim`**, baked from `Unarmed Idle.fbx` (Mixamo, 89 frames,
+loop, root rotation baked on Body orientation, Y baked on Original). The FBX itself is unreferenced, but keep it: it's
+the bake source. Played raw, the guard looked wrong in game, for two reasons. Distances below are in **body heights**
+(head bone height above the feet), measured from the chest bone in player-local space (x right, y up, z forward).
+- **Arm proportions:** humanoid retargeting copies the arm *angles* (within 3°), but the Player's forearm/upper-arm ratio
+  (1.1) is far shorter than the source rig's (1.7), so the fists sat 0.12 instead of 0.22 in front of the chest.
+- **Mask:** `UpperBodyMask` takes the hips from locomotion, which drops the source's forward lean (11.6° → −4.6°).
+
+The bake copies every curve and the clip settings, and adds **constant** muscle offsets: Spine / Chest / UpperChest
+Front-Back −0.22; Left Arm Front-Back −0.38, Down-Up +0.42, Forearm Stretch +0.38; Right Arm Front-Back −0.34, Down-Up
++0.11, Forearm Stretch +0.37. Result on the Player (base `Idle` + mask, mean of t = 0.2 / 1.0 / 1.8 / 2.6 s):
+lean 9.7°, fists L (−0.18, 0.03, 0.23), R (−0.04, 0.06, 0.20) vs source (−0.18, 0.03, 0.23), (−0.05, 0.06, 0.20).
+Over `Walking` / `Running` the fists keep ≥ 0.18 forward and the shoulder line stays within ±8° (the lean rises to
+15–20°, the run's own hip tilt). No committed bake tool: re-bake from `execute_code` and re-fit the offsets by
+coordinate descent against the source pose (instantiate the FBX for the target, `Player.prefab` + `AnimationLayerMixerPlayable`
+with the mask for the result) if the FBX or the player body changes. The Sword / TwoHanded overrides are keyed on the `.anim`.
 
 **Tuning:** `HitboxEnable` ≈ when the weapon reaches the target zone (~0.2–0.25), `HitboxDisable` ≈ when it
 retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than overhead swings. Retiming

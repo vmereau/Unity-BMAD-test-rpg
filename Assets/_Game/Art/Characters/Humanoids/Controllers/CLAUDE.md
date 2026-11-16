@@ -89,7 +89,13 @@ clips). Overrides are keyed on the **base clip**, so every weapon override must 
 unarmed punch with a weapon in hand: sword `lead jab` → `SwordAttackLeft`, `Hook` → `SwordAttackThrust`, `Uppercut` →
 `SwordAttackLeft`; two-handed `lead jab` / `Uppercut` → `2hand attack refined`, `Hook` → `2hand attack 2 refined`.
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
-and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced.
+and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced. Same for `CombatIdle`
+(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`).
+
+**Replacing an FBX in place can leave a state playing no clip.** The editor's compiled controller keeps the destroyed
+old clip: `state.motion` and the YAML look right, but at runtime the state reports `length` 1.00 and an empty
+`GetCurrentAnimatorClipInfo`, and the clip is missing from `ctrl.animationClips`. Reimporting the FBX or the controller
+doesn't fix it. Reassigning `state.motion` (null → clip) or restarting the editor does.
 
 ---
 

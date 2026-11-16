@@ -157,5 +157,6 @@ public class UnarmedAttackTests
         Assert.That(mapped, Does.Contain("lead jab"));
         Assert.That(mapped, Does.Contain("Hook"));
         Assert.That(mapped, Does.Contain("Uppercut"));
+        Assert.That(mapped, Does.Contain("Unarmed Idle Guard"), "CombatIdle carry pose (base clip = baked unarmed guard)");
     }
 }

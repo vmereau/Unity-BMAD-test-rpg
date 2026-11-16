@@ -724,3 +724,9 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Execute starts only on a fresh F press** — holding F while walking up to a body doesn't start the stomp. Poll
   `Execute.IsPressed()` in `FindTarget` if playtests want hold-to-start.
 
+
+## From spec-unarmed-idle-posture-fix (2026-11-16)
+
+- **A drawn bow plays the unarmed fist guard** (pre-existing): `Bow_AnimatorOverride` has no `CombatIdle` entry, so the
+  bow's carry pose is the unarmed guard (now `Unarmed Idle Guard.anim`, with a stronger lean and fists further out).
+  Map a bow idle onto `Unarmed Idle Guard` in the override when one exists.
