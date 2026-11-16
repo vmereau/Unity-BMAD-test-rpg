@@ -52,6 +52,7 @@ namespace Game.Core
         private List<DroppedItemSaveData> _dropped = new List<DroppedItemSaveData>();
         private SaveData _newGameSnapshot;
         private bool _autosavePending;
+        private bool _startMenuLoad; // the running load is Core's first one (Continue / Load Game from the start menu)
 
         private InputSystem_Actions _input;
 
@@ -96,6 +97,28 @@ namespace Game.Core
             if (_sleepUI == null) GameLog.Warn(TAG, "SleepUI not assigned — saving / loading isn't blocked while sleeping");
 
             _input = new InputSystem_Actions();
+        }
+
+        // Continue / Load Game from the start menu: SceneLoader skipped the startup region, so load the slot here.
+        private void Start()
+        {
+            if (Instance != this || !GameSession.TryTakePendingLoad(out string slotId)) return;
+            if (_sceneLoader == null) return; // Awake already logged it; nothing can load a region
+
+            string error;
+            if (_player == null) error = "Saving and loading are unavailable"; // Awake logged the missing wiring
+            else if (!SaveFileStore.TryRead(slotId, out var data, out error)) { }
+            else if (!SceneLoader.CanLoadRegion(data.region)) error = $"Save region '{data.region}' can't be loaded";
+            else
+            {
+                BeginLoad(data);
+                _startMenuLoad = IsLoading;
+                return;
+            }
+
+            GameLog.Warn(TAG, $"Start-menu load of '{slotId}' failed ({error}) — starting a new game");
+            _sceneLoader.LoadStartupRegion();
+            Notify(error);
         }
 
         private void OnEnable()
@@ -381,6 +404,7 @@ namespace Game.Core
 
         private void BeginLoad(SaveData data)
         {
+            if (IsLoading) return; // e.g. F9 in Core's first frame, before Start's start-menu load
             if (!SceneLoader.CanLoadRegion(data.region))
             {
                 Notify($"Save region '{data.region}' can't be loaded");
@@ -412,6 +436,27 @@ namespace Game.Core
         // isn't stuck behind the loading overlay; the player keeps its current state.
         private void FailLoad(string region)
         {
+            // Start-menu load: there was no region to keep. Drop the half-restored save and boot a clean New Game
+            // (the player itself was never restored — FinishLoad didn't run).
+            if (_startMenuLoad && _sceneLoader != null)
+            {
+                _startMenuLoad = false;
+                WorldStateManager.Instance?.RestoreFacts(null);
+                WorldStateManager.Instance?.RestoreRecipeCrafts(null);
+                if (_gameClock != null) _gameClock.Restore(null);
+                _objectStates.Clear();
+                _consumed.Clear();
+                _dropped.Clear();
+                PlaytimeSeconds = 0f;
+                Time.timeScale = 1f;
+                CursorManager.Lock();
+                IsLoading = false;
+                _onLoadFinished?.Raise(true);
+                _sceneLoader.LoadStartupRegion();
+                Notify($"Loading failed: region '{region}' could not be loaded");
+                return;
+            }
+
             Time.timeScale = 1f;
             CursorManager.Lock(); // every menu was closed by the load start
             IsLoading = false;
@@ -421,6 +466,7 @@ namespace Game.Core
 
         private void FinishLoad(SaveData data)
         {
+            _startMenuLoad = false;
             _player.Restore(data.player, _catalog);
             _questEvents?.ReseedState();
             Time.timeScale = 1f; // every pausing screen is closed by the load

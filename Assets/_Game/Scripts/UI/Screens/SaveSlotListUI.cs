@@ -24,10 +24,16 @@ namespace Game.UI
         [SerializeField] private ConfirmDialogUI _confirmDialog;
 
         private Mode _mode;
+        private Action<string> _onLoad;
 
-        public void Show(Mode mode)
+        /// <summary>
+        /// Shows the list. With <paramref name="onLoad"/> (start menu), a confirmed Load row calls it with the slot id
+        /// instead of <see cref="SaveSystem.Load"/> (there's no running game to lose).
+        /// </summary>
+        public void Show(Mode mode, Action<string> onLoad = null)
         {
             _mode = mode;
+            _onLoad = onLoad;
             gameObject.SetActive(true);
             if (_titleText != null) _titleText.text = mode == Mode.Save ? "Save Game" : "Load Game";
             Refresh();
@@ -67,6 +73,11 @@ namespace Game.UI
             {
                 if (exists) Confirm($"Overwrite {FormatSlotLabel(slotId)}?", () => SaveTo(slotId));
                 else SaveTo(slotId);
+            }
+            else if (_onLoad != null)
+            {
+                var onLoad = _onLoad;
+                Confirm("Load this save?", () => onLoad(slotId));
             }
             else
             {

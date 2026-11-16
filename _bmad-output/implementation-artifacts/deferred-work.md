@@ -739,3 +739,13 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   Measured identical with the old `Block Idle` and `Unarmed Idle Guard`. Needs a spine counter-twist or a mask change.
 - ~~**The unarmed combat idle looks 36° down**~~ — done 2026-11-16: Neck / Head Nod +0.36 / +0.18 baked into
   `Unarmed Idle Guard.anim` (now ~14° down).
+
+## From spec-start-main-menu (2026-11-16)
+
+- **Quit to main menu** from the Esc Game Menu — needs a `Core` teardown first: `SaveSystem` and `WorldStateManager` are
+  `DontDestroyOnLoad`, so loading `MainMenu` (Single) would leave them alive with references into the destroyed `Core`.
+- **Failed in-game load leaves no region** (pre-existing) — `ReloadRegion` unloads the current region before loading the
+  save's, so when an F5/F9 / Load Game region load fails, `FailLoad` "keeps the player's state" in an empty world with the
+  save's facts already applied. The start-menu load now falls back to a clean New Game; the in-game path doesn't.
+- **Continue session has no new-game snapshot** — Restart on the death screen needs one; it's only offered with no valid
+  save, so it can only bite if every save is deleted mid-session (then Restart logs an error and does nothing).

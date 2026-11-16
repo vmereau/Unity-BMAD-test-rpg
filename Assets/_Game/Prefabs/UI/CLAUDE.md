@@ -26,9 +26,9 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 ├── CookingUI / NPCTradeUI / ContainerUI   (nested prefabs, inactive by default, AFTER Game so they win over the HUD; each root has HideHudWhileOpen → Game; CookingUI._playerInventory is a Player.prefab override)
 ├── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
 ├── GiveItemUI           (nested Prefabs/UI/Give/GiveItemUI.prefab, inactive — AFTER DialoguePanel so it covers it; HideHudWhileOpen → Game is a Player.prefab override)
-├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList / OptionsUI / BackButton
+├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList (nested Prefabs/UI/SaveSlotList.prefab) / OptionsUI / BackButton
 ├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
-├── ConfirmDialog        (ConfirmDialogUI, inactive — shared Yes/No)
+├── ConfirmDialog        (nested Prefabs/UI/ConfirmDialog.prefab, inactive — shared Yes/No)
 ├── SleepScreen          (SleepUI, always active) → Panel (toggled: Window → Buttons: Title, TimeText, 4 durations, Cancel) + Fade (own Canvas sort 90, black CanvasGroup)
 └── LoadingOverlay       (LoadingOverlayUI, own Canvas sort 100) → Panel (toggled)
 ```
@@ -45,5 +45,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 - Screens that must hear events while hidden (`GameMenu`, `DeathScreen`, `LoadingOverlay`) keep their component on an
   always-active root and toggle a `Panel` child. `DeathScreenUI._playerStateManager` is wired as a Player.prefab override.
   Save-slot rows are `Prefabs/UI/SaveSlotEntry.prefab` (`SaveSlotEntryUI`); menu buttons are `Common/ActionButton` instances.
+- `SaveSlotList.prefab` and `ConfirmDialog.prefab` are shared with the start menu (`Scenes/MainMenu.unity`). Their
+  `_confirmDialog` / `_saveSlotList` cross-refs are instance overrides in each host (UICanvas, MainMenu): wire them there.
 - `ItemDetailPanel` nesting rules (host prefabs override only the root, `ActionsContainer` never recreated):
   `Scripts/UI/Inventory/CLAUDE.md`.

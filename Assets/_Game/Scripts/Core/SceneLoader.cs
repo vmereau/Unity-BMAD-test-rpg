@@ -33,7 +33,23 @@ namespace Game.Core
         /// <summary>(sceneName, isStartup) — raised one frame after a region finished loading.</summary>
         public event Action<string, bool> RegionLoaded;
 
+        private bool _skipStartup;
+
+        // Read in Awake: SaveSystem.Start takes (clears) the request, and Start order between the two is undefined.
+        private void Awake() => _skipStartup = GameSession.HasPendingLoad;
+
         private void Start()
+        {
+            if (_skipStartup)
+            {
+                GameLog.Info(TAG, "Save load pending from the start menu — startup region skipped");
+                return;
+            }
+            LoadStartupRegion();
+        }
+
+        /// <summary>The New Game boot: loads the startup region (or adopts it when already open in the editor).</summary>
+        public void LoadStartupRegion()
         {
             if (!SceneManager.GetSceneByName(_startupScene).isLoaded)
                 StartCoroutine(LoadRegionCoroutine(_startupScene, isStartup: true, spawnPlayer: true, onDone: null));
