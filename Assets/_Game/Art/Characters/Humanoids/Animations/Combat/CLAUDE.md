@@ -150,7 +150,8 @@ the bake source. Played raw, the guard looked wrong in game, for two reasons. Di
 
 The bake copies every curve and the clip settings, and adds **constant** muscle offsets: Spine / Chest / UpperChest
 Front-Back −0.22; Left Arm Front-Back −0.38, Down-Up +0.42, Forearm Stretch +0.38; Right Arm Front-Back −0.34, Down-Up
-+0.11, Forearm Stretch +0.37. Result on the Player (base `Idle` + mask, mean of t = 0.2 / 1.0 / 1.8 / 2.6 s):
++0.11, Forearm Stretch +0.37; Neck Nod Down-Up +0.36, Head Nod Down-Up +0.18 (added 2026-11-16 with the block guard: the
+source looks 36° down, now ~14°). Result on the Player (base `Idle` + mask, mean of t = 0.2 / 1.0 / 1.8 / 2.6 s):
 lean 9.7°, fists L (−0.18, 0.03, 0.23), R (−0.04, 0.06, 0.20) vs source (−0.18, 0.03, 0.23), (−0.05, 0.06, 0.20).
 Over `Walking` / `Running` the fists keep ≥ 0.18 forward and the shoulder line stays within ±8° (the lean rises to
 15–20°, the run's own hip tilt). No committed bake tool: re-bake from `execute_code` and re-fit the offsets by
@@ -162,7 +163,9 @@ with the mask for the result) if the FBX or the player body changes. The Sword /
 `Block_State` (UpperBody) plays **`Unarmed Block Guard.anim`**: a second bake from **`Unarmed Idle Guard.anim`** (so it
 keeps the proportion fix, lean, breathing and loop), with more constant muscle offsets. Pose targets:
 `Unarmed/refs/high guard front.png` / `high guard side.png` (Gemini, image-to-image from the base hero). Offsets:
-- Head: Neck Nod Down-Up +0.36, Head Nod Down-Up +0.18 — the idle guard looks 36° down (head into the fists); now 11°.
+- Head: Neck Nod Down-Up +0.36, Head Nod Down-Up +0.18 — the old idle guard looked 36° down (head into the fists).
+  **These now live in `Unarmed Idle Guard.anim` itself** (the shipped block clip already contains them): a re-bake from the
+  current idle guard adds only the arm offsets below, or the head is raised twice.
 - Left: Shoulder Down-Up +0.19, Front-Back −0.03; Arm Down-Up −0.59, Front-Back −0.24, Twist −0.08; Forearm Stretch −0.33;
   Hand Down-Up −0.10, In-Out +0.74.
 - Right: Shoulder Down-Up +0.29, Front-Back +0.40; Arm Down-Up −0.48, Front-Back +0.24, Twist +0.17; Forearm Stretch −0.48,

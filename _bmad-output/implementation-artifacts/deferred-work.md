@@ -736,5 +736,5 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Strafing turns the upper-body guard sideways** (pre-existing, every UpperBody pose): `UpperBodyMask` takes the hips
   from the strafe clips, whose hips yaw ~72–92°, so the shoulders (and the guard / block) face sideways while strafing.
   Measured identical with the old `Block Idle` and `Unarmed Idle Guard`. Needs a spine counter-twist or a mask change.
-- **The unarmed combat idle looks 36° down** (`Unarmed Idle Guard.anim`): the head hangs toward the fists. The block
-  guard corrects it with Neck / Head Nod offsets; the idle could take the same (+0.36 / +0.18) if playtests want it.
+- ~~**The unarmed combat idle looks 36° down**~~ — done 2026-11-16: Neck / Head Nod +0.36 / +0.18 baked into
+  `Unarmed Idle Guard.anim` (now ~14° down).
