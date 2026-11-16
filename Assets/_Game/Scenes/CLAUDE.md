@@ -17,6 +17,13 @@ flow, default origin Wretch). The origin is applied by `SaveSystem.HandleRegionL
 before the new-game snapshot (spec-player-origins). There's no way back to the menu from a running game yet (`SaveSystem` / `WorldStateManager` are
 `DontDestroyOnLoad`).
 
+**Editor play scenarios (spec-play-scenarios):** a `Game/Play Scenario` dropdown on the main toolbar (and `Tools/Play
+Scenario/...`; `Editor/PlayScenarios/PlayScenarioToolbar`) picks what Play starts, saved per machine in EditorPrefs:
+**Open Scenes** (default: no start scene, the scene's `ArrivalSequence._devStart` applies), **Main Menu**
+(`playModeStartScene` = MainMenu, arrival forced to play), **Arrival (Wretch)** / **After Arrival (Wretch)** (start scene
+Core, origin Wretch, arrival forced to play / `SkipAll`). `playModeStartScene` isn't persisted, so it's reapplied on
+every editor load. The game reads the choice through `Game.Core.PlayScenarios` (editor Play only; builds = Open Scenes).
+
 ## Core.unity Manager GameObjects
 
 Manager GameObjects in `Core.unity`:

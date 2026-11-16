@@ -192,12 +192,13 @@ namespace Game.World
                 _phase = Phase.Done;
                 return;
             }
-            if (DevSkipAllowed && _devStart == DevStart.SkipAll)
+            DevStart devStart = EffectiveDevStart();
+            if (DevSkipAllowed && devStart == DevStart.SkipAll)
             {
                 DevSkip();
                 return;
             }
-            if (DevSkipAllowed && _devStart == DevStart.SkipToHutEscort)
+            if (DevSkipAllowed && devStart == DevStart.SkipToHutEscort)
             {
                 if (_hutValid)
                 {
@@ -569,6 +570,22 @@ namespace Game.World
 
         // Editor and development builds only (project rule: runtime debug tools gate on Debug.isDebugBuild).
         private static bool DevSkipAllowed => Application.isEditor || Debug.isDebugBuild;
+
+        // The editor play scenario (toolbar) wins over the serialized _devStart; OpenScenes / builds keep the scene's.
+        private DevStart EffectiveDevStart()
+        {
+            PlayScenario scenario = PlayScenarios.Active;
+            DevStart effective;
+            switch (PlayScenarios.ArrivalOverrideFor(scenario))
+            {
+                case ArrivalStartOverride.Play: effective = DevStart.None; break;
+                case ArrivalStartOverride.SkipAll: effective = DevStart.SkipAll; break;
+                default: return _devStart;
+            }
+            if (_devStart != DevStart.None && _devStart != effective)
+                GameLog.Info(TAG, $"Play scenario {scenario} overrides _devStart {_devStart} → {effective}");
+            return effective;
+        }
 
         [ContextMenu("Dev: Skip Arrival")]
         private void DevSkip()
