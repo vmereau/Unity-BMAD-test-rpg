@@ -846,3 +846,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Stolen goods are matched by item type, not by unit:** a thief who ate the stolen bread but owns other bread (or holds
   gold from elsewhere) gives up their own units. Also, putting an item into a stolen container and taking it back in the
   same session counts it as stolen.
+
+## From spec-trespass-repeat-offence-fight review (2026-11-17)
+
+- Trespass warning reset is polled at combat exit (`EntityBrain.EndTrespassFight`): if the owner leaves the fight (knocked out by the player, disengage range) and a colleague who joined via mutual defence later knocks the player out, the area's warnings are not reset. Fix idea: reset from the player-knockout event while an escalation fight is open for the area.
+- `RestrictedArea` gizmo turns red on the raw warning count, not the expiry-filtered one (debug only).

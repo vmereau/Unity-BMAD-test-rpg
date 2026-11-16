@@ -83,7 +83,7 @@
 
 - `_hitboxes` = `Id` + `WeaponHitbox`. Clip events open/close them by id (`""` = all). `RegisterHitbox` /
   `UnregisterHitbox` for runtime (equipped-weapon) hitboxes. Unknown id → one warning per id.
-- `AggroTarget` (`SetAggroTarget`, set by the brain for instant-aggression trespass): hits land on it even when its
+- `AggroTarget` (`SetAggroTarget`, set by the brain for brawls, incl. the trespass escalation fight): hits land on it even when its
   faction isn't hostile.
 - `BeginAttack(damage, comboHits)` / `EndAttack()` bracket an attack; `OpenWindow` is ignored while
   `!IsAttacking`. Hits are faction-filtered (target's `FactionMember` must be hostile; none → ignored), then
@@ -171,10 +171,11 @@
   **hostile formula** — walking or sneaking, sneak-shortened — at `TrespassSightRange` (`DetectionRange`, or the witness
   profile's `TheftSightRange` for a passive owner). `IsTrespassing` / `TrespassArea`; F3 overlay + gizmo label
   "Trespass". The meter → Suspicious → full awareness → `RespondToTrespasser(area)`: `TrespassersSpotted++`, then
-  - normal area: `TrespassAlertBarks` bubble + **Pursuing** with `TheftKind.Trespass` on the area's open incident
+  - not warned enough yet (`!area.ShouldFightTrespasser`, or the owner can't brawl): `TrespassAlertBarks` bubble + **Pursuing** with `TheftKind.Trespass` on the area's open incident
     (`RestrictedArea.OpenIncidentId`, negative ids, reused until claimed → several owners share one chase, first catcher
     scolds). Confronting uses `TrespassScoldBarks`; `area.StartGrace(trespassGraceDuration)` at the catch (before the
-    dialogue-channel check), `HoldGrace` every frame while the scold is open, `StartGrace` again when it closes. An escape
+    dialogue-channel check), **`area.RecordWarning` once the scold dialogue really opens** (one per catch; skipped when
+    the area already warned enough), `HoldGrace` every frame while the scold is open, `StartGrace` again when it closes. An escape
     gives no grace. A theft while chasing a trespasser keeps `_pursuitArea` (the scold still starts its grace).
     **Leaving the area ends the chase:** every Pursuing tick, `TheftDetection.ShouldStopTrespassChase` (trespass kind +
     area, and the player outside every box or the area no longer `IsRestrictedNow`) → one `TrespassFledBarks` bubble
@@ -182,8 +183,14 @@
     area the owner also owns (`TryFindTrespassedArea`) hands the chase over to it instead. No LOS needed, no grace — walking back in
     refills the meter from 0. A theft seen mid-chase switches `_pursuitKind`, so that chase follows the theft rules.
     `IsTrespassTarget` re-checks `TrespassArea.IsRestrictedNow` (grace / hours can change between perception scans).
-  - `InstantAggression` area: bubble + `EntityMeleeAttacker.SetAggroTarget(player)` + `ForceAware` + **Engaging** (no
-    warning). The aggro target makes the faction filter accept the non-hostile player. `SetCombatState(false)` clears it
+  - **Escalation (spec-trespass-repeat-offence-fight):** `area.ShouldFightTrespasser(trespassWarningExpiryHours)` (the
+    area's active warnings ≥ its `_warningsBeforeFight`; 0 = attack on sight, the old instant aggression) →
+    `StartBrawl(player)` (**armed**; passive / no attacker → false → the chase above) + `TrespassPunishBarks` bubble
+    (`Barks_TrespassPunish`; `TrespassAlertBarks` when no warning was given), `_trespassFightArea = area`. The fight
+    follows normal combat rules (leaving the area doesn't stop it). `SetCombatState(false)` → `EndTrespassFight`: the
+    player lying unconscious (knocked out by anyone) → `area.ClearWarnings()`; won / fled → warnings kept. Knockout
+    looting robs the gold as for any brawl. A theft scold that kept `_pursuitArea` also counts as a warning. StartBrawl's
+    aggro target makes the faction filter accept the non-hostile player; `SetCombatState(false)` clears that aggro target
     (disengage, search end, death, routine return), and so does a damage retarget onto another attacker. Searching
     re-engages a re-sighted trespasser only if it is the current aggro target; otherwise it leaves combat and applies the
     area's rules (`RespondToTrespasser`); a witnessed target is ignored.
@@ -330,7 +337,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   an unconscious target this brain could only knock out → the winner disengages to its routine.
 - **Brawl retaliation:** `HandleHealthChanged` with a known, live, conscious, **non-hostile** attacker forming a knockout
   pair with this entity (and `DetectionRange > 0`) → `EntityMeleeAttacker.SetAggroTarget(attacker)` + engage (same aggro
-  mechanism as instant-aggression trespass). Passive NPCs still never fight back.
+  mechanism as the trespass escalation fight). Passive NPCs still never fight back.
 - `EntityStance` / `PlayerStance` treat unconscious like dead (meter refilled, `Apply` ignored); hit resolvers skip stance
   on an unconscious target. `EntityPresence.IsAliveAndOutOfCombat` is false while down.
 - A loot screen open on an NPC that gets up closes (`OnLootSourceLost`, see EntityPresence below).
@@ -433,7 +440,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `EngageSpeed`, waits for a locked cursor, stops facing the player) → `Reached` → `NPCPresence.RequestForcedTopic` (the
   "other gate paid" opener when any sibling gate of the same racket is paid) → dialogue closes → last signal: pay → paid fact,
   defer → racket deferred fact, none / refuse → `EntityBrain.StartBrawl` (aggro + `ForceAware` + Engaging, same mechanism as
-  instant-aggression trespass). Brawl: player unconscious → this gate paid (the normal knockout **Looting** robs them); collector
+  trespass escalation fight). Brawl: player unconscious → this gate paid (the normal knockout **Looting** robs them); collector
   knocked out by the player's blow (`EntityBrain.WasHitThisFrameBy`, any fight incl. a sneak hit) → racket beaten fact. Pay / defer
   are applied **on the pick** (`OnDialogueSignal`, routed to the last gate that opened the toll dialogue), so an interrupted talk
   can't take the gold without recording it. The dialogue counts as open only if the cursor unlocked synchronously on the request

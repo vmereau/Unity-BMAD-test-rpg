@@ -26,6 +26,24 @@ namespace Game.World
         public static bool IsRestrictedHour(bool hasClock, bool useHours, int hour, int startHour, int endHour) =>
             !useHours || !hasClock || GameTime.IsHourInWindow(startHour, endHour, hour);
 
+        /// <summary>
+        /// Warnings still in force: <paramref name="count"/> while the latest one (<paramref name="lastWarningAt"/>, world
+        /// seconds) is younger than <paramref name="expiryHours"/> in-game hours. Without a clock they never expire. A
+        /// warning dated after <paramref name="now"/> (a save from before it was loaded) is treated as expired.
+        /// </summary>
+        public static int ActiveWarnings(int count, bool hasClock, double now, double lastWarningAt, float expiryHours)
+        {
+            if (count <= 0) return 0;
+            if (!hasClock) return count;
+            if (now < lastWarningAt) return 0;
+            return now - lastWarningAt < expiryHours * GameTime.SECONDS_PER_HOUR ? count : 0;
+        }
+
+        /// <summary>True when owners attack instead of warning: <paramref name="warningsBeforeFight"/> warnings were already
+        /// given (0 = attack on sight).</summary>
+        public static bool ShouldFight(int activeWarnings, int warningsBeforeFight) =>
+            activeWarnings >= Mathf.Max(0, warningsBeforeFight);
+
         /// <summary>True when <paramref name="entity"/> is a listed owner, or its <paramref name="faction"/> is a listed owner faction.</summary>
         public static bool IsOwner(IReadOnlyList<NPCEntity> ownerEntities, IReadOnlyList<FactionSO> ownerFactions,
             NPCEntity entity, FactionSO faction)

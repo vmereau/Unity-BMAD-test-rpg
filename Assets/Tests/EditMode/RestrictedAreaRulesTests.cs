@@ -96,5 +96,38 @@ namespace Tests.EditMode
                 Object.DestroyImmediate(neutral);
             }
         }
+
+        // --- Warnings (spec-trespass-repeat-offence-fight) ---
+
+        private const double Hour = 3600d;
+
+        [Test]
+        public void Warnings_YoungerThanExpiry_Active() =>
+            Assert.AreEqual(1, RestrictedAreaRules.ActiveWarnings(1, true, 100d + 23.9 * Hour, 100d, 24f));
+
+        [Test]
+        public void Warnings_AtExpiry_Expired() =>
+            Assert.AreEqual(0, RestrictedAreaRules.ActiveWarnings(1, true, 100d + 24 * Hour, 100d, 24f));
+
+        [Test]
+        public void Warnings_ClockWentBack_Expired() =>
+            Assert.AreEqual(0, RestrictedAreaRules.ActiveWarnings(2, true, 50d, 100d, 24f));
+
+        [Test]
+        public void Warnings_NoClock_NeverExpire() =>
+            Assert.AreEqual(3, RestrictedAreaRules.ActiveWarnings(3, false, 0d, 0d, 0f));
+
+        [Test]
+        public void Warnings_None_Zero() =>
+            Assert.AreEqual(0, RestrictedAreaRules.ActiveWarnings(0, true, 10d, 0d, 24f));
+
+        [TestCase(0, 0, true)]   // attack on sight
+        [TestCase(0, 1, false)]  // first offence: scold
+        [TestCase(1, 1, true)]   // second offence: fight
+        [TestCase(1, 2, false)]
+        [TestCase(2, 2, true)]
+        [TestCase(0, -1, true)]  // negative threshold clamped to 0
+        public void ShouldFight_Threshold(int warnings, int before, bool expected) =>
+            Assert.AreEqual(expected, RestrictedAreaRules.ShouldFight(warnings, before));
     }
 }

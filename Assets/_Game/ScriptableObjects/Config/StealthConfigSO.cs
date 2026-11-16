@@ -106,6 +106,8 @@ namespace Game.Stealth
         [Header("Trespass")]
         [Tooltip("Seconds a restricted area is ignored by its owners after one of them scolded the trespasser (time to leave).")]
         public float trespassGraceDuration = 15f;
+        [Tooltip("In-game hours a restricted area remembers its latest scold (warning). After that the trespasser gets a scold again instead of a fight. 0 = warnings expire at once (areas with a threshold above 0 never escalate).")]
+        public float trespassWarningExpiryHours = 24f;
 
 #if UNITY_EDITOR
         private void OnValidate()
@@ -128,6 +130,7 @@ namespace Game.Stealth
             theftConfrontOpenTimeout  = Mathf.Max(0f, theftConfrontOpenTimeout);
             theftBubbleDuration       = Mathf.Max(0f, theftBubbleDuration);
             trespassGraceDuration     = Mathf.Max(0f, trespassGraceDuration);
+            trespassWarningExpiryHours = Mathf.Max(0f, trespassWarningExpiryHours);
         }
 #endif
     }

@@ -50,3 +50,4 @@ MonoBehaviour:
   theftReturnSignal: {fileID: 11400000, guid: 86eb7443a8fa86049b4416c22b837b50, type: 2}
   theftRefuseSignal: {fileID: 11400000, guid: 45fb077e52b4aff4d83eb98a660f521e, type: 2}
   trespassGraceDuration: 15
+  trespassWarningExpiryHours: 24

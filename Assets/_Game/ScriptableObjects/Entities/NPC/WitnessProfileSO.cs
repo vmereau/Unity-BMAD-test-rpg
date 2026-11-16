@@ -43,6 +43,8 @@ namespace Game.NPC
         [SerializeField] private BarkSetSO _trespassScoldBarks;
         [Tooltip("Line shouted in a speech bubble when a chased trespasser leaves the area and the owner gives up. Null = gives up silently.")]
         [SerializeField] private BarkSetSO _trespassFledBarks;
+        [Tooltip("Shouted in a speech bubble when an owner attacks a trespasser it already warned (repeat offence). Null = falls back to TrespassAlertBarks.")]
+        [SerializeField] private BarkSetSO _trespassPunishBarks;
 
         public float WitnessRange => _witnessRange;
         public float WatchRange => ResolveWatchRange(_witnessRange, _watchRange);
@@ -54,6 +56,7 @@ namespace Game.NPC
         public BarkSetSO TrespassAlertBarks => _trespassAlertBarks != null ? _trespassAlertBarks : _theftAlertBarks;
         public BarkSetSO TrespassScoldBarks => _trespassScoldBarks != null ? _trespassScoldBarks : _theftScoldBarks;
         public BarkSetSO TrespassFledBarks => _trespassFledBarks;
+        public BarkSetSO TrespassPunishBarks => _trespassPunishBarks != null ? _trespassPunishBarks : TrespassAlertBarks;
 
         /// <summary>Watch range, never below the witness range (otherwise a witness would stop watching at once).</summary>
         public static float ResolveWatchRange(float witnessRange, float watchRange) =>

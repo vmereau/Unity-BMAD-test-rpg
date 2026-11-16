@@ -11,9 +11,11 @@ namespace Game.World
     /// (triggers on Ignore Raycast — only their center / size are read, no trigger events). Owners = listed
     /// <see cref="NPCEntity"/> assets and/or every NPC of a listed <see cref="FactionSO"/>. An owner's
     /// <c>EntityPerception</c> perceives a player inside (while <see cref="IsRestrictedNow"/>) like a hostile target;
-    /// once fully aware its brain warns + chases + scolds (theft pursuit flow), or attacks when
-    /// <see cref="InstantAggression"/>. A scold starts a grace period (<see cref="StartGrace"/>) so the player can leave.
-    /// Runtime only, not saved.
+    /// once fully aware its brain warns + chases + scolds (theft pursuit flow). A scold starts a grace period
+    /// (<see cref="StartGrace"/>) so the player can leave, and counts as a warning (<see cref="RecordWarning"/>). Once the
+    /// area gave <c>_warningsBeforeFight</c> warnings (0 = attack on sight), owners brawl the trespasser instead
+    /// (<see cref="ShouldFightTrespasser"/>). Warnings expire after a number of in-game hours and reset when the player is
+    /// knocked out in such a fight. Runtime only, not saved.
     /// </summary>
     public class RestrictedArea : MonoBehaviour
     {
@@ -32,8 +34,8 @@ namespace Game.World
         [Range(0, 23)] [SerializeField] private int _endHour = 6;
 
         [Header("Reaction")]
-        [Tooltip("Highly restricted: owners attack the trespasser on sight instead of warning, chasing and scolding.")]
-        [SerializeField] private bool _instantAggression;
+        [Tooltip("Scolds given before owners attack the trespasser instead of warning, chasing and scolding. 0 = attack on sight.")]
+        [Min(0)] [SerializeField] private int _warningsBeforeFight = 1;
 
         private static readonly List<RestrictedArea> _active = new();
         private static int s_lastIncidentId;
@@ -47,8 +49,9 @@ namespace Game.World
 
         private BoxCollider[] _boxes = System.Array.Empty<BoxCollider>();
         private float _graceUntil = float.NegativeInfinity;
+        private int _warnings;
+        private double _lastWarningAt;
 
-        public bool InstantAggression => _instantAggression;
         public string DebugName { get; private set; }
 
         /// <summary>Trespass incident currently chased by this area's owners (0 = none). Negative ids, never colliding
@@ -119,6 +122,35 @@ namespace Game.World
             OpenIncidentId = 0;
         }
 
+        /// <summary>Warnings still in force (expire <paramref name="expiryHours"/> in-game hours after the latest one).</summary>
+        public int ActiveWarnings(float expiryHours)
+        {
+            GameClock clock = GameClock.Active;
+            return RestrictedAreaRules.ActiveWarnings(_warnings, clock != null, clock != null ? clock.Now : 0d,
+                _lastWarningAt, expiryHours);
+        }
+
+        /// <summary>Owners attack the trespasser instead of warning: enough warnings were already given.</summary>
+        public bool ShouldFightTrespasser(float expiryHours) =>
+            RestrictedAreaRules.ShouldFight(ActiveWarnings(expiryHours), _warningsBeforeFight);
+
+        /// <summary>The trespasser was scolded here: one more warning (expired ones are dropped first).</summary>
+        public void RecordWarning(float expiryHours)
+        {
+            GameClock clock = GameClock.Active;
+            _warnings = ActiveWarnings(expiryHours) + 1;
+            _lastWarningAt = clock != null ? clock.Now : 0d;
+            GameLog.Info(TAG, $"{DebugName}: trespasser warned ({_warnings}/{_warningsBeforeFight} before a fight)");
+        }
+
+        /// <summary>The trespasser was punished (knocked out in an escalation fight): back to a first warning.</summary>
+        public void ClearWarnings()
+        {
+            if (_warnings == 0) return;
+            _warnings = 0;
+            GameLog.Info(TAG, $"{DebugName}: trespasser punished — warnings reset");
+        }
+
         /// <summary>
         /// First enabled area owned by (<paramref name="entity"/>, <paramref name="faction"/>), restricted now, that
         /// contains <paramref name="point"/>.
@@ -142,7 +174,7 @@ namespace Game.World
         private void OnDrawGizmos()
         {
             BoxCollider[] boxes = GetComponentsInChildren<BoxCollider>(true);
-            Gizmos.color = _instantAggression ? new Color(1f, 0f, 0f, 0.9f) : new Color(1f, 0.45f, 0.1f, 0.9f);
+            Gizmos.color = _warningsBeforeFight <= 0 || (Application.isPlaying && _warnings > 0) ? new Color(1f, 0f, 0f, 0.9f) : new Color(1f, 0.45f, 0.1f, 0.9f);
             foreach (BoxCollider box in boxes)
             {
                 Gizmos.matrix = box.transform.localToWorldMatrix;

@@ -32,8 +32,8 @@ namespace Game.AI
     /// (<see cref="TheftPursuitRegistry"/>) and goes Confronting (forced scold dialogue), the others give up. Escape
     /// (no LOS / too far / too long) → back to Idle / Patrolling.
     /// Trespass: an owner fully aware of the player inside its <see cref="RestrictedArea"/> (perception trespass mode)
-    /// shouts a warning and runs the same Pursuing → Confronting flow on the area's incident (scold → area grace), or —
-    /// instant-aggression area — engages with the player as its melee aggro target.
+    /// shouts a warning and runs the same Pursuing → Confronting flow on the area's incident (scold → area grace + one area warning), or —
+    /// once the area warned enough (0 = on sight) — starts an armed brawl (knockout → gold looting, warnings reset).
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class EntityBrain : MonoBehaviour, ICombatStateProvider, ISneakAttackTarget
@@ -82,6 +82,7 @@ namespace Game.AI
             // Leaving combat always ends a trespass aggression (disengage, search end, death, routine return).
             if (!inCombat && _meleeAttacker != null && _meleeAttacker.AggroTarget != null) _meleeAttacker.SetAggroTarget(null);
             if (!inCombat) EndRefusalBrawl();
+            if (!inCombat) EndTrespassFight();
             if (IsInCombat == inCombat) return;
             IsInCombat = inCombat;
             _animationDriver?.SetInCombat(inCombat);
@@ -207,6 +208,7 @@ namespace Game.AI
         private FactionMember _confrontThief; // who was offered the return (the target may change if this NPC is hit)
         private TheftKind _pursuitKind;
         private RestrictedArea _pursuitArea; // trespass pursuit only
+        private RestrictedArea _trespassFightArea; // escalation brawl: the area whose warnings a knockout resets
         private float _pursuitElapsed;
         private float _pursuitNoSightTimer;
         private float _pursuitLosTimer;
@@ -771,7 +773,7 @@ namespace Game.AI
             PerceptionActive && _perception.IsTrespassing && _perception.TrespassArea != null &&
             _perception.TrespassArea.IsRestrictedNow && _currentTarget != null && _currentTarget == _perception.Target;
 
-        // Owner fully aware of a trespasser: warning bark, then attack (instant aggression) or chase → scold.
+        // Owner fully aware of a trespasser: already warned (or attack on sight) → armed brawl, else warning bark + chase → scold.
         private void RespondToTrespasser(RestrictedArea area)
         {
             FactionMember trespasser = _currentTarget;
@@ -784,15 +786,21 @@ namespace Game.AI
             }
             TrespassersSpotted++;
 
-            if (area.InstantAggression)
+            // Already warned enough here (or attack on sight): armed brawl instead of warn / chase / scold. An owner that
+            // can't brawl (passive, no attacker) falls through to the chase.
+            float expiryHours = StealthConfig.trespassWarningExpiryHours;
+            if (area.ShouldFightTrespasser(expiryHours))
             {
                 WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
-                RaiseAlertBark(profile != null ? profile.TrespassAlertBarks : null);
-                if (_meleeAttacker != null) _meleeAttacker.SetAggroTarget(trespasser);
-                _perception.ForceAware(trespasser); // e.g. from Watching: track at DisengageRange, not the witness range
-                GameLog.Info(TAG, $"{gameObject.name} attacks trespasser {trespasser.Transform.name} in {area.DebugName}");
-                TransitionToEngaging();
-                return;
+                bool repeat = area.ActiveWarnings(expiryHours) > 0;
+                if (StartBrawl(trespasser)) // armed; ForceAware tracks at DisengageRange, not the witness range
+                {
+                    _trespassFightArea = area;
+                    RaiseAlertBark(profile == null ? null : repeat ? profile.TrespassPunishBarks : profile.TrespassAlertBarks);
+                    GameLog.Info(TAG, $"{gameObject.name} attacks trespasser {trespasser.Transform.name} in {area.DebugName}" +
+                        (repeat ? " (already warned)" : ""));
+                    return;
+                }
             }
 
             // Owners of one area share its open incident: the first catcher scolds, the others give up.
@@ -1135,7 +1143,14 @@ namespace Game.AI
             _confrontTimer += Time.deltaTime;
             if (_pursuitArea != null) _pursuitArea.HoldGrace(StealthConfig.trespassGraceDuration);
             if (!CursorManager.IsLocked)
+            {
+                // The scold really opened: it counts as one warning of the area (next sighting here = fight). Not when the
+                // area already warned enough (a passive owner that can't brawl must not keep the warnings from expiring).
+                if (!_confrontOpened && _pursuitArea != null &&
+                    !_pursuitArea.ShouldFightTrespasser(StealthConfig.trespassWarningExpiryHours))
+                    _pursuitArea.RecordWarning(StealthConfig.trespassWarningExpiryHours);
                 _confrontOpened = true;
+            }
             else if (_confrontOpened || _confrontTimer >= StealthConfig.theftConfrontOpenTimeout)
             {
                 if (_pursuitArea != null) _pursuitArea.StartGrace(StealthConfig.trespassGraceDuration);
@@ -1251,6 +1266,16 @@ namespace Game.AI
 
         // Leaving combat: a refusal brawl the player won or fled ends the matter (they keep the goods); a player lying
         // knocked out leaves the refused goods for the knockout winner's loot.
+        // A trespass escalation fight ended: the player lying knocked out = punished, the area starts over with a warning.
+        // Won / fled → the warnings stay (next sighting fights again).
+        private void EndTrespassFight()
+        {
+            if (_trespassFightArea == null) return;
+            FactionMember player = TargetRegistry.Player;
+            if (IsLive(player) && player.Damageable.IsUnconscious) _trespassFightArea.ClearWarnings();
+            _trespassFightArea = null;
+        }
+
         private void EndRefusalBrawl()
         {
             if (_refusedTheftIds.Count == 0) return;
@@ -1749,7 +1774,7 @@ namespace Game.AI
 
         /// <summary>
         /// Starts a non-lethal brawl with a non-hostile humanoid (melee aggro target + forced awareness + Engaging), like an
-        /// instant-aggression trespass. Ends any intercept. False when it can't fight (passive, no attacker, down, dead,
+        /// trespass escalation fight. Ends any intercept. False when it can't fight (passive, no attacker, down, dead,
         /// target not live / conscious). An equipped NPC fights with its weapon unless <paramref name="useFists"/> (until
         /// this fight ends).
         /// </summary>
@@ -1901,6 +1926,8 @@ namespace Game.AI
             if (PerceptionActive && candidate.StealthTarget != null) _perception.ForceAware(candidate);
             StopLooting(); // hit while robbing the player: fight back instead (the clip blends out)
             _currentTarget = candidate;
+            if (_trespassFightArea != null && candidate != TargetRegistry.Player)
+                _trespassFightArea = null; // no longer the trespass fight: a later knockout of the player isn't its punishment
             if (_meleeAttacker != null)
             {
                 if (brawl) _meleeAttacker.SetAggroTarget(candidate);
