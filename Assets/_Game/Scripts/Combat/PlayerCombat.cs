@@ -20,7 +20,7 @@ namespace Game.Combat
     /// Story 2.6: PlayerStateManager integration; airborne gates; attacking state tracking.
     /// Story 2.6 (refactor): Direct Animator calls removed — all animation driven via PlayerStateManager setters.
     /// Story 2.9: ExecuteHitDetection() added — sphere overlap on attack to apply damage to EntityHealth components.
-    /// Story 3.6: ComputeEffectiveDamage() — Strength bonus and Power Strike skill effect applied to damage.
+    /// Story 3.6 / spec-stat-scaling-balance: ComputeEffectiveDamage() — weapon damage + its scaling stat.
     /// Attach to the Player prefab root alongside StaminaSystem and PlayerStateManager.
     /// </summary>
     [RequireComponent(typeof(StaminaSystem))]
@@ -28,7 +28,6 @@ namespace Game.Combat
     public class PlayerCombat : MonoBehaviour
     {
         private const string TAG = "[Combat]";
-        private const string POWER_STRIKE_SKILL_ID = "power_strike"; // SkillSO id (Story 3.5)
 
         // Trigger hashes — passed to PlayerStateManager.SetAttacking(true, hash) to fire the animation
         private static readonly int Attack1Hash = Animator.StringToHash("Attack_1");
@@ -41,7 +40,6 @@ namespace Game.Combat
         // Prototype exception per Story 3.6 dev notes. Replace with a StatBonusProvider/SkillEffectRegistry event channel.
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private ProgressionConfigSO _progressionConfig;
-        [SerializeField] private PlayerSkills _playerSkills;
 
         // TODO(Epic7-tech-debt): Cross-system direct ref (Game.Combat → Game.Inventory).
         // Prototype exception per Story 7.3 dev notes. Same pattern as existing _playerStats ref.
@@ -148,8 +146,6 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "PlayerStats not assigned — Strength damage bonus inactive");
             if (_progressionConfig == null)
                 GameLog.Warn(TAG, "ProgressionConfigSO not assigned — all stat bonuses inactive");
-            if (_playerSkills == null)
-                GameLog.Warn(TAG, "PlayerSkills not assigned — Power Strike bonus inactive");
             if (_equipmentSystem == null)
                 GameLog.Warn(TAG, "EquipmentSystem not assigned — weapon damage bonus inactive");
             if (_equipmentVisuals == null)
@@ -643,7 +639,6 @@ namespace Game.Combat
         private void OnWeaponHit(IDamageable target, Vector3 hitPoint)
         {
             float damage = ComputeEffectiveDamage();
-            if (IsUnarmed()) damage *= Mathf.Max(0f, ResolveUnarmedAttack(_currentAttackIndex).damageMultiplier);
             ResolveHit(target, hitPoint, damage, ComputeMeleeStanceDamage(), MeleeCanKnockDown());
         }
 
@@ -896,14 +891,10 @@ namespace Game.Combat
             return ray.GetPoint(best);
         }
 
-        /// <summary>Bow damage: base + Dexterity bonus + bow damageBonus (no Strength, no Power Strike).</summary>
-        private float ComputeRangedDamage(BowSO bow)
-        {
-            int dexterity = _playerStats != null ? _playerStats.Dexterity : 0;
-            int baseDexterity = _progressionConfig != null ? _progressionConfig.baseDexterity : dexterity;
-            float perDex = _progressionConfig != null ? _progressionConfig.damagePerDexterity : 0f;
-            return RangedDamage.Compute(_config.attackDamage, dexterity, baseDexterity, perDex, bow.damageBonus);
-        }
+        /// <summary>Bow damage: bow damage + its scaling stat (Dexterity), 1:1.</summary>
+        private float ComputeRangedDamage(BowSO bow) => DamageMath.WeaponRaw(bow.damageBonus, ScalingStatValue(bow.scalingStat));
+
+        private int ScalingStatValue(StatType stat) => _playerStats != null ? _playerStats.GetStat(stat) : 0;
 
         // Story 7.10: public methods called by AnimationEventReceiver ----------------
 
@@ -1054,29 +1045,21 @@ namespace Game.Combat
         // ----------------------------------------------------------------------------
 
         /// <summary>
-        /// Computes effective attack damage: base damage + Strength bonus + Power Strike skill bonus.
-        /// Called each time damage is applied or displayed. Lightweight — no allocations, safe to call per-frame.
+        /// Raw melee damage: weapon damage + its scaling stat, 1:1. Fists are a weapon too:
+        /// (CombatConfigSO.unarmedDamage + Strength) × the combo step's multiplier. No allocations.
         /// </summary>
         private float ComputeEffectiveDamage()
         {
-            float damage = _config.attackDamage;
-            if (_playerStats != null && _progressionConfig != null)
-                // Clamp to 0 — negative Strength delta (future debuff/penalty system) must not reduce damage below base.
-                damage += Mathf.Max(0f, (_playerStats.Strength - _progressionConfig.baseStrength)
-                          * _progressionConfig.damagePerStrength);
-            // Prototype: hardcoded skill ID "power_strike" defined in SkillSO (Story 3.5).
-            // Full system would query skill effects generically via a SkillEffectRegistry.
-            if (_playerSkills != null && _progressionConfig != null
-                && _playerSkills.HasSkill(POWER_STRIKE_SKILL_ID))
-                damage += _progressionConfig.powerStrikeDamageBonus;
-            // Story 7.3: direct weapon damage bonus (flat, unscaled by stats).
-            damage += _equipmentSystem?.GetWeaponDamageBonus() ?? 0f;
-            return damage;
+            WeaponSO weapon = EquippedWeapon();
+            return weapon != null
+                ? DamageMath.WeaponRaw(weapon.damageBonus, ScalingStatValue(weapon.scalingStat))
+                : DamageMath.WeaponRaw(_config.unarmedDamage, ScalingStatValue(StatType.Strength))
+                  * Mathf.Max(0f, ResolveUnarmedAttack(_currentAttackIndex).damageMultiplier);
         }
 
         /// <summary>
         /// Melee stance damage: equipped weapon's resolved value (unarmed: config) + Strength bonus, × finisher
-        /// multiplier on the last combo step, + Power Strike bonus. See StanceMath.ComputeMeleeStanceDamage.
+        /// multiplier on the last combo step. See StanceMath.ComputeMeleeStanceDamage.
         /// </summary>
         private float ComputeMeleeStanceDamage()
         {
@@ -1084,14 +1067,12 @@ namespace Game.Combat
             float baseStance = !unarmed && _currentWeaponSO != null ? _currentWeaponSO.ResolvedStanceDamage : _config.unarmedStanceDamage;
             float strengthDelta = _playerStats != null && _progressionConfig != null
                 ? _playerStats.Strength - _progressionConfig.baseStrength : 0f;
-            bool powerStrike = _playerSkills != null && _playerSkills.HasSkill(POWER_STRIKE_SKILL_ID);
-            float powerStrikeBonus = powerStrike ? _config.powerStrikeStanceBonus : 0f;
             // Unarmed: each step carries its own multiplier (finisher > 1), replacing the global finisher one.
             if (unarmed)
                 return StanceMath.ComputeMeleeStanceDamage(baseStance, strengthDelta, _config.stancePerStrength,
-                    ResolveUnarmedAttack(_currentAttackIndex).stanceMultiplier, powerStrikeBonus);
+                    ResolveUnarmedAttack(_currentAttackIndex).stanceMultiplier);
             return StanceMath.ComputeMeleeStanceDamage(baseStance, strengthDelta, _config.stancePerStrength,
-                IsMaxCombo(), _config.finisherStanceMultiplier, powerStrikeBonus);
+                IsMaxCombo(), _config.finisherStanceMultiplier);
         }
 
         /// <summary>Melee swing cost: config cost × the equipped weapon's archetype multiplier (unarmed ×1).</summary>

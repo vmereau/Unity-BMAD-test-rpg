@@ -3,62 +3,16 @@ using NUnit.Framework;
 namespace Game.Tests.EditMode
 {
     /// <summary>
-    /// Pure-logic tests for the stat-combat effect formulas introduced in Story 3.6.
+    /// Pure-logic tests for the Endurance stamina formula (Story 3.6). Damage formulas: DamageMathTests.
     /// No MonoBehaviour or Unity scene required — formulas are extracted as local helpers.
     /// </summary>
     public class StatCombatEffectTests
     {
         // ── Helpers mirroring the production formulas ──────────────────────────
 
-        private float ComputeDamage(float baseDamage, int strength, int baseStrength,
-            float damagePerStrength, bool hasPowerStrike, float psBonus)
-        {
-            float d = baseDamage + (strength - baseStrength) * damagePerStrength;
-            if (hasPowerStrike) d += psBonus;
-            return d;
-        }
-
         private float ComputeMaxStamina(float basePool, int endurance, int baseEndurance,
             float staminaPerEndurance)
             => basePool + (endurance - baseEndurance) * staminaPerEndurance;
-
-        // ── Damage tests ───────────────────────────────────────────────────────
-
-        [Test]
-        public void Damage_BaseStrength_NoBonusApplied()
-        {
-            // STR == base → no bonus
-            float result = ComputeDamage(25f, strength: 5, baseStrength: 5,
-                damagePerStrength: 2f, hasPowerStrike: false, psBonus: 10f);
-            Assert.AreEqual(25f, result, 0.001f);
-        }
-
-        [Test]
-        public void Damage_OnePointAboveBase_AddsCorrectBonus()
-        {
-            // STR=6, base=5, dps=2 → 25 + 2 = 27
-            float result = ComputeDamage(25f, strength: 6, baseStrength: 5,
-                damagePerStrength: 2f, hasPowerStrike: false, psBonus: 10f);
-            Assert.AreEqual(27f, result, 0.001f);
-        }
-
-        [Test]
-        public void Damage_PowerStrike_AddsBonus()
-        {
-            // STR==base but power strike → 25 + 10 = 35
-            float result = ComputeDamage(25f, strength: 5, baseStrength: 5,
-                damagePerStrength: 2f, hasPowerStrike: true, psBonus: 10f);
-            Assert.AreEqual(35f, result, 0.001f);
-        }
-
-        [Test]
-        public void Damage_StrengthPlusSkill_StacksCorrectly()
-        {
-            // STR=7, base=5, dps=2, psBonus=10 → 25 + 4 + 10 = 39
-            float result = ComputeDamage(25f, strength: 7, baseStrength: 5,
-                damagePerStrength: 2f, hasPowerStrike: true, psBonus: 10f);
-            Assert.AreEqual(39f, result, 0.001f);
-        }
 
         // ── Stamina tests ──────────────────────────────────────────────────────
 
@@ -90,17 +44,6 @@ namespace Game.Tests.EditMode
         }
 
         // ── Edge-case tests (below-base delta) ────────────────────────────────
-
-        [Test]
-        public void Damage_BelowBaseStrength_GivesNegativeBonus()
-        {
-            // STR=4, base=5, dps=2 → 25 + (-1)*2 = 23
-            // Formula intentionally allows negative bonus (future debuff system).
-            // Production code clamps to 0 via Mathf.Max; this test validates the raw formula.
-            float result = ComputeDamage(25f, strength: 4, baseStrength: 5,
-                damagePerStrength: 2f, hasPowerStrike: false, psBonus: 0f);
-            Assert.AreEqual(23f, result, 0.001f);
-        }
 
         [Test]
         public void Stamina_BelowBaseEndurance_GivesNegativeBonus()

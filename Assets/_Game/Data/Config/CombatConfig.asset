@@ -21,14 +21,14 @@ MonoBehaviour:
   perfectBlockWindowDuration: 0.25
   dodgeDuration: 0.5
   dodgeSpeed: 8
-  baseHealth: 100
-  attackDamage: 25
+  baseHealth: 40
+  minDamageFraction: 0.1
+  unarmedDamage: 10
   attackHitRange: 2
   sneakAttackDamageMultiplier: 2
   unarmedStanceDamage: 15
   stancePerStrength: 0.5
   finisherStanceMultiplier: 1.5
-  powerStrikeStanceBonus: 5
   playerMaxStance: 100
   playerStaggerThreshold: 0.5
   playerStanceRegenDelay: 2

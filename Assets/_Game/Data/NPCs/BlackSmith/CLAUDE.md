@@ -68,7 +68,7 @@ Edric grew up in a small village, the son of a blacksmith. As a child he fell in
 | NPCEntity | `Assets/_Game/Data/NPCs/BlackSmith/NPC_Blacksmith.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/BlackSmith/Dialogues/` |
 | Memories | `Assets/_Game/Data/NPCs/BlackSmith/Memories/` |
-| Teachings | `Teachings/Training/` (+1 Strength, Power Strike) · `Teachings/Smithing/` ("Teach me smithing" → Smithing, 3 LP + 80 gold) + `Mem_Blacksmith_Smithing` (invalidated by `SkillFact_Smithing_Learned`) |
+| Teachings | `Teachings/Training/` (+1 Strength, cap 30) · `Teachings/Smithing/` ("Teach me smithing" → Smithing, 10 LP + 80 gold) + `Mem_Blacksmith_Smithing` (invalidated by `SkillFact_Smithing_Learned`) |
 | Smithing recipe | `Dialogues/SmithingRecipe/` ("What should I forge first?", one-shot) + `Mem_Blacksmith_SmithingRecipe` — unlocked by `SkillFact_Smithing_Learned`; the start node's `DialogueFact_blacksmith_smithing_recipe_given` triggers `PlayerReward_blacksmith_smithing_recipe` (`Item_Recipe_ShortIronSword` ×1) |
 | Shop | `Dialogues/Shop/` ("I need iron") + `Mem_Blacksmith_Shop` — unlocked by `SkillFact_Smithing_Learned`; stock (`Item_IronIngot` ×10, `Weapon_ShortIronSword` ×1) on the `Blacksmith` instance in `StartingTown.unity` |
 | Anvil | `SmithingStation_Anvil` next to Edric in `StartingTown.unity` (needs Smithing) |

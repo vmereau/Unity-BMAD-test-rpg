@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Crafting;
 using Game.Inventory;
+using Game.Player;
 using Game.Progression;
 using Game.StatusEffects;
 using Game.UI;
@@ -95,10 +96,11 @@ namespace Tests.EditMode
 
             ItemDetailFormatter.BuildStatLines(sword, _lines);
 
-            Assert.AreEqual(3, _lines.Count);
+            Assert.AreEqual(4, _lines.Count);
             AssertLine(_lines[0], "Damage", "+20", StatPolarity.Positive);
-            AssertLine(_lines[1], "Strength", "+3", StatPolarity.Positive);
-            AssertLine(_lines[2], "Dexterity", "+1", StatPolarity.Positive);
+            AssertLine(_lines[1], "Scales with", "Strength", StatPolarity.Neutral);
+            AssertLine(_lines[2], "Strength", "+3", StatPolarity.Positive);
+            AssertLine(_lines[3], "Dexterity", "+1", StatPolarity.Positive);
             Assert.AreEqual("Weapon", ItemDetailFormatter.GetCategory(sword));
         }
 
@@ -145,8 +147,22 @@ namespace Tests.EditMode
 
             ItemDetailFormatter.BuildStatLines(sword, _lines);
 
-            Assert.AreEqual(1, _lines.Count);
+            Assert.AreEqual(2, _lines.Count);
             AssertLine(_lines[0], "Damage", "-4", StatPolarity.Negative);
+        }
+
+        [Test]
+        public void Bow_ScalesWithDexterity()
+        {
+            var bow = Create<BowSO>();
+            bow.damageBonus = 12f;
+            bow.scalingStat = StatType.Dexterity;
+
+            ItemDetailFormatter.BuildStatLines(bow, _lines);
+
+            Assert.AreEqual(2, _lines.Count);
+            AssertLine(_lines[0], "Damage", "+12", StatPolarity.Positive);
+            AssertLine(_lines[1], "Scales with", "Dexterity", StatPolarity.Neutral);
         }
 
         [Test]
@@ -207,8 +223,9 @@ namespace Tests.EditMode
             ItemDetailFormatter.BuildStatLines(forged, _lines);
 
             Assert.AreEqual("Weapon · Forged", ItemDetailFormatter.GetCategory(forged));
-            Assert.AreEqual(1, _lines.Count); // the forged bonus is already in the damage value
+            Assert.AreEqual(2, _lines.Count); // the forged bonus is already in the damage value
             AssertLine(_lines[0], "Damage", "+14", StatPolarity.Positive);
+            AssertLine(_lines[1], "Scales with", "Strength", StatPolarity.Neutral);
             Assert.AreEqual("Weapon", ItemDetailFormatter.GetCategory(standard));
         }
 

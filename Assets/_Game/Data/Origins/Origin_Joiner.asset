@@ -17,7 +17,7 @@ MonoBehaviour:
   _description: 'You did the fine work in a joiner''s shop: cabinets, chests and strongboxes, and the locks set into them. Your hands are quick, and you know where a lock gives.'
   _statBonuses:
   - stat: 1
-    points: 2
+    points: 10
   _skill: {fileID: 11400000, guid: 8a125a0c91ecb0a4c95d294630e0ac88, type: 2}
   _hasBelongings: 1
   _promisedItems:

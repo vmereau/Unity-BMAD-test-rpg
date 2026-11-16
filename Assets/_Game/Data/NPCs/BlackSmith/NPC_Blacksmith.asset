@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Blacksmith
   _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
-  _baseHealth: 50
-  _attackDamage: 10
+  _aidGroup: {fileID: 0}
+  _level: 7
+  _armor: 20
+  _baseHealth: 110
+  _attackDamage: 20
   _detectionRange: 8
   _disengageRange: 12
   _warningRange: 5
@@ -32,7 +35,7 @@ MonoBehaviour:
   _engageStoppingDistance: 1.3
   _baseSpeed: 2
   _engageSpeed: 4
-  _xpOnKill: 25
+  _xpOnKill: -1
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 1.5
@@ -65,6 +68,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9391a4d8662e3d748b2b8aa3213924b8, type: 2}
   _killedFact: {fileID: 11400000, guid: f7d32f87c84865448aa2d57d1602c517, type: 2}
   _head: {fileID: 11400000, guid: ac1a05ab34e818949ab6d03585c440f5, type: 2}
+  _skinTone: {fileID: 0}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _playerRelationship: 0
+  _relationshipConditions: []
   _startingEquipment: []
+  _xpOnKnockout: 25
+  _canBeExecuted: 1
   _finisherStanceMultiplier: 1.5

@@ -20,7 +20,14 @@ namespace _Game.ScriptableObjects.Entities
         [Tooltip("Optional mutual-aid group: entities sharing one defend each other whatever their factions (spec-faction-mutual-defense).")]
         [SerializeField] private AidGroupSO _aidGroup;
 
+        /// <summary>XP per creature level when <c>_xpOnKill</c> is negative (spec-stat-scaling-balance).</summary>
+        public const int XP_PER_LEVEL = 10;
+
         [Header("Stats")]
+        [Tooltip("Creature level: anchors its tier band (_bmad-output/balance.md) and its derived kill XP.")]
+        [SerializeField, Min(1)] private int _level = 1;
+        [Tooltip("Flat armor: damage taken = max(raw - armor, raw * CombatConfigSO.minDamageFraction), min 1.")]
+        [SerializeField, Min(0f)] private float _armor = 0f;
         [SerializeField, FormerlySerializedAs("baseHealth")]   private float _baseHealth   = 50f;
         [SerializeField, FormerlySerializedAs("attackDamage")] private float _attackDamage = 10f;
 
@@ -62,7 +69,8 @@ namespace _Game.ScriptableObjects.Entities
         [SerializeField, FormerlySerializedAs("engageSpeed")] private float _engageSpeed = 4f;
 
         [Header("Rewards")]
-        [SerializeField] private int _xpOnKill = 25;
+        [Tooltip("Negative = level × XP_PER_LEVEL. 0 or more = explicit override.")]
+        [SerializeField] private int _xpOnKill = -1;
 
         [Header("Patrol")]
         [SerializeField, FormerlySerializedAs("waypointArrivalThreshold")] private float _waypointArrivalThreshold = 0.5f;
@@ -107,7 +115,9 @@ namespace _Game.ScriptableObjects.Entities
         public float AttackDamage             => _attackDamage;
         public float BaseSpeed                => _baseSpeed;
         public float EngageSpeed              => _engageSpeed;
-        public int XpOnKill => _xpOnKill;
+        public int Level                      => _level;
+        public float Armor                    => _armor;
+        public int XpOnKill => _xpOnKill >= 0 ? _xpOnKill : Mathf.Max(1, _level) * XP_PER_LEVEL;
         
         public float DetectionRange           => _detectionRange;
         public float DisengageRange           => _disengageRange;

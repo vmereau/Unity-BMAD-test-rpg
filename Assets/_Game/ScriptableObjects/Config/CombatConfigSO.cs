@@ -37,11 +37,16 @@ namespace Game.Combat
         public float dodgeSpeed = 8f;
 
         [Header("Player Health")]
-        public float baseHealth = 100f;
+        public float baseHealth = 40f;
 
-        [Header("Attack Damage")]
-        [Tooltip("Damage dealt to enemies per player attack hit.")]
-        public float attackDamage = 25f;
+        [Header("Damage Mitigation")]
+        [Tooltip("Armor floor: a hit always deals at least this fraction of its raw damage (min 1). " +
+                 "Damage taken = max(raw - armor, raw * fraction). See _bmad-output/balance.md.")]
+        [Range(0f, 1f)] public float minDamageFraction = 0.1f;
+
+        [Header("Attack")]
+        [Tooltip("Fists are a weapon: base damage added to Strength (1:1), then × the unarmed combo step's damageMultiplier.")]
+        [Min(0f)] public float unarmedDamage = 10f;
         [Tooltip("Radius of the sphere overlap used for player attack hit detection.")]
         public float attackHitRange = 2f;
 
@@ -56,8 +61,6 @@ namespace Game.Combat
         [Min(0f)] public float stancePerStrength = 0.5f;
         [Tooltip("Stance damage multiplier on the last step of a combo (finisher).")]
         [Min(1f)] public float finisherStanceMultiplier = 1.5f;
-        [Tooltip("Flat stance damage added per melee hit when the Power Strike skill is learned.")]
-        [Min(0f)] public float powerStrikeStanceBonus = 5f;
 
         [Header("Player Stance (AI hits on the player)")]
         [Tooltip("Hidden player stance meter. AI hits drain it; it regenerates after a delay without stance damage.")]

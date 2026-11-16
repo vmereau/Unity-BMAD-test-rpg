@@ -47,25 +47,25 @@ namespace Game.Combat
 
         /// <summary>
         /// Player melee stance damage: (base + max(0, strength delta) × perStrength) × finisher multiplier on the
-        /// last combo step, then + Power Strike bonus.
+        /// last combo step.
         /// </summary>
         public static float ComputeMeleeStanceDamage(float baseDamage, float strengthDelta, float perStrength,
-            bool isFinisher, float finisherMultiplier, float powerStrikeBonus)
+            bool isFinisher, float finisherMultiplier)
         {
             float damage = Mathf.Max(0f, baseDamage) + Mathf.Max(0f, strengthDelta) * Mathf.Max(0f, perStrength);
             if (isFinisher) damage *= Mathf.Max(1f, finisherMultiplier);
-            return damage + Mathf.Max(0f, powerStrikeBonus);
+            return damage;
         }
 
         /// <summary>
         /// Player melee stance damage with a per-step multiplier (unarmed combo, spec-unarmed-combo-rework):
-        /// (base + max(0, strength delta) × perStrength) × max(0, stepMultiplier), then + Power Strike bonus.
+        /// (base + max(0, strength delta) × perStrength) × max(0, stepMultiplier).
         /// </summary>
         public static float ComputeMeleeStanceDamage(float baseDamage, float strengthDelta, float perStrength,
-            float stepMultiplier, float powerStrikeBonus)
+            float stepMultiplier)
         {
             float damage = Mathf.Max(0f, baseDamage) + Mathf.Max(0f, strengthDelta) * Mathf.Max(0f, perStrength);
-            return damage * Mathf.Max(0f, stepMultiplier) + Mathf.Max(0f, powerStrikeBonus);
+            return damage * Mathf.Max(0f, stepMultiplier);
         }
 
         /// <summary>

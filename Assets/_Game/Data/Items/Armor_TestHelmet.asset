@@ -20,10 +20,13 @@ MonoBehaviour:
   worldItemPrefab: {fileID: 7470631476087896926, guid: 3ffaef23b6cac824bb27f07060573b65, type: 3}
   buyValue: 25
   sellValue: 10
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0
   equipVisualPrefab: {fileID: 0}
   strengthBonus: 0
   dexterityBonus: 0
   enduranceBonus: 0
   intelligenceBonus: 0
-  defenseBonus: 2
+  defenseBonus: 5
   slot: 1

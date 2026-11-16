@@ -10,12 +10,12 @@ namespace Game.Progression
     public class ProgressionConfigSO : ScriptableObject
     {
         [Header("Level Thresholds — Story 3.2")]
-        [Tooltip("XP required to reach level index+1. Level 1=100, Level 2=250, etc.")]
-        public int[] xpPerLevel = { 100, 250, 500, 900, 1400 };
+        [Tooltip("Cumulative XP to leave level index+1: 100·n(n+1)/2 for n = index+1 (100, 300, 600, …). See _bmad-output/balance.md.")]
+        public int[] xpPerLevel = BuildDefaultCurve(30);
 
         [Header("Learning Points — Story 3.3")]
         [Tooltip("Learning points awarded each time the player levels up.")]
-        public int learningPointsPerLevel = 3;
+        public int learningPointsPerLevel = 10;
 
         [Header("Health — level-up")]
         [Tooltip("Permanent max health (and current health) gained each time the player levels up. 0 = none.")]
@@ -23,19 +23,21 @@ namespace Game.Progression
 
         [Header("Base Stats — Story 3.4")]
         [Tooltip("Starting value for each base stat.")]
-        public int baseStrength = 5;
-        public int baseDexterity = 5;
-        public int baseEndurance = 5;
-        public int baseIntelligence = 5;
+        public int baseStrength = 10;
+        public int baseDexterity = 10;
+        public int baseEndurance = 10;
+        public int baseIntelligence = 10;
 
-        [Header("Stat Combat Multipliers — Story 3.6")]
-        [Tooltip("Flat damage added per Strength point above base.")]
-        public float damagePerStrength = 2f;
-        [Tooltip("Flat ranged (bow) damage added per Dexterity point above base.")]
-        public float damagePerDexterity = 2f;
+        [Header("Stat Combat Effects — Story 3.6 (weapon damage scales 1:1 with WeaponSO.scalingStat)")]
         [Tooltip("Flat stamina pool added per Endurance point above base.")]
         public float staminaPerEndurance = 5f;
-        [Tooltip("Flat damage bonus applied when 'power_strike' skill is learned.")]
-        public float powerStrikeDamageBonus = 10f;
+
+        /// <summary>Cumulative thresholds 100·n(n+1)/2 for n = 1..<paramref name="levels"/>.</summary>
+        public static int[] BuildDefaultCurve(int levels)
+        {
+            var curve = new int[levels];
+            for (int n = 1; n <= levels; n++) curve[n - 1] = 100 * n * (n + 1) / 2;
+            return curve;
+        }
     }
 }

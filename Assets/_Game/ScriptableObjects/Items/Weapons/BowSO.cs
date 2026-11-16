@@ -1,3 +1,4 @@
+using Game.Player;
 using UnityEngine;
 
 namespace Game.Inventory
@@ -9,6 +10,9 @@ namespace Game.Inventory
     [CreateAssetMenu(menuName = "Items/Weapons/Bow", fileName = "Weapon_Bow_")]
     public class BowSO : WeaponSO
     {
+        // Bows scale with Dexterity by default (spec-stat-scaling-balance); covers CreateInstance and new assets.
+        public BowSO() => scalingStat = StatType.Dexterity;
+
         [Header("Ranged")]
         [Tooltip("Item consumed from the inventory per shot (e.g. Item_Arrow).")]
         public ItemSO ammoItem;

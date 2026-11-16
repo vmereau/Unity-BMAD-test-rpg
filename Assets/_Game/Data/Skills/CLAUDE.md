@@ -15,7 +15,7 @@
 | `skillId` | `_skillId` | Unique string key used by `PlayerSkills.HasSkill()` / `LearnSkill()` |
 | `displayName` | `_displayName` | Human-readable name — shown in UI and used for choice button labels |
 | `description` | `_description` | Flavour text (optional) |
-| `effectDescription` | `_effectDescription` | Player-facing effect text shown in the Skills tab (authored — keep numbers in sync with the real values, e.g. Power Strike ↔ `ProgressionConfig.powerStrikeDamageBonus`) |
+| `effectDescription` | `_effectDescription` | Player-facing effect text shown in the Skills tab (authored — keep numbers in sync with the real config values the skill reads) |
 | `lpCost` | `_lpCost` | Learning Points consumed on learn — read by `PlayerSkills.LearnSkill()` and displayed by the teach UI |
 | `statsRequirements` | `_statsRequirements` | `List<StatRequirement>` — checked before allowing the skill to be learned |
 | `skillRequirements` | `_skillRequirements` | `List<SkillSO>` — prerequisite skills; all must be learned first |

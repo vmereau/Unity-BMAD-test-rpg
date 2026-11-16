@@ -21,6 +21,8 @@ MonoBehaviour:
   buyValue: 60
   sellValue: 20
   isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0
   equipVisualPrefab: {fileID: 3814550330304917833, guid: 2f14a804ca166d34cad0149c49b8ff82, type: 3}
   strengthBonus: 0
   dexterityBonus: 0
@@ -28,12 +30,19 @@ MonoBehaviour:
   intelligenceBonus: 0
   defenseBonus: 0
   archetype: {fileID: 11400000, guid: e6f779830c6e90e4a92f48eb591d51a6, type: 2}
-  damageBonus: 8
+  damageBonus: 12
+  scalingStat: 1
+  baseWeapon: {fileID: 0}
   comboSteps: 0
   animatorOverrideController: {fileID: 0}
+  stanceDamage: 0
+  knockDown: 0
   ammoItem: {fileID: 11400000, guid: fa2cf81c62566bf449760d6f324581e6, type: 2}
   projectilePrefab: {fileID: 2646672303800406379, guid: 98385a94b652df04aaade37e78cb3c54, type: 3}
   projectileSpeed: 40
   fireCooldown: 0.8
   projectileLifetime: 5
   maxAimDistance: 100
+  gravityScale: 0.5
+  gravityDelay: 0.25
+  gravityRampTime: 0.5

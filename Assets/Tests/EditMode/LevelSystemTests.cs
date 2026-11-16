@@ -10,7 +10,7 @@ namespace Game.Tests.EditMode
     /// </summary>
     public class LevelSystemTests
     {
-        // Default thresholds from ProgressionConfigSO: { 100, 250, 500, 900, 1400 }
+        // Fixed thresholds for these tests (the shipped curve is ProgressionConfigSO.BuildDefaultCurve(30))
         private static readonly int[] DefaultThresholds = { 100, 250, 500, 900, 1400 };
 
         /// <summary>

@@ -32,6 +32,7 @@ namespace Game.UI
         private const string LABEL_GOLD = "Gold on pickup";
 
         private const string LABEL_DAMAGE = "Damage";
+        private const string LABEL_SCALES_WITH = "Scales with";
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
         private const string OVER_TIME_PREFIX = " over ";
         private const string LABEL_TEACHES = "Teaches";
@@ -94,7 +95,10 @@ namespace Game.UI
                     break;
                 // Floats are rounded first so the shown value, the polarity and the omission rule agree.
                 case WeaponSO weapon:
-                    AddBonus(into, LABEL_DAMAGE, Mathf.RoundToInt(weapon.damageBonus));
+                    int damage = Mathf.RoundToInt(weapon.damageBonus);
+                    AddBonus(into, LABEL_DAMAGE, damage);
+                    // Raw hit = weapon damage + this stat, 1:1 (spec-stat-scaling-balance) — shown with the damage row.
+                    if (damage != 0) into.Add(new ItemStatLine(LABEL_SCALES_WITH, SkillDetailFormatter.GetStatLabel(weapon.scalingStat)));
                     break;
                 case PotionItemSO potion when Mathf.RoundToInt(potion.HealAmount) > 0:
                     int heal = Mathf.RoundToInt(potion.HealAmount);

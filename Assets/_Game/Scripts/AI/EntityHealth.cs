@@ -169,9 +169,11 @@ namespace Game.AI
             bool knockout = _combatConfig != null && FactionMember.IsKnockoutPair(FactionMember.Of(attacker), _factionMember);
             if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
 
-            CurrentHealth -= amount;
+            float armor = _persistentID.Entity.Armor;
+            float effective = DamageMath.Mitigate(amount, armor, _combatConfig != null ? _combatConfig.minDamageFraction : 0f);
+            CurrentHealth -= effective;
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
-            GameLog.Info(TAG, $"{gameObject.name} took {amount} damage — HP: {CurrentHealth:F0}/{_persistentID.Entity.BaseHealth:F0}");
+            GameLog.Info(TAG, $"{gameObject.name} took {effective:F1} damage (raw {amount:F1} - armor {armor:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
 
             if (CurrentHealth <= 0f)

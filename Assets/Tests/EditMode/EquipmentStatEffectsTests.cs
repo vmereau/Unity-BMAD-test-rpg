@@ -194,7 +194,7 @@ namespace Tests.EditMode
             ph.TakeDamage(10f);
 
             Assert.AreEqual(100f - (10f - 4f), ph.CurrentHealth, 0.001f,
-                "HP should be reduced by max(1, raw - defense)");
+                "HP should be reduced by max(raw - defense, raw * floor)");
         }
 
         [Test]
@@ -205,7 +205,7 @@ namespace Tests.EditMode
             var config = CreateCombatConfig(baseHealth: 100f);
             var ph = CreatePlayerHealth(config, ps);
 
-            ph.TakeDamage(3f); // defense(10) > raw(3) → effective = max(1, -7) = 1
+            ph.TakeDamage(3f); // defense(10) > raw(3) → max(-7, 0.3) → absolute minimum 1
 
             Assert.AreEqual(100f - 1f, ph.CurrentHealth, 0.001f,
                 "Minimum 1 damage should always get through regardless of defense");
@@ -239,30 +239,6 @@ namespace Tests.EditMode
 
             Assert.AreEqual(5 + 2, ps.Strength, "Strength should include weapon strengthBonus");
             Assert.AreEqual(3, ps.Defense, "Defense should equal armor defenseBonus");
-        }
-
-        [Test]
-        public void GetWeaponDamageBonus_WithWeaponEquipped_ReturnsDamageBonus()
-        {
-            var ps = CreatePlayerStats();
-            var (eq, inv) = CreateEquipmentSystem(ps);
-
-            var sword = CreateWeapon(damageBonus: 10f);
-            inv.AddItem(sword);
-            eq.Equip(0);
-
-            Assert.AreEqual(10f, eq.GetWeaponDamageBonus(), 0.001f,
-                "GetWeaponDamageBonus should return the equipped weapon's damageBonus");
-        }
-
-        [Test]
-        public void GetWeaponDamageBonus_NoWeaponEquipped_ReturnsZero()
-        {
-            var ps = CreatePlayerStats();
-            var (eq, _) = CreateEquipmentSystem(ps);
-
-            Assert.AreEqual(0f, eq.GetWeaponDamageBonus(), 0.001f,
-                "GetWeaponDamageBonus should return 0 when no weapon is equipped");
         }
 
         [Test]

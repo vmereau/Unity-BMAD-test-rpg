@@ -16,9 +16,9 @@ MonoBehaviour:
   _displayName: Expert Lockpicking
   _description: Mastery of complex mechanisms that would stump most thieves.
   _effectDescription: Lets you open doors and chests secured with an expert lock.
-  _lpCost: 5
+  _lpCost: 15
   _statsRequirements:
   - statType: 1
-    value: 10
+    value: 30
   _skillRequirements:
   - {fileID: 11400000, guid: 8a125a0c91ecb0a4c95d294630e0ac88, type: 2}

@@ -17,9 +17,9 @@ MonoBehaviour:
   _description: You stood at a forge from the age of twelve, pumping the bellows and then swinging the hammer. The war took the smithy. Your arms and your trade are what you kept.
   _statBonuses:
   - stat: 0
-    points: 1
+    points: 5
   - stat: 2
-    points: 1
+    points: 5
   _skill: {fileID: 11400000, guid: 63169c475aa67ed4a83be60965166a91, type: 2}
   _hasBelongings: 1
   _promisedItems:

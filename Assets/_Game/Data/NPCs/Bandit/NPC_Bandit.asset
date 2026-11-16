@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCEntity
   entityName: bandit
   _faction: {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
-  _baseHealth: 50
-  _attackDamage: 10
+  _aidGroup: {fileID: 0}
+  _level: 6
+  _armor: 15
+  _baseHealth: 90
+  _attackDamage: 15
   _detectionRange: 8
   _disengageRange: 12
   _warningRange: 5
@@ -32,7 +35,7 @@ MonoBehaviour:
   _engageStoppingDistance: 1.3
   _baseSpeed: 2
   _engageSpeed: 4
-  _xpOnKill: 25
+  _xpOnKill: -1
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 1.5
@@ -58,5 +61,9 @@ MonoBehaviour:
   _head: {fileID: 11400000, guid: fcc5dd6d6bc8ad44686681862d0e7d54, type: 2}
   _skinTone: {fileID: 11400000, guid: 4fea1e9d165162544b080b2656d6a09c, type: 2}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _playerRelationship: 0
+  _relationshipConditions: []
   _startingEquipment: []
+  _xpOnKnockout: 25
+  _canBeExecuted: 1
   _finisherStanceMultiplier: 1.5

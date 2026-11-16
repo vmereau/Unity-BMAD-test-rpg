@@ -91,11 +91,11 @@ public class StanceMathTests
 
     [Test]
     public void ComputeMeleeStanceDamage_AllBonuses()
-        => Assert.That(StanceMath.ComputeMeleeStanceDamage(20f, 10f, 1f, true, 1.5f, 5f), Is.EqualTo(50f).Within(EPS));
+        => Assert.That(StanceMath.ComputeMeleeStanceDamage(20f, 10f, 1f, true, 1.5f), Is.EqualTo(45f).Within(EPS));
 
     [Test]
     public void ComputeMeleeStanceDamage_NegativeStrength_ClampedToBase()
-        => Assert.That(StanceMath.ComputeMeleeStanceDamage(20f, -5f, 1f, false, 1.5f, 0f), Is.EqualTo(20f).Within(EPS));
+        => Assert.That(StanceMath.ComputeMeleeStanceDamage(20f, -5f, 1f, false, 1.5f), Is.EqualTo(20f).Within(EPS));
 
     // spec-player-stance-stagger-knockdown: humanoid NPC = base + weapon, × finisher; player block multiplier.
 

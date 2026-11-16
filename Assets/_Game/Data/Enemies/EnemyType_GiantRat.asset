@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.EnemyTypeSO
   entityName: Giant Rat
   _faction: {fileID: 11400000, guid: 332572146a19a2a41ad097d395d1e813, type: 2}
-  _baseHealth: 40
-  _attackDamage: 8
+  _aidGroup: {fileID: 0}
+  _level: 1
+  _armor: 0
+  _baseHealth: 20
+  _attackDamage: 6
   _detectionRange: 7
   _disengageRange: 12
   _warningRange: 5
@@ -24,13 +27,15 @@ MonoBehaviour:
   _viewAngle: 110
   _eyeHeight: 1.6
   _proximityRadius: 2
+  _walkHearingRadius: 4
+  _runHearingRadius: 9
   _awarenessFillTime: 1
   _loseSightTime: 2
   _searchDuration: 6
   _engageStoppingDistance: 1.2
   _baseSpeed: 2
   _engageSpeed: 4.5
-  _xpOnKill: 25
+  _xpOnKill: -1
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 1.5
   _attackRange: 1.5

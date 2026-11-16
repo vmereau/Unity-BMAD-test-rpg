@@ -44,13 +44,21 @@ Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` 
 **Stance** (player → AI; AI → player / NPC is in `Scripts/AI/CLAUDE.md` → Stance): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.
 Melee = `StanceMath.ComputeMeleeStanceDamage`: weapon `ResolvedStanceDamage` (archetype `stanceDamage`, or the weapon's
 own value when set; unarmed `CombatConfigSO.unarmedStanceDamage`) + Strength × `stancePerStrength`, × `finisherStanceMultiplier` on
-`IsMaxCombo()` (unarmed: × the step's `UnarmedAttack.stanceMultiplier` instead — `PLAYER_COMBO.md`), + `powerStrikeStanceBonus`. `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
+`IsMaxCombo()` (unarmed: × the step's `UnarmedAttack.stanceMultiplier` instead — `PLAYER_COMBO.md`). `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
 `KnockDownOverride`); unarmed never. Arrows snapshot the bow's resolved values at fire time (no Strength / finisher).
 Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
 
 **Melee stamina:** a swing costs `CombatConfigSO.attackStaminaCost` × `WeaponSO.ResolvedAttackStaminaMultiplier`
-(`PlayerCombat.MeleeAttackStaminaCost`; unarmed × 1; two-handed × 2). Health damage per family comes from each weapon's
-`damageBonus` (Flamberge 25 vs short iron sword 10).
+(`PlayerCombat.MeleeAttackStaminaCost`; unarmed × 1; two-handed × 2).
+
+**Health damage (spec-stat-scaling-balance, tiers + worked examples in `_bmad-output/balance.md`)** — all through the pure
+`DamageMath` (`DamageMathTests`):
+- Raw player hit = `DamageMath.WeaponRaw(WeaponSO.damageBonus, stat)` where stat = the weapon's `scalingStat` (swords /
+  axes STR, bows DEX), 1:1. Fists are a weapon: (`CombatConfigSO.unarmedDamage` 10 + STR) × the step's
+  `UnarmedAttack.damageMultiplier`. × `sneakAttackDamageMultiplier` on an unaware target. AI raw = `Entity.AttackDamage` + wielded weapon `damageBonus` (no stat).
+- Taken = `DamageMath.Mitigate(raw, armor, CombatConfigSO.minDamageFraction)` = `max(raw − armor, raw × 10 %)`, min 1, applied
+  **in the victim's `TakeDamage`** (`PlayerHealth`: `PlayerStats.Defense`; `EntityHealth`: `Entity.Armor`) — callers pass raw
+  damage, never pre-mitigate. New content: pick the tier first, then stay inside its band.
 
 ### Hit-window tooling
 
@@ -180,8 +188,8 @@ Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` →
   Launch origin = `EquipmentVisuals.ActiveWeaponGO`.
 - **Triggers count only on the CharacterHitbox layer** (aim and arrow) — `GetComponentInParent<IDamageable>()` on any trigger
   would let an NPC's perception / interaction sphere take the hit.
-- Damage is snapshotted at fire time: `RangedDamage.Compute` = `attackDamage` + max(0, (Dex − baseDex) × `damagePerDexterity`)
-  + bow `damageBonus` (no Strength, no Power Strike) — `RangedDamageTests`.
+- Damage is snapshotted at fire time: `DamageMath.WeaponRaw(bow.damageBonus, Dexterity)` (the bow's `scalingStat`);
+  the target's armor applies on impact.
 - `ArrowProjectile`: no Rigidbody; integrates its own velocity. Straight for `BowSO.gravityDelay` (0.25 s), then
   `ArrowFlightMath.GravityFactor` ramps `Physics.gravity × gravityScale` (0.5) in over `gravityRampTime` (0.5 s) — at
   40 m/s ≈ 0 m drop at 10 m, 0.03 m at 20 m, 0.65 m at 40 m, 2.5 m at 60 m. Faces its velocity every frame; per-frame `SphereCastNonAlloc`

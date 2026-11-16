@@ -57,16 +57,16 @@ public class UnarmedAttackTests
         => Assert.That(UnarmedAttack.Resolve(null, 1, Fallback).step.distance, Is.EqualTo(0.5f).Within(EPS));
 
     [Test]
-    public void StepStanceDamage_MultipliesBaseAndStrength_ThenAddsPowerStrike()
-        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, 10f, 0.5f, 2f, 5f), Is.EqualTo(45f).Within(EPS));
+    public void StepStanceDamage_MultipliesBaseAndStrength()
+        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, 10f, 0.5f, 2f), Is.EqualTo(40f).Within(EPS));
 
     [Test]
     public void StepStanceDamage_MultiplierOne_IsPlainHit()
-        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, -3f, 0.5f, 1f, 0f), Is.EqualTo(15f).Within(EPS));
+        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, -3f, 0.5f, 1f), Is.EqualTo(15f).Within(EPS));
 
     [Test]
     public void StepStanceDamage_NegativeMultiplier_ClampsToZero()
-        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, 0f, 0.5f, -1f, 5f), Is.EqualTo(5f).Within(EPS));
+        => Assert.That(StanceMath.ComputeMeleeStanceDamage(15f, 0f, 0.5f, -1f), Is.EqualTo(0f).Within(EPS));
 
     // ── Authored data ────────────────────────────────────────────────────────
 

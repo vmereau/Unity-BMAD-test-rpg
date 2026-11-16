@@ -20,6 +20,9 @@ MonoBehaviour:
   worldItemPrefab: {fileID: 8364113362246376723, guid: bae8e632d105a154688069fcbad69160, type: 3}
   buyValue: 1
   sellValue: 1
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0
   equipVisualPrefab: {fileID: 2464659363482329701, guid: fb0ab83c59f847846b9084fb03d97dac, type: 3}
   strengthBonus: 0
   dexterityBonus: 0
@@ -27,6 +30,10 @@ MonoBehaviour:
   intelligenceBonus: 0
   defenseBonus: 0
   archetype: {fileID: 11400000, guid: 104016b0a182d144996c31c9f24bbf3c, type: 2}
-  damageBonus: 5
+  damageBonus: 12
+  scalingStat: 0
+  baseWeapon: {fileID: 0}
   comboSteps: 0
   animatorOverrideController: {fileID: 0}
+  stanceDamage: 0
+  knockDown: 0

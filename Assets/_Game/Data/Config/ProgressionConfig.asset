@@ -12,14 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d440f47026cd374c9abe0fa4f5226c5, type: 3}
   m_Name: ProgressionConfig
   m_EditorClassIdentifier: Game::Game.Progression.ProgressionConfigSO
-  xpPerKill: 50
-  xpPerLevel: 64000000fa000000f40100008403000078050000
-  learningPointsPerLevel: 3
+  xpPerLevel: 640000002c01000058020000e8030000dc05000034080000f00a0000100e0000941100007c150000c8190000781e00008c23000004290000e02e000020350000c43b0000cc420000384a0000085200003c5a0000d4620000d06b000030750000f47e00001c890000a8930000989e0000eca90000a4b50000i
+  learningPointsPerLevel: 10
   healthPerLevel: 10
-  baseStrength: 5
-  baseDexterity: 5
-  baseEndurance: 5
-  baseMana: 5
-  damagePerStrength: 2
+  baseStrength: 10
+  baseDexterity: 10
+  baseEndurance: 10
+  baseIntelligence: 10
   staminaPerEndurance: 5
-  powerStrikeDamageBonus: 10

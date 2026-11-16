@@ -161,7 +161,7 @@ namespace Game.Player
         }
 
         /// <summary>
-        /// Applies damage to the player, reduced by Defense. Minimum 1 damage always gets through.
+        /// Applies damage to the player, mitigated by Defense (<see cref="DamageMath.Mitigate"/>).
         /// Triggers death when health reaches zero. Calls are ignored if the player is already dead.
         /// </summary>
         public void TakeDamage(float amount) => TakeDamage(amount, null);
@@ -178,7 +178,7 @@ namespace Game.Player
             bool knockout = enabled && FactionMember.IsKnockoutPair(FactionMember.Of(attacker), _factionMember);
             if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
             float defense = _playerStats != null ? _playerStats.Defense : 0f;
-            float effective = Mathf.Max(1f, amount - defense);
+            float effective = DamageMath.Mitigate(amount, defense, _config != null ? _config.minDamageFraction : 0f);
             CurrentHealth -= effective;
             unchecked { DamageRevision++; }
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);

@@ -22,10 +22,11 @@ MonoBehaviour:
   sellValue: 25
   isIngredient: 0
   isCraftingMaterial: 0
+  isQuestItem: 0
   equipVisualPrefab: {fileID: 5092115071275473251, guid: c327469848d64b049baa48519ccc40ca, type: 3}
   strengthBonus: 0
   dexterityBonus: 0
   enduranceBonus: 1
   intelligenceBonus: 0
-  defenseBonus: 5
+  defenseBonus: 15
   slot: 2

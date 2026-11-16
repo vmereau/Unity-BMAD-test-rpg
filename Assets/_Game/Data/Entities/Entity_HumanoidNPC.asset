@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entityName: HumanoidNPC
   _faction: {fileID: 11400000, guid: 1f977c38df2937c41a88dcecaebfd255, type: 2}
-  _baseHealth: 100
-  _attackDamage: 10
+  _aidGroup: {fileID: 0}
+  _level: 5
+  _armor: 10
+  _baseHealth: 80
+  _attackDamage: 12
   _detectionRange: 0
   _disengageRange: 12
   _warningRange: 0
@@ -24,13 +27,15 @@ MonoBehaviour:
   _viewAngle: 110
   _eyeHeight: 1.6
   _proximityRadius: 2
+  _walkHearingRadius: 4
+  _runHearingRadius: 9
   _awarenessFillTime: 1
   _loseSightTime: 2
   _searchDuration: 6
   _engageStoppingDistance: 1.5
   _baseSpeed: 2
   _engageSpeed: 4
-  _xpOnKill: 25
+  _xpOnKill: -1
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 1.8

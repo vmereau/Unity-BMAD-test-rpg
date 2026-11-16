@@ -16,8 +16,8 @@ MonoBehaviour:
   _displayName: Beginner Lockpicking
   _description: The basics of working a lock with picks and patience.
   _effectDescription: Lets you open doors and chests secured with a beginner lock.
-  _lpCost: 3
+  _lpCost: 10
   _statsRequirements:
   - statType: 1
-    value: 5
+    value: 15
   _skillRequirements: []

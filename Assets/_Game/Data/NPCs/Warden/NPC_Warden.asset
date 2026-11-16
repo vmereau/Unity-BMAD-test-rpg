@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
   entityName: Warden Voss
   _faction: {fileID: 11400000, guid: 25566c71b5ac7e74f948117616c16d27, type: 2}
-  _baseHealth: 50
-  _attackDamage: 10
+  _aidGroup: {fileID: 0}
+  _level: 12
+  _armor: 30
+  _baseHealth: 180
+  _attackDamage: 30
   _detectionRange: 8
   _disengageRange: 12
   _warningRange: 5
@@ -32,7 +35,7 @@ MonoBehaviour:
   _engageStoppingDistance: 0.9
   _baseSpeed: 2
   _engageSpeed: 4
-  _xpOnKill: 25
+  _xpOnKill: -1
   _waypointArrivalThreshold: 0.5
   _patrolWaitTime: 2
   _attackRange: 1.1
@@ -61,6 +64,8 @@ MonoBehaviour:
   _head: {fileID: 11400000, guid: 341c4def4033ce94b88e9d62913cf31d, type: 2}
   _skinTone: {fileID: 0}
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _playerRelationship: 0
+  _relationshipConditions: []
   _startingEquipment:
   - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
   - {fileID: 11400000, guid: 1ea9fe10628f3ef479ceb5b0d0b44ce8, type: 2}

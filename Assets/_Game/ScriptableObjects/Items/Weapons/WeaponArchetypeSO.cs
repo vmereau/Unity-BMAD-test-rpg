@@ -43,7 +43,7 @@ namespace Game.Inventory
         [Min(0.1f)] public float attackStaminaMultiplier = 1f;
 
         [Header("Stance")]
-        [Tooltip("Stance damage per hit dealt by this weapon family (before Strength / finisher / Power Strike).")]
+        [Tooltip("Stance damage per hit dealt by this weapon family (before Strength / finisher).")]
         [Min(0f)] public float stanceDamage = 20f;
         [Tooltip("True = hits can take stance to 0 (knockdown). False = they stop at the stagger threshold.")]
         public bool canKnockDown;

@@ -488,6 +488,9 @@ use the environment.
 
 **Difficulty Options:** None. One experience for all players.
 
+**Numbers:** creature tiers, the damage / armor formulas and the level curve live in `balance.md` (same folder).
+The player starts weaker than almost everything (40 HP, STR/DEX 10) and outgrows each tier as armor overtakes its damage.
+
 ### Economy and Resources
 
 **Gold:**

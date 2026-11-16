@@ -16,6 +16,6 @@ MonoBehaviour:
   _displayName: Smithing
   _description: Working hot iron on the anvil into something worth carrying.
   _effectDescription: Forge weapons at an anvil from known recipes.
-  _lpCost: 3
+  _lpCost: 10
   _statsRequirements: []
   _skillRequirements: []

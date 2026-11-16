@@ -1,3 +1,4 @@
+using Game.Player;
 using UnityEngine;
 
 namespace Game.Inventory
@@ -11,7 +12,10 @@ namespace Game.Inventory
         public WeaponArchetypeSO archetype;
 
         [Header("Combat")]
+        [Tooltip("Base weapon damage. Raw hit = this + the wielder's scalingStat (1:1). AI adds it to Entity.AttackDamage.")]
         public float damageBonus;
+        [Tooltip("Stat added 1:1 to this weapon's damage for the player (Strength for melee, Dexterity for bows).")]
+        public StatType scalingStat = StatType.Strength;
 
         [Header("Forging")]
         [Tooltip("Standard counterpart of a forged weapon (detail category \"Weapon · Forged\"). Null = not forged.")]

@@ -184,10 +184,6 @@ namespace Game.Inventory
             return false;
         }
 
-        /// <summary>Flat damage bonus from the currently equipped weapon (0 if no weapon or damageBonus is 0).</summary>
-        public float GetWeaponDamageBonus()
-            => GetEquipped(EquipmentSlot.Weapon) is WeaponSO w ? w.damageBonus : 0f;
-
         private void RecomputeAndApplyBonuses()
         {
             if (_playerStats == null) return;
