@@ -226,6 +226,11 @@ namespace Game.AI
         private int _lastDisappointedBarkIndex = -1;
         private bool _warnedRelationshipBark;
 
+        // Mutual defense (spec-faction-mutual-defense).
+        private float _defendScanTimer;
+        private float _lastDefendBarkTime = float.NegativeInfinity;
+        private int _lastDefendBarkIndex = -1;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetActiveBrains() => _active.Clear();
 
@@ -302,6 +307,7 @@ namespace Game.AI
             if (!_active.Contains(this)) _active.Add(this);
             _friendlyGraceUntil = float.NegativeInfinity; // respawn: no grace carried over from a previous life
             _friendlyWarnTime = float.NegativeInfinity;
+            _defendScanTimer = Random.Range(0f, _targetScanInterval); // stagger the O(n) defend scans across brains
             if (_onTheftCommitted != null) _onTheftCommitted.AddListener(HandleTheftCommitted);
             if (_entityHealth == null) return; // Awake failed before resolving it
             ClearStanceReaction(); // disabled mid-reaction (respawn): no Recovered was raised
@@ -478,7 +484,7 @@ namespace Game.AI
                 if (_perception.IsSuspicious) { TransitionToSuspicious(); return true; }
             }
             if (TryAcquireTargetThrottled()) { RespondToDetectedTarget(); return true; }
-            return TryAssistPlayer();
+            return TryJoinNearbyFight();
         }
 
         // Fully aware of a live stealth target → it becomes the current target.
@@ -590,7 +596,7 @@ namespace Game.AI
             if (!PerceptionActive) { ResumeNonCombat(); return; }
             if (TryTakePerceptionTarget()) { RespondToDetectedTarget(); return; }
             if (TryAcquireTargetThrottled()) { RespondToDetectedTarget(); return; } // non-stealth hostile
-            if (TryAssistPlayer()) return;
+            if (TryJoinNearbyFight()) return;
             if (_perception.Awareness <= 0f)
             {
                 GameLog.Info(TAG, $"{gameObject.name} no longer suspicious — resuming");
@@ -799,7 +805,7 @@ namespace Game.AI
                 return;
             }
             _currentTarget = watched; // TryAcquireTarget clears it when nothing is found
-            if (TryAssistPlayer()) return; // a Friendly witness joins a fight the player is in
+            if (TryJoinNearbyFight()) return; // a Friendly witness joins the player's fight; a guard defends a colleague
 
             // Watched (fully aware, perception not rescanning) and now inside one of this owner's restricted areas.
             if (_perception.CanSeeTarget && RestrictedArea.TryFindTrespassedArea(_currentTarget.Transform.position,
@@ -1371,6 +1377,90 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} (friendly) joins the player's fight against {opponent.Transform.name}");
             TransitionToEngaging();
             return true;
+        }
+
+        // Free NPC: help the player (Friendly tier) first, else defend a fellow member's fight. Each scan has its own throttle.
+        private bool TryJoinNearbyFight() => TryAssistPlayer() || TryDefendMember();
+
+        // Non-passive and free: join the closest fight a member it defends (FactionSO.Defends) is in, against that member's
+        // opponent, within memberDefendRange of the opponent (capped below DisengageRange). Throttled like the target scan.
+        private bool TryDefendMember()
+        {
+            _defendScanTimer -= Time.deltaTime;
+            if (_defendScanTimer > 0f) return false;
+            _defendScanTimer = _targetScanInterval;
+
+            if (_meleeAttacker == null || _persistentID.Entity.DetectionRange <= 0f) return false;
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null) return false;
+
+            float range = Mathf.Min(config.memberDefendRange, _persistentID.Entity.DisengageRange * ASSIST_DISENGAGE_MARGIN);
+            FactionMember opponent = FindMemberOpponent(range, out bool hostile, out EntityBrain defended);
+            if (opponent == null) return false;
+
+            // Match the colleague's fistfight (toll / trespass brawl): no blade drawn into a fistfight.
+            if (_armament != null)
+                _armament.SetFists(!hostile && defended._armament != null && defended._armament.FistsRequested);
+
+            if (_perception != null) _perception.ResetPerception(); // drop a witness / suspicion; ForceAware below if stealth
+            _currentTarget = opponent;
+            _meleeAttacker.SetAggroTarget(hostile ? null : opponent);
+            if (PerceptionActive && opponent.StealthTarget != null) _perception.ForceAware(opponent);
+            if (_persistentID.Entity is NPCEntity && Time.time - _lastDefendBarkTime >= config.relationshipBarkCooldown)
+            {
+                _lastDefendBarkTime = Time.time;
+                RaiseRelationshipBark(config.memberDefendBarks, ref _lastDefendBarkIndex);
+            }
+            GameLog.Info(TAG, $"{gameObject.name} defends {defended.name} against {opponent.Transform.name}" +
+                              (hostile ? string.Empty : " (brawl)"));
+            TransitionToEngaging();
+            return true;
+        }
+
+        // Closest opponent (to this NPC) of a live brain it defends. Skips opponents it defends itself, the player when this
+        // NPC is Friendly to the player, and opponents it can't fight (neither faction-hostile nor a knockout pair).
+        private FactionMember FindMemberOpponent(float range, out bool hostile, out EntityBrain defended)
+        {
+            hostile = false;
+            defended = null;
+            FactionSO own = _selfFactionMember.Faction;
+            AidGroupSO ownGroup = _persistentID.Entity.AidGroup;
+            bool friendlyToPlayer = false, friendlyChecked = false;
+            float bestSqr = range * range;
+            FactionMember best = null;
+            for (int i = 0; i < _active.Count; i++)
+            {
+                EntityBrain brain = _active[i];
+                // Actually fighting (a Warning also sets IsInCombat: a warned target keeps its grace).
+                if (brain == null || brain == this || !brain.IsInCombat ||
+                    (brain._state != EntityState.Engaging && brain._state != EntityState.Attacking)) continue;
+                FactionMember member = brain._selfFactionMember;
+                FactionMember opponent = brain._currentTarget;
+                if (!IsLive(member) || member.Damageable.IsUnconscious) continue;
+                if (!IsLive(opponent) || opponent.Damageable.IsUnconscious || opponent.Faction == null) continue;
+                if (opponent == _selfFactionMember) continue;
+                if (!FactionSO.Defends(own, ownGroup, member.Faction, brain._persistentID.Entity.AidGroup)) continue;
+                float sqr = (opponent.Transform.position - transform.position).sqrMagnitude;
+                if (sqr > bestSqr) continue;
+                AidGroupSO opponentGroup = opponent.Entity != null ? opponent.Entity.AidGroup : null;
+                if (!opponent.IsPlayer && FactionSO.Defends(own, ownGroup, opponent.Faction, opponentGroup)) continue;
+                if (opponent.IsPlayer)
+                {
+                    if (!friendlyChecked)
+                    {
+                        friendlyChecked = true;
+                        friendlyToPlayer = PlayerRelationship.Of(_selfFactionMember) == RelationshipTier.Friendly;
+                    }
+                    if (friendlyToPlayer) continue; // stays out of a fight between its colleague and the player
+                }
+                bool opponentHostile = own != null && own.IsHostileTo(opponent.Faction); // no faction: aid group only, brawl
+                if (!opponentHostile && !FactionMember.IsKnockoutPair(_selfFactionMember, opponent)) continue;
+                bestSqr = sqr;
+                best = opponent;
+                defended = brain;
+                hostile = opponentHostile;
+            }
+            return best;
         }
 
         // Closest brain fighting the player that this NPC can fight: not Friendly to the player, not its own / an allied

@@ -19,3 +19,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3efbb85c3945ebf498611238461fb66e, type: 2}
   - {fileID: 11400000, guid: 25566c71b5ac7e74f948117616c16d27, type: 2}
   _alliedFactions: []
+  _membersDefendEachOther: 1

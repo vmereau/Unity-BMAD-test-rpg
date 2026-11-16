@@ -127,6 +127,13 @@ namespace Game.Combat
         [Tooltip("Said by a Friendly NPC whose blow knocked the player out (it doesn't loot).")]
         public BarkSetSO friendlyDisappointedBarks;
 
+        [Header("Mutual defense (spec-faction-mutual-defense)")]
+        [Tooltip("A free NPC joins a fight a member it defends is in when the opponent is within this distance of itself " +
+                 "(capped below its own DisengageRange).")]
+        [Min(0f)] public float memberDefendRange = 12f;
+        [Tooltip("Said by an NPC joining a fight to defend a fellow member (monsters never bark). Uses relationshipBarkCooldown.")]
+        public BarkSetSO memberDefendBarks;
+
         [Header("Execute (stomp an unconscious NPC — spec-execute-unconscious-npc)")]
         [Tooltip("Max ground distance from the player to the body's chest for F to execute.")]
         [Min(0.1f)] public float executeRange = 1.8f;

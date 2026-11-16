@@ -181,6 +181,9 @@ namespace Game.AI
         /// Fists for the fight being started (true) or the weapon (false). Applied at once (a drawn weapon snaps back to its
         /// sheath for fists); cleared when the fight ends.
         /// </summary>
+        /// <summary>True while the current fight is fought with fists (a <see cref="SetFists"/> request).</summary>
+        public bool FistsRequested => _fistsRequested;
+
         public void SetFists(bool useFists)
         {
             if (!_ready || _fistsRequested == useFists) return;

@@ -791,3 +791,18 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   hearing — a friendly behind a wall joins a fight it can't see. Gate on `EntityPerception` sight or hearing if it reads wrong.
 - **Tam friendship after feeding** (entry above): Tam is now relationship-Friendly once fed (`PlayerRelationship.Of`);
   the dialogue / tone side is still open and can read the tier.
+
+## From spec-faction-mutual-defense (2026-11-16)
+
+- **Friendly assist counts a Warning as a fight:** `IsFighting` uses `IsInCombat`, which `TransitionToWarning` also sets, so
+  `TryAssistPlayer` can join against an NPC that is only warning the player. The defend scan now requires Engaging /
+  Attacking; apply the same filter to the assist if it reads wrong.
+- **Join scans have no perception gate:** `TryDefendMember`, like the assist, is pure distance to the opponent (no LOS /
+  hearing) — an NPC behind a wall or on another floor joins. Gate both on `EntityPerception` if it reads wrong.
+- **No cap on joiners:** defenders chain (each joiner is a fighting member for the next scan) and two flagged factions
+  (Company vs Bandits) pull in every member near the fight. Add a max-defenders-per-opponent if fights balloon.
+- **One-way hostility in join scans:** `FindPlayerOpponent` / `FindMemberOpponent` use the defender's `IsHostileTo`, so an
+  asymmetric hostile list (B lists A, A doesn't list B) makes A ignore B attacking its colleague. Current faction data is
+  symmetric.
+- **`TransitionToEngaging` has no `isOnNavMesh` guard** (assist, defend and detection paths all reach it); an off-mesh
+  NPC logs agent errors when it joins.

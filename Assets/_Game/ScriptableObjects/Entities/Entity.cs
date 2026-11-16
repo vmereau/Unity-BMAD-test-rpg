@@ -17,6 +17,8 @@ namespace _Game.ScriptableObjects.Entities
 
         [Header("Faction")]
         [SerializeField] private FactionSO _faction;
+        [Tooltip("Optional mutual-aid group: entities sharing one defend each other whatever their factions (spec-faction-mutual-defense).")]
+        [SerializeField] private AidGroupSO _aidGroup;
 
         [Header("Stats")]
         [SerializeField, FormerlySerializedAs("baseHealth")]   private float _baseHealth   = 50f;
@@ -100,6 +102,7 @@ namespace _Game.ScriptableObjects.Entities
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
         
         public FactionSO Faction              => _faction;
+        public AidGroupSO AidGroup            => _aidGroup;
         public float BaseHealth               => _baseHealth;
         public float AttackDamage             => _attackDamage;
         public float BaseSpeed                => _baseSpeed;

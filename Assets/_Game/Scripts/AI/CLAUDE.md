@@ -18,6 +18,7 @@
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. **One faction source per GO:** an entity always uses `PersistentID.Entity.Faction` (the `Entity` SO); the serialized `_faction` is only for a GO without an Entity — the Player (`Faction_Player`). `_faction` set on an entity → `GameLog.Error`, ignored. `IsPlayer` = an `IStealthTarget` component exists (even disabled). Brain / perception / attacker resolve the same-GO member in `Awake` (no inspector field). Consumers read `member.Faction` at query time — never copy it into their own field (future runtime faction change). **Only the player may implement `IStealthTarget`** (it is the player marker). |
 | `TheftPursuitRegistry` | **Static** claim set of theft ids (reset on play). `TryClaim(id)` — first catcher wins; `IsClaimed(id)` tells the other pursuers to give up. `TheftPursuitRegistryTests`. |
 | `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `Player` = the registered `IsPlayer` member (null when absent; a second one is ignored with a warning, promoted if the first unregisters) — how non-player systems (`NPCPresence`) get the player's faction; Player-side systems (`LockOnSystem`, `SleepSystem`) read their own same-GO `FactionMember`, the same component. `NPCPresence` warns once if it is null. `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget` / `FindClosestNonHostileStealthTarget` (witnesses). |
+| `FactionSO.Defends` / `AidGroupSO` | Who defends whom in a fight — see **Mutual defense** below. |
 | `PlayerRelationship` | Static tier query `Of(npc)` → `RelationshipTier` Hostile / Neutral / Friendly — see **Player relationship** below. Pure `Resolve` (`PlayerRelationshipTests`). |
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
@@ -377,6 +378,27 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `DisengageFromCombat` there (returns true, so the caller doesn't log "target lost").
 - Out of scope / later: bystanders watching / commenting a fight, hostile execute (hostile blows already kill), individual
   Hostile overrides, a tier dialogue condition.
+
+## Mutual defense (spec-faction-mutual-defense)
+
+- **Rule** = pure `FactionSO.Defends(self, selfGroup, other, otherGroup)` (`FactionTests`): a shared non-null
+  `AidGroupSO` (`Entity._aidGroup`, faction-independent — e.g. a hidden crew who are workers on paper), **or** the
+  defender's faction has `_membersDefendEachOther` and the other is the same faction or allied (either direction). The
+  **defender's** flag decides. Flags: Company / Bandits / Monsters on, Neutral (workers) / Player off.
+- **One faction per entity** stays the rule — sub-groups go through `AidGroupSO`, never multi-faction membership.
+- **Scan:** `TryJoinNearbyFight` = `TryAssistPlayer() || TryDefendMember()` at the same three call sites (Idle /
+  Patrolling, Suspicious, Watching); each has its own throttle timer. `TryDefendMember` → non-passive → closest
+  opponent of an `_active` brain in **Engaging / Attacking** (a Warning also sets `IsInCombat` — the warned target keeps
+  its grace) with a live, conscious `_currentTarget` (**whoever started the fight** — a trespass brawl counts) and is
+  defended. A defender without a faction still defends its aid group (brawl only). First scan staggered in `OnEnable`. Range measured to the **opponent**:
+  `min(memberDefendRange, 0.9 × DisengageRange)`.
+- **Skips:** an opponent the defender also defends; the player when the defender is Friendly to the player (it stays out
+  of a fight between its colleague and the player — the player is never on the defended side, that's the friendly
+  assist's job); opponents neither faction-hostile nor a knockout pair.
+- **Join:** perception reset (+ `ForceAware` for a stealth opponent), hostile → plain engage, else aggro target (brawl);
+  fists when the defended colleague's brawl is a fistfight (`NpcArmament.FistsRequested`).
+  `memberDefendBarks` (`Barks_MemberDefend`) once per `relationshipBarkCooldown`, `NPCEntity` only — monsters stay silent.
+- Runtime only; no event-based call for help.
 
 ## Toll gates (TollGate → EntityBrain — spec-racket-guard-exit-toll)
 
