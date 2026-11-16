@@ -48,6 +48,16 @@ namespace Game.Progression
                 if (!string.IsNullOrEmpty(id)) _learnedSkills.Add(id);
         }
 
+        /// <summary>
+        /// New-game origin skill: adds it to the learned set. No LP spent and no OnSkillLearned raised.
+        /// False when the skill is null, has no id or is already known.
+        /// </summary>
+        public bool GrantSkillSilently(SkillSO skill)
+        {
+            if (skill == null || string.IsNullOrEmpty(skill.skillId)) return false;
+            return _learnedSkills.Add(skill.skillId);
+        }
+
         /// <summary>Returns true if the skill with the given id has been learned.</summary>
         public bool HasSkill(string skillId) => _learnedSkills.Contains(skillId);
 

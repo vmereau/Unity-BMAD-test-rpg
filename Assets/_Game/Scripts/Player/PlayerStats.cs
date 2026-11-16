@@ -94,6 +94,25 @@ namespace Game.Player
         }
 
         /// <summary>
+        /// New-game origin bonus: raises a base stat with no progression side effect (one stats-changed raise).
+        /// </summary>
+        public void AddBaseStat(StatType stat, int points)
+        {
+            if (points <= 0) return;
+            switch (stat)
+            {
+                case StatType.Strength:  _baseStrength  += points; break;
+                case StatType.Dexterity: _baseDexterity += points; break;
+                case StatType.Endurance: _baseEndurance += points; break;
+                case StatType.Intelligence: _baseIntelligence += points; break;
+                default:
+                    GameLog.Warn(TAG, $"AddBaseStat: {stat} has no base field — ignored");
+                    return;
+            }
+            _onStatsChanged?.Raise(true);
+        }
+
+        /// <summary>
         /// Returns the current value of a stat.
         /// </summary>
         public int GetStat(StatType stat)

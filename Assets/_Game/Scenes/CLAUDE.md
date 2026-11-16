@@ -8,11 +8,13 @@
 
 Build order: `MainMenu` (0), `Core` (1), `StartingTown` (2). `MainMenu.unity` holds only a camera (solid near-black,
 culling mask Nothing), an `EventSystem` (`InputSystemUIInputModule`) and `MainMenuCanvas` (`MainMenuUI`, `Window` with
-`MainButtons` / `SaveSlotList` / `BackButton`, `ConfirmDialog`). New Game = `LoadScene(Core, Single)`, so `SceneLoader`
-loads the startup region as before. Continue / Load Game set `GameSession.RequestLoad(slot)` first: `SceneLoader.Awake`
+`MainButtons` / `SaveSlotList` / `OriginPick` (`OriginPickUI`, inactive until New Game) / `BackButton`, `ConfirmDialog`). New
+Game opens the origin pick; Begin = `GameSession.SetOrigin(id)` + `LoadScene(Core, Single)`, so `SceneLoader` loads the
+startup region as before. Continue / Load Game set `GameSession.RequestLoad(slot)` first: `SceneLoader.Awake`
 sees it and skips the startup region, `SaveSystem.Start` takes it and loads the save's region directly (an unreadable file
 falls back to the New Game boot plus a toast). **Pressing Play with `Core` open skips the menu** (no request = today's
-flow). There's no way back to the menu from a running game yet (`SaveSystem` / `WorldStateManager` are
+flow, default origin Wretch). The origin is applied by `SaveSystem.HandleRegionLoaded` on the startup (new-game) region,
+before the new-game snapshot (spec-player-origins). There's no way back to the menu from a running game yet (`SaveSystem` / `WorldStateManager` are
 `DontDestroyOnLoad`).
 
 ## Core.unity Manager GameObjects

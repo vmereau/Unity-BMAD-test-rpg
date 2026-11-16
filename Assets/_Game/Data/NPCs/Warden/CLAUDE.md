@@ -66,6 +66,9 @@ Voss runs Alderath Camp for the Company. He uses punishment as theater: every be
   then beats Tam; closing bubble `Barks_Warden_ArrivalClosing`. His routine resumes afterwards.
 - `_engageStoppingDistance` 0.9 / `_attackRange` 1.1 (not the humanoid 1.3 / 1.5): at the default range his unarmed punches
   whiffed (known humanoid reach gap, `deferred-work.md`).
+- Stripped beat (spec-player-origins): one-shot topic `Dialogues/Belongings/Start_Warden_Belongings` ("Where are my
+  belongings?") via `Mem_Warden_Belongings`: unlocks on `WorldFact_Arrival_Done` + `WorldFact_Origin_HadBelongings` (never for
+  the Wretch), invalidated by `DialogueFact_Warden_Belongings`. He denies any baggage cart exists. No quest, no log entry.
 
 ---
 

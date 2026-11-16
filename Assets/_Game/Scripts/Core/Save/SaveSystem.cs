@@ -40,6 +40,12 @@ namespace Game.Core
         [SerializeField] private QuestEventsManager _questEvents;
         [SerializeField] private ConfirmDialogUI _confirmDialog; // F9 is ignored while a Game Menu confirm is open
 
+        [Header("New Game Origin")]
+        [Tooltip("Origins; the picked one (GameSession) or the default is applied on the new-game boot.")]
+        [SerializeField] private OriginCatalogSO _originCatalog;
+        [Tooltip("WorldFact_Origin_HadBelongings — set when the applied origin had belongings.")]
+        [SerializeField] private WorldFact _hadBelongingsFact;
+
         [Header("Event Channels")]
         [SerializeField] private GameEventSO_Quest _onQuestCompleted;
         [SerializeField] private GameEventSO_String _onSaveNotification;
@@ -331,12 +337,29 @@ namespace Game.Core
         private void HandleRegionLoaded(string region, bool isStartup)
         {
             ApplyRegion(region);
+            // Always consume the picked origin on the startup region, even when a load pre-empts the new game.
+            string originId = isStartup ? GameSession.TakeOriginId() : null;
             if (IsLoading || _player == null) return;
 
             if (isStartup)
+            {
+                // The single new-game gate (menu New Game, Play in Core, failed menu load, dev skips): the origin goes
+                // in before the snapshot so Restart keeps it. Loads never get here (IsLoading).
+                ApplyNewGameOrigin(originId);
                 _newGameSnapshot = BuildSaveData(NEW_GAME_SLOT); // in memory only, never written
+            }
             else
                 _autosavePending = true;
+        }
+
+        private void ApplyNewGameOrigin(string originId)
+        {
+            if (_originCatalog == null)
+            {
+                GameLog.Error(TAG, "OriginCatalog not assigned — no origin applied");
+                return;
+            }
+            _player.ApplyOrigin(_originCatalog.Find(originId), _hadBelongingsFact);
         }
 
         private void HandleQuestCompleted(QuestSO _)

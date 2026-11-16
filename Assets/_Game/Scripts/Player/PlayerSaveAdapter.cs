@@ -168,6 +168,40 @@ namespace Game.Player
             Teleport(d.position.To(), d.rotation.To());
         }
 
+        /// <summary>
+        /// New-game boot only (called by SaveSystem before the new-game snapshot): stat bonuses, skill and origin facts.
+        /// No LP, XP or skill-learned event. Belongings are never granted (they are only shown on the pick screen).
+        /// </summary>
+        public void ApplyOrigin(OriginSO origin, WorldFact hadBelongingsFact)
+        {
+            if (origin == null)
+            {
+                GameLog.Warn(TAG, "ApplyOrigin: no origin — nothing applied");
+                return;
+            }
+
+            if (_stats != null)
+                foreach (var bonus in origin.statBonuses) _stats.AddBaseStat(bonus.stat, bonus.points);
+            // Endurance raises the max: start full, like a Restart (Restore refills too).
+            if (_stamina != null) _stamina.RefillToMax();
+            if (origin.skill != null && _skills != null) _skills.GrantSkillSilently(origin.skill);
+
+            var wsm = WorldStateManager.Instance;
+            if (wsm == null)
+                GameLog.Warn(TAG, "ApplyOrigin: no WorldStateManager — origin facts not set");
+            else
+            {
+                if (origin.originFact != null) wsm.SetWorldEvent(origin.originFact, true);
+                else GameLog.Warn(TAG, $"Origin '{origin.originId}' has no origin fact");
+                if (origin.hasBelongings)
+                {
+                    if (hadBelongingsFact != null) wsm.SetWorldEvent(hadBelongingsFact, true);
+                    else GameLog.Warn(TAG, "ApplyOrigin: HadBelongings fact not assigned");
+                }
+            }
+            GameLog.Info(TAG, $"Origin applied: {origin.displayName}");
+        }
+
         private static Dictionary<EquipmentSlot, ItemSO> ResolveEquipped(Dictionary<string, string> saved, ItemCatalogSO catalog)
         {
             var result = new Dictionary<EquipmentSlot, ItemSO>();

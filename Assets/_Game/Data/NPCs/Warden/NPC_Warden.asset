@@ -54,6 +54,7 @@ MonoBehaviour:
   nightState: 2
   prefab: {fileID: 0}
   memories:
+  - {fileID: 11400000, guid: 570749b55e42a254586247d36b61b587, type: 2}
   - {fileID: 11400000, guid: 7060a5fd5de356240896b9917ccce84f, type: 2}
   - {fileID: 11400000, guid: c1a1d8ee04d209e4a8f69955d0c31c78, type: 2}
   _killedFact: {fileID: 11400000, guid: afb2003e2ace22947848dd666dca4eac, type: 2}
@@ -63,4 +64,6 @@ MonoBehaviour:
   _startingEquipment:
   - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
   - {fileID: 11400000, guid: 1ea9fe10628f3ef479ceb5b0d0b44ce8, type: 2}
+  _xpOnKnockout: 25
+  _canBeExecuted: 1
   _finisherStanceMultiplier: 1.5

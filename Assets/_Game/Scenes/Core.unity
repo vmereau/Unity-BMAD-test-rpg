@@ -569,6 +569,8 @@ MonoBehaviour:
   _gameClock: {fileID: 377510055}
   _questEvents: {fileID: 3496145756361601552}
   _confirmDialog: {fileID: 1467251769}
+  _originCatalog: {fileID: 11400000, guid: cee784873b900024a9bfbe233ef87464, type: 2}
+  _hadBelongingsFact: {fileID: 11400000, guid: f34cafdc7d0b56440afd7dcc02dfa3fe, type: 2}
   _onQuestCompleted: {fileID: 11400000, guid: daa28683af9d08841ace38e079c87b14, type: 2}
   _onSaveNotification: {fileID: 11400000, guid: 4511348bce05d4c4f941e70490e40704, type: 2}
   _onLoadStarted: {fileID: 11400000, guid: 1ff9a30a7364fed40ae365d87646d6a7, type: 2}

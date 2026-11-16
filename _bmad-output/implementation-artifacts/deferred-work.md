@@ -749,3 +749,9 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   save's facts already applied. The start-menu load now falls back to a clean New Game; the in-game path doesn't.
 - **Continue session has no new-game snapshot** — Restart on the death screen needs one; it's only offered with no valid
   save, so it can only bite if every save is deleted mid-session (then Restart logs an error and does nothing).
+
+## From spec-player-origins (2026-11-16)
+
+- **New-game snapshot lost if a load pre-empts the startup region** (`SaveSystem.HandleRegionLoaded`): an F9 QuickLoad
+  in Core's first frames sets `IsLoading` before the startup `RegionLoaded`, so `_newGameSnapshot` is never built (Restart
+  then logs an error). Pre-existing; the picked origin id is now consumed either way.

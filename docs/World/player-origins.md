@@ -1,6 +1,8 @@
 # Player Origins and the Stripped Beat
 
-> Status: design (2026-11-16) — not implemented. Replaces the old "stripped beat / empty starting inventory" item
+> Status: first cut implemented (2026-11-16, `spec-player-origins`): pick panel in `MainMenu`, `Data/Origins/`,
+> Voss's belongings topic. Blacksmith = Strength +1, Endurance +1, Smithing (30 gold shown); Joiner = Dexterity +2,
+> Beginner Lockpicking (20 gold shown). Replaces the old "stripped beat / empty starting inventory" item
 > deferred from `spec-area-1-arrival-escort-beating`, `-hut-briefing` and `-wardens-errand`.
 > Story beats: **The Promise** → **Stripped** (narrative-design.md, Act 1). Event: event-001 (area-001).
 

@@ -17,7 +17,7 @@ Player.prefab
 ├── PlayerController, HumanoidAnimationBridge, PlayerAnimationDriver, CameraController,
 │   PlayerStateManager, PlayerCombat, DodgeController, StaminaSystem, PlayerHealth, PlayerStats,
 │   PlayerSkills, InteractionSystem, InventorySystem, ActionBarSystem, EquipmentSystem, XPSystem,
-│   LevelSystem, LearningPointSystem, GoldSystem (_startingGold 500), LockOnSystem,
+│   LevelSystem, LearningPointSystem, GoldSystem (_startingGold 0: every origin starts broke), LockOnSystem,
 │   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/CLAUDE.md),
 │   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Prefabs/Items/Weapons/CLAUDE.md),
 │   FootstepEmitter (distance-based steps, gated by PlayerStateManager as IFootstepGate — Scripts/Audio/CLAUDE.md)

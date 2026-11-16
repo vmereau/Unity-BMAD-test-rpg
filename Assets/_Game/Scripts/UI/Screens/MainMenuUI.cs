@@ -8,9 +8,9 @@ using UnityEngine.UI;
 namespace Game.UI
 {
     /// <summary>
-    /// Start menu (MainMenu scene): New Game / Continue (newest valid save) / Load Game (shared slot list) / Quit.
-    /// New Game loads Core as-is; Continue and Load Game hand the slot to Core through <see cref="GameSession"/>.
-    /// Esc: confirm dialog → slot list → nothing.
+    /// Start menu (MainMenu scene): New Game (origin pick) / Continue (newest valid save) / Load Game (shared slot list) / Quit.
+    /// New Game opens <see cref="OriginPickUI"/>; Begin hands the origin to Core through <see cref="GameSession"/>.
+    /// Continue and Load Game hand the slot the same way. Esc: confirm dialog → slot list / origin pick → nothing.
     /// </summary>
     public class MainMenuUI : MonoBehaviour
     {
@@ -29,13 +29,16 @@ namespace Game.UI
         [SerializeField] private Button _backButton;
         [SerializeField] private ConfirmDialogUI _confirmDialog;
 
+        [Header("New Game")]
+        [SerializeField] private OriginPickUI _originPick;
+
         private InputSystem_Actions _input;
         private string _continueSlot;
         private bool _starting;
 
         private void Awake()
         {
-            GameMenuUI.Wire(_newGameButton, StartNewGame);
+            GameMenuUI.Wire(_newGameButton, ShowOriginPick);
             GameMenuUI.Wire(_continueButton, HandleContinue);
             GameMenuUI.Wire(_loadButton, ShowLoadList);
             GameMenuUI.Wire(_quitButton, GameMenuUI.QuitGame);
@@ -71,6 +74,7 @@ namespace Game.UI
         {
             if (_confirmDialog != null) _confirmDialog.Hide();
             if (_saveSlotList != null) _saveSlotList.Hide();
+            if (_originPick != null) _originPick.Hide();
             if (_mainButtons != null) _mainButtons.SetActive(true);
             if (_backButton != null) _backButton.gameObject.SetActive(false);
             RefreshContinue();
@@ -82,6 +86,19 @@ namespace Game.UI
             if (_mainButtons != null) _mainButtons.SetActive(false);
             if (_backButton != null) _backButton.gameObject.SetActive(true);
             _saveSlotList.Show(SaveSlotListUI.Mode.Load, LoadSlot);
+        }
+
+        private void ShowOriginPick()
+        {
+            if (_originPick == null)
+            {
+                GameLog.Warn(TAG, "OriginPickUI not assigned — starting with the default origin");
+                StartNewGame(null);
+                return;
+            }
+            if (_mainButtons != null) _mainButtons.SetActive(false);
+            if (_backButton != null) _backButton.gameObject.SetActive(true);
+            _originPick.Show(StartNewGame);
         }
 
         private void RefreshContinue()
@@ -100,7 +117,13 @@ namespace Game.UI
             if (!string.IsNullOrEmpty(_continueSlot)) LoadSlot(_continueSlot);
         }
 
-        private void StartNewGame() => LoadCore(null);
+        private void StartNewGame(Game.Player.OriginSO origin)
+        {
+            if (_starting) return;
+            GameSession.SetOrigin(origin != null ? origin.originId : null);
+            GameLog.Info(TAG, $"Origin: {(origin != null ? origin.displayName : "default")}");
+            LoadCore(null);
+        }
 
         private void LoadSlot(string slotId) => LoadCore(slotId);
 
@@ -117,6 +140,7 @@ namespace Game.UI
         {
             if (_confirmDialog != null && _confirmDialog.IsOpen) _confirmDialog.Cancel();
             else if (_saveSlotList != null && _saveSlotList.gameObject.activeSelf) ShowMain();
+            else if (_originPick != null && _originPick.gameObject.activeSelf) ShowMain();
         }
     }
 }
