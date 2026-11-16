@@ -158,5 +158,11 @@ public class UnarmedAttackTests
         Assert.That(mapped, Does.Contain("Hook"));
         Assert.That(mapped, Does.Contain("Uppercut"));
         Assert.That(mapped, Does.Contain("Unarmed Idle Guard"), "CombatIdle carry pose (base clip = baked unarmed guard)");
+        Assert.That(mapped, Does.Contain("Unarmed Block Guard"), "Block_State (base clip = baked unarmed high guard)");
+        string blockTarget = null;
+        foreach (KeyValuePair<AnimationClip, AnimationClip> pair in pairs)
+            if (pair.Key.name == "Unarmed Block Guard" && pair.Value != null) blockTarget = pair.Value.name;
+        Assert.That(blockTarget, Is.EqualTo(file.StartsWith("two handed") ? "2hand blocking" : "Block Idle"),
+            "each melee family keeps its own block");
     }
 }

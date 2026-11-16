@@ -9,8 +9,9 @@
 
 Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Weapon families swap clips via
 `AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Combat/one handed/Sword_AnimatorOverride`,
-`Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). The two-handed override
-also replaces `Block Idle` and `unarmed stagger 1/2`.
+`Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). Both melee overrides
+replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); the two-handed one also replaces
+`unarmed stagger 1/2`. The bow has no block entry (right click aims).
 
 - **Layers** (spec-full-body-attacks-root-motion): **`Base Layer`** holds locomotion (`LockOn Locomotion` 2D blend
   tree, sneak states) **and every full-body action** — `Attack_1/2/3_State` (AnyState → `Attack_1`), jump/fall/land,
@@ -90,7 +91,9 @@ unarmed punch with a weapon in hand: sword `lead jab` → `SwordAttackLeft`, `Ho
 `SwordAttackLeft`; two-handed `lead jab` / `Uppercut` → `2hand attack refined`, `Hook` → `2hand attack 2 refined`.
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced. Same for `CombatIdle`
-(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`).
+(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block
+Guard.anim`, the unarmed high guard; sword → `Block Idle`, two-handed → `2hand blocking`). Only the player sets
+`IsBlocking` today; an NPC that learns to block gets the same states.
 
 **Replacing an FBX in place can leave a state playing no clip.** The editor's compiled controller keeps the destroyed
 old clip: `state.motion` and the YAML look right, but at runtime the state reports `length` 1.00 and an empty

@@ -730,3 +730,11 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **A drawn bow plays the unarmed fist guard** (pre-existing): `Bow_AnimatorOverride` has no `CombatIdle` entry, so the
   bow's carry pose is the unarmed guard (now `Unarmed Idle Guard.anim`, with a stronger lean and fists further out).
   Map a bow idle onto `Unarmed Idle Guard` in the override when one exists.
+
+## From spec-unarmed-high-guard-block (2026-11-16)
+
+- **Strafing turns the upper-body guard sideways** (pre-existing, every UpperBody pose): `UpperBodyMask` takes the hips
+  from the strafe clips, whose hips yaw ~72–92°, so the shoulders (and the guard / block) face sideways while strafing.
+  Measured identical with the old `Block Idle` and `Unarmed Idle Guard`. Needs a spine counter-twist or a mask change.
+- **The unarmed combat idle looks 36° down** (`Unarmed Idle Guard.anim`): the head hangs toward the fists. The block
+  guard corrects it with Neck / Head Nod offsets; the idle could take the same (+0.36 / +0.18) if playtests want it.

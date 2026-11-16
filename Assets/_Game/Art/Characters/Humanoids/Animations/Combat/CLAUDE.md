@@ -18,7 +18,8 @@ Combat/
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
 ├── Unarmed/    — lead jab, Hook, Uppercut (the combo), draw unarmed, sheath unarmed, stagger 1/2,
 │                 Unarmed Idle (source) → baked `Unarmed Idle Guard.anim` (the CombatIdle clip, see below)
-├── Block Idle.fbx
+│                 → baked `Unarmed Block Guard.anim` (Block_State, high guard; `refs/` = the pose reference pictures)
+├── Block Idle.fbx — shield-style block, now only the sword's (Sword override → `Block Idle`)
 ├── dodge roll.fbx
 ├── Dodge back.fbx
 ├── execute stomp.fbx — clip `Execute Stomp` (player execute, see below)
@@ -155,6 +156,27 @@ Over `Walking` / `Running` the fists keep ≥ 0.18 forward and the shoulder line
 15–20°, the run's own hip tilt). No committed bake tool: re-bake from `execute_code` and re-fit the offsets by
 coordinate descent against the source pose (instantiate the FBX for the target, `Player.prefab` + `AnimationLayerMixerPlayable`
 with the mask for the result) if the FBX or the player body changes. The Sword / TwoHanded overrides are keyed on the `.anim`.
+
+### Unarmed block high guard (`Unarmed Block Guard.anim`, spec-unarmed-high-guard-block)
+
+`Block_State` (UpperBody) plays **`Unarmed Block Guard.anim`**: a second bake from **`Unarmed Idle Guard.anim`** (so it
+keeps the proportion fix, lean, breathing and loop), with more constant muscle offsets. Pose targets:
+`Unarmed/refs/high guard front.png` / `high guard side.png` (Gemini, image-to-image from the base hero). Offsets:
+- Head: Neck Nod Down-Up +0.36, Head Nod Down-Up +0.18 — the idle guard looks 36° down (head into the fists); now 11°.
+- Left: Shoulder Down-Up +0.19, Front-Back −0.03; Arm Down-Up −0.59, Front-Back −0.24, Twist −0.08; Forearm Stretch −0.33;
+  Hand Down-Up −0.10, In-Out +0.74.
+- Right: Shoulder Down-Up +0.29, Front-Back +0.40; Arm Down-Up −0.48, Front-Back +0.24, Twist +0.17; Forearm Stretch −0.48,
+  Twist +0.36; Hand Down-Up +0.24.
+Result on the Player (measured 2026-11-16 on the current body; base `Idle` + mask, from the head bone, metres): index knuckles L (−0.05, +0.01, +0.26),
+R (+0.07, +0.01, +0.22) — in front of the mouth / chin; elbows L (−0.17, −0.34, +0.05), R (+0.18, −0.35, +0.02).
+Over Walking / Running / Walking Backwards the knuckles stay ≥ 0.20 in front of the head bone.
+Fitting: coordinate descent per arm (steps 0.1 → 0.02, shoulder offsets capped at ±0.4, every muscle kept within ±1)
+on knuckle (weight 3), wrist (1) and elbow (0.5) targets, then front / side renders against the refs. Gotchas:
+- Fit fist targets **after** fixing the head pitch: a hanging head moves the face 5–10 cm forward / down into the fists.
+- Don't touch the finger curves: the source fingers are already curled past −1 (clamped). "Closing" them to −0.75
+  opens the fists. The Mixamo rig has index fingers only, so a fist never looks fully closed.
+- Muscle offsets are unbounded in the solver unless capped: an uncapped fit pushed Right Shoulder Front-Back to +2.05.
+Re-bake from `execute_code` like the idle guard (copy curves + settings, add the constants) if the idle guard changes.
 
 **Tuning:** `HitboxEnable` ≈ when the weapon reaches the target zone (~0.2–0.25), `HitboxDisable` ≈ when it
 retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than overhead swings. Retiming
