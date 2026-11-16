@@ -74,6 +74,8 @@ namespace Game.Player
             // Every frame: an equip change or a revive resets all Animator parameters. Off during a stance reaction, or
             // the held bool would retake the Base AnyState right after the reaction's blend and hide the clip.
             Bridge.SetSwimming(_stateManager.IsSwimming && !_stateManager.IsIncapacitated);
+            // Re-pushed every frame like IsSwimming: a controller swap / Rebind resets the parameters mid-stomp.
+            Bridge.SetExecuting(_stateManager.IsExecuting);
 
             // UpperBody layer: combat carry pose / block / aim / draw-sheathe over the legs; 0 while the Base Layer plays an
             // attack, dodge, jump, reaction or death full-body. Read from the Animator's state tags (same rule as NPCs).
@@ -107,6 +109,8 @@ namespace Game.Player
         public void ClearStanceReaction() => Bridge.ResetStanceTriggers();
         /// <summary>Knocked out (held knocked down clip) / gets up (getting up clip) — spec-unconscious-knockout.</summary>
         public void SetUnconscious(bool down) => Bridge.SetUnconscious(down);
+        /// <summary>Execute stomp on / off (spec-execute-unconscious-npc).</summary>
+        public void SetExecuting(bool value) => Bridge.SetExecuting(value);
         public void ResetAfterRevive()
         {
             Bridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)

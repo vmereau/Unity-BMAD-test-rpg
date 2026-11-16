@@ -45,6 +45,8 @@ namespace Game.Player
         private bool _gettingUp;
 
         public float CurrentHealth { get; private set; }
+        /// <summary>Changes on every applied hit, even if healing restores the lost health in the same frame.</summary>
+        public uint DamageRevision { get; private set; }
         /// <summary>Config base health + permanent bonuses (first-meal bonuses), which are saved.</summary>
         public float MaxHealth => _config != null ? _config.baseHealth + _bonusMaxHealth : 0f;
         /// <summary>Permanent max-health bonus on top of the config base (saved by PlayerSaveAdapter).</summary>
@@ -148,6 +150,7 @@ namespace Game.Player
             float defense = _playerStats != null ? _playerStats.Defense : 0f;
             float effective = Mathf.Max(1f, amount - defense);
             CurrentHealth -= effective;
+            unchecked { DamageRevision++; }
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
             GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
             _onPlayerHealthChanged?.Raise(CurrentHealth);

@@ -123,7 +123,7 @@ namespace Game.Combat
 
         private void OnDodgeStarted(InputAction.CallbackContext ctx)
         {
-            if (_stateManager.IsIncapacitated) return; // staggered / knocked down
+            if (_stateManager.IsIncapacitated || _stateManager.IsExecuting) return; // staggered / knocked down / stomping
             if (_stateManager.IsSwimming) return;
 
             if (_stateManager.IsAirborne)

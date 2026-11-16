@@ -106,6 +106,30 @@ namespace Game.Combat
         [Tooltip("Said after the grab when the player had less than the base amount (or none).")]
         public BarkSetSO knockoutLootPoorBarks;
 
+        [Header("Execute (stomp an unconscious NPC — spec-execute-unconscious-npc)")]
+        [Tooltip("Max ground distance from the player to the body's chest for F to execute.")]
+        [Min(0.1f)] public float executeRange = 1.8f;
+        [Tooltip("Half-angle (degrees) of the forward cone the body must be in.")]
+        [Range(0f, 180f)] public float executeConeHalfAngle = 70f;
+        [Tooltip("Where the stomping foot lands, in player-local space (measured on execute stomp.fbx, frame 22).")]
+        public Vector3 executeFootOffset = new Vector3(-0.45f, 0f, 0.88f);
+        [Tooltip("Seconds the player slides / turns into the stomp stance at the start.")]
+        [Min(0f)] public float executeAlignDuration = 0.2f;
+        [Tooltip("Execute Stomp clip length (s). Watchdog = this + 0.5 s if ExecuteEnd never arrives.")]
+        [Min(0.1f)] public float executeClipDuration = 1.867f;
+        [Tooltip("Extra seconds past the clip length before the watchdog ends a stomp whose ExecuteEnd never came.")]
+        [Min(0f)] public float executeWatchdogMargin = 0.5f;
+        [Tooltip("Clip events earlier than this after F are ignored: a just-cancelled stomp blending out can still fire them.")]
+        [Min(0f)] public float executeMinEventDelay = 0.3f;
+        [Tooltip("Overlap radius beyond executeRange: hurtbox colliders sit away from the chest point that is range-checked.")]
+        [Min(0f)] public float executeScanPadding = 1f;
+        [Tooltip("Maximum chest height difference from the player's feet; rejects bodies on another floor.")]
+        [Min(0f)] public float executeVerticalReach = 0.9f;
+        [Tooltip("Maximum ground-plane gap from the calibrated landing foot to the chest at impact.")]
+        [Min(0f)] public float executeImpactTolerance = 0.35f;
+        [Tooltip("Solid scenery that blocks access to a body (Default and Interactable; triggers ignored).")]
+        public LayerMask executeOcclusionMask = 257;
+
         [Header("Unarmed Combo")]
         [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
         [Min(1)] public int unarmedComboSteps = 3;

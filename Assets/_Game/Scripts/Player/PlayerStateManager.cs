@@ -66,7 +66,20 @@ namespace Game.Player
         /// True when the player cannot perform any action (dead, staggered / knocked down, cursor unlocked, or a dialogue
         /// closed this frame).
         /// </summary>
-        public bool IsBusy => IsDead || IsIncapacitated || IsScriptedHold || !CursorManager.IsLocked || DialogueEndedThisFrame;
+        public bool IsBusy => IsDead || IsIncapacitated || IsScriptedHold || IsExecuting || !CursorManager.IsLocked || DialogueEndedThisFrame;
+
+        /// <summary>
+        /// Playing the execute stomp on an unconscious NPC (spec-execute-unconscious-npc). Written by <c>PlayerExecution</c>
+        /// through <see cref="SetExecuting"/>. Part of <see cref="IsBusy"/>: no movement, action or interaction meanwhile.
+        /// </summary>
+        public bool IsExecuting { get; private set; }
+
+        /// <summary>
+        /// True when the player may keep an execute going: not dead, incapacitated, held, airborne or swimming (the align
+        /// slide can leave a ledge), cursor locked. Unlike <see cref="IsBusy"/> it ignores <see cref="IsExecuting"/> itself.
+        /// </summary>
+        public bool CanContinueExecute => !IsDead && !IsIncapacitated && !IsScriptedHold && !IsAirborne && !IsSwimming
+                                          && CursorManager.IsLocked;
 
         /// <summary>
         /// Held in place by a story sequence (e.g. made to watch the arrival beating): no movement or action, camera free.
@@ -80,7 +93,7 @@ namespace Game.Player
         public bool IsDead { get; private set; }
 
         /// <summary>Footsteps muted while the body moves without walking (roll, attack lunge, stagger / knockdown, death).</summary>
-        public bool SuppressFootsteps => IsDead || IsDodging || IsAttacking || IsIncapacitated || IsSwimming;
+        public bool SuppressFootsteps => IsDead || IsDodging || IsAttacking || IsIncapacitated || IsSwimming || IsExecuting;
 
         /// <summary>
         /// Stance reaction (spec-player-stance-stagger-knockdown), written by <c>PlayerStance</c> through
@@ -202,6 +215,14 @@ namespace Game.Player
                 SetSneaking(false);
                 _playerAnimator.PlayDodge(isBackwardRoll);
             }
+        }
+
+        /// <summary>Starts (true) or ends / cancels (false) the execute stomp and drives the IsExecuting animator bool.</summary>
+        public void SetExecuting(bool value)
+        {
+            IsExecuting = value;
+            if (value) SetSneaking(false);
+            if (_playerAnimator != null) _playerAnimator.SetExecuting(value);
         }
 
         /// <summary>Sets the InCombat state and drives the IsInCombat animator bool via PlayerAnimator.</summary>
@@ -410,6 +431,16 @@ namespace Game.Player
 
         /// <summary>True when the player is allowed to start an attack.</summary>
         public bool CanAttack() => !IsSwimming && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
+
+        /// <summary>True when F may start an execute stomp (any drawn weapon, idle enough to commit to the clip).</summary>
+        public bool CanExecute() => EvaluateCanExecute(IsBusy, IsInCombat, IsAirborne, IsSwimming, IsAttacking, IsBlocking,
+            IsAiming, IsDodging, IsSwitchingWeapon);
+
+        /// <summary>Pure execute gate (tested in ExecuteTests).</summary>
+        public static bool EvaluateCanExecute(bool isBusy, bool isInCombat, bool isAirborne, bool isSwimming, bool isAttacking,
+            bool isBlocking, bool isAiming, bool isDodging, bool isSwitchingWeapon) =>
+            isInCombat && !isBusy && !isAirborne && !isSwimming && !isAttacking && !isBlocking && !isAiming && !isDodging
+            && !isSwitchingWeapon;
 
         /// <summary>
         /// True when the player is allowed to raise a block.

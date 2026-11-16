@@ -177,7 +177,7 @@ namespace Game.Inventory
         {
             // DialogueEndedThisFrame: the number key that closed a dialogue (Farewell / forced line) is also ActionBarN.
             if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.DialogueEndedThisFrame
-                                                || _playerStateManager.IsIncapacitated)) return;
+                                                || _playerStateManager.IsIncapacitated || _playerStateManager.IsExecuting)) return;
             HandleHotkeyPressed(slotIndex);
         }
 

@@ -715,3 +715,12 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **`EntityHealth` dereferences `_persistentID` before its null check** (pre-existing, found in
   spec-knockout-xp-reward review): `Awake` / `OnEnable` / `TakeDamage` read `_persistentID.Entity` first, so an entity
   without a `PersistentID` throws in `Awake` instead of hitting the intended warning.
+
+## From spec-execute-unconscious-npc (2026-11-16)
+
+- **`EntityHealth.RestoreAsCorpse` comment is wrong** (pre-existing): it says the brain switches to Dead on its next tick, but
+  `EnableRagdoll` disables `EntityBrain` first, so `_state` never reaches Dead. Harmless today (knockout / load already did the
+  cleanup); the execute death path has the same shape. Fix the comment or drive `TransitionToDead` explicitly.
+- **Execute starts only on a fresh F press** — holding F while walking up to a body doesn't start the stomp. Poll
+  `Execute.IsPressed()` in `FindTarget` if playtests want hold-to-start.
+

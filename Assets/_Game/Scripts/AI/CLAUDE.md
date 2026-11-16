@@ -297,8 +297,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - `EntityHealth` (needs `_combatConfig`, wired on `Entity_base` + any non-prefab scene NPC — null = always lethal):
   `IsUnconscious` from the knockout until the get-up clip ends. HP regains linearly to
   `CombatConfigSO.unconsciousRecoverHealthFraction` over `unconsciousDuration`, then `AIAnimationDriver.SetUnconscious(false)`
-  (get-up), then `getUpDuration` later `RegainedConsciousness`. A knockout-pair hit while down is ignored (finishing blow
-  deferred). Same-GO events `KnockedOut` / `RegainedConsciousness`. `OnEnable` resets it (not saved).
+  (get-up), then `getUpDuration` later `RegainedConsciousness`. A knockout-pair hit while down is ignored — the only
+  finishing move is the player's execute stomp (below). Same-GO events `KnockedOut` / `RegainedConsciousness`. `OnEnable` resets it (not saved).
 - `EntityBrain`: `KnockedOut` → target dropped, combat off, attack ended, perception reset, agent held, state Idle;
   `Update` returns early while unconscious (no perception); `RegainedConsciousness` → `ResumeNonCombat()` (routine, never
   a re-attack). Routine requests / thefts / damage reactions are stored or ignored while down. `HasValidTarget` is false for
@@ -309,6 +309,11 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - `EntityStance` / `PlayerStance` treat unconscious like dead (meter refilled, `Apply` ignored); hit resolvers skip stance
   on an unconscious target. `EntityPresence.IsAliveAndOutOfCombat` is false while down.
 - A loot screen open on an NPC that gets up closes (`OnLootSourceLost`, see EntityPresence below).
+- **Execute (spec-execute-unconscious-npc):** `EntityHealth` implements `Game.Combat.IExecutable`. `CanBeExecuted` =
+  unconscious, not getting up, not dead, `NPCEntity.CanBeExecuted` (per-NPC opt-out, default true). `ExecutePoint` = the
+  body Animator's Chest bone (fallback Hips, then root). `Execute(executor)` → `Die(ragdollNow: true)`: a normal death
+  (`RegisterDeath`, kill XP, lootable corpse) but straight to ragdoll — the standing death clip would lift the lying body.
+  Player side: `Scripts/Combat/CLAUDE.md` → Execute.
 
 ### Knockout loot — `Looting` state (spec-knockout-gold-looting)
 

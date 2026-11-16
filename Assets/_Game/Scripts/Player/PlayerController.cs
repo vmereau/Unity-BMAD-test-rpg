@@ -153,8 +153,8 @@ namespace Game.Player
                 Vector3 toTarget = _lockOnSystem.LockedTarget.position - transform.position;
                 toTarget.y = 0f;
 
-                // Staggered / knocked down: no turning toward the target (the reaction clip owns the body).
-                bool incapacitated = _stateManager != null && _stateManager.IsIncapacitated;
+                // Staggered / knocked down / executing: no turning toward the target (the clip owns the body).
+                bool incapacitated = _stateManager != null && (_stateManager.IsIncapacitated || _stateManager.IsExecuting);
                 if (toTarget.sqrMagnitude > 0.0001f && !incapacitated)
                 {
                     Vector3 lockForward = toTarget.normalized;

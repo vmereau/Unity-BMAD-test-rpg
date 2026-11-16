@@ -14,11 +14,15 @@ namespace Game.Combat
         private const string TAG = "[AnimationEventReceiver]";
 
         [SerializeField] private PlayerCombat _combat;
+        [Tooltip("Execute stomp events (spec-execute-unconscious-npc).")]
+        [SerializeField] private PlayerExecution _execution;
 
         private void Awake()
         {
             if (_combat == null)
                 GameLog.Warn(TAG, "PlayerCombat not wired — animation events will be no-ops");
+            if (_execution == null)
+                GameLog.Warn(TAG, "PlayerExecution not wired — the execute stomp will never kill");
         }
 
         // Called from attack animation clips at the frame the combo window opens
@@ -48,5 +52,11 @@ namespace Game.Combat
 
         // Called by SMB_BowAimState.OnStateEnter — the aim pose is reached, the arrow is nocked
         public void NotifyBowAimEntered() => _combat?.OnBowAimEntered();
+
+        // Called from the Execute Stomp clip at the frame the foot lands on the body
+        public void ExecuteImpact() { if (_execution != null) _execution.OnExecuteImpact(); }
+
+        // Called from the Execute Stomp clip near its end — the player is free again
+        public void ExecuteEnd() { if (_execution != null) _execution.OnExecuteEnd(); }
     }
 }

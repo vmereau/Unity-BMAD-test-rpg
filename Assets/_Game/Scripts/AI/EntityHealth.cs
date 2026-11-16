@@ -3,6 +3,7 @@ using _Game.ScriptableObjects.Entities;
 using Game.Animations;
 using Game.Combat;
 using Game.Core;
+using Game.NPC;
 using Game.World;
 using UnityEngine;
 using UnityEngine.AI;
@@ -19,7 +20,7 @@ namespace Game.AI
     /// Enemy Creature System: Migrated to EnemyTypeSO; death triggers AIAnimationDriver instead of SetActive(false).
     /// Renamed EntityHealth: generic for any entity type; NavMeshAgent stop is optional via TryGetComponent.
     /// </summary>
-    public class EntityHealth : MonoBehaviour, IDamageable
+    public class EntityHealth : MonoBehaviour, IDamageable, IExecutable
     {
         private const string TAG = "[Combat]";
 
@@ -59,8 +60,31 @@ namespace Game.AI
         /// </summary>
         public event Action<float, float> HealthChanged;
 
+        /// <summary>
+        /// Execute stomp target (spec-execute-unconscious-npc): lying unconscious (not getting up, not dead) and the
+        /// NPC data allows it. Monsters are never knocked out, so never executable.
+        /// </summary>
+        public bool CanBeExecuted => !IsDead && IsUnconscious && !_gettingUp
+                                     && _persistentID != null && _persistentID.Entity is NPCEntity npc && npc.CanBeExecuted;
+
+        /// <summary>The lying body's chest (falls back to the hips, then the root).</summary>
+        public Vector3 ExecutePoint
+        {
+            get
+            {
+                if (_executeBone == null && _bodyAnimator != null && _bodyAnimator.isHuman)
+                {
+                    _executeBone = _bodyAnimator.GetBoneTransform(HumanBodyBones.Chest);
+                    if (_executeBone == null) _executeBone = _bodyAnimator.GetBoneTransform(HumanBodyBones.Hips);
+                }
+                return _executeBone != null ? _executeBone.position : transform.position;
+            }
+        }
+
         private EntityStance _stance;
         private FactionMember _factionMember;
+        private Animator _bodyAnimator;
+        private Transform _executeBone;
         private float _unconsciousElapsed;
         private bool _gettingUp;
 
@@ -68,6 +92,7 @@ namespace Game.AI
         {
             _stance = GetComponent<EntityStance>(); // optional
             _factionMember = GetComponent<FactionMember>(); // optional — none = never knocked out
+            _bodyAnimator = GetComponentInChildren<Animator>(); // optional — execute point falls back to the root
             if (_persistentID.Entity == null)
             {
                 GameLog.Error(TAG, $"Entity SO not assigned on {gameObject.name} — EntityHealth disabled");
@@ -215,7 +240,21 @@ namespace Game.AI
             if (by != null && by.IsPlayer) _persistentID?.RegisterKnockout();
         }
 
-        private void Die()
+        /// <summary>
+        /// Execute stomp kill (spec-execute-unconscious-npc): a normal death (kill registered, lootable corpse), but the
+        /// body goes straight to ragdoll — it is already lying, the standing death clip would lift it first.
+        /// </summary>
+        public bool Execute(GameObject executor)
+        {
+            if (!CanBeExecuted) return false;
+            GameLog.Info(TAG, $"{gameObject.name} executed by {(executor != null ? executor.name : "unknown")}");
+            CurrentHealth = 0f;
+            HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+            Die(ragdollNow: true);
+            return true;
+        }
+
+        private void Die(bool ragdollNow = false)
         {
             IsDead = true;
             if (IsUnconscious)
@@ -223,7 +262,9 @@ namespace Game.AI
                 // Killed on the ground (monster / hostile hit): the death clip replaces the held knockdown.
                 IsUnconscious = false;
                 _gettingUp = false;
-                _animationDriver?.SetUnconscious(false);
+                // An execute keeps the held on-the-ground pose: releasing it would start the get-up clip, which a
+                // ragdoll fallback (no bodies cached) would then play on the corpse.
+                if (!ragdollNow) _animationDriver?.SetUnconscious(false);
             }
             GameLog.Info(TAG, $"{gameObject.name} died — registering kill");
 
@@ -238,6 +279,11 @@ namespace Game.AI
             // by the ragdoll path before its next tick runs TransitionToDead().
             _animationDriver?.SetWarning(false);
             _animationDriver?.SetInCombat(false);
+            if (ragdollNow)
+            {
+                _animationDriver?.EnableRagdoll();
+                return;
+            }
             _animationDriver?.TriggerDeath();
             // Body remains active in scene — ragdoll activated by SMB_DeathState.OnStateExit via AIAnimationDriver.EnableRagdoll()
             // If AIAnimationDriver is absent, this is a no-op and body stays active indefinitely.

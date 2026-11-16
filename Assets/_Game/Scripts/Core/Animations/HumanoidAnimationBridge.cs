@@ -36,6 +36,7 @@ namespace Game.Animations
         private static readonly int IsAimingHash = Animator.StringToHash("IsAiming");
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
         private static readonly int IsSwimmingHash = Animator.StringToHash("IsSwimming");
+        private static readonly int IsExecutingHash = Animator.StringToHash("IsExecuting");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
         private static readonly int LockOnLocomotionHash = Animator.StringToHash("LockOn Locomotion");
@@ -105,6 +106,9 @@ namespace Game.Animations
         public void SetBlocking(bool value) => _animator?.SetBool(IsBlockingHash, value);
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
         public void SetSwimming(bool value) => _animator?.SetBool(IsSwimmingHash, value);
+
+        /// <summary>Execute stomp (player only, spec-execute-unconscious-npc): true enters <c>Execute</c>, false blends out.</summary>
+        public void SetExecuting(bool value) => _animator?.SetBool(IsExecutingHash, value);
 
         /// <summary>
         /// Sets the IsSneaking bool. Entering sneak also clears a pending SneakToSprint trigger so a stale one

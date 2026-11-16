@@ -52,6 +52,12 @@ namespace Game.NPC
 
         public int XpOnKnockout => _xpOnKnockout;
 
+        [Header("Execute")]
+        [Tooltip("False protects this NPC from the player's execute stomp while unconscious (spec-execute-unconscious-npc).")]
+        [SerializeField] private bool _canBeExecuted = true;
+
+        public bool CanBeExecuted => _canBeExecuted;
+
         [Header("Combat")]
         [Tooltip("Stance damage multiplier on the last hit of a multi-hit combo (finisher), like the player's.")]
         [SerializeField, Min(1f)] private float _finisherStanceMultiplier = 1.5f;

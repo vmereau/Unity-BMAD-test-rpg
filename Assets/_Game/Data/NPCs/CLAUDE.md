@@ -51,6 +51,13 @@ through MCP `execute_code` (`AssetDatabase.CreateAsset`) — afterwards run the 
 
 ---
 
+## NPCEntity flags
+
+- `CanBeExecuted` (default true) — false protects the NPC from the player's execute stomp while unconscious
+  (spec-execute-unconscious-npc). No NPC is protected yet; set it on story-critical NPCs if they must survive.
+
+---
+
 ## NPC Identity Check
 
 When entering any NPC subfolder, immediately check whether a `CLAUDE.md` exists inside it.

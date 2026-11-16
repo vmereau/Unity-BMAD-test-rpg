@@ -108,7 +108,7 @@ namespace Game.UI
         {
             // Incapacitated: an equip change mid-stagger would swap the animator controller and cut the reaction clip.
             if (_playerStateManager != null && (_playerStateManager.IsInDialogue || _playerStateManager.IsDead
-                                                || _playerStateManager.IsIncapacitated)) return;
+                                                || _playerStateManager.IsIncapacitated || _playerStateManager.IsExecuting)) return;
             if (IsGameMenuOpen) return;
             if (_activeTab == tab) return;
             // No tab open but the cursor is unlocked → a world screen (container, cooking, sleep, trade) owns it.

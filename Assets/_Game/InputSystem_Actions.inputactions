@@ -238,6 +238,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Execute",
+                    "type": "Button",
+                    "id": "e4ec0701-e4ec-47e4-87e4-e4ec0701e4ec",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -788,6 +797,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "ToggleStealthDebug",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e4ec0702-e4ec-47e4-87e4-e4ec0702e4ec",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Execute",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

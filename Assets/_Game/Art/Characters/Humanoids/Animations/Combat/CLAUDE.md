@@ -20,6 +20,7 @@ Combat/
 ├── Block Idle.fbx
 ├── dodge roll.fbx
 ├── Dodge back.fbx
+├── execute stomp.fbx — clip `Execute Stomp` (player execute, see below)
 └── MESHY_PROMPTS.md — Meshy text-to-motion prompt rules, 2H templates, durations, import checklist, prompt log
 ```
 
@@ -156,3 +157,13 @@ bring forward) is merged, not given a second state. No committed bake tool yet �
 | HIGH | Attack clip missing one of the four events |
 | HIGH | `functionName` typo in a `.meta` event — silent miss |
 | MEDIUM | Unarmed clip given the sword timings (0.25 / 0.50 / 0.50 / 0.90) |
+
+---
+
+## Execute Stomp (`execute stomp.fbx`, spec-execute-unconscious-npc)
+
+Mixamo, Humanoid (own avatar), 56 frames @ 30 fps = **1.867 s**, root rotation / Y / XZ baked into pose, no loop. Events
+(normalized): `ExecuteImpact` **0.393** (frame 22 — the right foot touches down; it rests on the body until frame 28) and
+`ExecuteEnd` 0.95. Landing point ≈ **(−0.45, 0, 0.88) m** in player-local space, mirrored in
+`CombatConfigSO.executeFootOffset` / `executeClipDuration` — re-measure both (sample `RightFoot` / `RightToes` with an
+`AnimationClipPlayable` on the FBX avatar, × 100: the avatar is in cm) if the clip or its trim changes.

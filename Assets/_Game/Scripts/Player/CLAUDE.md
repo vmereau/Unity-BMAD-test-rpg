@@ -21,11 +21,12 @@
 | Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimStanceYaw` (45° side-on stance) with no sprint; `Game.Combat.BowAimCorrection` turns the spine onto the crosshair after the Animator (`Scripts/Combat/CLAUDE.md`); `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 | Swim   | `IsSwimming` (blocks attack, block, aim, R, dodge, jump, sneak) | `PlayerSwimming` → `SetSwimming(bool)` |
+| Execute (F) | `CanExecute()` / `IsExecuting` (part of `IsBusy`); `CanContinueExecute` keeps a running stomp alive (ignores `IsExecuting`) | `PlayerExecution` → `SetExecuting(bool)` (exits sneak; flow: `Scripts/Combat/CLAUDE.md` → Execute) |
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
 - State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
-- `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), held by a story sequence (`IsScriptedHold`, `SetScriptedHold` — camera stays free), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` itself.
+- `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), held by a story sequence (`IsScriptedHold`, `SetScriptedHold` — camera stays free), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` (and `IsExecuting`) itself — so do `InteractionSystem`, `ActionBarSystem.TryUseSlot`, `UIScreenManager.OpenTab` and `PlayerController`'s lock-on rotation: **a new state in `IsBusy` must be added to those five too.**
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.

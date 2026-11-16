@@ -275,6 +275,7 @@ GameObject:
   - component: {fileID: 7928728298857477829}
   - component: {fileID: 6091756440222296104}
   - component: {fileID: 3603420808322167872}
+  - component: {fileID: 248508205247722359}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -740,6 +741,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Combat.AnimationEventReceiver
   _combat: {fileID: 8895864641979124537}
+  _execution: {fileID: 248508205247722359}
 --- !u!114 &1595858556485850305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1022,6 +1024,22 @@ MonoBehaviour:
   _enterCue: {fileID: 11400000, guid: e26e29c5b5429e448893980d2a4f4404, type: 2}
   _exitCue: {fileID: 11400000, guid: 3814d85b8cda457429f1fd71f390bab2, type: 2}
   _strokeCue: {fileID: 11400000, guid: f6d61cb214b76e74b88986f7e95b858c, type: 2}
+--- !u!114 &248508205247722359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f30c52a9b851eff40ab94050e643a168, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Combat.PlayerExecution
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _stateManager: {fileID: 212298241250081144}
+  _playerHealth: {fileID: 6838483035695751856}
+  _onFocusChanged: {fileID: 11400000, guid: 9fe3179e372587c448733f65b1b86021, type: 2}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1782,6 +1800,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -525.055
       objectReference: {fileID: 0}
+    - target: {fileID: 1457484642608523604, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _playerExecution
+      value: 
+      objectReference: {fileID: 248508205247722359}
     - target: {fileID: 1537526510651353837, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: _equipmentSystem
       value: 

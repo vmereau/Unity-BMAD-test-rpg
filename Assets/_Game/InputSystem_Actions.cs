@@ -325,6 +325,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Execute"",
+                    ""type"": ""Button"",
+                    ""id"": ""e4ec0701-e4ec-47e4-87e4-e4ec0701e4ec"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -875,6 +884,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""ToggleStealthDebug"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e4ec0702-e4ec-47e4-87e4-e4ec0702e4ec"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Execute"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1792,6 +1812,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_QuickSave = m_Player.FindAction("QuickSave", throwIfNotFound: true);
         m_Player_QuickLoad = m_Player.FindAction("QuickLoad", throwIfNotFound: true);
         m_Player_ToggleStealthDebug = m_Player.FindAction("ToggleStealthDebug", throwIfNotFound: true);
+        m_Player_Execute = m_Player.FindAction("Execute", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1924,6 +1945,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_QuickSave;
     private readonly InputAction m_Player_QuickLoad;
     private readonly InputAction m_Player_ToggleStealthDebug;
+    private readonly InputAction m_Player_Execute;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -2005,6 +2027,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @QuickLoad => m_Wrapper.m_Player_QuickLoad;
         /// <summary>Provides access to the underlying input action "Player/ToggleStealthDebug".</summary>
         public InputAction @ToggleStealthDebug => m_Wrapper.m_Player_ToggleStealthDebug;
+        /// <summary>Provides access to the underlying input action "Player/Execute".</summary>
+        public InputAction @Execute => m_Wrapper.m_Player_Execute;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
