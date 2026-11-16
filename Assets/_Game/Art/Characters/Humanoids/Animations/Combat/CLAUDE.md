@@ -16,7 +16,8 @@ Combat/
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
-├── Unarmed/    — Jab, Uppercut Jab + Unarmed Idle
+├── Unarmed/    — lead jab, Hook, Uppercut (the combo), draw unarmed, sheath unarmed, Unarmed Idle, stagger 1/2;
+│                 `(old) Jab.fbx` is retired (unreferenced, kept on disk)
 ├── Block Idle.fbx
 ├── dodge roll.fbx
 ├── Dodge back.fbx
@@ -42,18 +43,18 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `AttackLeft.fbx` | Attack_1 | 0.25 | 0.50 | 0.50 | 0.90 |
-| `AttackOverhead.fbx` | Attack_2 | 0.25 | 0.50 | 0.50 | 0.90 |
-| `AttackThrust.fbx` | Attack_3 | 0.25 | 0.50 | 0.50 | 0.90 |
+| `AttackLeft.fbx` | Attack_1 / Attack_3 | 0.25 | 0.50 | 0.50 | 0.90 |
+| `AttackThrust.fbx` | Attack_2 | 0.25 | 0.50 | 0.50 | 0.90 |
+| `AttackOverhead.fbx` | — (not mapped by `Sword_AnimatorOverride`) | 0.25 | 0.50 | 0.50 | 0.90 |
 
 `HitboxDisable` and `ComboWindowOpen` share 0.50 — they are independent, so dispatch order is irrelevant.
 
 ### Two handed (`two handed/`)
 
-2-step combo: `Unarmed Jab` → `2hand attack refined` (Attack_1), `Unarmed Uppercut` → `2hand attack 2 refined` (Attack_2, finisher).
+2-step combo: `lead jab` → `2hand attack refined` (Attack_1), `Hook` → `2hand attack 2 refined` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
-**All attack clips are in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
+**All weapon attack clips are in place** (the unarmed boxing clips are handled differently — see Unarmed below) (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
 they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
 `attackSteps` start / duration in **seconds** against the clip lengths and hit windows (hit time = HitboxEnable × length).
 
@@ -112,8 +113,29 @@ Custom timings tuned to each arc (faster connect, different wind-up) — **never
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `Jab.fbx` | Attack_1 / Attack_3 | 0.211 | 0.332 | 0.356 | 0.924 |
-| `Uppercut Jab.fbx` | Attack_2 | 0.339 | 0.572 | 0.628 | 0.928 |
+| `lead jab.fbx` (`lead jab`, 1.80 s, frames 0–54) | Attack_1 — left hand | 0.185 (f10) | 0.315 (f17) | 0.315 | 0.741 (f40) |
+| `Hook.fbx` (`Hook`, 1.83 s, frames **10–65**) | Attack_2 — right hand | 0.309 (f27) | 0.436 (f34) | 0.436 | 0.764 (f52) |
+| `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 0–40) | Attack_3 — left hand, finisher | 0.275 (f11) | 0.400 (f16) | — | — |
+
+Spec: `spec-unarmed-combo-rework`. Frame numbers are source frames; normalized = (frame − firstFrame) / clip frames.
+Measured on the Player rig (fist hitbox, player-local, 2026-11-16):
+
+- **lead jab** — left fist speeds up from f10 (peak 4.8 m/s at f12), full extension f14–15 at (0.20, 0.96, 0.79).
+- **Hook** — right fist swings wide from f26 (10 m/s at f28–29), crosses the front f29–33, ends at (0.25, 1.45, 0.70).
+  The first 10 source frames (slow guard-to-wind-up) are trimmed in the importer: the trimmed start has hip yaw 78°,
+  the lead jab's yaw at its combo window (77°), and the hit lands 0.57 s after the chain instead of 0.90 s.
+- **Uppercut** — left fist drops back f7–9, drives up f11–16 (12 m/s at f14), in front at f12–15 (z 0.36–0.65), then
+  goes overhead. Its start is not trimmed: the 0.42 s combo blend covers the drop-back.
+
+**Hit event ids:** the three clips' `HitboxEnable` / `HitboxDisable` carry a string — `UnarmedLeft` (lead jab,
+Uppercut) or `Unarmed` (Hook) — the NPC hitbox id. The player ignores it and reads the hand from
+`CombatConfigSO.unarmedAttacks` (`Scripts/Combat/PLAYER_COMBO.md`).
+
+**Import settings (all three; Loop Pose off):** root rotation baked, **Original** orientation; root Y baked, Original; root **XZ not
+baked**. The Mixamo boxing clips lunge up to 0.5 m and step back; with XZ unbaked and `applyRootMotion` off the Animator
+drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement (the lead jab's
+0.30 m keeps the rear foot planted). Orientation based on **Body** turned the bladed stance square and sent the jab 35°
+to the left. No Blender edit was needed.
 
 **Tuning:** `HitboxEnable` ≈ when the weapon reaches the target zone (~0.2–0.25), `HitboxDisable` ≈ when it
 retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than overhead swings. Retiming
@@ -129,14 +151,17 @@ hilt / sheath; the weapon visual changes socket there. First guesses, tune in pl
 
 | Clip | State | WeaponSwap |
 |------|-------|-----------|
-| `one handed/Draw Sword.fbx` (`draw sword`) | Draw_State | 0.40 |
-| `one handed/Sheath Sword.fbx` (`sheath sword`) | Sheathe_State | 0.65 |
+| `Unarmed/draw unarmed.fbx` (`Draw unarmed`, 1.00 s) | Draw_State (base — unarmed) | 0.50 (fists reach the guard at f15–18) |
+| `Unarmed/sheath unarmed.fbx` (`sheath unarmed`, 1.07 s) | Sheathe_State (base — unarmed) | 0.50 (hands down by f15–18) |
+| `one handed/Draw Sword.fbx` (`draw sword`) | Draw_State (sword override) | 0.40 |
+| `one handed/Sheath Sword.fbx` (`sheath sword`) | Sheathe_State (sword override) | 0.65 |
 | `two handed/2hand draw.anim` (1.40 s) | Draw_State (2H override) | 0.55 s (seam) |
 | `two handed/2hand sheath.anim` (1.97 s) | Sheathe_State (2H override) | 0.78 s (seam) |
 | `Bow/Standing Equip Bow.fbx` (`Draw Bow`) | Draw_State (bow override) | 0.45 |
 | `Bow/Standing Disarm Bow.fbx` (`Sheathe Bow`) | Sheathe_State (bow override) | 0.65 |
 
-A missing event is not fatal — the state exit completes the swap, just late (end of clip).
+A missing event is not fatal — the state exit completes the swap, just late (end of clip). Unarmed has no weapon
+visual: its `WeaponSwap` only releases the switch lock, so attacks unlock there.
 
 ### Two-part draw / sheathe → one baked `.anim`
 

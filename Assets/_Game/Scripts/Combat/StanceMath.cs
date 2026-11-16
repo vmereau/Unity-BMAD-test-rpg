@@ -58,6 +58,17 @@ namespace Game.Combat
         }
 
         /// <summary>
+        /// Player melee stance damage with a per-step multiplier (unarmed combo, spec-unarmed-combo-rework):
+        /// (base + max(0, strength delta) × perStrength) × max(0, stepMultiplier), then + Power Strike bonus.
+        /// </summary>
+        public static float ComputeMeleeStanceDamage(float baseDamage, float strengthDelta, float perStrength,
+            float stepMultiplier, float powerStrikeBonus)
+        {
+            float damage = Mathf.Max(0f, baseDamage) + Mathf.Max(0f, strengthDelta) * Mathf.Max(0f, perStrength);
+            return damage * Mathf.Max(0f, stepMultiplier) + Mathf.Max(0f, powerStrikeBonus);
+        }
+
+        /// <summary>
         /// Humanoid NPC stance damage (spec-player-stance-stagger-knockdown): entity base + equipped weapon stance,
         /// × finisher multiplier on the last hit of a multi-hit combo.
         /// </summary>

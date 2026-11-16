@@ -49,8 +49,9 @@ All StartingTown NPCs are direct scene instances of this variant.
 - **Two colliders, never collapse them:** `Hitbox` (Layer 7, trigger capsule — hurtbox for `WeaponHitbox`
   sweeps) and `InteractionCollider` (Layer 8, trigger — `InteractionSystem` / dialogue).
 - **Attack wiring:**
-  - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }]`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
-    At runtime `NpcArmament` swaps `Unarmed` ↔ `Weapon` (the equipped sword's hitbox) — never both registered.
+  - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }, { "UnarmedLeft", UnarmedHitbox_L }]`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
+    At runtime `NpcArmament` swaps the two fists ↔ `Weapon` (the equipped sword's hitbox) — never both registered.
+    `UnarmedHitbox_L` lives in `Humanoid_BaseHero.prefab` under `LeftHand/LeftWeaponSocket` (active, dormant, no Rigidbody).
   - Root equipment (spec-npc-equipment): `EquipmentSystem` (`_inventorySystem` = root inventory, `_npcOwned`),
     `EquipmentVisuals` (sockets / `base_hero` / `mixamorig:Hips` / `Character` Animator under the nested model,
     `_defaultAnimatorController` = `Humanoid_Base`, both GameEvent channels **empty**), `NpcArmament` (those + root
@@ -60,11 +61,12 @@ All StartingTown NPCs are direct scene instances of this variant.
     the agent root and a cut swing leaves the offset). `HumanoidAIAnimationDriver.Awake` forces it off + warns.
   - `.../WeaponSocket/UnarmedHitbox`: **active** but dormant (SphereCollider disabled, window closed).
     **No Rigidbody** — `HumanoidAIAnimationDriver` treats every Rigidbody under the Animator as ragdoll.
-- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. In-place jab (root motion off):
-  hitbox center 0.61 m forward + radius 0.25 + `UnarmedHitbox._reachPadding` 0.3 ≈ 1.16 m reach → hits the player hurtbox
-  (r 0.3) out to ~1.46 m, covering the 1.3 m stopping distance. Re-measure (Animator `cullingMode = AlwaysAnimate` — a culled
-  off-camera Animator doesn't pose bones) if clips or ranges change. The
-  uppercut (step 2) mostly whiffs vs a standing target (upper-body-masked clip — known limitation).
+- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. In-place punches (root motion off), fist
+  hitbox centre at full extension, measured on the Player rig (same skeleton, 2026-11-16): lead jab 0.79 m forward, hook
+  0.62–0.70 m (0.25–0.4 m to the right), uppercut 0.56–0.65 m. + radius 0.25 + `_reachPadding` 0.3 → every step reaches
+  the player hurtbox (r 0.3) at the 1.3 m stopping distance; the uppercut has the least margin (~0.1 m). Not re-verified
+  on an NPC in play. Re-measure (Animator `cullingMode = AlwaysAnimate` — a culled off-camera Animator doesn't pose
+  bones) if clips or ranges change.
 
 ---
 

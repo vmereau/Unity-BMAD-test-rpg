@@ -89,6 +89,13 @@ public class NpcModelPrefabTests
         Assert.AreEqual("WeaponSocket", unarmed.parent.name);
         Assert.IsNotNull(unarmed.GetComponent<WeaponHitbox>());
         Assert.IsNull(unarmed.GetComponent<Rigidbody>(), "A Rigidbody under the Animator joins the ragdoll");
+
+        // spec-unarmed-combo-rework: left fist for the lead jab / uppercut
+        Transform unarmedLeft = FindDeep(_character, "UnarmedHitbox_L");
+        Assert.IsNotNull(unarmedLeft);
+        Assert.AreEqual("LeftWeaponSocket", unarmedLeft.parent.name);
+        Assert.IsNotNull(unarmedLeft.GetComponent<WeaponHitbox>());
+        Assert.IsNull(unarmedLeft.GetComponent<Rigidbody>(), "A Rigidbody under the Animator joins the ragdoll");
     }
 
     [Test]
@@ -114,9 +121,11 @@ public class NpcModelPrefabTests
         Assert.AreEqual(_character.GetComponent<Animator>(), ReadRef(bridge, "_animator"));
 
         var attacker = _root.GetComponent<EntityMeleeAttacker>();
-        Assert.AreEqual(1, attacker.Hitboxes.Count);
+        Assert.AreEqual(2, attacker.Hitboxes.Count);
         Assert.AreEqual("Unarmed", attacker.Hitboxes[0].Id);
         Assert.AreEqual(FindDeep(_character, "UnarmedHitbox").GetComponent<WeaponHitbox>(), attacker.Hitboxes[0].Hitbox);
+        Assert.AreEqual("UnarmedLeft", attacker.Hitboxes[1].Id);
+        Assert.AreEqual(FindDeep(_character, "UnarmedHitbox_L").GetComponent<WeaponHitbox>(), attacker.Hitboxes[1].Hitbox);
 
         var driver = _root.GetComponent<Game.Animations.HumanoidAIAnimationDriver>();
         var pins = new SerializedObject(driver).FindProperty("_transformsToPinToHips");

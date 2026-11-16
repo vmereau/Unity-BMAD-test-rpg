@@ -239,7 +239,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `max(cooldown, attack duration)`.
 - **The brain faces its target while Attacking** (`FaceTarget()` every tick, `Entity.WarningTurnSpeed`) — a
   non-facing attacker whiffs.
-- **Humanoid NPCs without a weapon fight unarmed** (`Unarmed` hitbox, right hand, random 1–3 hit Jab → Uppercut → Jab).
+- **Humanoid NPCs without a weapon fight unarmed** (random 1–3 hits of lead jab → hook → uppercut; hitboxes `Unarmed` =
+  right fist, `UnarmedLeft` = left fist, opened by the id on each clip's hit events — left, right, left).
   Armed NPCs: `NpcArmament` (see **NPC equipment**).
 - One damage value per attack (`Entity.AttackDamage`, + the wielded weapon's `damageBonus` for an armed NPC). Two open hitboxes can each hit the same target once
   (dedupe is per `WeaponHitbox`).
@@ -377,8 +378,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   Right, DockGuard, WarehouseGuard, Harl, Warden) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword`; nobody else is equipped.
 - **Mode:** armed (weapon equipped with a `WeaponHitbox` under its visual → registered as `Weapon`, weapon animator override)
   unless the current fight asked for fists — `EntityBrain.StartBrawl(target, useFists: true)` (only the arrival sequence's
-  Warden → Tam beating today) — or there is no weapon: `Unarmed` + the default controller. **Only one of the two hitboxes is
-  registered** (sword clips fire `HitboxEnable` with an empty id = every hitbox). The fists request ends with the fight
+  Warden → Tam beating today) — or there is no weapon: `Unarmed` + `UnarmedLeft` + the default controller. **Weapon and
+  fists are never registered together** (sword clips fire `HitboxEnable` with an empty id = every hitbox). The fists request ends with the fight
   (`SetCombatState(false)`). Every fight is armed by default, brawls included.
 - **Controller swaps** (`EquipmentVisuals.ForceDefaultController` / `Refresh`) reset every animator parameter and state:
   `NpcArmament` re-pushes `IsInCombat` and calls `EntityMeleeAttacker.ResetAttackStates()` (attack states restart without

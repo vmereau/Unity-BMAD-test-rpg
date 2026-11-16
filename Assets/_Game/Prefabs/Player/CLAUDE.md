@@ -31,6 +31,7 @@ Player.prefab
 │   ├── …/RightHand/WeaponSocket      (right hand — drawn weapon, default)
 │   │   └── UnarmedHitbox             (Layer 0, inactive; disabled SphereCollider r 0.25 + WeaponHitbox)
 │   ├── …/LeftHand/LeftWeaponSocket   (left hand — drawn bow, archetype `drawnHand = Left`; second hand of the two-hand grip)
+│   │   └── UnarmedHitbox_L           (same as UnarmedHitbox — left fist: lead jab, uppercut)
 │   ├── mixamorig:Hips/UndrawnWeaponSocket   (hip sheath, position (0,0,0) — tune by hand)
 │   └── mixamorig:Spine2/BackWeaponSocket    (back sheath, (0, 0.05, -0.15) first guess)
 └── Hitbox               (Layer 7 CharacterHitbox, trigger CapsuleCollider r 0.3 h 1.7 center y 0.9 — hurtbox)
@@ -49,6 +50,7 @@ Player.prefab
   `LeftWeaponSocket` / `BackWeaponSocket` if missing; wires `_bodyRenderer` to `base_hero` and `_skeletonRoot` to `Character/mixamorig:Hips`).
 - `Hitbox` is hit by AI `WeaponHitbox` sweeps. The player's own sweeps skip it (`SetOwner`), `LockOnSystem`
   (scans Layers 6 + 7) ignores it (no `EntityHealth`) and the CharacterController ignores triggers — so it has no side effects.
-- `UnarmedHitbox` is toggled by `PlayerCombat` (active only while bound).
+- `UnarmedHitbox` / `UnarmedHitbox_L` are toggled by `PlayerCombat` (active only while bound; `_unarmedHitbox` /
+  `_unarmedHitboxLeft`). The hand used per combo step is data: `CombatConfigSO.unarmedAttacks`.
 - Camera-relative movement uses `Camera.main`, cached in `Awake` as `_mainCamera`.
 - `PlayerAnimationDriver` only reads `CharacterController.velocity` — it never writes movement state.

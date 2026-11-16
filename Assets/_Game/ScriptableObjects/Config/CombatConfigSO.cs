@@ -131,7 +131,7 @@ namespace Game.Combat
         public LayerMask executeOcclusionMask = 257;
 
         [Header("Unarmed Combo")]
-        [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3).")]
+        [Tooltip("Player combo length with no weapon equipped (Humanoid_Template Attack_1..Attack_3). Capped by unarmedAttacks.")]
         [Min(1)] public int unarmedComboSteps = 3;
         [Tooltip("Watchdog: seconds an attack may go without any attack state enter/exit or clip event before it is " +
                  "force-ended. Must exceed the longest gap between attack callbacks of any attack clip.")]
@@ -140,14 +140,32 @@ namespace Game.Combat
         [Header("Attack Step (player forward step per swing)")]
         [Tooltip("Forward step of a weapon attack state the archetype doesn't list (WeaponArchetypeSO.attackSteps).")]
         public AttackStep defaultAttackStep = new AttackStep(0.5f, 0.35f, 0.35f);
-        [Tooltip("Unarmed forward step per attack state (element 0 = Attack_1 Jab, 1 = Uppercut, 2 = Jab). Missing " +
-                 "entries use defaultAttackStep.")]
-        public AttackStep[] unarmedAttackSteps =
+        [Tooltip("Unarmed combo, one entry per attack state (element 0 = Attack_1 lead jab, 1 = hook, 2 = uppercut finisher): " +
+                 "forward step, hand whose hitbox opens, health / stance damage multipliers. Missing entries use " +
+                 "defaultAttackStep, right hand, x1.")]
+        public UnarmedAttack[] unarmedAttacks =
         {
-            new AttackStep(0.3f, 0.2f, 0.25f),
-            new AttackStep(0.35f, 0.25f, 0.25f),
-            new AttackStep(0.3f, 0.2f, 0.25f),
+            new UnarmedAttack(new AttackStep(0.3f, 0.07f, 0.43f), WeaponHand.Left),
+            new UnarmedAttack(new AttackStep(0.35f, 0.27f, 0.37f), WeaponHand.Right),
+            new UnarmedAttack(new AttackStep(0.5f, 0.1f, 0.37f), WeaponHand.Left, 1.5f, 2f),
         };
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // A combo longer than the authored steps would play its extra steps with fallback data.
+            if (unarmedAttacks == null) return;
+            if (unarmedAttacks.Length > 0 && unarmedComboSteps > unarmedAttacks.Length)
+                unarmedComboSteps = unarmedAttacks.Length;
+            // An element added in the Inspector is zero-initialised (struct): a 0 multiplier would silently make
+            // that step deal no damage. 0 is never a wanted value here, so it means "not authored" = x1.
+            for (int i = 0; i < unarmedAttacks.Length; i++)
+            {
+                if (unarmedAttacks[i].damageMultiplier <= 0f) unarmedAttacks[i].damageMultiplier = 1f;
+                if (unarmedAttacks[i].stanceMultiplier <= 0f) unarmedAttacks[i].stanceMultiplier = 1f;
+            }
+        }
+#endif
 
         [Header("Draw / Sheathe")]
         [Tooltip("Playback speed of the draw / sheathe clips (Humanoid_Template WeaponSwitchSpeed).")]

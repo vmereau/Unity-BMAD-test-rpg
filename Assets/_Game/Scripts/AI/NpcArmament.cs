@@ -32,6 +32,8 @@ namespace Game.AI
         private const string TAG = "[AI]";
         public const string WEAPON_HITBOX_ID = "Weapon";
         public const string UNARMED_HITBOX_ID = "Unarmed";
+        /// <summary>Left fist — opened by the left-hand unarmed clips' events (spec-unarmed-combo-rework).</summary>
+        public const string UNARMED_LEFT_HITBOX_ID = "UnarmedLeft";
         private const float DEFAULT_SWITCH_SPEED = 1.5f;
         private const float DEFAULT_SWITCH_TIMEOUT = 2.5f;
 
@@ -47,6 +49,7 @@ namespace Game.AI
         private EntityHealth _health;
         private PersistentID _persistentID;
         private WeaponHitbox _unarmedHitbox;
+        private WeaponHitbox _unarmedHitboxLeft;
         private bool _ready;
         private bool _started;
         private bool _modePending; // a mode change waiting for the attack / stance reaction to end (no mid-clip swap)
@@ -91,7 +94,10 @@ namespace Game.AI
                 return;
             }
             foreach (EntityMeleeAttacker.NamedHitbox entry in _attacker.Hitboxes)
+            {
                 if (entry.Id == UNARMED_HITBOX_ID) _unarmedHitbox = entry.Hitbox;
+                else if (entry.Id == UNARMED_LEFT_HITBOX_ID) _unarmedHitboxLeft = entry.Hitbox;
+            }
             _ready = true;
         }
 
@@ -283,11 +289,15 @@ namespace Game.AI
             if (weaponHitbox != null)
             {
                 _attacker.UnregisterHitbox(UNARMED_HITBOX_ID);
+                _attacker.UnregisterHitbox(UNARMED_LEFT_HITBOX_ID);
                 _attacker.RegisterHitbox(WEAPON_HITBOX_ID, weaponHitbox);
             }
-            else if (_unarmedHitbox != null && !_attacker.HasHitbox(UNARMED_HITBOX_ID))
+            else
             {
-                _attacker.RegisterHitbox(UNARMED_HITBOX_ID, _unarmedHitbox);
+                if (_unarmedHitbox != null && !_attacker.HasHitbox(UNARMED_HITBOX_ID))
+                    _attacker.RegisterHitbox(UNARMED_HITBOX_ID, _unarmedHitbox);
+                if (_unarmedHitboxLeft != null && !_attacker.HasHitbox(UNARMED_LEFT_HITBOX_ID))
+                    _attacker.RegisterHitbox(UNARMED_LEFT_HITBOX_ID, _unarmedHitboxLeft);
             }
             if (weaponHitbox == null) _wielded = null;
         }

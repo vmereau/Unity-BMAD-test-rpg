@@ -52,6 +52,9 @@ namespace Game.Combat
         [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
         [SerializeField] private GameObject _unarmedHitbox;
+        [Tooltip("Left-hand unarmed hitbox (spec-unarmed-combo-rework). The hand of each unarmed step comes from " +
+                 "CombatConfigSO.unarmedAttacks; _unarmedHitbox is the right hand.")]
+        [SerializeField] private GameObject _unarmedHitboxLeft;
 
         // TODO(Epic7-tech-debt): Cross-system direct ref (Game.Combat → Game.Inventory) — bow ammo is consumed from the
         // player inventory. Same prototype exception as _equipmentSystem.
@@ -105,6 +108,12 @@ namespace Game.Combat
         private PlayerAttackStep _attackStep;             // forward step of each swing (optional)
 
         private WeaponHitbox _activeHitbox;
+        // Unarmed: both hands are bound (owner + OnHit); _activeHitbox is the hand of the current step.
+        private WeaponHitbox _unarmedRight;
+        private WeaponHitbox _unarmedLeft;
+        private bool _unarmedBound;
+        private bool _warnedMissingHand;
+        private int _currentAttackIndex;       // attack state the Animator last entered (1..3), 0 = none yet
 
         // Draw / sheathe in flight (PlayerStateManager.IsSwitchingWeapon): direction and start time for the watchdog
         private bool _pendingDraw;
@@ -147,6 +156,8 @@ namespace Game.Combat
                 GameLog.Warn(TAG, "EquipmentVisuals not assigned — draw/sheathe will have no visual effect");
             if (_unarmedHitbox == null)
                 GameLog.Warn(TAG, "Unarmed hitbox not assigned — unarmed attacks cannot hit");
+            if (_unarmedHitboxLeft == null)
+                GameLog.Warn(TAG, "Left unarmed hitbox not assigned — left-hand unarmed steps use the right hand");
             if (_inventory == null)
                 GameLog.Warn(TAG, "InventorySystem not assigned — bows cannot fire");
             if (_onCombatNotification == null)
@@ -447,7 +458,7 @@ namespace Game.Combat
         private void ExitAttack()
         {
             _stateManager.SetAttacking(false); // also clears pending Attack_1/2/3 triggers
-            _activeHitbox?.Disable();
+            CloseHitWindows();
         }
 
         // Full end of an attack: combo reset, IsAttacking off, hitbox closed, queued step forgotten.
@@ -456,6 +467,8 @@ namespace Game.Combat
             _attackTracker.ClearQueue();
             ResetAttackCombo();
             ExitAttack();
+            // No step is playing: a stale hit from a clip still blending out must not use the last step's multipliers.
+            _currentAttackIndex = 0;
         }
 
         /// <summary>
@@ -537,34 +550,101 @@ namespace Game.Combat
 
         private void BindUnarmedHitbox()
         {
-            if (_unarmedHitbox == null)
+            if (_unarmedHitbox == null && _unarmedHitboxLeft == null)
             {
                 GameLog.Warn(TAG, "Unarmed hitbox not assigned — unarmed attacks cannot hit");
                 _activeHitbox = null;
                 return;
             }
-            _unarmedHitbox.SetActive(true);
-            _activeHitbox = _unarmedHitbox.GetComponent<WeaponHitbox>();
-            if (_activeHitbox != null)
-            {
-                _activeHitbox.SetOwner(transform);
-                _activeHitbox.OnHit += OnWeaponHit;
-            }
+            if (_unarmedBound) UnbindUnarmedHands(); // never subscribe OnHit twice
+            _unarmedRight = BindUnarmedHand(_unarmedHitbox);
+            _unarmedLeft = BindUnarmedHand(_unarmedHitboxLeft);
+            _unarmedBound = true;
+            _activeHitbox = _unarmedRight != null ? _unarmedRight : _unarmedLeft;
+        }
+
+        private WeaponHitbox BindUnarmedHand(GameObject hitboxGO)
+        {
+            if (hitboxGO == null) return null;
+            hitboxGO.SetActive(true);
+            WeaponHitbox hitbox = hitboxGO.GetComponent<WeaponHitbox>();
+            if (hitbox == null) return null;
+            hitbox.SetOwner(transform);
+            hitbox.OnHit += OnWeaponHit;
+            return hitbox;
+        }
+
+        private void UnbindUnarmedHands()
+        {
+            UnbindUnarmedHand(_unarmedRight);
+            UnbindUnarmedHand(_unarmedLeft);
+            _unarmedRight = null;
+            _unarmedLeft = null;
+            _unarmedBound = false;
+            _activeHitbox = null;
+        }
+
+        private void UnbindUnarmedHand(WeaponHitbox hitbox)
+        {
+            if (hitbox == null) return;
+            hitbox.Disable();
+            hitbox.OnHit -= OnWeaponHit;
         }
 
         private void UnbindWeaponHitbox()
         {
             _currentWeaponSO = null; // Story 7.10: clear cached weapon SO on unbind
-            _unarmedHitbox?.SetActive(false);
+            if (_unarmedBound) UnbindUnarmedHands();
+            if (_unarmedHitbox != null) _unarmedHitbox.SetActive(false);
+            if (_unarmedHitboxLeft != null) _unarmedHitboxLeft.SetActive(false);
             if (_activeHitbox == null) return;
             _activeHitbox.Disable();
             _activeHitbox.OnHit -= OnWeaponHit;
             _activeHitbox = null;
         }
 
+        // Closes the hit window. Unarmed closes both hands: only the step's hand is ever opened, but no end-of-attack
+        // path may depend on which one that was.
+        private void CloseHitWindows()
+        {
+            if (_activeHitbox != null) _activeHitbox.Disable();
+            if (!_unarmedBound) return;
+            if (_unarmedRight != null) _unarmedRight.Disable();
+            if (_unarmedLeft != null) _unarmedLeft.Disable();
+        }
+
+        // No weapon equipped. Read the equipment, not _currentWeaponSO (only set by OnVisualsRefreshed — startup race).
+        private bool IsUnarmed() => _equipmentSystem != null
+            ? !(_equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO)
+            : _currentWeaponSO == null;
+
+        // Data of the unarmed step the Animator is playing (hand, forward step, multipliers).
+        private UnarmedAttack ResolveUnarmedAttack(int attackIndex) => UnarmedAttack.Resolve(
+            _config.unarmedAttacks, attackIndex, UnarmedAttack.Fallback(_config.defaultAttackStep));
+
+        // Unarmed: _activeHitbox becomes the hand of this step. Call with the hit window closed.
+        private void SelectUnarmedHand(int attackIndex)
+        {
+            if (!_unarmedBound || !IsUnarmed()) return;
+            bool left = ResolveUnarmedAttack(attackIndex).hand == WeaponHand.Left;
+            WeaponHitbox wanted = left ? _unarmedLeft : _unarmedRight;
+            if (wanted == null)
+            {
+                wanted = left ? _unarmedRight : _unarmedLeft;
+                if (!_warnedMissingHand)
+                {
+                    _warnedMissingHand = true;
+                    GameLog.Warn(TAG, $"No {(left ? "left" : "right")}-hand unarmed hitbox — using the other hand");
+                }
+            }
+            _activeHitbox = wanted;
+        }
+
         private void OnWeaponHit(IDamageable target, Vector3 hitPoint)
         {
-            ResolveHit(target, hitPoint, ComputeEffectiveDamage(), ComputeMeleeStanceDamage(), MeleeCanKnockDown());
+            float damage = ComputeEffectiveDamage();
+            if (IsUnarmed()) damage *= Mathf.Max(0f, ResolveUnarmedAttack(_currentAttackIndex).damageMultiplier);
+            ResolveHit(target, hitPoint, damage, ComputeMeleeStanceDamage(), MeleeCanKnockDown());
         }
 
         // Mirrors EntityBrain.ExecuteAttack: TryReceiveHit first, damage only when NotBlocked.
@@ -855,14 +935,14 @@ namespace Game.Combat
             // reopen the hit window (phantom hits during the dodge).
             if (!_stateManager.IsAttacking) return;
             _stateManager.SetAttackCommitted(true); // the swing is committed: wind-up steering ends
-            _activeHitbox?.Enable();
+            if (_activeHitbox != null) _activeHitbox.Enable();
             PlaySfx(SwingCue(), transform.position);
         }
 
         public void OnHitboxDisable()  // Story 7.11
         {
             _attackTracker.Event(Time.time);
-            _activeHitbox?.Disable();
+            CloseHitWindows();
         }
 
         /// <summary>
@@ -874,10 +954,12 @@ namespace Game.Combat
         public void OnAttackStateEntered(int attackIndex)
         {
             _attackTracker.Enter(Time.time);
-            _activeHitbox?.Disable();
+            CloseHitWindows();
             _comboWindowOpen = false;
             if (_stateManager == null || _config == null) return; // Awake disabled us; SMBs still call in
             if (!_stateManager.IsAttacking) return; // stale enter after a cancel: no steering, no step
+            _currentAttackIndex = attackIndex;
+            SelectUnarmedHand(attackIndex); // window closed above, so the hand can change
             _stateManager.SetAttackCommitted(false);   // new combo step: its wind-up can steer again
             if (_attackStep != null) _attackStep.Begin(ResolveAttackStep(attackIndex));
         }
@@ -888,7 +970,7 @@ namespace Game.Combat
         {
             if (_equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO weapon)
                 return weapon.ResolveAttackStep(attackIndex, _config.defaultAttackStep);
-            return AttackStep.Resolve(_config.unarmedAttackSteps, attackIndex, _config.defaultAttackStep);
+            return ResolveUnarmedAttack(attackIndex).step;
         }
 
         /// <summary>
@@ -998,12 +1080,18 @@ namespace Game.Combat
         /// </summary>
         private float ComputeMeleeStanceDamage()
         {
-            float baseStance = _currentWeaponSO != null ? _currentWeaponSO.ResolvedStanceDamage : _config.unarmedStanceDamage;
+            bool unarmed = IsUnarmed();
+            float baseStance = !unarmed && _currentWeaponSO != null ? _currentWeaponSO.ResolvedStanceDamage : _config.unarmedStanceDamage;
             float strengthDelta = _playerStats != null && _progressionConfig != null
                 ? _playerStats.Strength - _progressionConfig.baseStrength : 0f;
             bool powerStrike = _playerSkills != null && _playerSkills.HasSkill(POWER_STRIKE_SKILL_ID);
+            float powerStrikeBonus = powerStrike ? _config.powerStrikeStanceBonus : 0f;
+            // Unarmed: each step carries its own multiplier (finisher > 1), replacing the global finisher one.
+            if (unarmed)
+                return StanceMath.ComputeMeleeStanceDamage(baseStance, strengthDelta, _config.stancePerStrength,
+                    ResolveUnarmedAttack(_currentAttackIndex).stanceMultiplier, powerStrikeBonus);
             return StanceMath.ComputeMeleeStanceDamage(baseStance, strengthDelta, _config.stancePerStrength,
-                IsMaxCombo(), _config.finisherStanceMultiplier, powerStrike ? _config.powerStrikeStanceBonus : 0f);
+                IsMaxCombo(), _config.finisherStanceMultiplier, powerStrikeBonus);
         }
 
         /// <summary>Melee swing cost: config cost × the equipped weapon's archetype multiplier (unarmed ×1).</summary>

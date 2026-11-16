@@ -49,7 +49,7 @@ Attack input → TryAttack() → ExecuteAttack() (SetAttacking + animator trigge
 
 1. `PlayerStateManager.CanAttack()` (requires `IsInCombat`).
 2. `IsMaxCombo()` — max steps = `_currentWeaponSO.ResolvedComboSteps`, or `CombatConfigSO.unarmedComboSteps`
-   (3: Jab → Uppercut → Jab) when unarmed. Not `WeaponSO.DEFAULT_COMBO_STEPS` (2), which is only the
+   (3: lead jab → hook → uppercut finisher) when unarmed. Not `WeaponSO.DEFAULT_COMBO_STEPS` (2), which is only the
    fallback for weapons without an archetype.
 3. `IsAttacking && !_comboWindowOpen` → ignore (prevents re-triggering Attack_1 before the window opens).
 4. Stamina: not enough → `ResetAttackCombo()`; `Consume()` failing after `HasEnough()` → `ExitAttack()`.
@@ -74,7 +74,7 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
 - `OnHitboxEnable()` / `OnComboWindowOpen()` are ignored while `!IsAttacking` — a cancelled / force-ended attack
   still blending out keeps firing clip events.
 - `OnComboWindowClose()` is ignored while `ShouldIgnoreWindowClose` (step queued **or** 2 states active): the
-  outgoing clip fires its close event during the crossfade (Uppercut's 0.93 inside the `Attack_2 → Attack_3`
+  outgoing clip fires its close event during the crossfade (Hook's 0.76 inside the `Attack_2 → Attack_3`
   blend). Resetting there zeroed `_comboStep` mid-chain and looped Attack_1 instead of the finisher.
 - **Stall watchdog** — every enter/exit/clip event refreshes the activity time; `IsAttacking` with no activity
   for `CombatConfigSO.attackStallTimeout` (1.5 s) force-ends the attack (trigger never taken, lost exit).
@@ -89,9 +89,10 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
   - **Attack step** — `PlayerAttackStep` (Player root) moves the `CharacterController` along the player's forward,
     constant speed, during the step window. `OnAttackStateEntered(index)` calls `Begin(ResolveAttackStep(index))`:
     `WeaponArchetypeSO.attackSteps[index − 1]`, else `CombatConfigSO.defaultAttackStep`; unarmed:
-    `CombatConfigSO.unarmedAttackSteps`. `AttackStep` = distance (m, 0 = rooted) + start / duration in **seconds since
+    `CombatConfigSO.unarmedAttacks[index − 1].step`. `AttackStep` = distance (m, 0 = rooted) + start / duration in **seconds since
     the state entered** (not normalized). The step stops when `IsAttacking` clears (any cancel) or a dodge starts; a combo
-    step's enter replaces the previous step. Clips are in place (Mixamo, net root travel 0) — no `OnAnimatorMove`.
+    step's enter replaces the previous step. Weapon clips are in place (Mixamo, net root travel 0); the unarmed clips keep root XZ unbaked so their lunge is
+    dropped (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed) — no `OnAnimatorMove`.
   - **Wind-up steering** — `PlayerController` turns toward the raw camera-relative input at `PlayerConfigSO.attackSteerSpeed`
     while `CanSteerAttack()` (attacking, not `IsAttackCommitted`). `OnHitboxEnable` commits (`SetAttackCommitted(true)`);
     each attack-state enter re-opens it; `SetAttacking` clears it. Lock-on still always faces the target.
@@ -100,6 +101,35 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
 - `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
 - **Never detect chains with `GetNextAnimatorStateInfo(layer).IsTag(...)` in `OnStateExit`** — the
   transition may already be complete, so it returns an empty state.
+
+---
+
+## Unarmed Combo — per-step data (spec-unarmed-combo-rework)
+
+Lead jab (left) → hook (right) → uppercut (left, finisher). `CombatConfigSO.unarmedAttacks` holds one `UnarmedAttack`
+per attack state: forward `step`, `hand`, `damageMultiplier`, `stanceMultiplier`. A missing entry = `defaultAttackStep`,
+right hand, × 1. `OnValidate` (editor) caps `unarmedComboSteps` at the entry count (skipped for an empty list) and turns
+a 0 multiplier — a struct element just added in the Inspector — into 1.
+
+| Step | Clip | Hand | Step (m, start s, duration s) | Damage × | Stance × |
+|------|------|------|-------------------------------|----------|----------|
+| 1 | `lead jab` | Left | 0.30, 0.07, 0.43 | 1 | 1 |
+| 2 | `Hook` | Right | 0.35, 0.27, 0.37 | 1 | 1 |
+| 3 | `Uppercut` | Left | 0.50, 0.10, 0.37 | 1.5 | 2 |
+
+- **Hand:** `Player.prefab` has `UnarmedHitbox` (right, `_unarmedHitbox`) and `UnarmedHitbox_L` (left,
+  `_unarmedHitboxLeft`). Unarmed binds both (owner + `OnHit`). `OnAttackStateEntered` closes the window, then
+  `SelectUnarmedHand` points `_activeHitbox` at the step's hand, so `HitboxEnable` opens only that one. Every close path
+  goes through `CloseHitWindows()`, which closes both hands. A missing hand hitbox warns once and uses the other.
+- **Multipliers follow the attack state the Animator entered** (`_currentAttackIndex`), not `_comboStep`, which advances on
+  the press. Health damage = `ComputeEffectiveDamage()` × `damageMultiplier`. Stance uses the step's `stanceMultiplier`
+  **instead of** the global `finisherStanceMultiplier` (weapons still use the global one on `IsMaxCombo()`).
+- "Unarmed" = no `WeaponSO` equipped, read from `EquipmentSystem` (`IsUnarmed()`), not `_currentWeaponSO`.
+- The clips' hit events also carry a string id (`UnarmedLeft` / `Unarmed`) for NPCs. The player's receiver is
+  parameterless and ignores it; **the player's hand comes from the config**. Keep both in sync when a step changes hand.
+- Verified in play (2026-11-16, stepped at 60 fps, logged a frame or two after each event): left window 0.36–0.60 s
+  after the Attack_1 enter (events at 0.33 / 0.57 s), then the right hand only in Attack_2 and the left only in Attack_3,
+  the other hand never; a full chain travels 1.15 m and resets to step 1.
 
 ---
 
@@ -125,3 +155,5 @@ leaves phantom hits after the animation.
 | HIGH | Code clearing `IsAttacking` without resetting the combo (`SetAttacking(false)` from outside `PlayerCombat`) — use `CancelAttack()` |
 | MEDIUM | `OnComboWindowClose()` losing its `ShouldIgnoreWindowClose` early return — finisher loops back to Attack_1 |
 | MEDIUM | New attack clip event handler that doesn't call `_attackTracker.Event(...)` — long clips trip the stall watchdog |
+| MEDIUM | Hit window closed with `_activeHitbox.Disable()` instead of `CloseHitWindows()` — unarmed has two hands bound |
+| MEDIUM | Unarmed step changes hand in `CombatConfigSO.unarmedAttacks` but the clip's event id (`Unarmed` / `UnarmedLeft`) isn't updated — NPCs punch with the wrong hand |

@@ -43,8 +43,8 @@ AnyState → `Draw_State` (`DrawWeapon`) / `Sheathe_State` (`SheatheWeapon`), 0.
 `Sheathe_State → LockOn Locomotion`, exit time 0.85. Attacks unlock at the `WeaponSwap` event, before the clip ends: the
 Base AnyState → `Attack_1` takes the swing and the UpperBody weight drops to 0 (the draw tail is hidden).
 AnyState transitions are evaluated before `LockOn Locomotion → CombatIdle (IsInCombat)`, so the draw wins the frame
-`IsInCombat` flips. Base clips = `draw sword` / `sheath sword` (also the unarmed placeholder); `Sword_AnimatorOverride`
-lists them explicitly (self-mapped) so an unarmed clip only replaces the base-state motion; `Bow_AnimatorOverride`
+`IsInCombat` flips. Base clips = `Draw unarmed` / `sheath unarmed` (spec-unarmed-combo-rework); `Sword_AnimatorOverride`
+maps them to `draw sword` / `sheath sword`; `Bow_AnimatorOverride`
 (→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`; `TwoHanded_AnimatorOverride` to the baked `2hand draw` /
 `2hand sheath` `.anim` (two-part vendor draws are merged, never given a second state — `../Animations/Combat/CLAUDE.md`). NPCs never set the triggers.
 
@@ -82,6 +82,15 @@ references a shared blend tree deletes it for every state (rebuilt once this way
 - Known: after `GetHit` or an attack the Base layer returns to `LockOn Locomotion` and replays `stand to sneak`.
 - Animator writes go only through `HumanoidAnimationBridge` (`Scripts/Core/Animations/CLAUDE.md`).
 
+### Base attack clips and override keys (spec-unarmed-combo-rework)
+
+Base motions: `Attack_1_State` = `lead jab`, `Attack_2_State` = `Hook`, `Attack_3_State` = `Uppercut` (three distinct
+clips). Overrides are keyed on the **base clip**, so every weapon override must map all three, or that state plays the
+unarmed punch with a weapon in hand: sword `lead jab` → `SwordAttackLeft`, `Hook` → `SwordAttackThrust`, `Uppercut` →
+`SwordAttackLeft`; two-handed `lead jab` / `Uppercut` → `2hand attack refined`, `Hook` → `2hand attack 2 refined`.
+**Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
+and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced.
+
 ---
 
 ## SMB Wiring
@@ -99,7 +108,7 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
 - **Attack transitions use `interruptionSource = Destination`** (every Base attack-state transition + AnyState →
   `Attack_1`; tested). **Never `None` on the Base Layer**: a non-interruptible transition blocks AnyState too, so a dodge,
   stagger or death waited out the whole 0.42 s combo blend (measured with a manual `Animator.Update` loop). **Never
-  `Source` on combo transitions**: with `Source`, the Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
+  `Source` on combo transitions**: with `Source`, the old step-2 Uppercut's (1.33 s) 0.42 s blend to Attack_3, requested at
   ComboWindowOpen (0.63), was cancelled by `Attack_2 → CombatIdle` (now `→ LockOn Locomotion`) at exit time 0.89, so step 3 never
   played. When adding/retiming combo clips, check `requestTime + blendDuration < exitTime` (normalized),
   or keep the combo transition at `Destination`.

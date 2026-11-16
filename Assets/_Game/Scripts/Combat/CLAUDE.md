@@ -44,7 +44,7 @@ Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` 
 **Stance** (player → AI; AI → player / NPC is in `Scripts/AI/CLAUDE.md` → Stance): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.
 Melee = `StanceMath.ComputeMeleeStanceDamage`: weapon `ResolvedStanceDamage` (archetype `stanceDamage`, or the weapon's
 own value when set; unarmed `CombatConfigSO.unarmedStanceDamage`) + Strength × `stancePerStrength`, × `finisherStanceMultiplier` on
-`IsMaxCombo()`, + `powerStrikeStanceBonus`. `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
+`IsMaxCombo()` (unarmed: × the step's `UnarmedAttack.stanceMultiplier` instead — `PLAYER_COMBO.md`), + `powerStrikeStanceBonus`. `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
 `KnockDownOverride`); unarmed never. Arrows snapshot the bow's resolved values at fire time (no Strength / finisher).
 Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
 
@@ -77,7 +77,8 @@ Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. R
 - Handler = `UnbindWeaponHitbox()` then `BindWeaponHitbox()`: cache the equipped `WeaponSO`, find
   `WeaponHitbox` under `ActiveWeaponGO` with **`GetComponentInChildren<WeaponHitbox>(true)`** (`Drawn` is
   inactive while sheathed), `SetOwner` + subscribe `OnHit`. No weapon visual, or a visual without a
-  hitbox → `BindUnarmedHitbox()` (activates `_unarmedHitbox`).
+  hitbox → `BindUnarmedHitbox()` (activates and binds **both** hands, `_unarmedHitbox` + `_unarmedHitboxLeft`; the hand of
+  each step is picked in `OnAttackStateEntered` — `PLAYER_COMBO.md` → Unarmed Combo).
 - `OnEnable` also calls `BindUnarmedHitbox()` directly — a startup safety net, because
   `GameEventSO<T>.Raise()` iterates listeners last-added-first and `EquipmentVisuals.OnEnable` may raise
   before `PlayerCombat` subscribed.
@@ -106,7 +107,7 @@ The weapon visual moves (`EquipmentVisuals.SetCombatState(IsInCombat)`) only in 
 `HandleVisualsRefreshed` also re-pushes `SetInCombat(IsInCombat)`: `Refresh()` reassigns `runtimeAnimatorController`,
 which resets **every** animator parameter (a drawn player would sit in `LockOn Locomotion` and latch `Attack_1`).
 
-`CompleteWeaponSwitch` no-ops unless `IsSwitchingWeapon`. Unarmed runs the same flow (base-controller clips, no visual).
+`CompleteWeaponSwitch` no-ops unless `IsSwitchingWeapon`. Unarmed runs the same flow (base-controller clips `Draw unarmed` / `sheath unarmed`, no visual).
 `SetDead(true)` keeps `IsSwitchingWeapon` (IsBusy blocks R; watchdog / load fix the visual). `PlayerSaveAdapter` forces the
 sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 

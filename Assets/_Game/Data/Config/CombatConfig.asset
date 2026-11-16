@@ -50,22 +50,47 @@ MonoBehaviour:
   knockoutLootTauntBarks: {fileID: 11400000, guid: 93211b7e511405b4f949b5903205c6c4, type: 2}
   knockoutLootThanksBarks: {fileID: 11400000, guid: 2f1589398f412d644ae9b2a578c11d89, type: 2}
   knockoutLootPoorBarks: {fileID: 11400000, guid: 1ca1aa327e86edf4f9c820bb0ac98d18, type: 2}
+  executeRange: 1.8
+  executeConeHalfAngle: 70
+  executeFootOffset: {x: -0.45, y: 0, z: 0.88}
+  executeAlignDuration: 0.2
+  executeClipDuration: 1.867
+  executeWatchdogMargin: 0.5
+  executeMinEventDelay: 0.3
+  executeScanPadding: 1
+  executeVerticalReach: 0.9
+  executeImpactTolerance: 0.35
+  executeOcclusionMask:
+    serializedVersion: 2
+    m_Bits: 257
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
   defaultAttackStep:
     distance: 0.5
     startTime: 0.35
     duration: 0.35
-  unarmedAttackSteps:
-  - distance: 0.3
-    startTime: 0.2
-    duration: 0.25
-  - distance: 0.35
-    startTime: 0.25
-    duration: 0.25
-  - distance: 0.3
-    startTime: 0.2
-    duration: 0.25
+  unarmedAttacks:
+  - step:
+      distance: 0.3
+      startTime: 0.07
+      duration: 0.43
+    hand: 1
+    damageMultiplier: 1
+    stanceMultiplier: 1
+  - step:
+      distance: 0.35
+      startTime: 0.27
+      duration: 0.37
+    hand: 0
+    damageMultiplier: 1
+    stanceMultiplier: 1
+  - step:
+      distance: 0.5
+      startTime: 0.1
+      duration: 0.37
+    hand: 1
+    damageMultiplier: 1.5
+    stanceMultiplier: 2
   weaponSwitchAnimSpeed: 1.5
   weaponSwitchTimeout: 2.5
   aimFieldOfView: 30
