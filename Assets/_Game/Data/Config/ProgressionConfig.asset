@@ -15,6 +15,7 @@ MonoBehaviour:
   xpPerKill: 50
   xpPerLevel: 64000000fa000000f40100008403000078050000
   learningPointsPerLevel: 3
+  healthPerLevel: 10
   baseStrength: 5
   baseDexterity: 5
   baseEndurance: 5

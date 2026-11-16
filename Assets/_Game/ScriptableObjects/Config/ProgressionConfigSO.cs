@@ -17,6 +17,10 @@ namespace Game.Progression
         [Tooltip("Learning points awarded each time the player levels up.")]
         public int learningPointsPerLevel = 3;
 
+        [Header("Health — level-up")]
+        [Tooltip("Permanent max health (and current health) gained each time the player levels up. 0 = none.")]
+        public int healthPerLevel = 10;
+
         [Header("Base Stats — Story 3.4")]
         [Tooltip("Starting value for each base stat.")]
         public int baseStrength = 5;

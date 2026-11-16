@@ -2,6 +2,7 @@ using Game.AI;
 using Game.Audio;
 using Game.Combat;
 using Game.Core;
+using Game.Progression;
 using UnityEngine;
 
 namespace Game.Player
@@ -38,6 +39,12 @@ namespace Game.Player
 
         // Same-system reference — marks the player dead so every action gate closes.
         [SerializeField] private PlayerStateManager _playerStateManager;
+
+        [Header("Level-up")]
+        [Tooltip("Source of healthPerLevel — the permanent max-health gain per level-up.")]
+        [SerializeField] private ProgressionConfigSO _progressionConfig;
+        [Tooltip("OnLevelUp channel (LevelSystem raises it once per level gained).")]
+        [SerializeField] private GameEventSO_Int _onLevelUp;
 
         private int _bonusMaxHealth;
         private FactionMember _factionMember;
@@ -90,7 +97,30 @@ namespace Game.Player
             if (_factionMember == null)
                 GameLog.Warn(TAG, "No FactionMember on the Player — every 0-HP blow will kill (no knockout)");
 
+            if (_progressionConfig == null || _onLevelUp == null)
+                GameLog.Warn(TAG, "ProgressionConfigSO or OnLevelUp not assigned — level-ups won't raise max health");
+
             CurrentHealth = _config.baseHealth;
+        }
+
+        private void OnEnable()
+        {
+            if (_onLevelUp != null) _onLevelUp.AddListener(HandleLevelUp);
+        }
+
+        private void OnDisable()
+        {
+            if (_onLevelUp == null) return; // Guard: Awake may disable before OnEnable runs
+            _onLevelUp.RemoveListener(HandleLevelUp);
+        }
+
+        // One raise per level gained, so a multi-level jump stacks. The bonus is saved via BonusMaxHealth,
+        // and save restores never raise OnLevelUp — no double grant on load.
+        private void HandleLevelUp(int newLevel)
+        {
+            if (_progressionConfig == null || _progressionConfig.healthPerLevel <= 0) return;
+            GameLog.Info(TAG, $"Level {newLevel} reached — max health +{_progressionConfig.healthPerLevel}");
+            AddMaxHealthBonus(_progressionConfig.healthPerLevel);
         }
 
         // Unconscious: health climbs to the recovery fraction, then the get-up clip plays, then control comes back.
@@ -199,7 +229,7 @@ namespace Game.Player
 
         /// <summary>
         /// Permanently raises max health by <paramref name="amount"/> and current health by the same amount
-        /// (first-meal bonus). Ignored if dead or the amount isn't positive.
+        /// (first-meal bonus, level-up). Ignored if dead or the amount isn't positive.
         /// </summary>
         public void AddMaxHealthBonus(int amount)
         {

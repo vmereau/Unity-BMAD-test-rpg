@@ -13,6 +13,8 @@ These systems are wired together by `GameEventSO` channels, not direct calls:
 kill → XPSystem.GiveExperience()         (per-enemy XP routed via PlayerRewards)
      → OnXPGained → LevelSystem          (fires OnLevelUp when thresholds crossed)
      → OnLevelUp  → LearningPointSystem   (awards LP per level-up)
+                  → PlayerHealth          (AddMaxHealthBonus(ProgressionConfigSO.healthPerLevel): +max and
+                                           +current HP, saved via bonusMaxHealth; loads never raise OnLevelUp)
 player knockout → PersistentID.RegisterKnockout → WorldStateManager.RegisterKnockout (first time per
      KilledFact only, claim saved) → OnEntityKnockedOut → PlayerRewards → GiveExperience(
      NPCEntity.XpOnKnockout, countAsKill: false)   (TotalKills unchanged; kill XP still paid on a later death)

@@ -774,3 +774,10 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   `_FedMeal`) should make him a friend and change how he speaks to the player afterwards (new friend topic and/or
   friend variants of existing topics, gated on the Fed facts). To design: what changes, and whether a cooked meal
   makes him warmer than bread or an apple.
+
+## From spec-level-up-max-health (2026-11-16)
+
+- **Pre-change saves miss per-level HP:** a save made before this feature at level N loads with `bonusMaxHealth`
+  holding only first-meal bonuses, so that character permanently lacks (N-1) × `healthPerLevel` max HP. No
+  migration and `SAVE_FORMAT_VERSION` was not bumped. A top-up on load would need the meal and level bonuses tracked
+  separately. Only matters if saves exist outside development.

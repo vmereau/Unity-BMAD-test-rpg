@@ -609,6 +609,8 @@ MonoBehaviour:
   _playerStats: {fileID: 5748466653404673820}
   _playerCombat: {fileID: 8895864641979124537}
   _playerStateManager: {fileID: 212298241250081144}
+  _progressionConfig: {fileID: 11400000, guid: a563ac841fe0eba4299dd3728d472f34, type: 2}
+  _onLevelUp: {fileID: 11400000, guid: a4c30ecc3cf57304e8adb0bf2cab1630, type: 2}
 --- !u!114 &212298241250081144
 MonoBehaviour:
   m_ObjectHideFlags: 0
