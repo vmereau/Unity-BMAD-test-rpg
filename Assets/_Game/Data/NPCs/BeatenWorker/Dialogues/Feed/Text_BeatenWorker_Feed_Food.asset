@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Feed_Food
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Hm. It's food. That's more than I had this morning.
+  text: 'Food. Real food. I can''t remember the last time someone shared with me.'
   nextNode: {fileID: 11400000, guid: fc1019d6d07531c4184b158d89d37606, type: 2}
   _id: 074b72610b985594d916fa9df7b791ec

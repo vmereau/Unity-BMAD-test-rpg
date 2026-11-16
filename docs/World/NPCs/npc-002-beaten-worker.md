@@ -7,7 +7,7 @@
 > location: area-001 — Player's Zone (recovers near campfire after event-001)
 > faction: none
 > role: social-informant
-> personality: sardonic, resigned, observant
+> personality: tired, gentle, observant
 > unity-asset: Assets/_Game/Data/NPCs/BeatenWorker/
 > quests-given: none
 > quests-involved: quest-001
@@ -18,9 +18,9 @@
 
 ## Identity
 
-A long-timer in the encampment. Has been beaten before and will be beaten again. He knows it. His underperformance isn't incompetence — it's passive resignation. He figured out the minimum viable existence and stopped pretending otherwise. Dark humor is his armor.
+A long-timer in the encampment. Has been beaten before and will be beaten again. He knows it. His underperformance isn't incompetence or defiance: he is simply worn out. The camp took his strength, not his decency. He is tired, soft-spoken and friendly to anyone who treats him decently.
 
-He is the first NPC the player can choose to interact with after the arrival sequence. He is found recovering near the campfire in the player's tent zone — conscious, bruised, unbothered.
+He is the first NPC the player can choose to interact with after the arrival sequence. He is found recovering near the campfire in the player's tent zone — conscious, bruised, exhausted.
 
 Named Tam: an ordinary laborer's name, nothing remarkable.
 
@@ -30,7 +30,7 @@ Named Tam: an ordinary laborer's name, nothing remarkable.
 
 Social intelligence layer. Distinct from npc-001 (tent mate), who covers logistics.
 
-This NPC knows the *people* — who to trust, who to avoid, who's hiding something. He doesn't open up to a stranger: the player has to offer help first (greeting opener). After that he shares freely, not because he's kind, but because he stopped caring about consequences. Information is the one currency he still has and can't be beaten out of him.
+This NPC knows the *people* — who to trust, who to avoid, who's hiding something. He doesn't open up to a stranger: the player has to offer help first (greeting opener). After that he shares freely, because he is kind and wants the newcomer to avoid what happened to him. Mocked, he doesn't fight back: he closes up, sad and tired, and keeps to himself for good.
 
 He is **not a quest giver** — he points toward quests (the stash) and toward awareness (the rebel group), but doesn't assign them.
 
@@ -38,21 +38,22 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 
 ## Personality
 
-**Tone:** Dry, sardonic, deadpan. Speaks as if mildly amused by everything, including his own suffering.
+**Tone:** Soft, weary, friendly. Grateful for small kindness, never bitter.
 
 **Vocabulary:** Simple. Working-class. Short sentences. Never dramatic.
 
 **Quirks:**
-- Underreacts to everything. The world's awfulness is weather to him.
+- Trails off when tired ("..."). Worries about the player before himself.
 - Offers information unprompted when he judges the player ready to hear it.
-- Never asks for anything in return.
+- Never asks outright for help, never sneers. When hurt he withdraws instead of hitting back.
 
-**Taboo topics:** None visible — but he deflects anything that requires him to admit he still cares.
+**Taboo topics:** None. He goes quiet when hurt.
 
 **Sample lines:**
-- "Tam. And yes, that was the Warden. Not my first time. I'll manage."
-- "Nobody said you had to pay. And if you get caught, you never met me."
-- "There's people in this camp who've had enough. Not me. But people."
+- "Tam. That was the Warden, yes. It's not the first time. I'll be fine, I just need to sit a while."
+- "Be careful, and if he catches you, please don't mention my name."
+- "...Maybe. I'm too tired to argue." (when mocked)
+- "There's people in this camp who've had enough. I'm too tired for that. But they're out there."
 
 ---
 
@@ -61,7 +62,7 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 | NPC | Relationship |
 |-----|-------------|
 | npc-006 (Warden) | Has been beaten by him. No visible anger. Resigned. |
-| npc-003 (Stash Owner) | Aware of the stash. Casual contempt — "he found his angle." |
+| npc-003 (Stash Owner) | Aware of the stash. Wary of him, not bitter. |
 | faction-002 (Workers' Ring) | Knows they exist. Not a member. Admires from a distance he'll never close. |
 | npc-001 (Tent Mate) | Aware of each other. Different social orbit. |
 
@@ -73,9 +74,9 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 |-----------|--------|
 | event-001 not complete | Not yet met. Not accessible. |
 | event-001 complete | Found recovering in player's zone. First conversation available. |
-| quest-001 started | Dry acknowledgment. "Told you it was there." |
-| quest-001 success | Quiet approval. "Hm. Not bad." |
-| quest-001 caught | Dark amusement. "Worth a try." |
+| quest-001 started | Grateful: "If you come across something to eat, I'd be grateful." |
+| quest-001 success | Touched: "Thank you. Truly." |
+| quest-001 caught | Worried for the player, not amused. |
 | company path advanced | Grows more distant. Doesn't accuse. Just stops volunteering information. |
 | worker path advanced | No change in tone — but occasionally slips something useful without framing it as help. |
 
@@ -85,11 +86,11 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 
 | Topic ID | Trigger | Summary |
 |----------|---------|---------|
-| dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he refuses, warns about helping strangers; unlocks camp-people + stash), mock him (closes both; only "Not for you." remains), or leave (opener stays) |
+| dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he thanks you, says there's little to do today, warns about helping strangers; unlocks camp-people + stash), mock him ("...Maybe. I'm too tired to argue."; closes both; only a tired "Leave me be." remains), or leave (opener stays) |
 | dlg-npc002-camp-people | After offering help in the opener | Impressions of key NPCs — warden, stash owner, guards |
-| dlg-npc002-stash-hint | After offering help in the opener | He's hungry and doesn't care where food comes from; either answer starts quest-001 (Food for Tam). Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest: "if you get caught, you never met me" |
+| dlg-npc002-stash-hint | After offering help in the opener | He's hungry and not picky about food; either answer starts quest-001 (Food for Tam). Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest: "if he catches you, please don't mention my name" |
 | dlg-npc002-feed | quest-001 started | Player hands him food through the Give window: bread or an apple (base ending) or a cooked meal ("even better than what you were asking for": better ending, he won't forget it). Completes quest-001 |
-| dlg-npc002-stash-reported | Hint + stash taken | "You were right about Brann's supplies." Dry approval, small XP, doesn't complete the quest |
+| dlg-npc002-stash-reported | Hint + stash taken | "You were right about Brann's supplies." Worried approval, small XP, doesn't complete the quest |
 | dlg-npc002-rebel-mention | Player asks about resistance | "Heard there's people who've had enough." No more than that. |
 
 ---

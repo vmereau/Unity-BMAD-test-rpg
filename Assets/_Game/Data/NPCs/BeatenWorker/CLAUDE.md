@@ -23,10 +23,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Alignment** | Resigned neutral |
-| **Traits** | Sardonic, resigned, observant |
-| **Fears / Flaws** | Admitting he still cares |
-| **Desires / Goals** | The minimum viable existence |
+| **Alignment** | Gentle neutral |
+| **Traits** | Tired, gentle, observant, quietly kind |
+| **Fears / Flaws** | Too worn out to stand up for himself; expects nothing from anyone |
+| **Desires / Goals** | Get through the day; see decent people stay out of trouble |
 
 ---
 
@@ -34,19 +34,19 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Dry, deadpan, mildly amused by everything |
+| **Tone** | Soft, weary, friendly. Grateful for small kindness |
 | **Vocabulary** | Simple, working-class, short sentences |
-| **Quirks** | Underreacts to everything; asks for nothing in return |
-| **Taboo Topics** | Anything that would make him admit he still cares |
+| **Quirks** | Trails off ("..."); worries about the player before himself; never asks outright for help |
+| **Taboo Topics** | None. He just goes quiet when hurt |
 
 **Sample line:**
-> "Not my first time. I'll manage."
+> "It's not the first time. I'll be fine, I just need to sit a while."
 
 ---
 
 ## Background
 
-Tam worked out how little he can do before the Warden beats him, and stopped pretending otherwise. Full design: `docs/World/NPCs/npc-002-beaten-worker.md`. The arrival beating that introduces him comes in a later spec, so for now he is simply present.
+Tam has been in the camp for years and is simply worn out. The beatings took his strength, not his decency: he is kind to anyone who is kind to him, and too tired to be cruel to anyone who isn't. Full design: `docs/World/NPCs/npc-002-beaten-worker.md`. The arrival beating that introduces him comes in a later spec, so for now he is simply present.
 
 ---
 
@@ -54,7 +54,9 @@ Tam worked out how little he can do before the Warden beats him, and stopped pre
 
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
-- Never dramatic, never asks for help
+- Never dramatic, never sneers, never threatens; never asks outright for help
+- Tired but friendly: short, warm sentences; he thanks people and worries about them
+- When mocked or hurt he withdraws, sad and tired ("...Maybe. I'm too tired to argue."), never retaliates
 - Covers the who and why of the camp; leaves logistics to Hobb
 - Points toward things, never assigns them: he is not a quest giver
 
@@ -67,7 +69,7 @@ Tam worked out how little he can do before the Warden beats him, and stopped pre
 | `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Asked`. The start node sets Asked at chain end (quest start, either answer); the "I don't have any money for food." choice also sets `DialogueFact_HiddenStash_Hint` (Brann's chest) |
 | `Feed/` "I brought you something to eat." | Asked, not FedFood / FedMeal / Mocked. "Here, this should help." = Give window for ReadyFood (Apple / Bread) → `DialogueFact_HiddenStash_FedFood` (+50 XP); "Here, I have even better than what you were asking for." = Meal, hidden without a meal → `_FedMeal` (+100 XP, kept for later content); "Not yet."; "I don't have any money for food." → Hint + the chest lines. Either Fed fact completes the quest; the item ends in Tam's inventory |
 | `StashReported/` "You were right about Brann's supplies..." | Asked + Hint + `WorldFact_HiddenStash_Taken`, not Reported / Mocked. Side line: +25 XP (`PlayerReward_HiddenStash_Reported`), does not complete the quest |
-| `Cold/` "Got a moment?" → "Not for you." (repeatable) | Mocked |
+| `Cold/` "Got a moment?" → "...Not really. I'm tired. Leave me be." (repeatable) | Mocked |
 
 ---
 

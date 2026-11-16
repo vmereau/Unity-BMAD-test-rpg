@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_BeatenWorker_StashHint
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: Bring me something to eat, if you want. I don't care where it comes from.
+  text: 'If you come across something to eat, I''d be grateful. I''m not picky.'
   nextNode: {fileID: 0}
   _id: 58e288db9d82972428dfa80885fc0000
   choices:

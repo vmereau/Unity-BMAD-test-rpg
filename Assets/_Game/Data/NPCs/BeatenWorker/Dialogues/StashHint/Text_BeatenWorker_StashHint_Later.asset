@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashHint_Later
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Don't take too long. I'm not getting any fatter.
+  text: 'Thank you. I''ll be here. Not going anywhere, as you can see.'
   nextNode: {fileID: 0}
   _id: 1da065f081cc82543ab3fab919b080d5

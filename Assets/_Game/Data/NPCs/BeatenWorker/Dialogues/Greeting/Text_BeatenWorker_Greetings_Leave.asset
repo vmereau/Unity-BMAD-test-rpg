@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Greetings_Leave
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Best idea anyone's had all day.
+  text: 'Thank you. I''ll just sit here a while. Come by later, if you like.'
   nextNode: {fileID: 0}
   _id: 30914580ee0961343bd6ae0cd3963821

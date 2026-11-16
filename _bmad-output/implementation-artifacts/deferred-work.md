@@ -767,3 +767,10 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 - **PlayMode tests vs play scenarios:** `EditorSceneManager.playModeStartScene` (set by the `Game/Play Scenario` toolbar) may hijack a PlayMode test run into MainMenu / Core. No PlayMode tests exist yet; when the first is added, clear the start scene around test runs (Test Framework `TestRunnerApi` callbacks) or exempt them in `PlayScenarios.ApplyOnPlay`.
 - **Dirty scenes with a forced start scene:** with Arrival / After Arrival, Play loads Core and StartingTown from disk; unconfirmed whether Unity prompts to save modified open scenes first. If edits are lost, add `EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()` on `ExitingEditMode` in `PlayScenarioToolbar`.
+
+## From spec-tam-tired-friendly-tone (2026-11-16)
+
+- **Tam friendship after feeding** (user-deferred, own spec): feeding Tam (`DialogueFact_HiddenStash_FedFood` /
+  `_FedMeal`) should make him a friend and change how he speaks to the player afterwards (new friend topic and/or
+  friend variants of existing topics, gated on the Fed facts). To design: what changes, and whether a cooked meal
+  makes him warmer than bread or an apple.

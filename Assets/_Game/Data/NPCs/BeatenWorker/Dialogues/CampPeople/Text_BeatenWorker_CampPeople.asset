@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_CampPeople
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Voss does it in public so you'll remember. Harl takes what he can carry. And stay clear of the nice tents.
+  text: 'Voss hurts people in public, so the rest of us remember. Harl takes whatever he can carry. And keep away from the nice tents. I''d rather not see you up on that stage.'
   nextNode: {fileID: 0}
   _id: d30fd6fa0063f964f932939c955a1f72

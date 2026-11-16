@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Feed_Meal
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: A cooked meal. Out here.
+  text: 'A cooked meal? Out here?'
   nextNode: {fileID: 11400000, guid: 5e734055f50b7b3439017039c7a96af2, type: 2}
   _id: fbe452dda2e92084baac1b6a998b2595
