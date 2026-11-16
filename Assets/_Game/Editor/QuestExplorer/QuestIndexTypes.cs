@@ -43,7 +43,7 @@ namespace Game.Editor.QuestExplorer
         public string ScenePath;
         public NPCEntity Npc;
         public NPCMemoryEntrySO Memory;
-        /// <summary>Human-readable description, e.g. "Guard › Mem_Guard_SpiderOffer › Choice 'I'll do it'".</summary>
+        /// <summary>Human-readable description, e.g. "Warden › Mem_Warden_ErrandAssign › Choice 'I'll do it'".</summary>
         public string Label;
         /// <summary>Quest part location for <see cref="FactLinkSource.QuestPart"/> readers.</summary>
         public QuestPartLocation? Location;
@@ -62,7 +62,7 @@ namespace Game.Editor.QuestExplorer
         public NPCEntity Npc;
         /// <summary>Memory whose startdialog chain reaches <see cref="Node"/> (may be null).</summary>
         public NPCMemoryEntrySO OwnerMemory;
-        /// <summary>e.g. "Guard › Choice_Guard_SpiderOffer › Choice 'I already did it'".</summary>
+        /// <summary>e.g. "Warden › Choice_Warden_ErrandAssign › Choice 'I already did it'".</summary>
         public string Label;
     }
 

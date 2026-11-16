@@ -235,7 +235,7 @@ namespace Game.Editor.QuestExplorer
         /// <summary>Prompts for a node id and assigns a (new or reused) DialogueFact to the part.</summary>
         public static bool CreateDialogueFact(QuestSO quest, QuestPartLocation loc)
         {
-            if (!QuestExplorerNamePrompt.PromptText("New DialogueFact", "Node id (e.g. Guard_SpiderQuestAccepted)", out string id))
+            if (!QuestExplorerNamePrompt.PromptText("New DialogueFact", "Node id (e.g. Warden_Errand_Reported)", out string id))
                 return false;
             var fact = CreateOrReuse($"{FACTS_FOLDER}/DialogueFact_{id}.asset",
                 () => ScriptableObject.CreateInstance<DialogueFact>().Init(id));

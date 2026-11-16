@@ -60,7 +60,7 @@
 ## From spec-quest-item-rewards-trout-recipe (2026-10-24 review)
 
 - **Dialogue-type rewards re-fire on every node replay** (pre-existing; worse with item rewards) — `WorldStateManager.SetFact` raises `OnDialoguePlayed` even when the fact is already true, so `PlayerRewards.HandleDialoguePlayed` re-applies XP / gold / items. Only an inspector warning guards item rewards for now; apply Dialogue rewards on the false→true transition (or a claim key).
-- **Spider quest tracks 2 spiders, text says "All five"** (pre-existing, Quest Explorer V13) — `Mem_Guard_Spiders_Already_Killed` / step 1 use two `KilledFact`s; the "I've already killed the spiders" path completes the quest without it being started. Align facts and text.
+- ~~**Spider quest tracks 2 spiders, text says "All five"**~~ — resolved by spec-remove-spider-quest (2026-11-16): the test quest was removed.
 - **Quest reward race during load** — `RestoreFacts` (`BeginLoad`) runs before `QuestEventsManager.ReseedState` (`FinishLoad`); a fact change during the async region reload could fire `OnQuestCompleted` and its rewards / toasts. Reseed right after `RestoreFacts` or ignore fact changes while loading.
 
 ## From spec-game-clock-and-bed-sleep (2026-10-26)
@@ -816,3 +816,12 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 - `EntityHealth.TakeDamage` / `OnEnable` dereference `_persistentID.Entity` without a null guard (the `Awake` check reads `_persistentID.Entity` before testing `_persistentID == null`) — an entity without a `PersistentID` throws instead of logging. Pre-existing.
 - Kill-credit tuning ideas, not requested: Friendly credit has no distance / presence limit (dormant today — no faction alliances, Tam is passive); assist never expires within a region visit; stance-only hits (stagger / knockdown with no HP loss) give no assist.
+
+## From spec-remove-spider-quest (2026-11-16 review)
+
+- **Harl has no talk topic of his own.** With the spider topics gone, his only memories are `Mem_RacketGuard_TollCanDefer`
+  (a choice gate) and `Mem_RacketGuard_TollBeaten` (after losing a fight), so Talk opens an empty topic list until he is
+  beaten. Give him a greeting / small-talk topic in his voice (`/NPC:dialogue`).
+- **Old saves keep the old Storekeeper stock** (same as the smithing entry above): `SaveableObject` restores the saved
+  inventory, so a save made before this change never offers `Item_Recipe_AppleTroutSandwich`, and the spider quest that
+  gave it is gone. Dev saves only; no `SAVE_FORMAT_VERSION` bump.

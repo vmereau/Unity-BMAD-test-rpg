@@ -46,8 +46,8 @@
 
 ## Background
 
-Harl abuses his small authority: he skims food and coin and sells "protection" to new arrivals. He gives the spider job,
-and works two exit tolls (spec-racket-guard-exit-toll): the quarry opening by the tally post 06–14 and the wilderness opening
+Harl abuses his small authority: he skims food and coin and sells "protection" to new arrivals. He works
+two exit tolls (spec-racket-guard-exit-toll): the quarry opening by the tally post 06–14 and the wilderness opening
 (bridge head) 14–21; nights outside The Short Measure. The fee is 10 gold per gate, paid once. "Can't pay" works once across
 both gates. Refusing or walking off means a brawl: if the player loses, Harl robs them and that gate counts as paid. If Harl
 loses any fight to the player, he never collects again.
@@ -60,7 +60,6 @@ loses any fight to the player, he never collects again.
 
 - Calls the player "new meat" until the player earns something better
 - Every favor has a price; coin he hands over should feel like a loan
-- The trout recipe line is his one honest moment, so keep it warmer
 
 ---
 

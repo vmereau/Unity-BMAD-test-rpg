@@ -45,7 +45,7 @@ Claude can't click the window — it reads the same data as text:
 - **MCP tool `quest_report`** (`Assets/_Game/Editor/Mcp/`, assembly `Game.Editor.Mcp`, compiled only when the Unity
   MCP package is installed). `target`: `list` · `audit` (every quest + V14–V17 over **every** memory) · a quest
   (questId / asset name / title) · a fact asset name · a memory asset name.
-- Fallback via `execute_code`: `return Game.Editor.QuestExplorer.QuestReport.Run("SpiderClear");`
+- Fallback via `execute_code`: `return Game.Editor.QuestExplorer.QuestReport.Run("WardensErrand");`
 - Custom queries: `var idx = Game.Editor.QuestExplorer.QuestIndexCollector.BuildIndex();` then `idx.GetSetters(f)`,
   `GetReaders`, `GetInvolvedMemories(q)`, `GetGates(m)`, `QuestValidator.Validate(q, idx, idx.Quests)`,
   `QuestValidator.ValidateAllMemories(idx)`.

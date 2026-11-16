@@ -23,8 +23,8 @@
   no recipe catalog, no `SaveData` field: facts are already saved / restored, and quest parts, memory conditions and dialogue
   read it like any `Fact` (`PlayerRewardSO` does not — its `RewardFactType` has no Recipe entry yet). Write it only through `WorldStateManager.SetRecipeKnown`; read with `IsRecipeKnown`.
 - Setters: the Experiment tab's first successful cook of a recipe (Quest Explorer shows the recipe as the fact's
-  `[Recipe]` setter) and **recipe items** (`RecipeItemSO`, e.g. `Item_Recipe_AppleMushroomSandwich` sold by the
-  Storekeeper; `Item_Recipe_AppleTroutSandwich` is unique, Guard Harl's spider-quest reward via `PlayerRewardSO._itemRewards`): `OnUse` sets the fact, raises `OnRecipeLearned` (toast "Recipe learned: …") and is consumed; it is
+  `[Recipe]` setter) and **recipe items** (`RecipeItemSO`, e.g. `Item_Recipe_AppleMushroomSandwich` and
+  `Item_Recipe_AppleTroutSandwich`, both sold by the Storekeeper): `OnUse` sets the fact, raises `OnRecipeLearned` (toast "Recipe learned: …") and is consumed; it is
   rejected (`CanUse()` false → Use disabled, item kept, only sellable) once the recipe is known. Quest Explorer
   doesn't list recipe items as setters yet (the recipe is enough to avoid "never set").
 - `RecipeFact._recipeId` is the save key — never rename it once shipped. It also keys the craft count.

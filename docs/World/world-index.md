@@ -43,7 +43,6 @@
 |----|------|-------|------|-------------|--------|
 | quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
 | quest-002 | The Sealed Passage | npc-009 | area-002 | worker / independent | stub |
-| SpiderClear | Spider Infestation | NPC_RacketGuard | area-001 | — | implemented |
 | WardensErrand | The Warden's Errand | npc-006 (Voss) | area-001 + work sites | neutral | implemented |
 
 ---

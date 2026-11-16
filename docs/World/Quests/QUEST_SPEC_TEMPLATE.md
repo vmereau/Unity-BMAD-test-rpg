@@ -35,7 +35,7 @@ part using one can never complete (V3) until a setter is built.
 
 | Asset name | Type | Where it lives |
 |---|---|---|
-| e.g. `DialogueFact_Guard_SpiderQuestAccepted` | `DialogueFact` | `Assets/_Game/Data/Facts/` |
+| e.g. `DialogueFact_Warden_Errand_Reported` | `DialogueFact` | `Assets/_Game/Data/Facts/` |
 
 ---
 
