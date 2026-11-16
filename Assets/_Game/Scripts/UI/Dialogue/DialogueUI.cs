@@ -52,6 +52,9 @@ namespace Game.UI
 
         private float _shownAt;
         private bool _revealing;
+        private TMP_Text _revealText; // ResponseText (Text state) or Choice Text (Choices state prompt)
+        private CanvasGroup _optionsGroup; // on _topicsScrollView: hides the option rows while a choice prompt reveals
+        private ScrollRect _optionsScroll;
         private float _revealStart;
         private int _revealTotal;
 
@@ -74,6 +77,12 @@ namespace Game.UI
                 var nav = _nextNodeButton.navigation;
                 nav.mode = Navigation.Mode.None;
                 _nextNodeButton.navigation = nav;
+            }
+            if (_topicsScrollView != null)
+            {
+                if (!_topicsScrollView.TryGetComponent(out _optionsGroup))
+                    _optionsGroup = _topicsScrollView.AddComponent<CanvasGroup>();
+                _topicsScrollView.TryGetComponent(out _optionsScroll);
             }
             if (_panel != null)
                 _panel.SetActive(false);
@@ -106,11 +115,14 @@ namespace Game.UI
 
         private void Update()
         {
-            if (!_revealing || _responseText == null) return;
+            if (!_revealing || _revealText == null) return;
             int visible = DialogueReveal.VisibleCount(Time.unscaledTime - _revealStart, _charsPerSecond, _revealTotal);
-            _responseText.maxVisibleCharacters = visible;
+            _revealText.maxVisibleCharacters = visible;
             if (visible >= _revealTotal)
+            {
                 CompleteReveal();
+                MarkShown(); // the rows just appeared: the input grace starts now, not when the reveal began
+            }
         }
 
         // ── Input handlers ──────────────────────────────────────────────────────
@@ -127,6 +139,12 @@ namespace Game.UI
                 return;
             }
             if (!IsInputAllowed()) return;
+            // Choices state: the rows are hidden while the prompt reveals; a key only completes it (never picks).
+            if (_revealing)
+            {
+                SkipReveal();
+                return;
+            }
             _slotCallbacks[slot]?.Invoke();
         }
 
@@ -134,6 +152,8 @@ namespace Game.UI
         {
             if (_state == DisplayState.Text)
                 TryAdvance();
+            else if (_revealing && IsInputAllowed())
+                SkipReveal();
         }
 
         private void HandleCancel(InputAction.CallbackContext ctx)
@@ -147,8 +167,10 @@ namespace Game.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_state != DisplayState.Text) return;
-            TryAdvance();
+            if (_state == DisplayState.Text)
+                TryAdvance();
+            else if (_revealing && IsInputAllowed())
+                SkipReveal();
         }
 
         /// <summary>
@@ -161,11 +183,16 @@ namespace Game.UI
             if (!IsInputAllowed()) return;
             if (_revealing)
             {
-                CompleteReveal();
-                MarkShown(); // a second press in the same burst (Enter + Submit, double-click) must not skip the line
+                SkipReveal();
                 return;
             }
             _slotCallbacks[1]?.Invoke();
+        }
+
+        private void SkipReveal()
+        {
+            CompleteReveal();
+            MarkShown(); // a second press in the same burst (Enter + Submit, double-click) must not skip the line / pick
         }
 
         // ── Public API ──────────────────────────────────────────────────────────
@@ -353,6 +380,14 @@ namespace Game.UI
                 _responseWrapper.SetActive(showResponse);
             if (_topicsScrollView)
                 _topicsScrollView.SetActive(showTopics);
+            // Every new list starts at the top (TopicsContent pivot is top: y = 0 is the first row).
+            if (showTopics && _optionsScroll != null && _optionsScroll.content != null)
+            {
+                _optionsScroll.StopMovement();
+                // Fresh bounds now, so the auto-hide scrollbar doesn't flash for a frame after a longer list.
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_optionsScroll.content);
+                _optionsScroll.content.anchoredPosition = new Vector2(_optionsScroll.content.anchoredPosition.x, 0f);
+            }
             MarkShown();
         }
 
@@ -363,35 +398,54 @@ namespace Game.UI
                 _nextNodeLabel.text = advanceLabel;
 
             SetState(DisplayState.Text);
-            StartReveal(line);
+            StartReveal(_responseText, line);
         }
 
-        /// <summary>Choices state: NPC prompt above the options.</summary>
+        /// <summary>
+        /// Choices state: NPC prompt above the options, revealed like a text-node line. The option rows stay hidden
+        /// until the reveal completes.
+        /// </summary>
         private void ShowChoicePrompt(string text)
         {
             if (_choiceNodeText == null) return;
-            _choiceNodeText.text = text;
-            _choiceNodeText.gameObject.SetActive(!string.IsNullOrEmpty(text));
+            bool hasText = !string.IsNullOrEmpty(text);
+            _choiceNodeText.gameObject.SetActive(hasText);
+            if (hasText)
+                StartReveal(_choiceNodeText, text);
+            else
+                _choiceNodeText.text = string.Empty;
         }
 
-        private void StartReveal(string line)
+        private void StartReveal(TMP_Text target, string line)
         {
-            if (_responseText == null) return;
-            _responseText.text = line ?? string.Empty;
-            _responseText.maxVisibleCharacters = 0;
-            _responseText.ForceMeshUpdate(true);
-            _revealTotal = _responseText.textInfo.characterCount;
+            if (target == null) return;
+            _revealText = target;
+            target.text = line ?? string.Empty;
+            target.maxVisibleCharacters = 0;
+            target.ForceMeshUpdate(true);
+            _revealTotal = target.textInfo.characterCount;
             _revealStart = Time.unscaledTime;
             _revealing = _revealTotal > 0 && _charsPerSecond > 0f;
-            if (!_revealing)
+            if (_revealing)
+                SetOptionsVisible(false);
+            else
                 CompleteReveal();
         }
 
         private void CompleteReveal()
         {
             _revealing = false;
-            if (_responseText != null)
-                _responseText.maxVisibleCharacters = int.MaxValue;
+            if (_revealText != null)
+                _revealText.maxVisibleCharacters = int.MaxValue;
+            SetOptionsVisible(true);
+        }
+
+        private void SetOptionsVisible(bool visible)
+        {
+            if (_optionsGroup == null) return;
+            _optionsGroup.alpha = visible ? 1f : 0f;
+            _optionsGroup.interactable = visible;
+            _optionsGroup.blocksRaycasts = visible;
         }
 
         /// <summary>Back to the NPC's topic list after a chain ends (also called by DialogueSystem after a Give-window choice).</summary>
@@ -574,7 +628,12 @@ namespace Game.UI
             System.Array.Clear(_slotCallbacks, 0, _slotCallbacks.Length);
             if (_topicsContainer == null) return;
             for (int i = _topicsContainer.childCount - 1; i >= 0; i--)
-                Destroy(_topicsContainer.GetChild(i).gameObject);
+            {
+                // Destroy is deferred: deactivate first so this frame's layout / scroll bounds ignore the old rows.
+                var child = _topicsContainer.GetChild(i).gameObject;
+                child.SetActive(false);
+                Destroy(child);
+            }
         }
 
         private static string SlotLabel(int slot) => slot == MAX_SLOTS ? "0" : slot.ToString();
