@@ -93,6 +93,13 @@ namespace Game.Core
         public int? gold;
         public bool? isLocked;
         public bool? isOpen;
+        /// <summary>
+        /// NPC equipped slots (slot name → itemId). Null = no NpcArmament, or a save made before NPC equipment was
+        /// saved (the loadout is then granted fresh).
+        /// </summary>
+        public Dictionary<string, string> equipped;
+        /// <summary>itemId of the weapon an NPC dropped into its inventory when it went down (null = none).</summary>
+        public string droppedWeaponId;
     }
 
     public class DroppedItemSaveData

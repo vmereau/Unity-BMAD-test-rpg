@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.Combat;
 using Game.Core;
@@ -97,14 +96,7 @@ namespace Game.Player
             if (_learningPoints != null) d.learningPoints = _learningPoints.CurrentLP;
             if (_skills != null) d.skills = _skills.GetLearnedSkillIds();
             if (_inventory != null) d.inventory = ItemStackConverter.ToSave(_inventory.Items);
-            if (_equipment != null)
-            {
-                foreach (var pair in _equipment.Equipped)
-                {
-                    if (pair.Value == null || string.IsNullOrEmpty(pair.Value.itemId)) continue;
-                    d.equipped[pair.Key.ToString()] = pair.Value.itemId;
-                }
-            }
+            if (_equipment != null) d.equipped = EquipmentSaveConverter.ToSave(_equipment.Equipped);
             if (_actionBar != null)
             {
                 for (int i = 0; i < ACTION_BAR_SLOTS; i++)
@@ -143,7 +135,7 @@ namespace Game.Player
             _level?.RestoreLevel(d.level);
             _learningPoints?.RestoreLP(d.learningPoints);
             _inventory?.RestoreSlots(ItemStackConverter.FromSave(d.inventory, catalog));
-            _equipment?.RestoreEquipped(ResolveEquipped(d.equipped, catalog));
+            _equipment?.RestoreEquipped(EquipmentSaveConverter.FromSave(d.equipped, catalog));
             _actionBar?.RestoreSlots(ResolveActionBar(d.actionBar, catalog));
             _gold?.RestoreGold(d.gold);
             // Max-health bonus first so the restored health isn't clamped to the base max.
@@ -200,28 +192,6 @@ namespace Game.Player
                 }
             }
             GameLog.Info(TAG, $"Origin applied: {origin.displayName}");
-        }
-
-        private static Dictionary<EquipmentSlot, ItemSO> ResolveEquipped(Dictionary<string, string> saved, ItemCatalogSO catalog)
-        {
-            var result = new Dictionary<EquipmentSlot, ItemSO>();
-            if (saved == null || catalog == null) return result;
-            foreach (var pair in saved)
-            {
-                if (!Enum.TryParse(pair.Key, out EquipmentSlot slot))
-                {
-                    GameLog.Warn(TAG, $"Unknown equipment slot '{pair.Key}' in save — skipped");
-                    continue;
-                }
-                var item = catalog.FindById(pair.Value);
-                if (item == null)
-                {
-                    GameLog.Warn(TAG, $"Unknown itemId '{pair.Value}' equipped in {slot} — skipped");
-                    continue;
-                }
-                result[slot] = item;
-            }
-            return result;
         }
 
         private static List<(int slot, int invIndex, ItemSO item)> ResolveActionBar(List<ActionBarSlotSaveData> saved, ItemCatalogSO catalog)

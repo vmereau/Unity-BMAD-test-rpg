@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Animations;
 using Game.Combat;
 using Game.Core;
@@ -23,6 +24,9 @@ namespace Game.AI
     /// event (<see cref="CompleteWeaponSwitch"/>), or on a timeout.</item>
     /// <item>Down (knocked out / dead): the weapon is unequipped into the inventory (lootable), the armor stays. Waking
     /// with it still there re-equips it; looted → fists for good.</item>
+    /// <item>Save / load (spec-npc-equipment-save): <see cref="Game.World.SaveableObject"/> captures <see cref="Equipped"/>
+    /// + <see cref="DroppedWeapon"/>; <see cref="RestoreLoadout"/> replaces the granted loadout (and <c>Start</c> then grants
+    /// nothing).</item>
     /// </list>
     /// A controller swap resets every animator parameter and state, so it never happens while down / dead, and
     /// <c>IsInCombat</c> is re-pushed after each one.
@@ -52,6 +56,7 @@ namespace Game.AI
         private WeaponHitbox _unarmedHitboxLeft;
         private bool _ready;
         private bool _started;
+        private bool _loadoutRestored; // a save restored the loadout: Start must not grant it again
         private bool _modePending; // a mode change waiting for the attack / stance reaction to end (no mid-clip swap)
         private EntityStance _stance;
 
@@ -71,6 +76,21 @@ namespace Game.AI
 
         /// <summary>Health damage added to <c>Entity.AttackDamage</c> (wielded weapon's <c>damageBonus</c>, fists 0).</summary>
         public float DamageBonus => _wielded != null ? _wielded.damageBonus : 0f;
+
+        /// <summary>
+        /// True once a loadout is in place (granted in <c>Start</c> or restored from a save) — only then is <see cref="Equipped"/>
+        /// worth saving. False when <c>Awake</c> disabled the component, or before <c>Start</c> (a corpse hidden at load).
+        /// </summary>
+        public bool HasLoadout => _ready && (_started || _loadoutRestored);
+
+        /// <summary>Equipped slots (save capture). Empty when not ready.</summary>
+        public IReadOnlyDictionary<EquipmentSlot, ItemSO> Equipped =>
+            _ready ? _equipment.Equipped : EMPTY_EQUIPPED;
+
+        /// <summary>The weapon dropped into the inventory when the NPC went down, until it wakes (save capture).</summary>
+        public WeaponSO DroppedWeapon => _droppedWeapon;
+
+        private static readonly Dictionary<EquipmentSlot, ItemSO> EMPTY_EQUIPPED = new();
 
         private WeaponSO EquippedWeapon => _equipment != null ? _equipment.GetEquipped(EquipmentSlot.Weapon) as WeaponSO : null;
         private bool IsDown => _health != null && (_health.IsDead || _health.IsUnconscious);
@@ -105,7 +125,8 @@ namespace Game.AI
         {
             if (!_ready) return;
             // A corpse keeps what its saved inventory holds: armor only (worn, never lootable), no fresh weapon.
-            GrantLoadout(includeWeapons: _health == null || !_health.IsDead);
+            // A restored loadout (a hidden corpse re-activated by the save restore) is already in place.
+            if (!_loadoutRestored) GrantLoadout(includeWeapons: _health == null || !_health.IsDead);
             Rebuild();
             _started = true;
         }
@@ -241,6 +262,34 @@ namespace Game.AI
                 else GameLog.Info(TAG, $"{gameObject.name}'s {_droppedWeapon.itemName} was taken — fists from now on");
                 _droppedWeapon = null;
             }
+            _visuals.SetCombatState(false);
+            Rebuild();
+        }
+
+        /// <summary>
+        /// Save / load (no gameplay events): replaces the equipped slots without touching the already-restored inventory, so
+        /// the loadout granted in <c>Start</c> is dropped. Knockout isn't saved: a living NPC saved while down picks its
+        /// dropped weapon back up if the inventory still holds it (like <see cref="OnWokeUp"/>); a corpse leaves it in its loot.
+        /// </summary>
+        public void RestoreLoadout(IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped, WeaponSO droppedWeapon, bool killed)
+        {
+            if (!_ready) return;
+            _equipment.RestoreEquipped(equipped);
+            _loadoutRestored = true;
+            _droppedWeapon = null;
+            _isSwitching = false;
+            _modePending = false;
+            if (droppedWeapon != null && EquippedWeapon == null)
+            {
+                if (killed) _droppedWeapon = droppedWeapon; // stays lootable; kept so the next capture still has it
+                else if (_inventory.CountOf(droppedWeapon) > 0)
+                {
+                    _equipment.Equip(droppedWeapon);
+                    GameLog.Info(TAG, $"{gameObject.name}: saved while down — {droppedWeapon.itemName} re-equipped");
+                }
+            }
+            if (!_started || !isActiveAndEnabled) return; // Start / OnEnable rebuild later
+            if (_driver != null) _driver.ClearWeaponSwitch();
             _visuals.SetCombatState(false);
             Rebuild();
         }

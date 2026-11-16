@@ -624,10 +624,11 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-npc-equipment (2026-11-13)
 
-- **NPC equipment is not saved.** The loadout is re-granted on every region load; the NPC inventory is saved. A save made
+- ~~**NPC equipment is not saved.** The loadout is re-granted on every region load; the NPC inventory is saved. A save made
   while a guard lies knocked out (sword moved into his inventory) restores the sword in the inventory **and** a fresh one
   equipped → duplicate. A looted sword comes back on reload. A save-restored corpse may get the same duplicate if the
-  corpse restore lands after `NpcArmament.Start`. Fix: save `EquipmentSystem.Equipped` per NPC (`SaveableObject`).
+  corpse restore lands after `NpcArmament.Start`. Fix: save `EquipmentSystem.Equipped` per NPC (`SaveableObject`).~~
+  Resolved 2026-11-16 by `spec-npc-equipment-save.md`.
 - ~~**Brann** unpacked~~ — resolved: re-instanced from `NPC_base Variant` (no loadout; he's not a guard).
 - **Off-screen Animator culling** (`CullUpdateTransforms`, see the spec-npc-base-hero-model review entry) also affects the
   sword sweep of an off-camera guard.
@@ -825,3 +826,14 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **Old saves keep the old Storekeeper stock** (same as the smithing entry above): `SaveableObject` restores the saved
   inventory, so a save made before this change never offers `Item_Recipe_AppleTroutSandwich`, and the spider quest that
   gave it is gone. Dev saves only; no `SAVE_FORMAT_VERSION` bump.
+
+## From spec-npc-equipment-save (2026-11-16 review)
+- **Saved NPC loadout is authoritative over content changes:** a saved slot whose itemId no longer resolves comes back
+  empty (warning only), and an item added to `NPCEntity.StartingEquipment` after the save never appears. Fall back to the
+  authored item per unresolved slot if saves must survive content updates (dev saves only today).
+- **`PersistentID` vs `NpcArmament` `Start` order is undefined** (pre-existing): when `NpcArmament.Start` runs before a killed
+  NPC is hidden, the save restore's `SetActive(true)` → `EntityHealth.OnEnable` (`IsDead = false`) → `NpcArmament.OnEnable`
+  rebuilds an "up" NPC (controller swap) just before `RestoreAsCorpse`. Probably invisible under the ragdoll; a
+  `DefaultExecutionOrder` on `PersistentID` would make it deterministic.
+- **Re-equip matches the item type, not the dropped instance** (pre-existing in `OnWokeUp`, now also on restore): an NPC
+  whose shop stock holds the same `WeaponSO` it wields picks a stock copy up after its own sword was looted.

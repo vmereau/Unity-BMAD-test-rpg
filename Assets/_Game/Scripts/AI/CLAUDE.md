@@ -452,7 +452,12 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **Down:** knockout / death → `OnDowned`: weapon unequipped into the inventory (lootable), visual removed with
   `Refresh(false)` (controller kept), armor stays equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon
   still in the inventory is re-equipped, a looted one leaves the NPC on fists for good; full refresh.
-- **Not saved:** NPC equipment is rebuilt from the loadout on every load (`deferred-work.md`). Brann (`NPC_StashOwner`) has no loadout.
+- **Saved** (spec-npc-equipment-save): `SaveableObject` captures `NpcArmament.Equipped` + `DroppedWeapon` (`ObjectSaveData.equipped` / `droppedWeaponId`, via the shared `EquipmentSaveConverter`) once `HasLoadout` (null before
+  `Start`, so a corpse hidden at load keeps its authored armor). No catalog → restore skipped, authored loadout kept. Restore runs after `Start`, so
+  `RestoreLoadout` replaces the granted loadout (`RestoreEquipped` never touches the already-restored inventory) and sets
+  `_loadoutRestored` so a corpse whose `Start` runs later doesn't grant again. Knockout isn't saved: a living NPC saved while
+  down loads standing and re-equips its dropped weapon if its inventory still holds it; a corpse keeps it as loot.
+  `equipped == null` (old save / no armament) → the loadout is granted as before. Brann (`NPC_StashOwner`) has no loadout.
 
 ## Code Review Checklist — AI
 

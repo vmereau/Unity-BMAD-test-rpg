@@ -34,7 +34,8 @@ namespace Tests.EditMode
             {
                 { "chest", new ObjectSaveData { inventory = new List<ItemStackSaveData>(), isLocked = false } },
                 { "door", new ObjectSaveData { isOpen = true } },
-                { "wolf", new ObjectSaveData { hasTransform = true, position = SVector3.From(Vector3.one), gold = 5 } }
+                { "wolf", new ObjectSaveData { hasTransform = true, position = SVector3.From(Vector3.one), gold = 5 } },
+                { "guard", new ObjectSaveData { equipped = new Dictionary<string, string> { { "Armor", "grunt_armor" } }, droppedWeaponId = "sword" } }
             },
             consumedObjects = new List<string> { "pickup1" },
             droppedItems = new List<DroppedItemSaveData> { new DroppedItemSaveData { region = "StartingTown", itemId = "potion", position = SVector3.From(Vector3.up) } }
@@ -55,6 +56,8 @@ namespace Tests.EditMode
             Assert.AreEqual("sword", copy.player.equipped["Weapon"]);
             Assert.AreEqual(2, copy.recipeCrafts["Recipe.Known.Sandwich"]);
             Assert.AreEqual(2 * 86400d + 6 * 3600d, copy.worldTimeSeconds);
+            Assert.AreEqual("grunt_armor", copy.objects["guard"].equipped["Armor"]);
+            Assert.AreEqual("sword", copy.objects["guard"].droppedWeaponId);
         }
 
         [Test]
@@ -94,6 +97,8 @@ namespace Tests.EditMode
             Assert.AreEqual(true, door.isOpen);
             Assert.AreEqual(false, copy.objects["chest"].isLocked);
             Assert.AreEqual(5, copy.objects["wolf"].gold);
+            Assert.IsNull(door.equipped); // no NpcArmament / older save → loadout granted fresh
+            Assert.IsNull(door.droppedWeaponId);
         }
 
         [Test]

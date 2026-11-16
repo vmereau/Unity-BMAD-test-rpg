@@ -10,7 +10,7 @@ namespace Game.World
     /// <summary>
     /// Makes a world object's runtime state persist through save / load. Captures whichever siblings
     /// exist: InventorySystem, GoldSystem, Lockable, DoorInteractable, and for entities EntityHealth
-    /// (dead state + root transform).
+    /// (dead state + root transform) and NpcArmament (equipped slots + the weapon dropped while down).
     /// Key: entities use their PersistentID's KilledFact GUID; containers, doors and scene-authored
     /// ItemPickups use <see cref="_saveId"/>, assigned on the scene instance (Tools/Save/Validate Save IDs).
     /// </summary>
@@ -28,6 +28,7 @@ namespace Game.World
         private DoorInteractable _door;
         private EntityHealth _entityHealth;
         private PersistentID _persistentID;
+        private NpcArmament _armament;
         private bool _cached;
 
         public string SaveId => _saveId;
@@ -55,6 +56,7 @@ namespace Game.World
             _door = GetComponent<DoorInteractable>();
             _entityHealth = GetComponent<EntityHealth>();
             _persistentID = GetComponent<PersistentID>();
+            _armament = GetComponent<NpcArmament>();
             _cached = true;
         }
 
@@ -71,6 +73,12 @@ namespace Game.World
                 data.hasTransform = true;
                 data.position = SVector3.From(transform.position);
                 data.rotation = SQuaternion.From(transform.rotation);
+            }
+            if (_armament != null && _armament.HasLoadout)
+            {
+                data.equipped = EquipmentSaveConverter.ToSave(_armament.Equipped);
+                var dropped = _armament.DroppedWeapon;
+                if (dropped != null && !string.IsNullOrEmpty(dropped.itemId)) data.droppedWeaponId = dropped.itemId;
             }
             return data;
         }
@@ -89,6 +97,8 @@ namespace Game.World
             if (_gold != null && data.gold.HasValue) _gold.RestoreGold(data.gold.Value);
             if (_lockable != null && data.isLocked.HasValue) _lockable.RestoreLocked(data.isLocked.Value);
             if (_door != null && data.isOpen.HasValue) _door.SetOpenImmediate(data.isOpen.Value);
+            // After the inventory: the saved loadout replaces the one granted in NpcArmament.Start. Null = old save.
+            if (_armament != null && data.equipped != null) RestoreLoadout(data);
 
             // Alive entities keep their authored spawn position — AI state is not persisted.
             if (_entityHealth == null || !IsKilled()) return;
@@ -99,6 +109,24 @@ namespace Game.World
             gameObject.SetActive(true);
             if (data.hasTransform) PlaceAt(data.position.To(), data.rotation.To());
             _entityHealth.RestoreAsCorpse();
+        }
+
+        private void RestoreLoadout(ObjectSaveData data)
+        {
+            var catalog = SaveSystem.Instance != null ? SaveSystem.Instance.Catalog : null;
+            if (catalog == null)
+            {
+                GameLog.Error(TAG, $"{name}: no ItemCatalog — saved equipment not restored, the authored loadout is kept");
+                return;
+            }
+            WeaponSO dropped = null;
+            if (!string.IsNullOrEmpty(data.droppedWeaponId))
+            {
+                dropped = catalog.FindById(data.droppedWeaponId) as WeaponSO;
+                if (dropped == null)
+                    GameLog.Warn(TAG, $"{name}: dropped weapon '{data.droppedWeaponId}' is unknown or not a weapon — skipped");
+            }
+            _armament.RestoreLoadout(EquipmentSaveConverter.FromSave(data.equipped, catalog), dropped, IsKilled());
         }
 
         private bool IsKilled()
