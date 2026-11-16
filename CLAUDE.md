@@ -137,6 +137,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
 | Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log |
 | UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
+| Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |

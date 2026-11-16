@@ -209,5 +209,48 @@ namespace Tests.EditMode
             StringAssert.DoesNotContain(OriginPickUI.BELONGINGS_HEADER, text);
             Assert.AreEqual(string.Empty, OriginPickUI.FormatDetails(null));
         }
+
+        [Test]
+        public void Init_Artwork_RoundTripsAndDefaultsToNull()
+        {
+            var sprite = MakeSprite();
+
+            Assert.AreSame(sprite, SO<OriginSO>().Init("Smith", "Smith", artwork: sprite).artwork);
+            Assert.IsNull(SO<OriginSO>().Init("Wretch", "Wretch").artwork);
+        }
+
+        [Test]
+        public void Select_ShowsOriginArtwork_AndHidesItWhenMissing()
+        {
+            var pick = _go.AddComponent<OriginPickUI>();
+            var imageGo = new GameObject("Artwork", typeof(RectTransform));
+            _cleanup.Add(imageGo);
+            var image = imageGo.AddComponent<UnityEngine.UI.Image>();
+            Set(pick, "_artworkImage", image);
+            var sprite = MakeSprite();
+            var select = typeof(OriginPickUI).GetMethod("Select", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(select, "OriginPickUI.Select not found");
+
+            select.Invoke(pick, new object[] { SO<OriginSO>().Init("Wretch", "Wretch") });
+            Assert.IsNull(image.sprite);
+            Assert.IsFalse(imageGo.activeSelf);
+
+            // Hidden → shown: a later pick with art must re-activate the image.
+            select.Invoke(pick, new object[] { SO<OriginSO>().Init("Smith", "Smith", artwork: sprite) });
+            Assert.AreSame(sprite, image.sprite);
+            Assert.IsTrue(imageGo.activeSelf);
+
+            select.Invoke(pick, new object[] { null });
+            Assert.IsFalse(imageGo.activeSelf);
+        }
+
+        private Sprite MakeSprite()
+        {
+            var tex = new Texture2D(3, 4);
+            _cleanup.Add(tex);
+            var sprite = Sprite.Create(tex, new Rect(0, 0, 3, 4), Vector2.one * 0.5f);
+            _cleanup.Add(sprite);
+            return sprite;
+        }
     }
 }

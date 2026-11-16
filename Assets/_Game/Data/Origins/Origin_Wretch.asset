@@ -20,4 +20,5 @@ MonoBehaviour:
   _hasBelongings: 0
   _promisedItems: []
   _promisedGold: 0
+  _artwork: {fileID: 21300000, guid: 1f7828ad92446904eb0e5d87cb04b5d8, type: 3}
   _originFact: {fileID: 11400000, guid: 8c8bf28105a6b074d9d0e58ec27402ca, type: 2}

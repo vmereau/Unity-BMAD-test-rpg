@@ -755,3 +755,9 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 - **New-game snapshot lost if a load pre-empts the startup region** (`SaveSystem.HandleRegionLoaded`): an F9 QuickLoad
   in Core's first frames sets `IsLoading` before the startup `RegionLoaded`, so `_newGameSnapshot` is never built (Restart
   then logs an error). Pre-existing; the picked origin id is now consumed either way.
+
+## From spec-origin-artwork (2026-11-16)
+
+- Origin artwork stays resident for the whole session: `SaveSystem` in Core holds `OriginCatalogSO` → every
+  `OriginSO._artwork` sprite (3 × 896×1200 HQ, about 3 MB). Fine at three origins; with a bigger roster, move the
+  artwork to a MainMenu-only lookup or an Addressables / soft reference.

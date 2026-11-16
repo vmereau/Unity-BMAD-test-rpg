@@ -23,4 +23,5 @@ MonoBehaviour:
   _promisedItems:
   - Chisel set and joiner's plane, in a tool roll
   _promisedGold: 20
+  _artwork: {fileID: 21300000, guid: 81693eaae4f537a4b994b4cd5810dc78, type: 3}
   _originFact: {fileID: 11400000, guid: 79ec6ba4adb00754cac2bed8077b5de0, type: 2}

@@ -11,8 +11,8 @@ namespace Game.UI
 {
     /// <summary>
     /// Start-menu origin pick (MainMenu scene, inside <c>Window</c>): one button per <see cref="OriginCatalogSO"/>
-    /// origin, a detail text (description, bonuses, skill, belongings "sent ahead with the Company baggage cart"),
-    /// and Begin. Driven by <see cref="MainMenuUI"/>: <see cref="Show"/> / <see cref="Hide"/>.
+    /// origin, the origin's artwork (hidden when it has none), a detail text (description, bonuses, skill, belongings
+    /// "sent ahead with the Company baggage cart"), and Begin. Driven by <see cref="MainMenuUI"/>: <see cref="Show"/> / <see cref="Hide"/>.
     /// </summary>
     public class OriginPickUI : MonoBehaviour
     {
@@ -25,6 +25,8 @@ namespace Game.UI
         [SerializeField] private Button _originButtonPrefab;
         [SerializeField] private TMP_Text _originNameText;
         [SerializeField] private TMP_Text _detailsText;
+        [Tooltip("Origin illustration beside the details; hidden when the origin has no artwork.")]
+        [SerializeField] private Image _artworkImage;
         [SerializeField] private Button _beginButton;
         [Tooltip("Tint of the selected origin's button.")]
         [SerializeField] private Color _selectedColor = new Color(1f, 0.85f, 0.55f);
@@ -36,6 +38,7 @@ namespace Game.UI
         private void Awake()
         {
             if (_catalog == null) GameLog.Error(TAG, "OriginPickUI: OriginCatalog not assigned — no origin can be picked");
+            if (_artworkImage == null) GameLog.Warn(TAG, "OriginPickUI: Artwork Image not assigned — origin art won't show");
             BuildButtons();
             GameMenuUI.Wire(_beginButton, HandleBegin);
         }
@@ -87,7 +90,16 @@ namespace Game.UI
                 if (button.targetGraphic != null) button.targetGraphic.color = o == origin ? _selectedColor : Color.white;
             if (_originNameText != null) _originNameText.text = origin != null ? origin.displayName : string.Empty;
             if (_detailsText != null) _detailsText.text = FormatDetails(origin);
+            ShowArtwork(origin != null ? origin.artwork : null);
             if (_beginButton != null) _beginButton.interactable = origin != null;
+        }
+
+        private void ShowArtwork(Sprite artwork)
+        {
+            if (_artworkImage == null) return;
+            _artworkImage.sprite = artwork;
+            _artworkImage.preserveAspect = true;
+            _artworkImage.gameObject.SetActive(artwork != null);
         }
 
         private void HandleBegin()

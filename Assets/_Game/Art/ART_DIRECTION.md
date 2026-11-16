@@ -97,6 +97,11 @@ functional (GDD: *no UI clutter*) — information first, frames thin, no filigre
 gloss, sci-fi panels or saturated rarity colors. Generated as a small shared set of full-bleed, 9-slice
 sprites tinted in Unity — never as screen mockups. Template: `Art/UI/CLAUDE.md` (`/ui:create`).
 
+### Illustrations
+Mood art shown in UI (origin pick): painted realistic scenes of the hero, 3:4, medium-full length, absorbed in
+what he does, never posing. The one 2D type where scene lighting is wanted: warm firelight against cold daylight,
+still no glow or bloom. Template: `Art/UI/Origins/CLAUDE.md`.
+
 ### Characters
 Realistic adult proportions, weathered commoners rather than heroes; outfits close-fitting, layered,
 practical, muted and dirty. Role is readable from clothing (guard = functional armor, farmer = linen
@@ -142,6 +147,7 @@ language: `Art/Environment/ANCIENT_CIVILIZATION.md`; templates: `Art/Environment
 |-------|-----------------------------------|---------|
 | Item icons | `Art/UI/Items/CLAUDE.md` | `/items:icon-prompt` |
 | UI sprites (slots, panels, buttons, bars) | `Art/UI/CLAUDE.md` | `/ui:create` |
+| Origin illustrations (hero in his past) | `Art/UI/Origins/CLAUDE.md` | — |
 | Character concept sheets | `Art/Characters/Humanoids/CLAUDE.md` | `/characters:concept-prompt` |
 | NPC face portraits (front + side, for portrait faces) | `Art/Characters/Humanoids/CLAUDE.md` → *Face Portrait Prompt* | — |
 | Ancient ruins (mood concepts, image-to-3D sheets) | `Art/Environment/CLAUDE.md` (design: `Art/Environment/ANCIENT_CIVILIZATION.md`) | — |
