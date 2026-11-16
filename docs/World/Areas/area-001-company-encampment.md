@@ -148,7 +148,7 @@ The fights are illegal in name only. The Company knows about the pit and lets it
 
 | ID | Name | Trigger | Description |
 |----|------|---------|-------------|
-| event-001 | Arrival Beating | Scripted on player arrival | Player escorted by guards, forced to watch warden beat a worker (npc-002) in the camp center for underperformance. Worker left unconscious. No one helps. Player escorted to tent. |
+| event-001 | Arrival Beating | Scripted on player arrival | Player escorted by guards, forced to watch warden beat a worker (npc-002) in the camp center for underperformance. Worker left unconscious. No one helps. Player escorted to tent. The origin belongings never arrive; asking about them gets denials (`docs/World/player-origins.md`). |
 | event-002 | Workers' Revolt | Player-triggered — worker path completion | Workers rise after preparation quests complete. Player fights alongside them. Camp becomes a free workers camp. |
 | event-003 | Company Crackdown | Player-triggered — company path completion | Player reports the rebel network to the warden. Guards move on leaders. Camp locked down tighter. |
 

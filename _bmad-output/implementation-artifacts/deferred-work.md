@@ -372,7 +372,7 @@ Each ships as its own quick-dev spec, on top of the camp layout and cast:
 
 - **Arrival sequence** — split 2026-11-12. Part 1 (gate spawn, escort to the stage, Warden speech, beating, Tam gating,
   dev skip) is `spec-area-1-arrival-escort-beating`; part 2 (escort to the hut, Hobb's briefing) is
-  `spec-area-1-arrival-hut-briefing` (done 2026-11-13). Still open: the "stripped" beat / empty starting inventory.
+  `spec-area-1-arrival-hut-briefing` (done 2026-11-13). Still open: the "stripped" beat, redesigned 2026-11-16 as player origins (`docs/World/player-origins.md`).
 - ~~**Warden's errand tour**~~ — shipped as `spec-area-1-wardens-errand` (2026-11-15): four named managers, quest-item
   notices, work-site choice. Tools issued as Company property are still open (with the work shifts).
 - **First work site** — Stone Quarry recommended (hidden find, first contact with the ruins mystery).
@@ -671,7 +671,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-area-1-wardens-errand (2026-11-15)
 
-- **Stripped beat** — empty starting inventory on arrival (event-001); split out at clarify, next spec.
+- **Stripped beat** — redesigned 2026-11-16 as player origins (stat / skill bonus kept, promised belongings taken, denial
+  topic; Wretch has none): `docs/World/player-origins.md`. Next spec once its open questions are answered.
 - **Manager quests** — Dace (sealed south-face crack, ties to quest-002 / npc-009), Holl (trees falling against the cut),
   Ash (snares taken whole), Pell (tithe barn short every week). Each manager only plants the hook today.
 - **Work shifts** — the `DialogueFact_Warden_Errand_Work*` choice is recorded but nothing reads it yet.

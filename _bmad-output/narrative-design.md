@@ -142,7 +142,10 @@ changes everything. No ending is presented as correct.
 1. **The Promise** — Protagonist is recruited with the offer of fair wages and a fresh
    start working in a Company encampment in a remote frontier region.
 2. **Stripped** — Belongings are confiscated during transit. The protagonist arrives
-   with nothing.
+   with nothing. The player's chosen **origin** (`docs/World/player-origins.md`) decides what was
+   promised: its belongings were "sent ahead by cart" and are never returned, and the Company
+   denies the cart existed. Only the origin's small stat bonus and starting skill survive. A
+   **Wretch** origin owns nothing to lose.
 3. **Reality Check** — The encampment is revealed as a debt-bondage operation.
    Poor living conditions, armed guards, no way out. The contract was a lie.
 4. **Survive or Leave** — Protagonist is given the terms: work in exchange for food
@@ -1152,7 +1155,7 @@ High. Five ending paths, faction-driven quest branches, and NPC-scale consequenc
 ▼
 [ACT 1 — ARRIVAL]
 ├── The Promise: Recruited with offer of fair wages and fresh start
-├── Stripped: Belongings confiscated during transit
+├── Stripped: Belongings confiscated during transit (origin bait — docs/World/player-origins.md)
 ├── Reality Check: Camp revealed as debt-bondage operation
 ├── Survive or Leave: Terms established — work or face the wilderness
 └── First Connections: Camp inhabitants met; early bonds and antagonisms form
