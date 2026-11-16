@@ -165,7 +165,7 @@ The fights are illegal in name only. The Company knows about the pit and lets it
 | Task | Type | Hidden Value |
 |------|------|-------------|
 | Hauling goods to warehouse | Access task | Unlocks storage area, reveals guard positions |
-| Delivering notices to work sites | Access task (quest `WardensErrand`, implemented) | Forces a tour of the four work sites and introduces each manager; ends with the player choosing a site |
+| Delivering notices to work sites | Access task (quest `WardensErrand`, implemented) | Forces a tour of the four work sites and introduces each manager; ends with a report to Voss; every site stays open to the player, with no assignment |
 | Latrine cleaning | Degrading | None — atmospheric |
 | Canteen cleanup | Degrading | None — atmospheric |
 

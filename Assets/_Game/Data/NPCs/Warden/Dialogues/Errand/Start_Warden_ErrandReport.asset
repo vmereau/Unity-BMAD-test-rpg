@@ -15,4 +15,4 @@ MonoBehaviour:
   text: The notices are delivered.
   nextNode: {fileID: 11400000, guid: 3d11510384b080d4092ff83e55c233e2, type: 2}
   _id: dcc24a647248226459fe708273386b5b
-  dialogueFact: {fileID: 0}
+  dialogueFact: {fileID: 11400000, guid: ccfe2aaf815f44c1841db166dc8c1d05, type: 2}

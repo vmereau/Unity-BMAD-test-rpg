@@ -675,7 +675,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   topic; Wretch has none): `docs/World/player-origins.md`. Next spec once its open questions are answered.
 - **Manager quests** — Dace (sealed south-face crack, ties to quest-002 / npc-009), Holl (trees falling against the cut),
   Ash (snares taken whole), Pell (tithe barn short every week). Each manager only plants the hook today.
-- **Work shifts** — the `DialogueFact_Warden_Errand_Work*` choice is recorded but nothing reads it yet.
+- ~~**Work shifts** — the `DialogueFact_Warden_Errand_Work*` choice is recorded but nothing reads it yet.~~ — resolved by
+  spec-wardens-errand-no-work-choice (2026-11-16): no work-site choice by design, every site is open.
 - **Portrait faces for the managers** — `HeadAppearance_QuarryOverseer` / `_TimberBoss` / `_LeadHunter` / `_FarmReeve`
   reuse the Bandit / GuardRight / DockGuard / WarehouseGuard meshes (lookalikes) until `/characters:portrait-face`.
 - **Placeholder notice icon** — the four notices reuse the trout-recipe icon; needs an `items:icon-prompt` icon.

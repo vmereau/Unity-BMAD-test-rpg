@@ -14,19 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Quest.QuestSO
   questId: WardensErrand
   title: The Warden's Errand
-  description: Warden Voss puts every newcomer to work. Before he decides where, he has me carry the Company's notices to the four work-site managers.
+  description: Warden Voss puts every newcomer to work. He has me carry the Company's notices to the four work-site managers.
   startPart:
     fact: {fileID: 11400000, guid: 422824fa208b3a141a51cd803d410b49, type: 2}
     entry: I've just arrived. I should report to Warden Voss for work.
   completedParts:
-  - fact: {fileID: 11400000, guid: 11ac4962abbe50d4695ae9bc4732a15f, type: 2}
-    entry: I'll work at the quarry, under Overseer Dace.
-  - fact: {fileID: 11400000, guid: e59a01453334d894d9a54a397f707d8d, type: 2}
-    entry: I'll work at the wood camp, in Gorm Holl's crew.
-  - fact: {fileID: 11400000, guid: 44123c89e39f5b54487683163adf4ea1, type: 2}
-    entry: I'll work the hunting grounds with Corvin Ash.
-  - fact: {fileID: 11400000, guid: 37e4c48a2daf76c40a73344dc2b2e242, type: 2}
-    entry: I'll work the farm, under Reeve Pell.
+  - fact: {fileID: 11400000, guid: ccfe2aaf815f44c1841db166dc8c1d05, type: 2}
+    entry: The managers know me now. Every work site is open to me.
   failedParts: []
   steps:
   - title: Deliver the Warden's notices
