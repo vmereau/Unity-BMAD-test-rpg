@@ -106,6 +106,9 @@ namespace Game.AI
         // pooled/respawned entity reused with a different Entity SO refreshes its faction.
         private Entity EntityOrNull => _persistentID != null ? _persistentID.Entity : null;
 
+        /// <summary>This member's Entity SO (its PersistentID's), or null (the Player).</summary>
+        public Entity Entity => EntityOrNull;
+
         private void ResolveFaction()
         {
             Entity entity = EntityOrNull;

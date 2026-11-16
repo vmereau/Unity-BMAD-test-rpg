@@ -7,6 +7,10 @@ using UnityEngine;
 
 namespace Game.NPC
 {
+    /// <summary>Per-NPC override of the faction-derived player relationship tier (spec-player-relationship-tiers).
+    /// Hostile is faction-only, so an override can only pick Neutral or Friendly.</summary>
+    public enum PlayerRelationshipOverride { Faction, Neutral, Friendly }
+
     [CreateAssetMenu(menuName = "Game/NPC/NPC Data", fileName = "NPC_")]
     public class NPCEntity : Entity
     {
@@ -39,6 +43,16 @@ namespace Game.NPC
         [SerializeField] private WitnessProfileSO _witnessProfile;
 
         public override WitnessProfileSO WitnessProfile => _witnessProfile;
+
+        [Header("Player relationship")]
+        [Tooltip("Faction = the tier comes from the faction (hostile list → Hostile, allied with the player → Friendly, " +
+                 "else Neutral). Neutral / Friendly override it while a condition holds — never when the faction is hostile.")]
+        [SerializeField] private PlayerRelationshipOverride _playerRelationship = PlayerRelationshipOverride.Faction;
+        [Tooltip("The override applies while ANY of these facts is true. Empty = always.")]
+        [SerializeField] private List<Fact> _relationshipConditions = new();
+
+        public PlayerRelationshipOverride PlayerRelationship => _playerRelationship;
+        public IReadOnlyList<Fact> RelationshipConditions => _relationshipConditions;
 
         [Header("Loadout")]
         [Tooltip("Equipped when the NPC spawns (NpcArmament): armor is worn, a weapon is wielded in every fight unless the " +

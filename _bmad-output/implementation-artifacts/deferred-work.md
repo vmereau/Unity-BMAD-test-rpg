@@ -781,3 +781,13 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   holding only first-meal bonuses, so that character permanently lacks (N-1) × `healthPerLevel` max HP. No
   migration and `SAVE_FORMAT_VERSION` was not bumped. A top-up on load would need the meal and level bonuses tracked
   separately. Only matters if saves exist outside development.
+
+## From spec-player-relationship-tiers (2026-11-16)
+
+- **Friendlies assist against lawful pursuers:** `TryAssistPlayer` joins against *anyone* fighting the player (as specified),
+  including a guard brawling the player over a theft / trespass or a neutral the player attacked first. Decide whether the
+  player's own crime (who started it, why) should keep friendlies out of the fight.
+- **Assist without perception:** the assist scan is pure distance (`friendlyAssistRange` from the friendly), no LOS /
+  hearing — a friendly behind a wall joins a fight it can't see. Gate on `EntityPerception` sight or hearing if it reads wrong.
+- **Tam friendship after feeding** (entry above): Tam is now relationship-Friendly once fed (`PlayerRelationship.Of`);
+  the dialogue / tone side is still open and can read the tier.

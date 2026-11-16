@@ -18,6 +18,7 @@
 | `FactionMember` | Targetable faction participant; self-registers with `TargetRegistry`. **One faction source per GO:** an entity always uses `PersistentID.Entity.Faction` (the `Entity` SO); the serialized `_faction` is only for a GO without an Entity — the Player (`Faction_Player`). `_faction` set on an entity → `GameLog.Error`, ignored. `IsPlayer` = an `IStealthTarget` component exists (even disabled). Brain / perception / attacker resolve the same-GO member in `Awake` (no inspector field). Consumers read `member.Faction` at query time — never copy it into their own field (future runtime faction change). **Only the player may implement `IStealthTarget`** (it is the player marker). |
 | `TheftPursuitRegistry` | **Static** claim set of theft ids (reset on play). `TryClaim(id)` — first catcher wins; `IsClaimed(id)` tells the other pursuers to give up. `TheftPursuitRegistryTests`. |
 | `TargetRegistry` | **Static** registry of live `FactionMember`s — use it instead of `FindGameObjectWithTag`. Reset on play-mode enter (`SubsystemRegistration`). `Player` = the registered `IsPlayer` member (null when absent; a second one is ignored with a warning, promoted if the first unregisters) — how non-player systems (`NPCPresence`) get the player's faction; Player-side systems (`LockOnSystem`, `SleepSystem`) read their own same-GO `FactionMember`, the same component. `NPCPresence` warns once if it is null. `FindClosestHostile(..., skipStealthTargets)` / `FindClosestHostileStealthTarget` / `FindClosestNonHostileStealthTarget` (witnesses). |
+| `PlayerRelationship` | Static tier query `Of(npc)` → `RelationshipTier` Hostile / Neutral / Friendly — see **Player relationship** below. Pure `Resolve` (`PlayerRelationshipTests`). |
 | `ICombatStateProvider` | Read-only "in combat?". Implemented by `EntityBrain`, polled by `NPCPresence`. |
 | `EntityMeleeAttacker` | Entity-side owner of named `WeaponHitbox`es — see below. |
 | `AttackComboPlan` | Pure combo bookkeeping (`Begin`, `TryAdvance`, `Reset`) for `EntityMeleeAttacker`. `AttackComboPlanTests`. |
@@ -344,6 +345,38 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   to the default duration / priority without a stealth config.
 
 ---
+
+## Player relationship (spec-player-relationship-tiers)
+
+- **Tier** = `PlayerRelationship.Of(FactionMember)` — the one query other systems (dialogue, …) read; live, never cache it.
+  Hostile = `FactionSO.AreHostile` with the player's faction (**faction-only**). Otherwise an active `NPCEntity` override
+  (`_playerRelationship` Neutral / Friendly, active while **any** `_relationshipConditions` fact is true; empty = always; no
+  `WorldStateManager` = inactive) wins; otherwise Friendly when either faction lists the other in `_alliedFactions`, else
+  Neutral. No player → Neutral. Only Tam has an override today (Friendly once fed — `Data/NPCs/BeatenWorker/CLAUDE.md`).
+- Tunables + barks: `CombatConfigSO` "Player relationship" (`friendlyAssistRange` 12, `friendlyGraceDuration` 8,
+  `friendlyWarnLockout` 2, `relationshipBarkCooldown` 30 (was `hostileSightBarkCooldown`), `Barks_HostileSight` /
+  `_FriendlyAssist` / `_FriendlyWarn` / `_FriendlyDisappointed`), read through `EntityHealth.CombatConfig`. No config →
+  none of the reactions below. Bubbles use the theft bubble duration / priority; each set keeps its own no-repeat index;
+  missing line / channel → silent, one warning (`RaiseRelationshipBark`).
+- **Hostile:** `RespondToDetectedTarget` on the player → one `hostileSightBarks` bubble per cooldown (NPCs only, never
+  monsters). Hit-triggered engages don't bark.
+- **Friendly assist:** `TryAssistPlayer` (throttled by `_targetScanInterval`) runs from Idle / Patrolling (end of
+  `TryDetectFromNonCombat`), Suspicious and Watching. Non-passive, has an attacker, player live and conscious → closest
+  brain in the static `EntityBrain._active` list (OnEnable / OnDisable, reset on `SubsystemRegistration`) with
+  `IsFighting(player)` that it **can fight**: live, conscious, not its own / an allied faction, faction-hostile (one-way
+  `IsHostileTo`, same rule as the melee filter) or a knockout pair, and **not Friendly** to the player (friendlies never
+  join against a friendly). Range = `min(friendlyAssistRange, 0.9 × DisengageRange)` — at 12 / 12 it would engage and
+  drop the fight at once, then re-assist every scan. Faction-hostile → plain engage; knockout pair → aggro target
+  (brawl). `friendlyAssistBarks` once per cooldown, perception reset.
+- **Friendly grace:** `HandleHealthChanged`, before the passive early return: the player hits a Friendly NPC **not in
+  combat** → `TryFriendlyWarn` — outside the window: `friendlyWarnBarks` bubble + window opens, no reaction; within
+  `friendlyWarnLockout` of the warning: absorbed (the rest of the same combo must not start the brawl); later inside the
+  window: window closes, the normal damage reaction runs (brawl). A passive friendly (Tam) keeps the window open — one
+  bubble per window, never fights back. Grace resets in `OnEnable`; runtime only.
+- **Friendly knockout winner:** `TryStartLooting` → Friendly → `friendlyDisappointedBarks` bubble, no loot,
+  `DisengageFromCombat` there (returns true, so the caller doesn't log "target lost").
+- Out of scope / later: bystanders watching / commenting a fight, hostile execute (hostile blows already kill), individual
+  Hostile overrides, a tier dialogue condition.
 
 ## Toll gates (TollGate → EntityBrain — spec-racket-guard-exit-toll)
 

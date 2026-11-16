@@ -1,6 +1,7 @@
 using Game.Dialogue;
 using Game.Inventory;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Combat
 {
@@ -105,6 +106,26 @@ namespace Game.Combat
         public BarkSetSO knockoutLootThanksBarks;
         [Tooltip("Said after the grab when the player had less than the base amount (or none).")]
         public BarkSetSO knockoutLootPoorBarks;
+
+        [Header("Player relationship (spec-player-relationship-tiers)")]
+        [Tooltip("A Friendly NPC joins against anyone fighting the player within this distance of itself.")]
+        [Min(0f)] public float friendlyAssistRange = 12f;
+        [Tooltip("Seconds after a Friendly NPC's warning in which another hit from the player starts a brawl.")]
+        [Min(0f)] public float friendlyGraceDuration = 8f;
+        [Tooltip("Seconds after a Friendly NPC's warning in which further hits (the rest of the same combo) are absorbed " +
+                 "instead of starting the brawl. Keep it longer than a player combo.")]
+        [Min(0f)] public float friendlyWarnLockout = 2f;
+        [Tooltip("Minimum seconds between two 'on sight' (hostile) or two 'joining' (friendly) barks of the same NPC.")]
+        [FormerlySerializedAs("hostileSightBarkCooldown")]
+        [Min(0f)] public float relationshipBarkCooldown = 30f;
+        [Tooltip("Said by a hostile NPC when it spots the player.")]
+        public BarkSetSO hostileSightBarks;
+        [Tooltip("Said by a Friendly NPC joining the player's fight.")]
+        public BarkSetSO friendlyAssistBarks;
+        [Tooltip("Said by a Friendly NPC the player hits (grace window starts).")]
+        public BarkSetSO friendlyWarnBarks;
+        [Tooltip("Said by a Friendly NPC whose blow knocked the player out (it doesn't loot).")]
+        public BarkSetSO friendlyDisappointedBarks;
 
         [Header("Execute (stomp an unconscious NPC — spec-execute-unconscious-npc)")]
         [Tooltip("Max ground distance from the player to the body's chest for F to execute.")]

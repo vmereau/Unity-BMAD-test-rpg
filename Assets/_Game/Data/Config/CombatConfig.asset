@@ -50,6 +50,14 @@ MonoBehaviour:
   knockoutLootTauntBarks: {fileID: 11400000, guid: 93211b7e511405b4f949b5903205c6c4, type: 2}
   knockoutLootThanksBarks: {fileID: 11400000, guid: 2f1589398f412d644ae9b2a578c11d89, type: 2}
   knockoutLootPoorBarks: {fileID: 11400000, guid: 1ca1aa327e86edf4f9c820bb0ac98d18, type: 2}
+  friendlyAssistRange: 12
+  friendlyGraceDuration: 8
+  friendlyWarnLockout: 2
+  relationshipBarkCooldown: 30
+  hostileSightBarks: {fileID: 11400000, guid: 7ebb3f0755ff3154ea2504cc7e5e652b, type: 2}
+  friendlyAssistBarks: {fileID: 11400000, guid: 5f5779fa985546d42b163c8747cd18bc, type: 2}
+  friendlyWarnBarks: {fileID: 11400000, guid: d0d03148437593047a3be89fec9e968f, type: 2}
+  friendlyDisappointedBarks: {fileID: 11400000, guid: a9325c13e116923429d66ccc668cd14c, type: 2}
   executeRange: 1.8
   executeConeHalfAngle: 70
   executeFootOffset: {x: -0.45, y: 0, z: 0.88}

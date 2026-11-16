@@ -211,6 +211,24 @@ namespace Game.AI
         /// <summary>Trespassers this owner spotted in its restricted areas (runtime only, not saved) — escalation hook.</summary>
         public int TrespassersSpotted { get; private set; }
 
+        // Player relationship (spec-player-relationship-tiers).
+        private static readonly List<EntityBrain> _active = new List<EntityBrain>(); // enabled brains (friendly assist scan)
+        // Assist only within this fraction of the NPC's DisengageRange, so the joined fight isn't dropped at once.
+        private const float ASSIST_DISENGAGE_MARGIN = 0.9f;
+        private float _assistScanTimer;
+        private float _friendlyGraceUntil = float.NegativeInfinity;
+        private float _friendlyWarnTime = float.NegativeInfinity;
+        private float _lastHostileBarkTime = float.NegativeInfinity;
+        private float _lastAssistBarkTime = float.NegativeInfinity;
+        private int _lastHostileBarkIndex = -1;
+        private int _lastWarnBarkIndex = -1;
+        private int _lastAssistBarkIndex = -1;
+        private int _lastDisappointedBarkIndex = -1;
+        private bool _warnedRelationshipBark;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetActiveBrains() => _active.Clear();
+
         private bool PerceptionActive => _perception != null && _perception.IsActive;
         private StealthConfigSO StealthConfig => _stealthConfig != null ? _stealthConfig : _perception.Config;
 
@@ -281,6 +299,9 @@ namespace Game.AI
 
         private void OnEnable()
         {
+            if (!_active.Contains(this)) _active.Add(this);
+            _friendlyGraceUntil = float.NegativeInfinity; // respawn: no grace carried over from a previous life
+            _friendlyWarnTime = float.NegativeInfinity;
             if (_onTheftCommitted != null) _onTheftCommitted.AddListener(HandleTheftCommitted);
             if (_entityHealth == null) return; // Awake failed before resolving it
             ClearStanceReaction(); // disabled mid-reaction (respawn): no Recovered was raised
@@ -302,6 +323,7 @@ namespace Game.AI
 
         private void OnDisable()
         {
+            _active.Remove(this);
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (_state == EntityState.Looting)
             {
@@ -456,7 +478,7 @@ namespace Game.AI
                 if (_perception.IsSuspicious) { TransitionToSuspicious(); return true; }
             }
             if (TryAcquireTargetThrottled()) { RespondToDetectedTarget(); return true; }
-            return false;
+            return TryAssistPlayer();
         }
 
         // Fully aware of a live stealth target → it becomes the current target.
@@ -555,6 +577,7 @@ namespace Game.AI
         {
             if (IsTrespassTarget()) { RespondToTrespasser(_perception.TrespassArea); return; }
             if (IsWitnessTarget()) { TransitionToWatching(); return; }
+            TryHostileSightBark();
             if (_engageImmediately) { TransitionToEngaging(); return; }
             float dist = Vector3.Distance(transform.position, _currentTarget.Transform.position);
             if (dist <= _persistentID.Entity.WarningRange) TransitionToEngaging();
@@ -567,6 +590,7 @@ namespace Game.AI
             if (!PerceptionActive) { ResumeNonCombat(); return; }
             if (TryTakePerceptionTarget()) { RespondToDetectedTarget(); return; }
             if (TryAcquireTargetThrottled()) { RespondToDetectedTarget(); return; } // non-stealth hostile
+            if (TryAssistPlayer()) return;
             if (_perception.Awareness <= 0f)
             {
                 GameLog.Info(TAG, $"{gameObject.name} no longer suspicious — resuming");
@@ -775,6 +799,7 @@ namespace Game.AI
                 return;
             }
             _currentTarget = watched; // TryAcquireTarget clears it when nothing is found
+            if (TryAssistPlayer()) return; // a Friendly witness joins a fight the player is in
 
             // Watched (fully aware, perception not rescanning) and now inside one of this owner's restricted areas.
             if (_perception.CanSeeTarget && RestrictedArea.TryFindTrespassedArea(_currentTarget.Transform.position,
@@ -1102,6 +1127,17 @@ namespace Game.AI
             FactionMember victim = _meleeAttacker != null ? _meleeAttacker.TakeKnockedOutVictim() : null;
             if (victim == null || victim != _currentTarget || !victim.IsPlayer || !IsLyingUnconscious(victim)) return false;
 
+            // A Friendly NPC never robs the player it just knocked out: it is disappointed and goes back to its routine.
+            if (PlayerRelationship.Of(_selfFactionMember) == RelationshipTier.Friendly)
+            {
+                CombatConfigSO friendlyConfig = _entityHealth.CombatConfig;
+                RaiseRelationshipBark(friendlyConfig != null ? friendlyConfig.friendlyDisappointedBarks : null,
+                    ref _lastDisappointedBarkIndex);
+                GameLog.Info(TAG, $"{gameObject.name} (friendly) knocked the player out — disappointed, not looting");
+                DisengageFromCombat(); // handled here: the caller would log a misleading "target lost" warning
+                return true;
+            }
+
             CombatConfigSO config = _entityHealth.CombatConfig;
             if (config == null || config.knockoutLootGold == null || _inventory == null || _onGoldTheftRequested == null)
             {
@@ -1264,6 +1300,121 @@ namespace Game.AI
         {
             string line = barks != null ? barks.GetRandomLine(ref _lastLootBarkIndex) : null;
             if (string.IsNullOrEmpty(line) || _onSpeechBubbleRequested == null) return;
+            StealthConfigSO config = _stealthConfig != null ? _stealthConfig : _perception != null ? _perception.Config : null;
+            RaiseSpeechBubble(line, config != null ? config.theftBubbleDuration : 0f,
+                config != null ? config.theftAlertBubblePriority : 0);
+        }
+
+        // --- Player relationship (spec-player-relationship-tiers) ---
+
+        // A hostile NPC (never a monster) reacting to the player shouts once per cooldown.
+        private void TryHostileSightBark()
+        {
+            if (_currentTarget == null || !_currentTarget.IsPlayer || !(_persistentID.Entity is NPCEntity)) return;
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null || Time.time - _lastHostileBarkTime < config.relationshipBarkCooldown) return;
+            if (PlayerRelationship.Of(_selfFactionMember) != RelationshipTier.Hostile) return;
+            _lastHostileBarkTime = Time.time;
+            RaiseRelationshipBark(config.hostileSightBarks, ref _lastHostileBarkIndex);
+        }
+
+        // Friendly + hit by the player outside a grace window → warn and open one. Hits within friendlyWarnLockout of the
+        // warning (the rest of the same combo) are absorbed. A later hit inside the window closes it and lets the normal
+        // damage reaction run (brawl). A passive friendly never fights back, so it keeps the window open (one bubble per
+        // window). Returns true when the hit is absorbed (no reaction).
+        private bool TryFriendlyWarn()
+        {
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null || PlayerRelationship.Of(_selfFactionMember) != RelationshipTier.Friendly) return false;
+            if (Time.time <= _friendlyGraceUntil)
+            {
+                bool passive = _persistentID.Entity.DetectionRange <= 0f;
+                if (passive || Time.time - _friendlyWarnTime < config.friendlyWarnLockout) return true;
+                _friendlyGraceUntil = float.NegativeInfinity;
+                GameLog.Info(TAG, $"{gameObject.name} (friendly) hit again inside the grace window — fighting back");
+                return false;
+            }
+            _friendlyWarnTime = Time.time;
+            _friendlyGraceUntil = Time.time + config.friendlyGraceDuration;
+            RaiseRelationshipBark(config.friendlyWarnBarks, ref _lastWarnBarkIndex);
+            GameLog.Info(TAG, $"{gameObject.name} (friendly) hit by the player — warning, {config.friendlyGraceDuration}s grace");
+            return true;
+        }
+
+        // Friendly, non-passive and free: join against the closest live opponent of the player it can fight, within
+        // friendlyAssistRange (capped below its own DisengageRange so it doesn't engage and drop out at once). Throttled
+        // like the target scan. A non-hostile opponent is fought as a brawl (aggro target).
+        private bool TryAssistPlayer()
+        {
+            _assistScanTimer -= Time.deltaTime;
+            if (_assistScanTimer > 0f) return false;
+            _assistScanTimer = _targetScanInterval;
+
+            if (_meleeAttacker == null || _persistentID.Entity.DetectionRange <= 0f) return false;
+            FactionMember player = TargetRegistry.Player;
+            if (!IsLive(player) || player.Damageable.IsUnconscious) return false;
+            CombatConfigSO config = _entityHealth.CombatConfig;
+            if (config == null || PlayerRelationship.Of(_selfFactionMember) != RelationshipTier.Friendly) return false;
+
+            float range = Mathf.Min(config.friendlyAssistRange, _persistentID.Entity.DisengageRange * ASSIST_DISENGAGE_MARGIN);
+            FactionMember opponent = FindPlayerOpponent(player, range, out bool hostile);
+            if (opponent == null) return false;
+
+            if (_perception != null) _perception.ResetPerception(); // drop a witness / suspicion on the player
+            _currentTarget = opponent;
+            _meleeAttacker.SetAggroTarget(hostile ? null : opponent);
+            if (Time.time - _lastAssistBarkTime >= config.relationshipBarkCooldown)
+            {
+                _lastAssistBarkTime = Time.time;
+                RaiseRelationshipBark(config.friendlyAssistBarks, ref _lastAssistBarkIndex);
+            }
+            GameLog.Info(TAG, $"{gameObject.name} (friendly) joins the player's fight against {opponent.Transform.name}");
+            TransitionToEngaging();
+            return true;
+        }
+
+        // Closest brain fighting the player that this NPC can fight: not Friendly to the player, not its own / an allied
+        // faction, and either faction-hostile (same one-way rule as the melee filter) or a knockout pair (brawl).
+        private FactionMember FindPlayerOpponent(FactionMember player, float range, out bool hostile)
+        {
+            hostile = false;
+            FactionSO own = _selfFactionMember.Faction;
+            if (own == null) return null;
+            float bestSqr = range * range;
+            FactionMember best = null;
+            for (int i = 0; i < _active.Count; i++)
+            {
+                EntityBrain brain = _active[i];
+                if (brain == null || brain == this || !brain.IsFighting(player)) continue;
+                FactionMember member = brain._selfFactionMember;
+                if (!IsLive(member) || member.Damageable.IsUnconscious || member.Faction == null) continue;
+                if (member.Faction == own || own.IsAlliedWith(member.Faction) || member.Faction.IsAlliedWith(own)) continue;
+                float sqr = (member.Transform.position - transform.position).sqrMagnitude;
+                if (sqr > bestSqr) continue;
+                bool memberHostile = own.IsHostileTo(member.Faction);
+                if (!memberHostile && !FactionMember.IsKnockoutPair(_selfFactionMember, member)) continue;
+                if (PlayerRelationship.Of(member) == RelationshipTier.Friendly) continue; // never against another friendly
+                bestSqr = sqr;
+                best = member;
+                hostile = memberHostile;
+            }
+            return best;
+        }
+
+        // Works without perception / stealth config (default bubble duration and priority then). Each set keeps its own
+        // no-repeat index. Missing line or channel → silent, one warning.
+        private void RaiseRelationshipBark(BarkSetSO barks, ref int lastIndex)
+        {
+            string line = barks != null ? barks.GetRandomLine(ref lastIndex) : null;
+            if (string.IsNullOrEmpty(line) || _onSpeechBubbleRequested == null)
+            {
+                if (!_warnedRelationshipBark)
+                {
+                    _warnedRelationshipBark = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: relationship bark has no line or no speech bubble channel — silent");
+                }
+                return;
+            }
             StealthConfigSO config = _stealthConfig != null ? _stealthConfig : _perception != null ? _perception.Config : null;
             RaiseSpeechBubble(line, config != null ? config.theftBubbleDuration : 0f,
                 config != null ? config.theftAlertBubblePriority : 0);
@@ -1432,6 +1583,9 @@ namespace Game.AI
             FactionMember attacker = _pendingAttackerFrame == Time.frameCount ? _pendingAttacker : null;
             _pendingAttacker = null;
             if (_entityHealth.IsUnconscious) return; // hit while down (monster): no reaction until it gets up
+
+            // Friendly NPC hit by the player: the first hit only warns (grace window); a hit inside it falls through.
+            if (attacker != null && attacker.IsPlayer && !IsInCombat && TryFriendlyWarn()) return;
 
             if (_persistentID.Entity.DetectionRange <= 0f) return; // passive entities never fight back
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&

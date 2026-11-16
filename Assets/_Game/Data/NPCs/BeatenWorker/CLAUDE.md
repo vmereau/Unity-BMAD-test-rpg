@@ -80,6 +80,9 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
   `Spot_BeatenWorker_Campfire`).
 - **Passive** (`_detectionRange` 0): he never fights back, against the Warden or the player. `_baseHealth` 25 so the
   Warden's unarmed hits (10) knock him out in 2–3 blows.
+- **Player relationship:** Neutral (Faction_Neutral) until fed — `_playerRelationship` Friendly while
+  `DialogueFact_HiddenStash_FedFood` or `_FedMeal` is set (spec-player-relationship-tiers). Friendly + passive: hitting
+  him only raises the "What are you doing?!" warn bubble; he never assists or retaliates.
 
 ---
 
