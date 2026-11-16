@@ -18,6 +18,8 @@ namespace Game.Economy
         [SerializeField] private GameEventSO_GoldLootRequest _onGoldLootRequested;
         [Tooltip("Player only. A robber (NPC that knocked the player out) takes gold through it.")]
         [SerializeField] private GameEventSO_GoldTheftRequest _onGoldTheftRequested;
+        [Tooltip("Player only. A catching / robbing NPC asks for (and takes back) the exact gold the player stole.")]
+        [SerializeField] private GameEventSO_StolenGoodsRequest _onStolenGoodsRequested;
 
         public int Gold { get; private set; }
 
@@ -37,12 +39,25 @@ namespace Game.Economy
         {
             _onGoldLootRequested?.AddListener(HandleGoldLootRequested);
             _onGoldTheftRequested?.AddListener(HandleGoldTheftRequested);
+            _onStolenGoodsRequested?.AddListener(HandleStolenGoodsRequested);
         }
 
         private void OnDisable()
         {
             _onGoldLootRequested?.RemoveListener(HandleGoldLootRequested);
             _onGoldTheftRequested?.RemoveListener(HandleGoldTheftRequested);
+            _onStolenGoodsRequested?.RemoveListener(HandleStolenGoodsRequested);
+        }
+
+        // spec-theft-return-or-fight: the stolen gold still in the balance (query), or removed from it (take).
+        private void HandleStolenGoodsRequested(StolenGoodsRequest request)
+        {
+            if (request == null || request.Victim != gameObject || request.GoldHandled) return;
+            int amount = Mathf.Min(Gold, request.Gold);
+            if (!request.TryHandleGold(amount) || !request.Take || amount <= 0) return;
+            Gold -= amount;
+            GameLog.Info(TAG, $"Gave up {amount} stolen gold. Remaining: {Gold}");
+            _onGoldChanged?.Raise(Gold);
         }
 
         // Knockout robbery (spec-knockout-gold-looting): base + fraction of the balance, capped at what is left.

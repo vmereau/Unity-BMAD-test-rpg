@@ -33,6 +33,7 @@
 - **Teach `[Leave]`** plays the teach node's `nextNode` when set, else completes the topic.
 - **Forced topic** (`OpenForcedTopic(npcName, thenTopics)`, then `DialogueSystem.StartTopic`): no topic list; `_forcedTopic` lets Escape close
   in any state and makes `RestoreTopics` close the dialogue instead (chain end / `[Leave]`). Reset by `Open()` / `OpenLine()` / `Close()`.
+  An opening line before a forced topic (theft return) is a runtime `TextDialogueNode` built by `DialogueSystem` — no UI change.
   `thenTopics` (request `forcedTopicThenTopics`) leaves `_forcedTopic` false: the chain behaves like a picked topic (Escape only on the
   list) and its end shows the NPC's topics, re-queried by `RestoreTopics`.
 - **Paid choices** (`ChoiceOption.goldCost`, `requiredItem`): `DialogueOptionFormat.ChoiceCostLabel` suffix (" (10g, Notice for …)"),

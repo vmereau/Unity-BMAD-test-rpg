@@ -28,6 +28,11 @@ Assets/_Game/Data/NPCs/
       ...
 ```
 
+Shared dialogue used by every NPC lives in `Shared/Dialogues/` — `TheftReturn/` (`Start_TheftReturn` → `Choice_TheftReturn`
+give-back / refuse with `Signal_TheftReturn_GiveBack` / `_Refuse`, referenced by `StealthConfig`; opened after the scold
+line when a caught thief still carries stolen goods — `Scripts/AI/CLAUDE.md` → Theft return). Not reachable from a memory,
+so Quest Explorer may list it as unattributed.
+
 Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dialogue/Bark Set`, name
 `Barks_<Purpose>`) — one-liners said in speech bubbles, e.g. `Barks_SneakWarning` (referenced by
 `Data/Entities/WitnessProfile_Humanoid`), `Barks_TheftAlert` (chase bubble), `Barks_TheftScold` /

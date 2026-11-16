@@ -39,6 +39,8 @@ namespace Game.World
 
         public bool IsOpen { get; private set; }
 
+        private TextDialogueNode _openingLineNode; // runtime node for NPCDialogueRequestData.forcedLine + forcedStartNode
+
         /// <summary>True while the Give window of a category choice is open over the dialogue (DialogueUI ignores input).</summary>
         public bool IsGiveWindowOpen => _giveItemUI != null && _giveItemUI.IsOpen;
 
@@ -115,7 +117,8 @@ namespace Game.World
             }
 
             // NPC-initiated (e.g. a witness scolding a thief): one line, no topics, the player closes it.
-            if (!string.IsNullOrEmpty(data.forcedLine))
+            // With a forced start node too, the line instead opens that topic (see below).
+            if (!string.IsNullOrEmpty(data.forcedLine) && data.forcedStartNode == null)
             {
                 _currentNPCMemory = null;
                 _currentGraph = null;
@@ -154,7 +157,15 @@ namespace Game.World
                     _playerStateManager.SetInDialogue(true);
                 CursorManager.Unlock();
                 GameLog.Info(TAG, $"{data.npcName} forces topic '{data.forcedStartNode.name}' on the player");
-                StartTopic(data.forcedStartNode);
+                if (string.IsNullOrEmpty(data.forcedLine))
+                {
+                    StartTopic(data.forcedStartNode);
+                    return;
+                }
+                // Opening line (e.g. a random scold bark) shown before the topic's chain.
+                _currentStartNode = data.forcedStartNode;
+                MarkSeen(data.forcedStartNode, data.forcedStartNode.Id);
+                AdvanceToNode(GetOpeningLineNode(data.forcedLine, data.forcedStartNode.nextNode));
                 return;
             }
 
@@ -634,6 +645,25 @@ namespace Game.World
             }
 
             AdvanceToNode(choice.confirmNextNode);
+        }
+
+        // One runtime text node reused for every opening line (never an asset: no id, no seen state).
+        private TextDialogueNode GetOpeningLineNode(string line, DialogueNode next)
+        {
+            if (_openingLineNode == null)
+            {
+                _openingLineNode = ScriptableObject.CreateInstance<TextDialogueNode>();
+                _openingLineNode.name = "RuntimeOpeningLine";
+                _openingLineNode.hideFlags = HideFlags.DontSave;
+            }
+            _openingLineNode.text = line;
+            _openingLineNode.nextNode = next;
+            return _openingLineNode;
+        }
+
+        private void OnDestroy()
+        {
+            if (_openingLineNode != null) Destroy(_openingLineNode);
         }
 
         private void ClearContext()

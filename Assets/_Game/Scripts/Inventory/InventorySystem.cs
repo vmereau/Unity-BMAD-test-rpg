@@ -41,7 +41,31 @@ namespace Game.Inventory
         [SerializeField] private bool _collectGoldAsCurrency;
         [SerializeField] private GameEventSO_GoldLootRequest _onGoldLootRequested;
 
+        [Tooltip("Player only. A catching / robbing NPC asks for (and takes back) the stolen items the player still carries.")]
+        [SerializeField] private GameEventSO_StolenGoodsRequest _onStolenGoodsRequested;
+
         private bool _isInitializing;
+
+        private void OnEnable() => _onStolenGoodsRequested?.AddListener(HandleStolenGoodsRequested);
+        private void OnDisable() => _onStolenGoodsRequested?.RemoveListener(HandleStolenGoodsRequested);
+
+        // spec-theft-return-or-fight: count (query) or remove (take) the stolen units still carried, clamped per item.
+        private void HandleStolenGoodsRequested(StolenGoodsRequest request)
+        {
+            if (request == null || request.Victim != gameObject || request.ItemsHandled) return;
+            var results = new int[request.Items.Count];
+            for (int i = 0; i < results.Length; i++)
+            {
+                StolenItemCount wanted = request.Items[i];
+                int available = Mathf.Min(CountOf(wanted.item), wanted.count);
+                if (!request.Take) { results[i] = available; continue; }
+                int removed = 0;
+                while (removed < available && TryConsume(wanted.item)) removed++;
+                results[i] = removed;
+                if (removed > 0) GameLog.Info(TAG, $"Gave up {removed} × {wanted.item.itemName} (stolen)");
+            }
+            request.TryHandleItems(results);
+        }
 
         private readonly List<InventorySlot> _slots = new List<InventorySlot>();
 

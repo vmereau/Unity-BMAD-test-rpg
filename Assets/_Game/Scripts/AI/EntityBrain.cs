@@ -81,6 +81,7 @@ namespace Game.AI
         {
             // Leaving combat always ends a trespass aggression (disengage, search end, death, routine return).
             if (!inCombat && _meleeAttacker != null && _meleeAttacker.AggroTarget != null) _meleeAttacker.SetAggroTarget(null);
+            if (!inCombat) EndRefusalBrawl();
             if (IsInCombat == inCombat) return;
             IsInCombat = inCombat;
             _animationDriver?.SetInCombat(inCombat);
@@ -120,6 +121,10 @@ namespace Game.AI
         [SerializeField] private GameEventSO_TheftCommitted _onTheftCommitted;
         [Tooltip("Raised to confront a caught thief (forced dialogue).")]
         [SerializeField] private GameEventSO_NPCDialogueRequest _onDialogueRequested;
+        [Tooltip("Listened to — the give-back / refuse choice of the theft-return topic (StealthConfigSO.theftReturnDialogue).")]
+        [SerializeField] private GameEventSO_DialogueSignal _onDialogueSignal;
+        [Tooltip("Raised to ask the caught (or knocked-out) thief for the stolen goods still carried, and to take them.")]
+        [SerializeField] private GameEventSO_StolenGoodsRequest _onStolenGoodsRequested;
 
         [Header("Knockout loot")]
         [Tooltip("Raised to take gold from the player this NPC knocked out (tunables in EntityHealth's CombatConfigSO).")]
@@ -191,6 +196,15 @@ namespace Game.AI
         public int WarnedCount { get; private set; }
 
         private int _pursuitTheftId;
+        private readonly List<int> _pursuitTheftIds = new List<int>(); // every theft adopted during this chase (no trespass)
+        private readonly List<int> _refusedTheftIds = new List<int>(); // incidents this NPC brawls the thief over
+        private readonly List<StolenItemCount> _goodsScratch = new List<StolenItemCount>();
+        private bool _confrontReturnOffered; // the scold opened the give-back / refuse topic
+        private bool _confrontResolved;      // goods given back (or refused explicitly)
+        private bool _confrontRefused;
+        private bool _warnedReturnSetup;
+        private NPCPresence _presence; // same-GO, optional: opens the theft-return topic with full dialogue context
+        private FactionMember _confrontThief; // who was offered the return (the target may change if this NPC is hit)
         private TheftKind _pursuitKind;
         private RestrictedArea _pursuitArea; // trespass pursuit only
         private float _pursuitElapsed;
@@ -296,6 +310,7 @@ namespace Game.AI
             _stance = GetComponent<EntityStance>(); // optional — no stance = never staggered
             _inventory = GetComponent<InventorySystem>(); // optional — no inventory = never loots a knocked-out player
             _armament = GetComponent<NpcArmament>(); // optional — no armament = unarmed humanoid / monster
+            _presence = GetComponent<NPCPresence>(); // optional — no presence = scold line only (no give-back choice)
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
             if (_speechAnchor == null && WitnessProfileSO.IsEnabled(_persistentID.Entity.WitnessProfile))
@@ -309,6 +324,7 @@ namespace Game.AI
             _friendlyWarnTime = float.NegativeInfinity;
             _defendScanTimer = Random.Range(0f, _targetScanInterval); // stagger the O(n) defend scans across brains
             if (_onTheftCommitted != null) _onTheftCommitted.AddListener(HandleTheftCommitted);
+            if (_onDialogueSignal != null) _onDialogueSignal.AddListener(HandleDialogueSignal);
             if (_entityHealth == null) return; // Awake failed before resolving it
             ClearStanceReaction(); // disabled mid-reaction (respawn): no Recovered was raised
             _previousHealth = _entityHealth.CurrentHealth;
@@ -331,6 +347,7 @@ namespace Game.AI
         {
             _active.Remove(this);
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
+            if (_onDialogueSignal != null) _onDialogueSignal.RemoveListener(HandleDialogueSignal);
             if (_state == EntityState.Looting)
             {
                 // Disabled mid-robbery (unload, respawn): drop it, so OnEnable resumes the routine instead.
@@ -346,6 +363,13 @@ namespace Game.AI
                 _state = EntityState.Idle;
             }
             ClearKnockedOutVictim();
+            if (_refusedTheftIds.Count > 0)
+            {
+                // Disabled mid refusal brawl (unload, respawn): the matter is closed, nobody recovers the goods later.
+                StolenGoodsLedger.Clear(_refusedTheftIds);
+                _refusedTheftIds.Clear();
+            }
+            _confrontReturnOffered = false;
             if (!_healthSubscribed) return; // Guard: Awake may disable before OnEnable runs
             _entityHealth.HealthChanged -= HandleHealthChanged;
             _entityHealth.KnockedOut -= HandleKnockedOut;
@@ -921,6 +945,7 @@ namespace Game.AI
             _currentTarget = thief;
             _pursuitArea = area;
             _pursuitTheftId = data.theftId;
+            if (data.kind != TheftKind.Trespass && !_pursuitTheftIds.Contains(data.theftId)) _pursuitTheftIds.Add(data.theftId);
             _pursuitKind = data.kind;
             _pursuitElapsed = 0f;
             _pursuitNoSightTimer = 0f;
@@ -933,6 +958,9 @@ namespace Game.AI
         {
             _state = EntityState.Pursuing;
             _perception.ResetPerception();
+            _pursuitTheftIds.Clear(); // a new chase: only the thefts adopted from now on
+            _confrontReturnOffered = false;
+            _confrontThief = null;
             StartPursuitTimers(thief, data, area);
             _agent.isStopped = false;
             _agent.speed = _persistentID.Entity.EngageSpeed;
@@ -1086,6 +1114,10 @@ namespace Game.AI
             }
 
             GameLog.Info(TAG, $"{gameObject.name} caught the thief (theft #{_pursuitTheftId}) — confronting");
+            _confrontReturnOffered = false;
+            _confrontResolved = false;
+            _confrontRefused = false;
+            if (TryOfferReturn(line)) return;
             _onDialogueRequested.Raise(new NPCDialogueRequestData
             {
                 npcName = _persistentID.Entity.entityName,
@@ -1107,6 +1139,12 @@ namespace Game.AI
             else if (_confrontOpened || _confrontTimer >= StealthConfig.theftConfrontOpenTimeout)
             {
                 if (_pursuitArea != null) _pursuitArea.StartGrace(StealthConfig.trespassGraceDuration);
+                // Return offered and the dialogue closed without the goods coming back = refusal (Escape included).
+                if (_confrontReturnOffered && _confrontOpened && !_confrontResolved)
+                {
+                    RefuseReturn();
+                    return;
+                }
                 EndPursuit("scolded the thief");
             }
         }
@@ -1115,9 +1153,149 @@ namespace Game.AI
         {
             _currentTarget = null;
             _pursuitArea = null;
+            _pursuitTheftIds.Clear();
+            _confrontReturnOffered = false;
+            _confrontThief = null;
             if (_perception != null) _perception.ResetPerception();
             GameLog.Info(TAG, $"{gameObject.name} ends the theft chase — {reason}");
             ResumeNonCombat();
+        }
+
+        // --- Theft return (spec-theft-return-or-fight) ---
+
+        // The thief still carries goods from the thefts of this chase: the scold line opens the shared give-back / refuse
+        // topic instead of a lone line. False = no goods left / not set up → the caller scolds as before.
+        private bool TryOfferReturn(string scoldLine)
+        {
+            // Incidents another NPC is already brawling the thief over are its business, not this catcher's.
+            _pursuitTheftIds.RemoveAll(StolenGoodsLedger.IsRefused);
+            if (_pursuitTheftIds.Count == 0 || !StolenGoodsLedger.HasGoods(_pursuitTheftIds)) return false;
+            StealthConfigSO config = StealthConfig;
+            if (config.theftReturnDialogue == null || config.theftReturnSignal == null || _presence == null ||
+                _onStolenGoodsRequested == null || _onDialogueSignal == null || _inventory == null)
+            {
+                if (!_warnedReturnSetup)
+                {
+                    _warnedReturnSetup = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: can't offer the stolen goods back (needs StealthConfigSO theft-return " +
+                        "dialogue / signal, an NPCPresence, an InventorySystem, _onStolenGoodsRequested and _onDialogueSignal) — scold only");
+                }
+                return false;
+            }
+
+            int gold = StolenGoodsLedger.Collect(_pursuitTheftIds, _goodsScratch);
+            var query = new StolenGoodsRequest(_currentTarget.Transform.gameObject, _goodsScratch, gold, take: false);
+            _onStolenGoodsRequested.Raise(query);
+            if (!query.HasAny)
+            {
+                GameLog.Info(TAG, $"{gameObject.name}: the thief no longer carries the stolen goods — scold only");
+                return false;
+            }
+            if (!_presence.RequestForcedTopic(config.theftReturnDialogue, scoldLine)) return false;
+            _confrontReturnOffered = true;
+            _confrontThief = _currentTarget;
+            GameLog.Info(TAG, $"{gameObject.name} asks for the stolen goods back (thefts: {_pursuitTheftIds.Count})");
+            return true;
+        }
+
+        // Give-back / refuse choice picked in the theft-return topic this NPC opened.
+        private void HandleDialogueSignal(DialogueSignalData data)
+        {
+            // Not gated on Confronting: a hit mid-dialogue changes the state, but the open offer still stands.
+            if (!_confrontReturnOffered || _confrontResolved || data.signal == null) return;
+            if (_persistentID == null || _persistentID.Entity == null || data.npcName != _persistentID.Entity.entityName) return;
+            StealthConfigSO config = StealthConfig;
+            if (data.signal == config.theftReturnSignal)
+            {
+                _confrontResolved = true;
+                int taken = TakeStolenGoods(_confrontThief, _pursuitTheftIds);
+                StolenGoodsLedger.Clear(_pursuitTheftIds);
+                GameLog.Info(TAG, $"{gameObject.name} got {taken} stolen unit(s) back");
+            }
+            else if (data.signal == config.theftRefuseSignal)
+            {
+                _confrontRefused = true; // the brawl starts when the dialogue closes
+                GameLog.Info(TAG, $"{gameObject.name}: the thief refuses to give the goods back");
+            }
+        }
+
+        // The thief closed the return topic without giving the goods back: armed brawl (the knockout winner recovers them).
+        private void RefuseReturn()
+        {
+            FactionMember thief = _confrontThief != null ? _confrontThief : _currentTarget;
+            _scratchIds.Clear();
+            _scratchIds.AddRange(_pursuitTheftIds);
+            if (IsLive(thief) && thief.Damageable.IsUnconscious)
+            {
+                // Knocked out mid-dialogue by someone else: no brawl — that knockout winner recovers the goods.
+                StolenGoodsLedger.MarkRefused(_scratchIds);
+                EndPursuit("thief knocked out during the confrontation");
+                return;
+            }
+            _pursuitArea = null;
+            _pursuitTheftIds.Clear();
+            _confrontReturnOffered = false;
+            if (_perception != null) _perception.ResetPerception();
+            if (StartBrawl(thief)) // armed: no fists request
+            {
+                StolenGoodsLedger.MarkRefused(_scratchIds);
+                _refusedTheftIds.AddRange(_scratchIds);
+                GameLog.Info(TAG, $"{gameObject.name}: goods refused{(_confrontRefused ? "" : " (dialogue closed)")} — fighting the thief");
+                return;
+            }
+            StolenGoodsLedger.Clear(_scratchIds);
+            EndPursuit("goods refused, but it can't fight the thief");
+        }
+
+        private readonly List<int> _scratchIds = new List<int>();
+
+        // Leaving combat: a refusal brawl the player won or fled ends the matter (they keep the goods); a player lying
+        // knocked out leaves the refused goods for the knockout winner's loot.
+        private void EndRefusalBrawl()
+        {
+            if (_refusedTheftIds.Count == 0) return;
+            FactionMember player = TargetRegistry.Player;
+            bool playerDown = IsLive(player) && player.Damageable.IsUnconscious;
+            if (!playerDown) StolenGoodsLedger.Clear(_refusedTheftIds);
+            _refusedTheftIds.Clear();
+        }
+
+        // Knockout loot: the stolen goods the player refused to give back (and still carries) go to this NPC.
+        private void RecoverRefusedGoods()
+        {
+            if (!StolenGoodsLedger.HasRefused || _onStolenGoodsRequested == null || _inventory == null) return;
+            int gold = StolenGoodsLedger.TakeRefused(_goodsScratch);
+            int taken = TakeGoods(_lootVictim, _goodsScratch, gold);
+            GameLog.Info(TAG, $"{gameObject.name} recovered {taken} refused stolen unit(s) from the knocked-out player");
+        }
+
+        private int TakeStolenGoods(FactionMember thief, List<int> theftIds)
+        {
+            int gold = StolenGoodsLedger.Collect(theftIds, _goodsScratch);
+            return TakeGoods(thief, _goodsScratch, gold);
+        }
+
+        // Asks the thief's inventory / gold holder to give up these goods, then stores what came back in this NPC's
+        // inventory (gold as CombatConfigSO.knockoutLootGold coins). Returns the units moved (gold counted per coin).
+        private int TakeGoods(FactionMember thief, List<StolenItemCount> items, int gold)
+        {
+            if (!IsLive(thief) || _onStolenGoodsRequested == null || _inventory == null) return 0;
+            if (items.Count == 0 && gold <= 0) return 0;
+            var request = new StolenGoodsRequest(thief.Transform.gameObject, items, gold, take: true);
+            _onStolenGoodsRequested.Raise(request);
+            int moved = 0;
+            for (int i = 0; i < request.Items.Count; i++)
+            {
+                int n = request.ItemResult(i);
+                if (n > 0) moved += _inventory.AddItems(request.Items[i].item, n);
+            }
+            if (request.GoldResult > 0)
+            {
+                ItemSO coin = _entityHealth != null && _entityHealth.CombatConfig != null ? _entityHealth.CombatConfig.knockoutLootGold : null;
+                if (coin != null) moved += _inventory.AddItems(coin, request.GoldResult);
+                else GameLog.Warn(TAG, $"{gameObject.name}: {request.GoldResult} stolen gold taken but no CombatConfigSO.knockoutLootGold — coins lost");
+            }
+            return moved;
         }
 
         private void HandleDead()
@@ -1140,6 +1318,7 @@ namespace Game.AI
                 RaiseRelationshipBark(friendlyConfig != null ? friendlyConfig.friendlyDisappointedBarks : null,
                     ref _lastDisappointedBarkIndex);
                 GameLog.Info(TAG, $"{gameObject.name} (friendly) knocked the player out — disappointed, not looting");
+                StolenGoodsLedger.ClearRefused(); // nobody recovers them
                 DisengageFromCombat(); // handled here: the caller would log a misleading "target lost" warning
                 return true;
             }
@@ -1152,6 +1331,7 @@ namespace Game.AI
                     _warnedLootSetup = true;
                     GameLog.Warn(TAG, $"{gameObject.name}: knocked the player out but can't loot (needs CombatConfigSO.knockoutLootGold, an InventorySystem and _onGoldTheftRequested)");
                 }
+                StolenGoodsLedger.ClearRefused(); // nobody recovers them
                 return false;
             }
 
@@ -1239,6 +1419,7 @@ namespace Game.AI
             {
                 _lootResolved = true;
                 StealGold(config);
+                RecoverRefusedGoods(); // + the stolen goods the player refused to give back (after the usual cut)
             }
             // Never walk off mid-conversation (the player may be up and talking to the robber by now).
             if (_lootTimer >= Mathf.Max(config.knockoutLootClipDuration, config.knockoutLootGrabTime) && CursorManager.IsLocked)
@@ -1297,7 +1478,12 @@ namespace Game.AI
         // Leaving Looting by any path: drop a pending / playing pick-up clip and the victim. Safe outside Looting.
         private void StopLooting()
         {
-            if (_state == EntityState.Looting) _animationDriver?.CancelPickUp();
+            if (_state == EntityState.Looting)
+            {
+                _animationDriver?.CancelPickUp();
+                // Recovered at the grab, or the robbery ended without it (player up, hit, …): refusals are settled.
+                StolenGoodsLedger.ClearRefused();
+            }
             _lootVictim = null;
         }
 
@@ -1784,6 +1970,7 @@ namespace Game.AI
             ClearKnockedOutVictim();
             _currentTarget = null;
             _pursuitArea = null; // a theft / trespass chase ends with the knockout
+            _confrontReturnOffered = false; // a pending give-back offer dies with it
             SetCombatState(false);
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             if (_armament != null) _armament.OnDowned(); // the weapon goes into the lootable inventory
@@ -2114,6 +2301,7 @@ namespace Game.AI
         private void TransitionToDead()
         {
             _animationDriver?.SetWarning(false);
+            _confrontReturnOffered = false;
             StopLooting();
             ClearKnockedOutVictim();
             SetCombatState(false);

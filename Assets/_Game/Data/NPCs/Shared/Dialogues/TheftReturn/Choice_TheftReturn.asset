@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_TheftReturn
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Hand it over. All of it. Now.
+  nextNode: {fileID: 0}
+  _id: 72c83db9ce0ce6948ad44d0030a39681
+  choices:
+  - text: Fine. Here, take it back.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 743a0d53893948d458cc2f09087ee02f, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 11400000, guid: 86eb7443a8fa86049b4416c22b837b50, type: 2}
+  - text: Come and take it.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 724fa6ed38e8e6c47a271f94616b85c3, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 11400000, guid: 45fb077e52b4aff4d83eb98a660f521e, type: 2}

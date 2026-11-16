@@ -351,6 +351,7 @@ GameObject:
   - component: {fileID: 6091756440222296104}
   - component: {fileID: 3603420808322167872}
   - component: {fileID: 248508205247722359}
+  - component: {fileID: 4839792506959501226}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -526,6 +527,7 @@ MonoBehaviour:
   _onInventoryChanged: {fileID: 11400000, guid: 7dd357d00fe84c4a9633e30300ef0bb0, type: 2}
   _collectGoldAsCurrency: 1
   _onGoldLootRequested: {fileID: 11400000, guid: 56c4ff4aeaaa4ca458cd0e6ca79fe393, type: 2}
+  _onStolenGoodsRequested: {fileID: 11400000, guid: 339de8a6114b9db4d9440a8cbca79a0a, type: 2}
 --- !u!114 &3975145126963483010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -772,6 +774,7 @@ MonoBehaviour:
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onGoldLootRequested: {fileID: 11400000, guid: 56c4ff4aeaaa4ca458cd0e6ca79fe393, type: 2}
   _onGoldTheftRequested: {fileID: 11400000, guid: cd34007d58164ac478c6ff3b9e0c1ff8, type: 2}
+  _onStolenGoodsRequested: {fileID: 11400000, guid: 339de8a6114b9db4d9440a8cbca79a0a, type: 2}
 --- !u!114 &8613668570026627261
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1116,6 +1119,22 @@ MonoBehaviour:
   _stateManager: {fileID: 212298241250081144}
   _playerHealth: {fileID: 6838483035695751856}
   _onFocusChanged: {fileID: 11400000, guid: 9fe3179e372587c448733f65b1b86021, type: 2}
+--- !u!114 &4839792506959501226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39aa93ab4ffcece43b42ec06f24a9564, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.StolenGoodsTracker
+  _onTheftCommitted: {fileID: 11400000, guid: 1aee6a9c3167ca8489f9d05b1e0d66a4, type: 2}
+  _onContainerItemTaken: {fileID: 11400000, guid: fbb9f92f003ffcc40876982947e237ee, type: 2}
+  _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
+  _onLoadStarted: {fileID: 11400000, guid: 1ff9a30a7364fed40ae365d87646d6a7, type: 2}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

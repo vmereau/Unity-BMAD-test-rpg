@@ -148,6 +148,23 @@
   (cursor locked again) or after `theftConfrontOpenTimeout` if it never opened. A hostile hit while Pursuing /
   Confronting triggers the normal combat reaction. Known gap: the player can still talk to a chasing NPC normally —
   it scolds right after.
+- **Theft return (spec-theft-return-or-fight):** a pursuer keeps every theft id it adopts in one chase (`_pursuitTheftIds`,
+  trespass ids excluded, cleared on a new chase / `EndPursuit`). At the catch, `TryOfferReturn` sums them from
+  `Game.Core.StolenGoodsLedger` and asks the player (`OnStolenGoodsRequested`, query) what they still carry; something left →
+  `NPCPresence.RequestForcedTopic(StealthConfigSO.theftReturnDialogue, scoldLine)` (scold bark first, then the shared
+  give-back / refuse choices in `Data/NPCs/Shared/Dialogues/TheftReturn`), else the old lone scold line. `OnDialogueSignal`
+  (own `entityName`, Confronting): `theftReturnSignal` → take request → items + gold (`CombatConfigSO.knockoutLootGold`
+  coins) into its own inventory, incidents cleared. Dialogue closed without the return signal (refuse choice, Escape) →
+  `RefuseReturn`: `StolenGoodsLedger.MarkRefused` + `StartBrawl(player)` (armed); can't fight (passive) → cleared, routine;
+  thief knocked out mid-dialogue by someone else → marked refused, no brawl. A never-opened dialogue (timeout) is no
+  refusal. The give-back signal is honoured even if a hit took the catcher out of Confronting (`_confrontThief`).
+  Leaving combat (`SetCombatState(false)` → `EndRefusalBrawl`) or disabling clears its refused incidents unless the player
+  lies unconscious — then **any** knockout winner recovers them at the grab (`RecoverRefusedGoods`, after the usual gold
+  cut). Every looting exit and the no-loot branches (Friendly winner, missing setup) call `ClearRefused`. A catcher skips
+  incidents already refused to another NPC (`IsRefused`). Gaps: equipped stolen items are never returned; Escape on the
+  scold line already counts as a refusal.
+  Setup (one warning, then scold only): config dialogue + return signal, `NPCPresence`, `InventorySystem`,
+  `_onStolenGoodsRequested` + `_onDialogueSignal` (wired on `Entity_base`).
 - **Trespass (restricted areas — `Game.World.RestrictedArea`):** perception has a third mode between hostile and witness
   (priority hostile > trespass > witness): a non-hostile stealth target standing inside an area **this entity owns**
   (`NPCEntity` listed, or its faction listed; area restricted now = hours window + not in grace) is perceived with the

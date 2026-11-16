@@ -116,6 +116,16 @@ namespace Game.AI
         }
 
         /// <summary>
+        /// Like <see cref="RequestForcedTopic(StartDialogueNode, bool)"/>, but shows <paramref name="openingLine"/> first
+        /// (e.g. a random scold bark), then the topic's chain. The chain's end closes the dialogue.
+        /// </summary>
+        public bool RequestForcedTopic(StartDialogueNode startNode, string openingLine)
+        {
+            if (Data == null || startNode == null || IsDown) return false;
+            return RaiseDialogueRequest(startNode, false, openingLine);
+        }
+
+        /// <summary>
         /// Closes the dialogue this NPC opened (forced topic or the player's "Talk"), e.g. an encounter aborted mid-talk or
         /// a scripted sequence interrupted. No effect when no dialogue is open or another NPC's is.
         /// </summary>
@@ -135,7 +145,7 @@ namespace Game.AI
             _onDialogueCloseRequested.Raise(this);
         }
 
-        private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode, bool thenTopics = false)
+        private bool RaiseDialogueRequest(StartDialogueNode forcedStartNode, bool thenTopics = false, string openingLine = null)
         {
             if (_onDialogueRequested == null)
             {
@@ -156,6 +166,7 @@ namespace Game.AI
                 npcGoldSystem   = goldComponent,
                 forcedStartNode = forcedStartNode,
                 forcedTopicThenTopics = thenTopics,
+                forcedLine      = forcedStartNode != null ? openingLine : null,
                 requester       = this,
             });
             return true;

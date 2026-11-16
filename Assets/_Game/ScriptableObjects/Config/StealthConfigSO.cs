@@ -94,6 +94,15 @@ namespace Game.Stealth
         [Tooltip("Speech bubble priority of theft alerts (above witness warnings).")]
         public int theftAlertBubblePriority = 1;
 
+        [Header("Theft Return (caught with the goods)")]
+        [Tooltip("Shared topic opened after the scold line when the caught thief still carries stolen goods: its chain ends on " +
+                 "the give-back / refuse choices. Null = scold line only (old behaviour).")]
+        public Game.Dialogue.StartDialogueNode theftReturnDialogue;
+        [Tooltip("Carried by the 'give it back' choice: the catcher takes the stolen goods still carried.")]
+        public Game.Dialogue.DialogueSignalSO theftReturnSignal;
+        [Tooltip("Carried by the 'refuse' choice (closing without the return signal counts as a refusal too): armed brawl.")]
+        public Game.Dialogue.DialogueSignalSO theftRefuseSignal;
+
         [Header("Trespass")]
         [Tooltip("Seconds a restricted area is ignored by its owners after one of them scolded the trespasser (time to leave).")]
         public float trespassGraceDuration = 15f;

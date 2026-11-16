@@ -16,6 +16,13 @@ namespace Game.Core
         public Game.NPC.NPCEntity owner;
         public TheftKind kind;
         public string objectName;
+        /// <summary>Item thefts (pickup / harvest): the item taken. Null otherwise.</summary>
+        public Game.Inventory.ItemSO item;
+        /// <summary>Units of <see cref="item"/> taken (pickup 1, harvest its yield).</summary>
+        public int itemCount;
+        /// <summary>Containers: the opened container's inventory — every unit taken from it counts as stolen
+        /// (StolenGoodsTracker). Runtime scene ref, never stored in an SO. Null otherwise.</summary>
+        public Game.Inventory.InventorySystem sourceInventory;
     }
 
     [CreateAssetMenu(menuName = "Game/Events/Theft Committed", fileName = "NewTheftCommittedEvent")]

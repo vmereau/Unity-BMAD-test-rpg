@@ -837,3 +837,12 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   `DefaultExecutionOrder` on `PersistentID` would make it deterministic.
 - **Re-equip matches the item type, not the dropped instance** (pre-existing in `OnWokeUp`, now also on restore): an NPC
   whose shop stock holds the same `WeaponSO` it wields picks a stock copy up after its own sword was looted.
+
+## From spec-theft-return-or-fight (2026-11-17)
+
+- **Test gaps:** no EditMode coverage for the player-side `StolenGoodsRequest` handlers (`InventorySystem` per-item clamp
+  / take loop, `GoldSystem` clamp + `OnGoldChanged`), `StolenGoodsTracker` recording (container session, gold as amount,
+  harvest count) or the `DialogueSystem` opening-line branch. Needs reflection or a small refactor into pure helpers.
+- **Stolen goods are matched by item type, not by unit:** a thief who ate the stolen bread but owns other bread (or holds
+  gold from elsewhere) gives up their own units. Also, putting an item into a stolen container and taking it back in the
+  same session counts it as stolen.

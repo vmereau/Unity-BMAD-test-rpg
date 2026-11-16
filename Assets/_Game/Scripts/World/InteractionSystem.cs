@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Game.Core;
+using Game.Inventory;
 using Game.Player;
 using Game.UI;
 
@@ -279,6 +280,10 @@ namespace Game.World
             if (string.IsNullOrEmpty(objectName)) objectName = ownership.gameObject.name; // doors have no name tag
             string ownerName = ownership.Owner != null ? ownership.Owner.name : "nobody";
             GameLog.Info(TAG, $"Theft #{id}: {ownership.Kind} '{objectName}' owned by {ownerName}");
+            ItemSO stolenItem = null;
+            int stolenCount = 0;
+            if (ownership.TryGetComponent(out ItemPickup pickup)) { stolenItem = pickup.Item; stolenCount = 1; }
+            else if (ownership.TryGetComponent(out Harvestable harvestable)) { stolenItem = harvestable.Item; stolenCount = harvestable.YieldCount; }
             _onTheftCommitted?.Raise(new TheftCommittedData
             {
                 theftId = id,
@@ -287,6 +292,11 @@ namespace Game.World
                 owner = ownership.Owner,
                 kind = ownership.Kind,
                 objectName = objectName,
+                item = stolenItem,
+                itemCount = stolenCount,
+                sourceInventory = ownership.Kind == TheftKind.Container &&
+                                  ownership.TryGetComponent(out InventorySystem containerInventory)
+                    ? containerInventory : null,
             });
         }
 
