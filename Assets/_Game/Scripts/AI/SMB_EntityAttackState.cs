@@ -13,13 +13,16 @@ namespace Game.AI
     /// </summary>
     public class SMB_EntityAttackState : StateMachineBehaviour
     {
+        [Tooltip("Combo index of this attack state (1 = Attack_1) — picks the forward step (EntityAttackStep). 0 = no step (monsters).")]
+        [SerializeField] private int attackIndex;
+
         private EntityAnimationEventReceiver _receiver;
         private bool _resolved;
 
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
             EntityAnimationEventReceiver receiver = GetReceiver(animator);
-            if (receiver != null) receiver.NotifyAttackEntered();
+            if (receiver != null) receiver.NotifyAttackEntered(attackIndex);
         }
 
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)

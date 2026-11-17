@@ -699,6 +699,16 @@ namespace Game.AI
                 return;
             }
 
+            // Mid-swing (spec-ai-attack-root-and-step): the player's rules — rooted until the last attack state exits (the
+            // swing and its combo finish even if the target backs off; EntityAttackStep does the forward step), turning toward
+            // the target only during the wind-up, until a hit window opens.
+            if (_meleeAttacker != null && _meleeAttacker.IsInSwing)
+            {
+                if (_agent.isActiveAndEnabled && _agent.isOnNavMesh && !_agent.isStopped) _agent.isStopped = true;
+                if (!_meleeAttacker.IsAttackCommitted) FaceTarget();
+                return;
+            }
+
             if (HasLostSightOfTarget()) { TransitionToSearching(); return; }
 
             float distToTarget = Vector3.Distance(transform.position, _currentTarget.Transform.position);
@@ -719,7 +729,7 @@ namespace Game.AI
             // spatial now, so keep the attack pointed at the target.
             FaceTarget();
 
-            if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // never cut an attack/combo mid-swing
+            if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // a cancelled swing still blending out
             if (_armament != null && _armament.IsSwitchingWeapon) return; // drawing: the weapon isn't in hand yet
             if (_attackCooldownTimer > 0f) return;
 
@@ -2060,7 +2070,7 @@ namespace Game.AI
             int hits = Random.Range(entity.ComboHitsMin, entity.ComboHitsMax + 1);
             // Armed NPC: + the wielded weapon's damage bonus (fists / monsters: 0).
             float damage = entity.AttackDamage + (_armament != null ? _armament.DamageBonus : 0f);
-            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(damage, hits);
+            if (_meleeAttacker != null) _meleeAttacker.BeginAttack(damage, hits, _currentTarget.Transform);
             _animationDriver?.TriggerAttack();
             _attackCooldownTimer = entity.AttackCooldown;
             GameLog.Info(TAG, $"{gameObject.name} attacks {_currentTarget.Transform.name} ({hits}-hit combo)");

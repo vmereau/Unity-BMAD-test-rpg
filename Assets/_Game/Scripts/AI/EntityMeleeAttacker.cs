@@ -22,7 +22,7 @@ namespace Game.AI
     /// Humanoid reuse path: register the equipped weapon's <see cref="WeaponHitbox"/> at runtime
     /// (<see cref="RegisterHitbox"/>, e.g. id <c>Weapon</c>); the player's parameterless clip events
     /// arrive as an empty id, which opens every hitbox.
-    /// Combos: the brain rolls the hit count (<see cref="BeginAttack(float, int)"/>, clamped to the
+    /// Combos: the brain rolls the hit count (<see cref="BeginAttack(float, int, Transform)"/>, clamped to the
     /// driver's <see cref="AIAnimationDriver.MaxComboSteps"/>); step 1 is the driver's TriggerAttack,
     /// steps 2..N are requested on <see cref="OnComboWindowOpen"/>. Each step's clip opens its own window,
     /// so every hit can damage the target once (damage per hit).
@@ -32,6 +32,10 @@ namespace Game.AI
     public class EntityMeleeAttacker : MonoBehaviour
     {
         private const string TAG = "[AI]";
+        // Rooting grace between the attack trigger and the attack state's enter (transition still pending).
+        private const float PENDING_SWING_GRACE = 0.5f;
+        // Safety net: an attack-state count leaked by a missed exit (Animator rebind / disabled) must not root forever.
+        private const float SWING_TIMEOUT = 4f;
 
         [System.Serializable]
         public struct NamedHitbox
@@ -56,6 +60,25 @@ namespace Game.AI
         public bool IsInAttackState => _activeAttackStates > 0;
         public int ComboStep => _combo.CurrentStep;
         public int ComboHits => _combo.TotalHits;
+
+        /// <summary>
+        /// True once a hit window opened in the current attack state — the swing is committed, the brain stops turning toward
+        /// the target (the player's wind-up steering rule, spec-ai-attack-root-and-step). Re-opened by every attack-state enter.
+        /// </summary>
+        public bool IsAttackCommitted { get; private set; }
+
+        /// <summary>Who the current attack is aimed at (set by <see cref="BeginAttack(float, int, Transform)"/>); the
+        /// forward step stops short of it. Null = no target distance check.</summary>
+        public Transform AttackTarget { get; private set; }
+
+        /// <summary>
+        /// True while the brain must keep the entity rooted (spec-ai-attack-root-and-step): an attack is running and its state
+        /// is playing (or its trigger was just set and the state hasn't entered yet), bounded by a timeout since the last
+        /// attack start / state enter so a leaked attack-state count never freezes the entity.
+        /// </summary>
+        public bool IsInSwing => IsAttacking
+            && (IsInAttackState || Time.time - _swingEventTime < PENDING_SWING_GRACE)
+            && Time.time - _swingEventTime < SWING_TIMEOUT;
 
         /// <summary>Non-hostile target this entity may hit anyway (owner attacking a trespasser in a highly restricted
         /// area). Set / cleared by <see cref="EntityBrain"/>; null = faction rules only.</summary>
@@ -87,6 +110,8 @@ namespace Game.AI
         private FactionMember _selfFactionMember; // same-GO FactionMember, resolved in Awake
         private readonly AttackComboPlan _combo = new();
         private int _activeAttackStates;
+        private EntityAttackStep _attackStep; // optional (humanoids) — forward step of each attack state
+        private float _swingEventTime = float.NegativeInfinity; // Time.time of the last BeginAttack / attack-state enter
 
         private void Awake()
         {
@@ -95,6 +120,7 @@ namespace Game.AI
             if (_animationDriver == null) _animationDriver = GetComponent<AIAnimationDriver>();
             _stance = GetComponent<EntityStance>();        // optional — perfect block deals no stance damage without it
             _persistentID = GetComponent<PersistentID>();
+            _attackStep = GetComponent<EntityAttackStep>(); // optional — monsters attack in place
             if (_selfFactionMember == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: EntityMeleeAttacker has no FactionMember — hits land on any target with a FactionMember");
 
@@ -157,18 +183,22 @@ namespace Game.AI
             _hitboxes.RemoveAt(index);
         }
 
-        /// <summary>Single-hit attack — see <see cref="BeginAttack(float, int)"/>.</summary>
+        /// <summary>Single-hit attack — see <see cref="BeginAttack(float, int, Transform)"/>.</summary>
         public void BeginAttack(float damage) => BeginAttack(damage, 1);
 
         /// <summary>
         /// Called by the brain when an attack starts: closes stale windows, stores the per-hit damage and
         /// plans a combo of <paramref name="comboHits"/> (clamped to the driver's MaxComboSteps; no driver → 1).
         /// </summary>
-        public void BeginAttack(float damage, int comboHits)
+        public void BeginAttack(float damage, int comboHits, Transform target = null)
         {
             CloseAllWindows();
             CurrentDamage = damage;
             IsAttacking = true;
+            IsAttackCommitted = false;
+            AttackTarget = target;
+            _swingEventTime = Time.time;
+            if (_attackStep != null) _attackStep.Stop(); // a step of the previous attack must not run into this one
             _knockedOutVictim = null; // a new swing means the brain saw a valid target: an old knockout is stale
             _combo.Begin(comboHits, _animationDriver != null ? _animationDriver.MaxComboSteps : 1);
         }
@@ -182,7 +212,10 @@ namespace Game.AI
         {
             CloseAllWindows();
             IsAttacking = false;
+            IsAttackCommitted = false;
+            AttackTarget = null;
             _combo.Reset();
+            if (_attackStep != null) _attackStep.Stop();
             if (_animationDriver != null) _animationDriver.CancelAttack();
         }
 
@@ -204,8 +237,18 @@ namespace Game.AI
             _activeAttackStates = 0;
         }
 
-        /// <summary>An attack animator state was entered (SMB_EntityAttackState).</summary>
-        public void NotifyAttackStateEntered() => _activeAttackStates++;
+        /// <summary>
+        /// An attack animator state was entered (SMB_EntityAttackState): counts it, re-opens the wind-up steering and starts
+        /// the state's forward step (<paramref name="attackIndex"/> 1..3; 0 = no step). A stale enter (no attack) only counts.
+        /// </summary>
+        public void NotifyAttackStateEntered(int attackIndex = 0)
+        {
+            _activeAttackStates++;
+            if (!IsAttacking) return;
+            IsAttackCommitted = false;
+            _swingEventTime = Time.time;
+            if (_attackStep != null) _attackStep.Begin(attackIndex);
+        }
 
         /// <summary>An attack animator state was exited — ends the attack when none remain active.</summary>
         public void NotifyAttackStateExited()
@@ -222,6 +265,7 @@ namespace Game.AI
             {
                 foreach (NamedHitbox entry in _hitboxes)
                     if (entry.Hitbox != null) entry.Hitbox.Enable();
+                IsAttackCommitted = true; // the swing is locked in: no more turning toward the target this state
                 return;
             }
 
@@ -232,7 +276,9 @@ namespace Game.AI
                     GameLog.Warn(TAG, $"{gameObject.name}: HitboxEnable('{id}') — no hitbox registered with that id");
                 return;
             }
-            if (_hitboxes[index].Hitbox != null) _hitboxes[index].Hitbox.Enable();
+            if (_hitboxes[index].Hitbox == null) return;
+            _hitboxes[index].Hitbox.Enable();
+            IsAttackCommitted = true;
         }
 
         /// <summary>Closes the hitbox with <paramref name="id"/>; null/empty = all. Unknown id is silent.</summary>

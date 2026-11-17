@@ -184,6 +184,17 @@ namespace Game.Combat
             new UnarmedAttack(new AttackStep(0.5f, 0.1f, 0.37f), WeaponHand.Left, 1.5f, 2f),
         };
 
+        /// <summary>
+        /// Forward step of attack state <paramref name="attackIndex"/> (1 = Attack_1), shared by the player and AI humanoids
+        /// (spec-ai-attack-root-and-step): a weapon uses its archetype's <c>attackSteps</c> (else <see cref="defaultAttackStep"/>),
+        /// fists use <see cref="unarmedAttacks"/> (else <see cref="defaultAttackStep"/>).
+        /// </summary>
+        public AttackStep ResolveAttackStep(WeaponSO weapon, int attackIndex)
+        {
+            if (weapon != null) return weapon.ResolveAttackStep(attackIndex, defaultAttackStep);
+            return UnarmedAttack.Resolve(unarmedAttacks, attackIndex, UnarmedAttack.Fallback(defaultAttackStep)).step;
+        }
+
 #if UNITY_EDITOR
         private void OnValidate()
         {

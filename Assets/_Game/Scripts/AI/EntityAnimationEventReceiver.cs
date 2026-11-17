@@ -42,11 +42,11 @@ namespace Game.AI
             _attacker.CloseWindow(id);
         }
 
-        // Called by SMB_EntityAttackState.OnStateEnter — counts the active attack state.
-        public void NotifyAttackEntered()
+        // Called by SMB_EntityAttackState.OnStateEnter — counts the active attack state and starts its step (0 = none).
+        public void NotifyAttackEntered(int attackIndex)
         {
             if (_attacker == null) return;
-            _attacker.NotifyAttackStateEntered();
+            _attacker.NotifyAttackStateEntered(attackIndex);
         }
 
         // Called by SMB_EntityAttackState.OnStateExit — the attack ends (all windows closed) once the last

@@ -94,6 +94,18 @@
 - **Attack-state counter:** SMB enter/exit count active attack states; reaching 0 calls `EndAttack()`.
   `IsInAttackState => count > 0`. `EndAttack()` never touches the counter (it mirrors the animator) and calls
   `AIAnimationDriver.CancelAttack()` to drop queued triggers; `OnDisable` resets the counter.
+- **Swing rules = the player's (spec-ai-attack-root-and-step), all entities:** while `EntityMeleeAttacker.IsInSwing`
+  (attacking and in an attack state, or within 0.5 s of the trigger before the state enters; capped at 4 s since the last
+  start / state enter so a leaked state count never freezes the entity), `EntityBrain.HandleAttack` keeps the agent stopped
+  and returns before any range / sight check — the swing and its combo finish rooted even if the target backs off (a dead /
+  invalid target still ends it). The brain turns toward the target only while `!IsAttackCommitted`: a hitbox actually
+  opening (`OpenWindow`, known id) commits, every attack-state enter (`NotifyAttackStateEntered(index)`) re-opens it.
+- **Forward step:** `EntityAttackStep` (optional, on `NPC_base Variant`; monsters have none) — `Begin(index)` from the
+  state enter resolves `CombatConfigSO.ResolveAttackStep(WieldedWeapon, index)` (same rule as `PlayerCombat`) and moves
+  through `NavMeshAgent.Move` (works while stopped, velocity stays 0; skips avoidance). `Stop()` on `BeginAttack` /
+  `EndAttack`; stops off-mesh; never brings the bodies within `_contactMargin` of `AttackTarget` (agent radius + target
+  NavMeshAgent / CharacterController / CapsuleCollider radius; target passed to `BeginAttack(damage, hits, target)`). The
+  index comes from `SMB_EntityAttackState.attackIndex` (1/2/3 on `Humanoid_Template` Attack_1/2/3_State; 0 on `EntityBase` = no step).
 
 ---
 

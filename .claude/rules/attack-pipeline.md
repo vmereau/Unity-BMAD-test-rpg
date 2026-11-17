@@ -28,7 +28,7 @@ WeaponHitbox.OnHit ─→ owner: TryReceiveHit → TakeDamage only on NotBlocked
 | Receiver (on the **Animator GO**) | `AnimationEventReceiver` (Player root) | `EntityAnimationEventReceiver` (`Character` / `CreatureVisual`) |
 | Hit window | `HitboxEnable()` / `HitboxDisable()` | `HitboxEnable(string id)` / `HitboxDisable(string id)` — `""` = all hitboxes |
 | Combo | `ComboWindowOpen()` / `ComboWindowClose()` | `ComboWindowOpen()` advances the plan; `ComboWindowClose()` no-op |
-| SMB | `SMB_AttackState` | `SMB_EntityAttackState` |
+| SMB | `SMB_AttackState` (`attackIndex`) | `SMB_EntityAttackState` (`attackIndex`, 0 = no step) |
 
 - Unity finds receiver methods **by exact name** — a typo compiles and silently does nothing. Both receivers
   are separate classes, so the parameterless and `string` overloads never clash. A player clip played by an
@@ -37,6 +37,13 @@ WeaponHitbox.OnHit ─→ owner: TryReceiveHit → TakeDamage only on NotBlocked
   or author with the Hitbox Tuner (`Tools/Combat/Hitbox Tuner`).
 - **Never author events on vendor-pack FBX clips** (gitignored packs, wiped on re-import) — copy the clip into
   the project as `.anim` first (recipe in `Prefabs/Entities/Monsters/CLAUDE.md`).
+
+## Swing movement (same rules for both)
+
+Rooted for the whole attack (no locomotion input / no agent walking) except the per-state forward step, resolved by
+`CombatConfigSO.ResolveAttackStep(weapon, index)` (archetype `attackSteps` / `unarmedAttacks` / `defaultAttackStep`).
+Player: `PlayerAttackStep` + wind-up steering until `HitboxEnable`. AI: `EntityAttackStep` (`NavMeshAgent.Move`) + brain
+facing until `EntityMeleeAttacker.IsAttackCommitted`. AI SMB carries `attackIndex` (0 = no step) like `SMB_AttackState`.
 
 ## State callbacks across crossfades
 

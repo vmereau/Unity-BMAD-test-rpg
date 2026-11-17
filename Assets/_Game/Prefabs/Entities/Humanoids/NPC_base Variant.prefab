@@ -402,6 +402,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6036637521812561542}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6813605577323543569}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!114 &76150843049530146 stripped
 MonoBehaviour:
@@ -479,6 +482,7 @@ MonoBehaviour:
   _onGoldChanged: {fileID: 11400000, guid: 8e355bdf2d2bd8d48b8e53c8b37ce0e3, type: 2}
   _onGoldLootRequested: {fileID: 0}
   _onGoldTheftRequested: {fileID: 0}
+  _onStolenGoodsRequested: {fileID: 0}
 --- !u!114 &3168899758345796514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -618,6 +622,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.NpcSkinTone
   _model: {fileID: 5344363690494718677}
   _visuals: {fileID: 8531843112707779696}
+--- !u!114 &6813605577323543569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2341815c3d1bc0043b91affb6c5bd6d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityAttackStep
+  _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _contactMargin: 0.05
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}

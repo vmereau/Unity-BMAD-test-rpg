@@ -997,13 +997,12 @@ namespace Game.Combat
             if (_attackStep != null) _attackStep.Begin(ResolveAttackStep(attackIndex));
         }
 
-        // Forward step of attack state attackIndex (1..3): weapon archetype, unarmed config list, else the config default.
+        // Forward step of attack state attackIndex (1..3) — shared rule with AI humanoids (CombatConfigSO.ResolveAttackStep).
         // Read the equipment, not _currentWeaponSO: that cache is only set by OnVisualsRefreshed (startup race).
         private AttackStep ResolveAttackStep(int attackIndex)
         {
-            if (_equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) is WeaponSO weapon)
-                return weapon.ResolveAttackStep(attackIndex, _config.defaultAttackStep);
-            return ResolveUnarmedAttack(attackIndex).step;
+            WeaponSO weapon = _equipmentSystem != null ? _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as WeaponSO : null;
+            return _config.ResolveAttackStep(weapon, attackIndex);
         }
 
         /// <summary>

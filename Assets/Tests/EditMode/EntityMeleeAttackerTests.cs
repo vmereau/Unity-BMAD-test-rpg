@@ -184,6 +184,51 @@ public class EntityMeleeAttackerTests
     }
 
     [Test]
+    public void OpenWindow_CommitsTheSwing_NextStateEnterReopensSteering()
+    {
+        _attacker.BeginAttack(10f, 2);
+        _attacker.NotifyAttackStateEntered(1);
+        Assert.IsFalse(_attacker.IsAttackCommitted);
+
+        _attacker.OpenWindow("Bite");
+        Assert.IsTrue(_attacker.IsAttackCommitted);
+
+        _attacker.NotifyAttackStateEntered(2); // combo step: new wind-up
+        Assert.IsFalse(_attacker.IsAttackCommitted);
+    }
+
+    [Test]
+    public void OpenWindow_UnknownId_DoesNotCommit()
+    {
+        _attacker.BeginAttack(10f);
+        _attacker.NotifyAttackStateEntered(1);
+        _attacker.OpenWindow("Claw");
+        Assert.IsFalse(_attacker.IsAttackCommitted);
+    }
+
+    [Test]
+    public void OpenWindow_OutsideAnAttack_DoesNotCommit()
+    {
+        _attacker.OpenWindow("Bite");
+        Assert.IsFalse(_attacker.IsAttackCommitted);
+    }
+
+    [Test]
+    public void EndAttack_ClearsCommitAndTarget()
+    {
+        var target = new GameObject("Target");
+        _created.Add(target);
+        _attacker.BeginAttack(10f, 1, target.transform);
+        _attacker.OpenWindow("Bite");
+        Assert.AreSame(target.transform, _attacker.AttackTarget);
+
+        _attacker.EndAttack();
+
+        Assert.IsFalse(_attacker.IsAttackCommitted);
+        Assert.IsNull(_attacker.AttackTarget);
+    }
+
+    [Test]
     public void NotifyAttackStateExited_BelowZero_Clamps()
     {
         Assert.DoesNotThrow(() => _attacker.NotifyAttackStateExited());
