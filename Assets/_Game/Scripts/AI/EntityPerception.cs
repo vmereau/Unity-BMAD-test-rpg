@@ -396,8 +396,21 @@ namespace Game.AI
             Vector3 dir = point - eye;
             float dist = dir.magnitude;
             if (dist < 0.001f) return true;
-            return !Physics.Raycast(eye, dir / dist, dist, _config.lineOfSightMask, QueryTriggerInteraction.Ignore);
+            // Own colliders never block: humanoid ragdoll bones are solid Default colliders, and an archer's side-on aim
+            // (stance yaw + spine correction) swings its own head into the eye ray (spec-ai-ranged-combat-style).
+            int count = Physics.RaycastNonAlloc(eye, dir / dist, _losHits, dist, _config.lineOfSightMask,
+                QueryTriggerInteraction.Ignore);
+            if (count >= _losHits.Length) return false; // truncated (unsorted): a wall may be missing — treat as blocked
+            for (int i = 0; i < count; i++)
+            {
+                Collider col = _losHits[i].collider;
+                if (col != null && !col.transform.IsChildOf(transform)) return false;
+            }
+            return true;
         }
+
+        private readonly RaycastHit[] _losHits = new RaycastHit[LOS_HIT_BUFFER_SIZE];
+        private const int LOS_HIT_BUFFER_SIZE = 24;
 
 #if UNITY_EDITOR
         // --- Detection gizmos (selected entity, or all via Tools/Stealth/Show Detection Gizmos) ---

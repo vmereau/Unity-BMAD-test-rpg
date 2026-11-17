@@ -11,7 +11,7 @@ namespace Game.AI
     /// clashes with the player's parameterless overload. An event with no string parameter delivers
     /// <c>""</c> → all hitboxes.
     /// </summary>
-    public class EntityAnimationEventReceiver : MonoBehaviour
+    public class EntityAnimationEventReceiver : MonoBehaviour, Game.Combat.IBowNockListener
     {
         private const string TAG = "[AI]";
 
@@ -19,10 +19,12 @@ namespace Game.AI
         [SerializeField] private EntityMeleeAttacker _attacker;
 
         private NpcArmament _armament; // optional (equipped NPCs) — resolved from the parents
+        private EntityArcher _archer;  // optional (NPC archers) — resolved from the parents
 
         private void Awake()
         {
             _armament = GetComponentInParent<NpcArmament>();
+            _archer = GetComponentInParent<EntityArcher>();
             if (_attacker == null) _attacker = GetComponentInParent<EntityMeleeAttacker>();
             if (_attacker == null)
                 GameLog.Warn(TAG, $"{gameObject.name}: no EntityMeleeAttacker in parents — hitbox events will be no-ops");
@@ -66,6 +68,12 @@ namespace Game.AI
 
         // Player attack clips also fire this — no-op (the next step is requested on open).
         public void ComboWindowClose() { }
+
+        // SMB_BowAimState enter: the NPC archer's arrow is nocked (spec-ai-ranged-combat-style). No archer → no-op.
+        public void NotifyBowAimEntered()
+        {
+            if (_archer != null) _archer.OnBowAimEntered();
+        }
 
         private const string DRAW_STATE = "Draw_State";
         private const string SHEATHE_STATE = "Sheathe_State";

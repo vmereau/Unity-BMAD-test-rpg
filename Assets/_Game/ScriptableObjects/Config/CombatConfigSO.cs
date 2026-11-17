@@ -150,6 +150,26 @@ namespace Game.Combat
         [Tooltip("Max entities with a CombatStyle swinging at one target at once; the others circle and wait.")]
         [Min(1)] public int maxAttackersPerTarget = 2;
 
+        [Header("NPC archers (spec-ai-ranged-combat-style)")]
+        [Tooltip("Body yaw (degrees) added to the target bearing while an NPC aims a bow — the side-on stance of the " +
+                 "archer clips (the player's PlayerConfigSO.aimStanceYaw); BowAimCorrection makes up the rest.")]
+        [Range(-90f, 90f)] public float npcAimStanceYaw = 45f;
+        [Tooltip("NPC arrows aim at this fraction of the target's body height (CharacterController / NavMeshAgent).")]
+        [Range(0.1f, 1f)] public float npcAimHeightFraction = 0.65f;
+        [Tooltip("Aim height (m) when the target has neither a CharacterController nor a NavMeshAgent.")]
+        [Min(0f)] public float npcAimFallbackHeight = 1f;
+        [Tooltip("Radius (m) of the clear-shot sweep from the bow to the aim point: a wall or a non-hostile body first " +
+                 "on it holds the shot.")]
+        [Min(0f)] public float npcClearShotRadius = 0.15f;
+        [Tooltip("Seconds an NPC keeps the bow up after the release, so the Fire arrow clip plays before IsAiming drops " +
+                 "(the aim states' IsAiming-false exit is listed first).")]
+        [Min(0f)] public float npcBowReleaseHold = 0.4f;
+        [Tooltip("Watchdog: seconds an NPC aim may wait for the BowAim_State enter before the arrow is forced nocked " +
+                 "(a forced nock releases without the Fire arrow clip).")]
+        [Min(0.1f)] public float npcBowNockTimeout = 2.5f;
+        [Tooltip("Time constant (s) smoothing the target velocity NPC archers lead with. 0 = raw per-frame velocity.")]
+        [Min(0f)] public float npcTargetVelocitySmoothTime = 0.15f;
+
         [Header("Execute (stomp an unconscious NPC — spec-execute-unconscious-npc)")]
         [Tooltip("Max ground distance from the player to the body's chest for F to execute.")]
         [Min(0.1f)] public float executeRange = 1.8f;

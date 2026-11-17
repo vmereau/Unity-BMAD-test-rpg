@@ -776,7 +776,7 @@ namespace Game.AI
         // Cooldown elapsed, weapon in hand, no attack state still playing.
         private bool IsAttackReady() =>
             _attackCooldownTimer <= 0f
-            && (_armament == null || !_armament.IsSwitchingWeapon)
+            && (_armament == null || (!_armament.IsSwitchingWeapon && !_armament.IsRanged)) // bow in hand: shots only
             && (_meleeAttacker == null || !_meleeAttacker.IsInAttackState)
             && (_guard == null || !_guard.IsRaised) // IsBlocking would cancel the swing (block-cancel transition)
             && (_drinker == null || !_drinker.IsDrinking); // drinking: no swing (the opening)
@@ -862,6 +862,13 @@ namespace Game.AI
 
             if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // a cancelled swing still blending out
             if (_armament != null && _armament.IsSwitchingWeapon) return; // drawing: the weapon isn't in hand yet
+            // A bow has no melee swing (spec-ai-ranged-combat-style): a fight the tactics don't drive (passive target, last-seen
+            // chase) asks for the melee weapon instead of standing next to the target forever.
+            if (_armament != null && _armament.IsRanged)
+            {
+                _armament.SetRanged(false);
+                return;
+            }
             if (_attackCooldownTimer > 0f) return;
             if (_guard != null && _guard.IsRaised) return; // guarding: swing once it lowers (IsBlocking cancels attacks)
 

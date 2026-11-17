@@ -33,6 +33,12 @@ namespace Game.Animations
         public virtual void SetBlocking(bool blocking) { }
         /// <summary>Potion drink on / off (<c>IsDrinking</c>, spec-potion-drink-animation). Default: no clip (monsters).</summary>
         public virtual void SetDrinking(bool drinking) { }
+        /// <summary>Bow aim on / off (<c>IsAiming</c>, spec-ai-ranged-combat-style). Default: no bow states (monsters).</summary>
+        public virtual void SetAiming(bool aiming) { }
+        /// <summary>Releases the nocked arrow (<c>BowFire</c>: BowAim → BowFire → BowDrawArrow). Default no-op.</summary>
+        public virtual void TriggerBowFire() { }
+        /// <summary>Drops a pending <c>BowFire</c> trigger so it can't replay on the next aim. Default no-op.</summary>
+        public virtual void ClearBowFire() { }
         /// <summary>Picks something up from the ground (knockout loot). Only humanoids have the clip; default no-op.</summary>
         public virtual void TriggerPickUp() { }
 

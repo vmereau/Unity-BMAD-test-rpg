@@ -37,4 +37,14 @@ MonoBehaviour:
   maxDrinksPerFight: 1
   drinkCooldown: 10
   drinkSafeDistance: 4.5
+  drinkBackOffMargin: 0.5
   drinkBackOffMaxTime: 2.5
+  preferredRange: 9
+  rangedBackOffDistance: 6
+  meleeSwitchDistance: 3.5
+  rangedSwitchDistance: 6.5
+  weaponSwitchCooldown: 4
+  shotCooldown: 2.5
+  aimTime: 0.6
+  shotSpreadAngle: 2.5
+  leadFactor: 0.6

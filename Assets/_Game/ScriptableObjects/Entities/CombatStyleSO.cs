@@ -81,11 +81,38 @@ namespace Game.AI
         [Tooltip("Seconds backing off before drinking anyway (cornered, or the target follows).")]
         [Min(0f)] public float drinkBackOffMaxTime = 2.5f;
 
+        [Header("Ranged (spec-ai-ranged-combat-style) — needs a BowSO in the loadout")]
+        [Tooltip("With the bow: distance (m) kept from the target — the circling ring.")]
+        [Min(1f)] public float preferredRange = 9f;
+        [Tooltip("With the bow: closer than this (m) the entity backs off (kites) instead of circling / shooting.")]
+        [Min(0f)] public float rangedBackOffDistance = 6f;
+        [Tooltip("Closer than this (m) a bow user switches to its melee weapon (or fists).")]
+        [Min(0f)] public float meleeSwitchDistance = 3.5f;
+        [Tooltip("Farther than this (m) a melee-wielding bow carrier switches back to the bow. > meleeSwitchDistance " +
+                 "(hysteresis band — no switch spam at the edge).")]
+        [Min(0f)] public float rangedSwitchDistance = 6.5f;
+        [Tooltip("Minimum seconds between two weapon switches.")]
+        [Min(0f)] public float weaponSwitchCooldown = 4f;
+        [Tooltip("Seconds between two shots (from the release).")]
+        [Min(0f)] public float shotCooldown = 2.5f;
+        [Tooltip("Seconds aiming after the nock before the release — the tell the target can react to.")]
+        [Min(0f)] public float aimTime = 0.6f;
+        [Tooltip("Shot accuracy cone half-angle (degrees) around the aim point.")]
+        [Range(0f, 30f)] public float shotSpreadAngle = 2.5f;
+        [Tooltip("Share of the target's velocity × flight time aimed ahead of a moving target (0 = aim at it, 1 = full lead).")]
+        [Range(0f, 1f)] public float leadFactor = 0.6f;
+
 #if UNITY_EDITOR
+        // Narrowest hysteresis band between the melee and ranged switch distances (m) — equal values would flicker.
+        private const float MIN_SWITCH_BAND = 0.5f;
+
         private void OnValidate()
         {
             if (circleTimeMax < circleTimeMin) circleTimeMax = circleTimeMin;
             if (reactionDelayMax < reactionDelayMin) reactionDelayMax = reactionDelayMin;
+            if (rangedSwitchDistance < meleeSwitchDistance + MIN_SWITCH_BAND)
+                rangedSwitchDistance = meleeSwitchDistance + MIN_SWITCH_BAND;
+            if (rangedBackOffDistance > preferredRange) rangedBackOffDistance = preferredRange;
         }
 #endif
     }

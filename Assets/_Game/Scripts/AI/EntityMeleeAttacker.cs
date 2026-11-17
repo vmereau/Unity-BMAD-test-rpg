@@ -317,7 +317,7 @@ namespace Game.AI
             if (!IsHostileTarget(target)) return;
 
             HitResult result = target.TryReceiveHit(gameObject);
-            if (_onSfxRequested != null && _combatAudio != null) _onSfxRequested.Play(_combatAudio.ForHit(result), hitPoint);
+            PlayHitSound(result, hitPoint);
             switch (result)
             {
                 case HitResult.PerfectBlock:
@@ -367,7 +367,17 @@ namespace Game.AI
             return target is Component component && component != null && component.TryGetComponent(out stanceTarget);
         }
 
-        private bool IsHostileTarget(IDamageable target)
+        /// <summary>Hit / block / parry sound of this entity's combat audio at <paramref name="point"/> (melee and arrows).</summary>
+        public void PlayHitSound(HitResult result, Vector3 point)
+        {
+            if (_onSfxRequested != null && _combatAudio != null) _onSfxRequested.Play(_combatAudio.ForHit(result), point);
+        }
+
+        /// <summary>
+        /// Faction filter shared by melee hits and NPC arrows (<see cref="EntityArcher"/>): the target's
+        /// <see cref="FactionMember"/> must be hostile to this entity, or be its <see cref="AggroTarget"/>.
+        /// </summary>
+        public bool IsHostileTarget(IDamageable target)
         {
             if (target is not Component component || component == null) return false;
             if (!component.TryGetComponent(out FactionMember member))

@@ -1,14 +1,14 @@
 using Game.Core;
-using Game.Player;
 using UnityEngine;
 
 namespace Game.Combat
 {
     /// <summary>
-    /// Player-only post-animation bow aim fix: while aiming, turns Spine → Chest → UpperChest (yaw about world up,
-    /// then pitch) so the chest-locked arrow line points at the crosshair aim point. The Mixamo archer clips are
-    /// authored side-on and the hips come from locomotion, so no fixed body yaw lines the bow up on its own.
-    /// Writes bone transforms after the Animator — never animator parameters. Blended in / out with the aim.
+    /// Post-animation bow aim fix: while aiming, turns Spine → Chest → UpperChest (yaw about world up, then pitch) so
+    /// the chest-locked arrow line points at the aim point of the <see cref="IBowAimSource"/> on the same root (player:
+    /// crosshair via <c>PlayerCombat</c>; NPC archer: its target via <c>EntityArcher</c> — spec-ai-ranged-combat-style).
+    /// The Mixamo archer clips are authored side-on and the hips come from locomotion, so no fixed body yaw lines the bow
+    /// up on its own. Writes bone transforms after the Animator — never animator parameters. Blended in / out with the aim.
     /// </summary>
     [DefaultExecutionOrder(200)] // after CameraController (0) and CinemachineBrain (100): this frame's camera pose
     public class BowAimCorrection : MonoBehaviour
@@ -22,9 +22,8 @@ namespace Game.Combat
         private static readonly HumanBodyBones[] SpineBones =
             { HumanBodyBones.Spine, HumanBodyBones.Chest, HumanBodyBones.UpperChest };
 
+        [Tooltip("Humanoid animator of the rig. Null = this GO's, else the first one in the children (NPC body).")]
         [SerializeField] private Animator _animator;
-        [SerializeField] private PlayerStateManager _stateManager;
-        [SerializeField] private PlayerCombat _playerCombat;
         [SerializeField] private CombatConfigSO _config;
 
         [Tooltip("Arrow line direction (right hand → left hand in the Aim Overdraw pose), in the top spine bone's " +
@@ -33,25 +32,26 @@ namespace Game.Combat
         [Tooltip("Arrow line origin (right hand in the Aim Overdraw pose), in the top spine bone's local space.")]
         [SerializeField] private Vector3 _arrowOriginLocal;
 
+        private IBowAimSource _source; // same root: PlayerCombat / EntityArcher
         private Transform[] _bones;
         private Transform _referenceBone; // top spine bone — the arrow line is locked to it
         private Quaternion[] _animatedLocal; // pose the Animator wrote this frame
         private Quaternion[] _writtenLocal;  // pose this component wrote last frame
         private bool _hasWritten;
-        private Camera _camera;
-        private bool _cameraWarned;
         private Vector3 _lastAimPoint;
+        private Ray _lastViewRay;
         private bool _hasAimPoint;
         private float _weight; // 0 = animated pose, 1 = full correction
 
         private void Awake()
         {
             if (_animator == null) _animator = GetComponent<Animator>();
-            if (_animator == null || !_animator.isHuman || _stateManager == null || _playerCombat == null
-                || _config == null)
+            if (_animator == null) _animator = GetComponentInChildren<Animator>();
+            _source = GetComponent<IBowAimSource>();
+            if (_animator == null || !_animator.isHuman || _source == null || _config == null)
             {
-                GameLog.Error(TAG, "BowAimCorrection: needs a humanoid Animator, PlayerStateManager, PlayerCombat " +
-                                   "and CombatConfigSO — disabled");
+                GameLog.Error(TAG, $"{gameObject.name}: BowAimCorrection needs a humanoid Animator, an IBowAimSource " +
+                                   "(PlayerCombat / EntityArcher) on the same GO and a CombatConfigSO — disabled");
                 enabled = false;
                 return;
             }
@@ -100,9 +100,20 @@ namespace Game.Combat
                 return;
             }
 
+            // Ragdolled / animator off (death mid-aim): never write into physics-driven bones.
+            if (!_animator.isActiveAndEnabled)
+            {
+                _hasWritten = false;
+                _weight = 0f;
+                _hasAimPoint = false;
+                return;
+            }
+            // Idle (every NPC carries the component): nothing written, nothing blending — skip the pose capture.
+            if (!_hasWritten && _weight <= 0f && !_source.IsBowAiming) return;
+
             CaptureAnimatedPose();
 
-            bool active = _stateManager.IsAiming && _config.aimCorrectionEnabled;
+            bool active = _source.IsBowAiming && _config.aimCorrectionEnabled;
             // Unscaled, same blend as the aim camera (CameraController): the menu / death screen set timeScale = 0.
             _weight = Mathf.MoveTowards(_weight, active ? 1f : 0f, _config.aimBlendSpeed * Time.unscaledDeltaTime);
             if (_weight <= 0f)
@@ -112,14 +123,15 @@ namespace Game.Combat
             }
 
             // Hold the last point while blending out after the bow was unequipped.
-            if (_playerCombat.TryGetAimPoint(out Vector3 aimPoint))
+            if (_source.TryGetBowAim(out Vector3 aimPoint, out Ray viewRay))
             {
                 _lastAimPoint = aimPoint;
+                _lastViewRay = viewRay;
                 _hasAimPoint = true;
             }
             if (!_hasAimPoint) return;
 
-            Vector3 target = PushOutClosePoint(_lastAimPoint);
+            Vector3 target = PushOutClosePoint(_lastAimPoint, _lastViewRay);
             Vector2 total = MeasureDelta(target);
             float weight = _weight * AimCorrectionMath.YawReachFactor(total.x, YAW_REACH_FULL, YAW_REACH_ZERO);
             if (weight <= 0f) return;
@@ -171,26 +183,16 @@ namespace Game.Combat
             bone.rotation = pitch * yaw * bone.rotation;
         }
 
-        // An aim point right in front of the player (wall, close NPC) would whip the spine: push it out along the
-        // crosshair ray to at least aimCorrectionMinDistance past the bow.
-        private Vector3 PushOutClosePoint(Vector3 aimPoint)
+        // An aim point right in front of the shooter (wall, close NPC) would whip the spine: push it out along the view
+        // ray (player: camera; NPC: chest → target) to at least aimCorrectionMinDistance past the bow.
+        private Vector3 PushOutClosePoint(Vector3 aimPoint, Ray viewRay)
         {
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-                if (_camera == null)
-                {
-                    if (!_cameraWarned) GameLog.Warn(TAG, "Camera.main not found — close aim points are not pushed out");
-                    _cameraWarned = true;
-                    return aimPoint;
-                }
-            }
-            Transform cam = _camera.transform;
-            Vector3 forward = cam.forward;
-            float along = Vector3.Dot(aimPoint - cam.position, forward);
-            float minAlong = Vector3.Dot(_referenceBone.TransformPoint(_arrowOriginLocal) - cam.position, forward)
+            Vector3 forward = viewRay.direction;
+            if (forward.sqrMagnitude < MIN_LINE_SQR) return aimPoint;
+            float along = Vector3.Dot(aimPoint - viewRay.origin, forward);
+            float minAlong = Vector3.Dot(_referenceBone.TransformPoint(_arrowOriginLocal) - viewRay.origin, forward)
                              + _config.aimCorrectionMinDistance;
-            return along >= minAlong ? aimPoint : cam.position + forward * minAlong;
+            return along >= minAlong ? aimPoint : viewRay.origin + forward * minAlong;
         }
 
 #if UNITY_EDITOR

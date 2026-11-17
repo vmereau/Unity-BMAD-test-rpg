@@ -20,7 +20,7 @@ MonoBehaviour:
   _baseHealth: 90
   _attackDamage: 15
   _detectionRange: 8
-  _disengageRange: 12
+  _disengageRange: 18
   _warningRange: 5
   _warningEngageTime: 3
   _warningTurnSpeed: 540
@@ -64,7 +64,9 @@ MonoBehaviour:
   _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
   _playerRelationship: 0
   _relationshipConditions: []
-  _startingEquipment: []
+  _startingEquipment:
+  - {fileID: 11400000, guid: 88f9924126aeb7947b9873e31de58fab, type: 2}
+  - {fileID: 11400000, guid: 30eed6afdc731f44ea31077331d8ce3f, type: 2}
   _xpOnKnockout: 25
   _canBeExecuted: 1
   _finisherStanceMultiplier: 1.5

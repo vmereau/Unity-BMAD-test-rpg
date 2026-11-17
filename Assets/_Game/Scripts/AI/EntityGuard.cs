@@ -118,7 +118,7 @@ namespace Game.AI
             (_health == null || (!_health.IsDead && !_health.IsUnconscious))
             && (_stance == null || (!_stance.IsIncapacitated && !_stance.IsGuardBroken))
             && (_attacker == null || !_attacker.IsInSwing)
-            && (_armament == null || !_armament.IsSwitchingWeapon);
+            && (_armament == null || (!_armament.IsSwitchingWeapon && !_armament.IsRanged)); // a bow can't block (spec-ai-ranged-combat-style)
 
         private void SetRaised(bool raised)
         {

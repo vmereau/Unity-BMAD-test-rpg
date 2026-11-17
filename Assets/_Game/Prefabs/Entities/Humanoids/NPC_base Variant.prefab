@@ -414,6 +414,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8515747517494559382}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 500550145033580825}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9151045659581489891}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!114 &76150843049530146 stripped
 MonoBehaviour:
@@ -686,6 +692,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.AI.EntityPotionDrinker
   _persistentID: {fileID: 8935889491633091201}
   _animationDriver: {fileID: 3766970546440902038}
+--- !u!114 &500550145033580825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2dd7a43f93769245bd891955aa75770, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityArcher
+  _persistentID: {fileID: 0}
+  _animationDriver: {fileID: 0}
+--- !u!114 &9151045659581489891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6da17179bee8c34481daa915668ad4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Combat.BowAimCorrection
+  _animator: {fileID: 2074702169421064367}
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _arrowLineLocal: {x: -0.9895, y: 0.0821, z: -0.1191}
+  _arrowOriginLocal: {x: 0.0416, y: 0.1979, z: 0.1472}
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}

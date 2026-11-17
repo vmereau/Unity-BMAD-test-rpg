@@ -24,6 +24,9 @@ namespace Game.AI
     /// event (<see cref="CompleteWeaponSwitch"/>), or on a timeout.</item>
     /// <item>Down (knocked out / dead): the weapon is unequipped into the inventory (lootable), the armor stays. Waking
     /// with it still there re-equips it; looted → fists for good.</item>
+    /// <item>Ranged (spec-ai-ranged-combat-style): a <see cref="BowSO"/> in the loadout next to a melee weapon stays in the
+    /// inventory. <see cref="SetRanged"/> swaps weapons as one locked chain (sheathe → swap the equipped weapon → draw);
+    /// with the bow in hand no melee hitbox is registered.</item>
     /// <item>Save / load (spec-npc-equipment-save): <see cref="Game.World.SaveableObject"/> captures <see cref="Equipped"/>
     /// + <see cref="DroppedWeapon"/>; <see cref="RestoreLoadout"/> replaces the granted loadout (and <c>Start</c> then grants
     /// nothing).</item>
@@ -67,12 +70,54 @@ namespace Game.AI
         private bool _isSwitching;
         private bool _pendingDraw;
         private float _switchTimer;
+        private bool _rangedRequested;      // the tactics want the bow (SetRanged)
+        private bool _weaponChangePending;  // the equipped weapon doesn't match the request yet (Update advances it)
+        private EntityArcher _archer;       // optional: never swap mid-shot
 
         /// <summary>True while a draw / sheathe clip runs — the brain doesn't attack until the weapon is in hand.</summary>
         public bool IsSwitchingWeapon => _isSwitching;
 
         /// <summary>The weapon fighting with right now (null = fists).</summary>
         public WeaponSO WieldedWeapon => _wielded;
+
+        /// <summary>The bow is the wielded weapon (ranged mode in effect). No melee hitbox is registered.</summary>
+        public bool IsRanged => _wielded is BowSO;
+
+        /// <summary>
+        /// The bow was requested (<see cref="SetRanged"/>) — true from the request, through the switch clips. Re-synced to the
+        /// wielded weapon whenever the mode is applied without a pending change (wake-up, save restore, end of a fists fight,
+        /// a bow that can't be wielded), so the tactics never reason from a stale request.
+        /// </summary>
+        public bool RangedRequested => _rangedRequested;
+
+        /// <summary>A weapon change is pending or a draw / sheathe clip plays.</summary>
+        public bool IsChangingWeapon => _weaponChangePending || _isSwitching;
+
+        /// <summary>True while the fight is fought with fists (a <see cref="SetFists"/> request).</summary>
+        public bool FistsRequested => _fistsRequested;
+
+        /// <summary>The bow this NPC carries — equipped, else the first one in its inventory (null = none, e.g. looted).</summary>
+        public BowSO CarriedBow
+        {
+            get
+            {
+                if (!_ready) return null;
+                if (EquippedWeapon is BowSO equipped) return equipped;
+                for (int i = 0; i < _inventory.Count; i++)
+                    if (_inventory.Items[i].Item is BowSO bow) return bow;
+                return null;
+            }
+        }
+
+        /// <summary>Arrows (the carried bow's ammo item) left in the inventory.</summary>
+        public int AmmoCount
+        {
+            get
+            {
+                BowSO bow = CarriedBow;
+                return bow != null && bow.IsConfigured ? _inventory.CountOf(bow.ammoItem) : 0;
+            }
+        }
 
         /// <summary>Health damage added to <c>Entity.AttackDamage</c> (wielded weapon's <c>damageBonus</c>, fists 0).</summary>
         public float DamageBonus => _wielded != null ? _wielded.damageBonus : 0f;
@@ -105,6 +150,7 @@ namespace Game.AI
             _health = GetComponent<EntityHealth>();
             _stance = GetComponent<EntityStance>();
             _persistentID = GetComponent<PersistentID>();
+            _archer = GetComponent<EntityArcher>();
             if (_inventory == null) _inventory = GetComponent<InventorySystem>();
             if (_equipment == null || _visuals == null || _inventory == null || _attacker == null)
             {
@@ -152,6 +198,7 @@ namespace Game.AI
         private void Update()
         {
             if (_modePending && CanSwapNow) ApplyPendingMode();
+            if (_weaponChangePending) AdvanceWeaponChange();
             if (!_isSwitching) return;
             _switchTimer -= Time.deltaTime;
             if (_switchTimer > 0f) return;
@@ -186,6 +233,11 @@ namespace Game.AI
         private void GrantLoadout(bool includeWeapons)
         {
             if (_persistentID == null || _persistentID.Entity is not NPCEntity npc || npc.StartingEquipment == null) return;
+            // A bow next to a melee weapon is carried, not equipped: fights start with the melee weapon and the tactics
+            // switch to the bow at range (spec-ai-ranged-combat-style).
+            bool hasMelee = false;
+            foreach (EquipableItemSO item in npc.StartingEquipment)
+                if (item is WeaponSO and not BowSO) hasMelee = true;
             foreach (EquipableItemSO item in npc.StartingEquipment)
             {
                 if (item == null || (!includeWeapons && item is WeaponSO)) continue;
@@ -194,17 +246,75 @@ namespace Game.AI
                     GameLog.Warn(TAG, $"{gameObject.name}: loadout item {item.itemName} could not be added to the inventory");
                     continue;
                 }
+                if (item is BowSO && hasMelee) continue; // carried in the inventory
                 _equipment.Equip(item);
             }
+        }
+
+        /// <summary>
+        /// Bow (true) or the melee weapon / fists (false), requested by the tactics (spec-ai-ranged-combat-style). Played as
+        /// one locked chain once safe: sheathe the drawn weapon, swap the equipped one, draw the new one (in combat).
+        /// Ignored while the fight is fought with fists.
+        /// </summary>
+        public void SetRanged(bool ranged)
+        {
+            if (!_ready || _rangedRequested == ranged) return;
+            _rangedRequested = ranged;
+            _weaponChangePending = true;
+            GameLog.Info(TAG, $"{gameObject.name} switches to {(ranged ? "its bow" : "melee")}");
+            if (!IsDown) AdvanceWeaponChange();
+        }
+
+        // Weapon for the requested mode: the carried bow, else the melee weapon (equipped non-bow, or the first in the
+        // inventory; null = fists).
+        private WeaponSO DesiredWeapon()
+        {
+            if (_rangedRequested)
+            {
+                BowSO bow = CarriedBow;
+                if (bow != null) return bow;
+            }
+            WeaponSO equipped = EquippedWeapon;
+            if (equipped != null && equipped is not BowSO) return equipped;
+            for (int i = 0; i < _inventory.Count; i++)
+                if (_inventory.Items[i].Item is WeaponSO weapon && weapon is not BowSO) return weapon;
+            return null;
+        }
+
+        // One step of the switch chain per call: wait (switching, attacking, staggered, aiming, down), sheathe a drawn
+        // weapon, then swap the equipment while sheathed and rebuild (the rebuild draws the new weapon in combat).
+        private void AdvanceWeaponChange()
+        {
+            if (_fistsRequested || IsDown)
+            {
+                _weaponChangePending = false;
+                return;
+            }
+            if (_isSwitching || _modePending || !CanSwapNow || (_archer != null && _archer.IsAiming)) return;
+            WeaponSO desired = DesiredWeapon();
+            WeaponSO equipped = EquippedWeapon;
+            if (desired == equipped)
+            {
+                _weaponChangePending = false;
+                SyncDrawState();
+                return;
+            }
+            if (_wielded != null && _visuals.IsDrawn)
+            {
+                StartSwitch(false); // sheathe first; the next call swaps once it completed
+                return;
+            }
+            if (equipped != null) _equipment.Unequip(EquipmentSlot.Weapon);
+            if (desired != null) _equipment.Equip(desired);
+            _weaponChangePending = false;
+            GameLog.Info(TAG, $"{gameObject.name} now wields {(desired != null ? desired.itemName : "fists")}");
+            Rebuild(); // visual + controller (bow override) + hitboxes, then the draw clip in combat
         }
 
         /// <summary>
         /// Fists for the fight being started (true) or the weapon (false). Applied at once (a drawn weapon snaps back to its
         /// sheath for fists); cleared when the fight ends.
         /// </summary>
-        /// <summary>True while the current fight is fought with fists (a <see cref="SetFists"/> request).</summary>
-        public bool FistsRequested => _fistsRequested;
-
         public void SetFists(bool useFists)
         {
             if (!_ready || _fistsRequested == useFists) return;
@@ -235,6 +345,8 @@ namespace Game.AI
             if (!_ready) return;
             _isSwitching = false;
             _modePending = false; // the wake-up rebuild applies the mode
+            _rangedRequested = false; // wakes up with what it held; the tactics request again
+            _weaponChangePending = false;
             _fistsRequested = false; // the fight is over (don't rely on SetCombatState(false) having run first)
             if (_driver != null) _driver.ClearWeaponSwitch();
             WeaponSO weapon = EquippedWeapon;
@@ -259,7 +371,15 @@ namespace Game.AI
                     _equipment.Equip(_droppedWeapon);
                     GameLog.Info(TAG, $"{gameObject.name} picks its {_droppedWeapon.itemName} back up");
                 }
-                else GameLog.Info(TAG, $"{gameObject.name}'s {_droppedWeapon.itemName} was taken — fists from now on");
+                else
+                {
+                    // Taken: fall back to another weapon it still carries (a looted bow leaves the axe), else fists.
+                    WeaponSO fallback = DesiredWeapon();
+                    if (fallback == null) fallback = CarriedBow;
+                    if (fallback != null) _equipment.Equip(fallback);
+                    GameLog.Info(TAG, $"{gameObject.name}'s {_droppedWeapon.itemName} was taken — " +
+                                      (fallback != null ? $"{fallback.itemName} instead" : "fists from now on"));
+                }
                 _droppedWeapon = null;
             }
             _visuals.SetCombatState(false);
@@ -279,6 +399,8 @@ namespace Game.AI
             _droppedWeapon = null;
             _isSwitching = false;
             _modePending = false;
+            _rangedRequested = false;
+            _weaponChangePending = false;
             if (droppedWeapon != null && EquippedWeapon == null)
             {
                 if (killed) _droppedWeapon = droppedWeapon; // stays lootable; kept so the next capture still has it
@@ -311,16 +433,21 @@ namespace Game.AI
         private void ApplyMode()
         {
             WeaponSO weapon = _fistsRequested ? null : EquippedWeapon;
+            // A bow has no melee hitbox: wielded with no hitbox registered at all (spec-ai-ranged-combat-style).
+            bool ranged = weapon is BowSO && _visuals.ActiveWeaponGO != null;
             WeaponHitbox weaponHitbox = null;
-            if (weapon != null && _visuals.ActiveWeaponGO != null)
+            if (weapon != null && !ranged && _visuals.ActiveWeaponGO != null)
             {
                 weaponHitbox = _visuals.ActiveWeaponGO.GetComponentInChildren<WeaponHitbox>(true); // Drawn is inactive while sheathed
                 if (weaponHitbox == null)
                     GameLog.Warn(TAG, $"{gameObject.name}: {weapon.itemName} visual has no WeaponHitbox — fighting with fists");
             }
-            bool armed = weaponHitbox != null;
-            ApplyHitboxes(armed ? weaponHitbox : null);
+            bool armed = weaponHitbox != null || ranged;
+            if (ranged) RemoveAllHitboxes();
+            else ApplyHitboxes(weaponHitbox);
             _wielded = armed ? weapon : null;
+            // The request follows what is actually in hand once no change is pending (see RangedRequested).
+            if (!_weaponChangePending && !_fistsRequested) _rangedRequested = _wielded is BowSO;
             _attacker.SetWieldedWeapon(_wielded);
 
             if (IsDown) return;
@@ -333,6 +460,14 @@ namespace Game.AI
             RuntimeAnimatorController before = _visuals.AppliedController;
             _visuals.ForceDefaultController(!armed);
             if (_visuals.AppliedController != before) AfterControllerSwap();
+        }
+
+        // Bow in hand: neither the weapon nor the fists can hit.
+        private void RemoveAllHitboxes()
+        {
+            _attacker.UnregisterHitbox(WEAPON_HITBOX_ID);
+            _attacker.UnregisterHitbox(UNARMED_HITBOX_ID);
+            _attacker.UnregisterHitbox(UNARMED_LEFT_HITBOX_ID);
         }
 
         private void ApplyHitboxes(WeaponHitbox weaponHitbox)

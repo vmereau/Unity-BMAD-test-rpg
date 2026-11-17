@@ -25,7 +25,7 @@ namespace Game.Combat
     /// </summary>
     [RequireComponent(typeof(StaminaSystem))]
     [RequireComponent(typeof(PlayerStateManager))]
-    public class PlayerCombat : MonoBehaviour, IMeleeThreat
+    public class PlayerCombat : MonoBehaviour, IMeleeThreat, IBowAimSource
     {
         private const string TAG = "[Combat]";
 
@@ -911,6 +911,19 @@ namespace Game.Combat
                 return false;
             }
             point = GetAimPoint(bow.maxAimDistance);
+            return true;
+        }
+
+        /// <summary><see cref="IBowAimSource"/>: the bow aim is up (BowAimCorrection blends in).</summary>
+        public bool IsBowAiming => _stateManager != null && _stateManager.IsAiming;
+
+        /// <summary><see cref="IBowAimSource"/>: the crosshair aim point, on the camera's forward ray.</summary>
+        public bool TryGetBowAim(out Vector3 point, out Ray viewRay)
+        {
+            viewRay = default;
+            if (!TryGetAimPoint(out point)) return false;
+            Transform cam = _camera.transform;
+            viewRay = new Ray(cam.position, cam.forward);
             return true;
         }
 

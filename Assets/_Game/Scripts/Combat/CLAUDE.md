@@ -142,7 +142,8 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
   `HandleVisualsRefreshed`, `OnDisable` and at the top of `OnDrawWeaponStarted` (R ends the aim, then switches;
   `CanSwitchWeapon` / `CanAim` also exclude each other and a still-raised block). A held right click never resumes the
   aim (only `Block.started` starts it).
-- **Nock:** `SMB_BowAimState.OnStateEnter` → `OnBowAimEntered()` sets `_arrowNocked` (ignored when not aiming).
+- **Nock:** `SMB_BowAimState.OnStateEnter` → the Animator GO's `IBowNockListener` (`AnimationEventReceiver` →
+  `OnBowAimEntered()`; NPCs: `EntityAnimationEventReceiver` → `EntityArcher`) sets `_arrowNocked` (ignored when not aiming).
   The `bowNockTimeout` watchdog forces it if that enter is lost — a shot on a **forced** nock skips `PlayBowFire`
   (the layer isn't in `BowAim_State`, so `BowFire` would latch and replay the release + re-nock on the next enter).
 - **Shot:** `TryAttack` requires `IsAiming && _arrowNocked`, then `TryFireBow` (returns bool). Success clears the nock
@@ -150,14 +151,16 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
   Ignored while a melee swing is still playing (`IsAttacking`).
 - **Aim correction (spec `spec-bow-aim-spine-correction.md`):** the Mixamo archer clips are side-on (clip hips +90°,
   spine −90°), but on the masked UpperBody layer the hips come from locomotion, so no fixed body yaw lines the bow up.
-  `BowAimCorrection` (Player root, `LateUpdate`) blends a weight toward `IsAiming` (`aimBlendSpeed`, unscaled — same as
+  `BowAimCorrection` (Player root, and `NPC_base Variant` root for NPC archers, `LateUpdate`) reads the same-GO
+  `IBowAimSource` (`PlayerCombat`: crosshair point on the camera ray; `EntityArcher`: target chest on the chest → target ray —
+  spec-ai-ranged-combat-style) and blends a weight toward `IsBowAiming` (`aimBlendSpeed`, unscaled — same as
   the aim camera). It then turns Spine → Chest → UpperChest (yaw about world up, then pitch about the line's horizontal
-  right axis) so the **chest-locked arrow line** points at `PlayerCombat.TryGetAimPoint` (same ray as the shot; false
+  right axis) so the **chest-locked arrow line** points at the source's aim point (player: same ray as the shot; false
   without a bow or camera). Each bone takes `AimCorrectionMath.BoneStep` = what's left ÷ bones left (re-measured per
   bone), clamped to `aimCorrectionMaxAnglePerBone`, plus one residual pass on UpperChest (the hand origin moves with
   it). Blend is linear: `(1 − weight)` of the animated-pose delta is held back. Remaining yaw > 120° (target behind the
   line, e.g. aim started while running at the camera) fades the correction out by 160°. Aim points closer than
-  `aimCorrectionMinDistance` past the bow are pushed out along the crosshair ray. Bone writes only — no animator params.
+  `aimCorrectionMinDistance` past the bow are pushed out along the source's view ray. Bone writes only — no animator params.
   Math is covered by `AimCorrectionMathTests`.
   - **`[DefaultExecutionOrder(200)]`:** `CinemachineBrain` runs at **100** (its MonoImporter order). A tie leaves the
     camera pose a frame stale.
@@ -194,7 +197,8 @@ Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` →
   `ArrowFlightMath.GravityFactor` ramps `Physics.gravity × gravityScale` (0.5) in over `gravityRampTime` (0.5 s) — at
   40 m/s ≈ 0 m drop at 10 m, 0.03 m at 20 m, 0.65 m at 40 m, 2.5 m at 60 m. Faces its velocity every frame; per-frame `SphereCastNonAlloc`
   along this frame's displacement (closest valid hit — results are unsorted).
-  `IDamageable` → `PlayerCombat.ResolveHit` (same `TryReceiveHit` / sneak rule as melee), destroyed. Solid collider →
+  `IDamageable` → the shooter's `onHit` callback (player: `PlayerCombat.ResolveHit`, same `TryReceiveHit` / sneak rule as
+  melee; NPC archers: `EntityArcher`, faction-filtered — `Scripts/AI/CLAUDE.md` → Ranged), destroyed. Solid collider →
   spawns `ammoItem.worldItemPrefab` kinematic at the impact pose (a normal pickup, not saved), **moved into the hit
   collider's scene** — `Instantiate` targets the active scene (Core), where a reload would leave a duplicate arrow. **Prefab frame: root = arrow
   tip, shaft along −Z** — `Projectile_Arrow` and `Item_Arrow` share it so the stuck arrow lines up.

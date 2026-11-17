@@ -12,6 +12,8 @@ namespace Game.AI
     /// action with <see cref="CombatTacticsRules.Decide"/> — Approach, Circle (strafe on a ring around the target, facing
     /// it), BackOff, or Attack (close in, holding an <see cref="AttackTokenRegistry"/> token). The brain keeps its states
     /// and only swings once <see cref="WantsAttackOn"/>. Inactive without a <see cref="CombatStyleSO"/> on the Entity SO.
+    /// With a bow in the loadout (spec-ai-ranged-combat-style) it also picks the weapon (<see cref="CombatTacticsRules.WantsRanged"/>
+    /// → <see cref="NpcArmament.SetRanged"/>) and, with the bow, keeps the preferred range and shoots (<see cref="EntityArcher"/>).
     /// </summary>
     public class EntityCombatTactics : MonoBehaviour
     {
@@ -25,6 +27,9 @@ namespace Game.AI
         private NavMeshAgent _agent;
         private EntityHealth _health;
         private EntityPotionDrinker _drinker; // optional: the Drink action (spec-potion-drink-animation)
+        private EntityArcher _archer;         // optional: the Shoot action (spec-ai-ranged-combat-style)
+        private NpcArmament _armament;        // optional: weapon switching for the ranged mode
+        private float _lastModeSwitchTime = float.NegativeInfinity;
         private FactionMember _target;
         private float _decisionTimer;
         private float _circleElapsed;
@@ -67,6 +72,8 @@ namespace Game.AI
             _agent = GetComponent<NavMeshAgent>();
             _health = GetComponent<EntityHealth>();
             _drinker = GetComponent<EntityPotionDrinker>();
+            _archer = GetComponent<EntityArcher>();
+            _armament = GetComponent<NpcArmament>();
             if (_persistentID == null) _persistentID = GetComponent<PersistentID>();
         }
 
@@ -97,6 +104,28 @@ namespace Game.AI
                 CurrentAction = CombatAction.Circle;
                 _decisionTimer = 0f;
                 if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
+            }
+
+            // Shooting (spec-ai-ranged-combat-style): stand still facing the target until the bow is lowered. A drink wish
+            // (checked at the decision interval) ends the aim — Drink outranks Shoot; the next decision drinks.
+            if (CurrentAction == CombatAction.Shoot)
+            {
+                if (_archer != null && _archer.IsShooting)
+                {
+                    _decisionTimer -= Time.deltaTime;
+                    if (_decisionTimer <= 0f)
+                    {
+                        _decisionTimer = style.decisionInterval;
+                        if (WantsDrinkNow(style)) _archer.End();
+                    }
+                    if (_archer.IsShooting)
+                    {
+                        HoldStill();
+                        FaceTarget();
+                        return;
+                    }
+                }
+                NotifyShotEnded(style);
             }
 
             if (_drinkPending) _drinkBackOffElapsed += Time.deltaTime;
@@ -143,11 +172,22 @@ namespace Game.AI
             _decisionTimer = 0f; // re-decide on the next tick
         }
 
+        // The shot is over (or was refused): token back, circle again.
+        private void NotifyShotEnded(CombatStyleSO style)
+        {
+            AttackTokenRegistry.Release(this);
+            StartCircling(style);
+            CurrentAction = CombatAction.Circle;
+            _decisionTimer = 0f;
+            if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
+        }
+
         /// <summary>Stops driving: releases the token and gives the agent its rotation back. Idempotent.</summary>
         public void End()
         {
             if (!IsActive) return; // tokens are only taken while active
             AttackTokenRegistry.Release(this);
+            if (_archer != null) _archer.End(); // a shot in progress is dropped (no arrow)
             ReleaseDrinkHold();
             IsActive = false;
             _target = null;
@@ -161,6 +201,7 @@ namespace Game.AI
         {
             AttackTokenRegistry.Release(this);
             if (_drinker != null) _drinker.Interrupt("retarget"); // a fresh fight never inherits a drink in progress
+            if (_archer != null) _archer.End(); // nor a shot at the old target
             ReleaseDrinkHold();
             _drinkPending = false;
             _drinkBackOffElapsed = 0f;
@@ -181,6 +222,8 @@ namespace Game.AI
         private void Decide(CombatStyleSO style, float distance, bool attackReady)
         {
             int capacity = TokenCapacity;
+            bool hasToken = AttackTokenRegistry.Holds(this, _target);
+            bool rangedMode = DecideWeaponMode(style, distance, hasToken);
             var input = new CombatTacticsInput
             {
                 Distance = distance,
@@ -191,10 +234,16 @@ namespace Game.AI
                 Aggression = style.aggression,
                 CircleElapsed = _circleElapsed,
                 CircleTime = _circleTime,
-                HasToken = AttackTokenRegistry.Holds(this, _target),
+                HasToken = hasToken,
                 TokenAvailable = AttackTokenRegistry.IsAvailable(_target, this, capacity),
                 AttackReady = attackReady,
+                RangedMode = rangedMode,
+                PreferredRange = style.preferredRange,
+                RangedBackOffDistance = style.rangedBackOffDistance,
             };
+            // The clear-shot sweep only when a shot could be taken.
+            input.ShotReady = rangedMode && _archer != null && (input.HasToken || input.TokenAvailable)
+                              && _archer.CanShootAt(_target);
             FillDrinkInput(ref input, style);
 
             CombatAction action = CombatTacticsRules.Decide(input, Random.value);
@@ -222,11 +271,59 @@ namespace Game.AI
                 else action = CombatAction.Circle;
             }
 
+            if (action == CombatAction.Shoot)
+            {
+                // Same token pool as melee swings: at most N threats on one target at once.
+                bool hasShotToken = input.HasToken || AttackTokenRegistry.TryTake(_target, this, capacity);
+                if (hasShotToken && _archer != null && _archer.BeginShot(_target))
+                {
+                    CurrentAction = CombatAction.Shoot;
+                    HoldStill();
+                    return;
+                }
+                AttackTokenRegistry.Release(this);
+                action = CombatAction.Circle;
+            }
+
             if (action == CombatAction.Circle && CurrentAction == CombatAction.Circle
                 && CombatTacticsRules.ShouldFlipDirection(Random.value, style.directionChangeChance))
                 _circleDirection = -_circleDirection;
 
             CurrentAction = action;
+        }
+
+        // Bow or melee (spec-ai-ranged-combat-style): requests the switch on NpcArmament; returns the requested mode, which
+        // drives the spacing even while the switch clips play. Never while holding a token (mid-attack / mid-shot).
+        private bool DecideWeaponMode(CombatStyleSO style, float distance, bool hasToken)
+        {
+            if (_armament == null || _archer == null) return false;
+            bool current = _armament.RangedRequested;
+            if (!CombatTacticsRules.ShouldDecideWeaponMode(hasToken, _armament.IsChangingWeapon)) return current;
+            var modeInput = new RangedModeInput
+            {
+                CanUseRanged = _archer.CanUseRangedAgainst(_target),
+                IsRanged = current,
+                Distance = distance,
+                MeleeSwitchDistance = style.meleeSwitchDistance,
+                RangedSwitchDistance = style.rangedSwitchDistance,
+                SinceLastSwitch = Time.time - _lastModeSwitchTime,
+                SwitchCooldown = style.weaponSwitchCooldown,
+            };
+            bool wanted = CombatTacticsRules.WantsRanged(modeInput);
+            if (wanted != current)
+            {
+                _armament.SetRanged(wanted);
+                _lastModeSwitchTime = Time.time;
+            }
+            return _armament.RangedRequested;
+        }
+
+        // The drink rule alone (mid-shot check).
+        private bool WantsDrinkNow(CombatStyleSO style)
+        {
+            var input = new CombatTacticsInput();
+            FillDrinkInput(ref input, style);
+            return CombatTacticsRules.WantsDrink(input);
         }
 
         private void FillDrinkInput(ref CombatTacticsInput input, CombatStyleSO style)
@@ -245,11 +342,11 @@ namespace Game.AI
             input.DrinkBackOffMaxTime = style.drinkBackOffMaxTime;
         }
 
-        // A drink held the agent stopped: give movement back when tactics end or restart mid-drink (the plain chase, Searching
-        // and patrol never clear isStopped themselves).
+        // A drink or a shot held the agent stopped: give movement back when tactics end or restart mid-action (the plain
+        // chase, Searching and patrol never clear isStopped themselves).
         private void ReleaseDrinkHold()
         {
-            if (CurrentAction != CombatAction.Drink) return;
+            if (CurrentAction != CombatAction.Drink && CurrentAction != CombatAction.Shoot) return;
             CurrentAction = CombatAction.Circle;
             if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
         }
@@ -265,11 +362,14 @@ namespace Game.AI
 
         private void ApplyMovement(CombatStyleSO style)
         {
-            if (CurrentAction == CombatAction.Drink) return; // held still by HoldStill
+            if (CurrentAction == CombatAction.Drink || CurrentAction == CombatAction.Shoot) return; // held still by HoldStill
             if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
             Entity entity = _persistentID.Entity;
             Vector3 targetPos = _target.Transform.position;
-            float ring = CombatTacticsRules.RingRadius(entity.AttackRange, style.ringMargin);
+            // Bow requested: the ring is the preferred range (spec-ai-ranged-combat-style).
+            float ring = _armament != null && _armament.RangedRequested
+                ? style.preferredRange
+                : CombatTacticsRules.RingRadius(entity.AttackRange, style.ringMargin);
             _agent.isStopped = false;
 
             switch (CurrentAction)
@@ -347,12 +447,16 @@ namespace Game.AI
             return false;
         }
 
+        // Faces the target; side-on (+ the archer stance yaw) while a bow is raised — BowAimCorrection turns the spine the rest.
         private void FaceTarget()
         {
             Vector3 dir = _target.Transform.position - transform.position;
             dir.y = 0f;
             if (dir.sqrMagnitude < 0.0001f) return;
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(dir),
+            Quaternion facing = Quaternion.LookRotation(dir);
+            if (_archer != null && _archer.IsAiming && _health != null && _health.CombatConfig != null)
+                facing *= Quaternion.Euler(0f, _health.CombatConfig.npcAimStanceYaw, 0f);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, facing,
                 _persistentID.Entity.WarningTurnSpeed * Time.deltaTime);
         }
     }

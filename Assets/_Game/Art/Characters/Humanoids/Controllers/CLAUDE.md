@@ -53,13 +53,15 @@ maps them to `draw sword` / `sheath sword`; `Bow_AnimatorOverride`
 (→ `Archetype_Bow`) maps them to `Draw Bow` / `Sheathe Bow`; `TwoHanded_AnimatorOverride` to the baked `2hand draw` /
 `2hand sheath` `.anim` (two-part vendor draws are merged, never given a second state — `../Animations/Combat/CLAUDE.md`). NPCs never set the triggers.
 
-### Bow aim states (UpperBody layer, player only)
+### Bow aim states (UpperBody layer — player and NPC archers)
 
 `CombatIdle → BowDrawArrow_State` (`Draw arrow`, IsAiming, 0.15 s) `→ BowAim_State` (`Aim Overdraw`, looping, exit 0.9)
 `→ BowFire_State` (`Fire arrow`, BowFire trigger) `→ BowDrawArrow_State` (exit 0.85, IsAiming). Each of the three states
 also has `→ CombatIdle` (IsAiming false, 0.15 s), listed **first**. `BowAim_State` carries `SMB_BowAimState`: its enter =
-arrow nocked. The bow clips sit directly in the base controller (not in an override): only a bow sets `IsAiming`, and NPCs
-never do. A dodge / jump / fall plays full-body (weight 0) and `PlayerCombat` clears `IsAiming`, which returns the aim states to `CombatIdle`.
+arrow nocked (the Animator GO's `IBowNockListener`). The bow clips sit directly in the base controller (not in an override):
+only a bow sets `IsAiming` — the player, and NPC archers through `AIAnimationDriver.SetAiming` / `TriggerBowFire`
+(`EntityArcher`, spec-ai-ranged-combat-style). Because the IsAiming-false exit is listed first, `IsAiming` must stay true for a
+moment after `BowFire` or the release clip never plays (`CombatConfigSO.npcBowReleaseHold`). A dodge / jump / fall plays full-body (weight 0) and `PlayerCombat` clears `IsAiming`, which returns the aim states to `CombatIdle`.
 
 ### Swim state (Base Layer, player only)
 

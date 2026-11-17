@@ -9,7 +9,7 @@ namespace Game.Combat
     /// Story 7.10: combo window events.
     /// Story 7.11: hitbox enable/disable events.
     /// </summary>
-    public class AnimationEventReceiver : MonoBehaviour
+    public class AnimationEventReceiver : MonoBehaviour, IBowNockListener
     {
         private const string TAG = "[AnimationEventReceiver]";
 

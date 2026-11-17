@@ -900,8 +900,7 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   accepts `PlayerHealth` → add an NPC path (`EntityHealth.Heal`). Tactic: back off, then drink below a profile health
   threshold. Give each of the six `Faction_Company` guards (CompanyGuard_ArrivalLeft / Right, DockGuard, WarehouseGuard,
   Harl, Warden) one `Item_Health_Potion`; an undrunk potion stays lootable.
-- **Ranged style.** Bow at range, sword in melee (`NpcArmament` weapon switch, `ArrowProjectile` shooter-owned hits); the
-  ranged option scores only with a bow in the loadout; preferred range from the wielded weapon.
+- ~~**Ranged style.**~~ Done — spec-ai-ranged-combat-style (2026-11-17): the bandit (Hunting Bow + Axe, 12 arrows).
 - **Ideas noted:** punish the player's whiffed recovery; delayed swings / feints against rhythm parries; skill-scaled weights.
 
 ### Review follow-ups (spec-ai-combat-tactics-foundation, 2026-11-17)
@@ -921,6 +920,22 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 - **Guard token hold (review):** an NPC in Attacking with a token waits while its guard is up (`HandleAttack` doesn't tick
   tactics, so `attackCommitTimeout` doesn't run). Fine at block 0.4 / 0.25 (failed reads lower the guard); revisit if a
   high-`blockChance` style starves other attackers.
+
+### From spec-ai-ranged-combat-style (2026-11-17)
+
+- **Guard vs arrows (still open):** `EntityGuard.ResolveHit` can't tell an arrow from a swing; a raised guard blocks a point-blank
+  arrow in its front arc. With NPC archers shooting other NPCs it can matter (guards fighting the bandit) — add a projectile flag
+  to `TryReceiveHit` if it shows.
+- **Weapon after a fight:** an archer keeps the weapon it held when combat ended — the next fight can start by drawing the bow,
+  then switching to the axe (two clips) if the target is close. Consider reverting to the melee weapon on combat exit.
+- **Player block vs arrows (review):** `PlayerCombat.TryReceiveHit` has no front-arc / range check, so a raised block absorbs
+  NPC arrows from any direction (also from behind), and a perfect block can open on an arrow. Pre-existing for melee; NPC
+  archers make it reachable. Add an arc check (or a projectile path) to the player's block.
+- **Archers on bumpy terrain:** a small rise between archer and target cuts perception LOS; the brain falls back to the
+  last-seen chase and walks in (seen in StartingTown around the bandit's patrol). An archer could hold its ring / reposition
+  sideways instead of closing in while sight is briefly lost.
+- **No player-side arrow tell other than the animation:** no sound on the NPC draw / release; add bow SFX cues for readability.
+- **Archers vs monsters / NPCs:** ranged fire works against any faction-hostile target, but only the player was play-tested.
 
 ### From spec-potion-drink-animation (2026-11-17)
 
