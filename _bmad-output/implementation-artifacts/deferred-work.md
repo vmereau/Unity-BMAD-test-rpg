@@ -895,7 +895,7 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   delay, with a block chance; front-facing check; set `IsBlocking` (`HumanoidAnimationBridge.SetBlocking`, `Block_State`
   already in `Humanoid_Template`). Stance is the guard budget: blocked hits drain stance, guard break → stagger. Profile
   perfect-block chance. Company guards: **competent but beatable** (~30–40 % blocks, rare perfect blocks, clear openings).
-- **Potion use + drink animation (player and humanoid NPCs).** Use `Art/Characters/Humanoids/Animations/drink potion.fbx`
+- ~~**Potion use + drink animation (player and humanoid NPCs).**~~ Done — spec-potion-drink-animation (2026-11-17). Original note: Use `Art/Characters/Humanoids/Animations/drink potion.fbx`
   (imported by the user, untracked as of 2026-11-17) for the player's potion use **and** NPCs. `PotionItemSO.OnUse` only
   accepts `PlayerHealth` → add an NPC path (`EntityHealth.Heal`). Tactic: back off, then drink below a profile health
   threshold. Give each of the six `Faction_Company` guards (CompanyGuard_ArrivalLeft / Right, DockGuard, WarehouseGuard,
@@ -921,3 +921,20 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 - **Guard token hold (review):** an NPC in Attacking with a token waits while its guard is up (`HandleAttack` doesn't tick
   tactics, so `attackCommitTimeout` doesn't run). Fine at block 0.4 / 0.25 (failed reads lower the guard); revisit if a
   high-`blockChance` style starves other attackers.
+
+### From spec-potion-drink-animation (2026-11-17)
+
+- **Potion prop in hand:** the drink clip uses the left hand with nothing in it (a drawn sword stays in the right hand). Add a
+  potion visual on a left-hand socket, shown for the drink only.
+- **NPCs drinking outside combat:** a hurt NPC never drinks after a fight (the brain ends any drink outside Engaging /
+  Attacking). A post-fight "patch up" behaviour would need its own trigger.
+- **Brawl sight flicker:** in a scripted brawl (`StartBrawl` on the non-hostile player) the tactics drop to the plain
+  last-seen chase for short spells (`chaseLastSeen`, seen as `Engaging` without a tactic in `DebugStateName`). A drink now
+  survives it; check whether perception of a non-hostile brawl target loses sight too easily.
+- **Bandit:** has drink values (threshold 0.25) but no potion by design — give it one if fights feel too short.
+- **Clip / timer drift on a controller swap (review):** equipping a weapon from the open inventory mid-drink (player) or an
+  `NpcArmament` swap restarts `Drink_State` from frame 0 (parameters reset, `IsDrinking` re-pushed) while `DrinkTimeline`
+  keeps running — the heal can land before the bottle reaches the mouth. Interrupt or re-sync on `OnVisualsRefreshed` if it
+  shows in play.
+- **Save mid-drink is blocked (review):** `PlayerPotionDrinker` holds `SaveSystem.BlockSaving` for the drink (≈ 2.5 s); an
+  autosave that lands then is refused. Revisit if autosaves start failing visibly.

@@ -20,7 +20,7 @@ namespace Tests.EditMode
         private static readonly HashSet<string> UpperBodyStates = new()
         {
             "LockOn Locomotion", "CombatIdle", "Block_State", "Draw_State", "Sheathe_State",
-            "BowDrawArrow_State", "BowAim_State", "BowFire_State",
+            "BowDrawArrow_State", "BowAim_State", "BowFire_State", "Drink_State",
         };
 
         // Base states without a clip on purpose: Death / Dead (ragdoll), GetHit (no clip yet).

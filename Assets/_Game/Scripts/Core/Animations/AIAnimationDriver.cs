@@ -31,6 +31,8 @@ namespace Game.Animations
         public virtual void SetUnconscious(bool down) { }
         /// <summary>Guard up / down (<c>IsBlocking</c>, spec-ai-npc-blocking). Default: no block animation (monsters).</summary>
         public virtual void SetBlocking(bool blocking) { }
+        /// <summary>Potion drink on / off (<c>IsDrinking</c>, spec-potion-drink-animation). Default: no clip (monsters).</summary>
+        public virtual void SetDrinking(bool drinking) { }
         /// <summary>Picks something up from the ground (knockout loot). Only humanoids have the clip; default no-op.</summary>
         public virtual void TriggerPickUp() { }
 

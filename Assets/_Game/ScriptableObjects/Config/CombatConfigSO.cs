@@ -90,6 +90,13 @@ namespace Game.Combat
         [Tooltip("Seconds still incapacitated after the get-up starts (match the 'getting up' clip length).")]
         [Min(0f)] public float getUpDuration = 2.7f;
 
+        [Header("Potion drinking (player and NPCs — spec-potion-drink-animation)")]
+        [Tooltip("Seconds after the drink starts when the heal lands (the sip). Measured on 'drink potion' (frames 57–177) " +
+                 "at Drink_State speed 1.5 — re-measure if the trim or the state speed changes.")]
+        [Min(0f)] public float drinkHealTime = 1.55f;
+        [Tooltip("Seconds the drink lasts (arm lowered). Keep ≥ drinkHealTime; same measurement as drinkHealTime.")]
+        [Min(0.1f)] public float drinkDuration = 2.5f;
+
         [Header("Knockout loot (the NPC that knocked the player out takes gold)")]
         [Tooltip("Gold taken on top of the fraction (all of it when the player has less).")]
         [Min(0)] public int knockoutLootBaseGold = 15;

@@ -24,12 +24,15 @@ namespace Game.AI
 
         private NavMeshAgent _agent;
         private EntityHealth _health;
+        private EntityPotionDrinker _drinker; // optional: the Drink action (spec-potion-drink-animation)
         private FactionMember _target;
         private float _decisionTimer;
         private float _circleElapsed;
         private float _circleTime;
         private float _attackElapsed; // seconds going for the current attack (token held) without swinging
         private int _circleDirection = 1;
+        private bool _drinkPending;          // backing off to drink
+        private float _drinkBackOffElapsed;  // seconds backed off for the pending drink
         private bool _warnedNoConfig;
 
         /// <summary>Usable: enabled, with an agent and a combat style on the Entity SO.</summary>
@@ -63,6 +66,7 @@ namespace Game.AI
         {
             _agent = GetComponent<NavMeshAgent>();
             _health = GetComponent<EntityHealth>();
+            _drinker = GetComponent<EntityPotionDrinker>();
             if (_persistentID == null) _persistentID = GetComponent<PersistentID>();
         }
 
@@ -79,6 +83,23 @@ namespace Game.AI
             if (style == null || _agent == null || target == null) return;
 
             if (!IsActive || target != _target) Begin(target, style);
+
+            // Drinking (spec-potion-drink-animation): stand still facing the target until the drink ends or is interrupted.
+            if (CurrentAction == CombatAction.Drink)
+            {
+                if (_drinker != null && _drinker.IsDrinking)
+                {
+                    HoldStill();
+                    FaceTarget();
+                    return;
+                }
+                StartCircling(style);
+                CurrentAction = CombatAction.Circle;
+                _decisionTimer = 0f;
+                if (_agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
+            }
+
+            if (_drinkPending) _drinkBackOffElapsed += Time.deltaTime;
 
             // Circle time counts only while actually on the ring (a long run-in doesn't skip the circling).
             if (CurrentAction == CombatAction.Circle || CurrentAction == CombatAction.BackOff) _circleElapsed += Time.deltaTime;
@@ -127,8 +148,11 @@ namespace Game.AI
         {
             if (!IsActive) return; // tokens are only taken while active
             AttackTokenRegistry.Release(this);
+            ReleaseDrinkHold();
             IsActive = false;
             _target = null;
+            _drinkPending = false;
+            _drinkBackOffElapsed = 0f;
             CurrentAction = CombatAction.Approach;
             if (_agent != null) _agent.updateRotation = true;
         }
@@ -136,6 +160,10 @@ namespace Game.AI
         private void Begin(FactionMember target, CombatStyleSO style)
         {
             AttackTokenRegistry.Release(this);
+            if (_drinker != null) _drinker.Interrupt("retarget"); // a fresh fight never inherits a drink in progress
+            ReleaseDrinkHold();
+            _drinkPending = false;
+            _drinkBackOffElapsed = 0f;
             _target = target;
             IsActive = true;
             CurrentAction = CombatAction.Approach;
@@ -167,8 +195,27 @@ namespace Game.AI
                 TokenAvailable = AttackTokenRegistry.IsAvailable(_target, this, capacity),
                 AttackReady = attackReady,
             };
+            FillDrinkInput(ref input, style);
 
             CombatAction action = CombatTacticsRules.Decide(input, Random.value);
+            bool wantsDrink = CombatTacticsRules.WantsDrink(input);
+            if (!wantsDrink) _drinkBackOffElapsed = 0f;
+            _drinkPending = wantsDrink && action == CombatAction.BackOff;
+            if (wantsDrink && input.HasToken) AttackTokenRegistry.Release(this); // drinking outranks the held attack
+
+            if (action == CombatAction.Drink)
+            {
+                _drinkPending = false;
+                _drinkBackOffElapsed = 0f;
+                if (_drinker != null && _drinker.TryBegin())
+                {
+                    CurrentAction = CombatAction.Drink;
+                    HoldStill();
+                    return;
+                }
+                action = CombatAction.Circle; // potion gone between the check and the start
+            }
+
             if (action == CombatAction.Attack && !input.HasToken)
             {
                 if (AttackTokenRegistry.TryTake(_target, this, capacity)) _attackElapsed = 0f;
@@ -182,8 +229,43 @@ namespace Game.AI
             CurrentAction = action;
         }
 
+        private void FillDrinkInput(ref CombatTacticsInput input, CombatStyleSO style)
+        {
+            if (_drinker == null || _health == null || _health.MaxHealth <= 0f) return; // DrinkThreshold 0 → never
+            input.HealthFraction = _health.CurrentHealth / _health.MaxHealth;
+            input.DrinkThreshold = style.drinkHealthThreshold;
+            // Inventory scanned only when low enough to want it (and never without a config — TryBegin would always refuse).
+            input.HasPotion = style.drinkHealthThreshold > 0f && input.HealthFraction <= style.drinkHealthThreshold
+                              && _drinker.CanDrinkAtAll && _drinker.HasPotion;
+            input.DrinksUsed = _drinker.DrinksUsed;
+            input.MaxDrinks = style.maxDrinksPerFight;
+            input.DrinkCooldownLeft = _drinker.CooldownLeft;
+            input.DrinkSafeDistance = style.drinkSafeDistance;
+            input.DrinkBackOffElapsed = _drinkBackOffElapsed;
+            input.DrinkBackOffMaxTime = style.drinkBackOffMaxTime;
+        }
+
+        // A drink held the agent stopped: give movement back when tactics end or restart mid-drink (the plain chase, Searching
+        // and patrol never clear isStopped themselves).
+        private void ReleaseDrinkHold()
+        {
+            if (CurrentAction != CombatAction.Drink) return;
+            CurrentAction = CombatAction.Circle;
+            if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
+        }
+
+        // Drinking: the agent stops where it stands (no stale back-off path), facing handled by FaceTarget.
+        private void HoldStill()
+        {
+            _agent.updateRotation = false;
+            if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
+            if (_agent.hasPath) _agent.ResetPath();
+            _agent.isStopped = true;
+        }
+
         private void ApplyMovement(CombatStyleSO style)
         {
+            if (CurrentAction == CombatAction.Drink) return; // held still by HoldStill
             if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
             Entity entity = _persistentID.Entity;
             Vector3 targetPos = _target.Transform.position;
@@ -210,7 +292,9 @@ namespace Game.AI
                     _agent.updateRotation = false;
                     _agent.speed = style.backOffSpeed;
                     _agent.stoppingDistance = 0f;
-                    if (TrySample(style, targetPos + Away(targetPos) * ring, out Vector3 back)) _agent.SetDestination(back);
+                    // Backing off to drink: out past the safe distance, not just to the ring.
+                    float backDistance = _drinkPending ? Mathf.Max(ring, style.drinkSafeDistance + style.drinkBackOffMargin) : ring;
+                    if (TrySample(style, targetPos + Away(targetPos) * backDistance, out Vector3 back)) _agent.SetDestination(back);
                     else _agent.ResetPath(); // no room behind (wall / mesh edge): hold position, never keep a stale chase path
                     break;
 

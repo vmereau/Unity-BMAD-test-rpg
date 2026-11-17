@@ -36,7 +36,8 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
-  `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only).
+  `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
+  `IsDrinking` (bool, player + NPCs).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -143,6 +144,12 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   (5 s; lowest point / grab at 1.75 s), root rotation / Y / XZ baked into pose. Timings mirrored in `CombatConfigSO`
   `knockoutLootGrabTime` / `knockoutLootClipDuration` — re-measure both if the trim changes. Written only through
   `HumanoidAnimationBridge.PlayPickUp()` (NPC knockout loot; the player doesn't use it yet).
+- **Drink** (spec-potion-drink-animation, player + NPCs): **UpperBody** `Drink_State` (tag `UpperBodyAction`, speed 1.5),
+  AnyState → it on `IsDrinking` (0.2 s, no self-transition); exit on `IsDrinking == false` → `LockOn Locomotion` /
+  `CombatIdle` by `IsInCombat` (0.25 s, like `Block_State`). Legs keep walking. Clip `Animations/drink potion.fbx` trimmed to
+  frames 57–177 (4 s, **left hand** drinks — the sword hand stays free), root rotation / Y / XZ baked. Timings mirrored in
+  `CombatConfigSO` `drinkHealTime` 1.55 s (head tilted back) / `drinkDuration` 2.5 s (arm lowered) at speed 1.5 —
+  re-measure both if the trim or the state speed changes. Written only through `HumanoidAnimationBridge.SetDrinking`.
 - **Execute** (spec-execute-unconscious-npc, player only): AnyState → `Execute` on `IsExecuting` (0.15 s, no self-transition),
   listed after `Swim Locomotion`, just before AnyState → `Attack_1`; `Execute → LockOn Locomotion` on `IsExecuting == false`,
   no exit time, 0.2 s (cancel and normal end — `PlayerExecution` clears the bool at the `ExecuteEnd` event). Clip

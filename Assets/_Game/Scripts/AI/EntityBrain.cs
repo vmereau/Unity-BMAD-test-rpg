@@ -104,6 +104,11 @@ namespace Game.AI
             if (!inCombat) EndTrespassFight();
             if (IsInCombat == inCombat) return;
             IsInCombat = inCombat;
+            if (!inCombat && _drinker != null)
+            {
+                _drinker.Interrupt("left the fight"); // before the reset, or the drink's cooldown leaks into the next fight
+                _drinker.ResetFight(); // drinks per fight start over next fight
+            }
             _animationDriver?.SetInCombat(inCombat);
             if (_armament != null) _armament.OnCombatStateChanged(inCombat); // draw / sheathe, fists request ends with the fight
         }
@@ -156,6 +161,7 @@ namespace Game.AI
         private EntityCombatTactics _tactics; // same-GO, optional: circling / attack tokens when the Entity has a CombatStyle
         private bool _tacticsSwingStarted; // tactics: the swing of this Attacking visit was triggered
         private EntityGuard _guard; // same-GO, optional: reactive blocking while tactics drive the fight (spec-ai-npc-blocking)
+        private EntityPotionDrinker _drinker; // same-GO, optional: tactical potion drinking (spec-potion-drink-animation)
         private FactionMember _lootVictim;
         private bool _lootArrived;
         private bool _lootResolved; // grab done — the clip just plays out
@@ -336,6 +342,7 @@ namespace Game.AI
             _armament = GetComponent<NpcArmament>(); // optional — no armament = unarmed humanoid / monster
             _tactics = GetComponent<EntityCombatTactics>(); // optional — none (or no CombatStyle) = plain chase-and-swing
             _guard = GetComponent<EntityGuard>(); // optional — none (or blockChance 0) = never blocks
+            _drinker = GetComponent<EntityPotionDrinker>(); // optional — none (or drinkHealthThreshold 0) = never drinks
             _presence = GetComponent<NPCPresence>(); // optional — no presence = scold line only (no give-back choice)
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
@@ -720,7 +727,10 @@ namespace Game.AI
             bool chaseLastSeen = IsTrackingPerceptionTarget() && !_perception.CanSeeTarget && _perception.HasLastSeenPosition;
 
             bool tacticalTarget = UsesTactics && !IsPassiveTarget(_currentTarget);
-            if (tacticalTarget && !chaseLastSeen)
+            // A drink in progress finishes even if the target slips out of sight (spec-potion-drink-animation): handing
+            // back to the plain chase would end tactics and waste the potion. A long loss still ends in Searching.
+            bool drinking = _drinker != null && _drinker.IsDrinking;
+            if (tacticalTarget && (!chaseLastSeen || drinking))
             {
                 // Tactics (spec-ai-combat-tactics-foundation): circle / approach / back off; swing only with a token.
                 // Same 3D distance as the brain's range checks (a flat one never matches on slopes / stairs).
@@ -768,7 +778,8 @@ namespace Game.AI
             _attackCooldownTimer <= 0f
             && (_armament == null || !_armament.IsSwitchingWeapon)
             && (_meleeAttacker == null || !_meleeAttacker.IsInAttackState)
-            && (_guard == null || !_guard.IsRaised); // IsBlocking would cancel the swing (block-cancel transition)
+            && (_guard == null || !_guard.IsRaised) // IsBlocking would cancel the swing (block-cancel transition)
+            && (_drinker == null || !_drinker.IsDrinking); // drinking: no swing (the opening)
 
         // Tactics drive this fight and hold an attack token on the current target (not a stale one from before a retarget).
         private bool HoldsAttackToken() => UsesTactics && _tactics.WantsAttackOn(_currentTarget);
@@ -788,6 +799,7 @@ namespace Game.AI
             _tacticsSwingStarted = false;
             if (_tactics != null) _tactics.End();
             if (_guard != null) _guard.End();
+            if (_drinker != null) _drinker.Interrupt("left the fight"); // stagger, knockout, death, disengage...
         }
 
         private void HandleAttack()

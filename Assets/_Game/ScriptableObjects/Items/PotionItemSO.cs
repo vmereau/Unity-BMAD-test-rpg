@@ -72,12 +72,46 @@ namespace Game.Inventory
             }
         }
 
+        /// <summary>
+        /// Played with the drink clip (spec-potion-drink-animation): real potions only. Meals and raw food (kind Potion but
+        /// flagged <see cref="ItemSO.isIngredient"/> — apple, bread, trout, healing plant) stay instant.
+        /// </summary>
+        public bool IsDrunk => _kind == ConsumableKind.Potion && !isIngredient;
+
+        /// <summary>
+        /// A potion used by a <see cref="IPotionDrinker"/> (the player) starts a drink: true = started (the caller consumes
+        /// the item now), the heal lands at the sip through <see cref="ApplyHeal(GameObject)"/>. Anything else heals now.
+        /// </summary>
         public override bool OnUse(GameObject user)
+        {
+            if (user == null) return false;
+            if (IsDrunk && user.TryGetComponent(out IPotionDrinker drinker)) return drinker.TryBeginDrink(this);
+            return ApplyHeal(user);
+        }
+
+        /// <summary>
+        /// Heals an NPC (spec-potion-drink-animation): the full amount at once — NPCs have no <see cref="StatusEffectHost"/>,
+        /// so a heal-over-time item is collapsed to an instant heal. No first-meal bonus. False when dead or invalid.
+        /// </summary>
+        public bool ApplyHeal(Game.AI.EntityHealth health)
+        {
+            if (health == null || health.IsDead || health.IsUnconscious) return false;
+            if (!(_healAmount >= 0f))
+            {
+                GameLog.Warn(TAG, $"PotionItemSO.ApplyHeal: {name} has an invalid heal amount ({_healAmount})");
+                return false;
+            }
+            health.Heal(_healAmount);
+            return true;
+        }
+
+        /// <summary>Heals the player now (instant, or over time for food) and grants a first-meal bonus. Story 4.10 behavior.</summary>
+        public bool ApplyHeal(GameObject user)
         {
             var health = user.GetComponent<PlayerHealth>();
             if (health == null)
             {
-                GameLog.Warn(TAG, $"PotionItemSO.OnUse: no PlayerHealth on {user.name}");
+                GameLog.Warn(TAG, $"PotionItemSO.ApplyHeal: no PlayerHealth on {user.name}");
                 return false;
             }
 

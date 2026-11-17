@@ -67,6 +67,20 @@ namespace Game.AI
         [Tooltip("Stance damage of a blocked hit = the hit's stance × this (the guard budget).")]
         [Min(0f)] public float guardStanceMultiplier = 0.7f;
 
+        [Header("Potions (spec-potion-drink-animation)")]
+        [Tooltip("Health fraction at or below which the entity backs off and drinks a potion it carries. 0 = never drinks.")]
+        [Range(0f, 1f)] public float drinkHealthThreshold = 0f;
+        [Tooltip("Potions drunk at most per fight (reset when the entity leaves combat).")]
+        [Min(0)] public int maxDrinksPerFight = 1;
+        [Tooltip("Seconds after a drink (finished or interrupted) before the next one may start.")]
+        [Min(0f)] public float drinkCooldown = 10f;
+        [Tooltip("Distance (m) from the target at which a backing-off entity starts drinking.")]
+        [Min(0f)] public float drinkSafeDistance = 4.5f;
+        [Tooltip("Backing off to drink aims this far (m) past drinkSafeDistance, so the agent actually crosses it.")]
+        [Min(0f)] public float drinkBackOffMargin = 0.5f;
+        [Tooltip("Seconds backing off before drinking anyway (cornered, or the target follows).")]
+        [Min(0f)] public float drinkBackOffMaxTime = 2.5f;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {

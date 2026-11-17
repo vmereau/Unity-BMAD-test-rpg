@@ -14342,6 +14342,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: CompanyGuard_ArrivalRight
@@ -140599,6 +140611,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: RacketGuard
@@ -303716,6 +303740,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: WarehouseGuard
@@ -356488,6 +356524,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: CompanyGuard_ArrivalLeft
@@ -441417,6 +441465,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: DockGuard
@@ -616371,6 +616431,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    - target: {fileID: 76150843049530146, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+      propertyPath: _startingItems.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: m_Name
       value: Warden

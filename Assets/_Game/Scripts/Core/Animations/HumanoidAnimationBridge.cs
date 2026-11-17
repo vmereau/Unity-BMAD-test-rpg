@@ -37,6 +37,7 @@ namespace Game.Animations
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
         private static readonly int IsSwimmingHash = Animator.StringToHash("IsSwimming");
         private static readonly int IsExecutingHash = Animator.StringToHash("IsExecuting");
+        private static readonly int IsDrinkingHash = Animator.StringToHash("IsDrinking");
         private static readonly int AttackCancelHash = Animator.StringToHash("AttackCancel");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
@@ -110,6 +111,8 @@ namespace Game.Animations
 
         /// <summary>Execute stomp (player only, spec-execute-unconscious-npc): true enters <c>Execute</c>, false blends out.</summary>
         public void SetExecuting(bool value) => _animator?.SetBool(IsExecutingHash, value);
+        /// <summary>Potion drink (UpperBody <c>Drink_State</c>, spec-potion-drink-animation). Re-push every frame.</summary>
+        public void SetDrinking(bool value) => _animator?.SetBool(IsDrinkingHash, value);
 
         /// <summary>
         /// Attack recovery cancel (player only, spec-attack-recovery-cancel): true lets an attack state leave early —

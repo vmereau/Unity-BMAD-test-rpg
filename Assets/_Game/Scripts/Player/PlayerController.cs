@@ -211,8 +211,9 @@ namespace Game.Player
                 }
             }
 
-            // No sprint while aiming the bow (walk speed max; sneak speed still applies)
-            bool isSprinting = _input.Player.Sprint.IsPressed() && (_stateManager == null || !_stateManager.IsAiming);
+            // No sprint while aiming the bow or drinking a potion (walk speed max; sneak speed still applies)
+            bool isSprinting = _input.Player.Sprint.IsPressed()
+                               && (_stateManager == null || (!_stateManager.IsAiming && !_stateManager.IsDrinking));
             // Sneak overrides both; PlayerSneak ends sneak as soon as Sprint is held while moving.
             float currentSpeed;
             if (IsSwimming)

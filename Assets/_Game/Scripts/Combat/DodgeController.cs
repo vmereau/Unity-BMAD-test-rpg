@@ -125,6 +125,7 @@ namespace Game.Combat
         {
             if (_stateManager.IsIncapacitated || _stateManager.IsExecuting) return; // staggered / knocked down / stomping
             if (_stateManager.IsSwimming) return;
+            if (_stateManager.IsDrinking) return; // committed to the potion (spec-potion-drink-animation)
 
             if (_stateManager.IsAirborne)
             {

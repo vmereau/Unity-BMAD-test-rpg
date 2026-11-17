@@ -31,6 +31,7 @@
 | `SMB_DeathState` | On the death animator state. |
 | `EntityCombatTactics` + `CombatTacticsRules` + `AttackTokenRegistry` | Combat tactics (circling, attack tokens) — see **Combat tactics** below. Rules / tokens pure + tested (`CombatTacticsRulesTests`, `AttackTokenRegistryTests`). Profile: `CombatStyleSO` (`ScriptableObjects/Entities/`). |
 | `EntityGuard` + `CombatBlockRules` / `GuardPlan` | NPC blocking — see **Blocking** below. Rules pure + tested (`CombatBlockRulesTests`). |
+| `EntityPotionDrinker` | Tactical potion drinking — see **Potions** below. Decision in `CombatTacticsRules` (`CombatTacticsDrinkTests`), timing in `Game.Combat.DrinkTimeline` (`DrinkTimelineTests`). |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, TargetRegistry.Player.Faction)`, read live; no player → not hostile) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
@@ -317,7 +318,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **Tokens:** `AttackTokenRegistry` (static, keyed by the target `FactionMember`, reset on `SubsystemRegistration`), capacity
   `CombatConfigSO.maxAttackersPerTarget` (2; no config → uncapped, one warning). One token per holder.
 - `DebugStateName` shows `Engaging/Circle`, `Attacking/Attack`… (cached strings) while tactics drive.
-- Roadmap (potion use with the drink clip, ranged style): `deferred-work.md` → spec-ai-combat-tactics-foundation.
+- Roadmap (ranged style): `deferred-work.md` → spec-ai-combat-tactics-foundation. Potions: **Potions** below.
 
 ---
 
@@ -340,7 +341,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   is read. The threat must be a live, enabled component (a disabled `PlayerCombat` keeps stale flags). A raised guard is
   re-sent to the animator every tick — an `NpcArmament` controller swap resets every parameter.
 - **Can't guard** (drops at once; a step that started meanwhile is never read): own `IsInSwing`, staggered / knocked down,
-  dead / unconscious, `IsSwitchingWeapon`, or **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold).
+  dead / unconscious, `IsSwitchingWeapon`, drinking a potion, or **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold).
 - **Hit:** `EntityHealth.TryReceiveHit` → `EntityGuard.ResolveHit(attacker)`: raised + attacker in the front arc **and within
   `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance`; else `NotBlocked`. Any attacker in reach is
   blocked, not only the read target. Arrows share the check: a point-blank shot into a raised guard is blocked, a distant
@@ -353,6 +354,29 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   floored-hit rule would let a broken guard absorb blocked hits for free.
 - **Parry:** NPC attacker → its own `Entity.PerfectBlockStanceDamage` (existing); player attacker →
   `PlayerStance.ApplyParriedStanceDamage(CombatConfigSO.parriedStanceDamage)` (60, no knockdown, skips attack resistance).
+
+---
+
+## Potions (EntityPotionDrinker — spec-potion-drink-animation)
+
+- **Opt-in by data:** `CombatStyleSO` "Potions" (`drinkHealthThreshold` 0 = never; guard 0.35, bandit 0.25 but no potion) +
+  `EntityPotionDrinker` on the root (`NPC_base Variant`) + a drinkable `PotionItemSO` (`IsDrunk`: kind `Potion`, not an ingredient) in the NPC `InventorySystem`
+  (the six Company guards: one `Item_Health_Potion` each, scene `_startingItems` overrides in StartingTown). Meals / raw
+  food are never drunk.
+- **Decision** (`CombatTacticsRules.WantsDrink`, checked **first**, before the held-token rule — the token is given back):
+  health ≤ threshold, has a potion, `DrinksUsed < maxDrinksPerFight`, off `drinkCooldown` → `BackOff` (destination past
+  `drinkSafeDistance` + 0.5 m, not the ring) until distance ≥ `drinkSafeDistance` **or** `drinkBackOffMaxTime` backing off
+  (cornered) → `CombatAction.Drink` (appended to the enum — `DebugStateName` arrays are built from it: `Engaging/Drink`).
+- **Drink:** `TryBegin` takes the potion out of the inventory (**consumed at start**), `AIAnimationDriver.SetDrinking`
+  (`IsDrinking`, re-sent every frame — controller swaps), heal at `CombatConfigSO.drinkHealTime` via
+  `PotionItemSO.ApplyHeal(EntityHealth)` (instant, HoT collapsed, no meal bonus), done at `drinkDuration`. Tactics hold the
+  agent still and face the target until it ends, then circle. No swing (`IsAttackReady`), no guard (`EntityGuard.CanGuard`).
+- **Interrupt** (potion lost before the sip): `HealthChanged` decrease (a landed hit), `EndTactics` (the single release
+  point — stagger, knockout, death, disengage, Searching), tactics retarget, disable. A drink in progress keeps tactics
+  ticking through a brief loss of sight (`HandleEngage` skips the last-seen chase while `IsDrinking`).
+- `DrinksUsed` / cooldown reset in `SetCombatState(false)` (`ResetFight`) and `OnEnable`. An undrunk potion stays loot.
+- **Outside combat the brain ends it at once** (`EndTactics` every frame outside Engaging / Attacking) — a direct
+  `TryBegin` test needs a running fight (`StartBrawl`).
 
 ---
 

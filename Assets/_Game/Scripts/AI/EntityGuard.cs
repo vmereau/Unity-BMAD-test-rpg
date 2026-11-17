@@ -26,6 +26,7 @@ namespace Game.AI
         private EntityStance _stance;
         private EntityMeleeAttacker _attacker;
         private NpcArmament _armament;
+        private EntityPotionDrinker _drinker;
         private FactionMember _target;
         private IMeleeThreat _threat;
         private bool _raised;
@@ -43,6 +44,7 @@ namespace Game.AI
             _stance = GetComponent<EntityStance>();
             _attacker = GetComponent<EntityMeleeAttacker>();
             _armament = GetComponent<NpcArmament>();
+            _drinker = GetComponent<EntityPotionDrinker>();
         }
 
         private void OnDisable() => End();
@@ -110,8 +112,9 @@ namespace Game.AI
             toAttacker.sqrMagnitude <= style.guardThreatRange * style.guardThreatRange
             && CombatBlockRules.IsInFrontArc(transform.forward, toAttacker, style.guardArcAngle);
 
-        // Never mid-swing, staggered / knocked down, down, switching weapon, or with a broken guard.
+        // Never mid-swing, staggered / knocked down, down, switching weapon, drinking (the opening), or with a broken guard.
         private bool CanGuard() =>
+            (_drinker == null || !_drinker.IsDrinking) &&
             (_health == null || (!_health.IsDead && !_health.IsUnconscious))
             && (_stance == null || (!_stance.IsIncapacitated && !_stance.IsGuardBroken))
             && (_attacker == null || !_attacker.IsInSwing)

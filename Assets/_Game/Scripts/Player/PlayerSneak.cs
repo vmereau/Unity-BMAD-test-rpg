@@ -115,10 +115,11 @@ namespace Game.Player
                 _stateManager.SetSneaking(true);
         }
 
-        // No sprint while aiming the bow (PlayerController ignores Sprint then) or during a swing (no move input) — Shift must
+        // No sprint while aiming the bow or drinking (PlayerController ignores Sprint then) or during a swing (no move input) — Shift must
         // not drop the sneak for nothing.
         private bool IsSprintingWhileMoving() =>
             !_stateManager.IsAiming
+            && !_stateManager.IsDrinking // PlayerController refuses to sprint while drinking
             && _stateManager.CanMove()
             && _input.Player.Sprint.IsPressed()
             && _input.Player.Move.ReadValue<Vector2>().sqrMagnitude > MOVE_INPUT_THRESHOLD_SQR;

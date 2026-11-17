@@ -33,3 +33,8 @@ MonoBehaviour:
   guardArcAngle: 60
   guardThreatRange: 3.5
   guardStanceMultiplier: 0.7
+  drinkHealthThreshold: 0.35
+  maxDrinksPerFight: 1
+  drinkCooldown: 10
+  drinkSafeDistance: 4.5
+  drinkBackOffMaxTime: 2.5

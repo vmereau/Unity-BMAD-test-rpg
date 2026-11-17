@@ -112,7 +112,12 @@ Adds to `UsableItemSO`:
 | `_readyToEat` / `IsReadyToEat` | `bool` | Eaten as is (`Item_Apple`, `Item_Bread`): matches `GiveItemCategory.ReadyFood`, the food a dialogue Give choice accepts. Leave off raw fish, mushrooms, herbs and meals (`OnValidate` warns on Meal + readyToEat). Category rules: `GiveItemCategory.cs` (`GiveItemRules.Matches` / `Label`, `GiveItemRulesTests`) |
 | `HealAmount` (property) | `float` | Public read accessor |
 
-`OnUse` heals `_healAmount`: **instantly** (potions, `Item_HealingPlant`) or, when `_overTimeEffect` + `_durationMinutes`
+**Drink (spec-potion-drink-animation):** kind `Potion` **and not `isIngredient`** (`IsDrunk` — raw food is kind Potion too) used by an `IPotionDrinker` (the player's
+`PlayerPotionDrinker`) → `TryBeginDrink` (true = started, the caller consumes the item now; the heal lands at the sip via
+`ApplyHeal(GameObject)`). NPCs heal through `ApplyHeal(EntityHealth)` (instant full amount, no meal bonus). Meals / raw food
+(and a user without a drinker) keep the path below.
+
+`ApplyHeal` (and `OnUse` without a drinker) heals `_healAmount`: **instantly** (potions, `Item_HealingPlant`) or, when `_overTimeEffect` + `_durationMinutes`
 (game minutes) are both set (food), **over time** through the player's `StatusEffectHost` (`SE_WellFed`, see
 `Scripts/StatusEffects/CLAUDE.md`). No host / clock → instant heal + warning. Returns false (and keeps the item) if
 `PlayerHealth` is missing or the player is dead. The detail row reads "+8 over 20 min".

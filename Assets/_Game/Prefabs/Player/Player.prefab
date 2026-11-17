@@ -352,6 +352,7 @@ GameObject:
   - component: {fileID: 3603420808322167872}
   - component: {fileID: 248508205247722359}
   - component: {fileID: 4839792506959501226}
+  - component: {fileID: 1265412054026202888}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -1135,6 +1136,21 @@ MonoBehaviour:
   _onContainerItemTaken: {fileID: 11400000, guid: fbb9f92f003ffcc40876982947e237ee, type: 2}
   _onContainerOpenRequested: {fileID: 11400000, guid: 27f639c03792674408432d16e8dd2a3c, type: 2}
   _onLoadStarted: {fileID: 11400000, guid: 1ff9a30a7364fed40ae365d87646d6a7, type: 2}
+--- !u!114 &1265412054026202888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e29e763f59a14fd43b0e64f2f6f62e8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Player.PlayerPotionDrinker
+  _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _stateManager: {fileID: 212298241250081144}
+  _playerHealth: {fileID: 6838483035695751856}
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

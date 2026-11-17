@@ -150,6 +150,32 @@ namespace Game.Player
         public bool IsInDialogue { get; private set; }
 
         /// <summary>
+        /// Drinking a potion (spec-potion-drink-animation): written by <c>PlayerPotionDrinker</c>. Blocks attack, block, aim,
+        /// dodge, jump, draw / sheathe, execute and sprint; walking stays free (UpperBody clip).
+        /// </summary>
+        public bool IsDrinking { get; private set; }
+
+        /// <summary>Starts (true) or ends / interrupts (false) a drink and drives the IsDrinking animator bool.</summary>
+        public void SetDrinking(bool value)
+        {
+            IsDrinking = value;
+            if (_playerAnimator != null) _playerAnimator.SetDrinking(value);
+        }
+
+        /// <summary>
+        /// True when a potion drink may start. The open inventory (cursor unlocked) is allowed — not <see cref="IsBusy"/>.
+        /// </summary>
+        public bool CanDrink() => EvaluateCanDrink(IsDead, IsIncapacitated, IsExecuting, IsScriptedHold, IsInDialogue,
+            IsDrinking, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwimming, IsSwitchingWeapon, IsAiming);
+
+        /// <summary>Pure drink gate (tested in DrinkTimelineTests).</summary>
+        public static bool EvaluateCanDrink(bool isDead, bool isIncapacitated, bool isExecuting, bool isScriptedHold,
+            bool isInDialogue, bool isDrinking, bool isAttacking, bool isBlocking, bool isDodging, bool isAirborne,
+            bool isSwimming, bool isSwitchingWeapon, bool isAiming) =>
+            !isDead && !isIncapacitated && !isExecuting && !isScriptedHold && !isInDialogue && !isDrinking && !isAttacking
+            && !isBlocking && !isDodging && !isAirborne && !isSwimming && !isSwitchingWeapon && !isAiming;
+
+        /// <summary>
         /// True on the frame a dialogue closed. Dialogue keys fire in input callbacks before Update, so the key
         /// that closed it (E / Space / click) would otherwise also interact, jump or attack once the cursor relocks.
         /// </summary>
@@ -415,6 +441,7 @@ namespace Game.Player
                 IsDodging = false;
                 IsSneaking = false;
                 IsAiming = false;
+                IsDrinking = false;
                 IsSwimming = false;    // the body sinks under normal gravity
                 IsStaggered = false;   // death overrides the stance reaction
                 IsKnockedDown = false;
@@ -429,6 +456,7 @@ namespace Game.Player
                 _playerAnimator.SetBlocking(false);
                 _playerAnimator.SetSneaking(false);
                 _playerAnimator.SetAiming(false);
+                _playerAnimator.SetDrinking(false);
                 _playerAnimator.ClearStanceReaction(); // an untaken Stagger / KnockDown must not fire after Death
                 _playerAnimator.SetUnconscious(false); // release the held knockdown; Death (AnyState) takes over
                 _playerAnimator.PlayDeath();
@@ -443,10 +471,10 @@ namespace Game.Player
         // ── Can-do queries ────────────────────────────────────────────────────
 
         /// <summary>True when the player is allowed to start an attack.</summary>
-        public bool CanAttack() => !IsSwimming && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
+        public bool CanAttack() => !IsSwimming && !IsDrinking && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging && !IsSwitchingWeapon && IsInCombat;
 
         /// <summary>True when F may start an execute stomp (any drawn weapon, idle enough to commit to the clip).</summary>
-        public bool CanExecute() => EvaluateCanExecute(IsBusy, IsInCombat, IsAirborne, IsSwimming, IsAttacking, IsBlocking,
+        public bool CanExecute() => !IsDrinking && EvaluateCanExecute(IsBusy, IsInCombat, IsAirborne, IsSwimming, IsAttacking, IsBlocking,
             IsAiming, IsDodging, IsSwitchingWeapon);
 
         /// <summary>Pure execute gate (tested in ExecuteTests).</summary>
@@ -459,7 +487,7 @@ namespace Game.Player
         /// True when the player is allowed to raise a block.
         /// Blocking is permitted during an attack (block-cancel): PlayerCombat.OnBlockStarted cancels the swing.
         /// </summary>
-        public bool CanBlock() => !IsSwimming && EvaluateCanBlock(IsBusy, IsAirborne, IsDodging, IsSwitchingWeapon, IsInCombat);
+        public bool CanBlock() => !IsSwimming && !IsDrinking && EvaluateCanBlock(IsBusy, IsAirborne, IsDodging, IsSwitchingWeapon, IsInCombat);
 
         /// <summary>Pure block gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (block-cancel).</summary>
         public static bool EvaluateCanBlock(bool isBusy, bool isAirborne, bool isDodging, bool isSwitchingWeapon,
@@ -468,7 +496,7 @@ namespace Game.Player
 
         /// <summary>True when R may start a draw / sheathe.</summary>
         public bool CanSwitchWeapon() =>
-            !IsSwimming && EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon, IsAiming);
+            !IsSwimming && !IsDrinking && EvaluateCanSwitchWeapon(IsBusy, IsAttacking, IsBlocking, IsDodging, IsAirborne, IsSwitchingWeapon, IsAiming);
 
         /// <summary>
         /// Pure draw / sheathe gate (tested in WeaponSwitchGateTests). Blocking, dodging and airborne are excluded because
@@ -481,7 +509,7 @@ namespace Game.Player
 
         /// <summary>True when the player may start (or keep) a bow aim. Bow equipped is checked by PlayerCombat.</summary>
         public bool CanAim() =>
-            !IsSwimming && EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);
+            !IsSwimming && !IsDrinking && EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);
 
         /// <summary>
         /// Pure bow-aim gate (tested in BowAimGateTests). Same exclusions as blocking: drawn and on the ground. A block still
@@ -492,13 +520,13 @@ namespace Game.Player
             !isBusy && !isAirborne && !isDodging && !isAttacking && !isBlocking && !isSwitchingWeapon && isInCombat;
 
         /// <summary>True when the player is allowed to dodge (state gates only; stamina not checked here).</summary>
-        public bool CanDodge() => !IsSwimming && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
+        public bool CanDodge() => !IsSwimming && !IsDrinking && !IsBusy && !IsAirborne && !IsBlocking && !IsDodging;
 
         /// <summary>
         /// True when the player is allowed to jump (state gates only; isGrounded not checked here). Allowed during an attack
         /// (jump-cancel): PlayerCombat cancels the swing once airborne.
         /// </summary>
-        public bool CanJump() => !IsSwimming && EvaluateCanJump(IsBusy, IsAirborne, IsDodging, IsBlocking);
+        public bool CanJump() => !IsSwimming && !IsDrinking && EvaluateCanJump(IsBusy, IsAirborne, IsDodging, IsBlocking);
 
         /// <summary>Pure jump gate (tested in PlayerStateManagerTests). Attacking is deliberately not an input (jump-cancel).</summary>
         public static bool EvaluateCanJump(bool isBusy, bool isAirborne, bool isDodging, bool isBlocking) =>

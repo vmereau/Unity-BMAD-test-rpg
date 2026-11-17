@@ -124,6 +124,7 @@ namespace Game.Animations
         public override void TriggerKnockDown() => _bridge?.PlayKnockDown();
         public override void SetUnconscious(bool down) => _bridge?.SetUnconscious(down);
         public override void SetBlocking(bool blocking) => _bridge?.SetBlocking(blocking);
+        public override void SetDrinking(bool drinking) => _bridge?.SetDrinking(drinking);
         public override void TriggerPickUp() => _bridge?.PlayPickUp();
         public override void CancelPickUp() => _bridge?.StopPickUp();
         public override bool IsPickingUp => _bridge != null && _bridge.IsPickingUp;
