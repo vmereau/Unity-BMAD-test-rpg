@@ -60,6 +60,7 @@ MonoBehaviour:
   friendlyDisappointedBarks: {fileID: 11400000, guid: a9325c13e116923429d66ccc668cd14c, type: 2}
   memberDefendRange: 12
   memberDefendBarks: {fileID: 11400000, guid: 4fabbef54c114dc98e1ca2a2ee8d3114, type: 2}
+  maxAttackersPerTarget: 2
   executeRange: 1.8
   executeConeHalfAngle: 70
   executeFootOffset: {x: -0.45, y: 0, z: 0.88}
@@ -75,6 +76,7 @@ MonoBehaviour:
     m_Bits: 257
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
+  recoveryCancelMoveThreshold: 0.2
   defaultAttackStep:
     distance: 0.5
     startTime: 0.35

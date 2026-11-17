@@ -29,6 +29,7 @@
 | `NpcSkinTone` + `SkinToneMaterials` | NPC skin tone: in `Start` swaps every masked `SG_SkinLit` material under the model for a cached toned copy (`NPCEntity.SkinTone`); re-tones a rebuilt armor by polling `EquipmentVisuals.ArmorVisual` in `LateUpdate` (no cross-system event). A skin material without a mask (legacy / unbaked head) is kept, one warning; every shipped `M_Head_*` has its own mask. Cache: one copy per source × tone, plain materials (SRP Batcher-safe), cleared on `SubsystemRegistration`. Pipeline: `Art/Characters/Humanoids/CLAUDE.md` → NPC skin tones. |
 | `SMB_EntityAttackState` | On attack states of `EntityBase.controller` and `Humanoid_Template`. Enter/exit → receiver → attacker counter. Receiver lookup cached; no-op on the Player. |
 | `SMB_DeathState` | On the death animator state. |
+| `EntityCombatTactics` + `CombatTacticsRules` + `AttackTokenRegistry` | Combat tactics (circling, attack tokens) — see **Combat tactics** below. Rules / tokens pure + tested (`CombatTacticsRulesTests`, `AttackTokenRegistryTests`). Profile: `CombatStyleSO` (`ScriptableObjects/Entities/`). |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, TargetRegistry.Player.Faction)`, read live; no player → not hostile) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
@@ -215,8 +216,8 @@
   target. Checks that mean "sees" (unknown-source hit retarget, Watching trespass check) read `CanSeeTarget`, which
   stays vision-only. Hearing radii are capped at the sight range, so Warning's `dist > DetectionRange` cancel can't loop.
 - **Detection while patrolling:** perception ticks every frame in every state and `HandlePatrol` checks it before path
-  handling; the cone follows `transform.forward`, which the NavMeshAgent turns along the path (`updateRotation` is never
-  disabled) — a walking guard sees ahead, a waiting one keeps its arrival facing. Verified in play mode on the WarehouseGuard.
+  handling; the cone follows `transform.forward`, which the NavMeshAgent turns along the path (`updateRotation` is only
+  disabled by `EntityCombatTactics` while circling / backing off / closing in, and restored when tactics end) — a walking guard sees ahead, a waiting one keeps its arrival facing. Verified in play mode on the WarehouseGuard.
 - **Sneak attack:** `IsUnawareOf` = Idle/Patrolling/Suspicious, not fully aware, and not damaged within
   `StealthConfigSO.damageAlertDuration` (so passive / neutral entities that never fight back only give the
   bonus once). `PlayerCombat` multiplies the hit by `CombatConfigSO.sneakAttackDamageMultiplier`.
@@ -284,6 +285,38 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   (dedupe is per `WeaponHitbox`).
 - **Known gap:** spider `AttackRange` 0.8 is root-to-root, but agent avoidance holds it ≈ 1.0 m from an NPC →
   spiders engage NPCs but never bite them (they do bite the player). Retune the spider SO if needed.
+
+---
+
+## Combat tactics (EntityCombatTactics — spec-ai-combat-tactics-foundation)
+
+- **Opt-in by data:** `Entity._combatStyle` (`CombatStyleSO`, `Data/Entities/CombatStyles/`) + `EntityCombatTactics` on the
+  root (`NPC_base Variant`). No style / no component → the plain chase-and-swing (monsters). Styles: `CombatStyle_CompanyGuard`
+  (the six guards — patient, "competent but beatable") and `CombatStyle_Bandit` (pushier).
+- **Brain integration:** `HandleEngage` → `_tactics.Tick(target, distToTarget, IsAttackReady())` (the brain's **3D**
+  distance — a flat one never matches the brain's range check on stairs) instead of the straight chase; enters Attacking
+  only with a token on the **current** target (`HoldsAttackToken` → `WantsAttackOn(target)`) within `AttackRange`.
+  `HandleAttack` swings once (`_tacticsSwingStarted`), then — after `IsInSwing` ends — `NotifySwingEnded()` (token released,
+  fresh circle time) and back to Engaging (`ResumeEngageAgent`: unstopped, EngageSpeed / EngageStoppingDistance), instead of
+  standing out the cooldown. Attacking **without** a token (stance reaction ended tactics, retarget) → straight back to
+  Engaging — never a plain swing that would break the cap. Out of sight a tactical fighter only chases the last seen
+  position (no swing); tactics handing back to the plain chase restore its agent settings. Skipped (plain chase) while chasing a last-seen position and against a
+  **passive target** (`DetectionRange <= 0`, e.g. Tam in the arrival beating — circling a victim that never fights back
+  reads wrong). **Single release point:** `Update` calls `EndTactics()` whenever the state is not Engaging / Attacking, and
+  on death, unconscious and stance reactions — never add per-exit release calls.
+- **Decision** every `decisionInterval` (`CombatTacticsRules.Decide`): held token → Attack; beyond ring + `approachMargin`
+  → Approach (`updateRotation` on); circle time elapsed + attack ready + free token + `roll < aggression` → take token,
+  Attack; closer than `AttackRange × backOffFraction` → BackOff; else Circle (flip on `directionChangeChance`). Ring =
+  `AttackRange + ringMargin`. Circle point = rotate (self − target) around the target, leading 2 intervals, NavMesh-sampled;
+  both directions blocked → Approach. While not Approaching, `updateRotation` is off and the component faces the target at
+  `WarningTurnSpeed` — the strafe blend comes from `DriveLocomotion`'s local velocity (`LockOn Locomotion`).
+- **Commit timeout:** a token held `attackCommitTimeout` (2.5 s) without a swing (unreachable / kiting target, avoidance)
+  is given back and the entity circles again — otherwise two stuck holders starve every other attacker. Circle time only
+  counts while circling / backing off. BackOff with no NavMesh point behind → `ResetPath` (holds), never a stale chase path.
+- **Tokens:** `AttackTokenRegistry` (static, keyed by the target `FactionMember`, reset on `SubsystemRegistration`), capacity
+  `CombatConfigSO.maxAttackersPerTarget` (2; no config → uncapped, one warning). One token per holder.
+- `DebugStateName` shows `Engaging/Circle`, `Attacking/Attack`… (cached strings) while tactics drive.
+- Roadmap (blocking, potion use with the drink clip, ranged style): `deferred-work.md` → spec-ai-combat-tactics-foundation.
 
 ---
 

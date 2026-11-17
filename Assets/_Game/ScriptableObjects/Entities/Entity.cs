@@ -108,7 +108,13 @@ namespace _Game.ScriptableObjects.Entities
 
         [Header("Animation")]
         [SerializeField, FormerlySerializedAs("animatorOverride")] private AnimatorOverrideController _animatorOverride;
-        
+
+        [Header("Combat AI")]
+        [Tooltip("Tactics once engaged (circling, attack tokens — EntityCombatTactics). Empty = plain chase-and-swing.")]
+        [SerializeField] private Game.AI.CombatStyleSO _combatStyle;
+
+        public Game.AI.CombatStyleSO CombatStyle => _combatStyle;
+
         public FactionSO Faction              => _faction;
         public AidGroupSO AidGroup            => _aidGroup;
         public float BaseHealth               => _baseHealth;

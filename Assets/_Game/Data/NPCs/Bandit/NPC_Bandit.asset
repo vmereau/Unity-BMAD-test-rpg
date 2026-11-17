@@ -53,6 +53,7 @@ MonoBehaviour:
   _attackStanceDamage: 15
   _attackCanKnockDown: 0
   _animatorOverride: {fileID: 0}
+  _combatStyle: {fileID: 11400000, guid: 43c1931c2ef710a47a5f2e995cb757eb, type: 2}
   dayState: 1
   nightState: 2
   prefab: {fileID: 0}

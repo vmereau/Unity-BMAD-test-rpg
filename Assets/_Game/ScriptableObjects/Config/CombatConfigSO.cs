@@ -137,6 +137,10 @@ namespace Game.Combat
         [Tooltip("Said by an NPC joining a fight to defend a fellow member (monsters never bark). Uses relationshipBarkCooldown.")]
         public BarkSetSO memberDefendBarks;
 
+        [Header("Combat tactics (spec-ai-combat-tactics-foundation)")]
+        [Tooltip("Max entities with a CombatStyle swinging at one target at once; the others circle and wait.")]
+        [Min(1)] public int maxAttackersPerTarget = 2;
+
         [Header("Execute (stomp an unconscious NPC — spec-execute-unconscious-npc)")]
         [Tooltip("Max ground distance from the player to the body's chest for F to execute.")]
         [Min(0.1f)] public float executeRange = 1.8f;

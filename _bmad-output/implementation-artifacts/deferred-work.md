@@ -885,3 +885,30 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   stored corrections are large (up to ~0.36 m at f6–10, reach-clamped): a re-sample or IK change can make the loop
   diverge from there — reset that range first. (4) The leg-reach clamp also applies to un-edited frames inside a bake
   range (no effect on the shipped clips: every baked frame carries a correction).
+
+## From spec-ai-combat-tactics-foundation (2026-11-17) — combat AI roadmap (split, user decisions)
+
+Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec; each is its own quick-dev spec, in order:
+
+- **NPC blocking.** `EntityHealth.TryReceiveHit` always returns `NotBlocked`. React to the attacker's wind-up (player
+  `PlayerStateManager.IsAttacking` / `IsAttackCommitted`, NPC `EntityMeleeAttacker.IsInSwing`) after a profile reaction
+  delay, with a block chance; front-facing check; set `IsBlocking` (`HumanoidAnimationBridge.SetBlocking`, `Block_State`
+  already in `Humanoid_Template`). Stance is the guard budget: blocked hits drain stance, guard break → stagger. Profile
+  perfect-block chance. Company guards: **competent but beatable** (~30–40 % blocks, rare perfect blocks, clear openings).
+- **Potion use + drink animation (player and humanoid NPCs).** Use `Art/Characters/Humanoids/Animations/drink potion.fbx`
+  (imported by the user, untracked as of 2026-11-17) for the player's potion use **and** NPCs. `PotionItemSO.OnUse` only
+  accepts `PlayerHealth` → add an NPC path (`EntityHealth.Heal`). Tactic: back off, then drink below a profile health
+  threshold. Give each of the six `Faction_Company` guards (CompanyGuard_ArrivalLeft / Right, DockGuard, WarehouseGuard,
+  Harl, Warden) one `Item_Health_Potion`; an undrunk potion stays lootable.
+- **Ranged style.** Bow at range, sword in melee (`NpcArmament` weapon switch, `ArrowProjectile` shooter-owned hits); the
+  ranged option scores only with a bow in the loadout; preferred range from the wielded weapon.
+- **Ideas noted:** punish the player's whiffed recovery; delayed swings / feints against rhythm parries; skill-scaled weights.
+
+### Review follow-ups (spec-ai-combat-tactics-foundation, 2026-11-17)
+
+- **Passive-target proxy:** tactics skip targets with `DetectionRange <= 0` ("never fights back"). A future brawl target
+  that has `DetectionRange 0` but does fight back would get the plain chase. Replace with an explicit flag if that happens.
+- **Too-close attackers:** `Decide` checks the attack roll before BackOff, so an entity inside `AttackRange × backOffFraction`
+  that rolls an attack closes in further instead of stepping out (spec matrix "Too close" row allows it). Revisit if
+  playtests show guards hugging the player.
+- **Token cap without CombatConfig:** an entity whose `EntityHealth` has no `CombatConfigSO` is uncapped (one warning).

@@ -72,8 +72,22 @@ namespace Game.AI
         public bool WasHitThisFrameBy(FactionMember member) =>
             member != null && _lastHitBy == member && _lastHitFrame == Time.frameCount;
 
-        /// <summary>Current state name for the stealth debug views (no per-frame allocation).</summary>
-        public string DebugStateName => STATE_NAMES[(int)_state];
+        /// <summary>Current state name for the stealth debug views (no per-frame allocation); "/action" while tactics
+        /// drive the fight.</summary>
+        public string DebugStateName =>
+            UsesTactics && _tactics.IsActive && (_state == EntityState.Engaging || _state == EntityState.Attacking)
+                ? (_state == EntityState.Engaging ? ENGAGING_TACTIC_NAMES : ATTACKING_TACTIC_NAMES)[(int)_tactics.CurrentAction]
+                : STATE_NAMES[(int)_state];
+
+        private static readonly string[] ENGAGING_TACTIC_NAMES = TacticNames("Engaging/");
+        private static readonly string[] ATTACKING_TACTIC_NAMES = TacticNames("Attacking/");
+
+        private static string[] TacticNames(string prefix)
+        {
+            string[] actions = System.Enum.GetNames(typeof(CombatAction));
+            for (int i = 0; i < actions.Length; i++) actions[i] = prefix + actions[i];
+            return actions;
+        }
 
         // Single writer for combat state. Keeps the readable flag and the animator in lockstep,
         // replacing the previously-scattered _animationDriver?.SetInCombat(...) calls. Idempotent.
@@ -134,6 +148,8 @@ namespace Game.AI
         private NavMeshAgent _agent;
         private InventorySystem _inventory; // same-GO, optional: receives the stolen gold
         private NpcArmament _armament; // same-GO, optional: equipped NPCs (weapon / fists, draw / sheathe, weapon loot)
+        private EntityCombatTactics _tactics; // same-GO, optional: circling / attack tokens when the Entity has a CombatStyle
+        private bool _tacticsSwingStarted; // tactics: the swing of this Attacking visit was triggered
         private FactionMember _lootVictim;
         private bool _lootArrived;
         private bool _lootResolved; // grab done — the clip just plays out
@@ -312,6 +328,7 @@ namespace Game.AI
             _stance = GetComponent<EntityStance>(); // optional — no stance = never staggered
             _inventory = GetComponent<InventorySystem>(); // optional — no inventory = never loots a knocked-out player
             _armament = GetComponent<NpcArmament>(); // optional — no armament = unarmed humanoid / monster
+            _tactics = GetComponent<EntityCombatTactics>(); // optional — none (or no CombatStyle) = plain chase-and-swing
             _presence = GetComponent<NPCPresence>(); // optional — no presence = scold line only (no give-back choice)
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
@@ -348,6 +365,7 @@ namespace Game.AI
         private void OnDisable()
         {
             _active.Remove(this);
+            EndTactics(); // brain disabled alone: no token or disabled agent rotation left behind
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (_onDialogueSignal != null) _onDialogueSignal.RemoveListener(HandleDialogueSignal);
             if (_state == EntityState.Looting)
@@ -424,6 +442,7 @@ namespace Game.AI
         {
             if (_entityHealth.IsDead && _state != EntityState.Dead)
             {
+                EndTactics();
                 TransitionToDead();
                 return;
             }
@@ -431,6 +450,7 @@ namespace Game.AI
             // Unconscious: no perception, no state logic; RegainedConsciousness resumes the routine.
             if (_entityHealth.IsUnconscious)
             {
+                EndTactics();
                 HoldAgentForReaction();
                 HandleCooldowns();
                 if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
@@ -443,6 +463,7 @@ namespace Game.AI
             // Staggered / knocked down: state logic paused (no move, turn or attack); the state resumes on recovery.
             if (_state != EntityState.Dead && _stance != null && _stance.IsIncapacitated)
             {
+                EndTactics(); // token released; the fight resumes with a fresh decision on recovery
                 HoldAgentForReaction(); // also covers an agent that was off the NavMesh when the reaction began
                 HandleCooldowns();
                 if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
@@ -465,6 +486,9 @@ namespace Game.AI
                 case EntityState.Intercepting: HandleIntercepting(); break;
                 case EntityState.Dead:       HandleDead();       break;
             }
+
+            // Single release point: any exit from the fight (disengage, search, looting, routine, death...) ends tactics.
+            if (_state != EntityState.Engaging && _state != EntityState.Attacking) EndTactics();
 
             HandleCooldowns();
             if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
@@ -679,15 +703,76 @@ namespace Game.AI
                 return;
             }
 
-            if (distToTarget <= _persistentID.Entity.AttackRange)
+            // Out of sight (before the lose-sight timeout): chase where the target was last seen.
+            bool chaseLastSeen = IsTrackingPerceptionTarget() && !_perception.CanSeeTarget && _perception.HasLastSeenPosition;
+
+            bool tacticalTarget = UsesTactics && !IsPassiveTarget(_currentTarget);
+            if (tacticalTarget && !chaseLastSeen)
+            {
+                // Tactics (spec-ai-combat-tactics-foundation): circle / approach / back off; swing only with a token.
+                // Same 3D distance as the brain's range checks (a flat one never matches on slopes / stairs).
+                _tactics.Tick(_currentTarget, distToTarget, IsAttackReady());
+                if (HoldsAttackToken() && distToTarget <= _persistentID.Entity.AttackRange) TransitionToAttacking();
+                return;
+            }
+            if (_tactics != null && _tactics.IsActive)
+            {
+                // Tactics hand back to the plain chase: restore its agent settings (not the strafe speed / ring stop).
+                EndTactics();
+                ResumeEngageAgent();
+            }
+
+            // A tactical fighter never swings out of sight (no token): it only chases the last seen position.
+            if (!tacticalTarget && distToTarget <= _persistentID.Entity.AttackRange)
             {
                 TransitionToAttacking();
                 return;
             }
 
-            // Out of sight (before the lose-sight timeout): chase where the target was last seen.
-            bool chaseLastSeen = IsTrackingPerceptionTarget() && !_perception.CanSeeTarget && _perception.HasLastSeenPosition;
             _agent.SetDestination(chaseLastSeen ? _perception.LastSeenPosition : _currentTarget.Transform.position);
+        }
+
+        private bool UsesTactics => _tactics != null && _tactics.IsAvailable;
+
+        private FactionMember _passiveCheckTarget;
+        private bool _passiveCheckResult;
+
+        // A target that never fights back (passive entity, e.g. Tam in the arrival beating) gets no circling — just the
+        // plain chase-and-swing. The player is never passive. Cached per target (no per-frame GetComponent).
+        private bool IsPassiveTarget(FactionMember target)
+        {
+            if (target != _passiveCheckTarget)
+            {
+                _passiveCheckTarget = target;
+                PersistentID id = target != null && !target.IsPlayer ? target.GetComponent<PersistentID>() : null;
+                _passiveCheckResult = id != null && id.Entity != null && id.Entity.DetectionRange <= 0f;
+            }
+            return _passiveCheckResult;
+        }
+
+        // Cooldown elapsed, weapon in hand, no attack state still playing.
+        private bool IsAttackReady() =>
+            _attackCooldownTimer <= 0f
+            && (_armament == null || !_armament.IsSwitchingWeapon)
+            && (_meleeAttacker == null || !_meleeAttacker.IsInAttackState);
+
+        // Tactics drive this fight and hold an attack token on the current target (not a stale one from before a retarget).
+        private bool HoldsAttackToken() => UsesTactics && _tactics.WantsAttackOn(_currentTarget);
+
+        // Back to Engaging after a tactical swing (or tactics ending): the agent moves again with the plain chase settings;
+        // tactics override them on their next decision.
+        private void ResumeEngageAgent()
+        {
+            if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
+            _agent.isStopped = false;
+            _agent.speed = _persistentID.Entity.EngageSpeed;
+            _agent.stoppingDistance = _persistentID.Entity.EngageStoppingDistance;
+        }
+
+        private void EndTactics()
+        {
+            _tacticsSwingStarted = false;
+            if (_tactics != null) _tactics.End();
         }
 
         private void HandleAttack()
@@ -706,6 +791,25 @@ namespace Game.AI
             {
                 if (_agent.isActiveAndEnabled && _agent.isOnNavMesh && !_agent.isStopped) _agent.isStopped = true;
                 if (!_meleeAttacker.IsAttackCommitted) FaceTarget();
+                return;
+            }
+
+            // Tactics: the swing is over — release the token and go back to circling (no standing out the cooldown).
+            if (_tacticsSwingStarted)
+            {
+                _tacticsSwingStarted = false;
+                if (UsesTactics) _tactics.NotifySwingEnded();
+                _state = EntityState.Engaging;
+                ResumeEngageAgent();
+                return;
+            }
+
+            // A tactical fighter swings only with a token on this target: none after a stance reaction (tactics ended and
+            // released it) or a retarget → back to Engaging, where tactics decide again.
+            if (UsesTactics && !IsPassiveTarget(_currentTarget) && !HoldsAttackToken())
+            {
+                _state = EntityState.Engaging;
+                ResumeEngageAgent();
                 return;
             }
 
@@ -734,6 +838,7 @@ namespace Game.AI
             if (_attackCooldownTimer > 0f) return;
 
             ExecuteAttack();
+            _tacticsSwingStarted = HoldsAttackToken();
         }
 
         // Alerted but lost the target: walk to the last seen position, look around, then stand down.
@@ -2285,6 +2390,7 @@ namespace Game.AI
 
         private void TransitionToAttacking()
         {
+            _tacticsSwingStarted = false;
             _state = EntityState.Attacking;
             _agent.isStopped = true;
             SetCombatState(true);
