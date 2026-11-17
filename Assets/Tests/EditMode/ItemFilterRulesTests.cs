@@ -56,6 +56,9 @@ namespace Tests.EditMode
         public void Classify_Armor_IsArmor() => Assert.AreEqual(ItemFilter.Armor, ItemFilterRules.Classify(Create<ArmorSO>()));
 
         [Test]
+        public void Classify_Shield_IsArmor() => Assert.AreEqual(ItemFilter.Armor, ItemFilterRules.Classify(Create<ShieldSO>()));
+
+        [Test]
         public void Classify_Potion_IsPotions() => Assert.AreEqual(ItemFilter.Potions, ItemFilterRules.Classify(CreatePotion(ConsumableKind.Potion)));
 
         [Test]

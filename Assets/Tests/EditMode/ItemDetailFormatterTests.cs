@@ -122,6 +122,23 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Shield_CategoryAndBlockRows_ThenDefense()
+        {
+            var shield = Create<ShieldSO>();
+            shield.blockStaminaCost = 12f;
+            shield.perfectBlockWindow = 0.2f;
+            shield.defenseBonus = 6;
+
+            ItemDetailFormatter.BuildStatLines(shield, _lines);
+
+            Assert.AreEqual("Shield", ItemDetailFormatter.GetCategory(shield));
+            Assert.AreEqual(3, _lines.Count);
+            AssertLine(_lines[0], "Block Stamina", "12", StatPolarity.Neutral);
+            AssertLine(_lines[1], "Perfect Block", "0.20 s", StatPolarity.Neutral);
+            AssertLine(_lines[2], "Defense", "+6", StatPolarity.Positive);
+        }
+
+        [Test]
         public void Armor_BodySlot_CategoryReadsBodyArmor()
         {
             var armor = Create<ArmorSO>();

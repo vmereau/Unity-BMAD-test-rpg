@@ -16,8 +16,8 @@ namespace Game.Combat
         public float baseStaminaPool = 100f;
 
         [Header("Stamina Costs")]
+        // Block stamina and the perfect-block window come from the equipped ShieldSO (spec-shield-offhand-blocking).
         public float attackStaminaCost = 20f;
-        public float blockStaminaCostPerHit = 15f;
         public float dodgeStaminaCost = 25f;
 
         [Header("Stamina Recovery")]
@@ -25,10 +25,6 @@ namespace Game.Combat
         public float staminaRegenRate = 20f;
         [Tooltip("Seconds after last Consume() call before regen begins.")]
         public float staminaRegenDelay = 1.5f;
-
-        [Header("Perfect Block")]
-        [Tooltip("Seconds after raising block during which a hit counts as a perfect block.")]
-        public float perfectBlockWindowDuration = 0.25f;
 
         [Header("Dodge")]
         [Tooltip("Duration in seconds of the dodge roll movement and i-frame window.")]

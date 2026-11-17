@@ -15,6 +15,7 @@ namespace Game.UI
         [SerializeField] private InventoryDetailActions _invActions;
 
         [SerializeField] private EquipmentSlotUI _weaponSlot;
+        [SerializeField] private EquipmentSlotUI _offhandSlot;
         [SerializeField] private EquipmentSlotUI _helmetSlot;
         [SerializeField] private EquipmentSlotUI _armorSlot;
         [SerializeField] private EquipmentSlotUI _ring1Slot;
@@ -46,6 +47,7 @@ namespace Game.UI
         private void InitializeSlots()
         {
             _weaponSlot?.Initialize(EquipmentSlot.Weapon, this);
+            _offhandSlot?.Initialize(EquipmentSlot.Offhand, this);
             _helmetSlot?.Initialize(EquipmentSlot.Helmet, this);
             _armorSlot?.Initialize(EquipmentSlot.Armor, this);
             _ring1Slot?.Initialize(EquipmentSlot.Ring1, this);
@@ -59,6 +61,7 @@ namespace Game.UI
         {
             if (_equipmentSystem == null) return;
             _weaponSlot?.Bind(_equipmentSystem.GetEquipped(EquipmentSlot.Weapon));
+            _offhandSlot?.Bind(_equipmentSystem.GetEquipped(EquipmentSlot.Offhand));
             _helmetSlot?.Bind(_equipmentSystem.GetEquipped(EquipmentSlot.Helmet));
             _armorSlot?.Bind(_equipmentSystem.GetEquipped(EquipmentSlot.Armor));
             _ring1Slot?.Bind(_equipmentSystem.GetEquipped(EquipmentSlot.Ring1));

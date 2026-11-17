@@ -36,5 +36,8 @@ namespace Game.Inventory
 
         /// <summary>True when ammo and projectile are both assigned.</summary>
         public bool IsConfigured => ammoItem != null && projectilePrefab != null;
+
+        /// <summary>A bow takes both hands: no shield with it.</summary>
+        public override bool OccupiesOffhand => true;
     }
 }

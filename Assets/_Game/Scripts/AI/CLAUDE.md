@@ -342,7 +342,17 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   is read. The threat must be a live, enabled component (a disabled `PlayerCombat` keeps stale flags). A raised guard is
   re-sent to the animator every tick — an `NpcArmament` controller swap resets every parameter.
 - **Can't guard** (drops at once; a step that started meanwhile is never read): own `IsInSwing`, staggered / knocked down,
-  dead / unconscious, `IsSwitchingWeapon`, drinking a potion, or **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold).
+  dead / unconscious, `IsSwitchingWeapon`, drinking a potion, **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold),
+  or **no shield in hand** (spec-shield-offhand-blocking): `NpcArmament.ShieldInHand` = a `ShieldSO` in the Offhand slot and the
+  weapon drawn (`EquipmentVisuals.ShieldInHand`) — so never with fists, a bow, or without `NpcArmament`. Guards (`CompanyGuard_*`,
+  Dock / Racket / Warehouse guards, Warden) carry `Shield_KiteWoodShield`, the bandit `Shield_RoundWoodShield`
+  (`NPCEntity._startingEquipment`). The shield's `defenseBonus` adds to `Entity.Armor` in `EntityHealth.TakeDamage`
+  (`NpcArmament.ShieldArmorBonus`; body armor still doesn't count). Shield stamina / window are player-only — NPCs keep the
+  style's `perfectBlockChance`. A bow swap bumps the shield into the inventory; `NpcArmament.EquipCarriedShield` re-equips it
+  on the way back to melee and on wake-up — only the shield it stowed (`_stowedShield`), never trade stock. `GrantLoadout`
+  equips shields after weapons (a loadout shield next to a two-hander is carried, warned). A restored living NPC with no
+  offhand and no shield in its inventory gets its starting shield back (pre-shield saves). The shield stays equipped (not
+  lootable) when the NPC goes down, like armor — unless a bow swap had stowed it in the (lootable) inventory.
 - **Hit:** `EntityHealth.TryReceiveHit` → `EntityGuard.ResolveHit(attacker)`: raised + attacker in the front arc **and within
   `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance`; else `NotBlocked`. Any attacker in reach is
   blocked, not only the read target. Arrows share the check: a point-blank shot into a raised guard is blocked, a distant
@@ -409,7 +419,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   non-hostile absorbs it), then `TryReceiveHit(shooter)`: `NotBlocked` → `NotifyHitBy` + `TakeDamage(AttackDamage +
   bow.damageBonus, shooter)` + stance (`bow.ResolvedStanceDamage`); `Blocked` → blocker `ApplyBlockedStanceDamage`;
   `PerfectBlock` / `Dodged` → nothing for the shooter. Sound via `EntityMeleeAttacker.PlayHitSound`.
-- **No guard while a bow is wielded** (`EntityGuard`); no melee swing (`IsAttackReady`; `HandleAttack` — a fight the tactics
+- **No guard while a bow is wielded** — the bow bumps the shield into the inventory, so `ShieldInHand` is false (`EntityGuard`); no melee swing (`IsAttackReady`; `HandleAttack` — a fight the tactics
   don't drive asks `SetRanged(false)` instead). Target lead velocity is smoothed with `npcTargetVelocitySmoothTime`
   (frame-rate independent). The clear-shot sweep skips corpses (the arrow does too) and holds the shot if its buffer fills.
 - **Spine aim:** `BowAimCorrection` reads `EntityArcher` as its `IBowAimSource`; the player's calibration (`_arrowLineLocal` /
@@ -605,8 +615,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   **`_onEquipmentChanged` / `_onVisualsRefreshed` unwired**) and `NpcArmament`, which refreshes the visuals directly.
 - **Loadout:** `NPCEntity._startingEquipment` is added to the NPC inventory and equipped in `NpcArmament.Start` (skipped on a
   corpse). Equipped items leave the inventory → not lootable. Guards (all `Faction_Company`: CompanyGuard_ArrivalLeft /
-  Right, DockGuard, WarehouseGuard, Harl, Warden) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword`; the bandit carries
-  `Weapon_HuntingBow` + `Weapon_Axe`. A `BowSO` next to a melee weapon is **added to the inventory but not equipped** (fights
+  Right, DockGuard, WarehouseGuard, Harl, Warden) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword` + `Shield_KiteWoodShield`;
+  the bandit carries `Weapon_HuntingBow` + `Weapon_Axe` + `Shield_RoundWoodShield` (shields equipped after weapons — see Blocking). A `BowSO` next to a melee weapon is **added to the inventory but not equipped** (fights
   start with the melee weapon).
 - **Ranged switch** (spec-ai-ranged-combat-style): `SetRanged(bool)` → `AdvanceWeaponChange` in `Update`, one step at a time,
   while `IsSwitchingWeapon` covers the clips: waits (switching, attacking, staggered, aiming, down) → sheathes a drawn weapon →

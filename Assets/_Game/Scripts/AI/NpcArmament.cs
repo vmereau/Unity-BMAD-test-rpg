@@ -73,6 +73,7 @@ namespace Game.AI
         private bool _rangedRequested;      // the tactics want the bow (SetRanged)
         private bool _weaponChangePending;  // the equipped weapon doesn't match the request yet (Update advances it)
         private EntityArcher _archer;       // optional: never swap mid-shot
+        private ShieldSO _stowedShield;     // shield a bow / two-hander swap pushed into the inventory, re-equipped on the way back
 
         /// <summary>True while a draw / sheathe clip runs — the brain doesn't attack until the weapon is in hand.</summary>
         public bool IsSwitchingWeapon => _isSwitching;
@@ -116,6 +117,22 @@ namespace Game.AI
             {
                 BowSO bow = CarriedBow;
                 return bow != null && bow.IsConfigured ? _inventory.CountOf(bow.ammoItem) : 0;
+            }
+        }
+
+        /// <summary>
+        /// A shield is held in the offhand of the drawn weapon (spec-shield-offhand-blocking) — required to guard. False with
+        /// fists, a sheathed weapon, a bow / two-hander, or no shield.
+        /// </summary>
+        public bool ShieldInHand => _ready && _visuals.ShieldInHand;
+
+        /// <summary>Armor added to <c>Entity.Armor</c>: the equipped shield's <c>defenseBonus</c> (body armor isn't counted).</summary>
+        public float ShieldArmorBonus
+        {
+            get
+            {
+                ShieldSO shield = _ready ? _equipment.EquippedShield : null;
+                return shield != null ? shield.defenseBonus : 0f;
             }
         }
 
@@ -238,17 +255,30 @@ namespace Game.AI
             bool hasMelee = false;
             foreach (EquipableItemSO item in npc.StartingEquipment)
                 if (item is WeaponSO and not BowSO) hasMelee = true;
+            // Shields after everything else, so list order never decides between a shield and a two-handed weapon.
             foreach (EquipableItemSO item in npc.StartingEquipment)
+                if (item is not ShieldSO) GrantItem(item, includeWeapons, hasMelee);
+            foreach (EquipableItemSO item in npc.StartingEquipment)
+                if (item is ShieldSO) GrantItem(item, includeWeapons, hasMelee);
+        }
+
+        private void GrantItem(EquipableItemSO item, bool includeWeapons, bool hasMelee)
+        {
+            if (item == null || (!includeWeapons && item is WeaponSO)) return;
+            if (!_inventory.AddItem(item))
             {
-                if (item == null || (!includeWeapons && item is WeaponSO)) continue;
-                if (!_inventory.AddItem(item))
-                {
-                    GameLog.Warn(TAG, $"{gameObject.name}: loadout item {item.itemName} could not be added to the inventory");
-                    continue;
-                }
-                if (item is BowSO && hasMelee) continue; // carried in the inventory
-                _equipment.Equip(item);
+                GameLog.Warn(TAG, $"{gameObject.name}: loadout item {item.itemName} could not be added to the inventory");
+                return;
             }
+            if (item is BowSO && hasMelee) return; // carried in the inventory
+            if (item is ShieldSO shield && EquippedWeapon is { OccupiesOffhand: true })
+            {
+                GameLog.Warn(TAG, $"{gameObject.name}: loadout shield {shield.itemName} can't be held next to " +
+                                  $"{EquippedWeapon.itemName} (both hands) — carried in the inventory");
+                _stowedShield = shield;
+                return;
+            }
+            _equipment.Equip(item);
         }
 
         /// <summary>
@@ -305,7 +335,10 @@ namespace Game.AI
                 return;
             }
             if (equipped != null) _equipment.Unequip(EquipmentSlot.Weapon);
+            if (desired is { OccupiesOffhand: true } && _equipment.EquippedShield != null)
+                _stowedShield = _equipment.EquippedShield; // the Equip below pushes it into the inventory
             if (desired != null) _equipment.Equip(desired);
+            EquipCarriedShield(); // back to a one-handed weapon: the shield returns to the offhand
             _weaponChangePending = false;
             GameLog.Info(TAG, $"{gameObject.name} now wields {(desired != null ? desired.itemName : "fists")}");
             Rebuild(); // visual + controller (bow override) + hitboxes, then the draw clip in combat
@@ -382,8 +415,45 @@ namespace Game.AI
                 }
                 _droppedWeapon = null;
             }
+            EquipCarriedShield();
             _visuals.SetCombatState(false);
             Rebuild();
+        }
+
+        // Offhand empty and the weapon leaves it free: re-equip the shield a bow / two-hander swap stowed — only that one,
+        // never trade stock or another shield the inventory happens to hold. Gone (looted / sold) → forgotten.
+        private void EquipCarriedShield()
+        {
+            if (_stowedShield == null || _equipment.EquippedShield != null || EquippedWeapon is { OccupiesOffhand: true }) return;
+            ShieldSO shield = _stowedShield;
+            _stowedShield = null;
+            if (_inventory.CountOf(shield) <= 0)
+            {
+                GameLog.Info(TAG, $"{gameObject.name}'s {shield.itemName} is gone — no shield");
+                return;
+            }
+            _equipment.Equip(shield);
+            GameLog.Info(TAG, $"{gameObject.name} takes its {shield.itemName} back in hand");
+        }
+
+        // Restore (no stowed state is saved): a living NPC without an offhand item takes back its starting shield — from the
+        // inventory if it carries it (stowed by a bow at save time: stowed again while the bow is held), else granted anew
+        // (save written before shields existed — guards would never block again).
+        private void GrantMissingStartingShield()
+        {
+            if (_equipment.EquippedShield != null) return;
+            if (_persistentID == null || _persistentID.Entity is not NPCEntity npc || npc.StartingEquipment == null) return;
+            ShieldSO starting = null;
+            foreach (EquipableItemSO item in npc.StartingEquipment)
+                if (item is ShieldSO shield) { starting = shield; break; }
+            if (starting == null) return;
+            if (_inventory.CountOf(starting) <= 0)
+            {
+                if (!_inventory.AddItem(starting)) return;
+                GameLog.Info(TAG, $"{gameObject.name}: restored loadout had no shield — {starting.itemName} granted");
+            }
+            if (EquippedWeapon is { OccupiesOffhand: true }) _stowedShield = starting;
+            else _equipment.Equip(starting);
         }
 
         /// <summary>
@@ -410,6 +480,8 @@ namespace Game.AI
                     GameLog.Info(TAG, $"{gameObject.name}: saved while down — {droppedWeapon.itemName} re-equipped");
                 }
             }
+            _stowedShield = null;
+            if (!killed) GrantMissingStartingShield();
             if (!_started || !isActiveAndEnabled) return; // Start / OnEnable rebuild later
             if (_driver != null) _driver.ClearWeaponSwitch();
             _visuals.SetCombatState(false);

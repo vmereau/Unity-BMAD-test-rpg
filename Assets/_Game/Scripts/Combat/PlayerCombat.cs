@@ -81,6 +81,8 @@ namespace Game.Combat
         // Perfect block timing state (owned by PlayerCombat, not PlayerStateManager)
         private bool _isPerfectBlockWindowOpen = false;
         private float _perfectBlockWindowTimer = 0f;
+        // Shield the raised block uses (spec-shield-offhand-blocking): its stamina cost applies per absorbed hit.
+        private ShieldSO _blockShield;
 
         // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
         private readonly Collider[] _hitBuffer = new Collider[10];
@@ -323,7 +325,15 @@ namespace Game.Combat
                 return;
             }
 
-            if (!_staminaSystem.HasEnough(_config.blockStaminaCostPerHit))
+            // Blocking is shield-only (spec-shield-offhand-blocking): a shield in the offhand of a drawn melee weapon.
+            ShieldSO shield = HeldShield();
+            if (shield == null)
+            {
+                GameLog.Info(TAG, "Cannot block — no shield in hand");
+                return;
+            }
+
+            if (!_staminaSystem.HasEnough(shield.blockStaminaCost))
             {
                 GameLog.Warn(TAG, "Cannot block: insufficient stamina");
                 return;
@@ -337,12 +347,13 @@ namespace Game.Combat
                 CancelAttack();
             }
 
+            _blockShield = shield; // before SetBlocking: anything reacting to the raise sees the shield
             _stateManager.SetBlocking(true); // also drives animator IsBlocking bool
 
-            // Open perfect block window
-            _isPerfectBlockWindowOpen = true;
-            _perfectBlockWindowTimer = _config.perfectBlockWindowDuration;
-            GameLog.Info(TAG, $"Perfect block window opened ({_config.perfectBlockWindowDuration:F2}s)");
+            // Open perfect block window (a 0 s window never opens — the countdown only runs while > 0)
+            _isPerfectBlockWindowOpen = shield.perfectBlockWindow > 0f;
+            _perfectBlockWindowTimer = shield.perfectBlockWindow;
+            GameLog.Info(TAG, $"Perfect block window opened ({shield.perfectBlockWindow:F2}s, {shield.itemName})");
 
             // Reset any in-progress combo — cannot combo mid-block
             ResetAttackCombo();
@@ -354,10 +365,24 @@ namespace Game.Combat
         {
             StopAim(); // no-op unless aiming; a block raised before a bow was equipped still lowers below
             if (!_stateManager.IsBlocking) return; // Block was never raised (stamina denied entry)
+            LowerBlock();
+            GameLog.Info(TAG, "Block lowered");
+        }
+
+        // Clears the block state (animator bool, perfect-block window, shield snapshot).
+        private void LowerBlock()
+        {
             _stateManager.SetBlocking(false); // also drives animator IsBlocking bool
             _isPerfectBlockWindowOpen = false;
             _perfectBlockWindowTimer = 0f;
-            GameLog.Info(TAG, "Block lowered");
+            _blockShield = null;
+        }
+
+        // The equipped shield when it is held in the offhand (drawn one-handed melee weapon), else null.
+        private ShieldSO HeldShield()
+        {
+            if (_equipmentSystem == null || _equipmentVisuals == null || !_equipmentVisuals.ShieldInHand) return null;
+            return _equipmentSystem.EquippedShield;
         }
 
         private void TryAttack()
@@ -531,9 +556,7 @@ namespace Game.Combat
             CancelAttack();
             StopAim();
             if (!_stateManager.IsBlocking) return;
-            _stateManager.SetBlocking(false);
-            _isPerfectBlockWindowOpen = false;
-            _perfectBlockWindowTimer = 0f;
+            LowerBlock();
         }
 
         // No clip: swimming plays full-body, which hides the UpperBody sheathe, so the weapon moves at once.
@@ -562,6 +585,12 @@ namespace Game.Combat
             // Refresh() reassigns runtimeAnimatorController, which resets every animator parameter — re-push the
             // stance, or a drawn player stays in LockOn Locomotion and Attack_1 (only taken from CombatIdle) latches.
             if (_stateManager != null) _stateManager.SetInCombat(_stateManager.IsInCombat);
+            // Shield unequipped (or its weapon swapped for fists / a two-hander) under a raised block: no guard without it.
+            if (_stateManager != null && _stateManager.IsBlocking && HeldShield() != _blockShield) // gone, or swapped mid-block
+            {
+                LowerBlock();
+                GameLog.Info(TAG, "Block lowered — shield no longer in hand");
+            }
             UnbindWeaponHitbox();
             // Story 7.10: cache weapon SO for comboSteps query
             BindWeaponHitbox();
@@ -1175,6 +1204,14 @@ namespace Game.Combat
                 return HitResult.NotBlocked;
             }
 
+            // Fail closed: a block whose shield left the hand (or was never snapshotted) absorbs nothing.
+            if (_blockShield == null || HeldShield() != _blockShield)
+            {
+                LowerBlock();
+                GameLog.Warn(TAG, "Hit received — block lowered, shield no longer in hand");
+                return HitResult.NotBlocked;
+            }
+
             if (_isPerfectBlockWindowOpen)
             {
                 _isPerfectBlockWindowOpen = false;
@@ -1183,14 +1220,12 @@ namespace Game.Combat
                 return HitResult.PerfectBlock;
             }
 
-            // Regular block — consume stamina per hit
-            bool consumed = _staminaSystem.Consume(_config.blockStaminaCostPerHit);
+            // Regular block — consume the shield's stamina cost per hit
+            bool consumed = _staminaSystem.Consume(_blockShield.blockStaminaCost);
             if (!consumed)
             {
                 // Block broken by hit — stamina exhausted; SetBlocking also clears the animator bool
-                _stateManager.SetBlocking(false);
-                _isPerfectBlockWindowOpen = false;
-                _perfectBlockWindowTimer = 0f;
+                LowerBlock();
                 GameLog.Warn(TAG, "Block broken by hit — stamina depleted");
                 return HitResult.NotBlocked;
             }

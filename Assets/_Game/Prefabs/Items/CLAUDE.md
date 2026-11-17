@@ -1,7 +1,8 @@
 # CLAUDE.md — Assets/_Game/Prefabs/Items
 
 > Loaded when Claude accesses item prefabs. Covers world-item (dropped / pickup) prefabs.
-> Weapons have their own two-prefab convention: `Weapons/CLAUDE.md`. Item data: `ScriptableObjects/Items/CLAUDE.md`.
+> Weapons have their own two-prefab convention: `Weapons/CLAUDE.md`. Shields (`Shields/<Name>/`) use the same `_World` /
+> `_Visual` split without a hitbox — see `ShieldSO` in `ScriptableObjects/Items/CLAUDE.md`. Item data: `ScriptableObjects/Items/CLAUDE.md`.
 
 ---
 

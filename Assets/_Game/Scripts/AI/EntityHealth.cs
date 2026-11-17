@@ -83,6 +83,7 @@ namespace Game.AI
 
         private EntityStance _stance;
         private EntityGuard _guard;
+        private NpcArmament _armament;
         private FactionMember _factionMember;
         private Animator _bodyAnimator;
         private Transform _executeBone;
@@ -98,6 +99,7 @@ namespace Game.AI
         {
             _stance = GetComponent<EntityStance>(); // optional
             _guard = GetComponent<EntityGuard>(); // optional — none = never blocks
+            _armament = GetComponent<NpcArmament>(); // optional — none = no shield armor
             _factionMember = GetComponent<FactionMember>(); // optional — none = never knocked out
             _bodyAnimator = GetComponentInChildren<Animator>(); // optional — execute point falls back to the root
             if (_persistentID.Entity == null)
@@ -178,7 +180,8 @@ namespace Game.AI
             bool knockout = _combatConfig != null && FactionMember.IsKnockoutPair(by, _factionMember);
             if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
 
-            float armor = _persistentID.Entity.Armor;
+            // An equipped shield adds its defenseBonus (spec-shield-offhand-blocking); body armor stays in Entity.Armor.
+            float armor = _persistentID.Entity.Armor + (_armament != null ? _armament.ShieldArmorBonus : 0f);
             float effective = DamageMath.Mitigate(amount, armor, _combatConfig != null ? _combatConfig.minDamageFraction : 0f);
             if (effective > 0f && by != null && by.IsPlayer) _playerDamaged = true;
             CurrentHealth -= effective;

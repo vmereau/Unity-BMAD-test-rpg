@@ -69,6 +69,7 @@ namespace Game.UI
             EquipmentSlot.Ring1    => "Ring 1",
             EquipmentSlot.Ring2    => "Ring 2",
             EquipmentSlot.Necklace => "Necklace",
+            EquipmentSlot.Offhand  => "Offhand",
             _                      => slot.ToString()
         };
     }

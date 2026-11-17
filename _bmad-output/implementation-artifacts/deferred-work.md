@@ -953,3 +953,26 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   shows in play.
 - **Save mid-drink is blocked (review):** `PlayerPotionDrinker` holds `SaveSystem.BlockSaving` for the drink (≈ 2.5 s); an
   autosave that lands then is refused. Revisit if autosaves start failing visibly.
+
+### From spec-shield-offhand-blocking (2026-11-17)
+
+- **Shield block / idle clips:** the block reuses the sword's `Block Idle` (left forearm raised forward). `ShieldSO.heldPose` is
+  solved for that block pose, so in combat idle / locomotion (hand hanging) the shield sits flat at the hip — the two hand
+  orientations are 118° apart, no rigid grip fits both. Needs a shield guard idle + block clip (UpperBody override for
+  one-hand + shield), then re-solve `heldPose`.
+- **Shield bash / shield-specific perfect-block reaction:** out of scope.
+- **NPC shield values:** NPCs ignore `blockStaminaCost` / `perfectBlockWindow` (they roll the style's `perfectBlockChance`
+  and spend stance). Scale the parry chance by the shield if shields should feel different on NPCs.
+- **Bandit back clutter:** a bandit carrying a bow has no bow visual while melee; if a carried-bow visual is added later it
+  shares `BackWeaponSocket` with the shield.
+- **Shield poses tuning:** `backPose` (on `BackWeaponSocket`, from the bind pose) and `heldPose` were computed offscreen, not
+  tuned in play — check the Kite's lower tip against the hips while running.
+- **Shield loot depends on the weapon in hand (review):** an NPC downed while holding its bow has its shield stowed in the
+  (lootable) inventory; downed with the melee weapon, the shield stays equipped (not lootable, like armor). Pick one rule.
+- **Restore re-grants a looted starting shield (review):** `NpcArmament.GrantMissingStartingShield` (pre-shield save compat)
+  can't tell "save predates shields" from "player looted the stowed shield" — loot, save, load gives the NPC a fresh one.
+  Save a stowed-shield / granted flag if it matters.
+- **Left-handed one-hander + shield (review):** `ShieldSO.heldPose` is solved for the left hand; a future left-hand melee
+  archetype would put the shield in the right hand with the left-hand pose. Add a right-hand pose then.
+- **No PlayerCombat block tests (review):** "no shield → refused", cost / window from the shield and the mid-block lower are
+  verified in play only; the pure rules (`EquipmentRules`, `EquipmentVisuals.ShouldHoldShield`) are tested.

@@ -45,6 +45,8 @@ namespace Game.AI
             _attacker = GetComponent<EntityMeleeAttacker>();
             _armament = GetComponent<NpcArmament>();
             _drinker = GetComponent<EntityPotionDrinker>();
+            if (_armament == null)
+                GameLog.Warn(TAG, $"{gameObject.name}: EntityGuard without NpcArmament never guards (blocking needs a shield in hand)");
         }
 
         private void OnDisable() => End();
@@ -112,13 +114,15 @@ namespace Game.AI
             toAttacker.sqrMagnitude <= style.guardThreatRange * style.guardThreatRange
             && CombatBlockRules.IsInFrontArc(transform.forward, toAttacker, style.guardArcAngle);
 
-        // Never mid-swing, staggered / knocked down, down, switching weapon, drinking (the opening), or with a broken guard.
+        // Never mid-swing, staggered / knocked down, down, switching weapon, drinking (the opening), with a broken guard,
+        // or without a shield in hand.
         private bool CanGuard() =>
             (_drinker == null || !_drinker.IsDrinking) &&
             (_health == null || (!_health.IsDead && !_health.IsUnconscious))
             && (_stance == null || (!_stance.IsIncapacitated && !_stance.IsGuardBroken))
             && (_attacker == null || !_attacker.IsInSwing)
-            && (_armament == null || (!_armament.IsSwitchingWeapon && !_armament.IsRanged)); // a bow can't block (spec-ai-ranged-combat-style)
+            // Shield-only (spec-shield-offhand-blocking): a shield in the offhand of the drawn weapon (never with a bow / fists).
+            && _armament != null && !_armament.IsSwitchingWeapon && _armament.ShieldInHand;
 
         private void SetRaised(bool raised)
         {

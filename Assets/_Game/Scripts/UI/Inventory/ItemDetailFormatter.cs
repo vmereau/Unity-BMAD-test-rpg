@@ -17,6 +17,7 @@ namespace Game.UI
 
         private const string CATEGORY_WEAPON = "Weapon";
         private const string CATEGORY_ARMOR_PREFIX = "Armor · ";
+        private const string CATEGORY_SHIELD = "Shield";
         private const string CATEGORY_POTION = "Potion";
         private const string CATEGORY_MEAL = "Meal";
         private const string CATEGORY_INGREDIENT = "Ingredient";
@@ -33,6 +34,8 @@ namespace Game.UI
 
         private const string LABEL_DAMAGE = "Damage";
         private const string LABEL_SCALES_WITH = "Scales with";
+        private const string LABEL_BLOCK_STAMINA = "Block Stamina";
+        private const string LABEL_PERFECT_BLOCK = "Perfect Block";
         private const string LABEL_RESTORES_HEALTH = "Restores Health";
         private const string OVER_TIME_PREFIX = " over ";
         private const string LABEL_TEACHES = "Teaches";
@@ -66,6 +69,7 @@ namespace Game.UI
             GoldItemSO => CATEGORY_CURRENCY,
             WeaponSO { IsForged: true } => CATEGORY_FORGED_WEAPON,
             WeaponSO => CATEGORY_WEAPON,
+            ShieldSO => CATEGORY_SHIELD,
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
             PotionItemSO { Kind: ConsumableKind.Meal } => CATEGORY_MEAL,
             PotionItemSO => CATEGORY_POTION,
@@ -99,6 +103,11 @@ namespace Game.UI
                     AddBonus(into, LABEL_DAMAGE, damage);
                     // Raw hit = weapon damage + this stat, 1:1 (spec-stat-scaling-balance) — shown with the damage row.
                     if (damage != 0) into.Add(new ItemStatLine(LABEL_SCALES_WITH, SkillDetailFormatter.GetStatLabel(weapon.scalingStat)));
+                    break;
+                case ShieldSO shield:
+                    // Stamina per absorbed hit (lower is better) and the perfect-block window (spec-shield-offhand-blocking).
+                    into.Add(new ItemStatLine(LABEL_BLOCK_STAMINA, Mathf.RoundToInt(shield.blockStaminaCost).ToString()));
+                    into.Add(new ItemStatLine(LABEL_PERFECT_BLOCK, shield.perfectBlockWindow.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + " s"));
                     break;
                 case PotionItemSO potion when Mathf.RoundToInt(potion.HealAmount) > 0:
                     int heal = Mathf.RoundToInt(potion.HealAmount);

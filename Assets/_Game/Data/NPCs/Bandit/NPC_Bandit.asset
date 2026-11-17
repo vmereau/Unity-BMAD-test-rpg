@@ -67,6 +67,7 @@ MonoBehaviour:
   _startingEquipment:
   - {fileID: 11400000, guid: 88f9924126aeb7947b9873e31de58fab, type: 2}
   - {fileID: 11400000, guid: 30eed6afdc731f44ea31077331d8ce3f, type: 2}
+  - {fileID: 11400000, guid: f33cfefe3d8e337438b1c6496e17c9db, type: 2}
   _xpOnKnockout: 25
   _canBeExecuted: 1
   _finisherStanceMultiplier: 1.5

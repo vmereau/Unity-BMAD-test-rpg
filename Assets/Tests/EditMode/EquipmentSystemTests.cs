@@ -11,6 +11,7 @@ namespace Tests.EditMode
         private InventorySystem _inventory;
         private EquipmentSystem _equipment;
         private readonly List<ItemSO> _createdItems = new();
+        private readonly List<WeaponArchetypeSO> _createdArchetypes = new();
 
         [SetUp]
         public void SetUp()
@@ -32,6 +33,9 @@ namespace Tests.EditMode
             foreach (var item in _createdItems)
                 Object.DestroyImmediate(item);
             _createdItems.Clear();
+            foreach (var archetype in _createdArchetypes)
+                Object.DestroyImmediate(archetype);
+            _createdArchetypes.Clear();
         }
 
         private WeaponSO CreateWeapon(string name = "Test Sword")
@@ -47,6 +51,32 @@ namespace Tests.EditMode
             var item = ScriptableObject.CreateInstance<ArmorSO>();
             item.itemName = name;
             item.slot = slot;
+            _createdItems.Add(item);
+            return item;
+        }
+
+        private ShieldSO CreateShield(string name = "Test Shield")
+        {
+            var item = ScriptableObject.CreateInstance<ShieldSO>();
+            item.itemName = name;
+            _createdItems.Add(item);
+            return item;
+        }
+
+        private WeaponSO CreateTwoHander(string name = "Test Flamberge")
+        {
+            var archetype = ScriptableObject.CreateInstance<WeaponArchetypeSO>();
+            archetype.twoHandedGrip = true;
+            _createdArchetypes.Add(archetype);
+            var item = CreateWeapon(name);
+            item.archetype = archetype;
+            return item;
+        }
+
+        private BowSO CreateBow(string name = "Test Bow")
+        {
+            var item = ScriptableObject.CreateInstance<BowSO>();
+            item.itemName = name;
             _createdItems.Add(item);
             return item;
         }
@@ -173,6 +203,138 @@ namespace Tests.EditMode
             _equipment.Equip(0);
 
             Assert.IsTrue(_equipment.IsEquipped(sword));
+        }
+
+        // ── Offhand / shields (spec-shield-offhand-blocking) ────────────────
+
+        [Test]
+        public void Equip_Shield_GoesToOffhand_NextToOneHandedWeapon()
+        {
+            var sword = CreateWeapon();
+            var shield = CreateShield();
+            _inventory.AddItem(sword);
+            _inventory.AddItem(shield);
+
+            _equipment.Equip(sword);
+            _equipment.Equip(shield);
+
+            Assert.AreEqual(sword, _equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.AreEqual(shield, _equipment.GetEquipped(EquipmentSlot.Offhand));
+            Assert.AreEqual(shield, _equipment.EquippedShield);
+            Assert.AreEqual(0, _inventory.Count);
+        }
+
+        [Test]
+        public void Equip_TwoHander_BumpsShieldToInventory()
+        {
+            var shield = CreateShield();
+            var flamberge = CreateTwoHander();
+            _inventory.AddItem(shield);
+            _inventory.AddItem(flamberge);
+
+            _equipment.Equip(shield);
+            _equipment.Equip(flamberge);
+
+            Assert.AreEqual(flamberge, _equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.IsNull(_equipment.GetEquipped(EquipmentSlot.Offhand));
+            Assert.AreEqual(1, _inventory.Count);
+            Assert.AreEqual(shield, _inventory.Items[0].Item);
+        }
+
+        [Test]
+        public void Equip_Shield_BumpsBowToInventory()
+        {
+            var bow = CreateBow();
+            var shield = CreateShield();
+            _inventory.AddItem(bow);
+            _inventory.AddItem(shield);
+
+            _equipment.Equip(bow);
+            _equipment.Equip(shield);
+
+            Assert.AreEqual(shield, _equipment.GetEquipped(EquipmentSlot.Offhand));
+            Assert.IsNull(_equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.AreEqual(bow, _inventory.Items[0].Item);
+        }
+
+        [Test]
+        public void Equip_SecondShield_ReplacesFirst()
+        {
+            var a = CreateShield("A");
+            var b = CreateShield("B");
+            _inventory.AddItem(a);
+            _inventory.AddItem(b);
+
+            _equipment.Equip(a);
+            _equipment.Equip(b);
+
+            Assert.AreEqual(b, _equipment.GetEquipped(EquipmentSlot.Offhand));
+            Assert.AreEqual(a, _inventory.Items[0].Item);
+        }
+
+        [Test]
+        public void RestoreEquipped_TwoHanderAndShield_DropsShield()
+        {
+            var flamberge = CreateTwoHander();
+            var shield = CreateShield();
+
+            _equipment.RestoreEquipped(new Dictionary<EquipmentSlot, ItemSO>
+            {
+                { EquipmentSlot.Weapon, flamberge },
+                { EquipmentSlot.Offhand, shield },
+            });
+
+            Assert.AreEqual(flamberge, _equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.IsNull(_equipment.GetEquipped(EquipmentSlot.Offhand));
+            Assert.AreEqual(1, _inventory.CountOf(shield), "the dropped shield goes back into the inventory, never lost");
+        }
+
+        [Test]
+        public void ShouldHoldShield_OnlyWithDrawnWeaponLeavingOffhandFree()
+        {
+            var sword = CreateWeapon();
+            Assert.IsTrue(EquipmentVisuals.ShouldHoldShield(true, true, true, sword));
+            Assert.IsFalse(EquipmentVisuals.ShouldHoldShield(true, false, true, sword), "sheathed");
+            Assert.IsFalse(EquipmentVisuals.ShouldHoldShield(true, true, false, null), "fists");
+            Assert.IsFalse(EquipmentVisuals.ShouldHoldShield(false, true, true, sword), "no shield");
+            Assert.IsFalse(EquipmentVisuals.ShouldHoldShield(true, true, true, CreateBow()), "bow");
+            Assert.IsFalse(EquipmentVisuals.ShouldHoldShield(true, true, true, CreateTwoHander()), "two-hander");
+        }
+
+        [Test]
+        public void RestoreEquipped_ShieldInWeaponSlot_Skipped()
+        {
+            var shield = CreateShield();
+
+            _equipment.RestoreEquipped(new Dictionary<EquipmentSlot, ItemSO> { { EquipmentSlot.Weapon, shield } });
+
+            Assert.IsNull(_equipment.GetEquipped(EquipmentSlot.Weapon));
+        }
+
+        [Test]
+        public void OccupiesOffhand_OneHanderFalse_TwoHanderAndBowTrue()
+        {
+            Assert.IsFalse(CreateWeapon().OccupiesOffhand);
+            Assert.IsTrue(CreateTwoHander().OccupiesOffhand);
+            Assert.IsTrue(CreateBow().OccupiesOffhand);
+        }
+
+        [Test]
+        public void ResolveOffhandSocket_IsTheHandNotHoldingTheWeapon()
+        {
+            var right = new GameObject("R").transform;
+            var left = new GameObject("L").transform;
+            try
+            {
+                Assert.AreEqual(left, EquipmentVisuals.ResolveOffhandSocket(right, right, left));
+                Assert.AreEqual(right, EquipmentVisuals.ResolveOffhandSocket(left, right, left));
+                Assert.AreEqual(left, EquipmentVisuals.ResolveOffhandSocket(null, right, left));
+            }
+            finally
+            {
+                Object.DestroyImmediate(right.gameObject);
+                Object.DestroyImmediate(left.gameObject);
+            }
         }
     }
 }

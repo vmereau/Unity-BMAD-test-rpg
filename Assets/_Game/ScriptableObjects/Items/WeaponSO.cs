@@ -67,6 +67,12 @@ namespace Game.Inventory
             ? animatorOverrideController
             : archetype != null ? archetype.animatorOverrideController : null;
 
+        /// <summary>
+        /// True when the weapon needs both hands, so no offhand item (shield) can be equipped with it: two-handed-grip
+        /// archetypes; <see cref="BowSO"/> always (spec-shield-offhand-blocking).
+        /// </summary>
+        public virtual bool OccupiesOffhand => archetype != null && archetype.twoHandedGrip;
+
         public override bool CanEquip() => true;
     }
 }

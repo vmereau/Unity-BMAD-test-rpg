@@ -32,6 +32,7 @@ namespace Game.UI
             { isCraftingMaterial: true } => ItemFilter.CraftingMaterials,
             WeaponSO => ItemFilter.Weapons,
             ArmorSO => ItemFilter.Armor,
+            ShieldSO => ItemFilter.Armor,
             PotionItemSO { Kind: ConsumableKind.Meal } => ItemFilter.Meals,
             PotionItemSO => ItemFilter.Potions,
             SkillItemSO => ItemFilter.BooksAndRecipes,

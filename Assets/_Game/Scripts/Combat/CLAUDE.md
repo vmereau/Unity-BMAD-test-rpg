@@ -130,6 +130,18 @@ sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 
 ---
 
+## Blocking — shield only (spec-shield-offhand-blocking)
+
+Right click raises the block only with a shield **in hand**: `EquipmentVisuals.ShieldInHand` (a `ShieldSO` in the Offhand slot
+and a drawn weapon visual — fists never draw the shield). The shield is snapshotted at the raise (`_blockShield`):
+`HasEnough` / per-hit `Consume` use `ShieldSO.blockStaminaCost`, the perfect-block window is `ShieldSO.perfectBlockWindow`
+(`CombatConfigSO` no longer has block stamina / window fields). `HandleVisualsRefreshed` lowers a raised block whose shield left
+the hand (unequipped, two-hander equipped). Every lower goes through `LowerBlock()`. Values: Round 20 stamina / 0.35 s / +3
+armor, Kite 12 / 0.2 s / +6. The block still plays the sword's `Block Idle` (no shield clip yet — `deferred-work.md`). NPC side:
+`Scripts/AI/CLAUDE.md` → Blocking.
+
+---
+
 ## Ranged — Bow (`BowSO` → `ArrowProjectile`)
 
 With a `BowSO` equipped (`EquippedBow`, read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` —

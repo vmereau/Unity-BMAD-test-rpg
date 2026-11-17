@@ -30,6 +30,10 @@ namespace Game.Inventory
         private bool _forceDefaultController; // NPC fists with a weapon equipped (ForceDefaultController)
         private bool _backSocketWarned; // warn once per equipped weapon, not on every sheathe
         private bool _leftSocketWarned; // warn once per equipped weapon, not on every draw
+        private GameObject _shieldVisual;
+        private ShieldSO _shieldVisualItem; // shield the current _shieldVisual was built for — skip rebuilds on unrelated refreshes
+        private bool _shieldHeld; // set by PlaceShield only once the shield is parented to the offhand socket
+        private bool _shieldSocketWarned; // warn once per equipped shield when a shield socket is missing
         private GameObject _helmetVisual;
         private GameObject _armorVisual;
         private ItemSO _armorVisualItem; // armor the current _armorVisual was built for — skip rebuilds on unrelated refreshes
@@ -51,6 +55,22 @@ namespace Game.Inventory
         public Transform DrawnSocket => ResolveDrawnSocket(_currentArchetype, _weaponSocket, _leftWeaponSocket);
         /// <summary>Controller currently on the animator (null without one) — lets NPC callers detect a swap.</summary>
         public RuntimeAnimatorController AppliedController => _animator != null ? _animator.runtimeAnimatorController : null;
+        /// <summary>
+        /// A shield is held in the offhand (spec-shield-offhand-blocking): a shield equipped and a weapon visual drawn. Fists,
+        /// sheathed or no weapon leave it on the back. Blocking (player and NPC) requires this.
+        /// </summary>
+        public bool ShieldInHand => _shieldHeld && _shieldVisual != null;
+
+        /// <summary>
+        /// Pure rule behind <see cref="ShieldInHand"/>: the shield goes to the hand only with a drawn weapon visual that leaves
+        /// the offhand free (EquipmentRules already keeps a bow / two-hander and a shield apart — checked again here).
+        /// </summary>
+        public static bool ShouldHoldShield(bool hasShield, bool isDrawn, bool hasWeaponVisual, WeaponSO weapon) =>
+            hasShield && isDrawn && hasWeaponVisual && weapon is not { OccupiesOffhand: true };
+
+        /// <summary>The instantiated shield visual (null without a shield).</summary>
+        public GameObject ShieldVisual => _shieldVisual;
+
         /// <summary>Left-hand socket (mirror of the right one), or null when unassigned.</summary>
         public Transform LeftHandSocket => _leftWeaponSocket;
 
@@ -91,6 +111,7 @@ namespace Game.Inventory
         public void SetCombatState(bool isInCombat)
         {
             _isInCombat = isInCombat;
+            PlaceShield(); // follows the weapon: in hand once drawn, on the back otherwise
             if (_weaponVisual == null) return;
             var targetSocket = isInCombat ? CurrentDrawnSocket() : CurrentSheathSocket();
             if (targetSocket == null)
@@ -114,6 +135,7 @@ namespace Game.Inventory
         {
             if (_equipmentSystem == null) return;
             RefreshWeapon(applyAnimatorController);
+            RefreshShield(); // after the weapon: its hand and drawn state decide where the shield goes
             RefreshHelmet();
             RefreshBody();
             _onVisualsRefreshed?.Raise(false);
@@ -163,6 +185,86 @@ namespace Game.Inventory
             _currentWeaponOverride = (weapon as WeaponSO)?.ResolvedAnimatorOverride;
             if (applyAnimatorController) ApplyAnimatorOverride(_currentWeaponOverride);
         }
+
+        private void RefreshShield()
+        {
+            var shield = _equipmentSystem.EquippedShield;
+            if (_shieldVisual != null && shield != null && shield == _shieldVisualItem)
+            {
+                PlaceShield(); // same shield: only the weapon (hand, drawn state) may have changed
+                return;
+            }
+
+            if (_shieldVisual != null)
+                Destroy(_shieldVisual);
+            _shieldVisual = null;
+            _shieldVisualItem = null;
+            _shieldHeld = false;
+            _shieldSocketWarned = false;
+
+            if (shield == null) return;
+            _shieldVisualItem = shield;
+
+            if (shield.equipVisualPrefab != null)
+            {
+                _shieldVisual = Instantiate(shield.equipVisualPrefab, transform);
+                var drawn = _shieldVisual.transform.Find("Drawn");
+                var sheathed = _shieldVisual.transform.Find("Sheathed");
+                if (drawn != null) shield.heldPose.ApplyTo(drawn);
+                if (sheathed != null) shield.backPose.ApplyTo(sheathed);
+                if (drawn == null || sheathed == null)
+                    GameLog.Warn(TAG, $"Shield '{shield.itemName}': visual lacks a Drawn / Sheathed child — poses partly skipped");
+                GameLog.Info(TAG, $"Shield visual attached (prefab: {shield.equipVisualPrefab.name})");
+            }
+            else
+            {
+                _shieldVisual = CreatePlaceholder(PrimitiveType.Cylinder, transform, new Vector3(0.5f, 0.02f, 0.5f), Color.gray);
+                GameLog.Info(TAG, "Shield visual attached (placeholder)");
+            }
+            PlaceShield();
+        }
+
+        // Shield in the hand opposite the drawn weapon while ShieldInHand, else on the back socket (hip fallback, one warning).
+        private void PlaceShield()
+        {
+            _shieldHeld = false;
+            if (_shieldVisual == null) return;
+            bool held = ShouldHoldShield(true, _isInCombat, _weaponVisual != null,
+                _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as WeaponSO);
+            Transform socket = held ? ResolveOffhandSocket(DrawnSocket, _weaponSocket, _leftWeaponSocket) : null;
+            if (held && socket == null)
+            {
+                WarnShieldSocketOnce("the offhand socket is not assigned — the shield stays on the back (no block)");
+                held = false;
+            }
+            if (!held)
+            {
+                if (_backWeaponSocket == null)
+                    WarnShieldSocketOnce("_backWeaponSocket is not assigned — the shield sits on the hip socket");
+                socket = _backWeaponSocket != null ? _backWeaponSocket : _undrawnWeaponSocket;
+            }
+            if (socket == null)
+            {
+                WarnShieldSocketOnce("no shield socket is assigned — shield visual not moved");
+                return;
+            }
+            _shieldHeld = held;
+            _shieldVisual.transform.SetParent(socket, worldPositionStays: false);
+            _shieldVisual.transform.localPosition = Vector3.zero;
+            _shieldVisual.transform.localRotation = Quaternion.identity;
+            ApplyCombatVisibility(_shieldVisual, held);
+        }
+
+        private void WarnShieldSocketOnce(string message)
+        {
+            if (_shieldSocketWarned) return;
+            _shieldSocketWarned = true;
+            GameLog.Warn(TAG, $"EquipmentVisuals ({gameObject.name}): {message}");
+        }
+
+        /// <summary>The hand socket not holding the weapon: right when the weapon is in the left socket, else left (null when unassigned).</summary>
+        public static Transform ResolveOffhandSocket(Transform weaponSocket, Transform rightSocket, Transform leftSocket) =>
+            weaponSocket != null && weaponSocket == leftSocket ? rightSocket : leftSocket;
 
         private void RefreshHelmet()
         {

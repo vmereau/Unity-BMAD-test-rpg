@@ -68,42 +68,30 @@ namespace Game.Inventory
                 return;
             }
 
-            EquipmentSlot targetSlot;
-
-            if (item is WeaponSO)
+            if (!EquipmentRules.TryGetTargetSlot(item, _equipped, out EquipmentSlot targetSlot))
             {
-                targetSlot = EquipmentSlot.Weapon;
-            }
-            else if (item is ArmorSO armor)
-            {
-                if (armor.slot == EquipmentSlot.Ring1)
-                {
-                    if (!_equipped.ContainsKey(EquipmentSlot.Ring1))
-                        targetSlot = EquipmentSlot.Ring1;
-                    else if (!_equipped.ContainsKey(EquipmentSlot.Ring2))
-                        targetSlot = EquipmentSlot.Ring2;
-                    else
-                        targetSlot = EquipmentSlot.Ring1; // bump Ring1 back to inventory below
-                }
-                else
-                {
-                    targetSlot = armor.slot;
-                }
-            }
-            else
-            {
-                GameLog.Warn(TAG, "Unknown equippable slot type");
+                GameLog.Warn(TAG, $"Unknown equippable slot type for {item.itemName}");
                 return;
             }
 
-            // If target slot is occupied, return old item to inventory first (AddItem before RemoveItem to avoid index drift)
+            // Return displaced items to the inventory first (AddItem before RemoveItem: appending never shifts the index).
+            // A two-handed weapon / bow and a shield exclude each other (spec-shield-offhand-blocking).
+            // Each displaced item leaves _equipped before AddItem, so inventory listeners never see it in both places.
+            // (InventorySystem has no capacity limit: AddItem only refuses null / gold, never an equipped item.)
+            if (EquipmentRules.TryGetConflictingSlot(item, _equipped, out EquipmentSlot conflictSlot)
+                && _equipped.TryGetValue(conflictSlot, out var conflicting))
+            {
+                _equipped.Remove(conflictSlot);
+                _inventorySystem.AddItem(conflicting);
+                GameLog.Info(TAG, $"Unequipped {conflicting.itemName} from {conflictSlot} — {item.itemName} needs it free");
+            }
             if (_equipped.TryGetValue(targetSlot, out var oldItem))
             {
+                _equipped.Remove(targetSlot);
                 _inventorySystem.AddItem(oldItem);
                 GameLog.Info(TAG, $"Unequipped {oldItem.itemName} from {targetSlot}");
             }
 
-            // Remove new item from inventory AFTER potential AddItem to keep indices stable
             _inventorySystem.RemoveItem(inventoryIndex);
 
             _equipped[targetSlot] = item;
@@ -143,7 +131,7 @@ namespace Game.Inventory
             {
                 foreach (var pair in equipped)
                 {
-                    if (!FitsSlot(pair.Value, pair.Key))
+                    if (!EquipmentRules.FitsSlot(pair.Value, pair.Key))
                     {
                         if (pair.Value != null)
                             GameLog.Warn(TAG, $"RestoreEquipped: {pair.Value.itemName} cannot go in {pair.Key} — skipped");
@@ -151,23 +139,26 @@ namespace Game.Inventory
                     }
                     _equipped[pair.Key] = pair.Value;
                 }
+                if (EquipmentRules.HasOffhandConflict(_equipped))
+                {
+                    // The inventory is restored first (PlayerSaveAdapter / NPC SaveableObject): the item goes back into it.
+                    ItemSO offhand = _equipped[EquipmentSlot.Offhand];
+                    GameLog.Warn(TAG, $"RestoreEquipped: {offhand.itemName} cannot be held next to " +
+                                      $"{_equipped[EquipmentSlot.Weapon].itemName} (both hands) — moved to the inventory");
+                    _equipped.Remove(EquipmentSlot.Offhand);
+                    _inventorySystem.AddItem(offhand);
+                }
             }
             _onEquipmentChanged?.Raise(true);
             RecomputeAndApplyBonuses();
         }
 
-        // Mirrors Equip()'s slot resolution: weapons → Weapon, rings → Ring1/Ring2, other armor → its slot.
-        private static bool FitsSlot(ItemSO item, EquipmentSlot slot) => item switch
-        {
-            WeaponSO => slot == EquipmentSlot.Weapon,
-            ArmorSO armor when armor.slot == EquipmentSlot.Ring1 => slot is EquipmentSlot.Ring1 or EquipmentSlot.Ring2,
-            ArmorSO armor => slot == armor.slot,
-            _ => false
-        };
-
         /// <summary>Returns the item equipped in the given slot, or null if empty.</summary>
         public ItemSO GetEquipped(EquipmentSlot slot)
             => _equipped.TryGetValue(slot, out var item) ? item : null;
+
+        /// <summary>The shield in the Offhand slot, or null.</summary>
+        public ShieldSO EquippedShield => GetEquipped(EquipmentSlot.Offhand) as ShieldSO;
 
         /// <summary>Returns true if the item can be equipped.</summary>
         public bool IsEquippable(ItemSO item) => item is EquipableItemSO;

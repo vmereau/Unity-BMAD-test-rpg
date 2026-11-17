@@ -19,7 +19,8 @@ ItemSO                              (base — any item in the inventory)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
     │   ├── SwordSO                 (Weapons/SwordSO.cs — every melee weapon)
     │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/CLAUDE.md)
-    └── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
+    ├── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
+    └── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
   + WeaponPose (struct), WeaponSheathSocket (Hip/Back), WeaponHand (Right/Left), SignedAxis, WeaponGripMath (static) — all in Weapons/
@@ -178,7 +179,7 @@ consumable. Create via **Assets → Create → Items → Recipe Item**. Details:
 1. Extend `EquipableItemSO` (abstract), override `CanEquip() => true`.
 2. Add `[CreateAssetMenu]`.
 3. Define which `EquipmentSlot` the item targets (either hardcoded like `WeaponSO`, or via a `slot` field like `ArmorSO`).
-4. Add a new `case` in `EquipmentSystem.Equip()` for slot resolution, plus an `else` warn for unknown types.
+4. Add the slot resolution to `EquipmentRules.TryGetTargetSlot` **and** `FitsSlot` (`Scripts/Inventory/EquipmentRules.cs`, tested) — never in `EquipmentSystem` itself. A weapon that needs both hands overrides `WeaponSO.OccupiesOffhand`.
 5. Stat bonus rows are automatic for any `EquipableItemSO`; add type-specific rows and a category in `ItemDetailFormatter` (concrete types before abstract bases in its `switch`) + tests. No prefab change needed.
 6. The **Equip/Unequip** detail button is handled by `InventoryDetailActions` for any `EquipableItemSO`.
 7. The context menu **Equip** button in `InventoryUI.ShowContextMenu()` also appears automatically — it checks `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click on the equipment slot or the Unequip detail button.
@@ -187,6 +188,26 @@ consumable. Create via **Assets → Create → Items → Recipe Item**. Details:
 `ItemDetailPanelUI` (`Scripts/UI/Inventory/`) has no per-type sections: it paints a category line, data-driven stat rows,
 the description and a price, all computed by `ItemDetailFormatter`. Action buttons live in the per-host actions prefabs
 (`InventoryDetailActions`, `TradeDetailActions`, `ContainerDetailActions`). See `Scripts/UI/Inventory/CLAUDE.md`.
+
+---
+
+## ShieldSO (concrete) — spec-shield-offhand-blocking
+
+`Assets/_Game/ScriptableObjects/Items/ShieldSO.cs`, menu **Items → Shield**. Data: `Data/Items/Shields/Shield_<Name>.asset`;
+prefabs `Prefabs/Items/Shields/<Name>/` — `<Name>_World` (Rigidbody, BoxCollider, `ItemPickup`, `InteractionHighlight`, layer 8)
+and `<Name>_Visual` (root → `Drawn` / `Sheathed` → `Mesh`, **no hitbox**). The `Mesh` child normalizes the art: **front +Z, up +Y,
+grip (back of the handle) at the origin** (Hivemind shields face +X: `Mesh` rot (0, −90, 0), pos = −(rot × grip)).
+
+| Field | Purpose |
+|---|---|
+| `defenseBonus` (inherited) | Armor — player `Defense`, NPC armor (offhand only) |
+| `blockStaminaCost` | Player stamina per absorbed hit (and the minimum to raise the block) |
+| `perfectBlockWindow` | Player perfect-block window (s) |
+| `heldPose` | `Drawn` pose in the offhand socket — solved so the shield faces forward, world-up, in the in-game block (sword override, `IsBlocking`, UpperBody weight 1, evaluated with `Animator.Update` — **not** `clip.SampleAnimation`: `Block Idle` turns the hips ~90°, the masked layer doesn't) |
+| `backPose` | `Sheathed` pose on `BackWeaponSocket` (bind pose: face backward, world-up, 4 cm behind) |
+
+Detail panel: category "Shield", rows Block Stamina / Perfect Block, then Defense. Shields: `Shield_RoundWoodShield`
+(+3, 20, 0.35 s, 40 g) and `Shield_KiteWoodShield` (+6, 12, 0.2 s, 60 g); both sold by the Storekeeper.
 
 ---
 
