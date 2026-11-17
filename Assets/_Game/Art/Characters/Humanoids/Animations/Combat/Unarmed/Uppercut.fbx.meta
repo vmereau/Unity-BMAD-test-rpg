@@ -33,10 +33,10 @@ ModelImporter:
     clipAnimations:
     - serializedVersion: 16
       name: Uppercut
-      takeName: mixamo.com
+      takeName: Scene
       internalID: -203655887218126122
-      firstFrame: 0
-      lastFrame: 40
+      firstFrame: 1
+      lastFrame: 41
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -572,13 +572,18 @@ ModelImporter:
         length: 0
         modified: 0
     skeleton:
-    - name: Uppercut Jab(Clone)
+    - name: Uppercut(Clone)
       parentName: 
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
+    - name: Armature
+      parentName: Uppercut(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.000000037748947, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:Hips
-      parentName: Uppercut Jab(Clone)
+      parentName: Armature
       position: {x: 0.008435639, y: 0.9364633, z: 0.0033260926}
       rotation: {x: -0.008501106, y: 0.08159913, z: -0.0012036692, w: 0.9966283}
       scale: {x: 1, y: 1, z: 1}

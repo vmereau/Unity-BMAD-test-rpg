@@ -33,10 +33,10 @@ ModelImporter:
     clipAnimations:
     - serializedVersion: 16
       name: Hook
-      takeName: mixamo.com
+      takeName: Scene
       internalID: -203655887218126122
-      firstFrame: 10
-      lastFrame: 65
+      firstFrame: 11
+      lastFrame: 66
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -568,8 +568,13 @@ ModelImporter:
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: mixamorig:Hips
+    - name: Armature
       parentName: Hook(Clone)
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.000000037748947, y: 0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: mixamorig:Hips
+      parentName: Armature
       position: {x: -0.000058023026, y: 0.009463404, z: -0.00013553548}
       rotation: {x: 0.0029978976, y: 0.022785395, z: 0.0014218654, w: 0.99973494}
       scale: {x: 1, y: 1, z: 1}

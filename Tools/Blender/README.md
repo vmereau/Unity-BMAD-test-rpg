@@ -17,6 +17,32 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | `verify_skin_tones.cs` | Unity MCP `execute_code` body: untoned `SG_SkinLit` vs URP Lit pixel diff + tone sheet (face, hands, body, armor) of every `Tone_*` → `Temp/SkinTones/` |
 | `configs/2hand_attack_1.json` | Final inputs that produced `two handed/2hand attack refined.fbx` (Attack_1) — constant `target_pitch_deg` |
 | `configs/2hand_attack_2.json` | Final inputs that produced `two handed/2hand attack 2 refined.fbx` (Attack_2 finisher) — `pitch_curve` |
+| `unarmed_foot_step.py` + `configs/unarmed/` | Leg IK edit of the unarmed combo clips so the feet follow the scripted `AttackStep` (see *Unarmed foot step*) |
+| `unarmed_foot_step_measure.cs` | Unity MCP `execute_code` body: per-frame toe / ankle positions of a clip on the Player rig (player-local JSON) |
+
+## Unarmed foot step
+
+`unarmed_foot_step.py` rewrites both legs of `Unarmed/old/<clip>.fbx` and exports `Unarmed/<clip>.fbx` (whose `.meta`
+keeps the original GUID, clip internal id and events; take `Scene`, frame range +1). Config (`configs/unarmed/*.json`):
+`step` = the `CombatConfigSO.unarmedAttacks` entry, `trim_first_frame` (Hook 10), `lead_moves` / `rear_moves` =
+`[t0, t1, T]` lifted moves to the source's own spot at clip time T plus the step done by then (`null` = clip end, last
+move; validated: sorted, after `step.start`, ending before the clip end), `<foot>_lift_m`, `correction` =
+`{"L": {"<Unity frame>": [dx, dy, dz]}, "R": {...}}` (sparse, player-local metres) accumulated by `update_correction`.
+`<clip>_source.json` = the source toes sampled with `unarmed_foot_step_measure.cs` (Unity frame index, Hook index 0 =
+source frame 10). Final configs reproduce the shipped clips.
+
+Run it with `__file__` set (see the script docstring), or relative config paths resolve from Blender's cwd.
+Loop: `run(config)` → reimport in Unity → sample the exported clip with `unarmed_foot_step_measure.cs` →
+`update_correction(config, measured.json)` (`correction += 0.8 × (wanted − measured)`, clamped to 8 cm per axis) →
+repeat (3–6 passes). The configs hold the final corrections; re-running them reproduces the shipped clips on Blender 5.2.
+Gotchas:
+- Armature units differ per Mixamo export (Uppercut is centimetres, hips ≈ 88): the script detects it from the hips height.
+- Command → result gain is far below 1 and cross-coupled (Unity places the body on the centre of mass and retargets leg
+  muscles); a gain-1 or secant update overshoots into straight knees. Damp and clamp.
+- Targets beyond the leg's reach make the 2-bone IK spin the leg (foot pops behind the other): targets are clamped to
+  98.5 % of thigh + shin (`reach_clamped_frames` in the report). Where the Player knee locks anyway, plant the foot shorter
+  (Hook first lead plant on its f17 spot) instead of pushing the correction.
+- Pole angle is calibrated per leg against the source knee (≈ 1 cm mean error); it must run before the target is keyed.
 
 **Pitch target.** `target_pitch_deg` is one constant and only ever pulls the blade down (Attack_1 path). `pitch_curve`
 (`[[normalized t, Unity pitch deg], ...]`, sorted, piecewise linear) replaces it when present and can raise or lower the

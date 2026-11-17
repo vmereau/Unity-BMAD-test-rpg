@@ -858,8 +858,30 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
   `PlayerAttackStep` moves the capsule 0.30 / 0.35 / 0.50 m, so the feet slide. Edit the clips in Blender (existing
   `Tools/Blender/` IK + bake pipeline): during each `AttackStep` window the planted foot slides back in clip space by
   exactly the scripted displacement (stays world-fixed), the lead foot does a push-step and the rear foot drags after.
-  Keep timings / events. Look-test the jab first. User chose Blender over new clips (2026-11-17).
+  Keep timings / events. Look-test the jab first. User chose Blender over new clips (2026-11-17). **Done in spec-unarmed-attack-foot-step.**
 - **Recovery cancel follow-ups (spec-attack-recovery-cancel review):** (1) held move input cancels the recovery on the very
   frame the combo window closes — intended (user chose window close), revisit if playtests want a punishable tail (require a
   fresh push past the threshold). (2) No EditMode coverage for `PlayerCombat`'s recovery wiring (move threshold, `AttackCancel`
   clear on enter, blend-out press path) — only the tracker is tested; extract a pure decision helper if it regresses.
+
+## From spec-unarmed-attack-foot-step (2026-11-17)
+
+- **NPCs: same scripted step as the player (future spec, user decision).** NPCs share `Humanoid_Template` and now play the
+  stepped unarmed clips in place: the feet step on the spot (rear foot slides back ~30 cm and returns). Give NPC melee the
+  player's `AttackStep` displacement (and attack flow) so the clips read as intended. Stopgap if needed: point
+  `Humanoid_Base.overrideController`'s three unarmed attacks at `Unarmed/old/`.
+- **Entry / combo blend slides:** the 0.26 s CombatIdle → Attack_1 blend goes from the square locomotion `Idle` stance to the
+  bladed jab stance (~22 cm rear-foot slide inside the step window), and the 0.42 s combo blends contain most of the Hook /
+  Uppercut steps (mixed pose slides 5–20 cm, Hook tail up to ~60 cm while the Uppercut steps). Options: a bladed combat idle
+  stance, shorter unarmed blends, or start the steps after the blend (step timing change). Anchoring the clips on the idle
+  stance in Blender was tried and fails (Player leg reach / foot yaw).
+- **Jab lead foot creep:** ~5 cm at 1.13–1.30 s (lead knee at full extension while the source body pulls back).
+- **Upper body shift:** editing the legs moves Unity's centre-of-mass root, so the whole upper body (pose unchanged) shifts
+  1.8–3.0 cm in the hit windows; re-check fist hitbox reach if playtests notice it.
+- **Review follow-ups (tooling, low):** (1) `configs/unarmed/*.json` duplicate `CombatConfigSO.unarmedAttacks` with no
+  cross-check: retuning a step invalidates the clip edit silently (re-run the tool after any step change; a test or an
+  editor check could compare them). (2) `Unarmed/old/` clips share clip names / internal ids with the live ones: a future
+  name-based lookup (`FindAssets("Hook t:AnimationClip")`, MCP find by name) becomes ambiguous. (3) The Uppercut's
+  stored corrections are large (up to ~0.36 m at f6–10, reach-clamped): a re-sample or IK change can make the loop
+  diverge from there — reset that range first. (4) The leg-reach clamp also applies to un-edited frames inside a bake
+  range (no effect on the shipped clips: every baked frame carries a correction).

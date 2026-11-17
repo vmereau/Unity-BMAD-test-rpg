@@ -16,7 +16,7 @@ Combat/
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
-├── Unarmed/    — lead jab, Hook, Uppercut (the combo), draw unarmed, sheath unarmed, stagger 1/2,
+├── Unarmed/    — lead jab, Hook, Uppercut (the combo, Blender leg edits; Mixamo sources in `old/`), draw unarmed, sheath unarmed, stagger 1/2,
 │                 Unarmed Idle (source) → baked `Unarmed Idle Guard.anim` (the CombatIdle clip, see below)
 │                 → baked `Unarmed Block Guard.anim` (Block_State, high guard; `refs/` = the pose reference pictures)
 ├── Block Idle.fbx — shield-style block, now only the sword's (Sword override → `Block Idle`)
@@ -134,9 +134,41 @@ Uppercut) or `Unarmed` (Hook) — the NPC hitbox id. The player ignores it and r
 
 **Import settings (all three; Loop Pose off):** root rotation baked, **Original** orientation; root Y baked, Original; root **XZ not
 baked**. The Mixamo boxing clips lunge up to 0.5 m and step back; with XZ unbaked and `applyRootMotion` off the Animator
-drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement (the lead jab's
-0.30 m keeps the rear foot planted). Orientation based on **Body** turned the bladed stance square and sent the jab 35°
-to the left. No Blender edit was needed.
+drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement. Orientation based
+on **Body** turned the bladed stance square and sent the jab 35° to the left.
+
+### Unarmed foot step (Blender leg edit, spec-unarmed-attack-foot-step)
+
+The three shipped FBX are **Blender re-exports** whose legs follow the scripted `AttackStep` (each foot world-fixed or
+lifted, never sliding); the untouched Mixamo sources are in `Unarmed/old/` (own GUIDs, same import settings, unreferenced
+— the edit inputs, and what an in-place user would want). Tool + recipe: `Tools/Blender/unarmed_foot_step.py`
+(README → *Unarmed foot step*). Upper body / arms / events / lengths / import flags unchanged; body pose relative to the
+hips identical, the whole body shifts 1.8–3.0 cm in the hit windows (Unity re-centres the body on the moved legs).
+
+| Clip | Step (m / start / dur, s) | Foot plan (clip time, s) | Planted drift on the Player (unblended) |
+|------|------|------|------|
+| lead jab | 0.30 / 0.07 / 0.43 | lead push-step 0.10–0.37; rear held, drags up 0.50–0.77 | rear 0.9 cm, lead 0.1 cm (lead creeps ≈ 5 cm f34–39: knee at full extension) |
+| Hook | 0.35 / 0.27 / 0.37 | lead step 0.29–0.45 (plants on its f17 spot), rear steps up 0.42–0.62, lead settles 1.50–1.80 | rear 0.8 cm, lead 3.1 cm (f16, just after landing) |
+| Uppercut | 0.50 / 0.10 / 0.37 | lead step 0.11–0.27, rear steps up 0.25–0.45 (shuffle) | rear 1.3 cm, lead 2.7 cm (landing frame) |
+
+Hook / Uppercut capture bodies travel only 0.10 / 0.06 m: pinning the rear foot for the whole window over-stretches the
+legs, hence the shuffle (user decision). Known limits: the 0.26 s CombatIdle → Attack_1 blend (square idle → bladed jab,
+≈ 22 cm rear-foot slide) and the 0.42 s combo blends (the next step runs inside them) still slide the mixed pose
+(`deferred-work.md`). NPCs play these clips in place — the step on the spot reads badly until they get the scripted step.
+
+Gotchas:
+- **Avatar after a Blender re-export:** the new FBX has an extra `Armature` node, so the source meta's `human` /
+  `skeleton` fail ("Avatar creation failed"). Clear both, reimport (Unity auto-maps), then write an explicit description:
+  the auto skeleton (keeps the `Armature` / root entries) with every other bone's rest transform and the `human` mapping
+  copied from the `old/` importer by bone name (`EditorUtility.SetDirty(importer)` before `SaveAndReimport`, or an
+  unchanged-looking description is not saved). The auto rest pose alone round-trips the jab / Hook exactly but not the
+  Uppercut (5 cm off at an unedited frame: its Mixamo export is in centimetres and its stored rest skeleton differs); with
+  the copied rest transforms all three match the source at unedited frames (0.00 mm).
+- A failed import leaves the open `Humanoid_Template` with an **empty** attack state at runtime (state length 1 s, no clip)
+  although the asset is fine: reassign `state.motion` (null, then the clip) — the YAML doesn't change.
+- Play-mode foot checks: pause + `EditorApplication.Step()` is synchronous (Δt 0.02 s, ignores `captureDeltaTime`); set
+  `Animator.cullingMode = AlwaysAnimate` or an unfocused editor never moves the bones; test on open ground (the
+  `PlayerAttackStep` ledge probe can stop the capsule early and fake a foot slide).
 
 ### Unarmed guard idle (`Unarmed Idle Guard.anim`, spec-unarmed-idle-posture-fix)
 
