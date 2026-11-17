@@ -37,6 +37,7 @@ namespace Game.Animations
         private static readonly int BowFireHash = Animator.StringToHash("BowFire");
         private static readonly int IsSwimmingHash = Animator.StringToHash("IsSwimming");
         private static readonly int IsExecutingHash = Animator.StringToHash("IsExecuting");
+        private static readonly int AttackCancelHash = Animator.StringToHash("AttackCancel");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
         private static readonly int LockOnLocomotionHash = Animator.StringToHash("LockOn Locomotion");
@@ -109,6 +110,17 @@ namespace Game.Animations
 
         /// <summary>Execute stomp (player only, spec-execute-unconscious-npc): true enters <c>Execute</c>, false blends out.</summary>
         public void SetExecuting(bool value) => _animator?.SetBool(IsExecutingHash, value);
+
+        /// <summary>
+        /// Attack recovery cancel (player only, spec-attack-recovery-cancel): true lets an attack state leave early —
+        /// to <c>Attack_1_State</c> with <c>Attack_1</c>, else to <c>LockOn Locomotion</c>. NPCs never set it.
+        /// </summary>
+        public void SetAttackCancel(bool value) => _animator?.SetBool(AttackCancelHash, value);
+
+        /// <summary>True while the Base Layer blends from an attack state to a non-attack state (exit time, cancel).</summary>
+        public bool IsBaseLeavingAttack => IsAnimatorLive && _animator.IsInTransition(0)
+            && _animator.GetCurrentAnimatorStateInfo(0).IsTag(UpperBodyWeight.ATTACK_TAG)
+            && !_animator.GetNextAnimatorStateInfo(0).IsTag(UpperBodyWeight.ATTACK_TAG);
 
         /// <summary>
         /// Sets the IsSneaking bool. Entering sneak also clears a pending SneakToSprint trigger so a stale one

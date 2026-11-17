@@ -136,5 +136,45 @@ namespace Tests.EditMode
             Assert.AreEqual(0, t.ActiveStates);
             Assert.IsFalse(t.IsStepQueued);
         }
+
+        [Test]
+        public void Recovery_OpensOnClose_ClearedByPressEnterReset()
+        {
+            var t = new PlayerAttackTracker();
+            t.Press(0f, false);
+            t.Enter(0f);
+            Assert.IsFalse(t.IsRecoveryOpen, "No recovery before the window closes");
+            t.OpenRecovery();
+            Assert.IsTrue(t.IsRecoveryOpen);
+
+            t.Press(1.4f, isChainStep: true);
+            Assert.IsFalse(t.IsRecoveryOpen, "A press consumes the recovery");
+
+            t.OpenRecovery();
+            t.Enter(1.5f);
+            Assert.IsFalse(t.IsRecoveryOpen, "A new attack state starts committed");
+
+            t.OpenRecovery();
+            t.Reset();
+            Assert.IsFalse(t.IsRecoveryOpen);
+        }
+
+        [Test]
+        public void RecoveryRestart_OutgoingExit_DoesNotEndNewAttack()
+        {
+            // Attack_2 in recovery → press restarts Attack_1 while Attack_2 still blends out
+            var t = new PlayerAttackTracker();
+            t.Press(0f, false);
+            t.Enter(0f);                       // Attack_1
+            t.Press(0.6f, true);
+            t.Enter(0.6f);                     // Attack_2
+            t.Exit(1f);                        // Attack_1 exits at blend end
+            t.OpenRecovery();
+            t.ClearQueue();                    // CancelAttack → EndAttack, as the real restart does
+            t.Press(2f, isChainStep: true);    // restart counts as a chain step
+            t.Enter(2f);                       // Attack_1 again
+            Assert.IsFalse(t.Exit(2.15f), "Outgoing Attack_2 exit must not end the restarted attack");
+            Assert.IsTrue(t.Exit(3.5f), "Restarted Attack_1 exit ends the attack");
+        }
     }
 }

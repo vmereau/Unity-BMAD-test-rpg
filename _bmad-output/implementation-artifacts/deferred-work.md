@@ -851,3 +851,15 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 - Trespass warning reset is polled at combat exit (`EntityBrain.EndTrespassFight`): if the owner leaves the fight (knocked out by the player, disengage range) and a colleague who joined via mutual defence later knocks the player out, the area's warnings are not reset. Fix idea: reset from the player-knockout event while an escalation fight is open for the area.
 - `RestrictedArea` gizmo turns red on the raw warning count, not the expiry-filtered one (debug only).
+
+## From spec-attack-recovery-cancel (2026-11-17, split at clarify)
+
+- **Unarmed attack foot step (Blender):** the three unarmed clips (`lead jab`, `Hook`, `Uppercut`) are in place while
+  `PlayerAttackStep` moves the capsule 0.30 / 0.35 / 0.50 m, so the feet slide. Edit the clips in Blender (existing
+  `Tools/Blender/` IK + bake pipeline): during each `AttackStep` window the planted foot slides back in clip space by
+  exactly the scripted displacement (stays world-fixed), the lead foot does a push-step and the rear foot drags after.
+  Keep timings / events. Look-test the jab first. User chose Blender over new clips (2026-11-17).
+- **Recovery cancel follow-ups (spec-attack-recovery-cancel review):** (1) held move input cancels the recovery on the very
+  frame the combo window closes — intended (user chose window close), revisit if playtests want a punishable tail (require a
+  fresh push past the threshold). (2) No EditMode coverage for `PlayerCombat`'s recovery wiring (move threshold, `AttackCancel`
+  clear on enter, blend-out press path) — only the tracker is tested; extract a pure decision helper if it regresses.

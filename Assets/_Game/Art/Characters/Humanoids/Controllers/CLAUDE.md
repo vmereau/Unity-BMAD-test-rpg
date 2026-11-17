@@ -27,13 +27,16 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   KnockedDown, GettingUp, Death, Dead (not Landing: a block / draw pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, BowDrawArrow/Aim/Fire. **A new
   full-body Base state must get the `FullBody` tag** or the carry pose plays over it in combat.
 - **Attacks are full-body.** Every attack state exits to `LockOn Locomotion` on `IsBlocking` (listed first — block-cancel),
-  then the combo / exit-time transitions. Attack clips stay root-baked (`applyRootMotion` off everywhere): the Mixamo clips
+  then the recovery cancels (`AttackCancel` bool, player-only — NPCs never set it, spec-attack-recovery-cancel):
+  `→ Attack_1_State` on `AttackCancel` + `Attack_1` (0.15 s, restart; self-transition on Attack_1), `→ LockOn Locomotion`
+  on `AttackCancel` (0.2 s), then the combo / exit-time transitions. AnyState → `Attack_1` also requires `AttackCancel` false
+  (AnyState is evaluated first — it would otherwise shadow the 0.15 s restart from Attack_2/3). Attack clips stay root-baked (`applyRootMotion` off everywhere): the Mixamo clips
   are in place (net root travel 0), so the player's forward step is scripted (`PlayerAttackStep`, `Scripts/Combat/PLAYER_COMBO.md`).
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
-  `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only).
+  `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 

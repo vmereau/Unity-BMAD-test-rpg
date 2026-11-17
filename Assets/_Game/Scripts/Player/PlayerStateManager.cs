@@ -197,11 +197,24 @@ namespace Game.Player
         {
             IsAttacking = value;
             IsAttackCommitted = false;
+            if (value) _playerAnimator.SetAttackCancel(false); // a recovery cancel's flag must not cut the new swing
             if (value && triggerHash != 0)
                 _playerAnimator.PlayAttack(triggerHash);
             else if (!value)
                 _playerAnimator.ResetAttackTriggers();
         }
+
+        /// <summary>
+        /// Recovery cancel signal (<c>AttackCancel</c> bool): true lets the attack state leave early (restart or
+        /// locomotion); cleared by <see cref="SetAttacking"/>(true) and by PlayerCombat on the next attack-state enter.
+        /// </summary>
+        public void SetAttackCancel(bool value)
+        {
+            if (_playerAnimator != null) _playerAnimator.SetAttackCancel(value);
+        }
+
+        /// <summary>True while the Base Layer blends out of an attack state into a non-attack state.</summary>
+        public bool IsAttackBlendingOut => _playerAnimator != null && _playerAnimator.IsBaseLeavingAttack;
 
         /// <summary>Commits (true) or re-opens (false, next combo step entered) the wind-up steering of the current attack.</summary>
         public void SetAttackCommitted(bool value) => IsAttackCommitted = value && IsAttacking;

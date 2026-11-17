@@ -17,15 +17,23 @@ namespace Game.Combat
         /// <summary>True from a combo press until the Animator enters the next attack state.</summary>
         public bool IsStepQueued { get; private set; }
 
+        /// <summary>
+        /// True once the current step's combo window closed (its recovery): move input or an attack press may cancel the
+        /// swing. Cleared by the next press, the next attack-state enter and <see cref="Reset"/>.
+        /// </summary>
+        public bool IsRecoveryOpen { get; private set; }
+
         private float _lastActivityTime;
 
         /// <summary>
         /// An attack trigger was fired. <paramref name="isChainStep"/> = a combo follow-up, not Attack_1.
         /// A fresh Attack_1 press only happens once the previous attack ended, so no attack state can still be
-        /// active: the count is resynced to 0, repairing any drift from an exit Unity never delivered.
+        /// active: the count is resynced to 0, repairing any drift from an exit Unity never delivered. A recovery
+        /// restart (Attack_1 while the old state still plays) must pass <c>isChainStep: true</c> to keep the count.
         /// </summary>
         public void Press(float now, bool isChainStep)
         {
+            IsRecoveryOpen = false;
             if (isChainStep) IsStepQueued = true;
             else ActiveStates = 0;
             _lastActivityTime = now;
@@ -36,6 +44,7 @@ namespace Game.Combat
         {
             ActiveStates++;
             IsStepQueued = false;
+            IsRecoveryOpen = false;
             _lastActivityTime = now;
         }
 
@@ -60,6 +69,9 @@ namespace Game.Combat
         public bool IsStalled(bool isAttacking, float now, float timeout) =>
             isAttacking && now - _lastActivityTime > timeout;
 
+        /// <summary>A real (not ignored) ComboWindowClose: the swing enters its recovery.</summary>
+        public void OpenRecovery() => IsRecoveryOpen = true;
+
         /// <summary>Forgets every queued step. Active state count is kept — the Animator still owns those states.</summary>
         public void ClearQueue() => IsStepQueued = false;
 
@@ -68,6 +80,7 @@ namespace Game.Combat
         {
             ActiveStates = 0;
             IsStepQueued = false;
+            IsRecoveryOpen = false;
         }
     }
 }

@@ -88,6 +88,8 @@ namespace Game.Player
         public void SetBlocking(bool value) => Bridge.SetBlocking(value);
         public void PlayAttack(int triggerHash) => Bridge.PlayAttack(triggerHash);
         public void ResetAttackTriggers() => Bridge.ResetAttackTriggers();
+        public void SetAttackCancel(bool value) => Bridge.SetAttackCancel(value);
+        public bool IsBaseLeavingAttack => Bridge.IsBaseLeavingAttack;
         public void PlayDodge(bool isBackwardRoll = false) => Bridge.PlayDodge(isBackwardRoll);
         public void SetInCombat(bool value) => Bridge.SetInCombat(value);
         public void PlayWeaponSwitch(bool draw, float speed) => Bridge.PlayWeaponSwitch(draw, speed);

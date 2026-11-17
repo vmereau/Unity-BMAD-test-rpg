@@ -96,6 +96,23 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
   - **Wind-up steering** — `PlayerController` turns toward the raw camera-relative input at `PlayerConfigSO.attackSteerSpeed`
     while `CanSteerAttack()` (attacking, not `IsAttackCommitted`). `OnHitboxEnable` commits (`SetAttackCommitted(true)`);
     each attack-state enter re-opens it; `SetAttacking` clears it. Lock-on still always faces the target.
+- **Recovery cancel** (spec-attack-recovery-cancel): a real (not ignored) `ComboWindowClose` while `IsAttacking` calls
+  `_attackTracker.OpenRecovery()`; every finisher clip has one (Uppercut 0.70, `2hand attack 2 refined` 0.80, sword thrust).
+  `IsRecoveryOpen` is cleared by any press, attack-state enter and `Reset`. While open:
+  - **Move** (`Player/Move` ≥ `CombatConfigSO.recoveryCancelMoveThreshold`, `UpdateRecoveryMoveCancel`) →
+    `SetAttackCancel(true)` + `CancelAttack()`: move input this frame, Base `Attack_N → LockOn Locomotion` (0.2 s).
+  - **Attack press** (after the stamina gate) → `CancelAttack()`, step-1 `ExecuteAttack()`, `Press(isChainStep: true)` (the
+    outgoing state is still active — a resync to 0 would let its exit end the new swing), then `SetAttackCancel(true)` (after
+    `SetAttacking(true)`, which clears it) → Base `Attack_N → Attack_1_State`. `OnAttackStateEntered` clears `AttackCancel`
+    (before its stale-enter guard). If Base is already blending out at exit time (`PlayerStateManager.IsAttackBlendingOut`),
+    Attack_N's own transitions no longer run: the press `CancelAttack()`s and takes the fresh path instead — AnyState →
+    `Attack_1` (gated on `AttackCancel` false) interrupts the blend-out.
+  - **Fresh press while a cancelled swing still blends out** (move / block / dodge): `Press(isChainStep: ActiveStates > 0)` —
+    the outgoing exit is still to come, and a resync to 0 would let it end the new attack.
+  - `AttackCancel` is a **bool**, not a trigger: a trigger set during an exit-time blend would latch and cut the next swing.
+  - Verified in play (2026-11-17, stepped 50 fps): jab move-cancel at its 1.33 s close (Animator out in 0.24 s); restart
+    from Hook (0.15 s transition) and from the jab itself (self-transition) chains on normally; a press mid exit blend and a
+    fresh press 0.1 s after a move-cancel both start a full jab (hit window opens); Uppercut recovery 0.93 s after its enter.
 - `HandleVisualsRefreshed` cancels any attack: `Refresh()` swaps the controller, which resets the Animator without an
   SMB exit (equip / load mid-swing would otherwise stay `IsAttacking`, rooted, until the stall watchdog).
 - `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
@@ -154,6 +171,8 @@ leaves phantom hits after the animation.
 | HIGH | Attack ended on input or by a one-shot flag instead of the tracker's active-state count — a trigger the Animator ignores locks `IsAttacking` |
 | HIGH | Code clearing `IsAttacking` without resetting the combo (`SetAttacking(false)` from outside `PlayerCombat`) — use `CancelAttack()` |
 | MEDIUM | `OnComboWindowClose()` losing its `ShouldIgnoreWindowClose` early return — finisher loops back to Attack_1 |
+| MEDIUM | New melee attack clip (finisher included) without a `ComboWindowClose` event — that step never opens its recovery, the player stays rooted to the clip end |
+| MEDIUM | Recovery restart pressed with `isChainStep: false` — the outgoing state's exit ends the restarted attack |
 | MEDIUM | New attack clip event handler that doesn't call `_attackTracker.Event(...)` — long clips trip the stall watchdog |
 | MEDIUM | Hit window closed with `_activeHitbox.Disable()` instead of `CloseHitWindows()` — unarmed has two hands bound |
 | MEDIUM | Unarmed step changes hand in `CombatConfigSO.unarmedAttacks` but the clip's event id (`Unarmed` / `UnarmedLeft`) isn't updated — NPCs punch with the wrong hand |

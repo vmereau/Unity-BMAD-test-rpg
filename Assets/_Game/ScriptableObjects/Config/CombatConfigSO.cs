@@ -167,6 +167,9 @@ namespace Game.Combat
         [Tooltip("Watchdog: seconds an attack may go without any attack state enter/exit or clip event before it is " +
                  "force-ended. Must exceed the longest gap between attack callbacks of any attack clip.")]
         [Min(0.1f)] public float attackStallTimeout = 1.5f;
+        [Tooltip("Recovery cancel (spec-attack-recovery-cancel): once the step's combo window closed, move input at least " +
+                 "this strong (0–1 stick / WASD magnitude) ends the swing and blends to locomotion.")]
+        [Range(0.05f, 1f)] public float recoveryCancelMoveThreshold = 0.2f;
 
         [Header("Attack Step (player forward step per swing)")]
         [Tooltip("Forward step of a weapon attack state the archetype doesn't list (WeaponArchetypeSO.attackSteps).")]

@@ -62,9 +62,9 @@ they stay root-baked and the forward step is scripted per archetype (`AttackStep
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
 | `2hand attack refined.fbx` (`2hand attack refined`, 1.83 s) | Attack_1 | 0.33 | 0.58 | 0.58 | 0.78 |
-| `2hand attack 2 refined.fbx` (`2hand attack 2 refined`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | — |
+| `2hand attack 2 refined.fbx` (`2hand attack 2 refined`, 1.27 s) | Attack_2 (finisher) | 0.42 | 0.63 | — | 0.80 |
 
-The finisher has no combo window (last step). Its first fast phase (0.08–0.26) is the backswing behind the body; the
+The finisher has no combo window (last step); its `ComboWindowClose` only opens the recovery cancel (`PLAYER_COMBO.md`). Its first fast phase (0.08–0.26) is the backswing behind the body; the
 strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 
 Attack_1 window from hand-speed sampling (original clip): wind-up overhead until ~0.30, downswing 0.33–0.50, follow-through to ~0.58.
@@ -116,7 +116,7 @@ Custom timings tuned to each arc (faster connect, different wind-up) — **never
 |------|-------|-------------|--------------|-----------------|-----------------|
 | `lead jab.fbx` (`lead jab`, 1.80 s, frames 0–54) | Attack_1 — left hand | 0.185 (f10) | 0.315 (f17) | 0.315 | 0.741 (f40) |
 | `Hook.fbx` (`Hook`, 1.83 s, frames **10–65**) | Attack_2 — right hand | 0.309 (f27) | 0.436 (f34) | 0.436 | 0.764 (f52) |
-| `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 0–40) | Attack_3 — left hand, finisher | 0.275 (f11) | 0.400 (f16) | — | — |
+| `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 0–40) | Attack_3 — left hand, finisher | 0.275 (f11) | 0.400 (f16) | — | 0.70 (f28) |
 
 Spec: `spec-unarmed-combo-rework`. Frame numbers are source frames; normalized = (frame − firstFrame) / clip frames.
 Measured on the Player rig (fist hitbox, player-local, 2026-11-16):

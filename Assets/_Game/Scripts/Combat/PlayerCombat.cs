@@ -236,6 +236,8 @@ namespace Game.Combat
                 EndAttack();
             }
 
+            UpdateRecoveryMoveCancel();
+
             // Jump-cancel (or walking off a ledge mid-swing): the Base Layer's AnyState jump / fall transitions already
             // left the clip — end the attack so the hitbox closes and move input comes back.
             if (_stateManager.IsAttacking && _stateManager.IsAirborne)
@@ -268,6 +270,18 @@ namespace Game.Combat
                     }
                 }
             }
+        }
+
+        // Recovery cancel (spec-attack-recovery-cancel): after the step's combo window closed, move input ends the swing.
+        // AttackCancel takes the Base Layer Attack_N → LockOn Locomotion; CancelAttack frees movement this frame.
+        private void UpdateRecoveryMoveCancel()
+        {
+            if (!_stateManager.IsAttacking || !_attackTracker.IsRecoveryOpen || _input == null) return;
+            if (_input.Player.Move.ReadValue<Vector2>().sqrMagnitude <
+                _config.recoveryCancelMoveThreshold * _config.recoveryCancelMoveThreshold) return;
+            GameLog.Info(TAG, "Attack recovery cancelled by movement");
+            _stateManager.SetAttackCancel(true);
+            CancelAttack();
         }
 
         private void OnAttackStarted(InputAction.CallbackContext ctx)
@@ -376,7 +390,16 @@ namespace Game.Combat
             // Story 7.10: If we're attacking but the window has not opened yet (AnimationEvent
             // ComboWindowOpen hasn't fired), ignore new input to prevent re-triggering Attack_1.
             // IsAttacking is true from SetAttacking(true) until SetAttacking(false) or animation exit.
-            if (_stateManager.IsAttacking && !_comboWindowOpen)
+            // Recovery (window closed): a press restarts the combo at Attack_1 instead of being ignored.
+            bool isRecoveryRestart = _stateManager.IsAttacking && _attackTracker.IsRecoveryOpen;
+            // Already blending out at exit time: Attack_N's own transitions (the restart) are no longer evaluated. End the
+            // swing now and take the fresh-press path instead — AnyState → Attack_1 interrupts the blend-out.
+            if (isRecoveryRestart && _stateManager.IsAttackBlendingOut)
+            {
+                CancelAttack();
+                isRecoveryRestart = false;
+            }
+            if (_stateManager.IsAttacking && !_comboWindowOpen && !isRecoveryRestart)
             {
                 GameLog.Info(TAG, "Attack input ignored — waiting for combo window (animation event)");
                 return;
@@ -398,9 +421,25 @@ namespace Game.Combat
                 return;
             }
 
+            if (isRecoveryRestart)
+            {
+                // Full reset (hitbox closed, combo 0), then a fresh Attack_1 while the old state still plays: the press
+                // counts as a chain step so the outgoing state's exit doesn't end the new attack. AttackCancel (set after
+                // SetAttacking(true), which clears it) takes the Base Layer Attack_N → Attack_1.
+                GameLog.Info(TAG, "Attack recovery — restarting combo");
+                CancelAttack();
+                ExecuteAttack();
+                ManageComboStep();
+                _attackTracker.Press(Time.time, isChainStep: true);
+                _stateManager.SetAttackCancel(true);
+                return;
+            }
+
             ExecuteAttack();
             ManageComboStep();
-            _attackTracker.Press(Time.time, isChainStep: _comboStep > 1);
+            // A cancelled swing (move / block / dodge) may still be blending out: its exit is still to come, so keep it
+            // counted — a resync to 0 would let that exit end this new attack.
+            _attackTracker.Press(Time.time, isChainStep: _comboStep > 1 || _attackTracker.ActiveStates > 0);
         }
 
         private void ExecuteAttack()
@@ -916,6 +955,8 @@ namespace Game.Combat
             // (e.g. Uppercut's 0.93 inside the Attack_2 → Attack_3 blend) — not an expired window.
             if (_attackTracker.ShouldIgnoreWindowClose) return;
             ResetAttackCombo();
+            // Recovery: move input or a new press may now cancel the swing (Update / TryAttack).
+            if (_stateManager != null && _stateManager.IsAttacking) _attackTracker.OpenRecovery();
             GameLog.Info(TAG, "Combo window closed");
         }
 
@@ -948,6 +989,7 @@ namespace Game.Combat
             CloseHitWindows();
             _comboWindowOpen = false;
             if (_stateManager == null || _config == null) return; // Awake disabled us; SMBs still call in
+            _stateManager.SetAttackCancel(false); // a restart's flag must not cut this step through its AttackCancel exit
             if (!_stateManager.IsAttacking) return; // stale enter after a cancel: no steering, no step
             _currentAttackIndex = attackIndex;
             SelectUnarmedHand(attackIndex); // window closed above, so the hand can change
