@@ -35,5 +35,5 @@ MonoBehaviour:
     localPosition: {x: 0, y: 0, z: 0}
     localEulerAngles: {x: 313.7863, y: 275.03427, z: 74.38552}
   backPose:
-    localPosition: {x: 0, y: 0.0029801987, z: -0.039888844}
+    localPosition: {x: 0, y: -0.08, z: 0.018}
     localEulerAngles: {x: 355.72717, y: 180, z: 0}

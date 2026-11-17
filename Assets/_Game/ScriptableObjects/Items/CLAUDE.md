@@ -204,7 +204,7 @@ grip (back of the handle) at the origin** (Hivemind shields face +X: `Mesh` rot 
 | `blockStaminaCost` | Player stamina per absorbed hit (and the minimum to raise the block) |
 | `perfectBlockWindow` | Player perfect-block window (s) |
 | `heldPose` | `Drawn` pose in the offhand socket — solved so the shield faces forward, world-up, in the in-game block (sword override, `IsBlocking`, UpperBody weight 1, evaluated with `Animator.Update` — **not** `clip.SampleAnimation`: `Block Idle` turns the hips ~90°, the masked layer doesn't) |
-| `backPose` | `Sheathed` pose on `BackWeaponSocket` (bind pose: face backward, world-up, 4 cm behind) |
+| `backPose` | `Sheathed` pose on `BackWeaponSocket` (bind pose: face backward, world-up, Kite (0, −0.47, −0.016) puts its top at the neck, Round (0, −0.08, 0.018); both clear the player and `NPC_base` bodies by ~1.5–2 cm; meshes at 0.8 scale) |
 
 Detail panel: category "Shield", rows Block Stamina / Perfect Block, then Defense. Shields: `Shield_RoundWoodShield`
 (+3, 20, 0.35 s, 40 g) and `Shield_KiteWoodShield` (+6, 12, 0.2 s, 60 g); both sold by the Storekeeper.
