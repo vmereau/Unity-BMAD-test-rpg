@@ -35,6 +35,7 @@ MonoBehaviour:
   playerStanceRegenRate: 20
   playerAttackStanceResistance: 0
   blockStanceMultiplier: 0.5
+  parriedStanceDamage: 60
   playerStaggerDuration: 1.1
   playerKnockdownDuration: 4.6
   unconsciousDuration: 8

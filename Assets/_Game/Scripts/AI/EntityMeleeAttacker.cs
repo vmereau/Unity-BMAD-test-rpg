@@ -29,7 +29,7 @@ namespace Game.AI
     /// The attack ends when the animator's active attack-state count (SMB enter/exit) returns to 0 —
     /// crossfades between combo states overlap enter(next) before exit(previous), keeping the attack alive.
     /// </summary>
-    public class EntityMeleeAttacker : MonoBehaviour
+    public class EntityMeleeAttacker : MonoBehaviour, IMeleeThreat
     {
         private const string TAG = "[AI]";
         // Rooting grace between the attack trigger and the attack state's enter (transition still pending).
@@ -79,6 +79,11 @@ namespace Game.AI
         public bool IsInSwing => IsAttacking
             && (IsInAttackState || Time.time - _swingEventTime < PENDING_SWING_GRACE)
             && Time.time - _swingEventTime < SWING_TIMEOUT;
+
+        /// <summary><see cref="IMeleeThreat"/>: a swing a defender can read = <see cref="IsInSwing"/>.</summary>
+        public bool IsMeleeAttacking => IsInSwing;
+        /// <summary><see cref="IMeleeThreat"/>: = <see cref="IsAttackCommitted"/> (re-opens per combo step).</summary>
+        public bool IsMeleeCommitted => IsAttackCommitted;
 
         /// <summary>Non-hostile target this entity may hit anyway (owner attacking a trespasser in a highly restricted
         /// area). Set / cleared by <see cref="EntityBrain"/>; null = faction rules only.</summary>

@@ -95,8 +95,8 @@ unarmed punch with a weapon in hand: sword `lead jab` → `SwordAttackLeft`, `Ho
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced. Same for `CombatIdle`
 (= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block
-Guard.anim`, the unarmed high guard; sword → `Block Idle`, two-handed → `2hand blocking`). Only the player sets
-`IsBlocking` today; an NPC that learns to block gets the same states.
+Guard.anim`, the unarmed high guard; sword → `Block Idle`, two-handed → `2hand blocking`). The player and styled
+NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.
 
 **Replacing an FBX in place can leave a state playing no clip.** The editor's compiled controller keeps the destroyed
 old clip: `state.motion` and the YAML look right, but at runtime the state reports `length` 1.00 and an empty

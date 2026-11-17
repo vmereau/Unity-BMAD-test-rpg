@@ -30,6 +30,7 @@
 | `SMB_EntityAttackState` | On attack states of `EntityBase.controller` and `Humanoid_Template`. Enter/exit → receiver → attacker counter. Receiver lookup cached; no-op on the Player. |
 | `SMB_DeathState` | On the death animator state. |
 | `EntityCombatTactics` + `CombatTacticsRules` + `AttackTokenRegistry` | Combat tactics (circling, attack tokens) — see **Combat tactics** below. Rules / tokens pure + tested (`CombatTacticsRulesTests`, `AttackTokenRegistryTests`). Profile: `CombatStyleSO` (`ScriptableObjects/Entities/`). |
+| `EntityGuard` + `CombatBlockRules` / `GuardPlan` | NPC blocking — see **Blocking** below. Rules pure + tested (`CombatBlockRulesTests`). |
 | `EntityStance` | Hidden stance meter (`IStanceTarget`) — stagger / knockdown, see **Stance** below. |
 | `EntityPresence` (`Game.World`) | Base `IInteractable` for every entity — see below. |
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, TargetRegistry.Player.Faction)`, read live; no player → not hostile) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
@@ -316,7 +317,42 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **Tokens:** `AttackTokenRegistry` (static, keyed by the target `FactionMember`, reset on `SubsystemRegistration`), capacity
   `CombatConfigSO.maxAttackersPerTarget` (2; no config → uncapped, one warning). One token per holder.
 - `DebugStateName` shows `Engaging/Circle`, `Attacking/Attack`… (cached strings) while tactics drive.
-- Roadmap (blocking, potion use with the drink clip, ranged style): `deferred-work.md` → spec-ai-combat-tactics-foundation.
+- Roadmap (potion use with the drink clip, ranged style): `deferred-work.md` → spec-ai-combat-tactics-foundation.
+
+---
+
+## Blocking (EntityGuard — spec-ai-npc-blocking)
+
+- **Opt-in by data:** `CombatStyleSO` "Blocking" (`blockChance` 0 = never; guard 0.4, bandit 0.25) + `EntityGuard` on the root
+  (`NPC_base Variant`). A parallel check, not a `CombatAction`: `Block_State` is UpperBody-only, so the NPC keeps circling /
+  backing off with its guard up.
+- **Brain:** `Update` ticks `_guard.Tick(_currentTarget)` after the state switch while Engaging / Attacking **and tactics are
+  active** (else `End()`); `EndTactics()` also ends it (single release point). `IsAttackReady()` is false and `HandleAttack`
+  won't `ExecuteAttack` while `IsRaised` — `IsBlocking` cancels attack states (block-cancel transitions). `DebugStateName`
+  shows `Engaging/Guard` / `Attacking/Guard`.
+- **Reading the swing:** the target's `Game.Combat.IMeleeThreat` (`PlayerCombat`: `IsAttacking` without a bow;
+  `EntityMeleeAttacker`: `IsInSwing` / `IsAttackCommitted`). Wind-up = attacking and not committed; both sides re-open
+  "committed" per combo step, so `GuardPlan` rolls **once per step** on the wind-up edge: pass while down → raise after
+  `reactionDelayMin..Max` (too slow = that hit lands), pass while up → stays up, fail → guard lowered (opening). Only a target
+  within `guardThreatRange` and the front arc (`guardArcAngle` half-angle) is read; the guard only rises / stays up while it
+  remains there. Threat over (or out of arc / range) → `guardHoldTime`, then down. A late reaction still raises the guard for
+  the rest of the swing (the hit already landed). Retarget → the plan resets, so a swing the new target is already winding up
+  is read. The threat must be a live, enabled component (a disabled `PlayerCombat` keeps stale flags). A raised guard is
+  re-sent to the animator every tick — an `NpcArmament` controller swap resets every parameter.
+- **Can't guard** (drops at once; a step that started meanwhile is never read): own `IsInSwing`, staggered / knocked down,
+  dead / unconscious, `IsSwitchingWeapon`, or **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold).
+- **Hit:** `EntityHealth.TryReceiveHit` → `EntityGuard.ResolveHit(attacker)`: raised + attacker in the front arc **and within
+  `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance`; else `NotBlocked`. Any attacker in reach is
+  blocked, not only the read target. Arrows share the check: a point-blank shot into a raised guard is blocked, a distant
+  shooter is never blocked or parried (the parry would stagger the player at range).
+- A blocked hit raises no damage reaction (no `HealthChanged`), like the player's own block — a guarding NPC doesn't retarget
+  to a third party whose hits it blocks.
+- **Guard budget = stance:** attackers apply `ApplyBlockedStanceDamage` on `Blocked` (`EntityMeleeAttacker`, and now
+  `PlayerCombat.ResolveHit`); `EntityStance` scales it by the style's `guardStanceMultiplier` (never knockdown) — crossing the
+  threshold staggers (guard break), and the guard stays down until regen lifts stance above it. Without that gate the
+  floored-hit rule would let a broken guard absorb blocked hits for free.
+- **Parry:** NPC attacker → its own `Entity.PerfectBlockStanceDamage` (existing); player attacker →
+  `PlayerStance.ApplyParriedStanceDamage(CombatConfigSO.parriedStanceDamage)` (60, no knockdown, skips attack resistance).
 
 ---
 
@@ -337,7 +373,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   already at/below the threshold deals nothing.
 - **AI hits deal stance damage** to any `IStanceTarget` (player or another NPC): `EntityMeleeAttacker.HandleHit` →
   `ApplyStanceDamage` after `TakeDamage` on `NotBlocked` (skipped on a lethal hit), `ApplyBlockedStanceDamage` on
-  `Blocked` (player: × `blockStanceMultiplier`, never knockdown). Amount = `Entity.ResolveAttackStance(step, hits, wielded)`:
+  `Blocked` (player: × `blockStanceMultiplier`; NPC: × its style's `guardStanceMultiplier`; never knockdown). Amount = `Entity.ResolveAttackStance(step, hits, wielded)`:
   monsters → fixed `_attackStanceDamage` / `_attackCanKnockDown` (rat 10, viper 15, spider 20, wolf 25 KD, grunt 30 KD);
   `NPCEntity` → `_attackStanceDamage` (15) + the **wielded** weapon (`EntityMeleeAttacker.WieldedWeapon`, set by
   `NpcArmament`; `WeaponSO.ResolvedStanceDamage`), × `_finisherStanceMultiplier` on the last hit of a multi-hit combo;

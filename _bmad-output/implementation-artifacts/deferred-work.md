@@ -890,7 +890,7 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec; each is its own quick-dev spec, in order:
 
-- **NPC blocking.** `EntityHealth.TryReceiveHit` always returns `NotBlocked`. React to the attacker's wind-up (player
+- ~~**NPC blocking.**~~ Done — spec-ai-npc-blocking (2026-11-17). Original note: `EntityHealth.TryReceiveHit` always returns `NotBlocked`. React to the attacker's wind-up (player
   `PlayerStateManager.IsAttacking` / `IsAttackCommitted`, NPC `EntityMeleeAttacker.IsInSwing`) after a profile reaction
   delay, with a block chance; front-facing check; set `IsBlocking` (`HumanoidAnimationBridge.SetBlocking`, `Block_State`
   already in `Humanoid_Template`). Stance is the guard budget: blocked hits drain stance, guard break → stagger. Profile
@@ -912,3 +912,12 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   that rolls an attack closes in further instead of stepping out (spec matrix "Too close" row allows it). Revisit if
   playtests show guards hugging the player.
 - **Token cap without CombatConfig:** an entity whose `EntityHealth` has no `CombatConfigSO` is uncapped (one warning).
+
+### From spec-ai-npc-blocking (2026-11-17)
+
+- **Guard vs arrows:** `EntityGuard.ResolveHit` doesn't know the projectile — a raised guard blocks an arrow shot from within
+  `guardThreatRange` in its front arc (distant shots always land). Add a projectile flag to `TryReceiveHit` if NPC archers or a
+  shield system make it matter.
+- **Guard token hold (review):** an NPC in Attacking with a token waits while its guard is up (`HandleAttack` doesn't tick
+  tactics, so `attackCommitTimeout` doesn't run). Fine at block 0.4 / 0.25 (failed reads lower the guard); revisit if a
+  high-`blockChance` style starves other attackers.

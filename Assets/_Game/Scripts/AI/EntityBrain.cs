@@ -73,11 +73,16 @@ namespace Game.AI
             member != null && _lastHitBy == member && _lastHitFrame == Time.frameCount;
 
         /// <summary>Current state name for the stealth debug views (no per-frame allocation); "/action" while tactics
-        /// drive the fight.</summary>
+        /// drive the fight, "/Guard" while the guard is up.</summary>
         public string DebugStateName =>
             UsesTactics && _tactics.IsActive && (_state == EntityState.Engaging || _state == EntityState.Attacking)
-                ? (_state == EntityState.Engaging ? ENGAGING_TACTIC_NAMES : ATTACKING_TACTIC_NAMES)[(int)_tactics.CurrentAction]
+                ? _guard != null && _guard.IsRaised
+                    ? (_state == EntityState.Engaging ? ENGAGING_GUARD_NAME : ATTACKING_GUARD_NAME)
+                    : (_state == EntityState.Engaging ? ENGAGING_TACTIC_NAMES : ATTACKING_TACTIC_NAMES)[(int)_tactics.CurrentAction]
                 : STATE_NAMES[(int)_state];
+
+        private const string ENGAGING_GUARD_NAME = "Engaging/Guard";
+        private const string ATTACKING_GUARD_NAME = "Attacking/Guard";
 
         private static readonly string[] ENGAGING_TACTIC_NAMES = TacticNames("Engaging/");
         private static readonly string[] ATTACKING_TACTIC_NAMES = TacticNames("Attacking/");
@@ -150,6 +155,7 @@ namespace Game.AI
         private NpcArmament _armament; // same-GO, optional: equipped NPCs (weapon / fists, draw / sheathe, weapon loot)
         private EntityCombatTactics _tactics; // same-GO, optional: circling / attack tokens when the Entity has a CombatStyle
         private bool _tacticsSwingStarted; // tactics: the swing of this Attacking visit was triggered
+        private EntityGuard _guard; // same-GO, optional: reactive blocking while tactics drive the fight (spec-ai-npc-blocking)
         private FactionMember _lootVictim;
         private bool _lootArrived;
         private bool _lootResolved; // grab done — the clip just plays out
@@ -329,6 +335,7 @@ namespace Game.AI
             _inventory = GetComponent<InventorySystem>(); // optional — no inventory = never loots a knocked-out player
             _armament = GetComponent<NpcArmament>(); // optional — no armament = unarmed humanoid / monster
             _tactics = GetComponent<EntityCombatTactics>(); // optional — none (or no CombatStyle) = plain chase-and-swing
+            _guard = GetComponent<EntityGuard>(); // optional — none (or blockChance 0) = never blocks
             _presence = GetComponent<NPCPresence>(); // optional — no presence = scold line only (no give-back choice)
 
             if (_speechAnchor == null) _speechAnchor = transform.Find("SpeechAnchor");
@@ -489,6 +496,12 @@ namespace Game.AI
 
             // Single release point: any exit from the fight (disengage, search, looting, routine, death...) ends tactics.
             if (_state != EntityState.Engaging && _state != EntityState.Attacking) EndTactics();
+            // Guard (spec-ai-npc-blocking): only while tactics drive the fight; released with them (EndTactics).
+            else if (_guard != null)
+            {
+                if (_tactics != null && _tactics.IsActive) _guard.Tick(_currentTarget);
+                else _guard.End();
+            }
 
             HandleCooldowns();
             if (_animationDriver != null) _animationDriver.DriveLocomotion(_agent);
@@ -754,7 +767,8 @@ namespace Game.AI
         private bool IsAttackReady() =>
             _attackCooldownTimer <= 0f
             && (_armament == null || !_armament.IsSwitchingWeapon)
-            && (_meleeAttacker == null || !_meleeAttacker.IsInAttackState);
+            && (_meleeAttacker == null || !_meleeAttacker.IsInAttackState)
+            && (_guard == null || !_guard.IsRaised); // IsBlocking would cancel the swing (block-cancel transition)
 
         // Tactics drive this fight and hold an attack token on the current target (not a stale one from before a retarget).
         private bool HoldsAttackToken() => UsesTactics && _tactics.WantsAttackOn(_currentTarget);
@@ -773,6 +787,7 @@ namespace Game.AI
         {
             _tacticsSwingStarted = false;
             if (_tactics != null) _tactics.End();
+            if (_guard != null) _guard.End();
         }
 
         private void HandleAttack()
@@ -836,6 +851,7 @@ namespace Game.AI
             if (_meleeAttacker != null && _meleeAttacker.IsInAttackState) return; // a cancelled swing still blending out
             if (_armament != null && _armament.IsSwitchingWeapon) return; // drawing: the weapon isn't in hand yet
             if (_attackCooldownTimer > 0f) return;
+            if (_guard != null && _guard.IsRaised) return; // guarding: swing once it lowers (IsBlocking cancels attacks)
 
             ExecuteAttack();
             _tacticsSwingStarted = HoldsAttackToken();

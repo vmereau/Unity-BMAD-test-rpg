@@ -25,3 +25,11 @@ MonoBehaviour:
   attackCommitTimeout: 2.5
   navMeshSampleRadius: 1
   backOffSpeed: 1.8
+  blockChance: 0.25
+  perfectBlockChance: 0.03
+  reactionDelayMin: 0.2
+  reactionDelayMax: 0.45
+  guardHoldTime: 0.25
+  guardArcAngle: 50
+  guardThreatRange: 3.5
+  guardStanceMultiplier: 0.9

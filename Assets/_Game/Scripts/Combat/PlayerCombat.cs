@@ -25,7 +25,7 @@ namespace Game.Combat
     /// </summary>
     [RequireComponent(typeof(StaminaSystem))]
     [RequireComponent(typeof(PlayerStateManager))]
-    public class PlayerCombat : MonoBehaviour
+    public class PlayerCombat : MonoBehaviour, IMeleeThreat
     {
         private const string TAG = "[Combat]";
 
@@ -104,6 +104,7 @@ namespace Game.Combat
         private float _aimProgress;
         private CharacterController _characterController; // movement check for the spread (optional)
         private PlayerAttackStep _attackStep;             // forward step of each swing (optional)
+        private PlayerStance _stance;                     // takes the stance hit when an NPC parries (optional)
 
         private WeaponHitbox _activeHitbox;
         // Unarmed: both hands are bound (owner + OnHit); _activeHitbox is the hand of the current step.
@@ -172,6 +173,10 @@ namespace Game.Combat
             _attackStep = GetComponent<PlayerAttackStep>();
             if (_attackStep == null)
                 GameLog.Warn(TAG, "PlayerAttackStep not found — swings stay in place");
+
+            _stance = GetComponent<PlayerStance>();
+            if (_stance == null)
+                GameLog.Warn(TAG, "PlayerStance not found — NPC parries cost the player no stance");
 
             _input = new InputSystem_Actions();
         }
@@ -692,6 +697,12 @@ namespace Game.Combat
             if (result != HitResult.NotBlocked)
             {
                 GameLog.Info(TAG, $"Weapon hit {result} at {hitPoint}");
+                // An NPC guard (spec-ai-npc-blocking): a block costs the blocker stance, a parry costs ours.
+                if (result == HitResult.Blocked && target is Component blocker &&
+                    blocker.TryGetComponent(out IStanceTarget blockerStance))
+                    blockerStance.ApplyBlockedStanceDamage(stanceDamage);
+                else if (result == HitResult.PerfectBlock && _stance != null)
+                    _stance.ApplyParriedStanceDamage(_config.parriedStanceDamage);
                 return;
             }
             // Sneak attack: an entity that hasn't noticed the player takes bonus damage. The hit itself alerts it
@@ -757,6 +768,12 @@ namespace Game.Combat
             FireArrow(bow);
             return true;
         }
+
+        /// <summary><see cref="IMeleeThreat"/>: a melee swing (never a bow shot) an NPC guard can read.</summary>
+        public bool IsMeleeAttacking => _stateManager != null && _stateManager.IsAttacking && EquippedBow == null;
+
+        /// <summary><see cref="IMeleeThreat"/>: the current step's hit window opened (re-opens per combo step).</summary>
+        public bool IsMeleeCommitted => _stateManager != null && _stateManager.IsAttackCommitted;
 
         // Equipped bow — read from the equipment, not _currentWeaponSO (that cache is only set by OnVisualsRefreshed and
         // is null after a disable/enable). Null for melee / unarmed.

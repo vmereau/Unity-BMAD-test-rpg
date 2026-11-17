@@ -83,6 +83,12 @@ namespace Game.Player
 
         public void ApplyBlockedStanceDamage(float amount) => Apply(amount, false, blocked: true);
 
+        /// <summary>
+        /// An NPC perfect-blocked (parried) our hit (spec-ai-npc-blocking): never knocks down and skips the attack
+        /// hyper-armor — the parried player is always mid-attack.
+        /// </summary>
+        public void ApplyParriedStanceDamage(float amount) => Apply(amount, false, blocked: false, attackResistance: false);
+
         /// <summary>Load / revive: full stance, reaction dropped (the Animator snaps out of a reaction clip).</summary>
         public void ResetStance()
         {
@@ -94,12 +100,12 @@ namespace Game.Player
         private bool IsDead => _health != null && _health.IsDead;
         private bool IsUnconscious => _health != null && _health.IsUnconscious;
 
-        private void Apply(float amount, bool canKnockDown, bool blocked)
+        private void Apply(float amount, bool canKnockDown, bool blocked, bool attackResistance = true)
         {
             if (!enabled || IsDead || IsUnconscious || amount <= 0f) return;
 
             if (blocked) amount = StanceMath.ApplyBlockMultiplier(amount, _config.blockStanceMultiplier);
-            if (_stateManager.IsAttacking)
+            if (attackResistance && _stateManager.IsAttacking)
                 amount = StanceMath.ApplyResistance(amount, _config.playerAttackStanceResistance);
             if (amount <= 0f) return; // fully absorbed
 

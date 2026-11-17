@@ -82,6 +82,7 @@ namespace Game.AI
         }
 
         private EntityStance _stance;
+        private EntityGuard _guard;
         private FactionMember _factionMember;
         private Animator _bodyAnimator;
         private Transform _executeBone;
@@ -96,6 +97,7 @@ namespace Game.AI
         private void Awake()
         {
             _stance = GetComponent<EntityStance>(); // optional
+            _guard = GetComponent<EntityGuard>(); // optional — none = never blocks
             _factionMember = GetComponent<FactionMember>(); // optional — none = never knocked out
             _bodyAnimator = GetComponentInChildren<Animator>(); // optional — execute point falls back to the root
             if (_persistentID.Entity == null)
@@ -207,8 +209,15 @@ namespace Game.AI
             HealthChanged?.Invoke(CurrentHealth, MaxHealth);
         }
 
-        // AI entities do not block today — every hit lands. Part of IDamageable contract.
-        public HitResult TryReceiveHit(GameObject attacker) => HitResult.NotBlocked;
+        /// <summary>
+        /// Block check before damage: a raised <see cref="EntityGuard"/> facing the attacker blocks (spec-ai-npc-blocking).
+        /// No guard (monsters, unstyled entities), dead or unconscious → every hit lands.
+        /// </summary>
+        public HitResult TryReceiveHit(GameObject attacker)
+        {
+            if (IsDead || IsUnconscious || _guard == null) return HitResult.NotBlocked;
+            return _guard.ResolveHit(attacker);
+        }
 
         /// <summary>
         /// Save/load: puts a killed entity back as a lootable corpse — dead, agent stopped, ragdoll on.

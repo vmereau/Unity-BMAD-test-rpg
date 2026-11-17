@@ -89,8 +89,19 @@ namespace Game.AI
 
         public void ApplyStanceDamage(float amount, bool canKnockDown) => Apply(amount, canKnockDown, hyperArmor: true);
 
-        /// <summary>AI entities can't block — treated as a hit that can't knock down.</summary>
-        public void ApplyBlockedStanceDamage(float amount) => Apply(amount, false, hyperArmor: true);
+        /// <summary>
+        /// A hit absorbed by this entity's guard (<see cref="EntityGuard"/>): × the style's <c>guardStanceMultiplier</c>,
+        /// never knocks down — crossing the threshold staggers (guard break).
+        /// </summary>
+        public void ApplyBlockedStanceDamage(float amount)
+        {
+            CombatStyleSO style = _persistentID != null && _persistentID.Entity != null ? _persistentID.Entity.CombatStyle : null;
+            Apply(style != null ? amount * style.guardStanceMultiplier : amount, false, hyperArmor: true);
+        }
+
+        /// <summary>Stance at/below the stagger threshold: the guard can't go up until regen brings it back above.</summary>
+        public bool IsGuardBroken => enabled && _persistentID != null && _persistentID.Entity != null
+            && CombatBlockRules.IsGuardBroken(CurrentStance, MaxStance, _persistentID.Entity.StaggerThreshold);
 
         /// <summary>
         /// Perfect block: never knocks down, and skips hyper-armor — the parried attacker is always mid-attack, so

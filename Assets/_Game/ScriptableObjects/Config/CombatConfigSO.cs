@@ -75,6 +75,8 @@ namespace Game.Combat
         [Range(0f, 1f)] public float playerAttackStanceResistance = 0f;
         [Tooltip("Stance damage multiplier on a hit absorbed by a regular block (never knocks down).")]
         [Range(0f, 1f)] public float blockStanceMultiplier = 0.5f;
+        [Tooltip("Stance damage the player takes when an NPC perfect-blocks (parries) their hit — never knocks down, ignores attack resistance (spec-ai-npc-blocking).")]
+        [Min(0f)] public float parriedStanceDamage = 60f;
         [Tooltip("Seconds the player is locked in a stagger (match the stagger clip length).")]
         [Min(0.1f)] public float playerStaggerDuration = 1.1f;
         [Tooltip("Seconds the player is down: knocked down + getting up clips (match their combined length).")]

@@ -49,10 +49,29 @@ namespace Game.AI
         [Tooltip("Speed while stepping back out to the ring (m/s).")]
         [Min(0.1f)] public float backOffSpeed = 1.8f;
 
+        [Header("Blocking (spec-ai-npc-blocking)")]
+        [Tooltip("Chance, per attacker swing step read, to raise (or keep) the guard. 0 = never blocks.")]
+        [Range(0f, 1f)] public float blockChance = 0f;
+        [Tooltip("Chance a blocked hit is a perfect block (parry: the attacker's stance is hit).")]
+        [Range(0f, 1f)] public float perfectBlockChance = 0f;
+        [Tooltip("Minimum seconds between the attacker's wind-up and the guard going up.")]
+        [Min(0f)] public float reactionDelayMin = 0.15f;
+        [Tooltip("Maximum seconds between the attacker's wind-up and the guard going up.")]
+        [Min(0f)] public float reactionDelayMax = 0.4f;
+        [Tooltip("Seconds the guard stays up after the attacker's swing ends.")]
+        [Min(0f)] public float guardHoldTime = 0.3f;
+        [Tooltip("Half-angle (°) of the front arc: only attackers inside it are read and blocked.")]
+        [Range(0f, 180f)] public float guardArcAngle = 60f;
+        [Tooltip("Only an attacker within this distance (m) is read as a threat.")]
+        [Min(0f)] public float guardThreatRange = 3.5f;
+        [Tooltip("Stance damage of a blocked hit = the hit's stance × this (the guard budget).")]
+        [Min(0f)] public float guardStanceMultiplier = 0.7f;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
             if (circleTimeMax < circleTimeMin) circleTimeMax = circleTimeMin;
+            if (reactionDelayMax < reactionDelayMin) reactionDelayMax = reactionDelayMin;
         }
 #endif
     }

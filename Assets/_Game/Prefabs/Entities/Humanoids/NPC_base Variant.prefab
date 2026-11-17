@@ -408,6 +408,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5859911241052439962}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4489411689011119397}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!114 &76150843049530146 stripped
 MonoBehaviour:
@@ -652,6 +655,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.AI.EntityCombatTactics
   _persistentID: {fileID: 8935889491633091201}
+--- !u!114 &4489411689011119397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2f2b08792e42148b16e594fabcaf7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.AI.EntityGuard
+  _persistentID: {fileID: 8935889491633091201}
+  _animationDriver: {fileID: 3766970546440902038}
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
