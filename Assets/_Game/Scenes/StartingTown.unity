@@ -105520,7 +105520,7 @@ MonoBehaviour:
   _useHours: 1
   _startHour: 21
   _endHour: 6
-  _instantAggression: 0
+  _warningsBeforeFight: 1
 --- !u!65 &316085279
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -478226,6 +478226,7 @@ MonoBehaviour:
   _onInventoryChanged: {fileID: 0}
   _collectGoldAsCurrency: 0
   _onGoldLootRequested: {fileID: 0}
+  _onStolenGoodsRequested: {fileID: 0}
 --- !u!1 &1416492803
 GameObject:
   m_ObjectHideFlags: 0
@@ -536294,7 +536295,7 @@ MonoBehaviour:
   _useHours: 0
   _startHour: 21
   _endHour: 6
-  _instantAggression: 0
+  _warningsBeforeFight: 1
 --- !u!65 &1582438435
 BoxCollider:
   m_ObjectHideFlags: 0
