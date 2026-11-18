@@ -225,7 +225,7 @@ npcs:
       - asset: Mem_QuarryWorker_After_Lied
         unlock: [DialogueFact_QuarryWorker_ReportLied]
         dialogue:
-          - NPC: "I asked after Odo up at the fort this week. Nobody knew the name, but nobody up there knows any of our names, so that's no answer either way, is it?" END
+          - NPC: "I keep thinking of him up at the fort, eating better than the rest of us. Thank you for that, friend. I've not had a load to carry up since you told me, but next time I do, I'll ask around for him." END
 
   - npc: QuarryOverseer (Overseer Dace, npc-014)
     exists: true
