@@ -36,6 +36,27 @@ All dialogue assets live inside the NPC's dedicated folder:
 
 ---
 
+## Voice
+
+NPCs talk like people, not like a trailer. The default "gritty" register (clipped fragments, ellipses, "(beat)"
+pauses, one-line punches like "It's nobody's.") made every NPC sound the same; avoid it.
+
+- **A node is natural speech.** Use the full 300 characters when the character would keep talking: complete
+  sentences, joined the way people join them ("and", "so", "mind you"). Split only at the limit, at a sentence boundary.
+- **Voice comes from the identity sheet**, not from short sentences: what the NPC cares about, their work vocabulary,
+  their rhythm (a rambler, a grumbler, a careful speaker), how they address the player. Read `<NPC>/CLAUDE.md` →
+  Speech Style first, and write it there if it is missing.
+- **No ellipses or stage directions** ("...", "(pause)", "(beat)") unless the character truly hesitates in that line.
+  At most one per topic.
+- **Let lines breathe:** a complaint, a joke or a digression is what makes a speaker real (Gothic's NPCs ramble and
+  grumble). Exposition reads better as the NPC's own story than as a list of facts.
+- Clipped speech is a **trait**, not a default: keep it for the few NPCs whose identity says so (e.g. Overseer Dace).
+
+Example (Bren, quarryman, "campfire storyteller"): "Night watch on the quarry is one guard and a brazier, and the
+guard's usually asleep before the brazier is, so it wouldn't have been hard for him."
+
+---
+
 ## Node Types
 
 ### StartDialogueNode
@@ -87,8 +108,8 @@ A single NPC speech line.
 
 **Text length rule:** If the intended text exceeds 300 characters, split it into multiple
 `TextDialogueNode` assets chained via `nextNode`. Split at natural sentence boundaries so the
-text reads as a normal conversation — not mid-sentence. When in doubt, prefer shorter nodes
-(one or two sentences each) so the player can pace reading comfortably.
+text reads as a normal conversation — not mid-sentence. This is a size rule, not a style rule: a node can
+hold a full paragraph of speech (see **Voice** above).
 
 **Naming:** For chained text nodes within the same topic, append a sequence number:
 `Text_<NPC>_<Topic>.asset`, `Text_<NPC>_<Topic>_2.asset`, etc.
