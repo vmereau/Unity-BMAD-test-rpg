@@ -65,8 +65,8 @@ namespace Game.Editor.QuestExplorer
             index.MapMemoryGates(s.DialogueNodes);
             index.MapKilledSetters(s.KilledBindings, s.ClosedSceneRefs);
             index.MapRecipeSetters(s.Recipes);
-            if (s.ContainerTakeSetters != null)
-                foreach (var link in s.ContainerTakeSetters)
+            if (s.SceneFactSetters != null)
+                foreach (var link in s.SceneFactSetters)
                     if (link != null && link.Fact != null) AddLink(index._setters, link);
             index.MapQuestReaders();
             index.MapMemoryReaders(s.Memories);

@@ -46,6 +46,7 @@ namespace Game.World
                 containerInventory = _inventory,
                 isLocked = isLocked,
                 requiredSkillId = isLocked ? _lockable.RequiredSkillId : null,
+                keyItem = isLocked ? _lockable.KeyItem : null,
                 takeOnly = false,
                 container = this
             });

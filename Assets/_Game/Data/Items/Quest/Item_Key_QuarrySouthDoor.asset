@@ -17,7 +17,7 @@ MonoBehaviour:
   description: A heavy iron key from Overseer Dace's hut. It fits the Company door that seals the crack in the quarry's south face.
   icon: {fileID: 21300000, guid: f0196f5ff122a7b49b3a5ca12e564608, type: 3}
   maxStacks: 1
-  worldItemPrefab: {fileID: 0}
+  worldItemPrefab: {fileID: 5461866462715180719, guid: 9cd7ce0a870ed3947b285bb68ed5d3d6, type: 3}
   buyValue: 0
   sellValue: 0
   isIngredient: 0

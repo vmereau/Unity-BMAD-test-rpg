@@ -23,7 +23,9 @@ MonoBehaviour:
     entry: I gave Bren Odo's tally token. At least he knows now.
   - fact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
     entry: I told Bren what I found beyond the door.
-  failedParts: []
+  failedParts:
+  - fact: {fileID: 11400000, guid: bcff5b9fad839f848a4cd3870b5462f7, type: 2}
+    entry: Bren is dead. There is no one left to tell.
   steps:
   - title: Past the sealed crack
     description: The crack is shut behind a Company door. I could pick its lock, take the key from Dace's hut, or brave the old goat track from the wilderness.

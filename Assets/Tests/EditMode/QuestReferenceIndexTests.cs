@@ -74,6 +74,24 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void SceneFactSetter_WorldFactTrigger_IsAFactSetter()
+        {
+            var fact = Make<WorldFact>("WorldFact_RingEntered").Init("RingEntered");
+            var index = QuestReferenceIndex.Build(new IndexSources
+            {
+                AllFacts = new Fact[] { fact },
+                SceneFactSetters =
+                {
+                    new FactLink { Fact = fact, Kind = FactLinkKind.Setter, Source = FactLinkSource.WorldFactTrigger, Label = "Fact trigger: Ring" }
+                }
+            });
+
+            var setters = index.GetSetters(fact);
+            Assert.AreEqual(1, setters.Count);
+            Assert.AreEqual(FactLinkSource.WorldFactTrigger, setters[0].Source);
+        }
+
+        [Test]
         public void ClosedSceneRef_ProducesClosedSceneSetterWithPath()
         {
             var fact = Make<KilledFact>().Init("guid-2");

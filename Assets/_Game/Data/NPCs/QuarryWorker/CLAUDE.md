@@ -76,4 +76,4 @@ Rude) → South face (accept sets `DialogueFact_QuarryWorker_PassageAccepted`) �
 | NPCEntity | `Assets/_Game/Data/NPCs/QuarryWorker/NPC_QuarryWorker.asset` (copied from Tam's: Neutral faction, base head until `/characters:portrait-face`) |
 | Dialogues | `Assets/_Game/Data/NPCs/QuarryWorker/Dialogues/` (Greeting, SouthFace, Waiting, Report, After) |
 | Memories | `Assets/_Game/Data/NPCs/QuarryWorker/Memories/` |
-| Scene instance | Not placed yet (spec for the SealedPassage world set-up); `_killedFact` set then |
+| Scene instance | StartingTown `WorkSiteManagers/QuarryWorker` (`NPC_base Variant`, `NpcRoutine`: `QuarryWorker_Spot` 06–21, `Spot_QuarryWorker_Night` 21–06); `_killedFact` = `KilledFact_QuarryWorker` |

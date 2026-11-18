@@ -42,7 +42,17 @@ namespace Game.Editor.World
         private const float RING_BOTTOM = 20f;   // world height, below the ground along the whole loop
         private const float RING_TOP = 75f;      // world height, well over the crest and a jump
         private const float RING_THICKNESS = 1f;
-        private const int PLANKS = 5;
+        private const int PLANKS = 8;
+        private const string CLEFT_DOOR = "Assets/_Game/Prefabs/World/Doors/Simple door.prefab";
+        private const string CLEFT_DOOR_SKILL = "Assets/_Game/Data/Skills/Lockpicking/Skill_Begginer_Lockpicking.asset";
+        private const string CLEFT_DOOR_KEY = "Assets/_Game/Data/Items/Quest/Item_Key_QuarrySouthDoor.asset";
+        private const string CLEFT_DOOR_OWNER = "Assets/_Game/Data/NPCs/QuarryOverseer/NPC_QuarryOverseer.asset";
+        private const string CLEFT_DOOR_SAVE_ID = "area1-quarry-south-face-door"; // fixed, so a rebuild keeps the saved door state
+        private const string INTERACTABLE_LAYER = "Interactable";
+        private const float DOOR_OPENING = 1.3f;   // gap in the seal, wide enough for the 1.05 m door swinging in
+        private const float DOOR_FRAME_TOP = 2.5f; // lintel underside, over the 2.38 m door
+        private const float DOOR_LEAF = 1.05f;     // Simple door width, hinge at its root
+        private const float CAP_CLEARANCE = 3.2f;  // the cap starts over the lintel, so it never blocks the doorway
         private const int RUBBLE = 26;
         private const int SEED = 1337;
 
@@ -657,23 +667,31 @@ namespace Game.Editor.World
             var seal = new GameObject("Seal").transform;
             seal.SetParent(blocker, false);
 
-            var wall = seal.gameObject.AddComponent<BoxCollider>();
-            wall.center = new Vector3(0f, BLOCKER_HEIGHT * 0.5f - BLOCKER_BURY, 0f);
-            wall.size = new Vector3(BLOCKER_WIDTH, BLOCKER_HEIGHT, BLOCKER_DEPTH);
+            float wallBottom = -BLOCKER_BURY, wallTop = BLOCKER_HEIGHT - BLOCKER_BURY;
+            float halfOpening = DOOR_OPENING * 0.5f, halfWidth = BLOCKER_WIDTH * 0.5f;
+            float sideWidth = halfWidth - halfOpening;
+            AddWallBox(seal, new Vector3(-(halfOpening + sideWidth * 0.5f), (wallBottom + wallTop) * 0.5f, 0f), new Vector3(sideWidth, wallTop - wallBottom, BLOCKER_DEPTH));
+            AddWallBox(seal, new Vector3(halfOpening + sideWidth * 0.5f, (wallBottom + wallTop) * 0.5f, 0f), new Vector3(sideWidth, wallTop - wallBottom, BLOCKER_DEPTH));
+            AddWallBox(seal, new Vector3(0f, (DOOR_FRAME_TOP + wallTop) * 0.5f, 0f), new Vector3(DOOR_OPENING, wallTop - DOOR_FRAME_TOP, BLOCKER_DEPTH));
+            if (!BuildCleftDoor(seal)) // never leave the doorway open: fill it so the quest gate holds
+                AddWallBox(seal, new Vector3(0f, (wallBottom + DOOR_FRAME_TOP) * 0.5f, 0f), new Vector3(DOOR_OPENING, DOOR_FRAME_TOP - wallBottom, BLOCKER_DEPTH));
 
+            // Still the whole width: NPCs never path through the cleft, door or not.
             var obstacle = seal.gameObject.AddComponent<NavMeshObstacle>();
             obstacle.shape = NavMeshObstacleShape.Box;
-            obstacle.center = wall.center;
-            obstacle.size = wall.size;
+            obstacle.center = new Vector3(0f, BLOCKER_HEIGHT * 0.5f - BLOCKER_BURY, 0f);
+            obstacle.size = new Vector3(BLOCKER_WIDTH, BLOCKER_HEIGHT, BLOCKER_DEPTH);
             obstacle.carving = true;
             obstacle.enabled = false; // a bake cuts an enabled carving obstacle into the NavMesh; FactRemovedObject enables it at runtime
 
-            // Closes the air over the seal, so nobody crosses the cliff above the cleft and drops in behind it.
+            // Closes the air over the seal, so nobody crosses the cliff above the cleft and drops in behind it. Starts over the
+            // door frame, so the doorway stays open.
+            float capBottom = ground + CAP_CLEARANCE;
             var cap = new GameObject("Cap").transform;
             cap.SetParent(seal, false);
-            cap.position = new Vector3(at.x, (ground + RING_TOP) * 0.5f, at.y);
+            cap.position = new Vector3(at.x, (capBottom + RING_TOP) * 0.5f, at.y);
             cap.gameObject.layer = LayerMask.NameToLayer(BLOCKER_LAYER);
-            cap.gameObject.AddComponent<BoxCollider>().size = new Vector3(BLOCKER_WIDTH, RING_TOP - ground, BLOCKER_DEPTH);
+            cap.gameObject.AddComponent<BoxCollider>().size = new Vector3(BLOCKER_WIDTH, RING_TOP - capBottom, BLOCKER_DEPTH);
 
             AddVisuals(seal, timber, stone);
 
@@ -1109,24 +1127,99 @@ namespace Game.Editor.World
 
         private static Vector2 BlockerPoint(Vector2[] line) => line[0] + (line[1] - line[0]).normalized * BLOCKER_ALONG;
 
+        private static void AddWallBox(Transform seal, Vector3 center, Vector3 size)
+        {
+            var box = seal.gameObject.AddComponent<BoxCollider>();
+            box.center = center;
+            box.size = size;
+        }
+
+        /// <summary>
+        /// The Company door in the seal (quest-002): a Simple door instance, locked (beginner lockpicking, or Dace's key),
+        /// owned by Dace, swinging into the cleft, with a fixed save id. Behind it a latch opens it from the inside.
+        /// </summary>
+        private static bool BuildCleftDoor(Transform seal)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(CLEFT_DOOR);
+            var skill = AssetDatabase.LoadAssetAtPath<Game.Progression.SkillSO>(CLEFT_DOOR_SKILL);
+            var key = AssetDatabase.LoadAssetAtPath<Game.Inventory.ItemSO>(CLEFT_DOOR_KEY);
+            var owner = AssetDatabase.LoadAssetAtPath<Game.NPC.NPCEntity>(CLEFT_DOOR_OWNER);
+            bool prefabUsable = prefab != null && prefab.GetComponent<DoorInteractable>() != null && prefab.GetComponent<Lockable>() != null;
+            if (!prefabUsable || skill == null || key == null || owner == null || LayerMask.NameToLayer(INTERACTABLE_LAYER) < 0)
+            {
+                GameLog.Error(TAG, "Cleft door assets missing (door prefab with DoorInteractable + Lockable, lockpicking skill, key, Dace or the Interactable layer) - doorway walled up instead");
+                return false;
+            }
+
+            var door = (GameObject)PrefabUtility.InstantiatePrefab(prefab, seal);
+            door.name = "CompanyDoor";
+            door.transform.localPosition = new Vector3(-DOOR_LEAF * 0.5f, 0f, 0f);
+            door.transform.localRotation = Quaternion.identity;
+
+            var doorSo = new SerializedObject(door.GetComponent<DoorInteractable>());
+            doorSo.FindProperty("_openAngle").floatValue = -90f; // into the cleft, away from the rubble on the quarry side
+            doorSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var lockSo = new SerializedObject(door.GetComponent<Lockable>());
+            lockSo.FindProperty("_isLocked").boolValue = true;
+            lockSo.FindProperty("_requiredSkill").objectReferenceValue = skill;
+            lockSo.FindProperty("_keyItem").objectReferenceValue = key;
+            lockSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var ownership = door.GetComponent<Ownership>();
+            if (ownership == null) ownership = door.AddComponent<Ownership>();
+            var ownerSo = new SerializedObject(ownership);
+            ownerSo.FindProperty("_owner").objectReferenceValue = owner;
+            ownerSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var saveable = door.GetComponent<SaveableObject>();
+            if (saveable == null) saveable = door.AddComponent<SaveableObject>(); // the prefab has none; scene doors add it
+            var saveSo = new SerializedObject(saveable);
+            saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = CLEFT_DOOR_SAVE_ID;
+            saveSo.ApplyModifiedPropertiesWithoutUndo();
+
+            // On the right jamb's inner face, clear of the door's swing; +Z (into the cleft) is the latch side.
+            var latch = new GameObject("InsideLatch");
+            latch.transform.SetParent(seal, false);
+            latch.transform.localPosition = new Vector3(DOOR_OPENING * 0.5f + 0.1f, 1.1f, BLOCKER_DEPTH * 0.5f + 0.06f);
+            latch.layer = LayerMask.NameToLayer(INTERACTABLE_LAYER);
+            latch.AddComponent<BoxCollider>().size = new Vector3(0.3f, 0.12f, 0.12f);
+            var latchSo = new SerializedObject(latch.AddComponent<DoorLatch>());
+            latchSo.FindProperty("_door").objectReferenceValue = door.GetComponent<DoorInteractable>();
+            latchSo.ApplyModifiedPropertiesWithoutUndo();
+            return true;
+        }
+
         private static void AddVisuals(Transform seal, Material timber, Material stone)
         {
             var random = new System.Random(SEED);
             float Range(float from, float to) => from + (float)random.NextDouble() * (to - from);
+            float half = DOOR_OPENING * 0.5f;
 
+            // Old planks either side of the doorway: x = -4.4..-1.4 and 1.4..4.4, so their lean stays off the opening.
             for (int i = 0; i < PLANKS; i++)
             {
-                Transform plank = Visual($"Plank_{i}", seal, timber, new Vector3(-2f + i, 1.8f, -0.2f), new Vector3(0.45f, 4.6f, 0.12f));
+                float x = i < PLANKS / 2 ? -4.4f + i : i - PLANKS / 2 + 1.4f;
+                Transform plank = Visual($"Plank_{i}", seal, timber, new Vector3(x, 1.8f, -0.2f), new Vector3(0.45f, 4.6f, 0.12f));
                 plank.localRotation = Quaternion.Euler(Range(6f, 16f), 0f, Range(-14f, 14f));
             }
 
+            // New Company timber: two posts and a lintel round the doorway, and the latch bar behind.
+            Visual("DoorPost_L", seal, timber, new Vector3(-half - 0.12f, DOOR_FRAME_TOP * 0.5f, 0f), new Vector3(0.24f, DOOR_FRAME_TOP + 0.3f, 0.3f));
+            Visual("DoorPost_R", seal, timber, new Vector3(half + 0.12f, DOOR_FRAME_TOP * 0.5f, 0f), new Vector3(0.24f, DOOR_FRAME_TOP + 0.3f, 0.3f));
+            Visual("DoorLintel", seal, timber, new Vector3(0f, DOOR_FRAME_TOP + 0.15f, 0f), new Vector3(DOOR_OPENING + 0.9f, 0.3f, 0.34f));
+            Visual("LatchBar", seal, timber, new Vector3(half + 0.1f, 1.1f, BLOCKER_DEPTH * 0.5f + 0.06f), new Vector3(0.3f, 0.08f, 0.08f));
+
+            // Rubble heaped either side, with a clear path to the door.
             for (int i = 0; i < RUBBLE; i++)
             {
                 float size = Range(0.8f, 1.9f);
-                Transform rock = Visual($"Rubble_{i}", seal, stone,
-                    new Vector3(Range(-3.6f, 3.6f), Range(-0.3f, 1.3f), Range(-1.8f, -0.4f)),
-                    new Vector3(size, size * Range(0.6f, 1f), size * Range(0.7f, 1.1f)));
-                rock.localRotation = Quaternion.Euler(Range(0f, 40f), Range(0f, 360f), Range(0f, 40f));
+                Vector3 position = new Vector3(Range(-4.2f, 4.2f), Range(-0.3f, 1.3f), Range(-1.8f, -0.4f));
+                Vector3 scale = new Vector3(size, size * Range(0.6f, 1f), size * Range(0.7f, 1.1f));
+                Quaternion rotation = Quaternion.Euler(Range(0f, 40f), Range(0f, 360f), Range(0f, 40f));
+                if (Mathf.Abs(position.x) - size * 0.6f < half + 0.4f) continue;
+                Transform rock = Visual($"Rubble_{i}", seal, stone, position, scale);
+                rock.localRotation = rotation;
             }
         }
 

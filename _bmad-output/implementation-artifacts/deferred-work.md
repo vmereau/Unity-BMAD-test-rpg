@@ -976,3 +976,32 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   archetype would put the shield in the right hand with the left-hand pose. Add a right-hand pose then.
 - **No PlayerCombat block tests (review):** "no shield → refused", cost / window from the shield and the mid-block lower are
   verified in play only; the pure rules (`EquipmentRules`, `EquipmentVisuals.ShouldHoldShield`) are tested.
+
+## From spec-sealed-passage-door-route (2026-11-18, split at clarify)
+
+- **SealedPassage goat-track route (B2, next spec, user decision).** Third way into the Ruins 2 ring for quest-002
+  (`docs/World/Quests/SealedPassage.md`): a steep but walkable track from the forest edge south-east of the quarry,
+  over the ring's rim and down into it on foot (no rope), a gap in the invisible `Quarry/RuinsRing` colliders where it
+  crosses, and a small group of existing hostile creatures along it ("the wilderness is dangerous"). Reuses B1's
+  ring-entry `WorldFactTrigger`. Check reachability against surface slope (Scenes/CLAUDE.md: the player can jump up
+  steep slopes) and keep the ring closed everywhere else.
+
+## From spec-sealed-passage-door-route (2026-11-18, review)
+
+- **A failed quest can flip to completed (review).** `QuestSO.IsFailed` now returns false once `IsCompleted` (completion
+  wins, per spec). For a quest whose completion fact can still be set after a fail fact, `QuestEventsManager` would
+  raise Failed and then Completed, grant both reward sets, and flip `QuestFact(IsFailed)` readers back. Not reachable in
+  SealedPassage (a dead Bren can't take the report). Snapshot the first terminal state if a quest ever needs it.
+- **The owned cleft door and theft (review).** The door's `Ownership` (Dace) makes every closed-door use a theft while
+  Dace lives, including opening it with his own key, and from the inside focusing the leaf instead of the small
+  `InsideLatch` also counts (and spends a pick). The inside case only arises via the goat track (B2): decide there
+  whether the inside face should skip ownership or the latch collider should be larger.
+- **Quest facts set before the quest starts (review).** `RingEntryTrigger` and Odo's `ContainerTakeFact` fire whether or
+  not Bren's quest was accepted, so a player who explores first gets step 0 done on accept and Bren's report topic
+  unlocks off `TokenTaken` without the quest started. Decide if the report memory should also require
+  `QuestFact_SealedPassage_Started`.
+- **Closed-scene setter scan misses prefab instances (review, pre-existing).** `QuestIndexCollector` only reads top-level
+  `--- !u!114` blocks, so a `ContainerTakeFact` / `WorldFactTrigger` inside a prefab instance of a closed scene stores
+  `_fact` in `m_Modifications` and reads as "never set" (false V3).
+- **Odo's belongings are food (review).** `OdoBundle` holds `Item_Bread` and `Item_BrownMushroom` because no worthless
+  item exists yet; swap for real junk (a worn tally string, a broken comb) when one is added.

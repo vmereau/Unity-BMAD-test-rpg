@@ -1,7 +1,7 @@
 # Quest Spec — SealedPassage
 
 > Template version: 1.1
-> Status: `ready` — quest data implemented 2026-11-18 (Part A); code + world set-up pending (Part B, `gds-quick-dev`). Set `implemented` when Part B ships.
+> Status: `implemented` — 2026-11-18: quest data (Part A) and the door route (Part B1, `spec-sealed-passage-door-route`). The goat-track route (B2) is deferred (`deferred-work.md`).
 > Spec path: `docs/World/Quests/SealedPassage.md`
 > World id: quest-002 (The Sealed Passage) · area-002 Stone Quarry · giver npc-009 Bren
 > Design with `/quests:design`, build with `/quests:implement SealedPassage`, check with `/quests:audit SealedPassage`.
@@ -214,7 +214,7 @@ Note: a rude answer in the opener closes Bren's south-face topic for good, so th
 - **Door in the cleft** — replace the `CleftBlocker` `Seal` with a planks-and-rubble wall holding a locked Company door:
   `DoorInteractable` + `Lockable` (`_requiredSkill` = `Skill_Begginer_Lockpicking`, new `_keyItem` =
   `Item_Key_QuarrySouthDoor`) + `Ownership` (Dace) + `SaveableObject`. From the inside it opens without the lock
-  check (no trap). Retire the seal's `FactRemovedObject` / `WorldFact_QuarryPassageOpened` wiring; keep the fact asset
+  check (no trap). Keep the seal's `FactRemovedObject` / `WorldFact_QuarryPassageOpened` wiring and the fact asset
   for a later Company event. Keep the NavMesh closed while the door is shut, as the carving obstacle does today.
 - **Key support (new code)** — `Lockable._keyItem`: a player holding the key opens the lock with no skill and no
   lockpick (resolved in `DoorSystem` and `ContainerSystem`, `LockpickRules` extended and tested).
@@ -305,10 +305,14 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
 
 **Part B — code + world set-up (`gds-quick-dev`)**
 
-- [ ] Code — `Lockable._keyItem` (+ `DoorSystem` / `ContainerSystem` / `LockpickRules`, tests); `WorldFactTrigger`
-      (ring entry); `QuestSO.IsFailed` returns false once completed (+ test); door opens from inside without the lock check
-- [ ] Bren placed in StartingTown (`NPC_base Variant`, routine quarry floor / tent camp), `KilledFact_QuarryWorker` via
-      `Game/World/Generate Missing KilledFacts`, on `NPC_QuarryWorker._killedFact`, and as the quest's failed part
-- [ ] Scene — door in the cleft (replaces the `CleftBlocker` seal), Dace's hut + owned key pickup, goat track +
-      creatures + `RuinsRing` gap, new-cut dressing, Odo's remains (`ContainerTakeFact`), ring-entry trigger
-- [ ] `quest_report SealedPassage` clean; status → `implemented`
+- [x] Code — `Lockable._keyItem` (+ `DoorSystem` / `ContainerSystem` / `LockpickRules.Key`, tests); `WorldFactTrigger`
+      (ring entry, indexed by the Quest Explorer); `QuestSO.IsFailed` returns false once completed (+ test); `DoorLatch`
+      opens the door from inside
+- [x] Bren placed in StartingTown (`WorkSiteManagers/QuarryWorker`, routine quarry floor 06–21 / Wretches' Corner fire),
+      `Data/Enemies/StartingTown/Generic/KilledFact_QuarryWorker.asset` on `NPC_QuarryWorker._killedFact` and as the
+      quest's failed part
+- [x] Scene — door in the cleft (`Area1SitesBuilder`: `CleftBlocker/Seal/CompanyDoor` + `InsideLatch`), StartingTown
+      root `SealedPassage` (Dace's hut + owned key pickup `Prefabs/Items/Item_Key_QuarrySouthDoor.prefab`, new-cut
+      dressing, survey marks, Odo's remains + `OdoBundle` with `ContainerTakeFact`, `RingEntryTrigger`)
+- [ ] Goat track + creatures + `RuinsRing` gap — deferred (B2, `deferred-work.md`)
+- [x] `quest_report SealedPassage` clean (no issues); `quest_report audit` no new issues; status → `implemented`

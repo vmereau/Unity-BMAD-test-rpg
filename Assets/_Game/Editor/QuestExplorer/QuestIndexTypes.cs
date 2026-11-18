@@ -28,7 +28,8 @@ namespace Game.Editor.QuestExplorer
         PlayerReward,
         QuestFactTarget,
         Recipe,
-        ContainerTake
+        ContainerTake,
+        WorldFactTrigger
     }
 
     /// <summary>One edge between a <see cref="Fact"/> and the asset / scene object that sets or reads it.</summary>
@@ -157,7 +158,7 @@ namespace Game.Editor.QuestExplorer
         public QuestFact[] QuestFacts = Array.Empty<QuestFact>();
         public Fact[] AllFacts = Array.Empty<Fact>();
         public List<KilledFactBinding> KilledBindings = new List<KilledFactBinding>();
-        public List<FactLink> ContainerTakeSetters = new List<FactLink>();
+        public List<FactLink> SceneFactSetters = new List<FactLink>(); // ContainerTakeFact + WorldFactTrigger
         public List<(KilledFact fact, string scenePath)> ClosedSceneRefs = new List<(KilledFact fact, string scenePath)>();
         public HashSet<QuestSO> EventsManagerQuests = new HashSet<QuestSO>();
         public HashSet<QuestSO> QuestLogQuests = new HashSet<QuestSO>();

@@ -193,6 +193,22 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void IsFailed_CompletedThenFailFact_CompletionWins()
+        {
+            var doneFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("reported"));
+            var failFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("giver_dead"));
+            var questSO = ScriptableObject.CreateInstance<QuestSO>();
+            questSO.completedParts.Add(new QuestPart { fact = doneFact });
+            questSO.failedParts.Add(new QuestPart { fact = failFact });
+            _cleanup.Add(questSO);
+            _wsm.SetWorldEvent(doneFact, true);
+            _wsm.SetWorldEvent(failFact, true);
+
+            Assert.That(questSO.IsCompleted, Is.True);
+            Assert.That(questSO.IsFailed, Is.False);
+        }
+
+        [Test]
         public void IsQuestFactTrue_NullFact_ReturnsFalse()
         {
             Assert.That(_wsm.IsQuestFactTrue(null), Is.False);

@@ -1,4 +1,5 @@
 using Game.Core;
+using Game.Inventory;
 using Game.Progression;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Game.World
     /// "locked" concept, shared by DoorInteractable and ContainerInteractable via GetComponent.
     /// Absence of this component on an interactable means "never locked".
     /// Picking a lock needs the required skill + one lockpick (LockpickRules, resolved by DoorSystem /
-    /// ContainerSystem). Unlock() is idempotent — calling it when already unlocked is harmless.
+    /// ContainerSystem); holding the optional key item opens it outright, nothing consumed. Unlock() is idempotent — calling it when already unlocked is harmless.
     /// </summary>
     public class Lockable : MonoBehaviour
     {
@@ -18,10 +19,13 @@ namespace Game.World
         [SerializeField] private bool _isLocked = false;
         [SerializeField] private SkillSO _requiredSkill;
         [SerializeField] private string _lockedPrompt = "Locked";
+        [Tooltip("Optional. A player holding this item opens the lock with no skill and no lockpick.")]
+        [SerializeField] private ItemSO _keyItem;
 
         public bool IsLocked => _isLocked;
         public string RequiredSkillId => _requiredSkill != null ? _requiredSkill.skillId : null;
         public string LockedPrompt => _lockedPrompt;
+        public ItemSO KeyItem => _keyItem;
 
         private void Awake()
         {

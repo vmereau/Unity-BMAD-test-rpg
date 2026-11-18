@@ -60,6 +60,8 @@ Claude can't click the window — it reads the same data as text:
   choices, and a live state badge in Play Mode (locked / active / active · dialogue played / invalidated).
   A memory is involved if a condition reads a quest part fact (or a QuestFact targeting the quest), or its
   start dialogue chain sets a part fact. Not transitive.
+- Scene WorldFact setters (`ContainerTakeFact`, `WorldFactTrigger`: their `_fact` field) go into
+  `IndexSources.SceneFactSetters`, from loaded scenes and as text from closed ones.
 - Closed scenes (`Assets/_Game/Scenes/` not loaded) are scanned as text for KilledFact asset GUIDs →
   `ClosedScene` setters ("Open scene & select" opens additively after the save prompt).
 

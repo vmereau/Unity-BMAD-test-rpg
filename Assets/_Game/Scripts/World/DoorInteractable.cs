@@ -69,7 +69,8 @@ namespace Game.World
             {
                 door = this,
                 isLocked = true,
-                requiredSkillId = _lockable.RequiredSkillId
+                requiredSkillId = _lockable.RequiredSkillId,
+                keyItem = _lockable.KeyItem
             });
         }
 

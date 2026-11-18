@@ -89,12 +89,16 @@ namespace Game.Quest
             }
         }
 
-        /// <summary>True if any failedParts' fact is true. Returns false if list is empty.</summary>
+        /// <summary>
+        /// True if any failedParts' fact is true and the quest is not completed (completion wins, e.g. the
+        /// giver dying after the report). Returns false if list is empty.
+        /// </summary>
         public bool IsFailed
         {
             get
             {
                 if (failedParts == null || WorldStateManager.Instance == null) return false;
+                if (IsCompleted) return false;
                 foreach (var p in failedParts)
                     if (p.fact != null && WorldStateManager.Instance.GetFact(p.fact)) return true;
                 return false;

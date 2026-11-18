@@ -51,24 +51,34 @@ namespace Game.World
                     GameLog.Warn(TAG, "Locked open request without a container — cannot pick lock");
                     return;
                 }
-                if (_playerSkills == null || _playerInventory == null || _lockpickItem == null)
+                if (_playerInventory == null)
                 {
-                    GameLog.Warn(TAG, "PlayerSkills / player InventorySystem / lockpick item not assigned — cannot pick container lock");
+                    GameLog.Warn(TAG, "Player InventorySystem not assigned — cannot open locked container");
+                    return;
+                }
+
+                // The key needs neither the skill nor the lockpick wiring, so it is checked first.
+                bool hasKey = data.keyItem != null && _playerInventory.CountOf(data.keyItem) > 0;
+                if (!hasKey && (_playerSkills == null || _lockpickItem == null))
+                {
+                    GameLog.Warn(TAG, "PlayerSkills / lockpick item not assigned — cannot pick container lock");
                     return;
                 }
 
                 // Empty skill id = misconfigured lock (Lockable warns) — only the lockpick is required.
-                bool hasSkill = string.IsNullOrEmpty(data.requiredSkillId) || _playerSkills.HasSkill(data.requiredSkillId);
-                LockpickResult result = LockpickRules.Evaluate(hasSkill, _playerInventory.CountOf(_lockpickItem));
-                if (result != LockpickResult.Success)
+                bool hasSkill = hasKey || string.IsNullOrEmpty(data.requiredSkillId) || _playerSkills.HasSkill(data.requiredSkillId);
+                int lockpicks = hasKey ? 0 : _playerInventory.CountOf(_lockpickItem);
+                LockpickResult result = LockpickRules.Evaluate(hasKey, hasSkill, lockpicks);
+                if (result != LockpickResult.Success && result != LockpickResult.Key)
                 {
                     GameLog.Info(TAG, $"Container stays locked — {result} (skill '{data.requiredSkillId}')");
                     _onLockpickFailed?.Raise(LockpickRules.FailureMessage(result));
                     return;
                 }
 
-                // Consume before unlocking so a failed consume never opens the lock for free.
-                if (!_playerInventory.TryConsume(_lockpickItem))
+                // Key: nothing consumed. Pick: consume before unlocking so a failed consume never opens
+                // the lock for free.
+                if (result == LockpickResult.Success && !_playerInventory.TryConsume(_lockpickItem))
                 {
                     GameLog.Warn(TAG, "Lockpick count passed but consume failed — container stays locked");
                     return;

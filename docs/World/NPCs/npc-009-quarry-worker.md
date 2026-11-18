@@ -75,5 +75,5 @@ take Dace's key from his hut, or the goat track from the wilderness) but is too 
 
 ## Open Threads
 
-- Scene placement, routine and portrait face (SealedPassage world set-up spec, then `/characters:portrait-face`)
+- Portrait face (`/characters:portrait-face`); placed in StartingTown as `WorkSiteManagers/QuarryWorker`
 - The hand-picked cutters "moved up to the fort" — unanswered hook

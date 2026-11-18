@@ -10,6 +10,7 @@ namespace Game.Core
         public InventorySystem containerInventory;
         public bool isLocked;
         public string requiredSkillId;
+        public ItemSO keyItem; // optional: holding it opens the lock with no skill / lockpick
         public bool takeOnly; // true for corpse loot (no deposit); false for world containers
         public ContainerInteractable container; // runtime scene ref passed through Raise() — NOT stored in any SO asset; null for corpse loot
     }

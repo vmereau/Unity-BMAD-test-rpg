@@ -26,7 +26,7 @@
 | npc-006 | The Warden (Voss) | area-001 | Main antagonist / camp authority | faction-001 | graybox |
 | npc-007 | Racket Guard (Harl) | area-001 exits (quarry gate 06–14, wilderness gate 14–21) | Antagonist / extortionist — one-time exit toll per gate | faction-001 | implemented |
 | npc-008 | The False Friend | area-001 | Antagonist / betrayer | none | stub |
-| npc-009 | Quarry Worker (Bren) | area-002 (quarry) | Quest giver — sealed passage | none | data (not placed) |
+| npc-009 | Quarry Worker (Bren) | area-002 (quarry) | Quest giver — sealed passage | none | placed (StartingTown quarry floor) |
 | npc-010 | Lead Hunter (Corvin Ash) | area-004 (hunting camp) | Work site manager; independent-minded | faction-001 (loose) | graybox |
 | npc-011 | Camp Cook (Aldric Sorn) | area-001 — Canteen | Service NPC / information broker | none (covert) | draft |
 | npc-012 | Warehouse Guard | area-001 — dock warehouse | Guard / restricted-area owner | faction-001 | draft |
@@ -42,7 +42,7 @@
 | ID | Name | Giver | Area | Faction Path | Status |
 |----|------|-------|------|-------------|--------|
 | quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
-| quest-002 | The Sealed Passage (`SealedPassage`) | npc-009 | area-002 | worker / independent | data implemented, world set-up pending |
+| quest-002 | The Sealed Passage (`SealedPassage`) | npc-009 | area-002 | worker / independent | implemented (door route; goat track deferred) |
 | WardensErrand | The Warden's Errand | npc-006 (Voss) | area-001 + work sites | neutral | implemented |
 
 ---
