@@ -9,7 +9,8 @@ namespace Game.World
     /// Marks an interactable (world item, container, door) as owned by an NPC. Taking / opening it while the owner
     /// lives is a theft: <see cref="InteractionSystem"/> draws the prompt and outline in red and raises
     /// <c>OnTheftCommitted</c> before the interaction. Free again once the owner's <see cref="NPCEntity.KilledFact"/>
-    /// is set in <see cref="WorldStateManager"/>. Closing an owned open door is always free.
+    /// is set in <see cref="WorldStateManager"/>. Closing an owned open door is always free, and so is a locked door whose
+    /// inner latch is usable (<see cref="DoorInteractable.DefersToLatch"/>): leaving from inside isn't a theft.
     /// </summary>
     public class Ownership : MonoBehaviour
     {
@@ -23,9 +24,10 @@ namespace Game.World
         public NPCEntity Owner => _owner;
         public TheftKind Kind { get; private set; }
 
-        /// <summary>Interacting with this object now is a theft (owner set and alive; open doors excluded).</summary>
+        /// <summary>Interacting with this object now is a theft (owner set and alive; open doors and usable latches excluded).</summary>
         public bool IsIllegal =>
-            IsIllegalInteraction(_owner != null, IsOwnerKilled(), Kind == TheftKind.Door, _door != null && _door.IsOpen);
+            IsIllegalInteraction(_owner != null, IsOwnerKilled(), Kind == TheftKind.Door, _door != null && _door.IsOpen,
+                _door != null && _door.DefersToLatch);
 
         private void Awake()
         {
@@ -43,9 +45,9 @@ namespace Game.World
             _owner != null && _owner.KilledFact != null && WorldStateManager.Instance != null &&
             WorldStateManager.Instance.IsKilled(_owner.KilledFact);
 
-        /// <summary>Pure legality rule: owned, owner alive, and not closing an open door.</summary>
-        public static bool IsIllegalInteraction(bool hasOwner, bool ownerKilled, bool isDoor, bool doorOpen) =>
-            hasOwner && !ownerKilled && !(isDoor && doorOpen);
+        /// <summary>Pure legality rule: owned, owner alive, not closing an open door, and not a door its inner latch opens.</summary>
+        public static bool IsIllegalInteraction(bool hasOwner, bool ownerKilled, bool isDoor, bool doorOpen, bool latchUsable = false) =>
+            hasOwner && !ownerKilled && !(isDoor && (doorOpen || latchUsable));
 
 #if UNITY_EDITOR
         private void OnValidate()

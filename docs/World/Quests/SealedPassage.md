@@ -1,7 +1,7 @@
 # Quest Spec — SealedPassage
 
 > Template version: 1.1
-> Status: `implemented` — 2026-11-18: quest data (Part A) and the door route (Part B1, `spec-sealed-passage-door-route`). The goat-track route (B2) is deferred (`deferred-work.md`).
+> Status: `implemented` — 2026-11-18: quest data (Part A), the door route (Part B1, `spec-sealed-passage-door-route`) and the goat-track route (Part B2, `spec-sealed-passage-goat-track`).
 > Spec path: `docs/World/Quests/SealedPassage.md`
 > World id: quest-002 (The Sealed Passage) · area-002 Stone Quarry · giver npc-009 Bren
 > Design with `/quests:design`, build with `/quests:implement SealedPassage`, check with `/quests:audit SealedPassage`.
@@ -180,7 +180,7 @@ npcs:
           - NPC: "Any luck? No, I can see it on you. Pick the lock if you've the skill, or lift Dace's key from his hut while he's out on the floor. And if you go round by the goat track, take a proper weapon. I mean it." END
 
       - asset: Mem_QuarryWorker_Report
-        unlock:     [WorldFact_SealedPassage_TokenTaken]
+        unlock:     [WorldFact_SealedPassage_TokenTaken, QuestFact_SealedPassage_Started]
         invalidate: [DialogueFact_QuarryWorker_ReportToken, DialogueFact_QuarryWorker_ReportTold]
         dialogue_topic: Report                    # label: "I found Odo."
         dialogue:
@@ -314,5 +314,8 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
 - [x] Scene — door in the cleft (`Area1SitesBuilder`: `CleftBlocker/Seal/CompanyDoor` + `InsideLatch`), StartingTown
       root `SealedPassage` (Dace's hut + owned key pickup `Prefabs/Items/Item_Key_QuarrySouthDoor.prefab`, new-cut
       dressing, survey marks, Odo's remains + `OdoBundle` with `ContainerTakeFact`, `RingEntryTrigger`)
-- [ ] Goat track + creatures + `RuinsRing` gap — deferred (B2, `deferred-work.md`)
+- [x] Goat track (B2, `spec-sealed-passage-goat-track`) — `layout.json` `path-goat-track` graded by `Tools/World/Grade Area 1 Goat Track`
+      (sculpt captured, NavMesh rebaked), `RuinsRing` gap from `Area1SitesBuilder.BuildRuinsRing`, `SealedPassage/GoatTrack`
+      (cairns + 3 darkness spiders on the shelf), `RingEntryTrigger/Shape_GoatTrack`; the cleft door's leaf defers to
+      `InsideLatch` from inside (no theft); `Mem_QuarryWorker_Report` also needs `QuestFact_SealedPassage_Started`
 - [x] `quest_report SealedPassage` clean (no issues); `quest_report audit` no new issues; status → `implemented`

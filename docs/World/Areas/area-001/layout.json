@@ -2122,6 +2122,60 @@
       "head": 9.95
     },
     {
+      "id": "path-goat-track",
+      "kind": "road",
+      "name": "Path: goat track",
+      "width": 3,
+      "art": [
+        "quarry"
+      ],
+      "note": "Quest-002 third route into Ruins 2: from the forest edge south-east of the quarry up onto the shelf east of the ring, over the rim in a notch and down the inner face onto the pad, ending on the pad itself so the NavMesh joins. Tools/World/Grade Area 1 Goat Track grades it from heights (one per point), paints it and clears trees; capture the sculpt afterwards. Sites leaves a gap in Quarry/RuinsRing where it crosses.",
+      "points": [
+        [
+          326,
+          -66
+        ],
+        [
+          328,
+          -90
+        ],
+        [
+          325,
+          -115
+        ],
+        [
+          320,
+          -135
+        ],
+        [
+          312,
+          -142
+        ],
+        [
+          303,
+          -141
+        ],
+        [
+          282,
+          -166
+        ],
+        [
+          277,
+          -158
+        ]
+      ],
+      "heights": [
+        6.3,
+        17,
+        33.5,
+        45.6,
+        47,
+        50,
+        30.5,
+        30
+      ]
+    },
+    {
       "id": "farm",
       "kind": "zone",
       "name": "Company farm",

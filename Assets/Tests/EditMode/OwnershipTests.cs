@@ -42,5 +42,23 @@ namespace Tests.EditMode
         {
             Assert.IsTrue(Ownership.IsIllegalInteraction(true, false, false, true));
         }
+        [Test]
+        public void LockedDoor_LatchUsable_IsLegal()
+        {
+            // Inside the door, focusing the leaf acts as the latch: leaving from inside is never a theft.
+            Assert.IsFalse(Ownership.IsIllegalInteraction(true, false, true, false, latchUsable: true));
+        }
+
+        [Test]
+        public void LockedDoor_LatchNotUsable_IsStillTheft()
+        {
+            Assert.IsTrue(Ownership.IsIllegalInteraction(true, false, true, false, latchUsable: false));
+        }
+
+        [Test]
+        public void NonDoor_LatchFlagIgnored()
+        {
+            Assert.IsTrue(Ownership.IsIllegalInteraction(true, false, false, false, latchUsable: true));
+        }
     }
 }

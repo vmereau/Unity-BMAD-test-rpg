@@ -9,6 +9,8 @@ namespace Game.World
     /// and an open angle. When unlocked (or no sibling Lockable), toggling happens locally with no
     /// event. When a sibling Lockable reports locked, it raises a GameEventSO_DoorOpenRequest so the
     /// player-side DoorSystem can resolve the skill check (mirrors ContainerInteractable).
+    /// While a registered <see cref="DoorLatch"/> is usable (locked, player on its side), the leaf defers to it: same prompt,
+    /// same action, and <see cref="Ownership"/> treats it as legal, so focusing the leaf from inside is never a theft.
     /// </summary>
     public class DoorInteractable : MonoBehaviour, IInteractable
     {
@@ -22,6 +24,7 @@ namespace Game.World
         [SerializeField] private GameEventSO_DoorOpenRequest _onDoorOpenRequested;
 
         private Lockable _lockable;
+        private DoorLatch _latch; // registered by the latch itself; optional
         private bool _isOpen;
         private Coroutine _rotateRoutine;
         private Quaternion _closedRotation = Quaternion.identity; // authored rest pose, captured in Awake
@@ -30,6 +33,7 @@ namespace Game.World
         {
             get
             {
+                if (DefersToLatch) return _latch.InteractPrompt;
                 if (_lockable != null && _lockable.IsLocked) return _lockable.LockedPrompt;
                 return _isOpen ? _closePrompt : _interactPrompt;
             }
@@ -37,6 +41,17 @@ namespace Game.World
 
         public string NameTag => "";
         public bool IsOpen => _isOpen;
+
+        /// <summary>True while the inner latch can open this door for the player: the leaf then acts as the latch.</summary>
+        public bool DefersToLatch => _latch != null && _latch.isActiveAndEnabled && _latch.CanInteract;
+
+        /// <summary>Called by <see cref="DoorLatch"/> when it is enabled. One latch per door; a second replaces the first (warned).</summary>
+        public void RegisterLatch(DoorLatch latch)
+        {
+            if (_latch != null && _latch != latch)
+                GameLog.Warn(TAG, $"{gameObject.name}: latch '{latch.name}' replaces '{_latch.name}' — one latch per door");
+            _latch = latch;
+        }
         public bool CanInteract => true;
 
         private void Awake()
@@ -53,6 +68,12 @@ namespace Game.World
 
         public void Interact()
         {
+            if (DefersToLatch)
+            {
+                _latch.Interact();
+                return;
+            }
+
             if (_lockable == null || !_lockable.IsLocked)
             {
                 ToggleOpen();

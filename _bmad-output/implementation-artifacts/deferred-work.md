@@ -979,12 +979,12 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-sealed-passage-door-route (2026-11-18, split at clarify)
 
-- **SealedPassage goat-track route (B2, next spec, user decision).** Third way into the Ruins 2 ring for quest-002
+- ~~**SealedPassage goat-track route (B2, next spec, user decision).** Third way into the Ruins 2 ring for quest-002
   (`docs/World/Quests/SealedPassage.md`): a steep but walkable track from the forest edge south-east of the quarry,
   over the ring's rim and down into it on foot (no rope), a gap in the invisible `Quarry/RuinsRing` colliders where it
   crosses, and a small group of existing hostile creatures along it ("the wilderness is dangerous"). Reuses B1's
   ring-entry `WorldFactTrigger`. Check reachability against surface slope (Scenes/CLAUDE.md: the player can jump up
-  steep slopes) and keep the ring closed everywhere else.
+  steep slopes) and keep the ring closed everywhere else.~~ **Done 2026-11-18** (`spec-sealed-passage-goat-track`).
 
 ## From spec-sealed-passage-door-route (2026-11-18, review)
 
@@ -993,15 +993,27 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   raise Failed and then Completed, grant both reward sets, and flip `QuestFact(IsFailed)` readers back. Not reachable in
   SealedPassage (a dead Bren can't take the report). Snapshot the first terminal state if a quest ever needs it.
 - **The owned cleft door and theft (review).** The door's `Ownership` (Dace) makes every closed-door use a theft while
-  Dace lives, including opening it with his own key, and from the inside focusing the leaf instead of the small
+  Dace lives, including opening it with his own key, and ~~from the inside focusing the leaf instead of the small
   `InsideLatch` also counts (and spends a pick). The inside case only arises via the goat track (B2): decide there
-  whether the inside face should skip ownership or the latch collider should be larger.
-- **Quest facts set before the quest starts (review).** `RingEntryTrigger` and Odo's `ContainerTakeFact` fire whether or
+  whether the inside face should skip ownership or the latch collider should be larger.~~ **Inside case done
+  2026-11-18** (`spec-sealed-passage-goat-track`): the leaf defers to the latch while it is usable. Opening from outside
+  with Dace's key still counts as a theft (kept: the key is his).
+- ~~**Quest facts set before the quest starts (review).** `RingEntryTrigger` and Odo's `ContainerTakeFact` fire whether or
   not Bren's quest was accepted, so a player who explores first gets step 0 done on accept and Bren's report topic
   unlocks off `TokenTaken` without the quest started. Decide if the report memory should also require
-  `QuestFact_SealedPassage_Started`.
+  `QuestFact_SealedPassage_Started`.~~ **Done 2026-11-18** (`spec-sealed-passage-goat-track`): it does. Step 0 can
+  still complete on accept for an explorer (intended: the quest log catches up).
 - **Closed-scene setter scan misses prefab instances (review, pre-existing).** `QuestIndexCollector` only reads top-level
   `--- !u!114` blocks, so a `ContainerTakeFact` / `WorldFactTrigger` inside a prefab instance of a closed scene stores
   `_fact` in `m_Modifications` and reads as "never set" (false V3).
 - **Odo's belongings are food (review).** `OdoBundle` holds `Item_Bread` and `Item_BrownMushroom` because no worthless
   item exists yet; swap for real junk (a worn tally string, a broken comb) when one is added.
+
+## From spec-sealed-passage-goat-track (2026-11-18, review)
+
+- **Ring gap follows the layout line only (review).** `BuildRuinsRing` opens the gap wherever `path-goat-track` crosses
+  the loop, with no check that the terrain was graded there (edit the line + rerun Sites without regrading and capturing
+  → a full-height hole over raw cliff). `TrySplitAtCrossing` also handles one crossing per wall: a second crossing of the
+  same wall, a crossing within ~2.5 m of a ring corner (the neighbouring wall isn't opened), or a track running along a
+  wall stay walled; the "crosses N times" warning counts split walls, not crossings. Fine for today's line (one square-ish
+  crossing mid-wall, verified in play); harden if the track ever moves.

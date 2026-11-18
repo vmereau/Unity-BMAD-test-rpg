@@ -77,6 +77,71 @@ namespace Game.Editor.World
             return best;
         }
 
+        /// <summary>
+        /// Road height for a point from one height per line point: lerped along the nearest segment, so a track can rise over a rim
+        /// and fall again. <paramref name="heights"/> has one entry per point of <paramref name="line"/>.
+        /// </summary>
+        public static float GradeAlongProfile(Vector2 point, IReadOnlyList<Vector2> line, IReadOnlyList<float> heights, out float distance)
+        {
+            distance = float.PositiveInfinity;
+            if (line == null || heights == null || line.Count == 0 || heights.Count != line.Count) return 0f;
+            if (line.Count == 1)
+            {
+                distance = Vector2.Distance(point, line[0]);
+                return heights[0];
+            }
+
+            float height = heights[0];
+            for (int i = 1; i < line.Count; i++)
+            {
+                Vector2 a = line[i - 1];
+                Vector2 ab = line[i] - a;
+                float lengthSq = ab.sqrMagnitude;
+                float t = lengthSq > 0f ? Mathf.Clamp01(Vector2.Dot(point - a, ab) / lengthSq) : 0f;
+                float d = Vector2.Distance(point, a + ab * t);
+                if (d < distance)
+                {
+                    distance = d;
+                    height = Mathf.Lerp(heights[i - 1], heights[i], t);
+                }
+            }
+            return height;
+        }
+
+        /// <summary>
+        /// Splits the wall segment <paramref name="a"/>–<paramref name="b"/> where <paramref name="line"/> first crosses it, leaving a gap
+        /// <paramref name="halfGap"/> wide on each side measured square to the line (so an oblique crossing opens more wall). Returns false,
+        /// with the whole segment as the only piece, when the line doesn't cross it. A piece shorter than 1 cm is dropped.
+        /// </summary>
+        public static bool TrySplitAtCrossing(Vector2 a, Vector2 b, IReadOnlyList<Vector2> line, float halfGap, out List<(Vector2 from, Vector2 to)> pieces)
+        {
+            pieces = new List<(Vector2, Vector2)>();
+            Vector2 wall = b - a;
+            float wallLength = wall.magnitude;
+            if (line != null && wallLength > 0f)
+            {
+                for (int i = 1; i < line.Count; i++)
+                {
+                    Vector2 c = line[i - 1], track = line[i] - c;
+                    float cross = wall.x * track.y - wall.y * track.x;
+                    if (Mathf.Abs(cross) < 1e-6f) continue; // parallel
+                    Vector2 ac = c - a;
+                    float s = (ac.x * track.y - ac.y * track.x) / cross;  // along the wall
+                    float u = (ac.x * wall.y - ac.y * wall.x) / cross;    // along the track segment
+                    if (s < 0f || s > 1f || u < 0f || u > 1f) continue;
+
+                    float sine = Mathf.Abs(cross) / (wallLength * track.magnitude);
+                    float open = halfGap / Mathf.Max(sine, 0.2f) / wallLength; // no wider than 5x at a grazing crossing
+                    float from = s - open, to = s + open;
+                    if (from > 0.01f / wallLength) pieces.Add((a, a + wall * from));
+                    if (to < 1f - 0.01f / wallLength) pieces.Add((a + wall * to, b));
+                    return true;
+                }
+            }
+            pieces.Add((a, b));
+            return false;
+        }
+
         /// <summary>Paint share at a point: 1 within <paramref name="halfWidth"/> of the line, fading to 0 over <paramref name="edge"/> metres.</summary>
         public static float LineBlend(Vector2 point, IReadOnlyList<Vector2> line, float halfWidth, float edge) =>
             1f - Ramp(PolylineDistance(point, line, out _), halfWidth, halfWidth + edge);

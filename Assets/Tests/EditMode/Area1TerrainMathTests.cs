@@ -319,5 +319,68 @@ namespace Tests.EditMode
 
             Assert.AreEqual(4, Area1TerrainMath.CutPanels(line, 3f, new Vector2(6f, 20f), 4f).Count);
         }
+        [Test]
+        public void GradeAlongProfile_LerpsAlongTheNearestSegment()
+        {
+            var line = new[] { new Vector2(0f, 0f), new Vector2(10f, 0f), new Vector2(10f, 10f) };
+            var heights = new[] { 0f, 10f, 4f };
+
+            Assert.AreEqual(5f, Area1TerrainMath.GradeAlongProfile(new Vector2(5f, 2f), line, heights, out float distance), 1e-4f);
+            Assert.AreEqual(2f, distance, 1e-4f);
+            Assert.AreEqual(7f, Area1TerrainMath.GradeAlongProfile(new Vector2(11f, 5f), line, heights, out distance), 1e-4f); // rises, then falls
+            Assert.AreEqual(1f, distance, 1e-4f);
+        }
+
+        [Test]
+        public void GradeAlongProfile_MismatchedHeights_IsInfinitelyFar()
+        {
+            var line = new[] { new Vector2(0f, 0f), new Vector2(10f, 0f) };
+
+            Area1TerrainMath.GradeAlongProfile(Vector2.zero, line, new[] { 1f }, out float distance);
+            Assert.IsTrue(float.IsPositiveInfinity(distance));
+        }
+
+        [Test]
+        public void TrySplitAtCrossing_SquareCrossing_LeavesTheGap()
+        {
+            var track = new[] { new Vector2(5f, -5f), new Vector2(5f, 5f) };
+
+            Assert.IsTrue(Area1TerrainMath.TrySplitAtCrossing(new Vector2(0f, 0f), new Vector2(20f, 0f), track, 2f, out var pieces));
+            Assert.AreEqual(2, pieces.Count);
+            Assert.AreEqual(3f, pieces[0].to.x, 1e-4f);
+            Assert.AreEqual(7f, pieces[1].from.x, 1e-4f);
+            Assert.AreEqual(20f, pieces[1].to.x, 1e-4f);
+        }
+
+        [Test]
+        public void TrySplitAtCrossing_ObliqueCrossing_OpensMoreWall()
+        {
+            var track = new[] { new Vector2(0f, -5f), new Vector2(10f, 5f) }; // 45 degrees, crosses at x 5
+
+            Area1TerrainMath.TrySplitAtCrossing(new Vector2(0f, 0f), new Vector2(20f, 0f), track, 2f, out var pieces);
+            float open = 2f / Mathf.Sin(45f * Mathf.Deg2Rad);
+            Assert.AreEqual(5f - open, pieces[0].to.x, 1e-3f);
+            Assert.AreEqual(5f + open, pieces[1].from.x, 1e-3f);
+        }
+
+        [Test]
+        public void TrySplitAtCrossing_NoCrossing_KeepsTheWall()
+        {
+            var track = new[] { new Vector2(30f, -5f), new Vector2(30f, 5f) };
+
+            Assert.IsFalse(Area1TerrainMath.TrySplitAtCrossing(new Vector2(0f, 0f), new Vector2(20f, 0f), track, 2f, out var pieces));
+            Assert.AreEqual(1, pieces.Count);
+            Assert.AreEqual(20f, pieces[0].to.x, 1e-4f);
+        }
+
+        [Test]
+        public void TrySplitAtCrossing_NearTheEnd_DropsTheEmptyPiece()
+        {
+            var track = new[] { new Vector2(1f, -5f), new Vector2(1f, 5f) };
+
+            Area1TerrainMath.TrySplitAtCrossing(new Vector2(0f, 0f), new Vector2(20f, 0f), track, 2f, out var pieces);
+            Assert.AreEqual(1, pieces.Count);
+            Assert.AreEqual(3f, pieces[0].from.x, 1e-4f);
+        }
     }
 }

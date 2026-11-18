@@ -42,6 +42,8 @@ namespace Game.Editor.World
         private const float RING_BOTTOM = 20f;   // world height, below the ground along the whole loop
         private const float RING_TOP = 75f;      // world height, well over the crest and a jump
         private const float RING_THICKNESS = 1f;
+        private const string GOAT_TRACK_FEATURE = "path-goat-track";
+        private const float GOAT_GAP_MARGIN = 1f; // past each edge of the track, square to it
         private const int PLANKS = 8;
         private const string CLEFT_DOOR = "Assets/_Game/Prefabs/World/Doors/Simple door.prefab";
         private const string CLEFT_DOOR_SKILL = "Assets/_Game/Data/Skills/Lockpicking/Skill_Begginer_Lockpicking.asset";
@@ -482,7 +484,7 @@ namespace Game.Editor.World
             Transform quarry = NewRoot(root.transform, QUARRY);
             Vector2[] line = Area1BlockoutBuilder.Points(cleft);
             BuildCleftBlocker(line, terrain, timber, stone, fact, factEvent, quarry);
-            BuildRuinsRing(line, ruins2, quarry);
+            BuildRuinsRing(line, ruins2, ReadGoatTrack(features, out float goatHalfGap), goatHalfGap, quarry);
 
             BuildFort(features, terrain, stone, timber, NewRoot(root.transform, FORT));
             JObject rampGate = features[RAMP_GATE_FEATURE];
@@ -704,11 +706,26 @@ namespace Game.Editor.World
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        /// <summary>The goat track's line and the ring's half gap for it, or null (closed ring, with a warning) when the layout has none.</summary>
+        private static Vector2[] ReadGoatTrack(Dictionary<string, JObject> features, out float halfGap)
+        {
+            halfGap = 0f;
+            if (!features.TryGetValue(GOAT_TRACK_FEATURE, out JObject track) || !Area1BlockoutBuilder.HasPoints(track)
+                || !Area1BlockoutBuilder.IsNumber(track["width"]) || (float)track["width"] <= 0f)
+            {
+                GameLog.Warn(TAG, $"Layout has no usable '{GOAT_TRACK_FEATURE}': RuinsRing stays closed all round.");
+                return null;
+            }
+            halfGap = (float)track["width"] * 0.5f + GOAT_GAP_MARGIN;
+            return Area1BlockoutBuilder.Points(track);
+        }
+
         /// <summary>
         /// The player can jump up any steep face, so the cliffs alone don't seal Ruins 2. This invisible loop runs from one end
-        /// of the blocker around the pad to the other, so with the seal in place there is no way in, and without it only the cleft.
+        /// of the blocker around the pad to the other, so with the seal in place the only ways in are the goat track, through a gap
+        /// where it crosses the loop, and the cleft door.
         /// </summary>
-        private static void BuildRuinsRing(Vector2[] line, JObject ruins2, Transform parent)
+        private static void BuildRuinsRing(Vector2[] line, JObject ruins2, Vector2[] goatTrack, float goatHalfGap, Transform parent)
         {
             Vector2 at = BlockerPoint(line);
             Vector2 direction = (line[1] - line[0]).normalized;
@@ -726,18 +743,42 @@ namespace Game.Editor.World
 
             var ring = new GameObject("RuinsRing").transform;
             ring.SetParent(parent, false);
+            int gaps = 0;
             for (int i = 1; i < loop.Length; i++)
             {
-                Vector2 middle = (loop[i - 1] + loop[i]) * 0.5f;
-                Vector2 along = loop[i] - loop[i - 1];
-                var wall = new GameObject($"Wall_{i - 1}").transform;
-                wall.SetParent(ring, false);
-                wall.SetPositionAndRotation(new Vector3(middle.x, (RING_BOTTOM + RING_TOP) * 0.5f, middle.y), Area1BlockoutBuilder.Yaw(along));
-                wall.gameObject.layer = LayerMask.NameToLayer(BLOCKER_LAYER);
-                wall.gameObject.isStatic = true;
-                wall.gameObject.AddComponent<BoxCollider>().size =
-                    new Vector3(RING_THICKNESS, RING_TOP - RING_BOTTOM, along.magnitude + RING_THICKNESS);
+                bool split = Area1TerrainMath.TrySplitAtCrossing(loop[i - 1], loop[i], goatTrack, goatHalfGap, out var pieces);
+                if (split) gaps++;
+                for (int p = 0; p < pieces.Count; p++)
+                {
+                    // Only a piece end on a loop corner overlaps the next wall; a cut end stops flush, so the gap keeps its width.
+                    bool fromCorner = pieces[p].from == loop[i - 1], toCorner = pieces[p].to == loop[i];
+                    AddRingWall(split ? $"Wall_{i - 1}_{(char)('A' + p)}" : $"Wall_{i - 1}", pieces[p].from, pieces[p].to, fromCorner, toCorner, ring);
+                }
+                if (split)
+                {
+                    Vector2 a = pieces.Count > 0 && pieces[0].from == loop[i - 1] ? pieces[0].to : loop[i - 1];
+                    Vector2 b = pieces.Count > 0 && pieces[pieces.Count - 1].to == loop[i] ? pieces[pieces.Count - 1].from : loop[i];
+                    GameLog.Info(TAG, $"RuinsRing: goat-track gap in Wall_{i - 1} from ({a.x:F1}, {a.y:F1}) to ({b.x:F1}, {b.y:F1}), {Vector2.Distance(a, b):F1} m along the wall.");
+                }
             }
+            if (goatTrack != null && gaps != 1)
+                GameLog.Warn(TAG, $"'{GOAT_TRACK_FEATURE}' crosses RuinsRing {gaps} times, expected once: check the line.");
+        }
+
+        private static void AddRingWall(string name, Vector2 from, Vector2 to, bool extendFrom, bool extendTo, Transform ring)
+        {
+            Vector2 along = to - from;
+            Vector2 direction = along.normalized * (RING_THICKNESS * 0.5f);
+            if (extendFrom) from -= direction; // overlap the neighbouring wall at a corner
+            if (extendTo) to += direction;
+            Vector2 middle = (from + to) * 0.5f;
+            var wall = new GameObject(name).transform;
+            wall.SetParent(ring, false);
+            wall.SetPositionAndRotation(new Vector3(middle.x, (RING_BOTTOM + RING_TOP) * 0.5f, middle.y), Area1BlockoutBuilder.Yaw(along));
+            wall.gameObject.layer = LayerMask.NameToLayer(BLOCKER_LAYER);
+            wall.gameObject.isStatic = true;
+            wall.gameObject.AddComponent<BoxCollider>().size =
+                new Vector3(RING_THICKNESS, RING_TOP - RING_BOTTOM, Vector2.Distance(from, to));
         }
 
         /// <summary>

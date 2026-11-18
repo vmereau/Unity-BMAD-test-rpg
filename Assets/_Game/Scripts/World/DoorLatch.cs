@@ -45,6 +45,12 @@ namespace Game.World
                 GameLog.Warn(TAG, $"{name}: door '{_door.name}' has no Lockable — the latch is never needed");
         }
 
+        // Registered while enabled, so a latch that starts inactive still hands the leaf over once it wakes.
+        private void OnEnable()
+        {
+            if (_door != null) _door.RegisterLatch(this); // the leaf defers to this latch while it is usable
+        }
+
         public void Interact()
         {
             if (!CanInteract) return;

@@ -89,6 +89,8 @@ namespace Game.Editor.World
         private const string FIELD_PREFIX = "field-";      // tilled in Mud, except the hay meadow
         private const string FORT_RAMP_FEATURE = "path-fort-ramp";
         private const float FORT_RAMP_TREE_CLEARANCE = 6.5f; // from its centre line: the road, its rail and the rail's gate end
+        private const string GOAT_TRACK_FEATURE = "path-goat-track";
+        private const float GOAT_TRACK_TREE_CLEARANCE = 3.5f; // from its centre line, as Grade Area 1 Goat Track clears: half the 3 m track, 0.5 m edge margin, 1.5 m
         private const string GANG_HOUSE_FEATURE = "gang-house";
         private const float GANG_HOUSE_TREE_CLEARANCE = 14f; // from its centre: covers the house, deck and dock
         private const string COMPANY_ROAD = "company-road";
@@ -168,6 +170,7 @@ namespace Game.Editor.World
             public Vector2 FarmCenter, FarmSize;
             public (Vector2 center, Vector2 size)[] TilledFields;
             public Vector2[] FortRamp;
+            public Vector2[] GoatTrack; // optional: null when the layout has none
             public Vector2[][] Corridors;
             public Vector2 Fire;
             public Vector2 Ford;
@@ -735,6 +738,7 @@ namespace Game.Editor.World
             if (Math.InsideRect(p, layout.FortCenter, layout.FortSize)) return false;
             if (Math.InsideRect(p, layout.FarmCenter, layout.FarmSize)) return false;
             if (Math.PolylineDistance(p, layout.FortRamp, out _) < FORT_RAMP_TREE_CLEARANCE) return false;
+            if (layout.GoatTrack != null && Math.PolylineDistance(p, layout.GoatTrack, out _) < GOAT_TRACK_TREE_CLEARANCE) return false;
             if (Vector2.Distance(p, CampCenter) < 62f) return false;
             foreach (Shape s in KeptRects)
                 if (Math.RectDistance(p, s.Center, s.Size) < 6f) return false;
@@ -900,6 +904,7 @@ namespace Game.Editor.World
                 FortCenter = Position(features[FORT_ZONE_FEATURE]),
                 FortSize = new Vector2((float)features[FORT_ZONE_FEATURE]["w"], (float)features[FORT_ZONE_FEATURE]["d"]),
                 FortRamp = Points(features[FORT_RAMP_FEATURE]),
+                GoatTrack = features.TryGetValue(GOAT_TRACK_FEATURE, out JObject goatTrack) && Area1BlockoutBuilder.HasPoints(goatTrack) ? Points(goatTrack) : null,
                 FarmCenter = farmCenter,
                 FarmSize = farmSize,
                 TilledFields = tilled.ToArray(),
