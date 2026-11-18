@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_SealedPassage
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: SealedPassage
+  title: The Sealed Passage
+  description: The Company sealed the crack in the quarry's south face with a locked door overnight, without warning. Bren believes his lad Odo slipped in the night before and was walled in. The lock is simple, and Dace keeps the key in his hut. There is also an old goat track over the rock from the wilderness, but nobody goes out there. Get inside and find out what became of Odo.
+  startPart:
+    fact: {fileID: 11400000, guid: ca5e108bd56096c4999f3564d71bd81d, type: 2}
+    entry: Bren's lad Odo slipped through the crack in the quarry's south face the night before the Company sealed it with a door. Bren wants to know what became of him.
+  completedParts:
+  - fact: {fileID: 11400000, guid: caad1101ad6e37d4492d4ba4a5bd2913, type: 2}
+    entry: I gave Bren Odo's tally token. At least he knows now.
+  - fact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
+    entry: I told Bren what I found beyond the door.
+  failedParts: []
+  steps:
+  - title: Past the sealed crack
+    description: The crack is shut behind a Company door. I could pick its lock, take the key from Dace's hut, or brave the old goat track from the wilderness.
+    parts:
+    - fact: {fileID: 11400000, guid: a92f0664bf4836e4ab22ed0a20df8e45, type: 2}
+      entry: I made it past the sealed crack.
+  - title: Find Odo
+    description: Search the new cut and the old stones beyond it.
+    parts:
+    - fact: {fileID: 11400000, guid: 3c06312fefa99b34f8a00ce94795b7a6, type: 2}
+      entry: I found Odo, and took his tally token.

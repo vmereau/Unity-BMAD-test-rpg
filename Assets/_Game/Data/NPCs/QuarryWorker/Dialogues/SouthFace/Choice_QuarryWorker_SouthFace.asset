@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_QuarryWorker_SouthFace
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: He went in the night before, I'm sure of it, and they shut him in. I can't go and look myself. If Dace catches me near that door I'll be hauling till I drop, and I'm too old to run from his guards.
+  nextNode: {fileID: 0}
+  _id: 6b7c71c8d44c28745b4caba957a919f1
+  choices:
+  - text: What happened to the men who worked in there?
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 3c21608ec1605184fac90bfdb20472b7, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: How would I get in?
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 5e0509a31331a3e4d896de1ff308fb53, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: I'll find out what happened to him.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: e91e9bc7907b7c342be9f8beca3228d0, type: 2}
+    dialogueFact: {fileID: 11400000, guid: ca5e108bd56096c4999f3564d71bd81d, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: Not my business.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: b4be72ee4cd54db4ab5f4599996b80c4, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

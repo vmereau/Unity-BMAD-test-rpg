@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_QuarryWorker_SouthFace
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: You'll have seen it, then. Everyone has, and everyone walks past it like it isn't there. Best way to keep your back in one piece around here is not to ask about things the Company builds overnight.
+  nextNode: {fileID: 11400000, guid: 7dd03dc32b778644f97ef35f1f9a16b7, type: 2}
+  _id: e5523a37067453c499ea1f011b36dfe4

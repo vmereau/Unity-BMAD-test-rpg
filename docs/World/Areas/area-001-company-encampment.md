@@ -159,7 +159,7 @@ The fights are illegal in name only. The Company knows about the pit and lets it
 | ID | Name | Giver | Type | Notes |
 |----|------|-------|------|-------|
 | quest-001 | The Hidden Stash | npc-002 | Stealth / social | Steal from npc-003. Teaches stealth and social consequence. |
-| quest-002 | The Sealed Passage | npc-009 | Exploration / mystery | Scout the quarry passage. Tabled pending ruins/lore design. |
+| quest-002 | The Sealed Passage | npc-009 | Exploration / mystery | Find out what became of Odo behind the Company door in the south face (`docs/World/Quests/SealedPassage.md`). |
 
 ### Warden's Tasks (Non-quest work assignments)
 | Task | Type | Hidden Value |

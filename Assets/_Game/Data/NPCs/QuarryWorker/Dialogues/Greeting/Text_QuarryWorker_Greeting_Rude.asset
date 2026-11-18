@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_QuarryWorker_Greeting_Rude
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Fair enough. There's plenty of business here to mind, and none of it's mine.
+  nextNode: {fileID: 0}
+  _id: 299d01fd0f9f8334f8d89af408607803

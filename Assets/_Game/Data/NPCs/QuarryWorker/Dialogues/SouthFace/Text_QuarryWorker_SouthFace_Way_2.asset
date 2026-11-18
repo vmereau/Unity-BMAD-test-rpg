@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_QuarryWorker_SouthFace_Way_2
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: There's the old goat track over the rock from the wilderness side too, but I wouldn't. Things out there have eaten better men than us.
+  nextNode: {fileID: 11400000, guid: 6b7c71c8d44c28745b4caba957a919f1, type: 2}
+  _id: 8249a45b50e117b4ab4dd581dee820a6
