@@ -19,9 +19,9 @@ namespace Game.Editor.World
     {
         private const string TAG = "[Area1FortRamp]";
         private const string RAMP_FEATURE = "path-fort-ramp";
-        private const string GOAT_TRACK_FEATURE = "path-goat-track";
+        internal const string GOAT_TRACK_FEATURE = "path-goat-track";
         private const string MUD_LAYER = "Mud";
-        private const string TERRAIN_NAME = "Terrain_StartingArea";
+        internal const string TERRAIN_NAME = "Terrain_StartingArea";
 
         private const float EDGE_MARGIN = 0.5f;  // heightmap samples are about 1 m apart, so the flat runs past the road's edge
         private const float MAX_ANGLE = 17.6f;   // the warehouse cart ramps
@@ -90,13 +90,14 @@ namespace Game.Editor.World
                 return;
             }
             float halfWidth = (float)ramp["width"] * 0.5f + EDGE_MARGIN;
+            HashSet<int> drops = Drops(ramp);
 
             float length = 0f, mean = 0f;
             for (int i = 1; i < line.Length; i++)
             {
                 float run = Vector2.Distance(line[i - 1], line[i]);
                 length += run;
-                if (profile) mean = Mathf.Max(mean, Mathf.Atan2(Mathf.Abs(heights[i] - heights[i - 1]), run) * Mathf.Rad2Deg);
+                if (profile && !drops.Contains(i)) mean = Mathf.Max(mean, Mathf.Atan2(Mathf.Abs(heights[i] - heights[i - 1]), run) * Mathf.Rad2Deg);
             }
             if (!profile) mean = Mathf.Atan2(Mathf.Abs(heights[1] - heights[0]), length) * Mathf.Rad2Deg;
             if (mean > maxAngle)
@@ -110,6 +111,8 @@ namespace Game.Editor.World
             if (clearTrack) undone.AddRange(data.alphamapTextures);
             Undo.RegisterCompleteObjectUndo(undone.ToArray(), undoName);
             Apply(terrain, line, halfWidth, profile ? heights : null, heights[0], heights[heights.Length - 1]);
+            foreach (int drop in drops)
+                if (drop > 0 && drop < line.Length) CutDropPit(terrain, line[drop - 1], line[drop], heights[drop]);
             if (clearTrack)
             {
                 int removed = ClearTrees(terrain, line, halfWidth + TREE_CLEARANCE);
@@ -120,9 +123,41 @@ namespace Game.Editor.World
             AssetDatabase.SaveAssetIfDirty(data);
             EditorSceneManager.MarkSceneDirty(terrain.gameObject.scene);
 
-            float steepest = Steepest(terrain, line);
-            GameLog.Info(TAG, $"Graded '{featureId}', {length:F1} m from y {heights[0]:F2} to y {heights[heights.Length - 1]:F2}: {mean:F1} degrees {(profile ? "on the steepest segment" : "on average")}, {steepest:F1} at the steepest. Capture the sculpt next.");
+            float steepest = Steepest(terrain, line, drops);
+            GameLog.Info(TAG, $"Graded '{featureId}', {length:F1} m from y {heights[0]:F2} to y {heights[heights.Length - 1]:F2}: {mean:F1} degrees {(profile ? "on the steepest segment" : "on average")}, {steepest:F1} at the steepest{(drops.Count > 0 ? $" (drop segments {string.Join(", ", drops)} not counted)" : "")}. Capture the sculpt next.");
             if (steepest > maxSteepest) GameLog.Warn(TAG, $"The steepest {GRADE_RUN} m is over {maxSteepest} degrees: round the line's bends or lengthen it.");
+        }
+
+        private const float DROP_PIT_START = 1.5f;      // metres past the drop's top point: the ledge itself stays
+        private const float DROP_PIT_LENGTH = 7f;
+        private const float DROP_PIT_HALF_WIDTH = 6f;   // wider than the ring gap: the drop blockers stand on its edges
+
+        /// <summary>
+        /// Cuts the pit behind a drop down to its foot height: a clean landing floor in front of the ledge. The terrain face alone
+        /// is still jump-climbable (a CharacterController counts terrain contacts as ground at any steepness), so the one-way part
+        /// is StartingTown SealedPassage/GoatTrack/DropBlockers, proven by Tools/World/Check Goat Track Drop.
+        /// </summary>
+        private static void CutDropPit(Terrain terrain, Vector2 top, Vector2 foot, float floor)
+        {
+            TerrainData data = terrain.terrainData;
+            Vector3 origin = terrain.transform.position;
+            Vector2 cell = new Vector2(data.size.x, data.size.z) / (data.heightmapResolution - 1);
+            float reach = DROP_PIT_START + DROP_PIT_LENGTH + DROP_PIT_HALF_WIDTH;
+            int last = data.heightmapResolution - 1;
+            int fromX = Mathf.Clamp(Mathf.FloorToInt((top.x - reach - origin.x) / cell.x), 0, last), toX = Mathf.Clamp(Mathf.CeilToInt((top.x + reach - origin.x) / cell.x), 0, last);
+            int fromZ = Mathf.Clamp(Mathf.FloorToInt((top.y - reach - origin.z) / cell.y), 0, last), toZ = Mathf.Clamp(Mathf.CeilToInt((top.y + reach - origin.z) / cell.y), 0, last);
+            float[,] heights = data.GetHeights(fromX, fromZ, toX - fromX + 1, toZ - fromZ + 1);
+            for (int z = 0; z <= toZ - fromZ; z++)
+            {
+                for (int x = 0; x <= toX - fromX; x++)
+                {
+                    var point = new Vector2(origin.x + (fromX + x) * cell.x, origin.z + (fromZ + z) * cell.y);
+                    float ground = heights[z, x] * data.size.y + origin.y;
+                    float cut = Area1TerrainMath.DropPitHeight(point, top, foot, DROP_PIT_START, DROP_PIT_LENGTH, DROP_PIT_HALF_WIDTH, floor, ground);
+                    heights[z, x] = (cut - origin.y) / data.size.y;
+                }
+            }
+            data.SetHeights(fromX, fromZ, heights);
         }
 
         /// <summary>Removes tree instances within <paramref name="reach"/> of the line. Returns how many went.</summary>
@@ -180,20 +215,38 @@ namespace Game.Editor.World
             return true;
         }
 
-        private static float Steepest(Terrain terrain, Vector2[] line)
+        /// <summary>
+        /// The feature's "drops": indices of points that end a deliberate drop (a cliff the player falls down and can't climb back up),
+        /// so the segment from the point before is left out of the grade checks.
+        /// </summary>
+        internal static HashSet<int> Drops(JObject feature) =>
+            feature["drops"] is JArray list
+                ? new HashSet<int>(list.Where(Area1BlockoutBuilder.IsNumber).Select(d => (int)d))
+                : new HashSet<int>();
+
+        private static float Steepest(Terrain terrain, Vector2[] line, HashSet<int> drops)
         {
             var points = new List<Vector2>();
+            var segments = new List<int>(); // the segment (index of its end point) each sample lies on
             for (int i = 1; i < line.Length; i++)
             {
                 int steps = Mathf.CeilToInt(Vector2.Distance(line[i - 1], line[i]) / GRADE_STEP);
-                for (int step = 0; step < steps; step++) points.Add(Vector2.Lerp(line[i - 1], line[i], step / (float)steps));
+                for (int step = 0; step < steps; step++)
+                {
+                    points.Add(Vector2.Lerp(line[i - 1], line[i], step / (float)steps));
+                    segments.Add(i);
+                }
             }
             points.Add(line[line.Length - 1]);
+            segments.Add(line.Length - 1);
 
             int span = Mathf.RoundToInt(GRADE_RUN / GRADE_STEP);
             float steepest = 0f;
             for (int i = span; i < points.Count; i++)
             {
+                bool acrossDrop = false; // a run with a sample on a drop segment measures the cliff, not the track
+                for (int s = segments[i - span]; s <= segments[i] && !acrossDrop; s++) acrossDrop = drops.Contains(s);
+                if (acrossDrop) continue;
                 float rise = Mathf.Abs(Area1BlockoutBuilder.Ground(terrain, points[i]) - Area1BlockoutBuilder.Ground(terrain, points[i - span]));
                 steepest = Mathf.Max(steepest, Mathf.Atan2(rise, Vector2.Distance(points[i], points[i - span])) * Mathf.Rad2Deg);
             }

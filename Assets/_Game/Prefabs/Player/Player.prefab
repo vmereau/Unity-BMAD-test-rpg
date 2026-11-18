@@ -848,6 +848,7 @@ MonoBehaviour:
   _tradeUI: {fileID: 32427112177887266}
   _giveItemUI: {fileID: 395777248026035747}
   _playerInventory: {fileID: 1994668802294238475}
+  _playerEquipment: {fileID: 1345817325320934682}
   _goldItem: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
   _onDialogueSignal: {fileID: 11400000, guid: fc6e04a585688194e9bfa886ca614015, type: 2}
   _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}

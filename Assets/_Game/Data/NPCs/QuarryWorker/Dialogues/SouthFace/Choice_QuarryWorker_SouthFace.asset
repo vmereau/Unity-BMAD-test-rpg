@@ -22,6 +22,7 @@ MonoBehaviour:
     dialogueFact: {fileID: 0}
     goldCost: 0
     requiredItem: {fileID: 0}
+    giveToNpc: 0
     requiredCategory: 0
     hideWhenMissing: 0
     signal: {fileID: 0}
@@ -31,6 +32,7 @@ MonoBehaviour:
     dialogueFact: {fileID: 0}
     goldCost: 0
     requiredItem: {fileID: 0}
+    giveToNpc: 0
     requiredCategory: 0
     hideWhenMissing: 0
     signal: {fileID: 0}
@@ -40,6 +42,7 @@ MonoBehaviour:
     dialogueFact: {fileID: 11400000, guid: ca5e108bd56096c4999f3564d71bd81d, type: 2}
     goldCost: 0
     requiredItem: {fileID: 0}
+    giveToNpc: 0
     requiredCategory: 0
     hideWhenMissing: 0
     signal: {fileID: 0}
@@ -49,6 +52,17 @@ MonoBehaviour:
     dialogueFact: {fileID: 0}
     goldCost: 0
     requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: I've been behind that door already. I found him.
+    requiredMemory: {fileID: 11400000, guid: 8197a36b733c00d4d907b72ae9521a57, type: 2}
+    nextNode: {fileID: 11400000, guid: 3bba7a562350f8a43ad198b0ac7ceecb, type: 2}
+    dialogueFact: {fileID: 11400000, guid: ca5e108bd56096c4999f3564d71bd81d, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
     requiredCategory: 0
     hideWhenMissing: 0
     signal: {fileID: 0}

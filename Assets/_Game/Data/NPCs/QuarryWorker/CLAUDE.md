@@ -65,9 +65,9 @@ and the next morning a Company door sealed it. Bren believes the boy was walled 
 
 Giver of **SealedPassage** (quest-002, `docs/World/Quests/SealedPassage.md`). Topics: Greeting opener (Friendly /
 Rude) → South face (accept sets `DialogueFact_QuarryWorker_PassageAccepted`) → About Odo (reminder) → I found Odo
-(truth or a kind lie; after the truth: token / nothing, plus "the door opens from the inside" if the player lifted the
+(truth or a kind lie; after the truth: Odo's ring (given to Bren, `giveToNpc`, also when worn) / nothing, plus "the door opens from the inside" if the player lifted the
 `InsideLatch`, gated by `Mem_QuarryWorker_KnowsLatch`) → How are you holding up? (one `After_Token` / `_Told` / `_Lied`
-memory per ending). Rude in the opener closes the quest for good.
+memory per ending). A player who took the ring before accepting gets an extra SouthFace row, "I've been behind that door already. I found him." (gate-only `Mem_QuarryWorker_FoundFirst` on `TokenTaken`): it starts the quest and goes straight into the report. Rude in the opener closes the quest for good.
 
 ---
 

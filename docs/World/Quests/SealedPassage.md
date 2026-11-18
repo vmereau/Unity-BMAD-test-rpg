@@ -1,7 +1,7 @@
 # Quest Spec — SealedPassage
 
 > Template version: 1.1
-> Status: `implemented` — 2026-11-18: quest data (Part A), the door route (Part B1, `spec-sealed-passage-door-route`), the goat-track route (Part B2, `spec-sealed-passage-goat-track`) and the report rework (truth / lie / latch, `spec-sealed-passage-report-rework`).
+> Status: `implemented` — 2026-11-18: quest data (Part A), the door route (Part B1, `spec-sealed-passage-door-route`), the goat-track route (Part B2, `spec-sealed-passage-goat-track`) the report rework (truth / lie / latch, `spec-sealed-passage-report-rework`) and Odo's ring, the goat-track drop and the found-him-first row (`spec-sealed-passage-odo-ring-drop`).
 > Spec path: `docs/World/Quests/SealedPassage.md`
 > World id: quest-002 (The Sealed Passage) · area-002 Stone Quarry · giver npc-009 Bren
 > Design with `/quests:design`, build with `/quests:implement SealedPassage`, check with `/quests:audit SealedPassage`.
@@ -49,13 +49,13 @@ Who sets each type: `Assets/_Game/Data/Facts/CLAUDE.md`.
 | `DialogueFact_QuarryWorker_Friendly` | `DialogueFact` | Bren's opener, choice "Any advice for a newcomer?" |
 | `DialogueFact_QuarryWorker_Rude` | `DialogueFact` | Bren's opener, choice "Mind your own business, old man." |
 | `DialogueFact_QuarryWorker_PassageAccepted` | `DialogueFact` | "The south face", choice "I'll find out what happened to him." |
-| `DialogueFact_QuarryWorker_ReportToken` | `DialogueFact` | "I found Odo", token choice (`requiredItem` = `Item_Odo_TallyToken`, given to Bren) |
+| `DialogueFact_QuarryWorker_ReportToken` | `DialogueFact` | "I found Odo", ring choice (`requiredItem` = `Armor_Odo_Ring`, `giveToNpc`: it goes into Bren's inventory, even when worn) |
 | `DialogueFact_QuarryWorker_ReportTold` | `DialogueFact` | "I found Odo" → truth, "I couldn't bring anything back." |
 | `DialogueFact_QuarryWorker_ReportLied` | `DialogueFact` | "I found Odo", the kind lie "He got out. He's up at the fort with the other cutters." (read by the Report invalidation, the quest's completed part, its reward and `Mem_QuarryWorker_After_Lied`; nothing in the world reacts to the lie yet, kept for a later beat) |
 | `DialogueFact_QuarryWorker_ReportLatch` | `DialogueFact` | "I found Odo" → truth, "The door opens from the inside." (hides the line once said) |
 | `WorldFact_SealedPassage_Unlatched` | `WorldFact` | `DoorLatch._unlatchedFact` on the cleft door's `InsideLatch`: the player lifted it from the inside |
 | `WorldFact_SealedPassage_RingEntered` | `WorldFact` | **New setter:** a reach trigger inside the sealed area, past both the door and the goat track's descent |
-| `WorldFact_SealedPassage_TokenTaken` | `WorldFact` | `ContainerTakeFact` on Odo's remains (existing setter, HiddenStash pattern) |
+| `WorldFact_SealedPassage_TokenTaken` | `WorldFact` | `ContainerTakeFact` on Odo's remains (existing setter, HiddenStash pattern); the name predates the ring |
 | `KilledFact_QuarryWorker` | `KilledFact` | Bren's scene `PersistentID` (`Game/World/Generate Missing KilledFacts`); same asset on `NPC_QuarryWorker._killedFact` |
 | `QuestFact_SealedPassage_Started` | `QuestFact` | computed — IsStarted |
 | `QuestFact_SealedPassage_Completed` | `QuestFact` | computed — IsCompleted |
@@ -78,7 +78,7 @@ startPart:
 
 completedParts:     # ANY true → completed
   - fact:  DialogueFact_QuarryWorker_ReportToken
-    entry: "I gave Bren Odo's tally token. At least he knows now."
+    entry: "I gave Bren Odo's ring. At least he knows now."
   - fact:  DialogueFact_QuarryWorker_ReportTold
     entry: "I told Bren what I found beyond the door."
   - fact:  DialogueFact_QuarryWorker_ReportLied
@@ -105,7 +105,7 @@ steps:
     description: "Search the new cut and the old stones beyond it."
     parts:
       - fact:  WorldFact_SealedPassage_TokenTaken
-        entry: "I found Odo, and took his tally token."
+        entry: "I found Odo, and took the ring from his hand."
 ```
 
 The report is the completion itself (two alternative facts), so it is not a step: a step needs all its parts true.
@@ -176,6 +176,8 @@ npcs:
           - Player: "How would I get in?"  → NPC: "The lock's nothing special. Anyone who's had a lesson or two with a pick could open it. Or there's Dace's hut down on the floor; he leaves his keys lying about like nobody would dare." → NPC: "There's the old goat track over the rock from the wilderness side too, but I wouldn't. Things out there have eaten better men than us." → back to the choice
           - Player: "I'll find out what happened to him."  → NPC: "You'd do that for a stranger? Then I owe you, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it." END  [sets: DialogueFact_QuarryWorker_PassageAccepted]
           - Player: "Not my business."  → NPC: "No, I suppose it isn't. It's nobody's business. That's the trouble with this place." END  (no fact: topic stays)
+          - Player [requiredMemory: Mem_QuarryWorker_FoundFirst]: "I've been behind that door already. I found him."  [sets: DialogueFact_QuarryWorker_PassageAccepted]
+              → NPC: "You've been in? Before I'd even asked? Then you know more than I do, friend, and I've waited long enough." → Choice_QuarryWorker_Report (the report below, ring row included)
 
       - asset: Mem_QuarryWorker_Waiting           # repeatable reminder
         unlock:     [QuestFact_SealedPassage_Started]
@@ -194,14 +196,18 @@ npcs:
               → NPC (choice prompt, Choice_QuarryWorker_Report_Truth): "Dead, then. I knew it the morning I saw that door, and it still lands like a dropped block. Facing the stones, like he was waiting on something. Go on, friend, tell me the rest."
               - Player [requiredMemory: Mem_QuarryWorker_KnowsLatch]: "The door opens from the inside. He could have walked out."  [sets: DialogueFact_QuarryWorker_ReportLatch]
                   → NPC: "Opens from the inside? Then nobody shut him in at all. He sat there with the way out at his back and stayed. I've been angry at the Company for a month, friend, and now I don't know who to be angry at."
-                  → NPC (choice prompt, Choice_QuarryWorker_Report_Rest): "Well. That's one more thing to lie awake over. Go on, then, friend, was there anything of his left to bring back?" → the token / nothing rows below
-              - Player: "Here. His tally token."  [requiredItem: Item_Odo_TallyToken, given, hideWhenMissing]
-                  → NPC: "That's his tally, right enough. Forty-one blocks short. They'd have charged him for dying, if they'd ever admitted he was in there."
-                  → NPC: "I'll keep the tally, somebody should. Here, take this, friend. It's not much, but I'd rather it went to you than to Dace's ledger." END  [sets: DialogueFact_QuarryWorker_ReportToken]
+                  → NPC (choice prompt, Choice_QuarryWorker_Report_Rest): "Well. That's one more thing to lie awake over. Go on, then, friend, was there anything of his left to bring back?" → the ring / nothing rows below
+              - Player: "Here. His ring."  [requiredItem: Armor_Odo_Ring, giveToNpc (into Bren's inventory; a worn ring is unequipped), hideWhenMissing]
+                  → NPC: "That's his ring. His grandfather's, he said, and he never once took it off, swore it kept the rock off his head. Didn't keep much off in the end, did it?"
+                  → NPC: "I'll wear it for him, somebody should. Here, take this, friend. It's not much, but I'd rather it went to you than to Dace's ledger." END  [sets: DialogueFact_QuarryWorker_ReportToken]
               - Player: "I couldn't bring anything back."
                   → NPC: "What was he listening to in there, that he'd sit and wait like that? Don't answer, I don't think I want to know. At least I know where he is now, and that's more than the Company ever gave me." END  [sets: DialogueFact_QuarryWorker_ReportTold]
           - Player: "He got out. He's up at the fort with the other cutters."
               → NPC: "Up at the fort, with the lads I never see when I carry stone up there. Well, I'll look harder next week, then. Thank you for telling me, friend." END  [sets: DialogueFact_QuarryWorker_ReportLied]
+
+      - asset: Mem_QuarryWorker_FoundFirst        # gate-only (no topic): the SouthFace "I found him already" row
+        unlock:     [WorldFact_SealedPassage_TokenTaken]
+        invalidate: [DialogueFact_QuarryWorker_PassageAccepted]
 
       - asset: Mem_QuarryWorker_KnowsLatch        # gate-only (no topic)
         unlock:     [WorldFact_SealedPassage_Unlatched]
@@ -211,7 +217,7 @@ npcs:
       - asset: Mem_QuarryWorker_After_Token
         unlock: [DialogueFact_QuarryWorker_ReportToken]
         dialogue:
-          - NPC: "I keep his tally on my bench now. Some days I cut a few blocks over and tell myself they're his, and Dace's ledger doesn't know the difference." END
+          - NPC: "I wear his ring on my little finger now, it's all it'll fit. Some days I cut a few blocks over and tell myself they're his, and Dace's ledger doesn't know the difference." END
       - asset: Mem_QuarryWorker_After_Told
         unlock: [DialogueFact_QuarryWorker_ReportTold]
         dialogue:
@@ -244,15 +250,18 @@ Note: a rude answer in the opener closes Bren's south-face topic for good, so th
   lockpick (resolved in `DoorSystem` and `ContainerSystem`, `LockpickRules` extended and tested).
 - **`Item_Key_QuarrySouthDoor`** — new quest-flagged key item (placeholder icon), owned pickup in **Dace's hut**, a new
   small overseer's shed on the quarry floor near his sledge spot (`WorkSiteManagers/QuarryOverseer_Spot`).
-- **Goat track** — steep but walkable path from the forest edge south-east of the quarry, over the ring's rim and down
-  into it, with a gap in the invisible `Quarry/RuinsRing` colliders where it crosses; a small group of existing hostile
-  creatures along it.
+- **Goat track** — steep but walkable path from the forest edge south-east of the quarry, over the ring's rim onto a
+  ledge, then a one-way drop through the gap in the invisible `Quarry/RuinsRing` colliders into a pit on the ring's
+  floor: the way out is the cleft door's `InsideLatch`. A small group of existing hostile creatures along it.
 - **Ring-entry trigger (new setter)** — a trigger volume that sets `WorldFact_SealedPassage_RingEntered` when the player
   enters (reuse an existing fact-setting trigger if one exists; otherwise a small `WorldFactTrigger`).
 - **The new cut** — Company layer dressing past the door: scaffolding, a few left tools, painted survey numbers.
 - **Odo's remains** — a container at the foot of the ancient stone, seated and facing it, with `ContainerTakeFact` →
-  `WorldFact_SealedPassage_TokenTaken`, `SaveableObject`. Contents: `Item_Odo_TallyToken` (new quest item, placeholder
-  icon) and a few worthless belongings.
+  `WorldFact_SealedPassage_TokenTaken`, `SaveableObject`. Contents: `Armor_Odo_Ring` and a few worthless belongings.
+- **Odo's ring** — `Data/Items/Quest/Armor_Odo_Ring.asset` (`ArmorSO`, Ring1, +1 defense, buy 6 / sell 2, not a quest
+  item; the old token asset converted in place, same GUID and `itemId`): a thin worn copper heirloom with ODO scratched
+  inside, worth too little to rob. Model `Art/Items/OdoRing/` (Blender), icon `Art/UI/Items/Item_OdoRing_Icon.png`
+  (Blender render), world prefab `Prefabs/Items/Armor_Odo_Ring.prefab`.
 
 ---
 
@@ -296,16 +305,21 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
 2. Bren tells the story; accepting sets `PassageAccepted` → quest starts; "About Odo." becomes his reminder.
 3. The player gets past the seal by one of three routes (lockpick, Dace's key, goat track) → `RingEntered` → step 0
    (+50 XP).
-4. Through the abandoned new cut to Odo's remains → takes the token → `TokenTaken` → step 1 done, "About Odo." closes,
+4. Through the abandoned new cut to Odo's remains → takes the ring → `TokenTaken` → step 1 done, "About Odo." closes,
    "I found Odo." opens.
-5. Report: the truth, then the token (+150 XP, +10 gold) or nothing (+150 XP), with "the door opens from the inside" as an extra row
-   if the player left through the latch; or the kind lie (+150 XP, token kept) → quest completed → the matching
+5. Report: the truth, then the ring (into Bren's inventory, +150 XP, +10 gold) or nothing (+150 XP), with "the door opens from
+   the inside" as an extra row if the player left through the latch (after the goat-track drop, unless the door was already unlocked); or the kind lie (+150 XP,
+   ring kept) → quest completed → the matching
    "How are you holding up?".
 
 ## Design Checks
 
-- No soft-lock: the goat track is always open without skill or key; the door opens from inside.
-- The token can be sold or dropped: the "brought nothing back" report still completes the quest.
+- No soft-lock: the goat track is always open without skill or key; its drop is one-way (`SealedPassage/GoatTrack/DropBlockers`, checked by `Tools/World/Check Goat Track Drop`),
+  and the door opens from inside.
+- The ring can be worn, sold or dropped: a worn ring still shows the ring row; a sold one leaves "brought nothing back".
+- Explored first: entering the ring and taking the ring before accepting sets `RingEntered` / `TokenTaken` anyway. Bren's
+  SouthFace then offers "I've been behind that door already. I found him.", which starts the quest (both steps already
+  done) and goes straight into the report.
 - Bren dead before accepting: the quest never appears. Bren dead after completion: `failedParts` would also be true —
   **verify `QuestSO` state priority during implementation**; if failed wins, gate the fail on "not completed".
 - New setters required (V3 flags them until built): `RingEntered` trigger, and key support for the door.
@@ -357,3 +371,12 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
       `_Rest` (token / nothing); gate-only `Mem_QuarryWorker_KnowsLatch`; `ReportLied` completion + reward
 - [x] After topics split into `Mem_QuarryWorker_After_{Token,Told,Lied}`; Dace's `Text_QuarryOverseer_Notice_3` rewritten
 - [x] `quest_report SealedPassage` clean; `quest_report audit` no new issues
+
+**Part D — Odo's ring, goat-track drop, found him first (`spec-sealed-passage-odo-ring-drop`, 2026-11-18)**
+
+- [x] `Item_Odo_TallyToken` → `Armor_Odo_Ring` (`ArmorSO`, same GUID / `itemId`), Blender model + icon + world prefab
+- [x] `ChoiceOption.giveToNpc` + worn `requiredItem` support in `DialogueSystem` (`ChoiceItemRules`, tests); ring rows give to Bren
+- [x] Bren's ring lines and After_Token rewritten; SouthFace found-first row + `Mem_QuarryWorker_FoundFirst`
+- [x] Goat track: ledge + `drops` + drop pit (`Area1FortRamp`), invisible `SealedPassage/GoatTrack/DropBlockers` (a terrain
+      face is jump-climbable at any steepness), `Tools/World/Check Goat Track Drop` (CharacterController simulation) passes,
+      sculpt captured, NavMesh rebaked, `Shape_GoatTrackDrop` trigger over the pit

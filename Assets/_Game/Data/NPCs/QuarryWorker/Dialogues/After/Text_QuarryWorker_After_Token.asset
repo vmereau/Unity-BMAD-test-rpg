@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryWorker_After_Token
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: I keep his tally on my bench now. Some days I cut a few blocks over and tell myself they're his, and Dace's ledger doesn't know the difference.
+  text: I wear his ring on my little finger now, it's all it'll fit. Some days I cut a few blocks over and tell myself they're his, and Dace's ledger doesn't know the difference.
   nextNode: {fileID: 0}
   _id: c01003388d7ff6e48b0be3ba1333f494

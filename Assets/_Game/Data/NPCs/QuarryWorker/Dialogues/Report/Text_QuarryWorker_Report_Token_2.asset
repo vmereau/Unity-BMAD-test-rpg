@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryWorker_Report_Token_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: I'll keep the tally, somebody should. Here, take this, friend. It's not much, but I'd rather it went to you than to Dace's ledger.
+  text: I'll wear it for him, somebody should. Here, take this, friend. It's not much, but I'd rather it went to you than to Dace's ledger.
   nextNode: {fileID: 0}
   _id: d0aed52027b228a44bf1e43b8ec79c01

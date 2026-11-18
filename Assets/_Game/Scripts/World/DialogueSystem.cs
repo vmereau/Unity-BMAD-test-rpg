@@ -28,6 +28,9 @@ namespace Game.World
         [SerializeField] private GiveItemUI _giveItemUI;
         [Tooltip("The player's inventory: a ChoiceOption.requiredItem is taken from it.")]
         [SerializeField] private InventorySystem _playerInventory;
+        [Tooltip("The player's equipment: a worn ChoiceOption.requiredItem counts as held and is unequipped on hand-over. " +
+                 "Null = only the bag counts.")]
+        [SerializeField] private EquipmentSystem _playerEquipment;
         [Tooltip("Coin item added to the NPC's inventory when the player pays a ChoiceOption.goldCost (Item_Gold).")]
         [SerializeField] private ItemSO _goldItem;
         [Tooltip("Raised when a picked ChoiceOption carries a DialogueSignalSO (OnDialogueSignal).")]
@@ -310,8 +313,12 @@ namespace Game.World
                 GameLog.Warn(TAG, $"Choice '{choice.text}' needs {choice.requiredItem.itemName} — the player doesn't have it");
                 return false;
             }
-            if (choice.goldCost > 0 && !PayChoiceGold(choice.goldCost)) return false;
-            if (choice.requiredItem != null && !TakeChoiceItem(choice.requiredItem)) return false;
+            // Gold checked before a worn item is unequipped: a refused choice leaves the equipment alone.
+            if (!CanAffordGold(choice.goldCost)) return false;
+            if (choice.requiredItem != null && !HandOverChoiceItem(choice)) return false;
+            // Item before gold (as CompleteGiveChoice): a failed hand-over must not cost the player gold. PayChoiceGold
+            // can't fail after CanAffordGold.
+            if (choice.goldCost > 0) PayChoiceGold(choice.goldCost);
             ApplyChoice(choice, node);
             return true;
         }
@@ -441,7 +448,36 @@ namespace Game.World
 
         /// <summary>True when the player holds at least one <paramref name="item"/> (a ChoiceOption.requiredItem).</summary>
         public bool HasChoiceItem(ItemSO item) =>
-            item == null || (_playerInventory != null && _playerInventory.CountOf(item) > 0);
+            item == null || ChoiceItemRules.Locate(BagCount(item), IsWorn(item)) != ChoiceItemSource.None;
+
+        private int BagCount(ItemSO item) => _playerInventory != null ? _playerInventory.CountOf(item) : 0;
+        private bool IsWorn(ItemSO item) => _playerEquipment != null && _playerEquipment.IsEquipped(item);
+
+        // The requiredItem leaves the player: consumed, or into the NPC's inventory (giveToNpc). A worn copy is unequipped
+        // first (back into the bag) and worn again if the hand-over fails, so a refused choice changes nothing.
+        private bool HandOverChoiceItem(ChoiceOption choice)
+        {
+            ItemSO item = choice.requiredItem;
+            bool unequipped = false;
+            if (ChoiceItemRules.Locate(BagCount(item), IsWorn(item)) == ChoiceItemSource.Equipped)
+            {
+                foreach (var pair in _playerEquipment.Equipped)
+                {
+                    if (pair.Value != item) continue;
+                    _playerEquipment.Unequip(pair.Key);
+                    unequipped = true;
+                    break;
+                }
+                if (BagCount(item) <= 0)
+                {
+                    GameLog.Warn(TAG, $"{item.itemName} couldn't be unequipped into the inventory — choice refused");
+                    return false;
+                }
+            }
+            if (choice.giveToNpc ? GiveItemToNpc(item) : TakeChoiceItem(item)) return true;
+            if (unequipped) _playerEquipment.Equip(item);
+            return false;
+        }
 
         // The player hands the item over: one unit leaves the player's inventory (consumed, not given to the NPC).
         private bool TakeChoiceItem(ItemSO item)

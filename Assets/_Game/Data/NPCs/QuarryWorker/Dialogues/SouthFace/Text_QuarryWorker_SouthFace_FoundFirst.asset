@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_QuarryWorker_SouthFace_FoundFirst
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: You've been in? Before I'd even asked? Then you know more than I do, friend, and I've waited long enough.
+  nextNode: {fileID: 11400000, guid: a01c94e1399f8ce4cacc300b4b91689f, type: 2}
+  _id: 3bba7a562350f8a43ad198b0ac7ceecb

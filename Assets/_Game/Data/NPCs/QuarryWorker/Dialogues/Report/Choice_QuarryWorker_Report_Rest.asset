@@ -16,12 +16,13 @@ MonoBehaviour:
   nextNode: {fileID: 0}
   _id: 19f27dcec16e5f446985c5ef542e356e
   choices:
-  - text: Here. His tally token.
+  - text: Here. His ring.
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: cb2a3d013be0c3643924272095dd42e3, type: 2}
     dialogueFact: {fileID: 11400000, guid: caad1101ad6e37d4492d4ba4a5bd2913, type: 2}
     goldCost: 0
     requiredItem: {fileID: 11400000, guid: 3702d0eda234148498462648faac8a44, type: 2}
+    giveToNpc: 1
     requiredCategory: 0
     hideWhenMissing: 1
     signal: {fileID: 0}
@@ -31,6 +32,7 @@ MonoBehaviour:
     dialogueFact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
     goldCost: 0
     requiredItem: {fileID: 0}
+    giveToNpc: 0
     requiredCategory: 0
     hideWhenMissing: 0
     signal: {fileID: 0}

@@ -18,6 +18,24 @@ namespace Game.Editor.World
             return t * t * (3f - 2f * t);
         }
 
+        /// <summary>
+        /// The ground of a drop pit: a rectangle beyond a drop's top point (<paramref name="top"/> → <paramref name="foot"/> gives its
+        /// direction), from <paramref name="start"/> to <paramref name="start"/> + <paramref name="length"/> metres along it and
+        /// <paramref name="halfWidth"/> to each side, cut down to <paramref name="floor"/>. Only ever lowers <paramref name="ground"/>.
+        /// </summary>
+        public static float DropPitHeight(Vector2 point, Vector2 top, Vector2 foot, float start, float length, float halfWidth,
+            float floor, float ground)
+        {
+            Vector2 forward = foot - top;
+            if (forward.sqrMagnitude < 1e-6f) return ground;
+            forward.Normalize();
+            Vector2 offset = point - top;
+            float along = Vector2.Dot(offset, forward);
+            float side = Mathf.Abs(offset.x * forward.y - offset.y * forward.x);
+            bool inside = along >= start && along <= start + length && side <= halfWidth;
+            return inside ? Mathf.Min(ground, floor) : ground;
+        }
+
         /// <summary>True when a point lies inside an axis-aligned rectangle, edges included.</summary>
         public static bool InsideRect(Vector2 point, Vector2 center, Vector2 size) =>
             Mathf.Abs(point.x - center.x) <= size.x * 0.5f && Mathf.Abs(point.y - center.y) <= size.y * 0.5f;

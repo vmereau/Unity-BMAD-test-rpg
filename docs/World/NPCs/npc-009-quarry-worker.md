@@ -56,7 +56,7 @@ take Dace's key from his hut, or the goat track from the wilderness) but is too 
 |-----------|--------|
 | Rude answer in the greeting | Closes the south-face topic for good (quest missed) |
 | Quest accepted | "About Odo." reminder topic |
-| Odo's token taken | "I found Odo." report topic |
+| Odo's ring taken | "I found Odo." report topic; before accepting, also a SouthFace row "I found him already" that starts the quest and opens the report |
 | Quest completed | "How are you holding up?" |
 
 ---
@@ -68,7 +68,7 @@ take Dace's key from his hut, or the goat track from the wilderness) but is too 
 | Greeting | After the arrival | Opener; Friendly / Rude facts |
 | SouthFace | Friendly | The new cut, Odo, the door; accept starts quest-002 |
 | Waiting | Quest started | Reminder of the three routes |
-| Report | Token taken | Token or told report; completes quest-002 |
+| Report | Ring taken | Truth (ring given to Bren / nothing / latch line) or kind lie; completes quest-002 |
 | After | Quest completed | Still hears the breathing |
 
 ---

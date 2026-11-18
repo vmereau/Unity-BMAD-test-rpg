@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryWorker_Report_Token
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: That's his tally, right enough. Forty-one blocks short. They'd have charged him for dying, if they'd ever admitted he was in there.
+  text: That's his ring. His grandfather's, he said, and he never once took it off, swore it kept the rock off his head. Didn't keep much off in the end, did it?
   nextNode: {fileID: 11400000, guid: d0aed52027b228a44bf1e43b8ec79c01, type: 2}
   _id: cb2a3d013be0c3643924272095dd42e3

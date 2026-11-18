@@ -382,5 +382,20 @@ namespace Tests.EditMode
             Assert.AreEqual(1, pieces.Count);
             Assert.AreEqual(3f, pieces[0].from.x, 1e-4f);
         }
+
+        // ── Drop pit (goat-track drop) ───────────────────────────────────────
+
+        // Drop from (0,0) towards -x: the pit spans along 1.5..8.5 (x -1.5..-8.5), |z| <= 6.
+        [TestCase(-3f, 0f, 31f)]    // inside: cut to the floor
+        [TestCase(-3f, 5.9f, 31f)]  // inside, near the side
+        [TestCase(-1f, 0f, 45f)]    // the ledge stays
+        [TestCase(-3f, 6.5f, 45f)]  // beside the pit
+        [TestCase(-9f, 0f, 45f)]    // past its far end
+        public void DropPitHeight_CutsOnlyThePit(float x, float z, float expected) =>
+            Assert.AreEqual(expected, Area1TerrainMath.DropPitHeight(new Vector2(x, z), Vector2.zero, new Vector2(-2f, 0f), 1.5f, 7f, 6f, 31f, 45f), 1e-4f);
+
+        [Test]
+        public void DropPitHeight_NeverRaises() =>
+            Assert.AreEqual(20f, Area1TerrainMath.DropPitHeight(new Vector2(-3f, 0f), Vector2.zero, new Vector2(-2f, 0f), 1.5f, 7f, 6f, 31f, 20f), 1e-4f);
     }
 }

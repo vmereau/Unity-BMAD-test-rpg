@@ -20,7 +20,7 @@ MonoBehaviour:
     entry: Bren's lad Odo slipped through the crack in the quarry's south face the night before the Company sealed it with a door. Bren wants to know what became of him.
   completedParts:
   - fact: {fileID: 11400000, guid: caad1101ad6e37d4492d4ba4a5bd2913, type: 2}
-    entry: I gave Bren Odo's tally token. At least he knows now.
+    entry: I gave Bren Odo's ring. At least he knows now.
   - fact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
     entry: I told Bren what I found beyond the door.
   - fact: {fileID: 11400000, guid: 29fb7abfb38382c489cc5d16bb999485, type: 2}
@@ -38,4 +38,4 @@ MonoBehaviour:
     description: Search the new cut and the old stones beyond it.
     parts:
     - fact: {fileID: 11400000, guid: 3c06312fefa99b34f8a00ce94795b7a6, type: 2}
-      entry: I found Odo, and took his tally token.
+      entry: I found Odo, and took the ring from his hand.

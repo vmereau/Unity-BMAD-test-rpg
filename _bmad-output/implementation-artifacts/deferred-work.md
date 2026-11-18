@@ -1020,7 +1020,8 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-sealed-passage-report-rework (2026-11-18, review)
 
-- **Odo's tally token stays in the bag forever after the lie or "nothing" ending (review).** `Item_Odo_TallyToken` is a quest
+- ~~**Odo's tally token stays in the bag forever after the lie or "nothing" ending (review).**~~ Resolved by
+  `spec-sealed-passage-odo-ring-drop`: the token is now `Armor_Odo_Ring`, a normal item (wear, sell, drop). `Item_Odo_TallyToken` is a quest
   item (`CanPlayerPart` blocks drop / sell / give), and `Mem_QuarryWorker_Report` closes on every ending, so a player who
   lies or keeps it carries it for good. Either let quest items become normal items once their quest completes, or give
   the token a later use (a shrine, the fort beat that exposes the lie).
@@ -1031,3 +1032,13 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   `QuestIndexCollector.CollectClosedScenes` returns when no `KilledFact` exists, before the setter scan. Harmless today.
 - **Kind-lie payoff (design).** `DialogueFact_QuarryWorker_ReportLied` has no world consumer yet; a later Company / fort
   beat (e.g. Dace or a fort clerk naming Odo) can expose it.
+
+## From spec-sealed-passage-odo-ring-drop (2026-11-18, review)
+
+- **`TheftPursuitRegistryTests` fail on a second EditMode run in the same domain (pre-existing).** `TheftPursuitRegistry`
+  is a static set cleared only on play (`SubsystemRegistration`); the tests claim fixed ids and never clear it, so a rerun
+  without a domain reload fails 3 tests. Add a test-only reset (or `[SetUp]` clear) to the registry.
+- **Goat-track drop check is a sampled simulation (design note).** `Tools/World/Check Goat Track Drop` drives a
+  `CharacterController` from a 2 m grid of pit starts in 12 directions, then three turns towards the ledge. It is evidence,
+  not proof: a player steering differently (zig-zags, sprint, crouch-jumps) is not covered. Walk the drop and try to climb
+  back in play mode after any change to the track, the pit or `DropBlockers`.
