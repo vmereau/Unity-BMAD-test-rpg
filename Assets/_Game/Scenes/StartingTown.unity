@@ -116629,6 +116629,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.DoorLatch
   _door: {fileID: 1971583701}
   _interactPrompt: Lift the latch
+  _unlatchedFact: {fileID: 11400000, guid: e9a8939663dfd304ca7170ade154ddeb, type: 2}
 --- !u!65 &341859736
 BoxCollider:
   m_ObjectHideFlags: 0

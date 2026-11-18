@@ -750,6 +750,7 @@ namespace Game.Editor.QuestExplorer
             FactLinkSource.PlayerReward => "[Reward]",
             FactLinkSource.QuestFactTarget => "[Target]",
             FactLinkSource.Recipe => "[Recipe]",
+            FactLinkSource.DoorLatch => "[Latch]",
             _ => source.ToString()
         };
     }

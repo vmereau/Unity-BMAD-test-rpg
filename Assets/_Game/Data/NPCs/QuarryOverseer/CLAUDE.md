@@ -9,7 +9,7 @@
 
 ## Personality and Background
 
-Hard, practical and tired. Dace measures people in blocks cut and tallies met, and has no patience for fear. He was a mason before the Company made him an overseer, and he still respects good stonework more than any person. He dismisses the workers' dread of the sealed crack in the south face as foolishness, yet nobody works that face, and he has never ordered them to.
+Hard, practical and tired. Dace measures people in blocks cut and tallies met, and has no patience for fear. He was a mason before the Company made him an overseer, and he still respects good stonework more than any person. He opened a new cut behind the crack in the south face with his trusted cutters, then the Company sealed it with a locked door. He keeps the men away from it as "Company business" and dismisses their stories about it, but never explains it.
 
 ## Speech Style
 

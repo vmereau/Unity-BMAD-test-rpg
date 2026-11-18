@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryOverseer_Notice_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Keep off the south face. There's a crack there the men won't go near. They say they hear it breathing. Fools. Still, nobody works that face.
+  text: And keep off the south face. That door is Company business, and so is whatever's behind it. The men tell each other stories about that crack at night. I'd rather they cut stone than tell stories, and so would you, if you want to eat.
   nextNode: {fileID: 0}
   _id: f87934a450a567a4b8ad9428c240cfd3

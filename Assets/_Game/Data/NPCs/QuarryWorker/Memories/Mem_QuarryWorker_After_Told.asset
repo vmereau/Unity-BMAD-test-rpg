@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
-  m_Name: Mem_QuarryWorker_After
+  m_Name: Mem_QuarryWorker_After_Told
   m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
   unlockConditions:
-  - {fileID: 11400000, guid: 52aa21f3ce883c047895467aad3398ce, type: 2}
+  - {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
   invalidationConditions: []
   effects:
     startdialog: {fileID: 11400000, guid: 70eecedfd8722d04894075019036c153, type: 2}

@@ -1017,3 +1017,17 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   same wall, a crossing within ~2.5 m of a ring corner (the neighbouring wall isn't opened), or a track running along a
   wall stay walled; the "crosses N times" warning counts split walls, not crossings. Fine for today's line (one square-ish
   crossing mid-wall, verified in play); harden if the track ever moves.
+
+## From spec-sealed-passage-report-rework (2026-11-18, review)
+
+- **Odo's tally token stays in the bag forever after the lie or "nothing" ending (review).** `Item_Odo_TallyToken` is a quest
+  item (`CanPlayerPart` blocks drop / sell / give), and `Mem_QuarryWorker_Report` closes on every ending, so a player who
+  lies or keeps it carries it for good. Either let quest items become normal items once their quest completes, or give
+  the token a later use (a shrine, the fort beat that exposes the lie).
+- **Closed-scene setter rows look dead in the Quest Explorer (review, pre-existing).** `QuestDetailView` only exempts
+  `FactLinkSource.ClosedScene` from the "object no longer loaded" check, so `ContainerTake` / `WorldFactTrigger` /
+  `DoorLatch` setters read from a closed scene show as missing, with no "Open scene & select" button.
+- **Closed-scene WorldFact setter scan sits behind a KilledFact early return (review, pre-existing).**
+  `QuestIndexCollector.CollectClosedScenes` returns when no `KilledFact` exists, before the setter scan. Harmless today.
+- **Kind-lie payoff (design).** `DialogueFact_QuarryWorker_ReportLied` has no world consumer yet; a later Company / fort
+  beat (e.g. Dace or a fort clerk naming Odo) can expose it.

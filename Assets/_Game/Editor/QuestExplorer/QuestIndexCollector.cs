@@ -57,6 +57,8 @@ namespace Game.Editor.QuestExplorer
                         AddSceneSetter(s, setter, FactLinkSource.ContainerTake, $"Container take: {setter.name}");
                     foreach (var setter in root.GetComponentsInChildren<WorldFactTrigger>(true))
                         AddSceneSetter(s, setter, FactLinkSource.WorldFactTrigger, $"Fact trigger: {setter.name}");
+                    foreach (var setter in root.GetComponentsInChildren<DoorLatch>(true))
+                        AddSceneSetter(s, setter, FactLinkSource.DoorLatch, $"Door latch: {setter.name}", "_unlatchedFact");
                 }
             CollectPrefabs(s.KilledBindings);
             CollectClosedScenes(s, loadedScenePaths);
@@ -66,10 +68,11 @@ namespace Game.Editor.QuestExplorer
             return s;
         }
 
-        private static void AddSceneSetter(IndexSources s, Component setter, FactLinkSource source, string label)
+        private static void AddSceneSetter(IndexSources s, Component setter, FactLinkSource source, string label,
+            string factField = "_fact")
         {
             using var serialized = new SerializedObject(setter);
-            var fact = serialized.FindProperty("_fact").objectReferenceValue as WorldFact;
+            var fact = serialized.FindProperty(factField)?.objectReferenceValue as WorldFact;
             if (fact != null) s.SceneFactSetters.Add(new FactLink
             {
                 Fact = fact, Kind = FactLinkKind.Setter, Source = source,
@@ -154,12 +157,14 @@ namespace Game.Editor.QuestExplorer
         {
             if (!AssetDatabase.IsValidFolder(SCENES_FOLDER)) return;
 
-            // Scene components whose _fact field is a WorldFact setter.
-            var setterScripts = new Dictionary<string, (FactLinkSource source, string label)>();
+            // Scene components whose fact field (factField) is a WorldFact setter.
+            var setterScripts = new Dictionary<string, (FactLinkSource source, string label, string factField)>();
             string takeScriptGuid = AssetDatabase.AssetPathToGUID("Assets/_Game/Scripts/World/ContainerTakeFact.cs");
             string triggerScriptGuid = AssetDatabase.AssetPathToGUID("Assets/_Game/Scripts/World/WorldFactTrigger.cs");
-            if (!string.IsNullOrEmpty(takeScriptGuid)) setterScripts[takeScriptGuid] = (FactLinkSource.ContainerTake, "Container take");
-            if (!string.IsNullOrEmpty(triggerScriptGuid)) setterScripts[triggerScriptGuid] = (FactLinkSource.WorldFactTrigger, "Fact trigger");
+            string latchScriptGuid = AssetDatabase.AssetPathToGUID("Assets/_Game/Scripts/World/DoorLatch.cs");
+            if (!string.IsNullOrEmpty(takeScriptGuid)) setterScripts[takeScriptGuid] = (FactLinkSource.ContainerTake, "Container take", "_fact");
+            if (!string.IsNullOrEmpty(triggerScriptGuid)) setterScripts[triggerScriptGuid] = (FactLinkSource.WorldFactTrigger, "Fact trigger", "_fact");
+            if (!string.IsNullOrEmpty(latchScriptGuid)) setterScripts[latchScriptGuid] = (FactLinkSource.DoorLatch, "Door latch", "_unlatchedFact");
             var worldByGuid = s.AllFacts.OfType<WorldFact>().ToDictionary(
                 fact => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(fact)));
 
@@ -183,8 +188,8 @@ namespace Game.Editor.QuestExplorer
                     {
                         var script = Regex.Match(block.Value, @"m_Script: \{fileID: \d+, guid: ([0-9a-f]{32}),");
                         if (!script.Success || !setterScripts.TryGetValue(script.Groups[1].Value, out var setter)) continue;
-                        var factRef = Regex.Match(block.Value, @"_fact: \{fileID: \d+, guid: ([0-9a-f]{32}),");
-                        if (factRef.Success && worldByGuid.TryGetValue(factRef.Groups[1].Value, out var worldFact))
+                        string factGuid = FactGuidInBlock(block.Value, setter.factField);
+                        if (factGuid != null && worldByGuid.TryGetValue(factGuid, out var worldFact))
                             s.SceneFactSetters.Add(new FactLink
                             {
                                 Fact = worldFact, Kind = FactLinkKind.Setter, Source = setter.source,
@@ -203,6 +208,17 @@ namespace Game.Editor.QuestExplorer
                     GameLog.Warn(TAG, $"Could not scan closed scene '{path}': {e.Message}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Pure: the asset GUID referenced by the serialized field <paramref name="factField"/> in one scene YAML
+        /// component block, or null. The field name is matched whole (<c>_fact</c> never matches <c>_unlatchedFact</c>).
+        /// </summary>
+        public static string FactGuidInBlock(string block, string factField)
+        {
+            if (string.IsNullOrEmpty(block) || string.IsNullOrEmpty(factField)) return null;
+            var match = Regex.Match(block, $@"(?m)^\s*{Regex.Escape(factField)}: \{{fileID: \d+, guid: ([0-9a-f]{{32}}),");
+            return match.Success ? match.Groups[1].Value : null;
         }
 
         private static HashSet<QuestSO> ReadQuestList<T>(string prefabPath, string propertyName) where T : Component

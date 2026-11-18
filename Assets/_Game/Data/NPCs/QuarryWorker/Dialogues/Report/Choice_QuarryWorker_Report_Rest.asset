@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_QuarryWorker_Report_Rest
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Well. That's one more thing to lie awake over. Go on, then, friend, was there anything of his left to bring back?
+  nextNode: {fileID: 0}
+  _id: 19f27dcec16e5f446985c5ef542e356e
+  choices:
+  - text: Here. His tally token.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: cb2a3d013be0c3643924272095dd42e3, type: 2}
+    dialogueFact: {fileID: 11400000, guid: caad1101ad6e37d4492d4ba4a5bd2913, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 11400000, guid: 3702d0eda234148498462648faac8a44, type: 2}
+    requiredCategory: 0
+    hideWhenMissing: 1
+    signal: {fileID: 0}
+  - text: I couldn't bring anything back.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 49ad7e901b481014281879f8b5c93e81, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

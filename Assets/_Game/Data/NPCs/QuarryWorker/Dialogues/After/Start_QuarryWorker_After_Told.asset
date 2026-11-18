@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
-  m_Name: Start_QuarryWorker_After
+  m_Name: Start_QuarryWorker_After_Told
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
   text: How are you holding up?
   nextNode: {fileID: 11400000, guid: cbd1266e380d0db44ac3d36b9516002e, type: 2}

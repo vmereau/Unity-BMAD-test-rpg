@@ -27,6 +27,7 @@ namespace Game.Editor.World
         private const string TIMBER = "Assets/_Game/Art/Materials/Blockout_Timber.mat";
         private const string STONE = "Assets/_Game/Art/Materials/Blockout_Stone.mat";
         private const string FACT = "Assets/_Game/Data/Facts/WorldFact_QuarryPassageOpened.asset";
+        private const string UNLATCHED_FACT = "Assets/_Game/Data/Facts/WorldFact_SealedPassage_Unlatched.asset";
         private const string FACT_EVENT = "Assets/_Game/Data/Events/OnWorldFactChanged.asset";
         private const string GLOW = "Assets/_Game/Art/Materials/Blockout_FireGlow.mat";
         private const string DAY_NIGHT = "Assets/_Game/Data/Config/DayNightConfig.asset";
@@ -1227,6 +1228,9 @@ namespace Game.Editor.World
             latch.AddComponent<BoxCollider>().size = new Vector3(0.3f, 0.12f, 0.12f);
             var latchSo = new SerializedObject(latch.AddComponent<DoorLatch>());
             latchSo.FindProperty("_door").objectReferenceValue = door.GetComponent<DoorInteractable>();
+            var unlatched = AssetDatabase.LoadAssetAtPath<WorldFact>(UNLATCHED_FACT);
+            if (unlatched == null) GameLog.Warn(TAG, $"{UNLATCHED_FACT} missing — InsideLatch sets no fact");
+            latchSo.FindProperty("_unlatchedFact").objectReferenceValue = unlatched; // SealedPassage report line
             latchSo.ApplyModifiedPropertiesWithoutUndo();
             return true;
         }

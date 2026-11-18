@@ -23,6 +23,8 @@ MonoBehaviour:
     entry: I gave Bren Odo's tally token. At least he knows now.
   - fact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
     entry: I told Bren what I found beyond the door.
+  - fact: {fileID: 11400000, guid: 29fb7abfb38382c489cc5d16bb999485, type: 2}
+    entry: I told Bren that Odo got out and went up to the fort. He wanted to believe it.
   failedParts:
   - fact: {fileID: 11400000, guid: bcff5b9fad839f848a4cd3870b5462f7, type: 2}
     entry: Bren is dead. There is no one left to tell.

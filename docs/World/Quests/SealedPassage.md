@@ -1,7 +1,7 @@
 # Quest Spec — SealedPassage
 
 > Template version: 1.1
-> Status: `implemented` — 2026-11-18: quest data (Part A), the door route (Part B1, `spec-sealed-passage-door-route`) and the goat-track route (Part B2, `spec-sealed-passage-goat-track`).
+> Status: `implemented` — 2026-11-18: quest data (Part A), the door route (Part B1, `spec-sealed-passage-door-route`), the goat-track route (Part B2, `spec-sealed-passage-goat-track`) and the report rework (truth / lie / latch, `spec-sealed-passage-report-rework`).
 > Spec path: `docs/World/Quests/SealedPassage.md`
 > World id: quest-002 (The Sealed Passage) · area-002 Stone Quarry · giver npc-009 Bren
 > Design with `/quests:design`, build with `/quests:implement SealedPassage`, check with `/quests:audit SealedPassage`.
@@ -50,7 +50,10 @@ Who sets each type: `Assets/_Game/Data/Facts/CLAUDE.md`.
 | `DialogueFact_QuarryWorker_Rude` | `DialogueFact` | Bren's opener, choice "Mind your own business, old man." |
 | `DialogueFact_QuarryWorker_PassageAccepted` | `DialogueFact` | "The south face", choice "I'll find out what happened to him." |
 | `DialogueFact_QuarryWorker_ReportToken` | `DialogueFact` | "I found Odo", token choice (`requiredItem` = `Item_Odo_TallyToken`, given to Bren) |
-| `DialogueFact_QuarryWorker_ReportTold` | `DialogueFact` | "I found Odo", choice without the token |
+| `DialogueFact_QuarryWorker_ReportTold` | `DialogueFact` | "I found Odo" → truth, "I couldn't bring anything back." |
+| `DialogueFact_QuarryWorker_ReportLied` | `DialogueFact` | "I found Odo", the kind lie "He got out. He's up at the fort with the other cutters." (read by the Report invalidation, the quest's completed part, its reward and `Mem_QuarryWorker_After_Lied`; nothing in the world reacts to the lie yet, kept for a later beat) |
+| `DialogueFact_QuarryWorker_ReportLatch` | `DialogueFact` | "I found Odo" → truth, "The door opens from the inside." (hides the line once said) |
+| `WorldFact_SealedPassage_Unlatched` | `WorldFact` | `DoorLatch._unlatchedFact` on the cleft door's `InsideLatch`: the player lifted it from the inside |
 | `WorldFact_SealedPassage_RingEntered` | `WorldFact` | **New setter:** a reach trigger inside the sealed area, past both the door and the goat track's descent |
 | `WorldFact_SealedPassage_TokenTaken` | `WorldFact` | `ContainerTakeFact` on Odo's remains (existing setter, HiddenStash pattern) |
 | `KilledFact_QuarryWorker` | `KilledFact` | Bren's scene `PersistentID` (`Game/World/Generate Missing KilledFacts`); same asset on `NPC_QuarryWorker._killedFact` |
@@ -78,6 +81,8 @@ completedParts:     # ANY true → completed
     entry: "I gave Bren Odo's tally token. At least he knows now."
   - fact:  DialogueFact_QuarryWorker_ReportTold
     entry: "I told Bren what I found beyond the door."
+  - fact:  DialogueFact_QuarryWorker_ReportLied
+    entry: "I told Bren that Odo got out and went up to the fort. He wanted to believe it."
 
 failedParts:        # ANY true → failed
   - fact:  KilledFact_QuarryWorker
@@ -124,7 +129,7 @@ reads:
   - WorldFact_Arrival_Done: Bren only talks after the arrival (event-001)
 read_by:
   - Mem_QuarryWorker_Waiting: unlocks on QuestFact_SealedPassage_Started
-  - Mem_QuarryWorker_After: unlocks on QuestFact_SealedPassage_Completed
+  - Mem_QuarryWorker_After_{Token,Told,Lied}: each unlocks on its report fact (QuestFact_SealedPassage_Completed has no reader now)
 ```
 
 ---
@@ -181,27 +186,46 @@ npcs:
 
       - asset: Mem_QuarryWorker_Report
         unlock:     [WorldFact_SealedPassage_TokenTaken, QuestFact_SealedPassage_Started]
-        invalidate: [DialogueFact_QuarryWorker_ReportToken, DialogueFact_QuarryWorker_ReportTold]
+        invalidate: [DialogueFact_QuarryWorker_ReportToken, DialogueFact_QuarryWorker_ReportTold, DialogueFact_QuarryWorker_ReportLied]
         dialogue_topic: Report                    # label: "I found Odo."
         dialogue:
           - NPC (choice prompt): "You found him? Then tell me straight. I've had enough of people being kind to me with half the story."
-          - Player: "He sat against the old stones, facing them. Not a mark on him, and he never tried the door. Here's his tally token."  [requiredItem: Item_Odo_TallyToken, given]
-              → NPC: "That's his tally, right enough. Forty-one blocks short. They'd have charged him for dying, if they'd ever admitted he was in there."
-              → NPC: "Sitting there facing the rock, and never once tried the door. I keep turning that over. Here, take this. It's not much, but I'd rather it went to you than to Dace's ledger." END  [sets: DialogueFact_QuarryWorker_ReportToken]
-          - Player: "He sat against the old stones, facing them. Not a mark on him, and he never tried the door. I brought nothing back."
-              → NPC: "What was he listening to in there, that he'd sit and wait like that? Don't answer, I don't think I want to know. At least I know where he is now, and that's more than the Company ever gave me." END  [sets: DialogueFact_QuarryWorker_ReportTold]
+          - Player: "He's dead. He sat against the old stones, facing them, without a mark on him."
+              → NPC (choice prompt, Choice_QuarryWorker_Report_Truth): "Dead, then. I knew it the morning I saw that door, and it still lands like a dropped block. Facing the stones, like he was waiting on something. Go on, friend, tell me the rest."
+              - Player [requiredMemory: Mem_QuarryWorker_KnowsLatch]: "The door opens from the inside. He could have walked out."  [sets: DialogueFact_QuarryWorker_ReportLatch]
+                  → NPC: "Opens from the inside? Then nobody shut him in at all. He sat there with the way out at his back and stayed. I've been angry at the Company for a month, friend, and now I don't know who to be angry at."
+                  → NPC (choice prompt, Choice_QuarryWorker_Report_Rest): "Well. That's one more thing to lie awake over. Go on, then, friend, was there anything of his left to bring back?" → the token / nothing rows below
+              - Player: "Here. His tally token."  [requiredItem: Item_Odo_TallyToken, given, hideWhenMissing]
+                  → NPC: "That's his tally, right enough. Forty-one blocks short. They'd have charged him for dying, if they'd ever admitted he was in there."
+                  → NPC: "I'll keep the tally, somebody should. Here, take this, friend. It's not much, but I'd rather it went to you than to Dace's ledger." END  [sets: DialogueFact_QuarryWorker_ReportToken]
+              - Player: "I couldn't bring anything back."
+                  → NPC: "What was he listening to in there, that he'd sit and wait like that? Don't answer, I don't think I want to know. At least I know where he is now, and that's more than the Company ever gave me." END  [sets: DialogueFact_QuarryWorker_ReportTold]
+          - Player: "He got out. He's up at the fort with the other cutters."
+              → NPC: "Up at the fort, with the lads I never see when I carry stone up there. Well, I'll look harder next week, then. Thank you for telling me, friend." END  [sets: DialogueFact_QuarryWorker_ReportLied]
 
-      - asset: Mem_QuarryWorker_After             # repeatable
-        unlock:     [QuestFact_SealedPassage_Completed]
-        invalidate: []
-        dialogue_topic: After                     # label: "How are you holding up?"
+      - asset: Mem_QuarryWorker_KnowsLatch        # gate-only (no topic)
+        unlock:     [WorldFact_SealedPassage_Unlatched]
+        invalidate: [DialogueFact_QuarryWorker_ReportLatch]
+
+      # One repeatable After topic per ending, label "How are you holding up?"
+      - asset: Mem_QuarryWorker_After_Token
+        unlock: [DialogueFact_QuarryWorker_ReportToken]
+        dialogue:
+          - NPC: "I keep his tally on my bench now. Some days I cut a few blocks over and tell myself they're his, and Dace's ledger doesn't know the difference." END
+      - asset: Mem_QuarryWorker_After_Told
+        unlock: [DialogueFact_QuarryWorker_ReportTold]
         dialogue:
           - NPC: "Cutting my tally, same as always. Some nights I still hear it through the rock, that slow breathing, and I lie there and tell myself it's the wind. I'm getting better at believing it." END
+      - asset: Mem_QuarryWorker_After_Lied
+        unlock: [DialogueFact_QuarryWorker_ReportLied]
+        dialogue:
+          - NPC: "I asked after Odo up at the fort this week. Nobody knew the name, but nobody up there knows any of our names, so that's no answer either way, is it?" END
 
   - npc: QuarryOverseer (Overseer Dace, npc-014)
     exists: true
     folder: Assets/_Game/Data/NPCs/QuarryOverseer/
-    role: no new dialogue. Owns the door (`Ownership`) and his hut's key pickup.
+    role: owns the door (`Ownership`) and his hut's key pickup. His Warden's-notice line (`Text_QuarryOverseer_Notice_3`)
+      calls the door "Company business" and never denies the cut was worked.
 ```
 
 Note: a rude answer in the opener closes Bren's south-face topic for good, so the quest can be missed
@@ -245,13 +269,16 @@ rewards:
       gold: 0
       stats: []
 
-  onCompleted: null         # rewards hang on the two report facts instead
+  onCompleted: null         # rewards hang on the three report facts instead
 
   onFact:                   # PlayerRewardSO with FactType = Dialogue
     - fact: DialogueFact_QuarryWorker_ReportToken
       xp: 150
       gold: 10              # Bren's "it's not much"
     - fact: DialogueFact_QuarryWorker_ReportTold
+      xp: 150
+      gold: 0
+    - fact: DialogueFact_QuarryWorker_ReportLied
       xp: 150
       gold: 0
 
@@ -271,7 +298,9 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
    (+50 XP).
 4. Through the abandoned new cut to Odo's remains → takes the token → `TokenTaken` → step 1 done, "About Odo." closes,
    "I found Odo." opens.
-5. Report with the token (+150 XP, +10 gold) or without it (+150 XP) → quest completed → "How are you holding up?".
+5. Report: the truth, then the token (+150 XP, +10 gold) or nothing (+150 XP), with "the door opens from the inside" as an extra row
+   if the player left through the latch; or the kind lie (+150 XP, token kept) → quest completed → the matching
+   "How are you holding up?".
 
 ## Design Checks
 
@@ -319,3 +348,12 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
       (cairns + 3 darkness spiders on the shelf), `RingEntryTrigger/Shape_GoatTrack`; the cleft door's leaf defers to
       `InsideLatch` from inside (no theft); `Mem_QuarryWorker_Report` also needs `QuestFact_SealedPassage_Started`
 - [x] `quest_report SealedPassage` clean (no issues); `quest_report audit` no new issues; status → `implemented`
+
+**Part C — report rework (`spec-sealed-passage-report-rework`, 2026-11-18)**
+
+- [x] `DoorLatch._unlatchedFact` (+ `RecordUnlatch`, tests) → `WorldFact_SealedPassage_Unlatched` on the cleft `InsideLatch`
+      (scene + `Area1SitesBuilder`); Quest Explorer indexes it (`FactLinkSource.DoorLatch`, `FactGuidInBlock`)
+- [x] Report: `Choice_QuarryWorker_Report` (truth / lie) → `_Truth` (latch / token / nothing) → latch reaction →
+      `_Rest` (token / nothing); gate-only `Mem_QuarryWorker_KnowsLatch`; `ReportLied` completion + reward
+- [x] After topics split into `Mem_QuarryWorker_After_{Token,Told,Lied}`; Dace's `Text_QuarryOverseer_Notice_3` rewritten
+- [x] `quest_report SealedPassage` clean; `quest_report audit` no new issues

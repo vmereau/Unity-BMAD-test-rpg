@@ -29,7 +29,8 @@ namespace Game.Editor.QuestExplorer
         QuestFactTarget,
         Recipe,
         ContainerTake,
-        WorldFactTrigger
+        WorldFactTrigger,
+        DoorLatch
     }
 
     /// <summary>One edge between a <see cref="Fact"/> and the asset / scene object that sets or reads it.</summary>

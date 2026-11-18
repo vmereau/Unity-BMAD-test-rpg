@@ -65,7 +65,9 @@ and the next morning a Company door sealed it. Bren believes the boy was walled 
 
 Giver of **SealedPassage** (quest-002, `docs/World/Quests/SealedPassage.md`). Topics: Greeting opener (Friendly /
 Rude) → South face (accept sets `DialogueFact_QuarryWorker_PassageAccepted`) → About Odo (reminder) → I found Odo
-(token / told report) → How are you holding up? Rude in the opener closes the quest for good.
+(truth or a kind lie; after the truth: token / nothing, plus "the door opens from the inside" if the player lifted the
+`InsideLatch`, gated by `Mem_QuarryWorker_KnowsLatch`) → How are you holding up? (one `After_Token` / `_Told` / `_Lied`
+memory per ending). Rude in the opener closes the quest for good.
 
 ---
 

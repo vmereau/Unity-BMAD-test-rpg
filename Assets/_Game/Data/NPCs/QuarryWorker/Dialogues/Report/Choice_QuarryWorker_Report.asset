@@ -16,19 +16,19 @@ MonoBehaviour:
   nextNode: {fileID: 0}
   _id: a01c94e1399f8ce4cacc300b4b91689f
   choices:
-  - text: He sat against the old stones, facing them. Not a mark on him, and he never tried the door. Here's his tally token.
+  - text: He's dead. He sat against the old stones, facing them, without a mark on him.
     requiredMemory: {fileID: 0}
-    nextNode: {fileID: 11400000, guid: cb2a3d013be0c3643924272095dd42e3, type: 2}
-    dialogueFact: {fileID: 11400000, guid: caad1101ad6e37d4492d4ba4a5bd2913, type: 2}
+    nextNode: {fileID: 11400000, guid: 4ab431a0ad3b2e847b2575cb2831db9d, type: 2}
+    dialogueFact: {fileID: 0}
     goldCost: 0
-    requiredItem: {fileID: 11400000, guid: 3702d0eda234148498462648faac8a44, type: 2}
+    requiredItem: {fileID: 0}
     requiredCategory: 0
-    hideWhenMissing: 1
+    hideWhenMissing: 0
     signal: {fileID: 0}
-  - text: He sat against the old stones, facing them. Not a mark on him, and he never tried the door. I brought nothing back.
+  - text: He got out. He's up at the fort with the other cutters.
     requiredMemory: {fileID: 0}
-    nextNode: {fileID: 11400000, guid: 49ad7e901b481014281879f8b5c93e81, type: 2}
-    dialogueFact: {fileID: 11400000, guid: 6e10accb720949044acdcb437cb3e2c9, type: 2}
+    nextNode: {fileID: 11400000, guid: a102fb7643a3e7f46a191536be02b665, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 29fb7abfb38382c489cc5d16bb999485, type: 2}
     goldCost: 0
     requiredItem: {fileID: 0}
     requiredCategory: 0

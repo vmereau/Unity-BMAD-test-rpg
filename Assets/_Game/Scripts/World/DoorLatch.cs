@@ -16,6 +16,8 @@ namespace Game.World
 
         [SerializeField] private DoorInteractable _door;
         [SerializeField] private string _interactPrompt = "Lift the latch";
+        [Tooltip("Optional: set true when the player lifts this latch (e.g. SealedPassage's 'door opens from inside' report line).")]
+        [SerializeField] private WorldFact _unlatchedFact; // indexed by the Quest Explorer by this field name
 
         private Lockable _lockable;
 
@@ -56,7 +58,17 @@ namespace Game.World
             if (!CanInteract) return;
             _door.Unlock();
             if (!_door.IsOpen) _door.ToggleOpen();
+            if (_unlatchedFact != null && !RecordUnlatch(_unlatchedFact, WorldStateManager.Instance))
+                GameLog.Warn(TAG, $"{name}: no WorldStateManager — {_unlatchedFact.name} not set");
             GameLog.Info(TAG, $"{_door.name} unlatched from the inside");
+        }
+
+        /// <summary>Sets <paramref name="fact"/> true on <paramref name="state"/>; false when either is missing.</summary>
+        public static bool RecordUnlatch(WorldFact fact, WorldStateManager state)
+        {
+            if (fact == null || state == null) return false;
+            state.SetWorldEvent(fact, true);
+            return true;
         }
 
         /// <summary>Pure: true when <paramref name="point"/> is in front of the latch (its +Z side).</summary>

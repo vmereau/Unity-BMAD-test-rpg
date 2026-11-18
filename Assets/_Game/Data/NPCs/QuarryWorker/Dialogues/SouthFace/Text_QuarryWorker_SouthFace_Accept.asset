@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryWorker_SouthFace_Accept
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: You'd do that for a stranger? Then I owe you, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it.
+  text: You'd do that for a stranger? Then I owe you, friend, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it.
   nextNode: {fileID: 0}
   _id: e91e9bc7907b7c342be9f8beca3228d0
