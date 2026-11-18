@@ -211,8 +211,8 @@
     re-engages a re-sighted trespasser only if it is the current aggro target; otherwise it leaves combat and applies the
     area's rules (`RespondToTrespasser`); a witnessed target is ignored.
   - An owner already **Watching** (perception engaged, no rescans) checks `TryFindTrespassedArea` itself and responds.
-  - Unknown-source hits never pick a trespassing (non-hostile) perception target. Known gap: lock-on can't target an
-    aggro owner (it only takes hostile factions).
+  - Unknown-source hits never pick a trespassing (non-hostile) perception target. Lock-on accepts an aggro owner
+    through `EntityBrain.IsFightingOrEngaging(player)` (`Scripts/Player/CLAUDE.md` → LockOnSystem).
 - **Hearing:** hostile and trespass perception also hear a walking / running player (Entity walk / run hearing radii,
   360°, halved without LOS) — see `Scripts/Stealth/CLAUDE.md` → Detection formula. It fills the same meter, so the
   brain needs no change: Suspicious faces `LastSeenPosition` (= last *sensed*), alerted states keep tracking a heard

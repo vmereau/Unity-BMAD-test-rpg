@@ -66,6 +66,13 @@ namespace Game.AI
         public bool IsFighting(FactionMember member) => member != null && IsInCombat && _currentTarget == member;
 
         /// <summary>
+        /// <see cref="IsFighting"/>, or about to: a hit staggered / knocked it down and it engages
+        /// <paramref name="member"/> once it recovers (read by player lock-on).
+        /// </summary>
+        public bool IsFightingOrEngaging(FactionMember member) =>
+            IsFighting(member) || (member != null && _engageAfterRecovery && _currentTarget == member);
+
+        /// <summary>
         /// True when <paramref name="member"/> dealt the hit being resolved this frame (set by <see cref="NotifyHitBy"/>,
         /// which every damage source calls right before <c>TakeDamage</c>), e.g. who delivered a knockout blow.
         /// </summary>

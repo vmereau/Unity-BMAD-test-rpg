@@ -233,6 +233,10 @@ one entity contributes many colliders there (spider ragdoll bones ≈ 13), and a
 aimed target out. Hits collapse to **one candidate per `EntityHealth`** (dead skipped), measured at the health
 transform; `SelectNearestInCone` (pure, `LockOnTests`) picks the nearest within `lockOnFOV` (**half-angle**) and
 re-checks `lockOnRange` against the root. A full buffer logs a warning.
+**Lockable** (`IsLockable`, pure): faction-hostile to the player **or** `EntityBrain.IsFightingOrEngaging(player)`
+(fighting it, or staggered by its opening hit and engaging after recovery) — so a neutral NPC in a brawl / trespass /
+toll / defend fight with the player can be locked. Leaving combat never breaks an existing lock; the breaks are death,
+target **or** player unconscious (neutral fights end in knockouts), `lockOnBreakDistance`, swimming, inactive.
 
 ---
 

@@ -46,7 +46,7 @@ namespace Game.Player
 
             _stateManager = GetComponent<PlayerStateManager>();
 
-            // Only entities hostile to the player's faction are lock-on targets.
+            // Lock-on targets: entities hostile to the player's faction, or fighting the player (IsLockableTarget).
             _playerMember = GetComponent<FactionMember>();
             if (_playerMember == null)
                 GameLog.Warn(TAG, "LockOnSystem: no FactionMember on the player — no entity can be locked on");
@@ -107,7 +107,7 @@ namespace Game.Player
                 var health = _lockOnBuffer[i].GetComponentInParent<EntityHealth>();
                 if (health == null || health.IsDead) continue;
                 if (_candidates.Contains(health)) continue;
-                if (!IsHostileTarget(health)) continue;
+                if (!IsLockableTarget(health)) continue;
                 _candidates.Add(health);
                 _candidatePositions.Add(health.transform.position);
             }
@@ -127,11 +127,23 @@ namespace Game.Player
             }
         }
 
-        private bool IsHostileTarget(EntityHealth health)
+        // Faction-hostile entities, plus any entity currently fighting the player (a neutral NPC in a brawl,
+        // trespass / toll fight, defending a member, or retaliating after the player hit it).
+        private bool IsLockableTarget(EntityHealth health)
         {
+            if (_playerMember == null) return false;
             var member = health.GetComponentInParent<FactionMember>();
-            return member != null && _playerMember != null && FactionSO.AreHostile(_playerMember.Faction, member.Faction);
+            if (member == null) return false;
+            bool factionHostile = FactionSO.AreHostile(_playerMember.Faction, member.Faction);
+            var brain = factionHostile ? null : health.GetComponentInParent<EntityBrain>();
+            return IsLockable(factionHostile, brain != null && brain.IsFightingOrEngaging(_playerMember));
         }
+
+        /// <summary>
+        /// Lock-on rule: an entity is a valid target when its faction is hostile to the player's
+        /// or it is currently fighting the player.
+        /// </summary>
+        public static bool IsLockable(bool factionHostile, bool fightingPlayer) => factionHostile || fightingPlayer;
 
         /// <summary>
         /// True when <paramref name="target"/> lies within <paramref name="halfAngle"/> degrees of
@@ -183,7 +195,14 @@ namespace Game.Player
                 return;
             }
 
-            if (LockedTarget.TryGetComponent<EntityHealth>(out var h) && h.IsDead)
+            // Unconscious (target or player): only non-hostile fights end in a knockout — hostile blows kill.
+            if (LockedTarget.TryGetComponent<EntityHealth>(out var h) && (h.IsDead || h.IsUnconscious))
+            {
+                ClearLock();
+                return;
+            }
+
+            if (_stateManager != null && _stateManager.IsUnconscious)
             {
                 ClearLock();
                 return;

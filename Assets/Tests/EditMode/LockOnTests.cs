@@ -125,5 +125,16 @@ namespace Tests.EditMode
         {
             Assert.IsFalse(Game.Player.LockOnSystem.IsInCone(Vector3.zero, Vector3.forward, Vector3.up * 2f, 60f));
         }
+
+        // --- Lockability (faction-hostile or fighting the player) ---
+
+        [TestCase(true, false, true, TestName = "IsLockable_HostileFaction_NotFighting_True")]
+        [TestCase(false, true, true, TestName = "IsLockable_NeutralFightingPlayer_True")]
+        [TestCase(true, true, true, TestName = "IsLockable_HostileFactionFighting_True")]
+        [TestCase(false, false, false, TestName = "IsLockable_NeutralNotFightingPlayer_False")]
+        public void IsLockable_FactionHostileOrFightingPlayer(bool factionHostile, bool fightingPlayer, bool expected)
+        {
+            Assert.AreEqual(expected, Game.Player.LockOnSystem.IsLockable(factionHostile, fightingPlayer));
+        }
     }
 }
