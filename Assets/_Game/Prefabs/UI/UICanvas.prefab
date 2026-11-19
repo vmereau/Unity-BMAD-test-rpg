@@ -7900,6 +7900,10 @@ PrefabInstance:
       propertyPath: _canvas
       value: 
       objectReference: {fileID: 7402360993085326698}
+    - target: {fileID: 8351964982637085957, guid: d0dbef3b260943641b37e46cdbf05970, type: 3}
+      propertyPath: _onDialogueCloseRequested
+      value: 
+      objectReference: {fileID: 11400000, guid: 8a2b5e40d7331bf418092e0a81a0e36c, type: 2}
     - target: {fileID: 8603441565164123925, guid: d0dbef3b260943641b37e46cdbf05970, type: 3}
       propertyPath: m_Layer
       value: 5

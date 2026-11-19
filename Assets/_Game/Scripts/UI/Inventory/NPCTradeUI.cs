@@ -42,6 +42,9 @@ namespace Game.UI
         [Tooltip("Player knocked out (OnPlayerKnockedOut): the trade window closes. Listened to while open (GO active).")]
         [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
 
+        [Tooltip("An NPC asks to close its dialogue (OnDialogueCloseRequested): the trade window closes when it trades with that NPC (e.g. the NPC leaves the world). Listened to while open.")]
+        [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
+
         private GoldSystem _npcGoldSystem;
 
         private GameObject _activeContextMenu;
@@ -63,6 +66,7 @@ namespace Game.UI
         private void OnEnable()
         {
             _onPlayerKnockedOut?.AddListener(HandlePlayerKnockedOut);
+            _onDialogueCloseRequested?.AddListener(HandleDialogueCloseRequested);
             if (_input == null) return;
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
@@ -72,6 +76,7 @@ namespace Game.UI
         private void OnDisable()
         {
             _onPlayerKnockedOut?.RemoveListener(HandlePlayerKnockedOut);
+            _onDialogueCloseRequested?.RemoveListener(HandleDialogueCloseRequested);
             if (_input == null) return;
             _input.UI.Cancel.performed -= HandleCancel;
             _input.UI.Disable();
@@ -102,6 +107,13 @@ namespace Game.UI
         private void HandlePlayerKnockedOut(bool _)
         {
             if (gameObject.activeInHierarchy) Close();
+        }
+
+        // The requester may be a destroyed NPC (region unload): TryGetComponent would throw, so check Unity's null first.
+        private void HandleDialogueCloseRequested(Game.AI.NPCPresence requester)
+        {
+            if (!gameObject.activeInHierarchy || requester == null || _npcInventory == null) return;
+            if (requester.TryGetComponent(out InventorySystem inventory) && inventory == _npcInventory) Close();
         }
 
         private void HandleCancel(UnityEngine.InputSystem.InputAction.CallbackContext context)

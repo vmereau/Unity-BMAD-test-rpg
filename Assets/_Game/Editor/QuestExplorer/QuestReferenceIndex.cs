@@ -68,6 +68,9 @@ namespace Game.Editor.QuestExplorer
             if (s.SceneFactSetters != null)
                 foreach (var link in s.SceneFactSetters)
                     if (link != null && link.Fact != null) AddLink(index._setters, link);
+            if (s.SceneFactReaders != null)
+                foreach (var link in s.SceneFactReaders)
+                    if (link != null && link.Fact != null) AddLink(index._readers, link);
             index.MapQuestReaders();
             index.MapMemoryReaders(s.Memories);
             index.MapRewardReaders(s.Rewards);

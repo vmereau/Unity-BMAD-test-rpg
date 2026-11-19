@@ -59,6 +59,8 @@ namespace Game.Editor.QuestExplorer
                         AddSceneSetter(s, setter, FactLinkSource.WorldFactTrigger, $"Fact trigger: {setter.name}");
                     foreach (var setter in root.GetComponentsInChildren<DoorLatch>(true))
                         AddSceneSetter(s, setter, FactLinkSource.DoorLatch, $"Door latch: {setter.name}", "_unlatchedFact");
+                    foreach (var reader in root.GetComponentsInChildren<FactRemovedObject>(true))
+                        AddSceneReader(s, reader, FactLinkSource.FactRemovedObject, $"Removes object: {reader.name}");
                 }
             CollectPrefabs(s.KilledBindings);
             CollectClosedScenes(s, loadedScenePaths);
@@ -77,6 +79,18 @@ namespace Game.Editor.QuestExplorer
             {
                 Fact = fact, Kind = FactLinkKind.Setter, Source = source,
                 Owner = setter, ScenePath = setter.gameObject.scene.path, Label = label
+            });
+        }
+
+        private static void AddSceneReader(IndexSources s, Component reader, FactLinkSource source, string label,
+            string factField = "_fact")
+        {
+            using var serialized = new SerializedObject(reader);
+            var fact = serialized.FindProperty(factField)?.objectReferenceValue as Fact;
+            if (fact != null) s.SceneFactReaders.Add(new FactLink
+            {
+                Fact = fact, Kind = FactLinkKind.Reader, Source = source,
+                Owner = reader, ScenePath = reader.gameObject.scene.path, Label = label
             });
         }
 
@@ -167,6 +181,14 @@ namespace Game.Editor.QuestExplorer
             if (!string.IsNullOrEmpty(latchScriptGuid)) setterScripts[latchScriptGuid] = (FactLinkSource.DoorLatch, "Door latch", "_unlatchedFact");
             var worldByGuid = s.AllFacts.OfType<WorldFact>().ToDictionary(
                 fact => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(fact)));
+            // Scene components whose _fact (any Fact) is read: FactRemovedObject.
+            string removerScriptGuid = AssetDatabase.AssetPathToGUID("Assets/_Game/Scripts/World/FactRemovedObject.cs");
+            var factByGuid = new Dictionary<string, Fact>();
+            foreach (var fact in s.AllFacts)
+            {
+                string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(fact));
+                if (!string.IsNullOrEmpty(guid)) factByGuid[guid] = fact;
+            }
 
             var killedByGuid = new Dictionary<string, KilledFact>();
             foreach (var fact in s.AllFacts.OfType<KilledFact>())
@@ -174,7 +196,6 @@ namespace Game.Editor.QuestExplorer
                 string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(fact));
                 if (!string.IsNullOrEmpty(guid)) killedByGuid[guid] = fact;
             }
-            if (killedByGuid.Count == 0) return;
 
             foreach (var guid in AssetDatabase.FindAssets("t:Scene", new[] { SCENES_FOLDER }))
             {
@@ -183,11 +204,25 @@ namespace Game.Editor.QuestExplorer
                 try
                 {
                     string text = File.ReadAllText(path);
+                    string killedScanText = text; // minus FactRemovedObject blocks: a KilledFact read there is not a setter
                     // Only the fact field on this component is a setter; unrelated scene fact references are readers.
                     foreach (Match block in Regex.Matches(text, @"(?ms)^--- !u!114 .*?(?=^---|\z)"))
                     {
                         var script = Regex.Match(block.Value, @"m_Script: \{fileID: \d+, guid: ([0-9a-f]{32}),");
-                        if (!script.Success || !setterScripts.TryGetValue(script.Groups[1].Value, out var setter)) continue;
+                        if (!script.Success) continue;
+                        if (!string.IsNullOrEmpty(removerScriptGuid) && script.Groups[1].Value == removerScriptGuid)
+                        {
+                            string readGuid = FactGuidInBlock(block.Value, "_fact");
+                            if (readGuid != null && factByGuid.TryGetValue(readGuid, out var readFact))
+                                s.SceneFactReaders.Add(new FactLink
+                                {
+                                    Fact = readFact, Kind = FactLinkKind.Reader, Source = FactLinkSource.FactRemovedObject,
+                                    ScenePath = path, Label = $"Removes object in {Path.GetFileNameWithoutExtension(path)}"
+                                });
+                            killedScanText = killedScanText.Replace(block.Value, string.Empty);
+                            continue;
+                        }
+                        if (!setterScripts.TryGetValue(script.Groups[1].Value, out var setter)) continue;
                         string factGuid = FactGuidInBlock(block.Value, setter.factField);
                         if (factGuid != null && worldByGuid.TryGetValue(factGuid, out var worldFact))
                             s.SceneFactSetters.Add(new FactLink
@@ -197,7 +232,7 @@ namespace Game.Editor.QuestExplorer
                             });
                     }
                     var found = new HashSet<KilledFact>();
-                    foreach (Match m in GuidRegex.Matches(text))
+                    foreach (Match m in GuidRegex.Matches(killedScanText))
                     {
                         if (killedByGuid.TryGetValue(m.Groups[1].Value, out var fact) && found.Add(fact))
                             s.ClosedSceneRefs.Add((fact, path));

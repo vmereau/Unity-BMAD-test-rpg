@@ -107,3 +107,10 @@ InventoryUI  (IScreenPanel)
 - `InventoryPanel.prefab` is shared with `ContainerUI` and `NPCTradeUI`. The inventory-only parts (`FilterBar`, `FilterTooltip`, `GoldFooter`, top padding 76, `header` hidden) are **overrides on the instance in `InventoryUI.prefab`** — never add them to `InventoryPanel.prefab`. `InventoryUI._goldText` → `GoldFooter`.
 - `EquipmentSlotUI` does **not** subscribe to events — it is refreshed by `EquipmentUI` calling `Refresh(item)` on each slot after `_onEquipmentChanged` fires.
 - `InventoryUI` adds an `AnyButtonClickListener` component to `_panelRoot` at runtime in `Awake` — do not add it manually in the prefab.
+
+## Trade Window Close Paths
+
+- `NPCTradeUI` closes on Escape (`UI.Cancel`), on `OnPlayerKnockedOut`, and on `OnDialogueCloseRequested`
+  (`GameEventSO_DialogueCloseRequest`, wired on `UICanvas.prefab`) when the requesting `NPCPresence`'s own
+  `InventorySystem` is the one being traded with, e.g. an NPC leaving the world through `FactRemovedObject`
+  (`Scripts/World/CLAUDE.md`). All three are listened to only while the window is open (`OnEnable` / `OnDisable`).

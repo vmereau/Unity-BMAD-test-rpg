@@ -751,6 +751,7 @@ namespace Game.Editor.QuestExplorer
             FactLinkSource.QuestFactTarget => "[Target]",
             FactLinkSource.Recipe => "[Recipe]",
             FactLinkSource.DoorLatch => "[Latch]",
+            FactLinkSource.FactRemovedObject => "[Removes]",
             _ => source.ToString()
         };
     }

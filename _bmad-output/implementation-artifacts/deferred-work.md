@@ -1119,7 +1119,8 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 - **Prerequisites before `/quests:implement TitheBarnShortfall`** (each its own quick-dev spec): ~~P1 HUD time of
   day; P2 sleep / wait to a chosen hour~~ (done 2026-11-19, `spec-hud-clock-and-sleep-hour-picker`; beds only); ~~P3 hour- and NPC-gated
-  `WorldFactTrigger`~~ (done 2026-11-19, `spec-gated-world-fact-trigger`); P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal.
+  `WorldFactTrigger`~~ (done 2026-11-19, `spec-gated-world-fact-trigger`); ~~P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal~~ (done 2026-11-19,
+  `spec-fact-driven-npc-removal`).
 - **Gang revenge when Venn takes the fall (follow-up event / quest, to design).** Reporting Venn cuts the gang's
   grain supply. Gang members from the Mafia Zone should jump the player at night some time after Venn is gone
   (a beating + robbery through the knockout / loot flow rather than a death fight). Brann knows ("you cost us a
@@ -1142,3 +1143,10 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   a prefab asset / in another scene. Today only a runtime `Awake` warning reports the label mismatch.
 - **No MonoBehaviour-level tests for `WorldFactTrigger`** (Awake validation, destroyed / inactive NPC). The decision is
   covered by `WorldFactTriggerRulesTests`; a PlayMode test would cover the wiring.
+
+## From spec-fact-driven-npc-removal (2026-11-19)
+
+- **Quest Explorer closed-scene scan misses prefab-instance overrides.** `QuestIndexCollector.CollectClosedScenes` only
+  reads `--- !u!114` blocks. A `FactRemovedObject` / `WorldFactTrigger` / `ContainerTakeFact` / `DoorLatch` whose fact
+  is a `PrefabInstance` modification (`propertyPath: _fact`) is indexed only while its scene is loaded. Scan the
+  modifications too if such prefabs appear (documented in `Editor/QuestExplorer/CLAUDE.md`).

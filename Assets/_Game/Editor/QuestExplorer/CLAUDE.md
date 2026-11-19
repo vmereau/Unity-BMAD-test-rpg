@@ -62,6 +62,11 @@ Claude can't click the window — it reads the same data as text:
   start dialogue chain sets a part fact. Not transitive.
 - Scene WorldFact setters (`ContainerTakeFact`, `WorldFactTrigger`: their `_fact` field; `DoorLatch`: `_unlatchedFact`) go into
   `IndexSources.SceneFactSetters`, from loaded scenes and as text from closed ones.
+- Scene fact readers (`FactRemovedObject._fact`, any `Fact`) go into `IndexSources.SceneFactReaders` the same way
+  (`FactLinkSource.FactRemovedObject`, tag `[Removes]`); their blocks are left out of the closed-scene KilledFact GUID
+  scan, so a `KilledFact` used as a removal fact is not mistaken for a setter. Closed-scene text scans read only
+  `--- !u!114` component blocks: a setter / reader whose fact is a **prefab-instance override** shows up only while its
+  scene is loaded.
 - Closed scenes (`Assets/_Game/Scenes/` not loaded) are scanned as text for KilledFact asset GUIDs →
   `ClosedScene` setters ("Open scene & select" opens additively after the save prompt).
 
