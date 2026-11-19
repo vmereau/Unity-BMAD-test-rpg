@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Shortfall
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Short. Again. I count at dusk and the barn is right. I count at dawn and it's two sacks short, three some weeks. Never more, never less. Someone is being careful.
-  nextNode: {fileID: 11400000, guid: 88e3214cc143ccf448519765b7f88baf, type: 2}
+  text: Around the fields? The gang works the fields, and I count what they bring in. No, what I could use is a pair of eyes nobody in this camp has bought yet, and you're new, so yours might still be your own. My tithe barn comes up short. Every week.
+  nextNode: {fileID: 11400000, guid: 446d4100eba47964797508b2a2a707c8, type: 2}
   _id: d2bc407775ba7774897211c02d12041f

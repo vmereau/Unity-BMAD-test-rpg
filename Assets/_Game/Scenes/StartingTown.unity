@@ -478398,6 +478398,7 @@ GameObject:
   - component: {fileID: 1416371735}
   - component: {fileID: 1416371734}
   - component: {fileID: 1416371733}
+  - component: {fileID: 1416371740}
   m_Layer: 8
   m_Name: BrannsStash
   m_TagString: Untagged
@@ -478605,10 +478606,28 @@ MonoBehaviour:
     count: 2
   - item: {fileID: 11400000, guid: 1e8d7573cd3ec884a8832b46342d91e9, type: 2}
     count: 25
+  - item: {fileID: 11400000, guid: e859d13619970934cb6fb6247ee97169, type: 2}
+    count: 1
   _onInventoryChanged: {fileID: 0}
   _collectGoldAsCurrency: 0
   _onGoldLootRequested: {fileID: 0}
   _onStolenGoodsRequested: {fileID: 0}
+--- !u!114 &1416371740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1416371728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25b6834ef162a984ba9108787c321de0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.ContainerTakeFact
+  _onItemTaken: {fileID: 11400000, guid: fbb9f92f003ffcc40876982947e237ee, type: 2}
+  _fact: {fileID: 11400000, guid: 0f6517e2926a3a74584df5eca8ccb8ab, type: 2}
+  _items:
+  - {fileID: 11400000, guid: e859d13619970934cb6fb6247ee97169, type: 2}
 --- !u!1 &1416492803
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Report_Guard
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: A Company man, with a Company key. So it was never my count that was wrong. I'll take it up to the Warden myself, and I'll write down who brought it to me. Here, twenty-five, as promised.
+  text: O.V., three sacks, twelve coin, every week, in the gang's own chalk. So it was never my count that was wrong. A Company man with a Company key. I'll take this up to the Warden myself, and I'll write down who brought it. Here, twenty-five, as promised.
   nextNode: {fileID: 0}
   _id: faca6c20fe7bdf7428e414186ec9ff83

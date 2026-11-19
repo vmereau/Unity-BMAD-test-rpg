@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BarnGuard_Refused
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: My word against a worker's? Go on, then. See which one the fort believes.
+  text: Go on, then, friend, tell him. A new face nobody knows against a Company guard with a key he's allowed to carry? Nobody's going to believe you. And the men who buy that grain remember faces, so think about who'll be walking behind you after dark.
   nextNode: {fileID: 0}
   _id: 157f4f40e161f434eb9247091cf2db20

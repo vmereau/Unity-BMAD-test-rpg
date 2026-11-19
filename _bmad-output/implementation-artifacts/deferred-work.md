@@ -1150,3 +1150,15 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   reads `--- !u!114` blocks. A `FactRemovedObject` / `WorldFactTrigger` / `ContainerTakeFact` / `DoorLatch` whose fact
   is a `PrefabInstance` modification (`propertyPath: _fact`) is indexed only while its scene is loaded. Scan the
   modifications too if such prefabs appear (documented in `Editor/QuestExplorer/CLAUDE.md`).
+
+## From spec-tithe-barn-proof-and-leads (2026-11-19)
+
+- **Theft return confiscates quest items.** `EntityBrain.TakeGoods` / `InventorySystem.HandleStolenGoodsRequested` don't
+  skip `isQuestItem`, so a witness who catches the player stealing `Item_BrannsTally` takes it into **their own**
+  inventory (`RecoverRefusedGoods` does the same after a knockout). `WorldFact_GangStash_TallyTaken` stays set, so the
+  Tam / Aldric leads close and the journal says the player has the proof. Fix in code: exclude quest items from
+  theft-return (or return them to the source container). Recovery today: loot the catcher.
+- **Saves predating a container's new starting item lose it.** `SaveableObject.Restore` replaces the inventory with the
+  saved slots, so a save made before `BrannsStash` got the tally never has it. Dev-only today; matters once saves ship.
+- **Tally taken before the quest starts** (HiddenStash Take All) is a quest item the player can't part with, and stays in
+  the bag forever if the quest ends on Pim. Cosmetic.

@@ -69,6 +69,7 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
 | `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Asked`. The start node sets Asked at chain end (quest start, either answer); the "I don't have any money for food." choice also sets `DialogueFact_HiddenStash_Hint` (Brann's chest) |
 | `Feed/` "I brought you something to eat." | Asked, not FedFood / FedMeal / Mocked. "Here, this should help." = Give window for ReadyFood (Apple / Bread) → `DialogueFact_HiddenStash_FedFood` (+50 XP); "Here, I've got something even better than you hoped for." = Meal, hidden without a meal → `_FedMeal` (+100 XP, kept for later content); "Not yet."; "I don't have any money for food." → Hint + the chest lines. Either Fed fact completes the quest; the item ends in Tam's inventory |
 | `StashReported/` "You were right about Brann's supplies..." | Asked + Hint + `WorldFact_HiddenStash_Taken`, not Reported / Mocked. Side line: +25 XP (`PlayerReward_HiddenStash_Reported`), does not complete the quest |
+| `BarnTally/` "Pell's grain ends up with the gang. Know who buys it?" | OfferedHelp + TitheBarnShortfall `DialogueFact_FarmReeve_Shortfall_NeedProof`, not `_BeatenWorker_BarnTally` / `WorldFact_GangStash_TallyTaken` / quest Completed / Failed / Mocked. Free lead: Brann chalks every purchase on slips in his stash chest (he points, he warns "hands off") |
 | `Cold/` "Got a moment?" → "...Not really, no. I'm tired. Leave me be." (repeatable) | Mocked |
 
 ---

@@ -58,6 +58,7 @@ MonoBehaviour:
   nightState: 2
   prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
   memories:
+  - {fileID: 11400000, guid: 96e9d2f6fea414242837330a3913c77c, type: 2}
   - {fileID: 11400000, guid: 96213a47cff6e834a9bb2aa676ba5967, type: 2}
   - {fileID: 11400000, guid: ab930c8906d7f4c49b9fe4045774f977, type: 2}
   - {fileID: 11400000, guid: 149921fc33f651f4da7e8aae674e7387, type: 2}

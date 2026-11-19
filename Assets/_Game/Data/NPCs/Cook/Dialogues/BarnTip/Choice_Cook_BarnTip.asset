@@ -16,11 +16,11 @@ MonoBehaviour:
   nextNode: {fileID: 0}
   _id: 424aa36c00c7144469bd5cfcf0caef65
   choices:
-  - text: Twenty coin. Tell me.
+  - text: Five coin. Tell me.
     requiredMemory: {fileID: 0}
     nextNode: {fileID: 11400000, guid: 5b7f7c4787ae5ed44a82748ec9090afb, type: 2}
     dialogueFact: {fileID: 11400000, guid: a6f60fe3c7e29b24b86e9d053a369f8e, type: 2}
-    goldCost: 20
+    goldCost: 5
     requiredItem: {fileID: 0}
     giveToNpc: 0
     requiredCategory: 0

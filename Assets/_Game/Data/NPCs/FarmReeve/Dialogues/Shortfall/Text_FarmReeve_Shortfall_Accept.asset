@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Shortfall_Accept
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: You? Well, you're new, so you're either my thief or the one man in this camp who isn't in on it yet. It goes at night. Bring me a name, a real one, and I'll pay for it. Twenty-five coin, counted twice.
-  nextNode: {fileID: 0}
+  text: Good. You're either my thief or the one man in this camp who isn't in on it yet, and I'd rather it was the second. Either way, people will tell a new face what they won't tell the reeve.
+  nextNode: {fileID: 11400000, guid: 94c0b087aca0f904493321a1ac35d6e3, type: 2}
   _id: ac875e48fb9e07c4dac40395e1867c12

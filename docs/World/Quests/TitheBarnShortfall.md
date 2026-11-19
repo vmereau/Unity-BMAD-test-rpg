@@ -13,23 +13,34 @@ Brann (npc-003).
 
 ## Story beats
 
-1. **Pell's shortfall** (start). Pell counts at dusk and the barn is right. He counts at dawn and it is
-   short by two or three sacks. The lock is never forced. He'll pay for a name.
-2. **Asking around the farm** (optional). Pim, a young field hand, says the barn isn't that secure:
+1. **Pell's shortfall** (start). The player asks Pell if there's work around the fields. Pell counts at dusk
+   and the barn is right. He counts at dawn and it is short by two or three sacks. The lock is never forced.
+   A newcomer nobody has bought yet is useful to him: he sends the player to ask the field gang (Pim, Gerrit)
+   and Venn at the fields gate. He'll pay for a name.
+2. **Asking around the farm** (optional). Venn brushes the player off: it's one of the poor workers, go ask
+   them, he's seen nothing, stop bothering him. Pim, a young field hand, says the barn isn't that secure:
    nobody watches it once the gang is out, and "someone who's really hungry" could slip in. His guess
    points at the workers, and it makes him easy to blame later. Gerrit, an old hand on the threshing
    floor, reasons the other way. It can't be a worker, because workers are the first ones Pell suspects.
    It has to be someone who knows the place well, though: when Pell counts, where the lamps aren't, and
    someone "nobody counts". That points at the guards.
-3. **Aldric's tip** (optional). The Cook, an information broker, sells for 20 gold what he hears: barn
+3. **Aldric's tip** (optional). The Cook, an information broker, sells for 5 gold what he hears: barn
    grain turns up at the gang's tent after midnight, carried by "a man who didn't need to climb in".
 4. **The stakeout.** Between 00:00 and 03:00, Venn walks from the barracks to the tithe barn and stands
    at the barn door with sacks. A player who reaches the barn while he is there catches him.
-5. **The confrontation.** Venn offers a deal. The player refuses (he'll report), or takes 40 gold and
-   agrees to name Pim.
-6. **The report to Pell.** The player names Venn or names Pim (the second choice needs the deal). Pell
-   pays either way. 12 game hours later, the named man is gone ("taken up to the fort").
-7. **Aftermath.** If the player took the deal, Brann has a one-time "Venn says you keep your mouth shut"
+5. **The confrontation.** Venn offers a deal. The player refuses, or takes 40 gold and agrees to name Pim.
+   A refusal gets a calm threat: nobody will believe a newcomer over a Company guard, and the men who buy
+   the grain remember faces (dialogue only).
+6. **Pell wants proof.** "I caught him at the barn door" isn't enough: Pell won't write down a Company
+   guard's name on a newcomer's word. If Venn takes it, he sells it, so find the buyer and bring something
+   with his name on it (`NeedProof`). Aldric (5 gold) and Tam (free) both point at Brann, who chalks every
+   purchase on slips kept in his stash chest at the gang house.
+7. **The tally.** The player takes Brann's Grain Tally ("O.V., 3 sacks, Company stitch, 12 coin", weekly)
+   from `BrannsStash`. It's a theft from Brann, with the usual witness / scold / return flow.
+8. **The report to Pell.** The player hands over the tally to name Venn (works with or without the
+   stakeout), or names Pim (needs the deal, no proof: Pell believes the convenient lie). Pell pays either
+   way. 12 game hours later, the named man is gone ("taken up to the fort").
+9. **Aftermath.** If the player took the deal, Brann has a one-time "Venn says you keep your mouth shut"
    topic. It is the mafia route hook, and its quests come later. A player who took the deal and still
    named Venn keeps the 40 gold, and the Brann hook closes.
 
@@ -72,7 +83,7 @@ removals work. P5 is scene content and can go into `/quests:implement`.
 | `DialogueFact_FieldHand_BarnTalk` | `DialogueFact` | `Start_FieldHand_BarnTalk` plays (Pim's "barn isn't that secure" topic) |
 | `DialogueFact_BarnWorker_BarnTalk` | `DialogueFact` | `Start_BarnWorker_BarnTalk` plays (Gerrit's "not one of us" topic) |
 | `KilledFact_BarnWorker_Gerrit` | `KilledFact` | Gerrit's `PersistentID` (generated with the NPC; not read by the quest) |
-| `DialogueFact_Cook_BarnTip` | `DialogueFact` | "Twenty coin. Tell me." choice in `Choice_Cook_BarnTip` (`goldCost` 20) |
+| `DialogueFact_Cook_BarnTip` | `DialogueFact` | "Five coin. Tell me." choice in `Choice_Cook_BarnTip` (`goldCost` 5) |
 | `WorldFact_TitheBarn_ThiefCaught` | `WorldFact` | Hour- and NPC-gated `WorldFactTrigger` at the barn door (P3): player enters 00–03 while Venn is there, alive and up |
 | `DialogueFact_BarnGuard_Refused` | `DialogueFact` | "Pell gets your name." choice (either Venn choice node) |
 | `DialogueFact_BarnGuard_DealStruck` | `DialogueFact` | "Deal." choice in `Choice_BarnGuard_Deal` |
@@ -83,6 +94,11 @@ removals work. P5 is scene content and can go into `/quests:implement`.
 | `KilledFact_FieldHand_Pim` | `KilledFact` | Pim's `PersistentID` (generated with the NPC; not read by the quest) |
 | `ElapsedFact_FarmReeve_Shortfall_ReportedGuard_12h` | `ElapsedFact` | `ReportedGuard` + 12 h → removes Venn (P4) |
 | `ElapsedFact_FarmReeve_Shortfall_BlamedPim_12h` | `ElapsedFact` | `BlamedPim` + 12 h → removes Pim (P4) |
+| `DialogueFact_BarnGuard_BarnTalk` | `DialogueFact` | `Start_BarnGuard_BarnTalk` plays (Venn's brush-off) |
+| `DialogueFact_FarmReeve_Shortfall_NeedProof` | `DialogueFact` | "It's Venn. I caught him at the barn door." choice (no proof) |
+| `DialogueFact_Cook_Tally` | `DialogueFact` | "Five coin. Tell me." choice in `Choice_Cook_Tally` (`goldCost` 5) |
+| `DialogueFact_BeatenWorker_BarnTally` | `DialogueFact` | `Start_BeatenWorker_BarnTally` plays (Tam's free lead) |
+| `WorldFact_GangStash_TallyTaken` | `WorldFact` | `ContainerTakeFact` on `BrannsStash`, item `Item_BrannsTally` |
 | `QuestFact_TitheBarnShortfall_Started` | `QuestFact` | IsStarted |
 | `QuestFact_TitheBarnShortfall_Completed` | `QuestFact` | IsCompleted |
 | `QuestFact_TitheBarnShortfall_Failed` | `QuestFact` | IsFailed |
@@ -124,13 +140,16 @@ completed (deferred-work, sealed-passage review).
 ```
 steps:
   - title: "Ask around the farm"
-    description: "The field gang works next to the barn every day. Someone there may have noticed something."
+    description: "Pell wants me to ask the field gang, who work next to the barn every day, and Venn, the guard on the fields gate."
     parts:
       - fact:  DialogueFact_FieldHand_BarnTalk
         entry: "Pim says nobody watches the barn once the gang is out. Anyone hungry enough could slip in."
       - fact:  DialogueFact_BarnWorker_BarnTalk
         entry: "Gerrit doesn't think it's a worker, since they'd be the first suspected. It's someone who knows the place well, though. Someone nobody counts."
-    # Optional: active once either talk happens, done when both have.
+      - fact:  DialogueFact_BarnGuard_BarnTalk
+        entry: "Venn at the fields gate blames the poor workers on the strips. He's seen nothing, he says, and he'd rather I stopped asking."
+    # Optional: active once any talk happens, done when all three have. Venn's part closes once he's caught
+    # (same as Pim's), so a player who skips him leaves this step unfinished. That's accepted for optional steps.
 
   - title: "A man with a key"
     description: "Aldric the cook hears what sells in the camp after dark. He might know where Pell's grain goes."
@@ -144,6 +163,20 @@ steps:
     parts:
       - fact:  WorldFact_TitheBarn_ThiefCaught
         entry: "I caught Osric Venn, a garrison guard, carrying sacks out of the tithe barn with his own key."
+
+  - title: "Pell wants proof"
+    description: "Pell won't take a newcomer's word against a Company guard."
+    parts:
+      - fact:  DialogueFact_FarmReeve_Shortfall_NeedProof
+        entry: "Pell won't believe me without proof. If Venn takes the grain, someone buys it. I need something with his name on it."
+    # Hidden for a player who brings the tally before ever reporting without proof.
+
+  - title: "Something with his name on it"
+    description: "Whoever takes Pell's grain sells it, and whoever buys it may keep a record."
+    parts:
+      - fact:  WorldFact_GangStash_TallyTaken
+        entry: "I took Brann's grain tally from his stash. Every week the same line: O.V., three sacks, twelve coin."
+    # Two one-part steps so the tally-first route still completes a step.
 ```
 
 ---
@@ -154,7 +187,10 @@ steps:
 reads:
   - WorldFact_Arrival_Done: Pell's shortfall topic only opens after the arrival
 read_by:
-  - Mem_FarmReeve_ShortfallReport: unlocks on WorldFact_TitheBarn_ThiefCaught; closes on QuestFact_TitheBarnShortfall_Failed
+  - Mem_FarmReeve_ShortfallReport: unlocks on QuestFact_TitheBarnShortfall_Started (choices gate themselves: tally item, Mem_FarmReeve_GateCaught, Mem_FarmReeve_GateDeal); closes on ReportedGuard / BlamedPim / Failed
+  - Mem_FarmReeve_GateCaught: unlocks on WorldFact_TitheBarn_ThiefCaught; closes on NeedProof / GangStash_TallyTaken (the no-proof line plays once)
+  - Mem_BarnGuard_BarnTalk: unlocks on Started; closes on its own fact / ThiefCaught / Completed / Failed
+  - Mem_Cook_Tally / Mem_BeatenWorker_BarnTally (Tam also needs DialogueFact_BeatenWorker_OfferedHelp): unlock on NeedProof; close on their own fact / GangStash_TallyTaken / Completed / Failed
   - Mem_FieldHand_BarnTalk / Mem_BarnWorker_BarnTalk: unlock on QuestFact_TitheBarnShortfall_Started
   - Mem_Cook_BarnTip: unlocks on QuestFact_TitheBarnShortfall_Started; closes on Completed / Failed
   - Mem_BarnGuard_Caught: closes on Completed / Failed
@@ -177,28 +213,36 @@ npcs:
       - asset: Mem_FarmReeve_Shortfall
         unlock:     [WorldFact_Arrival_Done]
         invalidate: [DialogueFact_FarmReeve_Shortfall_Accepted]
-        dialogue_topic: Shortfall   # topic text: "About the barn being short."
+        dialogue_topic: Shortfall   # topic text: "Anything I can do for you around the fields?"
         dialogue:
-          - NPC: "Short. Again. I count at dusk and the barn is right. I count at dawn and it's two sacks short, three some weeks. Never more, never less. Someone is being careful."
+          - NPC: "Around the fields? The gang works the fields, and I count what they bring in. No, what I could use is a pair of eyes nobody in this camp has bought yet, and you're new, so yours might still be your own. My tithe barn comes up short. Every week."
+          - NPC: "I count at dusk and the barn is right. I count at dawn and it's two sacks short, three some weeks. Never more, never less. Someone is being careful."
           - NPC: "And the lock is never forced. I check it myself. So either I've a ghost in my barn, or someone walks in through the door like he owns it."
           - Player: "I'll find your thief."  → Text_FarmReeve_Shortfall_Accept  [sets: DialogueFact_FarmReeve_Shortfall_Accepted]
           - Player: "Not my problem."  → END
-          - NPC (Accept): "You? Well, you're new, so you're either my thief or the one man in this camp who isn't in on it yet. It goes at night. Bring me a name, a real one, and I'll pay for it. Twenty-five coin, counted twice."
+          - NPC (Accept): "Good. You're either my thief or the one man in this camp who isn't in on it yet, and I'd rather it was the second. Either way, people will tell a new face what they won't tell the reeve."
+          - NPC (Accept_2): "Ask the field gang, Pim and old Gerrit, they work by the barn all day. And ask Venn, the guard on the fields gate, whether he's seen anyone about. Bring me a name, a real one, and I'll pay for it. Twenty-five coin, counted twice."
 
       - asset: Mem_FarmReeve_ShortfallReport
-        unlock:     [QuestFact_TitheBarnShortfall_Started, WorldFact_TitheBarn_ThiefCaught]
+        unlock:     [QuestFact_TitheBarnShortfall_Started]   # AND-only unlocks: each choice gates itself
         invalidate: [DialogueFact_FarmReeve_Shortfall_ReportedGuard, DialogueFact_FarmReeve_Shortfall_BlamedPim, QuestFact_TitheBarnShortfall_Failed]
-        dialogue_topic: ShortfallReport   # "I know who's taking your grain."
+        dialogue_topic: ShortfallReport   # "About your barn thief."
         dialogue:
           - NPC: "Well? A name. I've had a week of guesses, I don't need another."
-          - Player: "It's Venn, a garrison man. He has a key."  → Text_FarmReeve_Report_Guard  [sets: DialogueFact_FarmReeve_Shortfall_ReportedGuard]
+          - Player: "It's Venn. Here's Brann's tally, with his mark on it."  → Text_FarmReeve_Report_Guard  [sets: DialogueFact_FarmReeve_Shortfall_ReportedGuard]  [requiredItem: Item_BrannsTally (consumed), hideWhenMissing]
+          - Player: "It's Venn. I caught him at the barn door."  → Text_FarmReeve_Report_NoProof  [sets: DialogueFact_FarmReeve_Shortfall_NeedProof]  [requires: Mem_FarmReeve_GateCaught]
           - Player: "It's Pim, from your field gang."  → Text_FarmReeve_Report_Pim  [sets: DialogueFact_FarmReeve_Shortfall_BlamedPim]  [requires: Mem_FarmReeve_GateDeal]
           - Player: "Not yet."  → END
-          - NPC (Guard): "A Company man, with a Company key. So it was never my count that was wrong. I'll take it up to the Warden myself, and I'll write down who brought it to me. Here, twenty-five, as promised."
+          - NPC (Guard): "O.V., three sacks, twelve coin, every week, in the gang's own chalk. So it was never my count that was wrong. A Company man with a Company key. I'll take this up to the Warden myself, and I'll write down who brought it. Here, twenty-five, as promised."
+          - NPC (NoProof): "A Company guard, on a newcomer's word? If he takes it, he sells it. Find who buys my grain, and bring me something with his name on it."
           - NPC (Pim): "Pim? I had him down as slow, not careful. Then again, slow men count badly too. I'll have his blanket turned over before the gang goes out. Twenty-five, as promised."
 
       - asset: Mem_FarmReeve_GateDeal        # gate memory, no start dialogue (V15 via gated choice, V17 same NPC)
         unlock:     [DialogueFact_BarnGuard_DealStruck]
+        invalidate: []
+
+      - asset: Mem_FarmReeve_GateCaught      # gate memory for the no-proof Venn choice
+        unlock:     [WorldFact_TitheBarn_ThiefCaught]
         invalidate: []
 
       # Aftermath: one repeatable memory per ending (a topic can't branch on a fact).
@@ -228,9 +272,33 @@ npcs:
         dialogue_topic: BarnTip   # "Pell's barn is short. Heard anything?"
         dialogue:
           - NPC: "Pell's grain? Why would a cook hear about grain? Well. Supposing I did, what would hearing it be worth to you?"
-          - Player: "Twenty coin. Tell me."  → Text_Cook_BarnTip  [sets: DialogueFact_Cook_BarnTip]  (goldCost 20)
+          - Player: "Five coin. Tell me."  → Text_Cook_BarnTip  [sets: DialogueFact_Cook_BarnTip]  (goldCost 5)
           - Player: "Nothing. Forget it."  → END
           - NPC (Tip): "Barn sacks turn up at the gang's tent, late, after midnight. Good sacks, Company stitching. And the man who brings them doesn't come over the fence. He walks the fields road like he's on duty. Make of that what you like."
+
+      - asset: Mem_Cook_Tally
+        unlock:     [DialogueFact_FarmReeve_Shortfall_NeedProof]
+        invalidate: [DialogueFact_Cook_Tally, WorldFact_GangStash_TallyTaken, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
+        dialogue_topic: Tally   # "Who buys Pell's grain?"
+        dialogue:
+          - NPC: "Who buys grain after midnight? Now there's a question a cook has no business answering. Sit, have some soup. Supposing I knew, what would it be worth to you?"
+          - Player: "Five coin. Tell me."  → Text_Cook_Tally  [sets: DialogueFact_Cook_Tally]  (goldCost 5)
+          - Player: "Nothing. Forget it."  → END
+          - NPC (Tally): "Brann, down at the gang house. And Brann pays nobody without chalking it down first, every sack and every coin, on little slips he keeps in his stash chest. He trusts chalk more than men, that one. Another bowl?"
+
+  - npc: BeatenWorker (Tam, npc-002)
+    exists: true
+    folder: Assets/_Game/Data/NPCs/BeatenWorker/
+
+    memories:
+      - asset: Mem_BeatenWorker_BarnTally   # free lead
+        unlock:     [DialogueFact_FarmReeve_Shortfall_NeedProof, DialogueFact_BeatenWorker_OfferedHelp]   # greeting-opener gate
+        invalidate: [DialogueFact_BeatenWorker_BarnTally, WorldFact_GangStash_TallyTaken, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed, DialogueFact_BeatenWorker_Mocked]
+        dialogue_topic: BarnTally   # "Pell's grain ends up with the gang. Know who buys it?"
+        # Start node sets DialogueFact_BeatenWorker_BarnTally.
+        dialogue:
+          - NPC: "Grain? That'll be Brann, then. Everything in this camp that's sold after dark goes through his hands. And he's careful with it, counts it all twice like your reeve does, and chalks every sack on a little slip so nobody can cheat him."
+          - NPC: "He keeps those slips in the chest in the gang house, with his bread. I'm not saying go near it, mind. Hands off it, if you like your fingers. Brann's careful with what's his, and he's not gentle with anyone who isn't."
 
   - npc: BarnGuard (Osric Venn, npc-017)
     exists: false
@@ -251,6 +319,15 @@ npcs:
         dialogue:
           - NPC: "Fields gate. Workers out at dawn, in at dusk, and nobody in between who hasn't got a reason. Have you got one? Good. Then we're friends."
 
+      - asset: Mem_BarnGuard_BarnTalk
+        unlock:     [QuestFact_TitheBarnShortfall_Started]
+        invalidate: [DialogueFact_BarnGuard_BarnTalk, WorldFact_TitheBarn_ThiefCaught, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
+        dialogue_topic: BarnTalk   # "About Pell's missing grain."
+        # Start node sets DialogueFact_BarnGuard_BarnTalk.
+        dialogue:
+          - NPC: "Pell's sacks again? Friend, I keep a gate, I don't count barley. But if you want my guess, it's one of the poor devils on the strips. Hungry men, a barn full of grain, and all night to think about it. Go and ask them, they'd know better than me."
+          - NPC: "Me, I've seen nothing out of the ordinary, and I'd have told Pell if I had. Now, I've a gate to keep and you're standing in it, so be a good friend and stop bothering me with Pell's arithmetic."
+
       - asset: Mem_BarnGuard_Caught
         unlock:     [WorldFact_TitheBarn_ThiefCaught]
         invalidate: [DialogueFact_BarnGuard_Refused, DialogueFact_BarnGuard_DealStruck, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
@@ -259,7 +336,7 @@ npcs:
           - NPC: "Easy. You didn't see a man stealing, you saw a man moving the Company's grain from one Company place to another. All right, you saw a bit more than that. So what happens now?"
           - Player: "Pell gets your name."  → Text_BarnGuard_Refused  [sets: DialogueFact_BarnGuard_Refused]
           - Player: "What's it worth to you?"  → Choice_BarnGuard_Deal
-          - NPC (Refused): "My word against a worker's? Go on, then. See which one the fort believes."
+          - NPC (Refused): "Go on, then, friend, tell him. A new face nobody knows against a Company guard with a key he's allowed to carry? Nobody's going to believe you. And the men who buy that grain remember faces, so think about who'll be walking behind you after dark."
           - Choice_BarnGuard_Deal NPC: "Forty now, and nothing said by me either. But Pell wants a name, and he'll keep counting till he gets one. So give him one. Pim, from the field gang. Slow lad, sleeps near the barn wall. I'll make sure a sack turns up under his blanket."
           - Player: "Deal."  → Text_BarnGuard_Deal  [sets: DialogueFact_BarnGuard_DealStruck]  (+40 gold, PlayerRewardSO on the fact)
           - Player: "No. Pell gets your name."  → Text_BarnGuard_Refused  [sets: DialogueFact_BarnGuard_Refused]
@@ -421,6 +498,12 @@ Scale reference: SealedPassage endings 150 XP, WardensErrand completion 100 XP.
 - **Double-cross:** taking the deal and then naming Venn is allowed. The player keeps the 40 gold, Venn is
   removed, and Brann's hook closes. Nothing punishes it yet. A later mafia beat can read
   `DialogueFact_BarnGuard_DealStruck` + `_ReportedGuard`.
+- **Proof (spec-tithe-barn-proof-and-leads):** the truth needs evidence and the lie doesn't. Pell won't name a
+  Company guard on a newcomer's word, but he takes Pim's name at once. The tally alone is enough to report Venn,
+  even without the stakeout. Known edge (deferred, code): a witness who catches the theft and gets the goods
+  back moves the tally into **the catcher's** inventory (`EntityBrain.TakeGoods` doesn't skip quest items).
+  `TallyTaken` stays set, so the leads are closed and the journal still says the player has it. Recovery is
+  looting that NPC. Tracked in `deferred-work.md`.
 - **Stakeout without the leads:** a player who skips Pim, Gerrit and Aldric can still catch Venn. Steps 0–1 then
   never show.
 - **Clue design:** the three leads point at the guard from different angles. Pim (wrongly) points at hungry
@@ -467,4 +550,12 @@ Scale reference: SealedPassage endings 150 XP, WardensErrand completion 100 XP.
 - [x] Registered — `QuestEventsManager` (synced) and `QuestLogUI._allQuests`
 - [x] `quest_report TitheBarnShortfall` shows no Error / Warning; `quest_report audit` adds no issue (WardensErrand's
       V3 / V12 / V13 pre-date this quest)
-- [ ] Play-test: stakeout window, both endings, the 12 h removals (not run yet)
+- [x] Proof iteration (`spec-tithe-barn-proof-and-leads`): facts `DialogueFact_BarnGuard_BarnTalk`,
+      `DialogueFact_FarmReeve_Shortfall_NeedProof`, `DialogueFact_Cook_Tally`, `DialogueFact_BeatenWorker_BarnTally`,
+      `WorldFact_GangStash_TallyTaken`; item `Data/Items/Quest/Item_BrannsTally` (quest item, in `ItemCatalog`, notice
+      icon until `/items:icon-prompt`); chains `BarnGuard/Dialogues/BarnTalk/`, `Cook/Dialogues/Tally/`,
+      `BeatenWorker/Dialogues/BarnTally/`, `FarmReeve` `Text_FarmReeve_Shortfall_2` / `_Accept_2` / `Text_FarmReeve_Report_NoProof`;
+      memories `Mem_BarnGuard_BarnTalk`, `Mem_FarmReeve_GateCaught`, `Mem_Cook_Tally`, `Mem_BeatenWorker_BarnTally`;
+      `BrannsStash` holds 1× tally + a second `ContainerTakeFact` (tally only); quest steps "Pell wants proof" and
+      "Something with his name on it"
+- [ ] Play-test: stakeout window, both endings, the 12 h removals, the proof route (not run yet)

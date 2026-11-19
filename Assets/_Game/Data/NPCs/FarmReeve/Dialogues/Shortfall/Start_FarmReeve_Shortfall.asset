@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_FarmReeve_Shortfall
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: About the barn being short.
+  text: Anything I can do for you around the fields?
   nextNode: {fileID: 11400000, guid: d2bc407775ba7774897211c02d12041f, type: 2}
   _id: 12837cb8296a5e6458ef929a9ba847cc
   dialogueFact: {fileID: 0}

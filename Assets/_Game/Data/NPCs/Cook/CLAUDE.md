@@ -70,4 +70,5 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 | Teachings | `Assets/_Game/Data/NPCs/Cook/Teachings/` |
 | Memories | `Assets/_Game/Data/NPCs/Cook/Memories/` |
 | Shop | `Dialogues/Shop/` ("I need lockpicks") + `Mem_Cook_Shop` — unlocked by `SkillFact_BeginnerLockpicking_Learned`; stock (`Item_Lockpick` ×10) on the `Cook` instance in `StartingTown.unity` |
+| TitheBarnShortfall | `Dialogues/BarnTip/` (5 gold, quest started, until Venn is caught) and `Dialogues/Tally/` (5 gold, unlocked by `DialogueFact_FarmReeve_Shortfall_NeedProof`: Brann keeps tally slips in his stash) |
 | Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

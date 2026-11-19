@@ -28,12 +28,14 @@ MonoBehaviour:
     entry: Venn is dead. Whatever he knew about the barn went into the ground with him.
   steps:
   - title: Ask around the farm
-    description: The field gang works next to the barn every day. Someone there may have noticed something.
+    description: Pell wants me to ask the field gang, who work next to the barn every day, and Venn, the guard on the fields gate.
     parts:
     - fact: {fileID: 11400000, guid: 6f38602beba8a6945bd7869fc97d4ee5, type: 2}
       entry: Pim says nobody watches the barn once the gang is out. Anyone hungry enough could slip in.
     - fact: {fileID: 11400000, guid: 365756376a0886041a7d2a3a3bda70b4, type: 2}
       entry: Gerrit doesn't think it's a worker, since they'd be the first suspected. It's someone who knows the place well, though. Someone nobody counts.
+    - fact: {fileID: 11400000, guid: 34e97a5740a4dab4ca7a7995a34e071c, type: 2}
+      entry: Venn at the fields gate blames the poor workers on the strips. He's seen nothing, he says, and he'd rather I stopped asking.
   - title: A man with a key
     description: Aldric the cook hears what sells in the camp after dark. He might know where Pell's grain goes.
     parts:
@@ -44,3 +46,13 @@ MonoBehaviour:
     parts:
     - fact: {fileID: 11400000, guid: 4d1bd5f652da10e449b0a1e4ebcaeb8a, type: 2}
       entry: I caught Osric Venn, a garrison guard, carrying sacks out of the tithe barn with his own key.
+  - title: Pell wants proof
+    description: Pell won't take a newcomer's word against a Company guard.
+    parts:
+    - fact: {fileID: 11400000, guid: 553a94b1dd55371429a3560d8470a992, type: 2}
+      entry: Pell won't believe me without proof. If Venn takes the grain, someone buys it. I need something with his name on it.
+  - title: Something with his name on it
+    description: Whoever takes Pell's grain sells it, and whoever buys it may keep a record.
+    parts:
+    - fact: {fileID: 11400000, guid: 0f6517e2926a3a74584df5eca8ccb8ab, type: 2}
+      entry: 'I took Brann''s grain tally from his stash. Every week the same line: O.V., three sacks, twelve coin.'

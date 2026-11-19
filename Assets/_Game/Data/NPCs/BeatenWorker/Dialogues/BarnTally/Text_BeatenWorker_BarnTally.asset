@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_BeatenWorker_BarnTally
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Grain? That'll be Brann, then. Everything in this camp that's sold after dark goes through his hands. And he's careful with it, counts it all twice like your reeve does, and chalks every sack on a little slip so nobody can cheat him.
+  nextNode: {fileID: 11400000, guid: b76a8e15f2c1ff54fb028a3419fa9a16, type: 2}
+  _id: 6db38554b7833784bb59d42e63c3f053

@@ -52,7 +52,8 @@ short. He thinks of it as a tax on a Company that taxes everyone.
 
 ## Dialogue Writing Rules (NPC-specific)
 
-- Never sounds guilty or threatened in the moment; the threat comes later, calmly ("they don't forget a name").
+- Never sounds guilty or threatened in the moment. When refused he threatens calmly, as a friendly warning ("nobody's
+  going to believe you", "the men who buy that grain remember faces"), never angrily.
 - Never calls himself a thief and never says "steal" about himself.
 
 ---
@@ -63,7 +64,7 @@ The thief. Caught at the barn door 00–03 (`WorldFact_TitheBarn_ThiefCaught`), 
 is refused. Removed 12 h after Pell hears his name (`ElapsedFact_FarmReeve_Shortfall_ReportedGuard_12h`, scene
 `FactRemovedObject` wrapper). His death fails the quest (`KilledFact_BarnGuard`).
 
-Topics: `Greeting` (until caught), `Caught` (deal / refuse), `AfterRefused`, `AfterDeal`, `AfterReported`.
+Topics: `Greeting` (until caught), `BarnTalk` (quest started, until caught: blames the workers, brush-off), `Caught` (deal / refuse; refuse = calm threat, dialogue only), `AfterRefused`, `AfterDeal`, `AfterReported`.
 
 ---
 

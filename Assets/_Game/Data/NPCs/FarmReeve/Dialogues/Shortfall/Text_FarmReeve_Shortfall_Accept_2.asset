@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_FarmReeve_Shortfall_Accept_2
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Ask the field gang, Pim and old Gerrit, they work by the barn all day. And ask Venn, the guard on the fields gate, whether he's seen anyone about. Bring me a name, a real one, and I'll pay for it. Twenty-five coin, counted twice.
+  nextNode: {fileID: 0}
+  _id: 94c0b087aca0f904493321a1ac35d6e3

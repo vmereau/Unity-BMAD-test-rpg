@@ -29,4 +29,4 @@ Tam knows about the stash and regards Brann with casual contempt. Brann treats o
 
 ## Assets
 
-`NPC_StashOwner.asset`, `Dialogues/Greeting/`, `Memories/`. Scene instance and stash live under hand-owned `HiddenStashQuest`, outside `Area1_Blockout`.
+`NPC_StashOwner.asset`, `Dialogues/Greeting/`, `Memories/`. Scene instance and stash live under hand-owned `HiddenStashQuest`, outside `Area1_Blockout`. `BrannsStash` also holds `Item_BrannsTally` (TitheBarnShortfall proof; a second `ContainerTakeFact` sets `WorldFact_GangStash_TallyTaken`).
