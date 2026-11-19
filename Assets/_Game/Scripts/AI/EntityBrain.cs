@@ -40,7 +40,7 @@ namespace Game.AI
     {
         private const string TAG = "[AI]";
 
-        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Looting, Intercepting, Dead }
+        private enum EntityState { Idle, Patrolling, Suspicious, Warning, Engaging, Attacking, Searching, Watching, Pursuing, Confronting, Looting, Intercepting, Sleeping, Dead }
 
         private const string DEFAULT_SCOLD_LINE = "Hey! What do you think you're doing?";
 
@@ -61,6 +61,8 @@ namespace Game.AI
 
         /// <summary>Idle or patrolling (on its routine): free for a new encounter.</summary>
         public bool IsInNonCombatRoutine => _state == EntityState.Idle || _state == EntityState.Patrolling;
+        /// <summary>Lying asleep in its routine bed (NpcRoutine Sleep block): hears only, ignores thefts.</summary>
+        public bool IsAsleep => _state == EntityState.Sleeping;
 
         /// <summary>True while fighting <paramref name="member"/> (engaging / attacking it).</summary>
         public bool IsFighting(FactionMember member) => member != null && IsInCombat && _currentTarget == member;
@@ -233,6 +235,15 @@ namespace Game.AI
         private Quaternion _spawnRotation;
         private bool _routineWalk; // Idle anchored on a routine target: walk there, then face its rotation
         private bool _warnedPartialRoutinePath;
+        // Sleep (spec-npc-routine-sleep): the routine's bed (Sleep block, spot = its approach), the bed lain in, and a
+        // woken sleeper's wait for quiet before lying down again.
+        private Game.World.Bed _routineBed;
+        private Game.World.Bed _occupiedBed;
+        private bool _sleepWaitQuiet;
+        private float _sleepQuietTime;
+        private bool _warnedBedTaken;
+        private int _lastWokenBarkIndex = -1;
+        private bool _agentUpdatesOffForSleep; // left off by a death in bed; restored on disable (respawn)
         private bool _started; // Start completed — routine requests before that (or after a failed setup) are stored only
 
         private float _watchLostTimer;
@@ -399,6 +410,8 @@ namespace Game.AI
         private void OnDisable()
         {
             _active.Remove(this);
+            if (_state == EntityState.Sleeping) ExitSleepPose(true); // unload / respawn: OnEnable re-applies the routine
+            RestoreAgentUpdates(); // died in bed: a respawned body must move with its agent again
             EndTactics(); // brain disabled alone: no token or disabled agent rotation left behind
             if (_onTheftCommitted != null) _onTheftCommitted.RemoveListener(HandleTheftCommitted);
             if (_onDialogueSignal != null) _onDialogueSignal.RemoveListener(HandleDialogueSignal);
@@ -522,6 +535,7 @@ namespace Game.AI
                 case EntityState.Confronting: HandleConfronting(); break;
                 case EntityState.Looting:    HandleLooting();    break;
                 case EntityState.Intercepting: HandleIntercepting(); break;
+                case EntityState.Sleeping:   HandleSleeping();   break;
                 case EntityState.Dead:       HandleDead();       break;
             }
 
@@ -649,6 +663,7 @@ namespace Game.AI
                 GameLog.Warn(TAG, $"{gameObject.name}: routine spot {_idleOrigin} only partly reachable — stopped at {transform.position}");
             }
             _agent.isStopped = true;
+            if (_routineBed != null && _routineBed.IsNpcBed && HandleBedArrival()) return;
             Quaternion facing = _routineSpot != null ? _routineSpot.rotation : _spawnRotation;
             facing = Quaternion.Euler(0f, facing.eulerAngles.y, 0f);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, facing,
@@ -1977,6 +1992,7 @@ namespace Game.AI
             if (_meleeAttacker == null || _persistentID.Entity.DetectionRange <= 0f) return false;
             if (!IsLive(target) || target.Damageable.IsUnconscious) return false;
 
+            if (_state == EntityState.Sleeping) { ExitSleepPose(true); StartWaitingForQuiet(); }
             ClearIntercept();
             StopLooting();
             if (_armament != null) _armament.SetFists(useFists);
@@ -2073,6 +2089,13 @@ namespace Game.AI
             if (!decreased || current <= 0f || _entityHealth.IsDead) return;
 
             _lastDamagedTime = Time.time; // ends sneak-attack eligibility, even for passive / neutral entities
+            if (_state == EntityState.Sleeping)
+            {
+                // Hit in bed: up at once (beside the bed, routine target), then the normal reaction below.
+                ExitSleepPose(true);
+                StartWaitingForQuiet();
+                ResumeNonCombat();
+            }
             FactionMember attacker = _pendingAttackerFrame == Time.frameCount ? _pendingAttacker : null;
             _pendingAttacker = null;
             if (_entityHealth.IsUnconscious) return; // hit while down (monster): no reaction until it gets up
@@ -2143,6 +2166,13 @@ namespace Game.AI
         private void HandleStanceBroken()
         {
             if (_state == EntityState.Dead) return;
+            if (_state == EntityState.Sleeping)
+            {
+                // Staggered / knocked down in bed: off the bed first; the routine target is walked to once recovered.
+                ExitSleepPose(true);
+                StartWaitingForQuiet();
+                _routineAfterRecovery = true;
+            }
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             HoldAgentForReaction();
         }
@@ -2184,6 +2214,7 @@ namespace Game.AI
         private void HandleKnockedOut()
         {
             if (_state == EntityState.Dead) return;
+            if (_state == EntityState.Sleeping) { ExitSleepPose(true); StartWaitingForQuiet(); }
             _animationDriver?.SetWarning(false);
             StopLooting();
             ClearKnockedOutVictim();
@@ -2224,7 +2255,8 @@ namespace Game.AI
 
         public bool IsUnawareOf(GameObject attacker)
         {
-            if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious)
+            if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
+                _state != EntityState.Sleeping)
                 return false;
             if (Time.time - _lastDamagedTime < DamageAlertDuration) return false; // already hit recently
             return !(PerceptionActive && _perception.IsFullyAware);
@@ -2289,10 +2321,21 @@ namespace Game.AI
         /// skip) — for a route, to its nearest waypoint. A new route starts at its nearest waypoint; resending the same
         /// route keeps the current one.
         /// </summary>
-        public void SetRoutineTarget(Transform spot, IReadOnlyList<Transform> route, bool snap)
+        public void SetRoutineTarget(Transform spot, IReadOnlyList<Transform> route, bool snap) =>
+            SetRoutineTarget(spot, route, snap, null);
+
+        /// <summary>
+        /// As above, with a <paramref name="bed"/> to sleep in (NpcRoutine Sleep block, <paramref name="spot"/> = its
+        /// approach): on arrival the NPC lies down in it. Null = no sleep.
+        /// </summary>
+        public void SetRoutineTarget(Transform spot, IReadOnlyList<Transform> route, bool snap, Game.World.Bed bed)
         {
             _hasRoutine = true;
             _routineSpot = spot;
+            Game.World.Bed newBed = bed != null && bed.IsNpcBed ? bed : null;
+            // Time skip / load or another block: whatever woke it is long gone (a resend of the same bed keeps the wait).
+            if (snap || newBed != _routineBed) _sleepWaitQuiet = false;
+            _routineBed = newBed;
             bool newRoute = !SameRoute(route);
             if (newRoute)
             {
@@ -2376,6 +2419,11 @@ namespace Game.AI
                 if (_perception != null) _perception.ResetPerception();
                 _state = EntityState.Idle;
             }
+            if (_state == EntityState.Sleeping)
+            {
+                if (_routineBed != null && _routineBed == _occupiedBed) return; // same bed: sleeps on
+                ExitSleepPose(true); // new block (morning): up, then walk to it
+            }
             if (_state != EntityState.Idle && _state != EntityState.Patrolling) return;
             if (snap) SnapToRoutineTarget();
             ApplyRoutineTarget();
@@ -2415,6 +2463,185 @@ namespace Game.AI
             _routineWalk = true;
             if (_agent.isOnNavMesh && !_agent.SetDestination(target))
                 GameLog.Warn(TAG, $"{gameObject.name}: routine spot {target} is unreachable");
+        }
+
+        // --- Sleep (spec-npc-routine-sleep) ---
+
+        // Standing at the bed's approach point. True = handled (lay down, or a woken sleeper still waits for quiet facing
+        // the player); false = the caller turns to the spot's facing.
+        private bool HandleBedArrival()
+        {
+            if (_sleepWaitQuiet)
+            {
+                FactionMember player = TargetRegistry.Player;
+                bool absent = !IsLive(player);
+                float distance = 0f;
+                if (!absent)
+                {
+                    Vector3 offset = player.Transform.position - transform.position;
+                    offset.y = 0f;
+                    distance = offset.magnitude;
+                }
+                float walkRadius = _perception != null ? _perception.WalkHearingRadius : _persistentID.Entity.WalkHearingRadius;
+                if (NpcSleepRules.IsQuiet(absent, distance, walkRadius)) _sleepQuietTime += Time.deltaTime;
+                else _sleepQuietTime = 0f;
+                if (!NpcSleepRules.ShouldLieDown(true, _sleepQuietTime, StealthConfig.sleepResumeDelay))
+                {
+                    // Still grumpy: keeps an eye on the player until lying down again.
+                    if (absent) return false;
+                    FacePoint(player.Transform.position);
+                    return true;
+                }
+            }
+            return LieDown();
+        }
+
+        // Onto the bed's sleep anchor: the agent stays at the approach point (position / rotation updates off) and the
+        // perception keeps only hearing. False when another NPC holds the bed (stands instead, one warning).
+        private bool LieDown()
+        {
+            Game.World.Bed bed = _routineBed;
+            if (!bed.TryOccupy(gameObject))
+            {
+                if (!_warnedBedTaken)
+                {
+                    _warnedBedTaken = true;
+                    GameLog.Warn(TAG, $"{gameObject.name}: bed {bed.name} is taken by {bed.Occupant.name} — standing instead");
+                }
+                return false;
+            }
+            _occupiedBed = bed;
+            _sleepWaitQuiet = false;
+            _sleepQuietTime = 0f;
+            _routineWalk = false;
+            _currentTarget = null;
+            _agent.isStopped = true;
+            _agent.velocity = Vector3.zero;
+            _agent.updatePosition = false;
+            _agent.updateRotation = false;
+            _agentUpdatesOffForSleep = true;
+            Transform anchor = bed.NpcSleepAnchor;
+            transform.SetPositionAndRotation(anchor.position, anchor.rotation);
+            _animationDriver?.SetSleeping(true);
+            if (_perception != null) _perception.SetAsleep(true);
+            _state = EntityState.Sleeping;
+            GameLog.Info(TAG, $"{gameObject.name} lies down in {bed.name}");
+            return true;
+        }
+
+        // Asleep: hearing only. Full awareness wakes it: a trespasser in its area gets the trespass response, a hostile
+        // the normal one, anyone else a grumble. A non-stealth hostile within the radius (a monster) wakes it too.
+        private void HandleSleeping()
+        {
+            if (TryTakePerceptionTarget())
+            {
+                bool trespass = IsTrespassTarget();
+                RestrictedArea area = _perception.TrespassArea;
+                bool witness = IsWitnessTarget();
+                ExitSleepPose(true);
+                StartWaitingForQuiet();
+                GameLog.Info(TAG, $"{gameObject.name} woken by {_currentTarget.Transform.name}");
+                if (trespass) RespondToTrespasser(area);
+                // Witnessed, or trespassing while the area is in grace (not restricted now): non-hostile → grumble only.
+                else if (witness || _perception.IsTrespassing) WakeGrumbling();
+                else RespondToDetectedTarget();
+                return;
+            }
+            // Re-sent every tick: an armament rebuild (controller swap) resets the animator parameters.
+            _animationDriver?.SetSleeping(true);
+            if (TryAcquireTargetThrottled())
+            {
+                ExitSleepPose(true);
+                StartWaitingForQuiet();
+                RespondToDetectedTarget();
+            }
+        }
+
+        /// <summary>
+        /// The player wakes this sleeper by hand (NPCPresence "Wake"): grumble bubble, stands by the bed, lies down again
+        /// once the player has left it alone. False when not asleep.
+        /// </summary>
+        public bool WakeByPlayer()
+        {
+            if (_state != EntityState.Sleeping) return false;
+            ExitSleepPose(true);
+            StartWaitingForQuiet();
+            GameLog.Info(TAG, $"{gameObject.name} woken by the player");
+            // Woken by hand inside its own restricted area (Hobb's hut): the trespass response, not a grumble.
+            FactionMember player = TargetRegistry.Player;
+            if (PerceptionActive && IsLive(player) && RestrictedArea.TryFindTrespassedArea(player.Transform.position,
+                    _persistentID.Entity as NPCEntity, _selfFactionMember.Faction, out RestrictedArea area))
+            {
+                _currentTarget = player;
+                RespondToTrespasser(area);
+                return true;
+            }
+            WakeGrumbling();
+            return true;
+        }
+
+        // Woken by a non-hostile, non-trespassing player: grumble, forget the noise (else Idle would re-detect it as a
+        // witness at once), stand by the bed waiting for quiet.
+        private void WakeGrumbling()
+        {
+            WitnessProfileSO profile = _persistentID.Entity.WitnessProfile;
+            BarkSetSO barks = profile != null ? profile.WokenBarks : null;
+            string line = barks != null ? barks.GetRandomLine(ref _lastWokenBarkIndex) : null;
+            if (!string.IsNullOrEmpty(line) && _onSpeechBubbleRequested != null)
+                RaiseSpeechBubble(line, StealthConfig.wokenBubbleDuration, StealthConfig.wokenBubblePriority);
+            _currentTarget = null;
+            if (_perception != null) _perception.ResetPerception();
+            ResumeNonCombat();
+        }
+
+        private void StartWaitingForQuiet()
+        {
+            _sleepWaitQuiet = true;
+            _sleepQuietTime = 0f;
+        }
+
+        // Leaves the sleep pose: animation and perception back to awake, bed freed. With warp, the agent updates come
+        // back on and the body is set at the bed's approach point (death passes false: the ragdoll takes the body where
+        // it lies). State Sleeping → Idle; the caller decides what follows. No-op while not lying.
+        private void ExitSleepPose(bool warp)
+        {
+            if (_state != EntityState.Sleeping && _occupiedBed == null) return;
+            Game.World.Bed bed = _occupiedBed;
+            _occupiedBed = null;
+            _animationDriver?.SetSleeping(false);
+            if (_perception != null) _perception.SetAsleep(false);
+            if (warp)
+            {
+                Transform approach = bed != null ? bed.NpcApproach : null;
+                bool agentLive = _agent != null && _agent.isActiveAndEnabled;
+                Vector3 position = approach != null ? approach.position
+                    : agentLive ? _agent.nextPosition : transform.position;
+                RestoreAgentUpdates();
+                if (agentLive && !_agent.Warp(position))
+                    GameLog.Warn(TAG, $"{gameObject.name}: could not warp out of bed to {position}");
+                transform.position = position;
+                if (approach != null) transform.rotation = Quaternion.Euler(0f, approach.eulerAngles.y, 0f);
+            }
+            if (bed != null) bed.Release(gameObject);
+            if (_state == EntityState.Sleeping) _state = EntityState.Idle;
+        }
+
+        // Agent position / rotation updates back on after the sleep pose turned them off.
+        private void RestoreAgentUpdates()
+        {
+            if (!_agentUpdatesOffForSleep || _agent == null) return;
+            _agentUpdatesOffForSleep = false;
+            _agent.updatePosition = true;
+            _agent.updateRotation = true;
+        }
+
+        private void FacePoint(Vector3 point)
+        {
+            Vector3 direction = point - transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f) return;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction),
+                _persistentID.Entity.WarningTurnSpeed * Time.deltaTime);
         }
 
         // --- State transitions ---
@@ -2520,6 +2747,7 @@ namespace Game.AI
 
         private void TransitionToDead()
         {
+            ExitSleepPose(false); // dies where it lies; the ragdoll takes the body
             _animationDriver?.SetWarning(false);
             _confrontReturnOffered = false;
             StopLooting();

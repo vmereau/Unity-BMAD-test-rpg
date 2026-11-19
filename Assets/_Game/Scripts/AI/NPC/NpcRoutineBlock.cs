@@ -11,6 +11,8 @@ namespace Game.AI
         Stand,
         /// <summary>Loop through <see cref="NpcRoutineBlock.waypoints"/>, waiting <c>PatrolWaitTime</c> at each.</summary>
         Patrol,
+        /// <summary>Walk to <see cref="NpcRoutineBlock.bed"/>'s approach point and sleep in it (hearing only, see EntityBrain).</summary>
+        Sleep,
     }
 
     /// <summary>
@@ -26,6 +28,8 @@ namespace Game.AI
         public Transform spot;
         [Tooltip("Patrol: waypoints walked in order, looping. Empty = stands at the spot / spawn spot instead.")]
         public List<Transform> waypoints = new List<Transform>();
+        [Tooltip("Sleep: the bed slept in (needs its NPC approach + sleep anchor). Missing = stands at the spot instead.")]
+        public Game.World.Bed bed;
     }
 
     /// <summary>Pure helpers for <see cref="NpcRoutine"/>. Tested by <c>NpcRoutineScheduleTests</c>.</summary>

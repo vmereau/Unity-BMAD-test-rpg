@@ -38,6 +38,7 @@ namespace Game.Animations
         private static readonly int IsSwimmingHash = Animator.StringToHash("IsSwimming");
         private static readonly int IsExecutingHash = Animator.StringToHash("IsExecuting");
         private static readonly int IsDrinkingHash = Animator.StringToHash("IsDrinking");
+        private static readonly int IsSleepingHash = Animator.StringToHash("IsSleeping");
         private static readonly int AttackCancelHash = Animator.StringToHash("AttackCancel");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
@@ -259,6 +260,16 @@ namespace Game.Animations
             _animator.SetBool(IsUnconsciousHash, down);
             if (down) PlayKnockDown();
             else _animator.ResetTrigger(KnockDownHash);
+        }
+
+        /// <summary>
+        /// Asleep (spec-npc-routine-sleep): <c>true</c> takes AnyState → <c>Sleeping</c> (looping, tag FullBody);
+        /// <c>false</c> blends back to <c>LockOn Locomotion</c> (no get-up clip).
+        /// </summary>
+        public void SetSleeping(bool asleep)
+        {
+            if (_animator == null) return;
+            _animator.SetBool(IsSleepingHash, asleep);
         }
 
         /// <summary>

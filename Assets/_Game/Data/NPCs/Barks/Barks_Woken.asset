@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26a2998ef7acf0143a8fe0e00d8fd780, type: 3}
+  m_Name: Barks_Woken
+  m_EditorClassIdentifier: Game::Game.Dialogue.BarkSetSO
+  _lines:
+  - Do you have to stomp about like that? Some of us start work at dawn.
+  - I was asleep, you know. Was, mind you.
+  - Walk softer, will you? I've a shift in the morning and you've just cost me an hour of it.
+  - What is it? Nothing? Then let a man sleep.
+  - Can't anyone get a whole night's rest in this camp?

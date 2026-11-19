@@ -148,6 +148,7 @@ namespace Game.DevTools
         private void BuildLabel(EntityPerception p)
         {
             _sb.Clear();
+            if (p.IsAsleep) _sb.Append("Asleep · ");
             if (p.IsWitnessing) _sb.Append("Witness · ");
             else if (p.IsTrespassing) _sb.Append("Trespass · ");
             AppendState(p);
@@ -251,14 +252,15 @@ namespace Game.DevTools
             float proximity = p.ProximityRadius;
             float sneakProximity = proximity * config.sneakProximityMultiplier;
 
-            if (p.SightRange > 0f)
+            // Asleep: no sight and no proximity circle — only the hearing circles below.
+            if (p.SightRange > 0f && !p.IsAsleep)
             {
                 DrawSegments(StealthDebugGeometry.BuildConeOutline(eye, t.forward, p.SightRange, p.ViewAngle, ARC_SEGMENTS, _buffer), color);
                 DrawSegments(StealthDebugGeometry.BuildConeOutline(
                     eye, t.forward, p.SneakingSightRange, p.ViewAngle, ARC_SEGMENTS, _buffer), dim);
                 DrawSegments(StealthDebugGeometry.BuildCircle(ground, proximity, ARC_SEGMENTS, _buffer), color);
             }
-            DrawSegments(StealthDebugGeometry.BuildCircle(ground, sneakProximity, ARC_SEGMENTS, _buffer), dim);
+            if (!p.IsAsleep) DrawSegments(StealthDebugGeometry.BuildCircle(ground, sneakProximity, ARC_SEGMENTS, _buffer), dim);
             // Hearing circles (walk solid, run dimmed): awareness colour while the target is heard.
             Color hearing = p.CanHearTarget ? color : StealthDebugGeometry.HearingCircleColor;
             if (p.CanHear && p.WalkHearingRadius > 0f)
@@ -266,7 +268,7 @@ namespace Game.DevTools
             if (p.CanHear && p.RunHearingRadius > 0f)
                 DrawSegments(StealthDebugGeometry.BuildCircle(ground, p.RunHearingRadius, ARC_SEGMENTS, _buffer),
                     new Color(hearing.r, hearing.g, hearing.b, hearing.a * 0.6f));
-            if (p.CanWitness)
+            if (p.CanWitness && !p.IsAsleep)
             {
                 // Witness cone (non-hostile sneaking player): fixed colour, awareness colour while witnessing.
                 DrawSegments(StealthDebugGeometry.BuildConeOutline(eye, t.forward, p.WitnessRange, p.ViewAngle, ARC_SEGMENTS, _buffer),

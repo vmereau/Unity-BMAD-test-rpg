@@ -59,6 +59,11 @@ namespace Game.AI
         public bool IsWitnessing { get; private set; }
         /// <summary>The current <see cref="Target"/> is non-hostile but inside a restricted area this entity owns.</summary>
         public bool IsTrespassing { get; private set; }
+        /// <summary>
+        /// Asleep (set by <see cref="EntityBrain"/> while it lies in a bed): no sight, no proximity circle, no thefts —
+        /// only hearing, in every mode (witness included). A sneaking or still target is silent, so it is never sensed.
+        /// </summary>
+        public bool IsAsleep { get; private set; }
         /// <summary>Area the current target trespasses in (null unless <see cref="IsTrespassing"/>).</summary>
         public RestrictedArea TrespassArea { get; private set; }
         public bool IsActive => enabled && _config != null && Entity != null && (Entity.DetectionRange > 0f || CanWitness);
@@ -210,14 +215,17 @@ namespace Game.AI
 
             // A witness only ever sees a sneaking target: no sneak multiplier on its range, and its proximity radius
             // is always the sneaking one.
-            CurrentSightRange = witness
+            CurrentSightRange = IsAsleep ? 0f
+                : witness
                 ? WitnessRange
                 : StealthDetection.EffectiveSightRange(IsTrespassing ? TrespassSightRange : entity.DetectionRange,
                     TargetIsSneaking, _config.sneakSightRangeMultiplier);
-            CurrentProximityRadius = StealthDetection.EffectiveProximityRadius(
-                entity.ProximityRadius, witness || TargetIsSneaking, _config.sneakProximityMultiplier);
-            // Hearing: hostile and trespass modes only (a witness only cares about a sneaking, silent target).
-            CurrentHearingRadius = witness ? 0f
+            CurrentProximityRadius = IsAsleep ? 0f
+                : StealthDetection.EffectiveProximityRadius(
+                    entity.ProximityRadius, witness || TargetIsSneaking, _config.sneakProximityMultiplier);
+            // Hearing: hostile and trespass modes only (a witness only cares about a sneaking, silent target) — except
+            // asleep, where hearing is the only sense in every mode.
+            CurrentHearingRadius = witness && !IsAsleep ? 0f
                 : StealthDetection.HearingRadius(TargetNoise, WalkHearingRadius, RunHearingRadius,
                     _hasLineOfSight, _config.occludedHearingFactor);
             CanHearTarget = StealthDetection.IsHeard(distance, CurrentHearingRadius);
@@ -235,7 +243,7 @@ namespace Game.AI
             else
             {
                 float angle = StealthDetection.AngleToTarget(transform.forward, toTarget);
-                float visibility = !_hasLineOfSight ? 0f
+                float visibility = !_hasLineOfSight || IsAsleep ? 0f
                     : witness
                         ? StealthDetection.ComputeWitnessVisibility(TargetIsSneaking, distance, angle, CurrentSightRange,
                             entity.ViewAngle, CurrentProximityRadius, _config.edgeDistanceFactor, _config.peripheralAngleFactor)
@@ -329,6 +337,9 @@ namespace Game.AI
 
         public void SetAwareness(float value) => Awareness = Mathf.Clamp01(value);
 
+        /// <summary>Falls asleep / wakes (brain only). Awareness is kept: the meter keeps filling from hearing.</summary>
+        public void SetAsleep(bool asleep) => IsAsleep = asleep;
+
         public void ResetPerception()
         {
             Awareness = 0f;
@@ -353,8 +364,8 @@ namespace Game.AI
             LastFillPerSecond = 0f;
             DistanceToTarget = 0f;
             TargetIsSneaking = false;
-            CurrentSightRange = SightRange;
-            CurrentProximityRadius = ProximityRadius;
+            CurrentSightRange = IsAsleep ? 0f : SightRange;
+            CurrentProximityRadius = IsAsleep ? 0f : ProximityRadius;
         }
 
         /// <summary>Immediate line-of-sight raycast from the eye to <paramref name="point"/> (blocked by lineOfSightMask).</summary>
@@ -372,7 +383,7 @@ namespace Game.AI
         /// </summary>
         public bool CanSeeTheft(FactionMember thief)
         {
-            if (!IsActive || !CanWitness || thief == null) return false;
+            if (!IsActive || !CanWitness || thief == null || IsAsleep) return false;
             WitnessProfileSO profile = WitnessProfile;
             if (profile.TheftSightRange <= 0f) return false;
 

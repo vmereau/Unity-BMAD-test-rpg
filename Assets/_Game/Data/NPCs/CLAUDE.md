@@ -37,7 +37,8 @@ Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dia
 `Barks_<Purpose>`) — one-liners said in speech bubbles, e.g. `Barks_SneakWarning` (referenced by
 `Data/Entities/WitnessProfile_Humanoid`), `Barks_TheftAlert` (chase bubble), `Barks_TheftScold` /
 `Barks_TheftScold_Item` (forced scold dialogue line), `Barks_TrespassAlert` (owner spots a trespasser) /
-`Barks_TrespassScold` (trespass scold line; both fall back to the theft sets when unassigned), and the player-relationship
+`Barks_TrespassScold` (trespass scold line; both fall back to the theft sets when unassigned), `Barks_Woken` (a sleeper
+woken by the player, `WitnessProfileSO.WokenBarks`), and the player-relationship
 sets wired in `CombatConfig` — `Barks_HostileSight`, `Barks_FriendlyAssist`, `Barks_FriendlyWarn`,
 `Barks_FriendlyDisappointed` (`Scripts/AI/CLAUDE.md` → Player relationship). Lines never repeat twice in a row.
 

@@ -48,6 +48,10 @@ the same frame, a loop), 360°, × `occludedHearingFactor` without LOS. Engaged:
 `CanHearTarget`, **not** `CanSeeTarget`; `LastSeenPosition` / `TimeSinceSeen` track the last time *sensed*, so an
 alerted entity that hears the target doesn't lose it and chases / searches the heard point.
 
+**Asleep** (`EntityPerception.IsAsleep`, set by the brain for routine Sleep — `Scripts/AI/CLAUDE.md` → NPC sleep):
+visibility 0, proximity radius 0, no thefts; hearing applies in every mode (witness included). `CurrentSightRange` /
+`CurrentProximityRadius` read 0; the F3 overlay draws only the hearing circles.
+
 Sneaking multiplies sight range and proximity radius (`sneakSightRangeMultiplier`, `sneakProximityMultiplier`).
 Distance and angle are flat (XZ). Line of sight is a single `Physics.Raycast` from the entity's eye
 (`Entity.EyeHeight`) to `VisibilityPoint` against `lineOfSightMask` (Default), every `losCheckInterval`.

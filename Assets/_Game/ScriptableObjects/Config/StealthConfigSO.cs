@@ -109,6 +109,14 @@ namespace Game.Stealth
         [Tooltip("In-game hours a restricted area remembers its latest scold (warning). After that the trespasser gets a scold again instead of a fight. 0 = warnings expire at once (areas with a threshold above 0 never escalate).")]
         public float trespassWarningExpiryHours = 24f;
 
+        [Header("Sleep (NPC routine Sleep blocks)")]
+        [Tooltip("Seconds a woken sleeper waits, with the player beyond its walk hearing radius, before lying down again.")]
+        public float sleepResumeDelay = 10f;
+        [Tooltip("Seconds the 'woken up' bubble stays.")]
+        public float wokenBubbleDuration = 3f;
+        [Tooltip("Priority of the 'woken up' bubble.")]
+        public int wokenBubblePriority = 1;
+
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -131,6 +139,8 @@ namespace Game.Stealth
             theftBubbleDuration       = Mathf.Max(0f, theftBubbleDuration);
             trespassGraceDuration     = Mathf.Max(0f, trespassGraceDuration);
             trespassWarningExpiryHours = Mathf.Max(0f, trespassWarningExpiryHours);
+            sleepResumeDelay          = Mathf.Max(0f, sleepResumeDelay);
+            wokenBubbleDuration       = Mathf.Max(0f, wokenBubbleDuration);
         }
 #endif
     }

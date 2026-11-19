@@ -37,7 +37,7 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
   `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
-  `IsDrinking` (bool, player + NPCs).
+  `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -71,6 +71,14 @@ AnyState → `Swim Locomotion` (`IsSwimming`, 0.25 s, no self-transition), liste
 update the thresholds if the speeds change. Both clips: root rotation / Y / XZ baked into pose, looping. **The idle is upright
 but `swimming` is prone** (shoulders 0.9 m against 1.5 m), so `swimming.fbx` has a clip **height offset of −0.6** to share one
 waterline. Negative raises the body. Re-measure the shoulders if the clip changes.
+
+### Sleeping state (Base Layer, NPCs only — spec-npc-routine-sleep)
+
+AnyState → `Sleeping` (`IsSleeping`, 0.4 s, no self-transition), listed right after `Swim Locomotion` (Death / knockdown /
+stagger win); exit → `LockOn Locomotion` (`IsSleeping` false, 0.4 s — no get-up clip). Tag `FullBody`. Clip `sleeping.fbx`
+(Mixamo): looping, root rotation / Y / XZ baked, **based on original**. The source lies on a raised surface: the hips sit
+~1.1 m above the root, so the bed's `NpcSleepAnchor` sits ~1 m **below** the mattress (Hobb's: local y −0.48) instead of
+a clip height offset. The body's head points along the root's −Z.
 
 ### Sneak states (Base Layer)
 

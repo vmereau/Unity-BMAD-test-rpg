@@ -19,7 +19,6 @@ namespace Game.Editor.World
         private const string GROUP = "HomeYardDressing";
         private const string DAY_NIGHT = "Assets/_Game/Data/Config/DayNightConfig.asset";
         private const string MATERIALS = "Assets/_Game/Art/Environment/Camp/Materials/";
-        private const string BED_MODEL = "Assets/_Game/Art/Environment/Camp/models/worker bed/WorkerBed_Model.prefab";
         private const string CARDS_MATERIAL = "M_Camp_SackCloth.mat";
         private const string DOOR_FLAP = "Assets/_Game/Art/Environment/Camp/models/door flap/DoorFlap.fbx";
 
@@ -79,7 +78,7 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, "worker-player and worker-mate must be unscaled WorkerHut_Home instances; nothing changed.");
                 return;
             }
-            foreach (string asset in new[] { BED_MODEL, DOOR_FLAP, GLOW, MATERIALS + CARDS_MATERIAL })
+            foreach (string asset in new[] { DOOR_FLAP, GLOW, MATERIALS + CARDS_MATERIAL })
                 if (AssetDatabase.LoadMainAssetAtPath(asset) == null)
                 {
                     GameLog.Error(TAG, $"Missing {asset}; nothing changed.");
@@ -170,8 +169,8 @@ namespace Game.Editor.World
         // Hobb has been here longer: more belongings, a seat, his own cooking things.
         private static void DressMateHut(Transform hut)
         {
-            Transform bed = Model(BED_MODEL, hut, new Vector3(-0.89f, 0f, -0.26f), 90f, "HobbBed");
-            if (bed == null) GameLog.Warn(TAG, $"Missing {BED_MODEL}");
+            // His bed is a real Bed he owns and sleeps in (PlayersZone/HobbsBed, hand-owned, spec-npc-routine-sleep) —
+            // along the −X wall at hut-local (−0.89, 0, −0.26), 90°. Keep props off that strip.
             Prop("SM_Hay_02a", hut, new Vector3(0.15f, 0.1f, -0.2f), -35f, 0.4f, "FloorStraw");
             Prop("SM_Hay_02a", hut, new Vector3(0.55f, 0.09f, 0.6f), 60f, 0.36f, "FloorStraw");
             Prop("SM_Crate_02", hut, new Vector3(0.75f, 0f, -1.25f), -6f, 0.5f, "CrateTable", solid: true);

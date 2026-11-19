@@ -123,6 +123,7 @@ namespace Game.Animations
         public override void TriggerStagger(int variant) => _bridge?.PlayStagger(variant);
         public override void TriggerKnockDown() => _bridge?.PlayKnockDown();
         public override void SetUnconscious(bool down) => _bridge?.SetUnconscious(down);
+        public override void SetSleeping(bool asleep) => _bridge?.SetSleeping(asleep);
         public override void SetBlocking(bool blocking) => _bridge?.SetBlocking(blocking);
         public override void SetDrinking(bool drinking) => _bridge?.SetDrinking(drinking);
         public override void SetAiming(bool aiming) => _bridge?.SetAiming(aiming);

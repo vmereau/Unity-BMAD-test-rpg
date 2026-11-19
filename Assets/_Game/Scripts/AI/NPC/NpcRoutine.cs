@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Game.AI
 {
     /// <summary>
-    /// Gothic-style daily routine: hour blocks (<c>start → end : Stand @ spot | Patrol waypoints</c>) evaluated
+    /// Gothic-style daily routine: hour blocks (<c>start → end : Stand @ spot | Patrol waypoints | Sleep in bed</c>) evaluated
     /// statelessly from the time of day (<see cref="GameClock.Active"/>, polled). A block change sends the block's spot or
     /// patrol route to the <see cref="EntityBrain"/>, the only mover: walk on a natural hour change, warp on the first
     /// evaluation (region load) and after <c>OnTimeSkipped</c> (sleep). Nothing is saved. Runs after <c>EntityBrain.Start</c>.
@@ -28,7 +28,7 @@ namespace Game.AI
         private bool _snapNext = true;
         private float _pollTimer;
         private bool _warnedNoClock;
-        private readonly HashSet<int> _warnedEmptyRoute = new HashSet<int>();
+        private readonly HashSet<int> _warnedBlocks = new HashSet<int>();
 
         /// <summary>Current block, or null (no block for the hour → stands at its spawn spot). Hook for future activity / dialogue gating.</summary>
         public NpcRoutineBlock CurrentBlock => _currentIndex >= 0 && _currentIndex < _blocks.Count ? _blocks[_currentIndex] : null;
@@ -127,7 +127,8 @@ namespace Game.AI
             SendBlock(index, snap);
         }
 
-        // Block → brain target: a Patrol block with waypoints sends its route, anything else a stand spot (null = spawn spot).
+        // Block → brain target: a Patrol block with waypoints sends its route, a Sleep block its bed (spot = the bed's approach),
+        // anything else a stand spot (null = spawn spot).
         private void SendBlock(int index, bool snap)
         {
             NpcRoutineBlock block = index >= 0 ? _blocks[index] : null;
@@ -139,10 +140,17 @@ namespace Game.AI
                 if (block.waypoints != null)
                     foreach (Transform waypoint in block.waypoints)
                         if (waypoint != null) (route ??= new List<Transform>()).Add(waypoint);
-                if (route == null && _warnedEmptyRoute.Add(index))
+                if (route == null && _warnedBlocks.Add(index))
                     GameLog.Warn(TAG, $"{gameObject.name}: Patrol block {index} has no waypoints — standing instead");
             }
-            _brain.SetRoutineTarget(block.spot, route, snap);
+            Game.World.Bed bed = null;
+            if (block.activity == NpcActivity.Sleep)
+            {
+                if (block.bed != null && block.bed.IsNpcBed) bed = block.bed;
+                else if (_warnedBlocks.Add(index))
+                    GameLog.Warn(TAG, $"{gameObject.name}: Sleep block {index} has no bed with an NPC approach + sleep anchor — standing instead");
+            }
+            _brain.SetRoutineTarget(bed != null ? bed.NpcApproach : block.spot, route, snap, bed);
         }
     }
 }

@@ -29,6 +29,8 @@ namespace Game.Animations
         /// are knocked out; default no-op.
         /// </summary>
         public virtual void SetUnconscious(bool down) { }
+        /// <summary>Lying asleep (<c>IsSleeping</c>, spec-npc-routine-sleep) / back up. Default: no clip (monsters).</summary>
+        public virtual void SetSleeping(bool asleep) { }
         /// <summary>Guard up / down (<c>IsBlocking</c>, spec-ai-npc-blocking). Default: no block animation (monsters).</summary>
         public virtual void SetBlocking(bool blocking) { }
         /// <summary>Potion drink on / off (<c>IsDrinking</c>, spec-potion-drink-animation). Default: no clip (monsters).</summary>

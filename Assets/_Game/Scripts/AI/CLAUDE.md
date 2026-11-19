@@ -38,7 +38,8 @@
 | `NPC/NPCPresence` | `: EntityPresence` — adds dialogue. Alive **and hostile to the player** (`FactionSO.AreHostile(own, TargetRegistry.Player.Faction)`, read live; no player → not hostile) → no prompt, `CanInteract` false (bandits); corpse loot unchanged. |
 | `NPC/NPCMemoryComponent`, `NPC/NPCDialogueGraphComponent` | An NPC's active memory set; resolve available dialogue start nodes / choices. |
 | `NPC/TollGate`, `NPC/TollGateRules` | Exit toll (spec-racket-guard-exit-toll) — see **Toll gates** below. `TollGateRules` is pure (`TollGateRulesTests`). Racket data: `Game.NPC.TollRacketSO` (`ScriptableObjects/Entities/NPC/`). |
-| `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine (Stand / Patrol blocks — owns all patrol routes) — see below. `NpcRoutineSchedule` (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) is pure (`NpcRoutineScheduleTests`). |
+| `NPC/NpcRoutine`, `NPC/NpcRoutineBlock` | Daily routine (Stand / Patrol / Sleep blocks — owns all patrol routes) — see below. `NpcRoutineSchedule` (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) is pure (`NpcRoutineScheduleTests`). |
+| `NPC/NpcSleepRules` | Pure sleep rules (`ShouldLieDown`, `IsQuiet`) — see **NPC sleep** below. `NpcSleepRulesTests`. |
 
 ---
 
@@ -50,7 +51,8 @@
 - `NpcRoutine` (scene component on the NPC instance, `[DefaultExecutionOrder(100)]` → after `EntityBrain.Start`) holds
   `NpcRoutineBlock`s: `startHour` (incl.) → `endHour` (excl., wraps midnight, start == end = all day), `NpcActivity`
   **`Stand`** (`spot` = position + facing; empty = the spawn spot) or **`Patrol`** (`waypoints` list, looped,
-  `PatrolWaitTime` at each; no non-null waypoint → stands instead, one warning). First match wins; no match = stand at
+  `PatrolWaitTime` at each; no non-null waypoint → stands instead, one warning) or **`Sleep`** (`bed`, a `Game.World.Bed` with
+  NPC approach + sleep anchor; missing → stands at `spot`, one warning — see **NPC sleep**). First match wins; no match = stand at
   the spawn spot. **Stateless, not saved** — the block is derived from `GameClock.Active.Hour`, polled every
   `_pollInterval` (1 s).
 - Block change → `EntityBrain.SetRoutineTarget(spot, route, snap)`; the brain stays the only mover. Snap (agent `Warp`)
@@ -76,10 +78,38 @@
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
   office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol between his hut door (`worker-mate`) and the Player's Zone campfire, 21–06
-  `Spot_TentMate_Night` inside his hut, beside the stool (it is his restricted area: see `Scenes/CLAUDE.md`). `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
+  **Sleep** in `PlayersZone/HobbsBed` inside his hut (his restricted area: see `Scenes/CLAUDE.md`; `Spot_TentMate_Night` is unused since). `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
   The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`.
+
+---
+
+## NPC sleep (spec-npc-routine-sleep)
+
+- A Sleep block sends `SetRoutineTarget(bed.NpcApproach, null, snap, bed)`. The NPC walks to the approach point like a
+  stand spot; on arrival `HandleBedArrival` → `LieDown`: `Bed.TryOccupy` (taken → stands, one warning), agent
+  `updatePosition` / `updateRotation` off, root set on `Bed.NpcSleepAnchor`, `SetSleeping(true)` (driver → `IsSleeping`),
+  `EntityPerception.SetAsleep(true)`, state **`Sleeping`**. A load / time skip snaps to the approach and lies down at once.
+  Nothing is saved.
+- **Asleep perception:** no sight, no proximity circle, `CanSeeTheft` false (thefts ignored; `HandleTheftCommitted` doesn't
+  list Sleeping either). Hearing only, in **every** mode incl. witness, with the normal radii / cap / occlusion — a sneaking
+  or still player is Silent and never wakes it. `IsUnawareOf` includes Sleeping (sneak-attack bonus).
+- **Waking** (`HandleSleeping`): full awareness → trespasser in its area → `RespondToTrespasser`; hostile → normal reaction;
+  witnessed player, or one in its area during grace → `WakeGrumbling` (`WitnessProfileSO.WokenBarks` bubble, perception
+  reset, routine). `WakeByPlayer` with the player inside an area it owns (Hobb's hut) → `RespondToTrespasser` too. `IsSleeping`
+  is re-sent every Sleeping tick (an `NpcArmament` controller swap resets animator parameters). A
+  radius hostile (monster), a hit (`HandleHealthChanged`), a stance break, a knockout, `StartBrawl` and `WakeByPlayer()`
+  (`NPCPresence` "Wake" prompt, no dialogue) also wake it. Every exit goes through `ExitSleepPose(warp)`: animation /
+  perception awake, bed released, agent updates back on, body warped to the approach. Death passes `warp: false` (the
+  ragdoll takes the body where it lies). `OnDisable` exits too.
+- **Back to sleep:** every wake (trespass and fights included) sets `_sleepWaitQuiet`; at the bed the NPC faces the player
+  and lies down only after the player has stayed beyond its walk hearing radius (or is gone) for
+  `StealthConfigSO.sleepResumeDelay` (10 s) (`NpcSleepRules`). A snap or a block change to another bed / no bed clears the
+  wait. A death in bed leaves the agent updates off; `OnDisable` restores them (respawn).
+- **Block change while asleep:** same bed → sleeps on; otherwise gets up and walks (`ApplyRoutineRequest`). No get-up clip:
+  the animator blends `Sleeping → LockOn Locomotion`. `IsInNonCombatRoutine` excludes Sleeping (no toll intercepts).
+- `ArrivalSequence`-style callers use the 3-arg `SetRoutineTarget` (no bed) — a sleeper gets up for them.
 
 ---
 

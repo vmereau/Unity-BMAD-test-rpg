@@ -14606,6 +14606,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 731482468}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &40980038
 GameObject:
   m_ObjectHideFlags: 0
@@ -32521,6 +32522,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 44382771}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &92426695
 GameObject:
   m_ObjectHideFlags: 0
@@ -81021,68 +81023,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 242740006}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &243174357
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1176707511}
-    m_Modifications:
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.89
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.26
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4410856639054713628, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-      propertyPath: m_Name
-      value: HobbBed
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
---- !u!4 &243174358 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2339880556929892132, guid: 09b4dde8206561a45ae26d8194ce6fec, type: 3}
-  m_PrefabInstance: {fileID: 243174357}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &243527330
 GameObject:
   m_ObjectHideFlags: 0
@@ -96042,6 +95982,37 @@ Transform:
   - {fileID: 1823978541}
   m_Father: {fileID: 986567466}
   m_LocalEulerAnglesHint: {x: 0, y: 91.528, z: 0}
+--- !u!1 &288774531
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 288774532}
+  m_Layer: 0
+  m_Name: NpcApproach
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &288774532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 288774531}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.9999897, z: -0, w: -0.004558027}
+  m_LocalPosition: {x: -0.009829044, y: 0.23107791, z: 1.0781889}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 533083868}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &288830988
 GameObject:
   m_ObjectHideFlags: 0
@@ -179519,6 +179490,118 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 532909335}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &533083866
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 861861447}
+    m_Modifications:
+    - target: {fileID: 1539838352003052425, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: _nameTag
+      value: Hobb's bed
+      objectReference: {fileID: 0}
+    - target: {fileID: 1539838352003052425, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: _npcApproach
+      value: 
+      objectReference: {fileID: 288774532}
+    - target: {fileID: 1539838352003052425, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: _npcSleepAnchor
+      value: 
+      objectReference: {fileID: 662793693}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.8095984
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.48892212
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 45.240665
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.22905695
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9734131
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363259256894237059, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      propertyPath: m_Name
+      value: HobbsBed
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 288774532}
+    - targetCorrespondingSourceObject: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 662793693}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6363259256894237059, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 533083870}
+  m_SourcePrefab: {fileID: 100100000, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+--- !u!114 &533083867 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1539838352003052425, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+  m_PrefabInstance: {fileID: 533083866}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533083869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0260355e582e9994e88694ec21dbbd65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Bed
+--- !u!4 &533083868 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3104526651273999716, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+  m_PrefabInstance: {fileID: 533083866}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &533083869 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6363259256894237059, guid: e3fdefe78aca0374caac597a4bc0ca22, type: 3}
+  m_PrefabInstance: {fileID: 533083866}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &533083870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533083869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 124f120e603b9af4a9a06cdca7e5d6f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.Ownership
+  _owner: {fileID: 11400000, guid: b354dcb1cf7c3584589f417dad6e1f95, type: 2}
 --- !u!1 &533223773
 GameObject:
   m_ObjectHideFlags: 0
@@ -207676,11 +207759,13 @@ MonoBehaviour:
     waypoints:
     - {fileID: 1098259239}
     - {fileID: 1518797937}
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
-    activity: 0
-    spot: {fileID: 2015216707}
+    activity: 2
+    spot: {fileID: 0}
     waypoints: []
+    bed: {fileID: 533083867}
 --- !u!1 &619158435
 GameObject:
   m_ObjectHideFlags: 0
@@ -223437,6 +223522,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 662737704}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &662793692
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 662793693}
+  m_Layer: 0
+  m_Name: NpcSleepAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &662793693
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 662793692}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0.2, y: -0.48, z: 0.09}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 533083868}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &663248788
 GameObject:
   m_ObjectHideFlags: 0
@@ -289983,6 +290099,7 @@ Transform:
   - {fileID: 1330263798}
   - {fileID: 886117865}
   - {fileID: 766820923}
+  - {fileID: 533083868}
   m_Father: {fileID: 408965124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &861971934
@@ -303473,6 +303590,7 @@ MonoBehaviour:
     - {fileID: 1956065395}
     - {fileID: 977972228}
     - {fileID: 278343162}
+    bed: {fileID: 0}
 --- !u!1 &898625698
 GameObject:
   m_ObjectHideFlags: 0
@@ -317868,6 +317986,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 150123328}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &944148473
 GameObject:
   m_ObjectHideFlags: 0
@@ -323218,6 +323337,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 219264830}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1001 &956192914
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -355927,6 +356047,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 774751743}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1061111339
 GameObject:
   m_ObjectHideFlags: 0
@@ -392291,6 +392412,7 @@ MonoBehaviour:
     - {fileID: 1844503801}
     - {fileID: 374487273}
     - {fileID: 86551670}
+    bed: {fileID: 0}
 --- !u!1 &1166394198
 GameObject:
   m_ObjectHideFlags: 0
@@ -395747,7 +395869,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 243174358}
   - {fileID: 77944045}
   - {fileID: 1462430789}
   - {fileID: 930198038}
@@ -424667,11 +424788,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 0}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 2014509155}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1265428396
 GameObject:
   m_ObjectHideFlags: 0
@@ -440890,6 +441013,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 727387925}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 1
@@ -440900,6 +441024,7 @@ MonoBehaviour:
     - {fileID: 756391079}
     - {fileID: 912598659}
     - {fileID: 1722408603}
+    bed: {fileID: 0}
 --- !u!1 &1311895075
 GameObject:
   m_ObjectHideFlags: 0
@@ -493379,11 +493504,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 0}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1919335504}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1455994689
 GameObject:
   m_ObjectHideFlags: 0
@@ -575472,11 +575599,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 937034497}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1136734187}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1699777454
 GameObject:
   m_ObjectHideFlags: 0
@@ -576617,11 +576746,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 0}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 513225476}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1703185079
 GameObject:
   m_ObjectHideFlags: 0
@@ -589883,11 +590014,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 567636166}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 18
     endHour: 6
     activity: 0
     spot: {fileID: 1219811385}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1741063384
 GameObject:
   m_ObjectHideFlags: 0
@@ -593739,16 +593872,19 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 1746859573}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 14
     endHour: 21
     activity: 0
     spot: {fileID: 1115954020}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1397723983}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1753393025
 GameObject:
   m_ObjectHideFlags: 0
@@ -601772,6 +601908,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 641757296}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1777411966
 GameObject:
   m_ObjectHideFlags: 0
@@ -615925,11 +616062,13 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 0}
     waypoints: []
+    bed: {fileID: 0}
   - startHour: 21
     endHour: 6
     activity: 0
     spot: {fileID: 1498708131}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1822382026
 GameObject:
   m_ObjectHideFlags: 0
@@ -621282,6 +621421,7 @@ MonoBehaviour:
     activity: 0
     spot: {fileID: 553681785}
     waypoints: []
+    bed: {fileID: 0}
 --- !u!1 &1839669962
 GameObject:
   m_ObjectHideFlags: 0

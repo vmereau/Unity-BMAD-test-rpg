@@ -53,14 +53,22 @@ namespace Game.AI
             }
         }
 
-        // Dead / unconscious with loot → "Loot"; empty → no prompt; alive & hostile → no prompt; alive → "Talk"
-        // (CanInteract still hides "Talk" while in combat or staggered).
+        // Dead / unconscious with loot → "Loot"; empty → no prompt; alive & hostile → no prompt; asleep → "Wake";
+        // alive → "Talk" (CanInteract still hides "Talk" while in combat or staggered).
         public override string InteractPrompt =>
-            IsDown ? (IsLootable ? "Loot" : string.Empty) : (IsHostileToPlayer || !IsAvailable ? string.Empty : "Talk");
+            IsDown ? (IsLootable ? "Loot" : string.Empty)
+            : IsHostileToPlayer ? string.Empty
+            : IsAsleep ? WAKE_PROMPT
+            : !IsAvailable ? string.Empty : "Talk";
 
         // Interactable when a non-empty corpse (loot) OR alive, out of combat and not hostile (dialogue).
         // In combat, hostile & alive, or an emptied corpse → no interaction.
-        public override bool CanInteract => IsLootable || (IsAliveAndOutOfCombat && !IsHostileToPlayer && IsAvailable);
+        public override bool CanInteract => IsLootable || (IsAliveAndOutOfCombat && !IsHostileToPlayer && (IsAvailable || IsAsleep));
+
+        private const string WAKE_PROMPT = "Wake";
+
+        // Sleeping in its routine bed (EntityBrain Sleeping): E wakes it instead of talking.
+        private bool IsAsleep => _brain != null && _brain.IsAsleep;
 
         // No gate, or its fact is set. No WorldStateManager (scene played alone) → available.
         private bool IsAvailable
@@ -97,6 +105,11 @@ namespace Game.AI
             if (_combatState != null && _combatState.IsInCombat)
             {
                 GameLog.Info(TAG, $"{gameObject.name} is in combat — dialogue interaction blocked");
+                return;
+            }
+            if (IsAsleep)
+            {
+                _brain.WakeByPlayer(); // grumble bubble, no dialogue; Talk once it's up
                 return;
             }
             if (!IsAvailable)
