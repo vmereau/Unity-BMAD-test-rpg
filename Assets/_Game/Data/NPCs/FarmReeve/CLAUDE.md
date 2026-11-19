@@ -1,8 +1,8 @@
-# NPC Identity — Reeve Odo Pell
+# NPC Identity — Reeve Wendel Pell
 
 ## Core Identity
 
-- Name: Reeve Odo Pell (farm manager).
+- Name: Reeve Wendel Pell (farm manager).
 - Profession: the Company's reeve of the farm and its tithe barn.
 - Affiliation: The Company (`Faction_Company`).
 - Age: late 50s.

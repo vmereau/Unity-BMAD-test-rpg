@@ -1055,8 +1055,5 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-npc-voice-pass (2026-11-19, review)
 
-- **Name clash: Reeve "Odo" Pell vs Bren's lost lad Odo.** `FarmReeve/CLAUDE.md` gives the farm reeve the first name
-  Odo, the same as the Sealed Passage victim. Dialogue only says "Reeve Pell", so nothing player-facing breaks yet;
-  rename the reeve before any line uses his first name.
 - **Shared barks still use the old clipped register.** `Barks_*` were out of scope (shouted one-liners); a few read
   oddly ("I hope to never see you again here.", "You there?! Die!"). Give them a light pass of their own.

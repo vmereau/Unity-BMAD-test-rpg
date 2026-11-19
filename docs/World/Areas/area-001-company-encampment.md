@@ -234,7 +234,7 @@ No hard resource gate. Endings become available when player's actions and comple
 |----|------|--------|----------|
 | area-002 | Stone Quarry | Hardest work, desperate workers; manager Overseer Dace | Sealed passage to ruins (quest-002); the men won't work the south face |
 | area-003 | Wood Camp | Physical labor, forest edge; boss Gorm Holl | Notched trees fall against the cut |
-| — | Company farm | Field gang, under the fort's eye; Reeve Odo Pell | Tithe barn: the food the revolt needs; the counts come up short every week |
+| — | Company farm | Field gang, under the fort's eye; Reeve Wendel Pell | Tithe barn: the food the revolt needs; the counts come up short every week |
 | area-004 | Hunting Grounds | Tracker/ranger flavor | Lead hunter Corvin Ash (npc-010) — independent-minded, speaks to player as equal; something takes his snares whole |
 
 ---
@@ -250,7 +250,7 @@ No hard resource gate. Endings become available when player's actions and comple
 - **Fight club design** — rules, opponent roster, reward structure, reputation effects, which guards take bets and where the Company's tolerance ends
 - **NPC roster completion** — names for all stub NPCs, full dialogue seeds
 - **Wood camp quest details** — beyond basic flavor
-- **Field gang** — the farm's workers have no roster yet (the reeve is Odo Pell)
+- **Field gang** — the farm's workers have no roster yet (the reeve is Wendel Pell)
 - **Work site manager quests** — Dace, Holl, Ash and Pell each have a planted hook but no quest yet
 
 ## Finalized worker settlement (2026-11-11)

@@ -33,7 +33,7 @@
 | npc-013 | Dock Guard | area-001 — dock guard post / docks | Guard / restricted-area owner (night) | faction-001 | draft |
 | npc-014 | Overseer Dace | area-002 (quarry floor) | Quarry manager | faction-001 | graybox |
 | npc-015 | Gorm Holl | area-003 (wood camp) | Wood camp gang boss | none | graybox |
-| npc-016 | Reeve Odo Pell | Company farm (manager's house) | Farm manager | faction-001 | graybox |
+| npc-016 | Reeve Wendel Pell | Company farm (manager's house) | Farm manager | faction-001 | graybox |
 
 ---
 
