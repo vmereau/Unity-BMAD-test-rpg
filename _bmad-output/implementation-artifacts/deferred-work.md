@@ -1117,11 +1117,20 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From quest design TitheBarnShortfall (2026-11-19, `docs/World/Quests/TitheBarnShortfall.md`)
 
-- **Prerequisites before `/quests:implement TitheBarnShortfall`** (each its own quick-dev spec): P1 HUD time of
-  day; P2 sleep / wait to a chosen hour (`SleepRules` already has `UntilMidnight`); P3 hour- and NPC-gated
+- **Prerequisites before `/quests:implement TitheBarnShortfall`** (each its own quick-dev spec): ~~P1 HUD time of
+  day; P2 sleep / wait to a chosen hour~~ (done 2026-11-19, `spec-hud-clock-and-sleep-hour-picker`; beds only); P3 hour- and NPC-gated
   `WorldFactTrigger`; P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal.
 - **Gang revenge when Venn takes the fall (follow-up event / quest, to design).** Reporting Venn cuts the gang's
   grain supply. Gang members from the Mafia Zone should jump the player at night some time after Venn is gone
   (a beating + robbery through the knockout / loot flow rather than a death fight). Brann knows ("you cost us a
   supplier") and may offer a way to settle the debt, which is a second way into the mafia route. Worse after a
   double-cross (`DialogueFact_BarnGuard_DealStruck` + `DialogueFact_FarmReeve_Shortfall_ReportedGuard`).
+
+## From spec-hud-clock-and-sleep-hour-picker (2026-11-19)
+
+- **Final clock dial art.** `UICanvas/Game/Clock` uses placeholder built-in sprites (`UISprite` panel, `Knob` sun / moon,
+  a 2 px horizon line). Make a Gothic dial (frame, sun, moon) with `/ui:create` and swap the sprites; `HudClockUI` only
+  moves the icons' `anchoredPosition` and toggles them, so any sprites work.
+- **Full heal on any sleep length (pre-existing, easier to reach now).** `SleepSystem.ApplySleep` heals to max whatever the
+  duration, and the hour picker lets the player pick the next hour (label "under 1 h"), so a few-seconds sleep is a free
+  full heal. Scale the heal by hours slept or require a minimum sleep if it matters for balance.

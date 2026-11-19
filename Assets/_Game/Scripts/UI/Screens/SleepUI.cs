@@ -4,14 +4,16 @@ using Game.Core;
 using Game.World;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Game.UI
 {
     /// <summary>
-    /// Bed sleep panel (GO <c>SleepScreen</c> under UICanvas, always active so the fade coroutine can run): a choice
-    /// window (<see cref="_panel"/>, header "Day N, HH:MM", 4 durations + Cancel) and a full-screen black fade.
+    /// Bed sleep panel (GO <c>SleepScreen</c> under UICanvas, always active so the fade coroutine can run): an hour
+    /// picker window (<see cref="_panel"/>, header "Day N, HH:MM", − / "Sleep until HH:00 (N h)" / +, Sleep, Cancel —
+    /// arrow keys / A-D step the hour) and a full-screen black fade.
     /// Opened by <see cref="SleepSystem"/>; Esc / Cancel / player death close it. <see cref="IsOpen"/> stays true for the
     /// whole fade so save / load and gameplay input stay blocked (cursor unlocked = player busy).
     /// </summary>
@@ -22,10 +24,10 @@ namespace Game.UI
         [SerializeField] private TimeConfigSO _config;
         [SerializeField] private GameObject _panel;
         [SerializeField] private TMP_Text _headerText;
-        [SerializeField] private Button _untilMorningButton;
-        [SerializeField] private Button _untilEveningButton;
-        [SerializeField] private Button _untilMidnightButton;
-        [SerializeField] private Button _oneHourButton;
+        [SerializeField] private TMP_Text _targetText;
+        [SerializeField] private Button _minusButton;
+        [SerializeField] private Button _plusButton;
+        [SerializeField] private Button _sleepButton;
         [SerializeField] private Button _cancelButton;
         [Tooltip("Full-screen black CanvasGroup faded in and out around the time skip.")]
         [SerializeField] private CanvasGroup _fade;
@@ -37,7 +39,16 @@ namespace Game.UI
         [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
 
         private InputSystem_Actions _input;
-        private Action<SleepChoice> _onChoice;
+        private Action<int> _onConfirm;
+        private GameClock _clock;
+        private int _targetHour;
+        // Last label inputs: the label is rebuilt only when the target or the hour count changes (clock runs while open).
+        private int _shownTarget = -1;
+        private int _shownHours = -1;
+        private int _shownMinute = -1;
+        // Last horizontal Navigate direction (−1 / 0 / 1): Navigate is a PassThrough Vector2 that performs on every value
+        // change (diagonals, stick drift), so the hour steps only when the direction changes from 0.
+        private int _navSign;
         private Coroutine _sleepRoutine;
         // Separate from the handle: a zero-length fade finishes inside StartCoroutine, before the handle is assigned.
         private bool _sleeping;
@@ -50,10 +61,10 @@ namespace Game.UI
             if (_panel == null) GameLog.Warn(TAG, "_panel not assigned");
             if (_fade == null) GameLog.Warn(TAG, "_fade not assigned — sleep will skip time without a fade");
             if (_config == null) GameLog.Warn(TAG, "TimeConfigSO not assigned — using an instant fade");
-            _untilMorningButton?.onClick.AddListener(ChooseUntilMorning);
-            _untilEveningButton?.onClick.AddListener(ChooseUntilEvening);
-            _untilMidnightButton?.onClick.AddListener(ChooseUntilMidnight);
-            _oneHourButton?.onClick.AddListener(ChooseOneHour);
+            if (_targetText == null) GameLog.Warn(TAG, "_targetText not assigned — the picked hour won't show");
+            _minusButton?.onClick.AddListener(StepDown);
+            _plusButton?.onClick.AddListener(StepUp);
+            _sleepButton?.onClick.AddListener(Confirm);
             _cancelButton?.onClick.AddListener(Cancel);
             SetFade(0f);
             if (_panel != null) _panel.SetActive(false);
@@ -64,6 +75,8 @@ namespace Game.UI
             if (_input == null) return;
             _input.UI.Enable();
             _input.UI.Cancel.performed += HandleCancel;
+            _input.UI.Navigate.performed += HandleNavigate;
+            _input.UI.Navigate.canceled += HandleNavigate;
             _onPlayerDied?.AddListener(HandlePlayerDied);
             _onPlayerKnockedOut?.AddListener(HandlePlayerDied);
         }
@@ -73,6 +86,8 @@ namespace Game.UI
             if (IsOpen) Close(); // a disabled screen can't run (or finish) the fade — never leave it half-open
             if (_input == null) return;
             _input.UI.Cancel.performed -= HandleCancel;
+            _input.UI.Navigate.performed -= HandleNavigate;
+            _input.UI.Navigate.canceled -= HandleNavigate;
             _input.UI.Disable();
             _onPlayerDied?.RemoveListener(HandlePlayerDied);
             _onPlayerKnockedOut?.RemoveListener(HandlePlayerDied);
@@ -80,28 +95,51 @@ namespace Game.UI
 
         private void OnDestroy()
         {
-            _untilMorningButton?.onClick.RemoveListener(ChooseUntilMorning);
-            _untilEveningButton?.onClick.RemoveListener(ChooseUntilEvening);
-            _untilMidnightButton?.onClick.RemoveListener(ChooseUntilMidnight);
-            _oneHourButton?.onClick.RemoveListener(ChooseOneHour);
+            _minusButton?.onClick.RemoveListener(StepDown);
+            _plusButton?.onClick.RemoveListener(StepUp);
+            _sleepButton?.onClick.RemoveListener(Confirm);
             _cancelButton?.onClick.RemoveListener(Cancel);
             _input?.Dispose();
         }
 
         private void HandleCancel(InputAction.CallbackContext _) => Cancel();
 
+        // Horizontal arrows / A-D step the hour; vertical input is ignored.
+        private void HandleNavigate(InputAction.CallbackContext context)
+        {
+            float x = context.ReadValue<Vector2>().x;
+            int sign = x > 0.5f ? 1 : x < -0.5f ? -1 : 0;
+            if (sign == _navSign) return;
+            _navSign = sign;
+            if (sign != 0) Step(sign);
+        }
+
+        // The clock keeps running while the panel is open: keep the header and the hour count current.
+        private void Update()
+        {
+            if (IsOpen && !_sleeping) RefreshLabels();
+        }
+
         private void HandlePlayerDied(bool _)
         {
             if (IsOpen) Close();
         }
 
-        /// <summary>Shows the choice window. <paramref name="onChoice"/> runs when a duration is clicked.</summary>
-        public void Open(string header, Action<SleepChoice> onChoice)
+        /// <summary>
+        /// Shows the hour picker on <paramref name="defaultHour"/>. <paramref name="onConfirm"/> runs with the picked hour
+        /// when Sleep is clicked. <paramref name="clock"/> feeds the header and the "(N h)" count.
+        /// </summary>
+        public void Open(GameClock clock, int defaultHour, Action<int> onConfirm)
         {
-            _onChoice = onChoice;
-            if (_headerText != null) _headerText.text = header;
+            _clock = clock;
+            _onConfirm = onConfirm;
+            _targetHour = SleepRules.StepHour(defaultHour, 0);
+            _shownTarget = _shownHours = _shownMinute = -1;
+            _navSign = 0;
+            RefreshLabels();
             if (_panel != null) _panel.SetActive(true);
             OnScreenOpen();
+            SelectSleepButton();
         }
 
         /// <summary>Esc / Cancel button: closes the window, ignored once the fade has started.</summary>
@@ -119,7 +157,8 @@ namespace Game.UI
                 _sleepRoutine = null;
             }
             _sleeping = false;
-            _onChoice = null;
+            _onConfirm = null;
+            _clock = null;
             SetFade(0f);
             if (_panel != null) _panel.SetActive(false);
             OnScreenClose();
@@ -179,15 +218,46 @@ namespace Game.UI
             _fade.blocksRaycasts = alpha > 0f;
         }
 
-        private void Choose(SleepChoice choice)
+        private void Confirm()
         {
-            if (_sleeping) return;
-            _onChoice?.Invoke(choice);
+            if (!IsOpen || _sleeping) return;
+            _onConfirm?.Invoke(_targetHour);
         }
 
-        private void ChooseUntilMorning() => Choose(SleepChoice.UntilMorning);
-        private void ChooseUntilEvening() => Choose(SleepChoice.UntilEvening);
-        private void ChooseUntilMidnight() => Choose(SleepChoice.UntilMidnight);
-        private void ChooseOneHour() => Choose(SleepChoice.OneHour);
+        private void StepUp() => Step(1);
+        private void StepDown() => Step(-1);
+
+        private void Step(int delta)
+        {
+            if (!IsOpen || _sleeping) return;
+            _targetHour = SleepRules.StepHour(_targetHour, delta);
+            RefreshLabels();
+            SelectSleepButton();
+        }
+
+        // Keyboard: Enter / Space always confirm (the panel buttons have Navigation None, and a clicked − / + would
+        // otherwise stay selected and take the Submit).
+        private void SelectSleepButton()
+        {
+            if (_sleepButton != null && EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(_sleepButton.gameObject);
+        }
+
+        private void RefreshLabels()
+        {
+            if (_clock == null) return;
+            double now = _clock.Now;
+            int minute = GameTime.HourOf(now) * 60 + GameTime.MinuteOf(now);
+            if (minute != _shownMinute)
+            {
+                _shownMinute = minute;
+                if (_headerText != null) _headerText.text = GameTime.Format(now);
+            }
+            int hours = SleepRules.HoursUntil(_targetHour, now); // 0 = under an hour
+            if (_targetHour == _shownTarget && hours == _shownHours) return;
+            _shownTarget = _targetHour;
+            _shownHours = hours;
+            if (_targetText != null) _targetText.text = $"Sleep until {_targetHour:00}:00 ({SleepRules.FormatHours(hours)})";
+        }
     }
 }

@@ -41,8 +41,8 @@ Fail: Venn dies before the report ("dead men keep their secrets").
 
 | # | Need | Why | Notes |
 |---|---|---|---|
-| P1 | **HUD time of day** | The stakeout is time-gated, and nothing on screen shows the hour today | Small, diegetic-friendly readout (e.g. sun/moon dial + hour) on the HUD; reads `GameClock` |
-| P2 | **Sleep / wait to a chosen hour** | Reach 00:00 without guessing | `SleepRules.SleepChoice` already has `UntilMidnight` (beds only). Valentin asked for a rework: an hour picker in `SleepUI` (and decide whether waiting stays bed-only) |
+| P1 | **HUD time of day** (**done**, `HudClockUI`) | The stakeout is time-gated, and nothing on screen shows the hour today | Small, diegetic-friendly readout (e.g. sun/moon dial + hour) on the HUD; reads `GameClock` |
+| P2 | **Sleep / wait to a chosen hour** | Reach 00:00 without guessing | **Done** (`spec-hud-clock-and-sleep-hour-picker`): bed hour picker in `SleepUI` (any target hour); stays bed-only |
 | P3 | **Hour-gated, NPC-gated `WorldFactTrigger`** | `WorldFact_TitheBarn_ThiefCaught` must only set while Venn is actually at the barn | Optional hour window (00–03) + optional required NPC (`PersistentID`) that must be alive, conscious, and in a named routine block / at a spot |
 | P4 | **Fact-driven NPC removal on an `ElapsedFact`** | Venn / Pim leave 12 h after the report | `FactRemovedObject._fact` is a `WorldFact` only → widen to `Fact` (stored or computed, incl. `ElapsedFact`), and check it saves / restores for an NPC root |
 | P5 | **Venn's night routine** | He must walk to the barn and stand there in the window | Content on `NpcRoutine`: Sleep in a barracks bed, Stand at `Spot_BarnGuard_BarnDoor` 00–03, day post at the fields gate. A sack prop on the spot (or in hand) sells the theft |

@@ -22,6 +22,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 │   ├── SpeechBubbleLayer   (stretch, own Canvas, SpeechBubbleUI — pools Prefabs/UI/SpeechBubble.prefab; before the prompt)
 │   ├── InteractionPrompt   (nested Prefabs/UI/InteractionPrompt.prefab — own Canvas + CanvasGroup)
 │   ├── ActionBar        (ActionBarUI → 6× ActionBarSlot)
+│   ├── Clock            (own Canvas + CanvasGroup, HudClockUI — top-right time dial: Dial/{Horizon, Sun, Moon} + TimeText; before NotificationContainer)
 │   └── HealthBar (Fill + PendingFill) / StatusEffectBar / StaminaBar / ExperienceBar / NotificationContainer (own Canvas, sort 50; CanvasGroup ignoreParentGroups)
 ├── CookingUI / NPCTradeUI / ContainerUI   (nested prefabs, inactive by default, AFTER Game so they win over the HUD; each root has HideHudWhileOpen → Game; CookingUI._playerInventory is a Player.prefab override)
 ├── DialoguePanel        (nested Prefabs/UI/Dialogue/DialoguePanel.prefab)
@@ -29,7 +30,7 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 ├── GameMenu             (GameMenuUI, always active) → Panel (toggled) → Window → MainButtons / SaveSlotList (nested Prefabs/UI/SaveSlotList.prefab) / OptionsUI / BackButton
 ├── DeathScreen          (DeathScreenUI, always active) → Panel (toggled)
 ├── ConfirmDialog        (nested Prefabs/UI/ConfirmDialog.prefab, inactive — shared Yes/No)
-├── SleepScreen          (SleepUI, always active) → Panel (toggled: Window → Buttons: Title, TimeText, 4 durations, Cancel) + Fade (own Canvas sort 90, black CanvasGroup)
+├── SleepScreen          (SleepUI, always active) → Panel (toggled: Window → Buttons: Title, TimeText, PickerRow (MinusButton / TargetText / PlusButton), SleepButton, CancelButton) + Fade (own Canvas sort 90, black CanvasGroup)
 └── LoadingOverlay       (LoadingOverlayUI, own Canvas sort 100) → Panel (toggled)
 ```
 

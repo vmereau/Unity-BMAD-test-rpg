@@ -61,28 +61,31 @@ namespace Game.World
                 return;
             }
             if (_sleepUI.IsOpen || !CanSleep()) return;
-            _sleepUI.Open(GameTime.Format(_gameClock.Now), HandleChoice);
+            _sleepUI.Open(_gameClock, _config.morningHour, HandleChoice);
         }
 
         // Re-gated: an enemy may have walked up while the panel was open.
-        private void HandleChoice(SleepChoice choice)
+        private void HandleChoice(int targetHour)
         {
             if (_gameClock == null || _config == null || !CanSleep())
             {
                 if (_sleepUI != null) _sleepUI.Close();
                 return;
             }
-            if (_sleepUI != null) _sleepUI.PlaySleep(() => ApplySleep(choice));
+            // The wake time is fixed at the click: the clock keeps running during the fade, and recomputing it at the black
+            // could cross the target hour and turn "06:00 (under 1 h)" into a full day.
+            double wake = SleepRules.WakeTime(targetHour, _gameClock.Now);
+            if (_sleepUI != null) _sleepUI.PlaySleep(() => ApplySleep(targetHour, wake));
         }
 
-        private void ApplySleep(SleepChoice choice)
+        private void ApplySleep(int targetHour, double wake)
         {
             if (_gameClock == null || _config == null) return;
-            double wake = SleepRules.WakeTime(choice, _gameClock.Now, _config.morningHour, _config.eveningHour);
-            if (!_gameClock.SkipTo(wake)) return; // no rest without the time passing
+            // Already past it (the fade outlasted the gap): the time has passed anyway, so the rest still counts.
+            if (wake > _gameClock.Now && !_gameClock.SkipTo(wake)) return;
             if (_playerHealth != null && !_playerHealth.IsDead)
                 _playerHealth.Heal(_playerHealth.MaxHealth);
-            GameLog.Info(TAG, $"Slept ({choice}) → {GameTime.Format(_gameClock.Now)}");
+            GameLog.Info(TAG, $"Slept until {targetHour:00}:00 → {GameTime.Format(_gameClock.Now)}");
         }
 
         /// <summary>False (and raises the refusal toast) while dead or with a live hostile nearby.</summary>

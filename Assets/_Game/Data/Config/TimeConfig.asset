@@ -15,6 +15,5 @@ MonoBehaviour:
   realMinutesPerGameDay: 180
   startHour: 8
   morningHour: 6
-  eveningHour: 18
   sleepHostileRadius: 15
   sleepFadeSeconds: 0.5
