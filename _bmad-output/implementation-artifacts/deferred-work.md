@@ -1114,3 +1114,14 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   nothing sets stays always false with no issue. Extend V3 (or V18) to the source's setters.
 - **A witnessed theft of any of Hobb's goods spends the pending box opener.** The 2 h delay widens the window in which
   catching the player stealing something else cancels it (the opener isn't tied to an incident; see above).
+
+## From quest design TitheBarnShortfall (2026-11-19, `docs/World/Quests/TitheBarnShortfall.md`)
+
+- **Prerequisites before `/quests:implement TitheBarnShortfall`** (each its own quick-dev spec): P1 HUD time of
+  day; P2 sleep / wait to a chosen hour (`SleepRules` already has `UntilMidnight`); P3 hour- and NPC-gated
+  `WorldFactTrigger`; P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal.
+- **Gang revenge when Venn takes the fall (follow-up event / quest, to design).** Reporting Venn cuts the gang's
+  grain supply. Gang members from the Mafia Zone should jump the player at night some time after Venn is gone
+  (a beating + robbery through the knockout / loot flow rather than a death fight). Brann knows ("you cost us a
+  supplier") and may offer a way to settle the debt, which is a second way into the mafia route. Worse after a
+  double-cross (`DialogueFact_BarnGuard_DealStruck` + `DialogueFact_FarmReeve_Shortfall_ReportedGuard`).
