@@ -254,6 +254,7 @@ namespace Game.AI
         private NPCPresence _presence; // same-GO, optional: opens the theft-return topic with full dialogue context
         private FactionMember _confrontThief; // who was offered the return (the target may change if this NPC is hit)
         private TheftKind _pursuitKind;
+        private bool _pursuitOwnGoods; // an adopted theft took this NPC's own goods (the chase's end spends its suspicion openers)
         private RestrictedArea _pursuitArea; // trespass pursuit only
         private RestrictedArea _trespassFightArea; // escalation brawl: the area whose warnings a knockout resets
         private float _pursuitElapsed;
@@ -473,6 +474,10 @@ namespace Game.AI
 
         private void Update()
         {
+            // Any exit from an own-goods chase spends the openers — including the ones that bypass EndPursuit
+            // (a hit or knockout mid-chase, a hostile taking over).
+            if (_pursuitOwnGoods && !IsChasingThief) SpendWitnessedOpeners();
+
             if (_entityHealth.IsDead && _state != EntityState.Dead)
             {
                 EndTactics();
@@ -1123,6 +1128,9 @@ namespace Game.AI
             _pursuitArea = area;
             _pursuitTheftId = data.theftId;
             if (data.kind != TheftKind.Trespass && !_pursuitTheftIds.Contains(data.theftId)) _pursuitTheftIds.Add(data.theftId);
+            if ((data.kind == TheftKind.Item || data.kind == TheftKind.Container) && data.owner != null && _persistentID != null &&
+                data.owner == _persistentID.Entity)
+                _pursuitOwnGoods = true;
             _pursuitKind = data.kind;
             _pursuitElapsed = 0f;
             _pursuitNoSightTimer = 0f;
@@ -1136,6 +1144,7 @@ namespace Game.AI
             _state = EntityState.Pursuing;
             _perception.ResetPerception();
             _pursuitTheftIds.Clear(); // a new chase: only the thefts adopted from now on
+            _pursuitOwnGoods = false;
             _confrontReturnOffered = false;
             _confrontThief = null;
             StartPursuitTimers(thief, data, area);
@@ -1333,11 +1342,24 @@ namespace Game.AI
             }
         }
 
+        /// <summary>True while chasing or scolding a thief / trespasser (Pursuing, Confronting).</summary>
+        public bool IsChasingThief => _state == EntityState.Pursuing || _state == EntityState.Confronting;
+
+        // A chase over this NPC's own goods (an item / container theft) ended, by any exit: EndPursuit (scolded, gave up,
+        // claimed by another), the refused-return brawl, or the Update check (hit, knockout, hostile takeover). It saw who
+        // did it, so a later "someone went through my things" opener would ring false.
+        private void SpendWitnessedOpeners()
+        {
+            if (_pursuitOwnGoods && _presence != null) _presence.MarkWitnessedOpenersPlayed();
+            _pursuitOwnGoods = false;
+        }
+
         private void EndPursuit(string reason)
         {
             _currentTarget = null;
             _pursuitArea = null;
             _pursuitTheftIds.Clear();
+            SpendWitnessedOpeners();
             _confrontReturnOffered = false;
             _confrontThief = null;
             if (_perception != null) _perception.ResetPerception();
@@ -1418,6 +1440,7 @@ namespace Game.AI
             }
             _pursuitArea = null;
             _pursuitTheftIds.Clear();
+            SpendWitnessedOpeners();
             _confrontReturnOffered = false;
             if (_perception != null) _perception.ResetPerception();
             if (StartBrawl(thief)) // armed: no fists request

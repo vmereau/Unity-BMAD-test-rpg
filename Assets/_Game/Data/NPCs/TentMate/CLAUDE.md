@@ -67,4 +67,6 @@ Hobb signed the same false contract years ago. He knows where everything is, and
 | NPCEntity | `Assets/_Game/Data/NPCs/TentMate/NPC_TentMate.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/TentMate/Dialogues/` — `Arrival/Start_TentMate_ArrivalBriefing` is event-001's forced briefing (`ArrivalSequence_Event001.hutBriefing`), in no memory |
 | Memories | `Assets/_Game/Data/NPCs/TentMate/Memories/` |
+| Facts | `Facts/WorldFact_Hobb_BelongingsRummaged` (set by `HobbsBox`'s `ContainerTakeFact`), `WorldFact_Hobb_RummageOpenerPlayed`, `KilledFact_HobbsBox` (the box's save key) |
+| Suspicion opener | `Dialogues/Suspicion/Start_TentMate_Rummaged` → `Text_TentMate_Rummaged`: the scene `NPCPresence._talkOpeners` entry (cancelled when Hobb witnessed the theft). In no memory, so Quest Explorer may list it as unattributed |
 | Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

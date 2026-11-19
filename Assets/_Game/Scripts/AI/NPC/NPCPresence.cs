@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Core;
 using Game.Dialogue;
 using Game.Economy;
@@ -19,8 +20,11 @@ namespace Game.AI
         [Tooltip("Optional: the player can't talk to this NPC until this fact is true (e.g. Tam before the arrival event). " +
                  "Loot and NPC-forced topics are unaffected.")]
         [SerializeField] private WorldFact _availableAfter;
+        [Tooltip("Things this NPC brings up once on the player's next \"Talk\" (first pending wins), before its topic list.")]
+        [SerializeField] private List<NpcTalkOpener> _talkOpeners = new List<NpcTalkOpener>();
 
         private FactionMember _factionMember;
+        private EntityBrain _brain; // same-GO, optional: no opener while it chases / scolds a thief
         private bool _closeEventWarned;
         private static bool s_noPlayerWarned;
 
@@ -73,6 +77,7 @@ namespace Game.AI
         {
             base.Awake();
             _factionMember = GetComponent<FactionMember>();
+            _brain = GetComponent<EntityBrain>();
         }
 
         public override void Interact()
@@ -99,7 +104,59 @@ namespace Game.AI
                 GameLog.Info(TAG, $"{gameObject.name} is not available until {_availableAfter.name} — dialogue blocked");
                 return;
             }
+            if (TryPlayTalkOpener()) return;
             RaiseDialogueRequest(null);
+        }
+
+        // First pending opener: opens its topic, then the topic list. Played is set only if the dialogue really opened
+        // (DialogueSystem unlocks the cursor synchronously; it ignores a request while another dialogue is open).
+        // No WorldStateManager → none. Not while this NPC chases / scolds a thief: its scold comes first.
+        private bool TryPlayTalkOpener()
+        {
+            WorldStateManager wsm = WorldStateManager.Instance;
+            if (wsm == null || _talkOpeners.Count == 0) return false;
+            bool chasingThief = _brain != null && _brain.IsChasingThief;
+            for (int i = 0; i < _talkOpeners.Count; i++)
+            {
+                NpcTalkOpener opener = _talkOpeners[i];
+                if (opener == null) continue;
+                if (!opener.IsComplete)
+                {
+                    GameLog.Warn(TAG, $"{gameObject.name}: talk opener {i} needs a condition, a topic and a played fact — skipped");
+                    continue;
+                }
+                if (!TalkOpenerRules.IsPending(true, wsm.GetFact(opener.condition), wsm.GetFact(opener.played), chasingThief))
+                    continue;
+                if (!RaiseDialogueRequest(opener.topic, thenTopics: true)) return false;
+                if (CursorManager.IsLocked)
+                {
+                    GameLog.Info(TAG, $"{gameObject.name}: opener '{opener.topic.name}' not shown (dialogue didn't open) — kept for later");
+                    return false; // let the normal topic list try
+                }
+                wsm.SetFact(opener.played, true);
+                GameLog.Info(TAG, $"{gameObject.name} opens with '{opener.topic.name}' ({opener.condition.name})");
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// This NPC saw the player steal its goods (its chase over that theft just ended, however it ended): every
+        /// <see cref="NpcTalkOpener.cancelWhenWitnessed"/> opener whose condition is already true is marked played, so it
+        /// never brings the theft up later as if it didn't know who did it.
+        /// </summary>
+        public void MarkWitnessedOpenersPlayed()
+        {
+            WorldStateManager wsm = WorldStateManager.Instance;
+            if (wsm == null) return;
+            foreach (NpcTalkOpener opener in _talkOpeners)
+            {
+                if (opener == null || !opener.IsComplete) continue;
+                if (!TalkOpenerRules.CancelsOnWitness(true, opener.cancelWhenWitnessed, wsm.GetFact(opener.condition),
+                        wsm.GetFact(opener.played))) continue;
+                wsm.SetFact(opener.played, true);
+                GameLog.Info(TAG, $"{gameObject.name}: saw the thief — opener '{opener.topic.name}' cancelled");
+            }
         }
 
         /// <summary>

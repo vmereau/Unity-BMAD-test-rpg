@@ -20,6 +20,8 @@ namespace Game.Editor.World
         internal const string LONG_PATH = "Assets/_Game/Prefabs/World/Huts/WorkerHut_Long.prefab";
         private const string KIT_ROOT = "Assets/Hivemind";
         private const string MISSING_PREFIX = "Missing_";
+        /// <summary>Child holding the hut's (inactive by default) restricted-area volume.</summary>
+        internal const string RESTRICTED_AREA = "RestrictedArea";
 
         // Wall centre lines: the kit's wall modules are 4 m and 3 m long and 2.5 m high.
         internal const float HALF_WIDTH = 1.5f;
@@ -32,6 +34,8 @@ namespace Game.Editor.World
         internal const float DOOR_HEIGHT = 2.14f;
         private const float DOOR_MODULE_STRETCH = 1.1f; // lifts the 1.95 m opening clear of the player's head
         private const float WALL = 0.3f;
+        // Wall centre line to the kit modules' inner (visual) face: the room is 2.56 m across in the 3 m hut.
+        private const float AREA_INSET = 0.22f;
         private const float PITCH = 28f;
         private const float OVERHANG = 0.3f;
         private const float WINDOW_MIN_X = -0.45f;
@@ -81,6 +85,7 @@ namespace Game.Editor.World
                 BuildWalls(root.transform, rng, sideWall);
                 BuildRoof(root.transform, rng);
                 BuildColliders(root.transform);
+                BuildRestrictedArea(root.transform);
                 if (_missing > 0)
                 {
                     // Saving would replace a good hut with one that has a hole in it, and scene instances follow.
@@ -225,6 +230,23 @@ namespace Game.Editor.World
                 plane.localRotation = Quaternion.Euler(0, 0, -side * PITCH);
                 Box(plane, "Roof", new Vector3(side * slope * 0.5f, 0, 0), new Vector3(slope, 0.16f, (_halfLength + OVERHANG) * 2f));
             }
+        }
+
+        /// <summary>
+        /// The room between the wall faces, floor to eave, as an <b>inactive</b> <see cref="Game.World.RestrictedArea"/>
+        /// with no owners: an owned hut's scene instance switches it on and lists its owners (two overrides). Inactive,
+        /// its <c>Awake</c> never runs, so unowned huts log nothing. The doorway itself stays outside the box.
+        /// </summary>
+        private static void BuildRestrictedArea(Transform root)
+        {
+            Transform area = Group(RESTRICTED_AREA, root);
+            area.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+            var box = area.gameObject.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.center = new Vector3(0f, EAVE * 0.5f, 0f);
+            box.size = new Vector3((HALF_WIDTH - AREA_INSET) * 2f, EAVE, (_halfLength - AREA_INSET) * 2f);
+            area.gameObject.AddComponent<Game.World.RestrictedArea>();
+            area.gameObject.SetActive(false);
         }
 
         /// <summary>A wall-thick box on an end wall, between two X positions and two heights.</summary>

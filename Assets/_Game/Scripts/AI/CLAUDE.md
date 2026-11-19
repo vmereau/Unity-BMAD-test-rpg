@@ -76,7 +76,7 @@
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
   Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
   office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol between his hut door (`worker-mate`) and the Player's Zone campfire, 21–06
-  `Spot_TentMate_Night` outside his hut door. `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
+  `Spot_TentMate_Night` inside his hut, beside the stool (it is his restricted area: see `Scenes/CLAUDE.md`). `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
   The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`.
@@ -244,6 +244,19 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   event-001). Loot and NPC-forced topics (`RequestForcedTopic`) ignore it. No `WorldStateManager` → available.
 - **`NPCPresence.RequestForcedTopic(node, thenTopics = false)`**: `thenTopics` → the chain ends on the NPC's normal topic
   list (Farewell included) instead of closing (Hobb's arrival briefing). Toll and Warden topics keep the default.
+- **`NPCPresence._talkOpeners`** (`NpcTalkOpener`: `condition` / `topic` / `played` WorldFacts + `cancelWhenWitnessed`): on the
+  player's Talk, the first opener whose condition is true and played false opens its topic with
+  `RaiseDialogueRequest(topic, thenTopics: true)`; `played` is set only if the dialogue really opened (cursor unlocked at once —
+  `DialogueSystem` ignores a request while another dialogue is open); otherwise the normal topic list is requested. Skipped while the NPC's brain `IsChasingThief`
+  (Pursuing / Confronting: its scold comes first). Incomplete opener → warning, skipped; no `WorldStateManager` → none.
+  `MarkWitnessedOpenersPlayed()` spends every `cancelWhenWitnessed` opener **whose condition is already true**: `EntityBrain`
+  calls it (`SpendWitnessedOpeners`) when a chase over an item / container theft of its **own** goods ends by any exit:
+  `EndPursuit` (scold, give-up, claimed by another catcher), the refused-return brawl, and a check at the top of `Update`
+  (`_pursuitOwnGoods` while no longer `IsChasingThief`: a hit or knockout mid-chase, a hostile taking over).
+  `_pursuitOwnGoods` is set at adoption from `TheftCommittedData.owner`; not saved, so a reload mid-chase keeps the opener. So an NPC never later says "someone went through my things" about a theft it saw, while a
+  witnessed opening with nothing taken leaves the line for a later unseen theft. Openers aren't tied to a specific incident:
+  any own-goods chase spends every flagged opener whose condition is true. Pure `TalkOpenerRules` (`TalkOpenerRulesTests`).
+  Hobb's suspicion line (`Dialogues/Suspicion`) is the first user.
 - **`NPCPresence.RequestDialogueClose()`** (`_onDialogueCloseRequested` → `OnDialogueCloseRequested`, wired on `NPC_base Variant`
   and any non-prefab scene NPC): closes the dialogue this NPC opened (forced topic or the player's Talk); ignored for another NPC's.
   `TollGate` calls it when Harl is disturbed mid-talk, `ArrivalSequence` on region unload mid speech / briefing.

@@ -1087,3 +1087,18 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   line. The guard walks round it. Move the lane points or the hut during the kit rollout.
 - **No boots, wall pegs or playing cards in the kit.** The interior uses a plank as a peg rail and a flat block as the
   cards. Small custom props for a later pass.
+
+## From spec-hobb-hut-ownership (2026-11-19)
+
+- **NPCs can't sit.** `NpcActivity` has only Stand and Patrol, and there is no sitting clip. Hobb stands beside his
+  stool at night (`Spot_TentMate_Night`). Needs a `Sit` activity (seat spot + facing), a Mixamo sit-down / seated idle /
+  stand-up set in `Humanoid_Template`, and the brain to stand up before any reaction (trespass, theft, combat, dialogue).
+- **Other owned huts.** Only `worker-mate` has its `RestrictedArea` switched on. Owners for the rest come with the
+  kit rollout and the camp's NPC roster.
+- **Talk openers aren't tied to an incident.** Any own-goods chase spends every `cancelWhenWitnessed` opener of that NPC
+  whose condition is true. Fine with Hobb's single opener; scope openers to a container / incident once an NPC has two.
+- **No check that owned huts stay owned.** Hobb's ownership is two scene overrides on the generated
+  `worker-mate/RestrictedArea`; a builder rename would orphan them silently. A validator listing active, owned hut
+  areas (or a rebuild-time check) would catch it.
+- **Opener timing edge.** A witnessed chase that times out while the player is still in the container UI ends before
+  the take, so Hobb still says "someone's been through my things" later (accepted in spec-hobb-hut-ownership).

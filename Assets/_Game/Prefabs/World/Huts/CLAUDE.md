@@ -33,6 +33,21 @@ kit piece stops before saving and leaves the prefab as it was.
 - Inside room: about 2.56 × 2.56 m between wall faces (Home). A `Bed_WorkerPallet` along the −X wall leaves a walking
   strip of about 1.7 m; keep solid props out of it.
 
+## Restricted Area (owned huts)
+
+Every shell has a child `RestrictedArea`: a `Game.World.RestrictedArea` with one trigger `BoxCollider` on Ignore
+Raycast covering the room between the visual wall faces, floor to eave (Home 2.56 × 2.5 × 2.56 m). The doorway is outside it.
+It ships **inactive with no owners**, so unowned huts (the player's) never run it and log nothing. To make a hut
+owned, on the scene instance: switch `RestrictedArea` on and list the owner(s) (`_ownerEntities` / `_ownerFactions`),
+plus hours and warnings if needed. Hobb's `worker-mate` is the first (owner `NPC_TentMate`, all day, one warning).
+
+A rebuild keeps those overrides: `SaveAsPrefabAsset` over the existing prefab keeps a child's fileID when its name
+and path are unique and unchanged (checked 2026-11-19). Renaming or moving `RestrictedArea` in the builder drops
+every instance's owners. Siblings that share a name (`Side`, `Front`, `Rear`, `Roof` pieces, nested kit prefabs) get
+new fileIDs on every rebuild (a large but harmless prefab diff), so never put a scene override on one of them.
+Set the active flag through `SerializedObject` (`m_IsActive`) or the Inspector: a bare
+`SetActive` from a script is not recorded as an override and a rebuild reverts it.
+
 ## Dressing
 
 `Tools/World/Dress Home Yard` (`Editor/World/HomeYardDresser`) builds `PlayersZone/HomeYardDressing` in

@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_TentMate_Rummaged
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Somebody's been through my box. Not much gone, but the timing doesn't sit right with me. I'd like to think it wasn't you. I'll be keeping an eye on you all the same.
+  nextNode: {fileID: 0}
+  _id: 7d30c0e3f1c18de49aa07677bf7214fd
