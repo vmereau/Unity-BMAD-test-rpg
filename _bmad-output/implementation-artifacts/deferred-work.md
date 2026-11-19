@@ -1118,8 +1118,8 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 ## From quest design TitheBarnShortfall (2026-11-19, `docs/World/Quests/TitheBarnShortfall.md`)
 
 - **Prerequisites before `/quests:implement TitheBarnShortfall`** (each its own quick-dev spec): ~~P1 HUD time of
-  day; P2 sleep / wait to a chosen hour~~ (done 2026-11-19, `spec-hud-clock-and-sleep-hour-picker`; beds only); P3 hour- and NPC-gated
-  `WorldFactTrigger`; P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal.
+  day; P2 sleep / wait to a chosen hour~~ (done 2026-11-19, `spec-hud-clock-and-sleep-hour-picker`; beds only); ~~P3 hour- and NPC-gated
+  `WorldFactTrigger`~~ (done 2026-11-19, `spec-gated-world-fact-trigger`); P4 `FactRemovedObject` driven by any `Fact` (incl. `ElapsedFact`) for NPC removal.
 - **Gang revenge when Venn takes the fall (follow-up event / quest, to design).** Reporting Venn cuts the gang's
   grain supply. Gang members from the Mafia Zone should jump the player at night some time after Venn is gone
   (a beating + robbery through the knockout / loot flow rather than a death fight). Brann knows ("you cost us a
@@ -1134,3 +1134,11 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 - **Full heal on any sleep length (pre-existing, easier to reach now).** `SleepSystem.ApplySleep` heals to max whatever the
   duration, and the hour picker lets the player pick the next hour (label "under 1 h"), so a few-seconds sleep is a free
   full heal. Scale the heal by hours slept or require a minimum sleep if it matters for balance.
+
+## From spec-gated-world-fact-trigger (2026-11-19)
+
+- **Quest Explorer can't see a blocked gated trigger.** It indexes `WorldFactTrigger._fact` only. A validator rule could flag
+  an `InRoutineBlock` `_routineBlockLabel` that matches no `NpcRoutineBlock.label` on that NPC, or a `_requiredNpc` that is
+  a prefab asset / in another scene. Today only a runtime `Awake` warning reports the label mismatch.
+- **No MonoBehaviour-level tests for `WorldFactTrigger`** (Awake validation, destroyed / inactive NPC). The decision is
+  covered by `WorldFactTriggerRulesTests`; a PlayMode test would cover the wiring.

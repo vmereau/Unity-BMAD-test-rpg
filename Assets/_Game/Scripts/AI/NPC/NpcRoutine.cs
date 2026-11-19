@@ -62,6 +62,15 @@ namespace Game.AI
 
         private float PollInterval => Mathf.Max(0.1f, _pollInterval);
 
+        /// <summary>True when some block's <see cref="NpcRoutineBlock.label"/> equals <paramref name="label"/> (ordinal). Used to validate gates that match by label.</summary>
+        public bool HasBlockLabel(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return false;
+            for (int i = 0; i < _blocks.Count; i++)
+                if (_blocks[i] != null && string.Equals(_blocks[i].label, label, System.StringComparison.Ordinal)) return true;
+            return false;
+        }
+
         /// <summary>True while a story sequence owns this NPC (<see cref="Suspend"/>): no block is sent.</summary>
         public bool IsSuspended { get; private set; }
 

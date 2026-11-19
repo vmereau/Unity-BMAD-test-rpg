@@ -71,7 +71,8 @@
   off the spot → walks back; a partial path logs one warning.
 - No clock (region played without Core) → the first all-day block (`FindAllDayBlock`) applies once (snap), else no
   routine (idle wander); one info log.
-- `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating.
+- `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating. A block's optional
+  `label` (no effect on the routine) is what gates match by name (`WorldFactTrigger` `InRoutineBlock`).
 - **Story sequences own NPCs through `Suspend()` / `Resume(snap)`** (e.g. `Game.World.ArrivalSequence`): while
   `IsSuspended` no block is sent, so the sequence's own `SetRoutineTarget` calls stick; `Resume` re-sends the current
   block at once (snap = warp). Always resume what you suspend (also from `OnDisable`).

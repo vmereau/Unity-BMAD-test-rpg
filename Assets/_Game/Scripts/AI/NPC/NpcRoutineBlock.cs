@@ -21,6 +21,8 @@ namespace Game.AI
     [Serializable]
     public class NpcRoutineBlock
     {
+        [Tooltip("Optional name other systems match against (e.g. WorldFactTrigger's InRoutineBlock gate). Has no effect on the routine.")]
+        public string label;
         [Range(0, 23)] public int startHour;
         [Range(0, 23)] public int endHour;
         public NpcActivity activity;
