@@ -20,6 +20,7 @@
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 | `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
+| `World/Huts/` | Art-pass worker hut shells built from kit pieces (generated; own `CLAUDE.md`) |
 | `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
 | `World/Tent_Graybox` | Placeholder worker tent (BanditVillage tarp, sacks, log). All camp tents are instances, so real art is one prefab swap |
 
@@ -89,4 +90,8 @@ New lake recipe:
 - `_onSleepRequested` (`OnBedSleepRequested`) is set on the base, so every look inherits it. Beds are stateless — no
   `SaveableObject` / save ID.
 - `Bed_WoodBed_01a` = HouseForge `SM_WoodBed_01a` (in the `HDRP (Default)` folder, but `S_MasterORM` has a URP target;
-  long axis = local X). Instance `Bed` in StartingTown beside the player's tent.
+  long axis = local X). No longer placed in a scene; kept as the richer look.
+- `Bed_WorkerPallet` = the laborer's bed modelled in Blender (`Art/Environment/Camp/models/worker bed/`,
+  `WorkerBed_Model.prefab` = FBX + one solid box). 2.0 × 0.9 m, long axis = local X, **pillow at +X**, the straw tear
+  on +Z. Instance `Bed` in the player's hut in StartingTown. Hobb's hut uses the bare model, so it is not a second
+  place to sleep.

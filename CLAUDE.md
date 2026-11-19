@@ -132,11 +132,12 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
 | Entity prefabs | `Prefabs/Entities/CLAUDE.md` | `Entity_base`, `NPC_base Variant`, variant-editing gotchas |
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
+| Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut shells (kit pieces), shell contract, home yard dressing tool |
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
-| Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log |
+| Environment / ruins / camp kit | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log; camp kit rules (wall modules, roofs, scale, custom Blender pieces) |
 | UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
 | Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |

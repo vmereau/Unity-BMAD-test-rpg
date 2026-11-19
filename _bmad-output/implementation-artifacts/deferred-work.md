@@ -1057,3 +1057,33 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 - **Shared barks still use the old clipped register.** `Barks_*` were out of scope (shouted one-liners); a few read
   oddly ("I hope to never see you again here.", "You there?! Die!"). Give them a light pass of their own.
+
+## From spec-area-1-home-yard-beauty-corner (2026-11-19)
+
+- **Camp kit rollout.** The player's and Hobb's huts are the only two with art; the other 73 huts and 26 tarp bays are
+  still graybox, and show in every wide view of the home yard. Swap them to `WorkerHut_Home` / `WorkerHut_Long`
+  (rules in `Art/Environment/CLAUDE.md` → *Camp Kit*), cluster by cluster. Many graybox huts interpenetrate their
+  neighbours, so a rollout needs a spacing pass, not a one-to-one swap.
+- **Meshy pass on the custom pieces.** `Bed_WorkerPallet` and the door flap are Blender models with tiling kit
+  textures. Regenerate the bed with Meshy from `Art/Environment/Camp/Concepts/worker bed.png` (target look: `H4 worker
+  bed.png`), then replace the mesh under `WorkerBed_Model.prefab`.
+- **The player's hut is 3 × 3 m, not the 3 × 4 m of the H2 concept.** The ground rises about 1 m within 2 m of its back
+  wall. A longer hut needs the bank behind it flattened in `Area1TerrainBuilder` / the layout, or the hut moved.
+- **Rear opening looks at the bank.** The window of the player's hut faces the rising ground, not the hunter fire
+  through `BrokenStretch`. Same as the graybox; revisit with the terrain change above.
+- **Tarp bays are untouched.** `worker-tarp-north (1)` next to the two huts keeps its graybox canvas and bedrolls; the
+  kit's `SK_Roof_Tarp_AsStaticMesh` is a candidate.
+- **Hut interiors look near black in edit mode only.** The editor shows skybox ambient; in Play the trilight ambient
+  from `DayNightConfig` makes the room readable. Judge interiors in Play. An edit-mode ambient preview would help.
+- **Kit fire particles read as thin smoke.** `SM_FireCamp_01b` nests the kit's fire and smoke particles, which show as
+  pale smoke in URP and run all day. The visible flame is a night-only glow quad. A proper fire VFX is a later pass.
+- **Candle flame pops on.** `PS_CandleFlame`'s material has no `_BaseColor`, so `ClockNightLight` cannot fade it: it
+  appears at once at dusk while the light fades in.
+- **`HutLane_R_1` is under the stage floor (pre-existing).** `ArrivalSequence/HutLanes/HutLane_R_1` at (−3.29, 26.26)
+  has no NavMesh within 1 m: the nearest is the stage deck 1.07 m above it. Found while checking the lanes after the
+  rebake; not caused by this spec. Move the point off the stage or check that the right-hand guard still walks it.
+- **`worker-hut-03` stands on the left escort lane (pre-existing).** Between `HutLane_L_3` (5.03, 32.78) and `L_4`
+  (3.82, 38.13) the NavMesh path is 8.4 m against 5.5 m straight, because the graybox hut at about (4.3, 36) is on the
+  line. The guard walks round it. Move the lane points or the hut during the kit rollout.
+- **No boots, wall pegs or playing cards in the kit.** The interior uses a plank as a peg rail and a flat block as the
+  cards. Small custom props for a later pass.
