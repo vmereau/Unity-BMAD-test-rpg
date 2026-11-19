@@ -26,5 +26,9 @@ MonoBehaviour:
   swimFloatDepth: 1.45
   swimRiseSpeed: 2
   swimStrokeDistance: 2
+  aggroRunStaminaPerSecond: 8
+  aggroJumpStaminaCost: 15
+  fallSafeHeight: 11
+  fallDamagePerMetre: 4
   attackSteerSpeed: 8
   upperBodyBlendTime: 0.15

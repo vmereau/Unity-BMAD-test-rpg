@@ -179,10 +179,32 @@ namespace Game.Player
             if (IsUnconscious && knockout) return; // no finishing blow from a brawl opponent
             float defense = _playerStats != null ? _playerStats.Defense : 0f;
             float effective = DamageMath.Mitigate(amount, defense, _config != null ? _config.minDamageFraction : 0f);
-            CurrentHealth -= effective;
+            ApplyHealthLoss(effective);
+            GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+            FinishDamage(knockout);
+        }
+
+        /// <summary>
+        /// Environmental damage that ignores Defense (fall damage, <c>PlayerFallDamage</c>). Unknown source: lethal at zero
+        /// health, never a knockout. Same hurt sound / health event / death path as <see cref="TakeDamage(float, GameObject)"/>.
+        /// </summary>
+        public void TakeUnmitigatedDamage(float amount)
+        {
+            if (IsDead || amount <= 0f) return;
+            ApplyHealthLoss(amount);
+            GameLog.Info(TAG, $"Player took {amount:F0} unmitigated damage — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+            FinishDamage(knockout: false);
+        }
+
+        private void ApplyHealthLoss(float amount)
+        {
+            CurrentHealth -= amount;
             unchecked { DamageRevision++; }
             CurrentHealth = Mathf.Max(CurrentHealth, 0f);
-            GameLog.Info(TAG, $"Player took {effective:F0} damage (raw {amount:F0} - def {defense:F0}) — HP: {CurrentHealth:F0}/{MaxHealth:F0}");
+        }
+
+        private void FinishDamage(bool knockout)
+        {
             _onPlayerHealthChanged?.Raise(CurrentHealth);
             if (CurrentHealth > 0f && _onSfxRequested != null && _combatAudio != null) // no grunt on the killing blow
                 _onSfxRequested.Play(_combatAudio.playerHurt, transform.position);

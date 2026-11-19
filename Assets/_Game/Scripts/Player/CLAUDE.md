@@ -17,6 +17,7 @@
 | Move   | `CanMove()`   | — (read-only gate; false during any attack — swings move through `PlayerAttackStep`) |
 | Attack steering | `CanSteerAttack()` / `IsAttackCommitted` | `PlayerCombat` → `SetAttackCommitted(bool)` (true at `HitboxEnable`, false on attack-state enter); `PlayerController` turns at `attackSteerSpeed` while it's true (`Scripts/Combat/PLAYER_COMBO.md`) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
+| Aggroed | `IsAggroed` (read-only, cached per frame) | — computed: `EntityBrain.IsAnyFighting(player FactionMember)` = any active brain in Warning / Engaging / Attacking / Searching on the player, any faction. **Not** `IsInCombat` (drawn weapon) |
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
 | Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimStanceYaw` (45° side-on stance) with no sprint; `Game.Combat.BowAimCorrection` turns the spine onto the crosshair after the Animator (`Scripts/Combat/CLAUDE.md`); `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
@@ -64,6 +65,26 @@ without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking
 - **Stance reactions:** the driver sends `IsSwimming && !IsIncapacitated`, so a stagger / knockdown clip isn't cut by the
   held bool. `CameraController` limits look-up to `_swimPitchMin` while swimming (the surface is invisible from below).
 - Water surface and basin recipe: `Prefabs/CLAUDE.md` → Water volumes.
+
+### Aggro movement costs & fall damage (spec-movement-stamina-fall-damage)
+
+- `PlayerMovementStamina` (Player root, `[DefaultExecutionOrder(-5)]`: after `PlayerSwimming`, before `PlayerController`):
+  while `IsAggroed`, running (Sprint + move, `CanMove`, not swimming / sneaking / aiming / drinking / dodging) drains
+  `SprintStaminaPerSecond` in whole points (`MovementStaminaRules.DrainStep`, same pattern as swim sprint); short →
+  `IsRunExhausted` → `PlayerController` drops to walk speed until Sprint is released. `TryPayJump()` (called by
+  `ApplyJump` after `CanJump` + input) charges `JumpStaminaCost` while aggroed; short → no jump, nothing spent. Out of
+  aggro both are free. Base values `PlayerConfigSO` `[Header("Aggro")]`; **modifiers go through
+  `SprintDrainMultiplier` / `JumpCostMultiplier`** (equipment / skills / stats) — never edit the config at runtime.
+- `PlayerFallDamage` (Player root, `LateUpdate`): fall = highest y since `CharacterController.isGrounded` was last true
+  − landing y; `MovementStaminaRules.FallDamage` (`[Header("Fall Damage")]` `fallSafeHeight` 11, `fallDamagePerMetre`
+  4) → `PlayerHealth.TakeUnmitigatedDamage` (no Defense, never a knockout, hurt sound, can kill). Any grounded frame ends
+  the fall — a CC counts steep terrain contacts as ground, so sliding down a face is several short falls (the goat-track
+  drop's ~10 m + ~7 m steps deal nothing). Swimming, death, unconscious, a one-frame move > 4 m **sideways or upward**
+  (never downward: a hitch mid-fall must not cancel it) and `ResetFall()` (called by `PlayerController.ResetVerticalVelocity`,
+  i.e. a load teleport) cancel it. A landing in swimmable water (`PlayerSwimming.IsInSwimmableWater` — a fast fall can hit a
+  shallow pool's floor before swim mode starts) deals nothing. Landings ≥ 2 m log their height (tuning).
+- The run debt is kept between runs (tapping Sprint never runs free); exhaustion clears on Sprint release or aggro end.
+  `PlayerSneak.IsSprintingWhileMoving` ignores an exhausted Shift (walk speed, so sneak isn't dropped).
 
 ### Stance — PlayerStance (spec-player-stance-stagger-knockdown)
 

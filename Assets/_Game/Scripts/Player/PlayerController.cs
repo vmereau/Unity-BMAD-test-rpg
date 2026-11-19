@@ -27,9 +27,15 @@ namespace Game.Player
         private float _verticalVelocity;
 
         /// <summary>Teleports (save load) drop any fall speed accumulated while the region was gone.</summary>
-        public void ResetVerticalVelocity() => _verticalVelocity = GROUNDED_VELOCITY;
+        public void ResetVerticalVelocity()
+        {
+            _verticalVelocity = GROUNDED_VELOCITY;
+            if (_fallDamage != null) _fallDamage.ResetFall(); // a teleport is never a fall
+        }
         private PlayerStateManager _stateManager;
         private PlayerSwimming _swimming;
+        private PlayerMovementStamina _movementStamina;
+        private PlayerFallDamage _fallDamage;
 
         private bool IsSwimming => _swimming != null && _stateManager != null && _stateManager.IsSwimming;
 
@@ -61,6 +67,14 @@ namespace Game.Player
             _swimming = GetComponent<PlayerSwimming>();
             if (_swimming == null)
                 GameLog.Warn(TAG, "PlayerSwimming not found on Player — no swimming");
+
+            _movementStamina = GetComponent<PlayerMovementStamina>();
+            if (_movementStamina == null)
+                GameLog.Warn(TAG, "PlayerMovementStamina not found on Player — running / jumping free while aggroed");
+
+            _fallDamage = GetComponent<PlayerFallDamage>();
+            if (_fallDamage == null)
+                GameLog.Warn(TAG, "PlayerFallDamage not found on Player — no fall damage");
 
             if (_lockOnSystem == null) _lockOnSystem = GetComponent<LockOnSystem>();
             if (_lockOnSystem == null)
@@ -108,6 +122,8 @@ namespace Game.Player
             bool canJump = _stateManager != null ? _stateManager.CanJump() : _characterController.isGrounded;
             if (canJump && _input.Player.Jump.WasPressedThisFrame())
             {
+                // Aggroed: the jump costs stamina, refused (nothing spent) when short.
+                if (_movementStamina != null && !_movementStamina.TryPayJump()) return;
                 _verticalVelocity = _config.jumpForce;
                 _stateManager?.NotifyJumpStarted();
                 GameLog.Info(TAG, $"Jump triggered. Vertical velocity set to {_verticalVelocity}");
@@ -211,9 +227,11 @@ namespace Game.Player
                 }
             }
 
-            // No sprint while aiming the bow or drinking a potion (walk speed max; sneak speed still applies)
+            // No sprint while aiming the bow or drinking a potion (walk speed max; sneak speed still applies), nor once the
+            // aggro run stamina ran out (PlayerMovementStamina, until Sprint is pressed again)
             bool isSprinting = _input.Player.Sprint.IsPressed()
-                               && (_stateManager == null || (!_stateManager.IsAiming && !_stateManager.IsDrinking));
+                               && (_stateManager == null || (!_stateManager.IsAiming && !_stateManager.IsDrinking))
+                               && (_movementStamina == null || !_movementStamina.IsRunExhausted);
             // Sneak overrides both; PlayerSneak ends sneak as soon as Sprint is held while moving.
             float currentSpeed;
             if (IsSwimming)

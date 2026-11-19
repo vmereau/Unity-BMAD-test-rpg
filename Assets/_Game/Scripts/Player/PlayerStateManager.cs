@@ -123,6 +123,29 @@ namespace Game.Player
         public bool IsInCombat { get; private set; }
 
         /// <summary>
+        /// True while any enemy (hostile or neutral brawler) is fighting the player: an active <c>EntityBrain</c> in
+        /// Warning / Engaging / Attacking / Searching with the player as its target. Independent of
+        /// <see cref="IsInCombat"/> (drawn weapon). Read-only, evaluated once per frame. Gates the aggro movement costs
+        /// (<c>PlayerMovementStamina</c>).
+        /// </summary>
+        public bool IsAggroed
+        {
+            get
+            {
+                if (_aggroFrame != Time.frameCount)
+                {
+                    _aggroFrame = Time.frameCount;
+                    _isAggroed = Game.AI.EntityBrain.IsAnyFighting(_factionMember);
+                }
+                return _isAggroed;
+            }
+        }
+
+        private Game.AI.FactionMember _factionMember;
+        private int _aggroFrame = -1;
+        private bool _isAggroed;
+
+        /// <summary>
         /// True while a draw / sheathe clip runs, until its weapon swap happens. Locks R, Attack and Block.
         /// Written by PlayerCombat via <see cref="BeginWeaponSwitch"/> / <see cref="EndWeaponSwitch"/>.
         /// </summary>
@@ -185,6 +208,10 @@ namespace Game.Player
 
         private void Awake()
         {
+            _factionMember = GetComponent<Game.AI.FactionMember>();
+            if (_factionMember == null)
+                GameLog.Warn(TAG, "FactionMember not found on Player — IsAggroed always false");
+
             _characterController = GetComponent<CharacterController>();
             if (_characterController == null)
             {

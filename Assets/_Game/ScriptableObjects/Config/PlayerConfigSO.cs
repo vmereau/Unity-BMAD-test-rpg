@@ -39,6 +39,18 @@ namespace Game.Player
         [Tooltip("Metres swum between two stroke sounds.")]
         [Min(0.1f)] [SerializeField] public float swimStrokeDistance = 2f;
 
+        [Header("Aggro")]
+        [Tooltip("Stamina per second while running with an enemy fighting the player (base; PlayerMovementStamina applies modifiers).")]
+        [Min(0f)] [SerializeField] public float aggroRunStaminaPerSecond = 8f;
+        [Tooltip("Stamina per jump with an enemy fighting the player (base). Not enough → no jump.")]
+        [Min(0f)] [SerializeField] public float aggroJumpStaminaCost = 15f;
+
+        [Header("Fall Damage")]
+        [Tooltip("Falls up to this height (apex to landing, metres) deal no damage.")]
+        [Min(0f)] [SerializeField] public float fallSafeHeight = 11f;
+        [Tooltip("Damage per metre fallen above the safe height. Ignores Defense.")]
+        [Min(0f)] [SerializeField] public float fallDamagePerMetre = 4f;
+
         [Header("Attack")]
         [Tooltip("Turn speed toward the move input during an attack's wind-up (until its HitboxEnable event commits the swing).")]
         [Min(0f)] [SerializeField] public float attackSteerSpeed = 8f;

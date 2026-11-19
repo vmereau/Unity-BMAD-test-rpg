@@ -66,6 +66,18 @@ namespace Game.AI
         public bool IsFighting(FactionMember member) => member != null && IsInCombat && _currentTarget == member;
 
         /// <summary>
+        /// True when any active brain <see cref="IsFighting"/> <paramref name="member"/>, whatever its faction (the
+        /// player's <c>PlayerStateManager.IsAggroed</c>).
+        /// </summary>
+        public static bool IsAnyFighting(FactionMember member)
+        {
+            if (member == null) return false;
+            for (int i = 0; i < _active.Count; i++)
+                if (_active[i] != null && _active[i].IsFighting(member)) return true;
+            return false;
+        }
+
+        /// <summary>
         /// <see cref="IsFighting"/>, or about to: a hit staggered / knocked it down and it engages
         /// <paramref name="member"/> once it recovers (read by player lock-on).
         /// </summary>

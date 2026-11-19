@@ -1042,3 +1042,13 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   `CharacterController` from a 2 m grid of pit starts in 12 directions, then three turns towards the ledge. It is evidence,
   not proof: a player steering differently (zig-zags, sprint, crouch-jumps) is not covered. Walk the drop and try to climb
   back in play mode after any change to the track, the pit or `DropBlockers`.
+
+## From spec-movement-stamina-fall-damage (2026-11-19, review)
+
+- **A refused jump gives no feedback (UX).** Aggroed with less than `aggroJumpStaminaCost`, Jump does nothing but log.
+  Add a "stamina short" HUD pulse / sound, shared with refused dodges, attacks and blocks.
+- **Scripted / spawn teleports don't call `PlayerController.ResetVerticalVelocity()` (pre-existing).**
+  `ArrivalSequence.TeleportPlayer` and `SceneLoader`'s spawn move the transform only. Fall damage relies on its
+  > 4 m sideways / upward heuristic for them; a short airborne teleport would keep the old apex and fall speed.
+- **Fall damage is avoidable by hugging a face (design).** Any grounded frame (a CC counts steep contacts) ends the
+  fall, so sliding down any cliff is free. Intended for the goat track; revisit if cliffs need to hurt.

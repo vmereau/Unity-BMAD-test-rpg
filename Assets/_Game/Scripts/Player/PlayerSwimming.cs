@@ -114,6 +114,10 @@ namespace Game.Player
             if (!teleported) UpdateStrokes(position, lastPosition);
         }
 
+        /// <summary>True when the water over <paramref name="feet"/> is at least swim-exit deep (fall damage skips such a landing).</summary>
+        public bool IsInSwimmableWater(Vector3 feet) =>
+            enabled && TryGetSurface(feet, out float surfaceY) && !SwimRules.ShouldStop(surfaceY, feet.y, _config.swimExitDepth);
+
         private bool TryGetSurface(Vector3 feet, out float surfaceY)
         {
             int count = Physics.OverlapSphereNonAlloc(feet + Vector3.up * PROBE_HEIGHT, PROBE_RADIUS, _overlapBuffer,

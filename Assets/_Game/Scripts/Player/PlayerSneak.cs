@@ -24,6 +24,7 @@ namespace Game.Player
 
         private PlayerStateManager _stateManager;
         private PlayerSwimming _swimming; // optional: swim-sprint = running noise
+        private PlayerMovementStamina _movementStamina; // optional: an exhausted Shift is no sprint
         private InputSystem_Actions _input;
         private Vector3 _lastPosition;
         private float _horizontalSpeed;
@@ -53,6 +54,7 @@ namespace Game.Player
         private void Awake()
         {
             _stateManager = GetComponent<PlayerStateManager>();
+            _movementStamina = GetComponent<PlayerMovementStamina>();
             _swimming = GetComponent<PlayerSwimming>();
             if (_stealthConfig == null)
             {
@@ -120,6 +122,7 @@ namespace Game.Player
         private bool IsSprintingWhileMoving() =>
             !_stateManager.IsAiming
             && !_stateManager.IsDrinking // PlayerController refuses to sprint while drinking
+            && (_movementStamina == null || !_movementStamina.IsRunExhausted) // out of aggro run stamina: walk speed
             && _stateManager.CanMove()
             && _input.Player.Sprint.IsPressed()
             && _input.Player.Move.ReadValue<Vector2>().sqrMagnitude > MOVE_INPUT_THRESHOLD_SQR;

@@ -247,6 +247,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 - **`NPCPresence.RequestDialogueClose()`** (`_onDialogueCloseRequested` → `OnDialogueCloseRequested`, wired on `NPC_base Variant`
   and any non-prefab scene NPC): closes the dialogue this NPC opened (forced topic or the player's Talk); ignored for another NPC's.
   `TollGate` calls it when Harl is disturbed mid-talk, `ArrivalSequence` on region unload mid speech / briefing.
+- **`EntityBrain.IsAnyFighting(member)`** (static, over `_active`): some brain `IsFighting` that member — backs the player's `PlayerStateManager.IsAggroed` (aggro run / jump stamina costs, `Scripts/Player/CLAUDE.md`).
 - **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
   scripted brawl); no-op otherwise.
 - **`EntityBrain.Say(line, duration, priority)`**: scripted speech bubble over the NPC (story sequences); false without a
