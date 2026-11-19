@@ -109,6 +109,7 @@ namespace Game.Core
                 StatFact  stf => PlayerStatCheck(stf),
                 QuestFact qf  => IsQuestFactTrue(qf),
                 ElapsedFact ef => IsElapsed(ef),
+                HourWindowFact hf => hf.IsTrueNow(),
                 _             => _worldFacts.TryGetValue(fact.ToString(), out var v) && v
             };
             return result;

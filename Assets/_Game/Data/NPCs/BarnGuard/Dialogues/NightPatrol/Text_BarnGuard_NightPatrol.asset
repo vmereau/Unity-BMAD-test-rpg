@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_BarnGuard_NightPatrol
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Walking the fields for the fort, friend, same as every night. Someone has to, or the foxes would have the barley. And you've no business out here at this hour, so back to the camp with you. There's nothing for you to do here.
+  nextNode: {fileID: 0}
+  _id: 427d21c90c7772941a05b2abc06001fd

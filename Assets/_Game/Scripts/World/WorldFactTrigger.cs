@@ -21,6 +21,10 @@ namespace Game.World
         [SerializeField] private WorldFact _fact;
         [Min(0.05f)] [SerializeField] private float _pollInterval = 0.25f;
 
+        [Header("Required fact (optional)")]
+        [Tooltip("When set, this fact must be true (e.g. a QuestFact 'started') for the trigger to fire. Empty = no fact gate.")]
+        [SerializeField] private Fact _requiredFact;
+
         [Header("Hour gate (optional)")]
         [Tooltip("Only fire between Start (inclusive) and End (exclusive), wrapping midnight. Needs the GameClock (Core): without it a gated trigger never fires.")]
         [SerializeField] private bool _useHours;
@@ -93,14 +97,17 @@ namespace Game.World
             var player = TargetRegistry.Player;
             if (state == null || player == null || state.GetFact(_fact)) return;
             if (!Contains(player.transform.position)) return;
-            if (!GatesPass()) return;
+            if (!GatesPass(state)) return;
 
             state.SetWorldEvent(_fact, true);
             GameLog.Info(TAG, $"{name}: player entered — {_fact.name} set");
         }
 
-        private bool GatesPass()
+        private bool GatesPass(WorldStateManager state)
         {
+            if (!WorldFactTriggerRules.FactGatePasses(_requiredFact != null, _requiredFact != null && state.GetFact(_requiredFact)))
+                return false;
+
             GameClock clock = GameClock.Active;
             if (_useHours && clock == null && !_loggedNoClock)
             {

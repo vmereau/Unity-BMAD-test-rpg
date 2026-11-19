@@ -64,7 +64,7 @@ The thief. Caught at the barn door 00–03 (`WorldFact_TitheBarn_ThiefCaught`), 
 is refused. Removed 12 h after Pell hears his name (`ElapsedFact_FarmReeve_Shortfall_ReportedGuard_12h`, scene
 `FactRemovedObject` wrapper). His death fails the quest (`KilledFact_BarnGuard`).
 
-Topics: `Greeting` (until caught), `BarnTalk` (quest started, until caught: blames the workers, brush-off), `Caught` (deal / refuse; refuse = calm threat, dialogue only), `AfterRefused`, `AfterDeal`, `AfterReported`.
+Topics: `NightPatrol` (00–03 via `HourWindowFact_Night_00_03`, until caught: "walking the fields for the fort, back to the camp"), `NightTalk` (by day, quest started + `WorldFact_TitheBarn_VennSeenAtNight`: shushes the player, meet me at the barn door after midnight; replaces `BarnTalk`), `Greeting` (by day, until caught), `BarnTalk` (quest started, until caught: blames the workers, brush-off), `Caught` (deal / refuse; refuse = calm threat, dialogue only), `AfterRefused`, `AfterDeal`, `AfterReported`.
 
 ---
 

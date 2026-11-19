@@ -64,6 +64,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0347c10e8b5b10e4180a3cdedc5e38c0, type: 2}
   - {fileID: 11400000, guid: 9c1ce8955f6a258448410f731cedf381, type: 2}
   - {fileID: 11400000, guid: e507fef8a75e095449bb3ca24a0cae9b, type: 2}
+  - {fileID: 11400000, guid: 8f07b060f10cb3c4ba02fab11336a97b, type: 2}
+  - {fileID: 11400000, guid: 7df2d91f1e68ed34893231840b714629, type: 2}
   _killedFact: {fileID: 11400000, guid: 4cef2c1fbf261d044a5735d90fc634a8, type: 2}
   _head: {fileID: 0}
   _skinTone: {fileID: 11400000, guid: 757a3676542f40b44a7b7a066980daf0, type: 2}

@@ -207236,6 +207236,62 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 615617875}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &615629703
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 615629704}
+  - component: {fileID: 615629705}
+  m_Layer: 0
+  m_Name: BarnSightingTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &615629704
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 615629703}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 0.7, z: -90}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1298617291}
+  m_Father: {fileID: 2033728163}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &615629705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 615629703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19142cd6bc37fca4b910ccb198112c55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.World.WorldFactTrigger
+  _fact: {fileID: 11400000, guid: 65e41af3a2335f94a943f52c1b48271e, type: 2}
+  _pollInterval: 0.25
+  _requiredFact: {fileID: 0}
+  _useHours: 1
+  _startHour: 0
+  _endHour: 3
+  _requiredNpc: {fileID: 1179475731}
+  _npcPlacement: 2
+  _routineBlockLabel: 
+  _spot: {fileID: 1243342679}
+  _spotRadius: 3
 --- !u!1 &615811116
 GameObject:
   m_ObjectHideFlags: 0
@@ -346110,6 +346166,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.WorldFactTrigger
   _fact: {fileID: 11400000, guid: 4d1bd5f652da10e449b0a1e4ebcaeb8a, type: 2}
   _pollInterval: 0.25
+  _requiredFact: {fileID: 11400000, guid: 588e9e76ca6274740a85be29b599ac83, type: 2}
   _useHours: 1
   _startHour: 0
   _endHour: 3
@@ -436334,6 +436391,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1298289482}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1298617290
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1298617291}
+  - component: {fileID: 1298617292}
+  m_Layer: 2
+  m_Name: Box
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1298617291
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1298617290}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 615629704}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1298617292
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1298617290}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8, y: 3.5, z: 6}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &1299054306
 GameObject:
   m_ObjectHideFlags: 0
@@ -587564,6 +587674,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.World.WorldFactTrigger
   _fact: {fileID: 11400000, guid: a92f0664bf4836e4ab22ed0a20df8e45, type: 2}
   _pollInterval: 0.25
+  _requiredFact: {fileID: 0}
   _useHours: 0
   _startHour: 0
   _endHour: 0
@@ -692359,6 +692470,7 @@ Transform:
   - {fileID: 328225841}
   - {fileID: 321684614}
   - {fileID: 1025365231}
+  - {fileID: 615629704}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2034076220

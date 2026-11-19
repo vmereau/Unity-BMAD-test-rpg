@@ -7,6 +7,17 @@ namespace Tests.EditMode
     /// <summary>Edit Mode tests for <see cref="WorldFactTriggerRules"/> (hour window, required-NPC gate).</summary>
     public class WorldFactTriggerRulesTests
     {
+        // ── Fact gate ──
+
+        [Test]
+        public void FactGate_NoFact_Passes() => Assert.IsTrue(WorldFactTriggerRules.FactGatePasses(false, false));
+
+        [Test]
+        public void FactGate_FactFalse_Blocks() => Assert.IsFalse(WorldFactTriggerRules.FactGatePasses(true, false));
+
+        [Test]
+        public void FactGate_FactTrue_Passes() => Assert.IsTrue(WorldFactTriggerRules.FactGatePasses(true, true));
+
         // ── Hour gate ──
 
         [Test]

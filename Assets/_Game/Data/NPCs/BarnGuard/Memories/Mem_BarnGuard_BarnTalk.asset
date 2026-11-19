@@ -19,5 +19,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4d1bd5f652da10e449b0a1e4ebcaeb8a, type: 2}
   - {fileID: 11400000, guid: 1531c1f10eb11f74699f43251ce79e7b, type: 2}
   - {fileID: 11400000, guid: af152cb5a55a14e44bb6389758575f7c, type: 2}
+  - {fileID: 11400000, guid: 65e41af3a2335f94a943f52c1b48271e, type: 2}
+  - {fileID: 11400000, guid: 6fc8622a237f3444fb1824fc41097329, type: 2}
   effects:
     startdialog: {fileID: 11400000, guid: 1c8be7f3f6b9e554ea7d917c90062633, type: 2}

@@ -35,7 +35,7 @@ MonoBehaviour:
     - fact: {fileID: 11400000, guid: 365756376a0886041a7d2a3a3bda70b4, type: 2}
       entry: Gerrit doesn't think it's a worker, since they'd be the first suspected. It's someone who knows the place well, though. Someone nobody counts.
     - fact: {fileID: 11400000, guid: 34e97a5740a4dab4ca7a7995a34e071c, type: 2}
-      entry: Venn at the fields gate blames the poor workers on the strips. He's seen nothing, he says, and he'd rather I stopped asking.
+      entry: I asked Venn at the fields gate about Pell's grain. He wasn't much help, not by daylight anyway.
   - title: A man with a key
     description: Aldric the cook hears what sells in the camp after dark. He might know where Pell's grain goes.
     parts:

@@ -17,6 +17,7 @@
 | `QuestFact` | `Quest.{questId}.{State\|StepN}` | computed | derived from the quest's parts | memory conditions, other quests, rewards |
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |
 | `StatFact` | `Stat.Requirements(n)` | computed | `PlayerStats` thresholds | memory conditions |
+| `HourWindowFact` | `Hour.{start}-{end}` (debug only) | computed | true while `GameClock.Active`'s hour is in [start, end) (wraps midnight, start == end = all day, no clock = false). Raises **no** change event: pull-only, use it in memory conditions / choice gates (re-evaluated on each dialogue open), **never** in quest parts, talk openers or `FactRemovedObject` | Venn's `Mem_BarnGuard_NightPatrol` (unlock) and `_Greeting` / `_NightTalk` (invalidation = hidden while true), fact `HourWindowFact_Night_00_03` |
 | `ElapsedFact` | `Elapsed.{sourceKey}.{h}h` (debug only) | computed | true once `_source` (a **stored** fact) is true and `_hours` game hours (decimals) passed since it turned true — timed dialogue | `NPCPresence._talkOpeners` (Hobb: `ElapsedFact_Hobb_BelongingsRummaged_2h`), any memory / quest condition |
 
 **Seen markers** (`Dialogue.Seen.{nodeId}` / `Dialogue.Seen.{nodeId}.{choiceIndex}`) also live in

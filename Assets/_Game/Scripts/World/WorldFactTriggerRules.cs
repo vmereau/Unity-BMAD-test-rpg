@@ -28,6 +28,9 @@ namespace Game.World
         public static bool HourGatePasses(bool useHours, bool hasClock, int hour, int startHour, int endHour) =>
             !useHours || (hasClock && GameTime.IsHourInWindow(startHour, endHour, hour));
 
+        /// <summary>True when no fact is required, or the required fact is true.</summary>
+        public static bool FactGatePasses(bool hasFact, bool factTrue) => !hasFact || factTrue;
+
         /// <summary>True when the required NPC is present, neither dead nor unconscious, and where its placement gate wants it.</summary>
         public static bool NpcGatePasses(bool present, bool isDead, bool isUnconscious, bool placementOk) =>
             present && !isDead && !isUnconscious && placementOk;

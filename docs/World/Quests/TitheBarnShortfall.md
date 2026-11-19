@@ -13,6 +13,15 @@ Brann (npc-003).
 
 ## Story beats
 
+**Before the quest (optional): seen at night.** A player at the barn door 00–03 while Venn stands there sets
+`WorldFact_TitheBarn_VennSeenAtNight` (`BarnSightingTrigger`, no quest gate). Talking to him then gets his night
+patrol line ("walking the fields for the fort, back to the camp with you"). Pell's start topic gains "I've seen Venn
+around the barn at night. Is that suspicious?": Pell warns against accusing a Company guard without real proof
+and the choice starts the quest; "Then I'll find you proof." then sets `NeedProof` (opens the Tam / Aldric tally leads)
+and Pell closes on his own accept line (ask the gang, talk to Venn only by daylight).
+By day, once the quest is on, Venn's brush-off is replaced by a shush: not so loud, come to the barn door after
+midnight, alone. The catch itself (`BarnDoorTrigger`) needs the quest started.
+
 1. **Pell's shortfall** (start). The player asks Pell if there's work around the fields. Pell counts at dusk
    and the barn is right. He counts at dawn and it is short by two or three sacks. The lock is never forced.
    A newcomer nobody has bought yet is useful to him: he sends the player to ask the field gang (Pim, Gerrit)
@@ -99,6 +108,8 @@ removals work. P5 is scene content and can go into `/quests:implement`.
 | `DialogueFact_Cook_Tally` | `DialogueFact` | "Five coin. Tell me." choice in `Choice_Cook_Tally` (`goldCost` 5) |
 | `DialogueFact_BeatenWorker_BarnTally` | `DialogueFact` | `Start_BeatenWorker_BarnTally` plays (Tam's free lead) |
 | `WorldFact_GangStash_TallyTaken` | `WorldFact` | `ContainerTakeFact` on `BrannsStash`, item `Item_BrannsTally` |
+| `WorldFact_TitheBarn_VennSeenAtNight` | `WorldFact` | `BarnSightingTrigger` (same box / hours / Venn gates as `BarnDoorTrigger`, no quest gate) |
+| `HourWindowFact_Night_00_03` | `HourWindowFact` | computed: game hour in [0, 3). Pull-only (Venn's night topics) |
 | `QuestFact_TitheBarnShortfall_Started` | `QuestFact` | IsStarted |
 | `QuestFact_TitheBarnShortfall_Completed` | `QuestFact` | IsCompleted |
 | `QuestFact_TitheBarnShortfall_Failed` | `QuestFact` | IsFailed |
@@ -147,7 +158,7 @@ steps:
       - fact:  DialogueFact_BarnWorker_BarnTalk
         entry: "Gerrit doesn't think it's a worker, since they'd be the first suspected. It's someone who knows the place well, though. Someone nobody counts."
       - fact:  DialogueFact_BarnGuard_BarnTalk
-        entry: "Venn at the fields gate blames the poor workers on the strips. He's seen nothing, he says, and he'd rather I stopped asking."
+        entry: "I asked Venn at the fields gate about Pell's grain. He wasn't much help, not by daylight anyway."
     # Optional: active once any talk happens, done when all three have. Venn's part closes once he's caught
     # (same as Pim's), so a player who skips him leaves this step unfinished. That's accepted for optional steps.
 
@@ -219,7 +230,13 @@ npcs:
           - NPC: "I count at dusk and the barn is right. I count at dawn and it's two sacks short, three some weeks. Never more, never less. Someone is being careful."
           - NPC: "And the lock is never forced. I check it myself. So either I've a ghost in my barn, or someone walks in through the door like he owns it."
           - Player: "I'll find your thief."  → Text_FarmReeve_Shortfall_Accept  [sets: DialogueFact_FarmReeve_Shortfall_Accepted]
+          - Player: "I've seen Venn around the barn at night. Is that suspicious?"  → Text_FarmReeve_Shortfall_Venn  [sets: DialogueFact_FarmReeve_Shortfall_Accepted]  [requires: Mem_FarmReeve_GateSeenVenn]
           - Player: "Not my problem."  → END
+          - NPC (Venn): "Venn? Mind your tongue with that name. He's a Company guard, and a guard at the barn after dark is a guard on duty until somebody shows me otherwise. Accuse a Company man on a newcomer's word and it's the newcomer who gets counted. Bring me real proof, not a stroll in the dark."
+          - Choice_FarmReeve_Shortfall_Venn NPC: "So. Are you still looking for my thief, or only for trouble?"
+          - Player: "Then I'll find you proof."  → Text_FarmReeve_Shortfall_VennAccept  [sets: DialogueFact_FarmReeve_Shortfall_NeedProof]
+          - NPC (VennAccept): "Then do it properly. Ask the field gang, Pim and old Gerrit, they work by the barn all day. And if you must talk to Venn, do it by daylight and mind your manners. Bring me something I can hold, not a shadow. Twenty-five coin, counted twice."
+          # Accepted on the first choice, NeedProof on the second: the quest is always started before NeedProof.
           - NPC (Accept): "Good. You're either my thief or the one man in this camp who isn't in on it yet, and I'd rather it was the second. Either way, people will tell a new face what they won't tell the reeve."
           - NPC (Accept_2): "Ask the field gang, Pim and old Gerrit, they work by the barn all day. And ask Venn, the guard on the fields gate, whether he's seen anyone about. Bring me a name, a real one, and I'll pay for it. Twenty-five coin, counted twice."
 
@@ -239,6 +256,10 @@ npcs:
 
       - asset: Mem_FarmReeve_GateDeal        # gate memory, no start dialogue (V15 via gated choice, V17 same NPC)
         unlock:     [DialogueFact_BarnGuard_DealStruck]
+        invalidate: []
+
+      - asset: Mem_FarmReeve_GateSeenVenn    # gate memory for the sighting choice
+        unlock:     [WorldFact_TitheBarn_VennSeenAtNight]
         invalidate: []
 
       - asset: Mem_FarmReeve_GateCaught      # gate memory for the no-proof Venn choice
@@ -319,9 +340,26 @@ npcs:
         dialogue:
           - NPC: "Fields gate. Workers out at dawn, in at dusk, and nobody in between who hasn't got a reason. Have you got one? Good. Then we're friends."
 
-      - asset: Mem_BarnGuard_BarnTalk
+      - asset: Mem_BarnGuard_NightPatrol   # repeatable
+        unlock:     [HourWindowFact_Night_00_03]
+        invalidate: [WorldFact_TitheBarn_ThiefCaught, DialogueFact_FarmReeve_Shortfall_ReportedGuard]
+        dialogue_topic: NightPatrol   # "What are you doing out here?"
+        dialogue:
+          - NPC: "Walking the fields for the fort, friend, same as every night. Someone has to, or the foxes would have the barley. And you've no business out here at this hour, so back to the camp with you. There's nothing for you to do here."
+        # Mem_BarnGuard_Greeting is also invalidated by HourWindowFact_Night_00_03 (hidden at night).
+
+      - asset: Mem_BarnGuard_NightTalk     # replaces BarnTalk after the sighting
+        unlock:     [QuestFact_TitheBarnShortfall_Started, WorldFact_TitheBarn_VennSeenAtNight]
+        invalidate: [DialogueFact_BarnGuard_BarnTalk, HourWindowFact_Night_00_03, WorldFact_TitheBarn_ThiefCaught, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
+        dialogue_topic: NightTalk   # "About last night, at the barn."
+        # Start node sets DialogueFact_BarnGuard_BarnTalk (counts for "Ask around the farm").
+        dialogue:
+          - NPC: "Not so loud, friend. A man walks his rounds at night, people get ideas, and ideas get repeated by men who can't count past their fingers. I'd rather that didn't happen to either of us."
+          - NPC: "If you've something to ask me, ask it where nobody's listening. Come to the barn door tonight, after midnight, on your own, and we'll talk it over properly. Like friends."
+
+      - asset: Mem_BarnGuard_BarnTalk      # also invalidated by VennSeenAtNight and HourWindowFact_Night_00_03
         unlock:     [QuestFact_TitheBarnShortfall_Started]
-        invalidate: [DialogueFact_BarnGuard_BarnTalk, WorldFact_TitheBarn_ThiefCaught, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
+        invalidate: [DialogueFact_BarnGuard_BarnTalk, WorldFact_TitheBarn_VennSeenAtNight, WorldFact_TitheBarn_ThiefCaught, QuestFact_TitheBarnShortfall_Completed, QuestFact_TitheBarnShortfall_Failed]
         dialogue_topic: BarnTalk   # "About Pell's missing grain."
         # Start node sets DialogueFact_BarnGuard_BarnTalk.
         dialogue:

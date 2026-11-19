@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_FarmReeve_Shortfall_Venn
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Venn? Mind your tongue with that name. He's a Company guard, and a guard at the barn after dark is a guard on duty until somebody shows me otherwise. Accuse a Company man on a newcomer's word and it's the newcomer who gets counted. Bring me real proof, not a stroll in the dark.
+  nextNode: {fileID: 11400000, guid: 44986d8a16fe8eb45a7c129d4c51716b, type: 2}
+  _id: 29fcb64395fb08e4480b1388191d4999

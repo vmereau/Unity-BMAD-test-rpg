@@ -834,6 +834,7 @@ namespace Game.Editor.QuestExplorer
             SkillFact => "Skill",
             StatFact => "Stat",
             ElapsedFact => "Elapsed",
+            HourWindowFact => "Hour",
             null => "-",
             _ => fact.GetType().Name
         };

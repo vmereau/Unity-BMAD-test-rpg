@@ -1162,3 +1162,13 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   saved slots, so a save made before `BrannsStash` got the tally never has it. Dev-only today; matters once saves ship.
 - **Tally taken before the quest starts** (HiddenStash Take All) is a quest item the player can't part with, and stays in
   the bag forever if the quest ends on Pim. Cosmetic.
+
+## From spec-barn-guard-night-gate (2026-11-19)
+
+- **`QuestEventsManager` raises step completion before a quest starts.** `EvaluateQuest` checks `IsStepCompleted` with no
+  `IsStarted` guard, so a step whose facts turn true early raises `OnQuestStepCompleted` and pays its `PlayerRewardSO`
+  with no quest in the log. Guard step events on `isStarted` (and fire the already-true steps when the quest starts).
+- **Quest Explorer doesn't index `WorldFactTrigger._requiredFact` as a reader** (`QuestIndexCollector` reads `_fact` only),
+  so `BarnDoorTrigger`'s dependency on `QuestFact_TitheBarnShortfall_Started` is invisible to `quest_report`.
+- **No validator rule for `HourWindowFact` misuse.** It raises no change event, so in a quest part / talk opener /
+  `FactRemovedObject` it would silently never update. A V-rule like V18 (ElapsedFact) would catch it.
