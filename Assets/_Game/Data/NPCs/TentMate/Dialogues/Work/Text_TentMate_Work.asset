@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_Work
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Whatever they tell me. I've been here long enough to know where everything is, and how little of it is ours.
+  text: 'Whatever they tell me, same as you''ll be doing. I''ve been here long enough to know where everything is, and how little of it is ours. Ask me where and I''ll tell you. Ask me why and you''ll want Tam.'
   nextNode: {fileID: 0}
   _id: bb5b3a29370018343b67ab3bd76b2ff0

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_Storekeeper
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: What do you have in stock ?
+  text: 'What do you have in stock?'
   nextNode: {fileID: 11400000, guid: 57a92d3b95bc2a54ba02c0bd042d6d35, type: 2}
   _id: 4ae368f9da2e61b4caf9b27304121469
   dialogueFact: {fileID: 0}

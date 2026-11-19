@@ -33,9 +33,9 @@ are officially off-limits after dark: a player he sees on them is warned, chased
 
 **Tone:** Short, official
 **Vocabulary:** Plain, regulations
-**Quirks:** (TBD)
-**Taboo topics:** (TBD)
-**Sample line:** "Docks are closed after dark. Out."
+**Quirks:** Quotes the closing time; says every rule as if he has said it a thousand times, because he has
+**Taboo topics:** What comes in by boat at night
+**Sample line:** "Docks are closed after dark, same as every night, and I'm not opening them for you. So, out."
 
 ---
 

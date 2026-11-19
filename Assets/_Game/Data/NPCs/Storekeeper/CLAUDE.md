@@ -34,13 +34,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Dry and transactional |
-| **Vocabulary** | Clerk's words: debt, price, ledger |
-| **Quirks** | Quotes the price before anything else |
+| **Tone** | Dry, bored and transactional |
+| **Vocabulary** | Clerk's words: debt, price, ledger, entry |
+| **Quirks** | Quotes the price before anything else; reads out your debt the way other men talk about the weather |
 | **Taboo Topics** | Where the stock really goes |
 
 **Sample line:**
-> "It goes on your debt or in my hand."
+> "It goes on your debt or in my hand. Which is it to be?"
 
 ---
 
@@ -54,7 +54,7 @@ A Company employee who runs the official store. He doesn't enjoy the system or q
 
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
-- Under two sentences whenever possible
+- Never says more than the transaction needs; complete sentences, no small talk
 - Never haggles or sympathizes
 
 ---

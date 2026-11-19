@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
-  m_Name: Text_Blacksmith_Frogs_2
+  m_Name: Text_Blacksmith_Smithing_Confirm
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: That word doesn't get spoken in my forge. Find a different subject. Aye.
-  nextNode: {fileID: 0}
-  _id: c57924ac0f312da4e8b9df670499d34a
+  text: 'Keep the iron hot and your fingers clear of it. Then come and ask me what to forge first.'
+  nextNode: {fileID: 11400000, guid: fb58cda07a50d9d449aeaa9901b501ff, type: 2}
+  _id: 8288341ce076bb742a5e7e25a3534663

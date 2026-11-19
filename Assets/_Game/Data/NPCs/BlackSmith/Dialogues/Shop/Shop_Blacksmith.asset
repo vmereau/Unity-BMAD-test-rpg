@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0304b2d47909a06488245b72c5ef8e83, type: 3}
   m_Name: Shop_Blacksmith
   m_EditorClassIdentifier: Game::Game.Dialogue.ShopDialogueNode
-  text: Ingots, and a plain sword if you'd rather buy than forge. Fair prices, Aye.
+  text: 'Ingots, and a plain sword if you''d rather buy one than forge it. Fair prices, which is more than you''ll get anywhere else in this camp.'
   nextNode: {fileID: 0}
   _id: 4f3f6e55c3b4eb04391a091f3ea43b01

@@ -12,7 +12,7 @@ The quest ends by handing Tam food through his "I brought you something to eat."
 | Ending | Choice | Accepted items | Fact | Reward |
 |---|---|---|---|---|
 | Base | "Here, this should help." | Ready-to-eat food: Apple, Bread (`PotionItemSO._readyToEat`) | `DialogueFact_HiddenStash_FedFood` | 50 XP |
-| Better | "Here, I have even better than what you were asking for." (only shown while the player holds a meal) | Any cooked meal | `DialogueFact_HiddenStash_FedMeal` | 100 XP, fact kept for later content |
+| Better | "Here, I've got something even better than you hoped for." (only shown while the player holds a meal) | Any cooked meal | `DialogueFact_HiddenStash_FedMeal` | 100 XP, fact kept for later content |
 
 The given item moves into Tam's inventory. "Not yet." leaves the topic open, and "I don't have any money for food." replays the chest hint from that topic too.
 

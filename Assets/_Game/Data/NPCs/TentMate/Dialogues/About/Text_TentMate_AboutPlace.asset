@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_AboutPlace
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Alderath Camp. Company land, all of it. The tent, the bed, the boots you'll be owing for.
+  text: 'Alderath Camp. Company land, all of it, the tent, the bed and the boots you''ll be owing for by the end of the week. They''ll tell you it''s a frontier posting. It''s a ledger with a fence round it.'
   nextNode: {fileID: 0}
   _id: fc5569bf229cd5142844d5e391edc8d0

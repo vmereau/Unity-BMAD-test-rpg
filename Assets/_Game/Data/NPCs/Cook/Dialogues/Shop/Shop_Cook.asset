@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0304b2d47909a06488245b72c5ef8e83, type: 3}
   m_Name: Shop_Cook
   m_EditorClassIdentifier: Game::Game.Dialogue.ShopDialogueNode
-  text: Keep your voice down. Picks are under the pots, and you didn't get them here.
+  text: 'Keep your voice down, would you? Picks are under the pots. As far as anyone asks, you came for the stew, and you didn''t get them here.'
   nextNode: {fileID: 0}
   _id: 6ebb85c1a872c9a40b71b6a01b091f4d

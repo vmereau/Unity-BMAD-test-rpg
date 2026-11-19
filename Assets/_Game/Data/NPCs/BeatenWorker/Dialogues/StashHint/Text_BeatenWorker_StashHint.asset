@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashHint
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'You''re kind. Alright... I''m hungry. That''s the truth of it. I haven''t eaten since yesterday.'
+  text: 'You''re kind, you know that? Alright, then. I''m hungry, that''s the truth of it. I haven''t eaten since yesterday, and yesterday wasn''t much.'
   nextNode: {fileID: 11400000, guid: 58e288db9d82972428dfa80885fc0000, type: 2}
   _id: b2f635164cd424d469a19b7faa54f97a

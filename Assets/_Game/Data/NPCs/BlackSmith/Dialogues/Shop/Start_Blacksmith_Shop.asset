@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_Blacksmith_Shop
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: I need iron
+  text: 'I need iron.'
   nextNode: {fileID: 11400000, guid: 4f3f6e55c3b4eb04391a091f3ea43b01, type: 2}
   _id: b2949ba2cb8d3ad45847803017ac4e64
   dialogueFact: {fileID: 0}

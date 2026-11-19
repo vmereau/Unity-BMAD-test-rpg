@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Notice
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Mind the furrows. Who sent you, and why?
+  text: 'Mind the furrows, they were straight before you walked through them. Now, who sent you, and why?'
   nextNode: {fileID: 11400000, guid: 866b7c260f14dc445902c054d168afa7, type: 2}
   _id: f31a6651134d007439d2f17a64f1c0e3

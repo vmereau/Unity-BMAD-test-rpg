@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_Cook_Lockpicking
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: Teach me to pick locks
+  text: 'Teach me to pick locks.'
   nextNode: {fileID: 11400000, guid: 012e8431e9ecc1f4b9d7cfea0e5f363b, type: 2}
   _id: 43919d08bd0426e42bc7b009676b846f
   dialogueFact: {fileID: 0}

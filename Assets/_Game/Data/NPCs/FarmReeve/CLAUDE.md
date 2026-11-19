@@ -13,7 +13,15 @@ Fussy, precise and suspicious. Pell is a bookkeeper at heart, happier with a tal
 
 ## Speech Style
 
-Prim and exact. He corrects small things and counts out loud. Sample: "I write it all down. Every sack."
+| Field | Value |
+|-------|-------|
+| **Tone** | Prim, fussy and suspicious |
+| **Vocabulary** | Tallies, sacks, tithe, strips; every number exact |
+| **Quirks** | Corrects small things; counts out loud; treats every newcomer as a suspect in the barn shortfall |
+| **Taboo Topics** | The idea that the shortfall is his own fault |
+
+**Sample line:**
+> "I write it all down, every sack, every strip and every pair of hands. Forty-one sacks in on Tuesday and forty in the barn, so you'll understand why I count twice."
 
 ## Relationships and Routine
 

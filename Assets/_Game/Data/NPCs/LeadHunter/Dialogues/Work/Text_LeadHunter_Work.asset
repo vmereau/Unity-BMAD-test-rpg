@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_LeadHunter_Work
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Snares at dawn, the bow while there's light, skinning till dark. Out here you learn to be quiet or you learn to be hungry.
+  text: 'Snares at dawn, the bow while there''s light, and skinning till dark. It''s quiet work, and it has to be. Out here you learn to be quiet or you learn to be hungry.'
   nextNode: {fileID: 0}
   _id: 6e1dde300ed293c4390dcaf814533b9e

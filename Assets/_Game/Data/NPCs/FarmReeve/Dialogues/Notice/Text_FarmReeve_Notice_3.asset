@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Notice_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Every week I count the tithe barn, and every week it's short. Not by much. Just enough that someone is being careful. I'll find them.
+  text: 'Every week I count the tithe barn, and every week it''s short. Not by much, just enough that someone is being careful about it. I''ll find them, and until I do, everyone new goes on my list, you included.'
   nextNode: {fileID: 0}
   _id: 07cb620abba80454aa4c49d8e11899be

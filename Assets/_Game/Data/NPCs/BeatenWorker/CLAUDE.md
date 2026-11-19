@@ -35,12 +35,12 @@
 | Field | Value |
 |-------|-------|
 | **Tone** | Soft, weary, friendly. Grateful for small kindness |
-| **Vocabulary** | Simple, working-class, short sentences |
-| **Quirks** | Trails off ("..."); worries about the player before himself; never asks outright for help |
+| **Vocabulary** | Simple working words; talks about people more than places |
+| **Quirks** | Worries about the player before himself; plays down his own hurt with a small tired joke; never asks outright for help, he says what he'd be grateful for; hesitates (one "...") only when he is hurt |
 | **Taboo Topics** | None. He just goes quiet when hurt |
 
 **Sample line:**
-> "It's not the first time. I'll be fine, I just need to sit a while."
+> "It's not the first time and I doubt it'll be the last, so don't fret over me. I'll sit here a while and let the ground stop moving, and then I'll be fine."
 
 ---
 
@@ -55,8 +55,8 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
 - Never dramatic, never sneers, never threatens; never asks outright for help
-- Tired but friendly: short, warm sentences; he thanks people and worries about them
-- When mocked or hurt he withdraws, sad and tired ("...Maybe. I'm too tired to argue."), never retaliates
+- Tired but friendly: plain, warm sentences that run on a little when he is grateful; he thanks people and worries about them
+- When mocked or hurt he withdraws, sad and tired ("...Maybe. I'm too tired to argue with you."), never retaliates; that hesitation is his one ellipsis per topic
 - Covers the who and why of the camp; leaves logistics to Hobb
 - Points toward things, never assigns them: he is not a quest giver
 
@@ -67,9 +67,9 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
 | `Greeting/` "Are you alright?" (opener) | until `DialogueFact_BeatenWorker_OfferedHelp` or `_Mocked` is set. Choices: help (sets OfferedHelp), mock (sets Mocked), leave (no fact) |
 | `CampPeople/` "Who should I watch out for?" | OfferedHelp, not Mocked |
 | `StashHint/` "Is there really nothing I can do for you?" | OfferedHelp, not Mocked, not `DialogueFact_HiddenStash_Asked`. The start node sets Asked at chain end (quest start, either answer); the "I don't have any money for food." choice also sets `DialogueFact_HiddenStash_Hint` (Brann's chest) |
-| `Feed/` "I brought you something to eat." | Asked, not FedFood / FedMeal / Mocked. "Here, this should help." = Give window for ReadyFood (Apple / Bread) → `DialogueFact_HiddenStash_FedFood` (+50 XP); "Here, I have even better than what you were asking for." = Meal, hidden without a meal → `_FedMeal` (+100 XP, kept for later content); "Not yet."; "I don't have any money for food." → Hint + the chest lines. Either Fed fact completes the quest; the item ends in Tam's inventory |
+| `Feed/` "I brought you something to eat." | Asked, not FedFood / FedMeal / Mocked. "Here, this should help." = Give window for ReadyFood (Apple / Bread) → `DialogueFact_HiddenStash_FedFood` (+50 XP); "Here, I've got something even better than you hoped for." = Meal, hidden without a meal → `_FedMeal` (+100 XP, kept for later content); "Not yet."; "I don't have any money for food." → Hint + the chest lines. Either Fed fact completes the quest; the item ends in Tam's inventory |
 | `StashReported/` "You were right about Brann's supplies..." | Asked + Hint + `WorldFact_HiddenStash_Taken`, not Reported / Mocked. Side line: +25 XP (`PlayerReward_HiddenStash_Reported`), does not complete the quest |
-| `Cold/` "Got a moment?" → "...Not really. I'm tired. Leave me be." (repeatable) | Mocked |
+| `Cold/` "Got a moment?" → "...Not really, no. I'm tired. Leave me be." (repeatable) | Mocked |
 
 ---
 

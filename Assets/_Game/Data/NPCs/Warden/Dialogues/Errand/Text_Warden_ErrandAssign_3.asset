@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_ErrandAssign_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: By hand, not by some friend of yours. I'll know. Come back when they're all delivered.
+  text: 'By your hand, not by some friend you''ve made in the line. I''ll know if it isn''t, because they''ll tell me. Come back when every one of them is delivered.'
   nextNode: {fileID: 0}
   _id: 38cb69f72024dbe41aca993b127ddb9c

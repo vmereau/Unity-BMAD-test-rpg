@@ -175,7 +175,7 @@ npcs:
           - Player: "What happened to the men who worked in there?"  → NPC: "Gone up to the fort, they told us. Better work, better food. Funny thing, though: I carry stone up to that fort every week, and I've never once seen any of them up there." → back to the choice
           - Player: "How would I get in?"  → NPC: "The lock's nothing special. Anyone who's had a lesson or two with a pick could open it. Or there's Dace's hut down on the floor; he leaves his keys lying about like nobody would dare." → NPC: "There's the old goat track over the rock from the wilderness side too, but I wouldn't. Things out there have eaten better men than us." → back to the choice
           - Player: "I'll find out what happened to him."  → NPC: "You'd do that for a stranger? Then I owe you, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it." END  [sets: DialogueFact_QuarryWorker_PassageAccepted]
-          - Player: "Not my business."  → NPC: "No, I suppose it isn't. It's nobody's business. That's the trouble with this place." END  (no fact: topic stays)
+          - Player: "Not my business."  → NPC: "No, I suppose it isn't. It's nobody's business, and that's the whole trouble with this place." END  (no fact: topic stays)
           - Player [requiredMemory: Mem_QuarryWorker_FoundFirst]: "I've been behind that door already. I found him."  [sets: DialogueFact_QuarryWorker_PassageAccepted]
               → NPC: "You've been in? Before I'd even asked? Then you know more than I do, friend, and I've waited long enough." → Choice_QuarryWorker_Report (the report below, ring row included)
 

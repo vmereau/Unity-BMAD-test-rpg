@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_Arrival_1
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Easy. They've had their show. I'm Hobb. Next hut over's mine.
+  text: 'Easy, now. They''ve had their show for today. I''m Hobb, and the next hut over is mine, so you''ll be hearing me snore.'
   nextNode: {fileID: 11400000, guid: 6f616def895dd6c459fb680bc3e77b83, type: 2}
   _id: fa52432c501a58149be128da1f87ca44

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_ErrandAssign_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Four notices. The quarry, Overseer Dace. The wood camp, Gorm Holl. The hunting camp, Corvin Ash. The farm, Reeve Pell. One each, by hand.
+  text: 'Four notices. The quarry, to Overseer Dace. The wood camp, to Gorm Holl. The hunting camp, to Corvin Ash. And the farm, to Reeve Pell. One each, delivered by hand.'
   nextNode: {fileID: 11400000, guid: 38cb69f72024dbe41aca993b127ddb9c, type: 2}
   _id: c5653b9664d178b40a55f60d7b55ab2c

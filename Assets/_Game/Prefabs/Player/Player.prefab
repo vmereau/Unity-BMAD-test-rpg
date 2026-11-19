@@ -722,7 +722,6 @@ MonoBehaviour:
   _onRewardGoldGained: {fileID: 11400000, guid: 82b103c2ddf191049b54f09b345720aa, type: 2}
   _onRewardItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
   _rewards:
-  - {fileID: 11400000, guid: b4d5d64640d9ae9478d3f8f92fdfdbf3, type: 2}
   - {fileID: 11400000, guid: abcc43408fb7d4848a323285fc7e4181, type: 2}
   - {fileID: 11400000, guid: 3a23962b747a12d4cac50cd5d4a23ea4, type: 2}
   - {fileID: 11400000, guid: 7664698c6f623ae45a116348c96cf46d, type: 2}

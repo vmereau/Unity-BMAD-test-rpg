@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashHint_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'I''m not asking you to steal. But nobody misses that food but him. Be careful, and if he catches you, please don''t mention my name.'
+  text: 'I''m not asking you to steal, you understand. But nobody misses that food except him. Be careful, and if he catches you, please don''t mention my name.'
   nextNode: {fileID: 0}
   _id: a9b58137a480b5846aeb326a230357c8

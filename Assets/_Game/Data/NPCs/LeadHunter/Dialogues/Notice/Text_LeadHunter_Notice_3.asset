@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_LeadHunter_Notice_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'Between us: something''s been taking my snares. Not chewing them. Taking them, stakes and all. No tracks I know.'
+  text: 'Between us, something''s been taking my snares. Not chewing them, taking them, stakes and all, and leaving no tracks I know. I''ve set snares most of my life, and that''s the first time I''ve had to say that.'
   nextNode: {fileID: 0}
   _id: 2e495e7647871014fbde4e4083dfa42e

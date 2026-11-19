@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_LeadHunter_Notice
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Easy. You walked in loud, but you walked in. That's something.
+  text: 'Easy. You walked in loud enough to send every deer in the valley running, but you walked in, and most from the camp don''t get that far. That''s something.'
   nextNode: {fileID: 11400000, guid: 27b070d79d0daaa40ac07349e2d9b1ca, type: 2}
   _id: 42ec0a56b6ef4d04791d4a90d4856cf4

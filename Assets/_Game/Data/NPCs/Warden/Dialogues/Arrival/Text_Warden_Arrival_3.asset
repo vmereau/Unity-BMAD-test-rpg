@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_Arrival_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: This one forgot what he owes. Watch. I won't explain it twice.
+  text: 'This one forgot what he owes. Watch closely, because I won''t explain it a second time, and I won''t have to.'
   nextNode: {fileID: 0}
   _id: 89d5f66f637febc418524d1ed34abf75

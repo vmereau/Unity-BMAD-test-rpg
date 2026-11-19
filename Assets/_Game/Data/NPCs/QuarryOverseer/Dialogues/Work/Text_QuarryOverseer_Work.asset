@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryOverseer_Work
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Cut, haul, stack. The blocks go up the hoists to the fort. Meet your tally and you eat. Miss it and you owe.
+  text: 'Cut, haul, stack. The blocks go up the hoists to the fort, and every one of them is counted. Meet your tally and you eat. Miss it and you owe, and I don''t forget a debt any more than Voss does.'
   nextNode: {fileID: 0}
   _id: 4143c000d3da7a042803609580cf9f62

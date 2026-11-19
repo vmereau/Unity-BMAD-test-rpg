@@ -37,7 +37,7 @@ Runs the Creaking Flagon, the player's base for rest and resupply. Offers servic
 **Vocabulary:** Common folk speech, occasionally too precise for a simple innkeeper
 **Quirks:** Wipes the bar even when clean; answers questions with questions; never volunteers information
 **Taboo topics:** His life before the Flagon; what happens in the cellar; who he reports to
-**Sample line:** "You look like you've had a long road. Sit, drink — and tell me what's on your mind."
+**Sample line:** "You look like you've had a long road. Sit, eat, and tell me what's on your mind, and I'll forget the half you shouldn't have said."
 
 ---
 

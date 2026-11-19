@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_FarmReeve_Notice
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: A notice? Give it here. Carefully.
+  text: 'A notice? Give it here, then. Carefully, it''s paper, not a turnip.'
   nextNode: {fileID: 0}
   _id: 866b7c260f14dc445902c054d168afa7
   choices:

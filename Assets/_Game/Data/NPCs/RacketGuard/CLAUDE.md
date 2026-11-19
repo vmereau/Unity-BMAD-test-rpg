@@ -35,12 +35,12 @@
 | Field | Value |
 |-------|-------|
 | **Tone** | Mock-friendly, then flat |
-| **Vocabulary** | Casual and slangy. Calls workers "new meat" |
-| **Quirks** | Offloads his own duties onto workers and frames it as a favor |
+| **Vocabulary** | Casual and slangy; calls workers "new meat"; talks about protection like a shopkeeper selling it |
+| **Quirks** | Dresses extortion up as a favour; jokes at your expense and enjoys his own jokes; turns wheedling once he has been beaten |
 | **Taboo Topics** | How much he skims; who he pays upward |
 
 **Sample line:**
-> "Handled means you."
+> "Handled means you, new meat. I'd do it myself, but then what would you do all day?"
 
 ---
 

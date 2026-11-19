@@ -13,7 +13,15 @@ Gruff, protective of his crew and openly unimpressed by the Company. Holl came o
 
 ## Speech Style
 
-Plain and blunt, a few dry jokes. No titles, no flattery. Sample: "Ugly work, honest work. Pays nothing, and nobody here pretends it does."
+| Field | Value |
+|-------|-------|
+| **Tone** | Plain and blunt, with dry jokes; protective of his crew |
+| **Vocabulary** | Felling words: notch, limb, sawpit, drag; "my lads" |
+| **Quirks** | No titles, no flattery; jokes about the Company to its face; goes quiet about the man he lost |
+| **Taboo Topics** | The man crushed last month: he states it, then won't say more |
+
+**Sample line:**
+> "Ugly work, honest work. It pays nothing, and nobody here pretends it does, which makes us the only honest men in the camp."
 
 ## Relationships and Routine
 

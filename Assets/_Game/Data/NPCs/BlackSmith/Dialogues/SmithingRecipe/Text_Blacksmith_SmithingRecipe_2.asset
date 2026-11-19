@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Blacksmith_SmithingRecipe_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Take my old notes. Read them, then use the anvil by the forge. I sell ingots if you're short, Aye.
+  text: 'Take my old notes. They''re greasy, but they''re right. Read them, then use the anvil by the forge, and I sell ingots if you''re short, aye.'
   nextNode: {fileID: 0}
   _id: 44c22dce5743ca64c83047b464ae4ac4

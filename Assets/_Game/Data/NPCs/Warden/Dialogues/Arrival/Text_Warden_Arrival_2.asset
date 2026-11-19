@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_Arrival_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: You signed. You ate Company bread on the road and wore Company boots. That's debt. You work it off, or you go under the quarry like the rest.
+  text: 'You signed. You ate Company bread on the road and wore Company boots, and that''s debt. You work it off here, at whatever we put in your hands, or you go under the quarry with the rest of the ones who didn''t.'
   nextNode: {fileID: 11400000, guid: 89d5f66f637febc418524d1ed34abf75, type: 2}
   _id: 3e14d4d17f3f23040952c675131a307d

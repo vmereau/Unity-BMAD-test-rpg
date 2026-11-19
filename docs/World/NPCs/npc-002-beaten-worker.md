@@ -50,9 +50,9 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 **Taboo topics:** None. He goes quiet when hurt.
 
 **Sample lines:**
-- "Tam. That was the Warden, yes. It's not the first time. I'll be fine, I just need to sit a while."
+- "Tam. And yes, that was the Warden. It's not the first time and I doubt it'll be the last, so don't fret over me. I'll be fine, I just need to sit a while and let the ground stop moving."
 - "Be careful, and if he catches you, please don't mention my name."
-- "...Maybe. I'm too tired to argue." (when mocked)
+- "...Maybe. I'm too tired to argue with you." (when mocked)
 - "There's people in this camp who've had enough. I'm too tired for that. But they're out there."
 
 ---
@@ -86,10 +86,10 @@ He is **not a quest giver** — he points toward quests (the stash) and toward a
 
 | Topic ID | Trigger | Summary |
 |----------|---------|---------|
-| dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he thanks you, says there's little to do today, warns about helping strangers; unlocks camp-people + stash), mock him ("...Maybe. I'm too tired to argue."; closes both; only a tired "Leave me be." remains), or leave (opener stays) |
+| dlg-npc002-first-meeting | First interaction after event-001 | "Are you alright?" He says it's not his first time. Choice: offer help (he thanks you, says there's little to do today, warns about helping strangers; unlocks camp-people + stash), mock him ("...Maybe. I'm too tired to argue with you."; closes both; only a tired "...Not really, no. I'm tired. Leave me be." remains), or leave (opener stays) |
 | dlg-npc002-camp-people | After offering help in the opener | Impressions of key NPCs — warden, stash owner, guards |
 | dlg-npc002-stash-hint | After offering help in the opener | He's hungry and not picky about food; either answer starts quest-001 (Food for Tam). Only if the player says they have no money (a claim, not a gold check) does he point at Brann's chest: "if he catches you, please don't mention my name" |
-| dlg-npc002-feed | quest-001 started | Player hands him food through the Give window: bread or an apple (base ending) or a cooked meal ("even better than what you were asking for": better ending, he won't forget it). Completes quest-001 |
+| dlg-npc002-feed | quest-001 started | Player hands him food through the Give window: bread or an apple (base ending) or a cooked meal ("something even better than you hoped for": better ending, he won't forget it). Completes quest-001 |
 | dlg-npc002-stash-reported | Hint + stash taken | "You were right about Brann's supplies." Worried approval, small XP, doesn't complete the quest |
 | dlg-npc002-rebel-mention | Player asks about resistance | "Heard there's people who've had enough." No more than that. |
 

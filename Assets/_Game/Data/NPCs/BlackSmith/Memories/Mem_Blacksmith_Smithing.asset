@@ -16,4 +16,4 @@ MonoBehaviour:
   invalidationConditions:
   - {fileID: 11400000, guid: 66efea98c1ddf024a9aeb6b27833d12c, type: 2}
   effects:
-    startdialog: {fileID: 11400000, guid: 4a66a6063d4974c4aa81ca34bbd127ec, type: 2}
+    startdialog: {fileID: 0}

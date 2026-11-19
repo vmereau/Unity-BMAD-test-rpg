@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TheftReturn_Refused
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Have it your way, thief. I'll take it off you myself.
+  text: 'Have it your way, thief. Then I''ll take it off you myself.'
   nextNode: {fileID: 0}
   _id: 724fa6ed38e8e6c47a271f94616b85c3

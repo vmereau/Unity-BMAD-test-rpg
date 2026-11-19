@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_make_hammer
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: I will craft you a beatiful hammer
+  text: 'I''ll make you a beautiful hammer. Good balance, and a head that won''t fly off on the third swing like the Company''s do.'
   nextNode: {fileID: 0}
   _id: 666955f8baf80a342ab3c2c6b1b2e976

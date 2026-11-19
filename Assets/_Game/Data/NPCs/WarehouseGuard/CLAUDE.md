@@ -38,12 +38,12 @@
 | Field | Value |
 |-------|-------|
 | **Tone** | Curt, warning first |
-| **Vocabulary** | Plain, orders rather than sentences |
-| **Quirks** | <!-- TBD --> |
+| **Vocabulary** | Plain orders; "off-limits" |
+| **Quirks** | Warns once, politely enough, then stops being polite; counts the crates under his breath on patrol |
 | **Taboo Topics** | What is stored in the warehouse |
 
 **Sample line:**
-> "This area is off-limits."
+> "This area is off-limits. I'm telling you nicely, once, because next time I won't be telling you anything."
 
 ---
 
@@ -63,7 +63,7 @@
 
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
-- <!-- TBD -->
+- One polite warning, then orders; never explains what is inside
 
 ---
 

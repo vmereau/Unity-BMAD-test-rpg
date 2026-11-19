@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_make_axe
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: This axe will fell trees like nothing !
+  text: 'An axe that''ll fell trees like they owe you money. Put your back into it, and the wood camp will think you were born with it in your hands.'
   nextNode: {fileID: 0}
   _id: a1b05a86777bd7e4d994398c2a2eed65

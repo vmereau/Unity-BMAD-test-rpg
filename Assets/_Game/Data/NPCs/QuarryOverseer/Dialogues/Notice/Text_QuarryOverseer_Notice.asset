@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryOverseer_Notice
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Another pair of hands. You're standing in my quarry. State your business.
+  text: 'Another pair of hands, and you''re standing in my quarry with them empty. State your business, newcomer, I''ve a tally to meet.'
   nextNode: {fileID: 11400000, guid: 49e5a12cb811b6a44b530e5fc4ff94b9, type: 2}
   _id: 49a71efa148bd1c43a26ede4acd6f11d

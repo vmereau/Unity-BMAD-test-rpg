@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_make_sword
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: I will make the strongest sword you'll ever seen
+  text: 'I''ll make you the strongest sword you''ll ever have seen. Not one of those bent Company things they hand the guards, a proper fucking blade, aye.'
   nextNode: {fileID: 0}
   _id: 744bdd092cd6cea4e80610f4ac7bcabb

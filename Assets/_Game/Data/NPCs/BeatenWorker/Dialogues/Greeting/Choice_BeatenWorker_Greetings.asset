@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_BeatenWorker_Greetings
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: 'Tam. That was the Warden, yes. It''s not the first time. I''ll be fine, I just need to sit a while.'
+  text: 'Tam. And yes, that was the Warden. It''s not the first time and I doubt it''ll be the last, so don''t fret over me. I''ll be fine, I just need to sit a while and let the ground stop moving.'
   nextNode: {fileID: 0}
   _id: 1ece443ac43f36640ae2247fdf072e3d
   choices:

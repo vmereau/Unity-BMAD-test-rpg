@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TheftReturn_Given
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Good. Now get out of my sight before I change my mind.
+  text: 'Good. Now get out of my sight, before I change my mind about letting you walk away.'
   nextNode: {fileID: 0}
   _id: 743a0d53893948d458cc2f09087ee02f

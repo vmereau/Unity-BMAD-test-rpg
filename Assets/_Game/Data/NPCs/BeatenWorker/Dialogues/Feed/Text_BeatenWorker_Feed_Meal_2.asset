@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Feed_Meal_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'I don''t know what to say. Nobody''s done something like this for me in years. I won''t forget it.'
+  text: 'I don''t know what to say. Nobody''s done something like this for me in years, and I''d stopped expecting it. I won''t forget it, I promise you that.'
   nextNode: {fileID: 0}
   _id: 5e734055f50b7b3439017039c7a96af2

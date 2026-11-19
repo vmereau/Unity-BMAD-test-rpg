@@ -13,7 +13,15 @@ Domineering, calculating and possessive. Brann hoards better food and trades inf
 
 ## Speech Style
 
-Short, blunt statements. Threats are practical rather than theatrical. He calls the player newcomer, never adventurer. Sample: "My corner. My supplies. Keep walking."
+| Field | Value |
+|-------|-------|
+| **Tone** | Blunt, possessive, quietly threatening |
+| **Vocabulary** | Plain; "mine" comes up a lot; thinks in debts and favours owed |
+| **Quirks** | Says what's his before anything else; threats are practical, never theatrical; calls the player "newcomer", never adventurer |
+| **Taboo Topics** | Who he sells information to |
+
+**Sample line:**
+> "My corner, my supplies and my business. You're new, so I'll say it once and slowly: keep walking, and keep your hands where they are."
 
 ## Relationships and Routine
 

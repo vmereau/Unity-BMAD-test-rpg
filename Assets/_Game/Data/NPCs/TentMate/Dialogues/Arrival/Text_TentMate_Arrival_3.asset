@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_Arrival_3
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Come first light, see Voss at the centre. He hands out the work. Don't make him come looking for you.
+  text: 'Come first light, go and see Voss at the centre. He hands out the work. Don''t make him come looking for you, because he will, and he won''t come alone.'
   nextNode: {fileID: 0}
   _id: cc4aa5d540ebc4346bbcc6cd58c04a6a

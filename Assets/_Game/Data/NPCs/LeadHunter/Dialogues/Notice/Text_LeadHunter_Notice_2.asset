@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_LeadHunter_Notice_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: He wants more meat for the same arrows. He always does.
+  text: 'He wants more meat for the same arrows. He always does. I''d tell him the deer have heard about his quotas, but he wouldn''t laugh.'
   nextNode: {fileID: 11400000, guid: 2e495e7647871014fbde4e4083dfa42e, type: 2}
   _id: 29be3f4bdca0c3d4d853dc14c5f3be17

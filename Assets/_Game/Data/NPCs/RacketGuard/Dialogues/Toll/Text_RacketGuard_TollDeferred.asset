@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_RacketGuard_TollDeferred
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Empty pockets, huh? Fine. Once. Next time I see you, you pay. Here, or any other gate I'm standing at.
+  text: 'Empty pockets, huh? Fine, I''m a generous man, so just this once. Next time I see you, you pay, here or at any other gate I''m standing at. I''ve got a good memory for faces.'
   nextNode: {fileID: 0}
   _id: f97285218dce26e4f939c33da01d113e

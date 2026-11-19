@@ -37,13 +37,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Short, official |
-| **Vocabulary** | Plain, regulations |
-| **Quirks** | <!-- TBD --> |
-| **Taboo Topics** | <!-- TBD --> |
+| **Tone** | Short, official, tired of saying it |
+| **Vocabulary** | Plain, regulations and hours |
+| **Quirks** | Quotes the closing time; says every rule as if he has said it a thousand times, because he has |
+| **Taboo Topics** | What comes in by boat at night |
 
 **Sample line:**
-> "Docks are closed after dark. Out."
+> "Docks are closed after dark, same as every night, and I'm not opening them for you. So, out."
 
 ---
 
@@ -62,7 +62,7 @@
 
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
-- <!-- TBD -->
+- Every line ends on the rule: closed, out, off-limits
 
 ---
 

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_BeatenWorker_StashHint
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: 'If you come across something to eat, I''d be grateful. I''m not picky.'
+  text: 'So if you come across something to eat, I''d be grateful. I''m not picky, I''m not in much of a state to be.'
   nextNode: {fileID: 0}
   _id: 58e288db9d82972428dfa80885fc0000
   choices:

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_RacketGuard_TollPaid
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Pleasure doing business. Off you go, new meat. Nobody touches you at this gate. Can't promise the same about the spiders.
+  text: 'Pleasure doing business. Off you go, new meat, nobody touches you at this gate. Can''t promise the same about the spiders, though, they don''t pay me.'
   nextNode: {fileID: 0}
   _id: 45f9f24022dd2104eba10b6fce9005a4

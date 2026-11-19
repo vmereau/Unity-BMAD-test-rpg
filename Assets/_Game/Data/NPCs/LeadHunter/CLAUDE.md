@@ -13,7 +13,15 @@ Calm, observant and quietly amused by the camp's hierarchy. Ash keeps the Compan
 
 ## Speech Style
 
-Measured and dry, with an outdoorsman's economy of words. No contempt, no orders. Sample: "Out here you learn to be quiet or you learn to be hungry."
+| Field | Value |
+|-------|-------|
+| **Tone** | Measured, dry, quietly amused |
+| **Vocabulary** | Outdoorsman's words: snares, sign, game, wind |
+| **Quirks** | Speaks to the player as an equal, the first in the camp to do so; teases the camp's hierarchy; reads people the way he reads tracks |
+| **Taboo Topics** | None, but he keeps the snare thief between him and people he trusts |
+
+**Sample line:**
+> "Out here you learn to be quiet or you learn to be hungry, and the forest doesn't care which lesson you pick."
 
 ## Relationships and Routine
 

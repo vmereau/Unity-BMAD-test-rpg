@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_Cook_Shop
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: I need lockpicks
+  text: 'I need lockpicks.'
   nextNode: {fileID: 11400000, guid: 6ebb85c1a872c9a40b71b6a01b091f4d, type: 2}
   _id: 1415096162d61224c838f86b6b515c3e
   dialogueFact: {fileID: 0}

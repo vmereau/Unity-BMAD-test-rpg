@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_Arrival_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: This one's yours. Bed's against the back wall. Don't sleep anywhere else. The Corner behind us is where they put the ones who stopped working.
+  text: 'This one''s yours. The bed''s against the back wall, and don''t sleep anywhere else, they count. The Corner behind us is where they put the ones who stopped working, so you''ll want to keep working.'
   nextNode: {fileID: 11400000, guid: cc4aa5d540ebc4346bbcc6cd58c04a6a, type: 2}
   _id: 6f616def895dd6c459fb680bc3e77b83

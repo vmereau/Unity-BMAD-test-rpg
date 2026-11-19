@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_Belongings_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: You came through that gate with what's on your back, and that is all the ledger says you own. Forget it. Think about your debt.
+  text: 'You came through that gate with what''s on your back, and that is all the ledger says you own. Forget the rest. Your debt is the only thing you should be thinking about now.'
   nextNode: {fileID: 0}
   _id: 0963a383e8f50c947ad6a48078ef501c

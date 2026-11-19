@@ -13,7 +13,15 @@ Hard, practical and tired. Dace measures people in blocks cut and tallies met, a
 
 ## Speech Style
 
-Clipped, all business, numbers and quotas. He calls the player "hands" or "newcomer". Sample: "Meet your tally and you eat. Miss it and you owe."
+| Field | Value |
+|-------|-------|
+| **Tone** | Hard, practical, tired. All business |
+| **Vocabulary** | Numbers and quotas, mason's words (face, cut, bed, block); calls the player "hands" or "newcomer" |
+| **Quirks** | Talks in tallies; only warms up about good stone; shuts down any question about the south face with "Company business". Short sentences are his trait, but they are whole sentences |
+| **Taboo Topics** | The south-face cut and the men he took into it |
+
+**Sample line:**
+> "Meet your tally and you eat. Miss it and you owe, and owing in this quarry is a hole you dig with your own hands, so cut straight and you won't need to."
 
 ## Relationships and Routine
 

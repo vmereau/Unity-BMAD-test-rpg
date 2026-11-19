@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_ErrandAssign
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Work. Good. A newcomer who asks saves me sending a guard.
+  text: 'Good. A newcomer who comes asking saves me sending a guard to fetch him, and I notice the ones who save me trouble. Don''t mistake that for kindness.'
   nextNode: {fileID: 11400000, guid: c5653b9664d178b40a55f60d7b55ab2c, type: 2}
   _id: a518bd9325e9d344a868a4fc2d3aa353

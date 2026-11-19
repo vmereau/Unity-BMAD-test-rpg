@@ -1052,3 +1052,11 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   > 4 m sideways / upward heuristic for them; a short airborne teleport would keep the old apex and fall speed.
 - **Fall damage is avoidable by hugging a face (design).** Any grounded frame (a CC counts steep contacts) ends the
   fall, so sliding down any cliff is free. Intended for the goat track; revisit if cliffs need to hurt.
+
+## From spec-npc-voice-pass (2026-11-19, review)
+
+- **Name clash: Reeve "Odo" Pell vs Bren's lost lad Odo.** `FarmReeve/CLAUDE.md` gives the farm reeve the first name
+  Odo, the same as the Sealed Passage victim. Dialogue only says "Reeve Pell", so nothing player-facing breaks yet;
+  rename the reeve before any line uses his first name.
+- **Shared barks still use the old clipped register.** `Barks_*` were out of scope (shouted one-liners); a few read
+  oddly ("I hope to never see you again here.", "You there?! Die!"). Give them a light pass of their own.

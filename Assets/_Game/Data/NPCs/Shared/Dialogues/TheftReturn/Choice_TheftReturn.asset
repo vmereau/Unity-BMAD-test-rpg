@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
   m_Name: Choice_TheftReturn
   m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
-  text: Hand it over. All of it. Now.
+  text: 'Hand it over. All of it, now, and maybe I''ll forget I ever saw your face.'
   nextNode: {fileID: 0}
   _id: 72c83db9ce0ce6948ad44d0030a39681
   choices:

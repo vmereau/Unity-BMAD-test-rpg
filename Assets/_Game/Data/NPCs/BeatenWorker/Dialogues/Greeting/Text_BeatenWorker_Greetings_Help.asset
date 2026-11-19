@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Greetings_Help
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'That''s kind of you. Really. But you only just got here, and there''s not much anyone can do for me today.'
+  text: 'That''s kind of you, really it is. But you''ve only just got here, and there''s not much anyone can do for me today.'
   nextNode: {fileID: 11400000, guid: bc8f32111d8edb64186d94887d4e6dcd, type: 2}
   _id: 05d8158be52026845a29ffecf95b4b1c

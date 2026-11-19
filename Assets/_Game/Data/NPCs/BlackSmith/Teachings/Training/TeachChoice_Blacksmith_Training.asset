@@ -17,7 +17,7 @@ MonoBehaviour:
   _id: fb58cda07a50d9d449aeaa9901b501ff
   choices:
   - text: +1 Strength
-    requiredMemory: {fileID: 11400000, guid: 31a2e43bf0b5e3842bd487004b52a4aa, type: 2}
+    requiredMemory: {fileID: 0}
     nextNode: {fileID: 0}
     dialogueFact: {fileID: 0}
     goldCost: 50
@@ -32,3 +32,19 @@ MonoBehaviour:
     limitStat: 30
     confirmNextNode: {fileID: 11400000, guid: 39cf917287e497d43b62022063c4ed0d, type: 2}
     denyNextNode: {fileID: 11400000, guid: 5f9018e3a5fda4c4e818d2bbb0522e4c, type: 2}
+  - text: Smithing
+    requiredMemory: {fileID: 11400000, guid: e90ddbb3ab5138c488d9708d19c3ed3a, type: 2}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    goldCost: 80
+    requiredItem: {fileID: 0}
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+    teachingType: 0
+    skill: {fileID: 11400000, guid: 63169c475aa67ed4a83be60965166a91, type: 2}
+    statToUpgrade: 0
+    statPoints: 1
+    limitStat: 0
+    confirmNextNode: {fileID: 11400000, guid: 8288341ce076bb742a5e7e25a3534663, type: 2}
+    denyNextNode: {fileID: 0}

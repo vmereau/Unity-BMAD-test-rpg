@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_ErrandReport
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: So I hear. The managers know your face now. Go earn your bed wherever they'll have you, and don't make me hear your name again.
+  text: 'So I hear. The managers know your face now, which is all this was for. Go and earn your bed wherever they''ll have you, and don''t give me a reason to hear your name again.'
   nextNode: {fileID: 0}
   _id: 3d11510384b080d4092ff83e55c233e2

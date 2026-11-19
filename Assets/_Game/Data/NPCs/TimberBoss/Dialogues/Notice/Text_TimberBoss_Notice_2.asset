@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TimberBoss_Notice_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: More logs, fewer hands. Same song.
+  text: 'More logs, fewer hands. Same song as last month, and he''ll sing it again next month, and the trees won''t care either way.'
   nextNode: {fileID: 11400000, guid: fbd0d49dea4c3ac46a18f06988064c33, type: 2}
   _id: 853f0b17e6ae9434ca154eddfc3b7399

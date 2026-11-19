@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TentMate_Greetings
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: You're the new one. Keep your head down and your bowl close.
+  text: 'Still here. You''re the new one. Keep your head down and your bowl close, and you''ll do better than most who came off that cart.'
   nextNode: {fileID: 0}
   _id: 35856bd21dd0e7745b2dae69f69c99d0

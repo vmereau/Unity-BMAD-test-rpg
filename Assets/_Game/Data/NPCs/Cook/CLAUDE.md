@@ -35,12 +35,12 @@
 | Field | Value |
 |-------|-------|
 | **Tone** | Warm and welcoming on the surface; careful and measured underneath |
-| **Vocabulary** | Common folk speech, occasionally too precise for a simple cook |
-| **Quirks** | Wipes the serving table even when it is already clean; answers questions with questions; never volunteers information unprompted |
+| **Vocabulary** | Common folk speech with an innkeeper's hospitality, occasionally too precise for a simple cook |
+| **Quirks** | Wipes the serving table even when it is already clean; answers questions with questions; turns the talk back to the guest; never volunteers information unprompted |
 | **Taboo Topics** | His life before the camp; what he keeps under the pots; who he reports to |
 
 **Sample line:**
-> "You look like you've had a long road. Sit, eat — and tell me what's on your mind."
+> "You look like you've had a long road. Sit, eat, and tell me what's on your mind, and I'll forget the half you shouldn't have said."
 
 ---
 
@@ -57,7 +57,7 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 - Keep warmth on the surface even when discussing suspicious or dangerous topics
 - Never directly accuse or threaten — Aldric deflects with hospitality
 - Respond to personal questions about his past with a change of subject or a question back at the player
-- Short sentences are fine; Aldric does not ramble
+- He doesn't ramble about himself; he lets the guest talk and keeps his own lines easy and hospitable
 
 ---
 

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashReported
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'You really did it. Keep what you took out of sight, Brann counts everything he thinks is his. I don''t want you hurt over me.'
+  text: 'You really did it. Keep whatever you took out of sight, though, because Brann counts everything he thinks is his. I don''t want you getting hurt over me.'
   nextNode: {fileID: 0}
   _id: a535521497a74844aa2a8d6d63eb27f8

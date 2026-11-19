@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_Arrival_1
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Stop there. Eyes on me, not on the hills.
+  text: 'Stop there. Eyes on me, not on the hills. Whatever you think is out there waiting for you, it isn''t.'
   nextNode: {fileID: 11400000, guid: 3e14d4d17f3f23040952c675131a307d, type: 2}
   _id: bf61855e70113624f956e1b41437ec0f

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Notice_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: The Warden wants a fuller barn. As if wanting ever filled one.
+  text: 'The Warden wants a fuller barn. As if wanting ever filled one. I''ll write it down with the other things he wants, it''s a long list.'
   nextNode: {fileID: 11400000, guid: 07cb620abba80454aa4c49d8e11899be, type: 2}
   _id: af4f7b6dafc9c5b46a698128d956dc0c

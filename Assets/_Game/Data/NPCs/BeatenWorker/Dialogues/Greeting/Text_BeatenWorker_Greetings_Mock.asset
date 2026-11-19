@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_Greetings_Mock
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: '...Maybe. I''m too tired to argue.'
+  text: '...Maybe. I''m too tired to argue with you, and I don''t think it would change much if I did.'
   nextNode: {fileID: 0}
   _id: de502dc10f158dd4d9e7f8f36b6e0fd4

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryWorker_SouthFace_Refuse
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: No, I suppose it isn't. It's nobody's business. That's the trouble with this place.
+  text: 'No, I suppose it isn''t. It''s nobody''s business, and that''s the whole trouble with this place.'
   nextNode: {fileID: 0}
   _id: b4be72ee4cd54db4ab5f4599996b80c4

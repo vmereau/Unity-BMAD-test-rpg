@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_What_can_you_make
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: What can you craft with you skills ?
+  text: 'What can you make?'
   nextNode: {fileID: 11400000, guid: 8e43f7b4d5be23d439dcade8e0bb0c4a, type: 2}
   _id: 65850525d2296364c979da037a2a1384
   dialogueFact: {fileID: 0}

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_BeatenWorker_StashHint_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: 'Brann keeps bread and apples in a chest in the gang house, by the lake. He sits on it all day, but after six he goes to the gang fire.'
+  text: 'Brann keeps bread and apples in a chest in the gang house, down by the lake. He sits on it all day like a hen on her eggs, but after six he goes off to the gang fire.'
   nextNode: {fileID: 11400000, guid: a9b58137a480b5846aeb326a230357c8, type: 2}
   _id: acba6f261c5727748b73f46becd6956c

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Make
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: I can craft either a sword, an axe or a hammer. What do you want ?
+  text: 'A sword, an axe or a hammer, depending on what you mean to hit. I''d make more if the Company sent me better iron, but there it is. What''ll it be?'
   nextNode: {fileID: 11400000, guid: 1c43bcd2ebbbbfb4bb89ccfdc640f405, type: 2}
   _id: 8e43f7b4d5be23d439dcade8e0bb0c4a

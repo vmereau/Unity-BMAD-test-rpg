@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Warden_Belongings
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: There is no baggage cart. There has never been one.
+  text: 'There is no baggage cart. There has never been one, and I don''t care who you think promised you otherwise.'
   nextNode: {fileID: 11400000, guid: 0963a383e8f50c947ad6a48078ef501c, type: 2}
   _id: a954def828fde1a4b9401d237eb14aba

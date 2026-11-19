@@ -25,7 +25,7 @@
 |-------|-------|
 | **Alignment** | Neutral Good |
 | **Traits** | Blunt, distant, direct, hardworking |
-| **Fears / Flaws** | Hates frogs (childhood trauma — fell into a frog pond); refuses to discuss them |
+| **Fears / Flaws** | Proud of his work to a fault; takes bad iron and cheap commissions as a personal insult |
 | **Desires / Goals** | Got his bigger forge at the Timberworks; wants the commissions to fill it |
 
 ---
@@ -34,19 +34,19 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Gruff but fair |
-| **Vocabulary** | Simple working-class and craftsman jargon |
-| **Quirks** | Ends sentences with "Aye" |
-| **Taboo Topics** | Frogs — will not discuss them under any circumstances |
+| **Tone** | Gruff but fair; warms up when he talks shop |
+| **Vocabulary** | Smith's words: heat, quench, temper, stock, anvil. Swears like a man who has burned his hands too often |
+| **Quirks** | Closes a thought with "aye" now and then (at most once a line, never every line); talks about metal as if it has moods; grumbles about Company iron and Company prices |
+| **Taboo Topics** | What the Company pays him for a blade |
 
 **Sample line:**
-> "Bring me good iron and I'll make something worth carrying, Aye."
+> "Bring me good iron and I'll make you something worth carrying. Bring me Company iron and I'll still make something, aye, but I'll swear at it the whole way."
 
 ---
 
 ## Background
 
-Edric grew up in a small village, the son of a blacksmith. As a child he fell into a pond full of frogs — an event he never speaks of and which left him with a deep, irrational aversion to the creatures. When his father retired, Edric took over the forge without question and has worked it ever since. He is content in his craft. The Company has given him a larger forge beside the Timberworks, and he quietly hopes for the bigger commissions that should go with it.
+Edric grew up in a small village, the son of a blacksmith. When his father retired, Edric took over the forge without question and has worked it ever since. He is content in his craft. The Company has given him a larger forge beside the Timberworks, and he quietly hopes for the bigger commissions that should go with it.
 
 ---
 
@@ -54,10 +54,9 @@ Edric grew up in a small village, the son of a blacksmith. As a child he fell in
 
 > These rules extend `DIALOGUE.md` for this NPC specifically.
 
-- End NPC speech lines with "Aye" where it fits naturally
-- Never reference frogs or amphibians — Edric deflects or goes silent if pressed
-- Keep lines short and practical — he sounds like a man who has work to get back to
-- Avoid flowery or poetic language; plain craftsman vocabulary only
+- "aye" (lower case) closes a thought now and then, never on every line
+- Practical, full sentences: he sounds like a man who has work to get back to, but likes talking about the work
+- Avoid flowery or poetic language; plain craftsman vocabulary, and he swears when he means it
 
 ---
 
@@ -68,7 +67,7 @@ Edric grew up in a small village, the son of a blacksmith. As a child he fell in
 | NPCEntity | `Assets/_Game/Data/NPCs/BlackSmith/NPC_Blacksmith.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/BlackSmith/Dialogues/` |
 | Memories | `Assets/_Game/Data/NPCs/BlackSmith/Memories/` |
-| Teachings | `Teachings/Training/` (+1 Strength, cap 30) · `Teachings/Smithing/` ("Teach me smithing" → Smithing, 10 LP + 80 gold) + `Mem_Blacksmith_Smithing` (invalidated by `SkillFact_Smithing_Learned`) |
+| Teachings | One topic, `Teachings/Training/` ("What can you teach me?", `Mem_Blacksmith_Training`): rows +1 Strength (50 gold, cap 30) and Smithing (10 LP + 80 gold). The Smithing row is gated by the gate-only `Mem_Blacksmith_Smithing` (no start dialogue, invalidated by `SkillFact_Smithing_Learned`), so it disappears once learned |
 | Smithing recipe | `Dialogues/SmithingRecipe/` ("What should I forge first?", one-shot) + `Mem_Blacksmith_SmithingRecipe` — unlocked by `SkillFact_Smithing_Learned`; the start node's `DialogueFact_blacksmith_smithing_recipe_given` triggers `PlayerReward_blacksmith_smithing_recipe` (`Item_Recipe_ShortIronSword` ×1) |
 | Shop | `Dialogues/Shop/` ("I need iron") + `Mem_Blacksmith_Shop` — unlocked by `SkillFact_Smithing_Learned`; stock (`Item_IronIngot` ×10, `Weapon_ShortIronSword` ×1) on the `Blacksmith` instance in `StartingTown.unity` |
 | Anvil | `SmithingStation_Anvil` next to Edric in `StartingTown.unity` (needs Smithing) |

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_FarmReeve_Work
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Plough, sow, cut, thresh. The gang works the strips, the oxen turn the mill, and I write it all down. Every sack.
+  text: 'Plough, sow, cut and thresh, in that order, every year. The gang works the strips, the oxen turn the mill, and I write it all down. Every sack, every day, and twice when I''m in doubt.'
   nextNode: {fileID: 0}
   _id: a85456525cae9194daff76984140f412

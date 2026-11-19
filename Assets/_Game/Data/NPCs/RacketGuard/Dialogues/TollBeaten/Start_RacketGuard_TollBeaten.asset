@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
   m_Name: Start_RacketGuard_TollBeaten
   m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
-  text: About your toll...
+  text: 'About your toll.'
   nextNode: {fileID: 11400000, guid: 0ec8d756d9abb3a42a233b1eceb9df50, type: 2}
   _id: 1e67bedd7503d814b8b0dbdbb759afaf
   dialogueFact: {fileID: 0}

@@ -34,13 +34,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Contemptuous, flat, final |
-| **Vocabulary** | Short orders. Talks about people as costs and output |
-| **Quirks** | Never says please or thanks; never repeats himself; states outcomes as facts |
+| **Tone** | Contemptuous, calm, final |
+| **Vocabulary** | The ledger's words: debt, output, cost. Talks about people as numbers |
+| **Quirks** | Never says please or thanks; never repeats himself; states outcomes as facts; speaks in whole, unhurried sentences, a man who never needs to raise his voice |
 | **Taboo Topics** | Any suggestion that the workers were deceived |
 
 **Sample line:**
-> "Medicine costs coin, and coin goes on your debt."
+> "Medicine costs coin, and coin goes on your debt. If you'd rather not owe for it, don't bleed."
 
 ---
 

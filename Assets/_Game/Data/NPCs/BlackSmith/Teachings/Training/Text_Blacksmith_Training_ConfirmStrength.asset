@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_Blacksmith_Training_ConfirmStrength
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Look at you. Already sturdier. Keep at it, Aye.
+  text: 'Look at you, sturdier already. Swing a hammer every day and it''ll stick.'
   nextNode: {fileID: 11400000, guid: fb58cda07a50d9d449aeaa9901b501ff, type: 2}
   _id: 39cf917287e497d43b62022063c4ed0d

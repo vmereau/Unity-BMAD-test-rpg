@@ -37,13 +37,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Flat orders |
-| **Vocabulary** | Short imperatives; calls arrivals "new meat" |
-| **Quirks** | Never explains anything |
-| **Taboo Topics** | None — they don't talk |
+| **Tone** | Flat orders from bored men |
+| **Vocabulary** | Imperatives; calls arrivals "new meat" |
+| **Quirks** | Never explains anything; would rather shove than talk; every line is about getting you moving |
+| **Taboo Topics** | None. They don't talk |
 
 **Sample line:**
-> "Keep up."
+> "Keep up, new meat. You're on Company time now, and Company time doesn't wait for sore feet."
 
 ---
 

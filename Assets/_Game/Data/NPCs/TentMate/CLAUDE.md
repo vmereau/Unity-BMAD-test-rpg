@@ -34,13 +34,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Tone** | Low, plain, unsentimental |
-| **Vocabulary** | Working-class, simple words |
-| **Quirks** | Gives directions by who to avoid; rarely finishes a thought about the past |
+| **Tone** | Low, plain, unsentimental; kind through what he does |
+| **Vocabulary** | Working-class, simple words; names places by what happens there |
+| **Quirks** | Gives directions by who to avoid; turns everything into a practical how-to; changes the subject when the past comes up |
 | **Taboo Topics** | How he came to the camp |
 
 **Sample line:**
-> "Keep your head down and your bowl close."
+> "Keep your head down and your bowl close. The first season's the worst, and after that you stop expecting anything, which helps more than you'd think."
 
 ---
 

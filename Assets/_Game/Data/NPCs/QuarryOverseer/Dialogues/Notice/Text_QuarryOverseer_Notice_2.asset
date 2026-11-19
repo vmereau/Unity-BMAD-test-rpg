@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_QuarryOverseer_Notice_2
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: Quotas up again. Of course they are.
+  text: 'Quotas up again. Of course they are. The fort wants more stone, and the fort never asks who''s cutting it.'
   nextNode: {fileID: 11400000, guid: f87934a450a567a4b8ad9428c240cfd3, type: 2}
   _id: 26ac76f05102d9140961f42feb2ab2ee

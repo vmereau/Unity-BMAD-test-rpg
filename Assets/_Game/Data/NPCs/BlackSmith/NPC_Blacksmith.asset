@@ -58,9 +58,6 @@ MonoBehaviour:
   prefab: {fileID: 2297545385651019628, guid: c2fb5bd3088e331408ebf1a8dbed53d7, type: 3}
   memories:
   - {fileID: 11400000, guid: 306b3392974b5f048b6d40b2fe3753b8, type: 2}
-  - {fileID: 11400000, guid: 56c510f13c32e7b4285ee65ec9ed01b3, type: 2}
-  - {fileID: 11400000, guid: 1375f445bb43424e899545f020880a06, type: 2}
-  - {fileID: 11400000, guid: fb6aecfc1770a0f4abed930295f06a29, type: 2}
   - {fileID: 11400000, guid: a4040107c49acb74aaedaa241ba7c6bf, type: 2}
   - {fileID: 11400000, guid: e90ddbb3ab5138c488d9708d19c3ed3a, type: 2}
   - {fileID: 11400000, guid: cc131849df22c9b48ada6610c8432713, type: 2}

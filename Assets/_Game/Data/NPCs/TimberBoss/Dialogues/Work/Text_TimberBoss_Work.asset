@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
   m_Name: Text_TimberBoss_Work
   m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
-  text: We fell, we limb, we drag it all to the sawpit. Ugly work, honest work. Pays nothing, and nobody here pretends it does.
+  text: 'We fell, we limb, and we drag it all to the sawpit. Ugly work, honest work. Pays nothing, and nobody here pretends it does, which is more than you can say for the Company.'
   nextNode: {fileID: 0}
   _id: 2c81b3b2a03cdd14ca2a275326c684ba
