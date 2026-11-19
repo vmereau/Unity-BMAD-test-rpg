@@ -1453,6 +1453,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 718c2d235a98afe4d9d8e0db801cce29, type: 2}
   - {fileID: 11400000, guid: 91f8069d228f06f4caa6cedbc6c1dcf5, type: 2}
   - {fileID: 11400000, guid: 71698268bdb0585458c485c6257c5d4f, type: 2}
+  - {fileID: 11400000, guid: a17d292038ce07447aa24379d7fc89f9, type: 2}
   _listPanel: {fileID: 1334935607466577709}
   _infoPanel: {fileID: 1052129274159568305}
   _onQuestStarted: {fileID: 11400000, guid: 67aad4bc5c2e30b4aaed68fd09a6b30e, type: 2}

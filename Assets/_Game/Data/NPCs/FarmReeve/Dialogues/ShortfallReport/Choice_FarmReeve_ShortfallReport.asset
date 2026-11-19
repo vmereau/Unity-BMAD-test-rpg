@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_FarmReeve_ShortfallReport
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Well? A name. I've had a week of guesses, I don't need another.
+  nextNode: {fileID: 0}
+  _id: 85a5ef3c312b1504ea65afa8d53a1941
+  choices:
+  - text: It's Venn, a garrison man. He has a key.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: faca6c20fe7bdf7428e414186ec9ff83, type: 2}
+    dialogueFact: {fileID: 11400000, guid: e4b30bd6eee0339409afaecd06ae723a, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: It's Pim, from your field gang.
+    requiredMemory: {fileID: 11400000, guid: 96213a47cff6e834a9bb2aa676ba5967, type: 2}
+    nextNode: {fileID: 11400000, guid: 30c2a2f705317f14d9e18de29cca6e15, type: 2}
+    dialogueFact: {fileID: 11400000, guid: cae7dd430b7513a4cb9f63344d8049ff, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: Not yet.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

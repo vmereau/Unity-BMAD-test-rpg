@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_BarnGuard_AfterRefused
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: e1d39d9d0ceb0bd439b6001e0cce081e, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: e4b30bd6eee0339409afaecd06ae723a, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: fc1666a2cf51ec644905527065b524fe, type: 2}

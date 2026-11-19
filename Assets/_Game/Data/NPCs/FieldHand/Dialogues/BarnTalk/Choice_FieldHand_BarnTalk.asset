@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_FieldHand_BarnTalk
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Pell checks the lock morning and night, and that's all he checks. Once the gang's out on the strips there's nobody watching it at all. Someone could sneak in easy when no one's looking.
+  nextNode: {fileID: 0}
+  _id: 778a7321249cbf9438c2e7a9c570ec22
+  choices:
+  - text: Any idea who it might be?
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 02f3421507773a34383078909b4a540d, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: Thanks, Pim.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_BarnWorker_BarnTalk_Fool
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Careful fools are still fools. Three sacks a week, every week, for months, and never a forced lock? That's not a hungry man. A hungry man takes too much once and gets caught. This one takes just enough, like he's being paid for it.
+  nextNode: {fileID: 0}
+  _id: 1bc7ff3c6719893439929dee15ce7b4e

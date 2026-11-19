@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_BarnGuard_Deal
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Forty now, and nothing said by me either. But Pell wants a name, and he'll keep counting till he gets one. So give him one. Pim, from the field gang. Slow lad, sleeps near the barn wall. I'll make sure a sack turns up under his blanket.
+  nextNode: {fileID: 0}
+  _id: 2944953088c755e45824af7644503960
+  choices:
+  - text: Deal.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: ed6603300dc501845907a60de276b758, type: 2}
+    dialogueFact: {fileID: 11400000, guid: 2192c3445aaeb5142960938e01364e32, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: No. Pell gets your name.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 157f4f40e161f434eb9247091cf2db20, type: 2}
+    dialogueFact: {fileID: 11400000, guid: e1d39d9d0ceb0bd439b6001e0cce081e, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

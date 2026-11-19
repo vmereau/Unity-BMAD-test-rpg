@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_BarnGuard_Caught
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: Easy. You didn't see a man stealing, you saw a man moving the Company's grain from one Company place to another. All right, you saw a bit more than that. So what happens now?
+  nextNode: {fileID: 0}
+  _id: acf302b98399ce04b9083ee266635973
+  choices:
+  - text: Pell gets your name.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 157f4f40e161f434eb9247091cf2db20, type: 2}
+    dialogueFact: {fileID: 11400000, guid: e1d39d9d0ceb0bd439b6001e0cce081e, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: What's it worth to you?
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 2944953088c755e45824af7644503960, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

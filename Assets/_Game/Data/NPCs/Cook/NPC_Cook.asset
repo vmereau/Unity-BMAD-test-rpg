@@ -53,10 +53,12 @@ MonoBehaviour:
   _attackStanceDamage: 15
   _attackCanKnockDown: 0
   _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
+  _combatStyle: {fileID: 0}
   dayState: 0
   nightState: 3
   prefab: {fileID: 0}
   memories:
+  - {fileID: 11400000, guid: 40db44721da8dda40bbbf700a04010a9, type: 2}
   - {fileID: 11400000, guid: a3d66fad7772d1544837b49b547775e6, type: 2}
   - {fileID: 11400000, guid: 2338257acb257044bbe09e5d59a9c854, type: 2}
   - {fileID: 11400000, guid: a5c52f98db7262343ac86071c0395df5, type: 2}

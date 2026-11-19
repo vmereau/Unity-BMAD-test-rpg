@@ -82,7 +82,7 @@
   **Sleep** in `PlayersZone/HobbsBed` inside his hut (his restricted area: see `Scenes/CLAUDE.md`; `Spot_TentMate_Night` is unused since). `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
-  The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`.
+  The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`. TitheBarnShortfall cast (scene root `TitheBarnShortfall`): `BarnGuard` (Venn) 06–21 `Spot_BarnGuard_Gate`, 00–03 `Spot_BarnGuard_BarnDoor` (block label `Barn`), otherwise Sleep in `BarnGuardBed` (barracks `Bunk_0`); `FieldHand_Pim` / `BarnWorker_Gerrit` 06–21 `Spot_FieldHand_Strips` / `Spot_BarnWorker_Threshing`, 21–06 Sleep in `FieldHandBed` / `BarnWorkerBed` (tent camp, west of Hobb's hut).
 
 ---
 

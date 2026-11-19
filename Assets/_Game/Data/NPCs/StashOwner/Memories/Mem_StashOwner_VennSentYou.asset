@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_StashOwner_VennSentYou
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 2192c3445aaeb5142960938e01364e32, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: a397d0afd99f5d64fb82d0a9dc5f6133, type: 2}
+  - {fileID: 11400000, guid: e4b30bd6eee0339409afaecd06ae723a, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: f1c365b741b29b943b28fda5e44115ac, type: 2}

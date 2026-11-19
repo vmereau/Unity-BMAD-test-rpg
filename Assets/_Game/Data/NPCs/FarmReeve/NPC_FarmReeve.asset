@@ -53,11 +53,17 @@ MonoBehaviour:
   _attackStanceDamage: 15
   _attackCanKnockDown: 0
   _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
+  _combatStyle: {fileID: 0}
   dayState: 1
   nightState: 2
   prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
   memories:
+  - {fileID: 11400000, guid: 96213a47cff6e834a9bb2aa676ba5967, type: 2}
   - {fileID: 11400000, guid: ab930c8906d7f4c49b9fe4045774f977, type: 2}
+  - {fileID: 11400000, guid: 149921fc33f651f4da7e8aae674e7387, type: 2}
+  - {fileID: 11400000, guid: aefcc802c22e6814caf626129ca69f0a, type: 2}
+  - {fileID: 11400000, guid: 141990099b6e77a439843f5010d1df67, type: 2}
+  - {fileID: 11400000, guid: f8f9884988781e64d9bc4ea4ef92fe28, type: 2}
   - {fileID: 11400000, guid: ac19281b244b0d041a60b9d2aded243c, type: 2}
   _killedFact: {fileID: 11400000, guid: a0908207631af5f4eb40ac9ab4b0aa3e, type: 2}
   _head: {fileID: 11400000, guid: 21b76f733ad0cb04d857e892deb73857, type: 2}

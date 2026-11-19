@@ -1,7 +1,7 @@
 # Quest Spec — TitheBarnShortfall
 
 > Template version: 1.1
-> Status: `ready`
+> Status: `implemented`
 > Spec path: `docs/World/Quests/TitheBarnShortfall.md`
 > Design with `/quests:design`, build with `/quests:implement TitheBarnShortfall`, check with `/quests:audit TitheBarnShortfall`.
 
@@ -436,17 +436,35 @@ Scale reference: SealedPassage endings 150 XP, WardensErrand completion 100 XP.
 
 ## Implementation Checklist
 
-- [ ] Prerequisites P1–P4 shipped (`gds-quick-dev`), P5 done in implement
-- [ ] Fact assets created — Dialogue / World / Quest / Elapsed facts in `Assets/_Game/Data/Facts/`; KilledFacts via
-      `Game/World/Generate Missing KilledFacts` (`Data/Enemies/StartingTown/`) and wired on each `PersistentID`
-- [ ] QuestSO created — `Assets/_Game/Data/Quests/TitheBarnShortfall/Quest_TitheBarnShortfall.asset`
-- [ ] NPCs created — `Data/NPCs/BarnGuard/` (Venn, npc-017), `Data/NPCs/FieldHand/` (Pim, npc-018),
-      `Data/NPCs/BarnWorker/` (Gerrit, npc-019); world-index rows
-- [ ] Dialogue chains created — FarmReeve (Shortfall, ShortfallReport, ShortfallAfter ×2), Cook (BarnTip), BarnGuard
-      (Greeting, Caught, AfterRefused, AfterDeal, AfterReported), FieldHand (Greeting, BarnTalk, BarnTalkAgain), BarnWorker (Greeting, BarnTalk), StashOwner (VennSentYou)
-- [ ] Memory entries created under each NPC's `Memories/` (auto-synced)
-- [ ] PlayerRewardSO assets created — step 2 (caught), completed, and the three gold facts
-- [ ] Scene: Venn, Pim and Gerrit placed with routines and beds, `Spot_BarnGuard_BarnDoor`, barn-door trigger (P3),
-      removal objects (P4)
-- [ ] Registered — `QuestEventsManager` (auto) and `QuestLogUI._allQuests`
-- [ ] `quest_report TitheBarnShortfall` shows no Error / Warning
+- [x] Prerequisites P1–P4 shipped (`gds-quick-dev`), P5 done in implement (Venn's routine, see Scene)
+- [x] Fact assets created — `Assets/_Game/Data/Facts/`: `DialogueFact_FarmReeve_Shortfall_Accepted` / `_ReportedGuard` /
+      `_BlamedPim`, `DialogueFact_FieldHand_BarnTalk`, `DialogueFact_BarnWorker_BarnTalk`, `DialogueFact_Cook_BarnTip`,
+      `DialogueFact_BarnGuard_Refused` / `_DealStruck`, `DialogueFact_StashOwner_VennSentYou`, `WorldFact_TitheBarn_ThiefCaught`,
+      `QuestFact_TitheBarnShortfall_Started` / `_Completed` / `_Failed` / `_Step2`,
+      `ElapsedFact_FarmReeve_Shortfall_ReportedGuard_12h` / `_BlamedPim_12h`. KilledFacts in
+      `Data/Enemies/StartingTown/Generic/`: `KilledFact_BarnGuard`, `KilledFact_FieldHand_Pim`, `KilledFact_BarnWorker_Gerrit`
+      (on each `PersistentID` and `NPCEntity._killedFact`)
+- [x] QuestSO created — `Assets/_Game/Data/Quests/TitheBarnShortfall/Quest_TitheBarnShortfall.asset`
+- [x] NPCs created — `Data/NPCs/BarnGuard/` (Venn, npc-017), `Data/NPCs/FieldHand/` (Pim, npc-018),
+      `Data/NPCs/BarnWorker/` (Gerrit, npc-019), each with `NPC_*.asset` + identity `CLAUDE.md`; world-index rows.
+      Heads are the base head until `/characters:portrait-face`
+- [x] Dialogue chains created — `FarmReeve/Dialogues/Shortfall/`, `ShortfallReport/`, `ShortfallAfter/` (Guard + Pim);
+      `Cook/Dialogues/BarnTip/`; `BarnGuard/Dialogues/Greeting/`, `Caught/`, `AfterRefused/`, `AfterDeal/`,
+      `AfterReported/`; `FieldHand/Dialogues/Greeting/`, `BarnTalk/`, `BarnTalkAgain/`; `BarnWorker/Dialogues/Greeting/`,
+      `BarnTalk/`; `StashOwner/Dialogues/VennSentYou/`. Long lines split at sentence boundaries (Pim and Gerrit `BarnTalk`
+      openers, Gerrit's "Who" answer)
+- [x] Memory entries created under each NPC's `Memories/` (17, synced): `Mem_FarmReeve_Shortfall` / `_ShortfallReport` /
+      `_GateDeal` / `_ShortfallAfter_Guard` / `_ShortfallAfter_Pim`, `Mem_Cook_BarnTip`, `Mem_BarnGuard_Greeting` / `_Caught` /
+      `_AfterRefused` / `_AfterDeal` / `_AfterReported`, `Mem_FieldHand_Greeting` / `_BarnTalk` / `_BarnTalkAgain`,
+      `Mem_BarnWorker_Greeting` / `_BarnTalk`, `Mem_StashOwner_VennSentYou`
+- [x] PlayerRewardSO assets created — `Data/Rewards/PlayerReward_TitheBarnShortfall_Step2` (50 XP), `_Completed` (150 XP),
+      `_DealStruck` (40 g), `_ReportedGuard` (25 g), `_BlamedPim` (25 g); synced to `Player.prefab`
+- [x] Scene (StartingTown, root `TitheBarnShortfall`): `BarnGuard_Removal/BarnGuard` and `FieldHand_Removal/FieldHand_Pim`
+      (wrappers carry `FactRemovedObject` on the 12 h ElapsedFacts), `BarnWorker_Gerrit`, NPC beds `BarnGuardBed` (barracks
+      `Bunk_0`), `FieldHandBed` / `BarnWorkerBed` (tent camp, west of Hobb's hut), `BarnDoorTrigger` (hours 0→3, required
+      NPC Venn, NearSpot `Spot_BarnGuard_BarnDoor` r 3). Spots under `NpcRoutineSpots`: `Spot_BarnGuard_BarnDoor`,
+      `Spot_BarnGuard_Gate`, `Spot_FieldHand_Strips`, `Spot_BarnWorker_Threshing`. No sack prop yet (optional extra)
+- [x] Registered — `QuestEventsManager` (synced) and `QuestLogUI._allQuests`
+- [x] `quest_report TitheBarnShortfall` shows no Error / Warning; `quest_report audit` adds no issue (WardensErrand's
+      V3 / V12 / V13 pre-date this quest)
+- [ ] Play-test: stakeout window, both endings, the 12 h removals (not run yet)

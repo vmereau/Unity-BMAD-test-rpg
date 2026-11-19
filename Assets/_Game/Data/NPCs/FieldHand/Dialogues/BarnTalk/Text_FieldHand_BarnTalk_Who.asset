@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_FieldHand_BarnTalk_Who
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: Me? No idea. Someone who's really hungry, perhaps? Only everyone here is hungry, so that's not much of a guess, is it. Don't tell the reeve I said that. He already looks at me funny.
+  nextNode: {fileID: 0}
+  _id: 02f3421507773a34383078909b4a540d

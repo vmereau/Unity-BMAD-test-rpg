@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc698db6e1221934e8011b9c737b57d7, type: 3}
+  m_Name: Text_BarnWorker_BarnTalk_Who_2
+  m_EditorClassIdentifier: Game::Game.Dialogue.TextDialogueNode
+  text: That's as far as I go. Names get men killed in this camp, and it's never the man named.
+  nextNode: {fileID: 0}
+  _id: aacb7b6b494ba8c4d966986147ce0647

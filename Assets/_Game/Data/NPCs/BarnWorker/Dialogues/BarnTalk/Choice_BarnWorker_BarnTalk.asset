@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_BarnWorker_BarnTalk
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: A worker who took from that barn would be the first man suspected and the first man hanged. You'd have to be a fool, and the fools here don't last long enough to steal.
+  nextNode: {fileID: 0}
+  _id: f5cdd99ff2e36c64a8432f751c50a4ff
+  choices:
+  - text: Then who?
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 1242068e71a20b04dbbf4d022d76e109, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}
+  - text: Maybe one of you is a careful fool.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 11400000, guid: 1bc7ff3c6719893439929dee15ce7b4e, type: 2}
+    dialogueFact: {fileID: 0}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

@@ -10,7 +10,7 @@
 
 | ID | Name | Region | Status | Key NPCs | Key Quests |
 |----|------|--------|--------|----------|------------|
-| area-001 | Company Encampment | Frontier | draft | npc-001..016 | quest-001, quest-002, WardensErrand |
+| area-001 | Company Encampment | Frontier | draft | npc-001..019 | quest-001, quest-002, WardensErrand, TitheBarnShortfall |
 
 ---
 
@@ -34,6 +34,9 @@
 | npc-014 | Overseer Dace | area-002 (quarry floor) | Quarry manager | faction-001 | graybox |
 | npc-015 | Gorm Holl | area-003 (wood camp) | Wood camp gang boss | none | graybox |
 | npc-016 | Reeve Wendel Pell | Company farm (manager's house) | Farm manager | faction-001 | graybox |
+| npc-017 | Osric Venn (Barn Guard) | area-001 fields gate / barracks / tithe barn (00–03) | Grain thief, TitheBarnShortfall; mafia-route hook | faction-001 (covert gang supplier) | placed (StartingTown) |
+| npc-018 | Pim (Field Hand) | Company farm strips / tent camp | Lead + scapegoat, TitheBarnShortfall | none | placed (StartingTown) |
+| npc-019 | Gerrit (Barn Worker) | Company farm threshing floor / tent camp | Lead, TitheBarnShortfall | none | placed (StartingTown) |
 
 ---
 
@@ -43,6 +46,7 @@
 |----|------|-------|------|-------------|--------|
 | quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
 | quest-002 | The Sealed Passage (`SealedPassage`) | npc-009 | area-002 | worker / independent | implemented (door route; goat track deferred) |
+| TitheBarnShortfall | Counted Twice (`TitheBarnShortfall`) | npc-016 | area-001 (farm) | Company / mafia hook | implemented |
 | WardensErrand | The Warden's Errand | npc-006 (Voss) | area-001 + work sites | neutral | implemented |
 
 ---

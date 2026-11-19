@@ -29,4 +29,4 @@ Answers to Warden Voss and fears being blamed for the missing grain. He is the w
 
 ## Assets
 
-`NPC_FarmReeve.asset`, `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Farm`), `Dialogues/Work/` (repeatable), `Memories/`. Head: placeholder copy of the WarehouseGuard mesh (`HeadAppearance_FarmReeve`) until `/characters:portrait-face`. Scene instance under the hand-owned `WorkSiteManagers` root.
+`NPC_FarmReeve.asset`, `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Farm`), `Dialogues/Work/` (repeatable), TitheBarnShortfall topics `Dialogues/Shortfall/` (quest start), `ShortfallReport/` (name Venn or, gated on `Mem_FarmReeve_GateDeal`, Pim), `ShortfallAfter/` (one repeatable aftermath per ending), `Memories/`. Head: placeholder copy of the WarehouseGuard mesh (`HeadAppearance_FarmReeve`) until `/characters:portrait-face`. Scene instance under the hand-owned `WorkSiteManagers` root.

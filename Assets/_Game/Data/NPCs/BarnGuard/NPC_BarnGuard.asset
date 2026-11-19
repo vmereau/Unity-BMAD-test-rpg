@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6497232981e61d42abf8ddcb4e1ea99, type: 3}
+  m_Name: NPC_BarnGuard
+  m_EditorClassIdentifier: Game::Game.NPC.NPCDataSO
+  entityName: Osric Venn
+  _faction: {fileID: 11400000, guid: 25566c71b5ac7e74f948117616c16d27, type: 2}
+  _aidGroup: {fileID: 0}
+  _level: 10
+  _armor: 25
+  _baseHealth: 150
+  _attackDamage: 25
+  _detectionRange: 8
+  _disengageRange: 12
+  _warningRange: 5
+  _warningEngageTime: 3
+  _warningTurnSpeed: 540
+  _viewAngle: 110
+  _eyeHeight: 1.6
+  _proximityRadius: 2
+  _walkHearingRadius: 4
+  _runHearingRadius: 9
+  _awarenessFillTime: 1
+  _loseSightTime: 2
+  _searchDuration: 6
+  _engageStoppingDistance: 1.3
+  _baseSpeed: 2
+  _engageSpeed: 4
+  _xpOnKill: -1
+  _waypointArrivalThreshold: 0.5
+  _patrolWaitTime: 2
+  _attackRange: 1.5
+  _attackCooldown: 2
+  _comboHitsMin: 1
+  _comboHitsMax: 3
+  _maxStance: 100
+  _staggerThreshold: 0.5
+  _stanceRegenDelay: 2
+  _stanceRegenRate: 20
+  _attackStanceResistance: 0
+  _perfectBlockStanceDamage: 80
+  _staggerDuration: 1.1
+  _knockdownDuration: 4.6
+  _attackStanceDamage: 15
+  _attackCanKnockDown: 0
+  _animatorOverride: {fileID: 22100000, guid: 5582759c03586e746b2165e476ac0dc9, type: 2}
+  _combatStyle: {fileID: 11400000, guid: 5b6076956b130f94093717fbcea0068f, type: 2}
+  dayState: 1
+  nightState: 2
+  prefab: {fileID: 2202085857188219662, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
+  memories:
+  - {fileID: 11400000, guid: 46a15c2821d06f04abc46500041866da, type: 2}
+  - {fileID: 11400000, guid: 456949be332184946bb597f6ecc7dbb9, type: 2}
+  - {fileID: 11400000, guid: 00993a398f6b2dc4ba67306e5a56a606, type: 2}
+  - {fileID: 11400000, guid: 9c1ce8955f6a258448410f731cedf381, type: 2}
+  - {fileID: 11400000, guid: e507fef8a75e095449bb3ca24a0cae9b, type: 2}
+  _killedFact: {fileID: 11400000, guid: 4cef2c1fbf261d044a5735d90fc634a8, type: 2}
+  _head: {fileID: 0}
+  _skinTone: {fileID: 11400000, guid: 757a3676542f40b44a7b7a066980daf0, type: 2}
+  _witnessProfile: {fileID: 11400000, guid: 4de51699854ecc24baf1093dac0ba8cd, type: 2}
+  _playerRelationship: 0
+  _relationshipConditions: []
+  _startingEquipment:
+  - {fileID: 11400000, guid: 4c08e7fe9db54a14f85a348d04db5015, type: 2}
+  - {fileID: 11400000, guid: 1ea9fe10628f3ef479ceb5b0d0b44ce8, type: 2}
+  - {fileID: 11400000, guid: 13cad9b60339323449a32b5bdcf3aace, type: 2}
+  _xpOnKnockout: 25
+  _canBeExecuted: 1
+  _finisherStanceMultiplier: 1.5
