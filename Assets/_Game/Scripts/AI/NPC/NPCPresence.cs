@@ -18,8 +18,8 @@ namespace Game.AI
         [Tooltip("Raised by RequestDialogueClose (OnDialogueCloseRequested): closes the dialogue this NPC opened.")]
         [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
         [Tooltip("Optional: the player can't talk to this NPC until this fact is true (e.g. Tam before the arrival event). " +
-                 "Loot and NPC-forced topics are unaffected.")]
-        [SerializeField] private WorldFact _availableAfter;
+                 "Loot and NPC-forced topics are unaffected. An ElapsedFact delays it.")]
+        [SerializeField] private Fact _availableAfter;
         [Tooltip("Things this NPC brings up once on the player's next \"Talk\" (first pending wins), before its topic list.")]
         [SerializeField] private List<NpcTalkOpener> _talkOpeners = new List<NpcTalkOpener>();
 
@@ -143,7 +143,8 @@ namespace Game.AI
         /// <summary>
         /// This NPC saw the player steal its goods (its chase over that theft just ended, however it ended): every
         /// <see cref="NpcTalkOpener.cancelWhenWitnessed"/> opener whose condition is already true is marked played, so it
-        /// never brings the theft up later as if it didn't know who did it.
+        /// never brings the theft up later as if it didn't know who did it. A delayed (<see cref="ElapsedFact"/>) condition
+        /// is checked without its delay: the theft just happened.
         /// </summary>
         public void MarkWitnessedOpenersPlayed()
         {
@@ -152,7 +153,9 @@ namespace Game.AI
             foreach (NpcTalkOpener opener in _talkOpeners)
             {
                 if (opener == null || !opener.IsComplete) continue;
-                if (!TalkOpenerRules.CancelsOnWitness(true, opener.cancelWhenWitnessed, wsm.GetFact(opener.condition),
+                Fact undelayed = ElapsedFact.WithoutDelay(opener.condition);
+                if (undelayed == null) continue; // ElapsedFact without a source: never pending either
+                if (!TalkOpenerRules.CancelsOnWitness(true, opener.cancelWhenWitnessed, wsm.GetFact(undelayed),
                         wsm.GetFact(opener.played))) continue;
                 wsm.SetFact(opener.played, true);
                 GameLog.Info(TAG, $"{gameObject.name}: saw the thief — opener '{opener.topic.name}' cancelled");

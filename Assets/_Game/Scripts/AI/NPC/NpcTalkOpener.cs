@@ -13,14 +13,16 @@ namespace Game.AI
     [Serializable]
     public class NpcTalkOpener
     {
-        [Tooltip("The opener is pending while this fact is true (and Played is not).")]
-        public WorldFact condition;
+        [Tooltip("The opener is pending while this fact is true (and Played is not). Use an ElapsedFact to bring it up " +
+                 "only some game hours after its source fact turned true.")]
+        public Fact condition;
         [Tooltip("Topic the NPC opens with; the player then gets the normal topic list.")]
         public StartDialogueNode topic;
         [Tooltip("Set when the opener plays (or is cancelled): it never plays again.")]
         public WorldFact played;
         [Tooltip("Cancelled (Played set) when this NPC saw the player steal its own goods: the chase over that theft " +
-                 "ended while Condition was already true. For \"someone went through my things\" lines.")]
+                 "ended while Condition was already true (an ElapsedFact's source, ignoring its delay). For \"someone went " +
+                 "through my things\" lines.")]
         public bool cancelWhenWitnessed;
 
         public bool IsComplete => condition != null && topic != null && played != null;

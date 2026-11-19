@@ -28,7 +28,7 @@ QuestReferenceIndex.Build()     pure: Fact → setters / readers, dialogue node 
         │                        choices (MemoryGateLink), memory ownership, quest → involved memories
         │                        (reads / sets quest facts), static EvaluateMemory. UI-agnostic
         ▼                        (reuse it for a future graph view)
-QuestValidator.Validate()       pure rules V1–V17 → ValidationIssue (sorted Error → Warning → Info).
+QuestValidator.Validate()       pure rules V1–V18 → ValidationIssue (sorted Error → Warning → Info).
                                 V14–V17 are memory rules, scoped to memories involved in the quest
         ▼
 QuestExplorerWindow / QuestDetailView (UI Toolkit, inline styles) · QuestSceneHighlighter (Scene GUI)

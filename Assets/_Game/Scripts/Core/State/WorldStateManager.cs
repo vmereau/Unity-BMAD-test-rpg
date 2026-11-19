@@ -32,6 +32,18 @@ namespace Game.Core
         private readonly Dictionary<string, bool> _worldFacts = new Dictionary<string, bool>();
         /// <summary>Times each recipe was cooked, keyed by its <see cref="RecipeFact"/> key. Kept apart so facts stay bool-only.</summary>
         private readonly Dictionary<string, int> _recipeCrafts = new Dictionary<string, int>();
+        /// <summary>
+        /// Game time (<see cref="GameClock.Now"/>) at which each stored fact last turned false → true, keyed like
+        /// <see cref="_worldFacts"/>. Read by <see cref="ElapsedFact"/>. No entry = set before timing existed or without a clock.
+        /// </summary>
+        private readonly Dictionary<string, double> _factSetTimes = new Dictionary<string, double>();
+        /// <summary>
+        /// ElapsedFacts last evaluated as "source true, delay running" → game time their delay ends. Filled by
+        /// <see cref="IsElapsed"/> (quests re-evaluate on every fact change and on load, so theirs register themselves);
+        /// <see cref="Update"/> raises <c>OnFactChanged</c> once when the clock passes a deadline. Not saved.
+        /// </summary>
+        private readonly Dictionary<ElapsedFact, double> _pendingElapsed = new Dictionary<ElapsedFact, double>();
+        private readonly List<ElapsedFact> _dueElapsed = new List<ElapsedFact>();
 
         private void Awake()
         {
@@ -96,6 +108,7 @@ namespace Game.Core
                 SkillFact sf  => PlayerHasSkill(sf),
                 StatFact  stf => PlayerStatCheck(stf),
                 QuestFact qf  => IsQuestFactTrue(qf),
+                ElapsedFact ef => IsElapsed(ef),
                 _             => _worldFacts.TryGetValue(fact.ToString(), out var v) && v
             };
             return result;
@@ -113,7 +126,9 @@ namespace Game.Core
             if (fact == null) { GameLog.Warn(TAG, "SetFact called with null fact"); return; }
             
             string key = fact.ToString();
+            bool wasTrue = _worldFacts.TryGetValue(key, out var previous) && previous;
             _worldFacts[key] = value;
+            RecordSetTime(key, wasTrue, value);
             GameLog.Info(TAG, $"fact set: {key} = {value}");
             
             RaiseFactEvent(fact, value);
@@ -203,6 +218,73 @@ namespace Game.Core
 
         private static string MealBonusKey(string itemId) => $"{WorldFactPrefix.Meal}.BonusClaimed.{itemId}";
 
+        // ── Timed facts ───────────────────────────────────────────────────────
+
+        // First false → true keeps its time (a re-set doesn't restart the delay); false clears it.
+        private void RecordSetTime(string key, bool wasTrue, bool value)
+        {
+            if (!value) { _factSetTimes.Remove(key); return; }
+            if (wasTrue) return;
+            GameClock clock = GameClock.Active;
+            if (clock != null) _factSetTimes[key] = clock.Now;
+            else _factSetTimes.Remove(key); // no clock → counts as set long ago
+        }
+
+        /// <summary>Game time at which the stored <paramref name="fact"/> turned true. False when not recorded.</summary>
+        public bool TryGetFactSetTime(Fact fact, out double setAt)
+        {
+            setAt = 0d;
+            return fact != null && _factSetTimes.TryGetValue(fact.ToString(), out setAt);
+        }
+
+        /// <summary>Evaluates an <see cref="ElapsedFact"/>: its source is true and its hours have passed since then.</summary>
+        public bool IsElapsed(ElapsedFact fact)
+        {
+            if (fact == null) { GameLog.Warn(TAG, "IsElapsed called with null fact"); return false; }
+            Fact source = fact.Source;
+            if (source == null) { GameLog.Warn(TAG, $"ElapsedFact '{fact.name}' has no source — assign a stored fact in the Inspector"); return false; }
+            if (source is ElapsedFact) { GameLog.Warn(TAG, $"ElapsedFact '{fact.name}' uses another ElapsedFact as its source — evaluated as false"); return false; }
+
+            bool sourceTrue = GetFact(source);
+            double? setAt = TryGetFactSetTime(source, out double t) ? t : (double?)null;
+            double? now = GameClock.Active != null ? GameClock.Active.Now : (double?)null;
+            bool elapsed = ElapsedFactRules.IsElapsed(sourceTrue, setAt, now, fact.Hours);
+
+            // Delay running → remember when it ends, so event-driven readers (quests, quest log) hear about it.
+            if (!elapsed && sourceTrue && setAt.HasValue)
+                _pendingElapsed[fact] = setAt.Value + fact.Hours * GameTime.SECONDS_PER_HOUR;
+            else
+                _pendingElapsed.Remove(fact);
+            return elapsed;
+        }
+
+        private void Update() => RaiseDueElapsedFacts();
+
+        // Raises OnFactChanged once for each pending ElapsedFact whose deadline the clock passed and which is really
+        // true now (re-checked: a source set false, or set true again later, re-registers or drops it).
+        private void RaiseDueElapsedFacts()
+        {
+            if (_pendingElapsed.Count == 0) return;
+            GameClock clock = GameClock.Active;
+            if (clock == null) return;
+            if (SaveSystem.Instance != null && SaveSystem.Instance.IsLoading) return;
+
+            double now = clock.Now;
+            _dueElapsed.Clear();
+            foreach (var pair in _pendingElapsed)
+                if (pair.Key == null || pair.Value <= now) _dueElapsed.Add(pair.Key);
+            if (_dueElapsed.Count == 0) return;
+
+            foreach (ElapsedFact fact in _dueElapsed)
+            {
+                _pendingElapsed.Remove(fact);
+                if (fact == null || !IsElapsed(fact)) continue;
+                GameLog.Info(TAG, $"delay ended: {fact.name}");
+                RaiseFactEvent(fact, true);
+            }
+            _dueElapsed.Clear();
+        }
+
         // ── Player checks ─────────────────────────────────────────────────────
 
         /// <summary>Returns true if the player has learned the skill referenced by this fact.
@@ -256,10 +338,24 @@ namespace Game.Core
         public void RestoreFacts(Dictionary<string, bool> facts)
         {
             _worldFacts.Clear();
+            _pendingElapsed.Clear();
             if (facts != null)
                 foreach (var pair in facts)
                     _worldFacts[pair.Key] = pair.Value;
             GameLog.Info(TAG, $"Restored {_worldFacts.Count} world fact(s)");
+        }
+
+        /// <summary>Copy of every recorded fact "became true" time (game seconds), for <see cref="ElapsedFact"/>.</summary>
+        public Dictionary<string, double> CaptureFactSetTimes() => new Dictionary<string, double>(_factSetTimes);
+
+        /// <summary>Replaces every fact "became true" time (null → none, e.g. older saves = all elapsed). Raises no events.</summary>
+        public void RestoreFactSetTimes(Dictionary<string, double> times)
+        {
+            _factSetTimes.Clear();
+            _pendingElapsed.Clear(); // re-registered as readers re-evaluate (quest reseed)
+            if (times == null) return;
+            foreach (var pair in times)
+                if (!double.IsNaN(pair.Value) && !double.IsInfinity(pair.Value)) _factSetTimes[pair.Key] = pair.Value;
         }
 
         /// <summary>Copy of every recipe craft count.</summary>

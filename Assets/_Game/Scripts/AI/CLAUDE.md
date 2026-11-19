@@ -240,16 +240,16 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   `GameEventSO_ContainerOpenRequest _onLootRequested` with the entity's `InventorySystem` and
   `takeOnly = true` — reusing the container pipeline (`ContainerSystem` / `ContainerUI`). An emptied corpse
   is inert (no prompt, `Interact()` no-op).
-- **`NPCPresence._availableAfter`** (optional `WorldFact`): no "Talk" prompt / dialogue until the fact is true (Tam before
+- **`NPCPresence._availableAfter`** (optional `Fact`; an `ElapsedFact` delays it): no "Talk" prompt / dialogue until the fact is true (Tam before
   event-001). Loot and NPC-forced topics (`RequestForcedTopic`) ignore it. No `WorldStateManager` → available.
 - **`NPCPresence.RequestForcedTopic(node, thenTopics = false)`**: `thenTopics` → the chain ends on the NPC's normal topic
   list (Farewell included) instead of closing (Hobb's arrival briefing). Toll and Warden topics keep the default.
-- **`NPCPresence._talkOpeners`** (`NpcTalkOpener`: `condition` / `topic` / `played` WorldFacts + `cancelWhenWitnessed`): on the
+- **`NPCPresence._talkOpeners`** (`NpcTalkOpener`: `condition` (any `Fact` — an `ElapsedFact` delays it, e.g. Hobb 2 h) / `topic` / `played` WorldFact + `cancelWhenWitnessed`): on the
   player's Talk, the first opener whose condition is true and played false opens its topic with
   `RaiseDialogueRequest(topic, thenTopics: true)`; `played` is set only if the dialogue really opened (cursor unlocked at once —
   `DialogueSystem` ignores a request while another dialogue is open); otherwise the normal topic list is requested. Skipped while the NPC's brain `IsChasingThief`
   (Pursuing / Confronting: its scold comes first). Incomplete opener → warning, skipped; no `WorldStateManager` → none.
-  `MarkWitnessedOpenersPlayed()` spends every `cancelWhenWitnessed` opener **whose condition is already true**: `EntityBrain`
+  `MarkWitnessedOpenersPlayed()` spends every `cancelWhenWitnessed` opener **whose condition is already true** (an `ElapsedFact` condition is read without its delay — `ElapsedFact.WithoutDelay`): `EntityBrain`
   calls it (`SpendWitnessedOpeners`) when a chase over an item / container theft of its **own** goods ends by any exit:
   `EndPursuit` (scold, give-up, claimed by another catcher), the refused-return brawl, and a check at the top of `Update`
   (`_pursuitOwnGoods` while no longer `IsChasingThief`: a hit or knockout mid-chase, a hostile taking over).

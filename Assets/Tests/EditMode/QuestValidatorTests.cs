@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Tests.EditMode
 {
     /// <summary>
-    /// Edit Mode tests for <see cref="QuestValidator"/> (one positive test per rule V1–V17 plus a clean
+    /// Edit Mode tests for <see cref="QuestValidator"/> (one positive test per rule V1–V18 plus a clean
     /// quest) and <see cref="QuestStepRemap"/>. Every test starts from a clean quest and breaks one thing.
     /// </summary>
     public class QuestValidatorTests
@@ -133,6 +133,36 @@ namespace Tests.EditMode
             _quest.steps[0].parts.Add(Part(world));
             var issue = Single(Validate(), "V3", IssueSeverity.Error);
             StringAssert.Contains("no WorldFact setter exists", issue.Message);
+        }
+
+        [Test]
+        public void V18_ElapsedFactWithoutSource_IsError()
+        {
+            _quest.steps[0].parts.Add(Part(Make<ElapsedFact>("ElapsedFact_None").Init(null, 2f)));
+            StringAssert.Contains("has no source", Single(Validate(), "V18", IssueSeverity.Error).Message);
+        }
+
+        [Test]
+        public void V18_ElapsedFactOverComputedSource_IsError()
+        {
+            var skill = Make<SkillFact>("SkillFact_Any");
+            _quest.steps[0].parts.Add(Part(Make<ElapsedFact>("ElapsedFact_Skill").Init(skill, 2f)));
+            StringAssert.Contains("is computed", Single(Validate(), "V18", IssueSeverity.Error).Message);
+        }
+
+        [Test]
+        public void V18_ElapsedFactInMemoryCondition_IsChecked()
+        {
+            var inner = Make<ElapsedFact>("ElapsedFact_Inner").Init(_killFact, 1f);
+            _offer.unlockConditions = new Fact[] { Make<ElapsedFact>("ElapsedFact_Nested").Init(inner, 1f) };
+            Assert.IsTrue(Validate().Any(i => i.Rule == "V18" && i.Message.Contains("another ElapsedFact")));
+        }
+
+        [Test]
+        public void V18_ElapsedFactOverStoredSource_IsClean()
+        {
+            _quest.steps[0].parts.Add(Part(Make<ElapsedFact>("ElapsedFact_Kill").Init(_killFact, 2f)));
+            Assert.IsFalse(Validate().Any(i => i.Rule == "V18"));
         }
 
         [Test]

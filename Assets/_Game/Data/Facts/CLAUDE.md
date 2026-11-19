@@ -17,6 +17,7 @@
 | `QuestFact` | `Quest.{questId}.{State\|StepN}` | computed | derived from the quest's parts | memory conditions, other quests, rewards |
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |
 | `StatFact` | `Stat.Requirements(n)` | computed | `PlayerStats` thresholds | memory conditions |
+| `ElapsedFact` | `Elapsed.{sourceKey}.{h}h` (debug only) | computed | true once `_source` (a **stored** fact) is true and `_hours` game hours (decimals) passed since it turned true — timed dialogue | `NPCPresence._talkOpeners` (Hobb: `ElapsedFact_Hobb_BelongingsRummaged_2h`), any memory / quest condition |
 
 **Seen markers** (`Dialogue.Seen.{nodeId}` / `Dialogue.Seen.{nodeId}.{choiceIndex}`) also live in
 `_worldFacts` so they are saved, but they are **not facts**: written only by
@@ -30,6 +31,15 @@ event, and must never be used as quest / memory conditions. UI-only (`DialogueUI
 `WorldStateManager.ClaimMealBonus` (first eat of a `PotionItemSO` with a permanent bonus), read by
 `IsMealBonusClaimed`, no event, not a fact. The max-HP part of the bonus is saved separately
 (`PlayerSaveData.bonusMaxHealth`); stat bonuses are in the saved base stats.
+
+**Timed facts:** `WorldStateManager` records `GameClock.Now` when a stored fact turns false → true (`_factSetTimes`, saved
+as `SaveData.factSetTimes`). Setting it true again keeps the first time; false clears it. No time (older save, set while no
+clock ran) → counts as long elapsed. Evaluation is lazy (pull readers need nothing for sleep skips / loads). For
+event-driven readers (`QuestEventsManager`, `QuestLogUI`, `NPCMemoryComponent`): an `ElapsedFact` evaluated while its delay
+runs is remembered with its deadline, and `WorldStateManager.Update` raises `OnFactChanged` (key = the ElapsedFact's
+`ToString()`) once when the clock passes it — so quest parts complete on time. Pending deadlines aren't saved: cleared on
+restore, re-registered by the quest reseed. A computed source (Quest /
+Skill / Stat / Elapsed) has no time → validator V18. Quest Explorer lists no readers for the source through an `ElapsedFact`.
 
 Computed facts are never written to `WorldStateManager._worldFacts` and cannot be toggled.
 Never build a fact key by hand — always go through the typed `WorldStateManager` API.
@@ -65,6 +75,7 @@ play-mode **Toggle** uses the raw `SetFact`.
 | WorldFact | `WorldFact_{eventKey}` | `Data/Facts/` |
 | RecipeFact | `RecipeFact_{RecipeOutput}` (`_recipeId` = same, never renamed) | `Data/Facts/` |
 | QuestFact | `QuestFact_{QuestId}_{State}` (`Started` / `Completed` / `Failed` / `Step{i}`) | `Data/Facts/` |
+| ElapsedFact | `ElapsedFact_{SourceName}_{N}h` (source name without its type prefix) | next to the source |
 | KilledFact | `KilledFact_{GameObjectName}` | `Data/Enemies/{Scene}/Generic/` (`Game/World/Generate Missing KilledFacts`) |
 
 Some older facts live under `Data/Quests/{Quest}/` — location is not significant; the index finds

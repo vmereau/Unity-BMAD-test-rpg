@@ -17,7 +17,7 @@ namespace Game.Editor.QuestExplorer
         public UnityEngine.Object Context;
         /// <summary>Part / step row to scroll to when the issue is clicked. May be null.</summary>
         public QuestPartLocation? Location;
-        /// <summary>Rule id (V1..V17) — for tests and tooling.</summary>
+        /// <summary>Rule id (V1..V18) — for tests and tooling.</summary>
         public string Rule;
 
         public override string ToString() => $"{Severity} {Rule}: {Message}";
@@ -73,6 +73,7 @@ namespace Game.Editor.QuestExplorer
             foreach (var (loc, part) in QuestReferenceIndex.EnumerateParts(quest))
             {
                 var fact = part.fact;
+                if (fact is ElapsedFact elapsed) AddElapsedIssue(elapsed, quest, loc, issues);
                 if (!IsStored(fact)) continue;
                 var setters = index.GetSetters(fact);
 
@@ -208,6 +209,9 @@ namespace Game.Editor.QuestExplorer
                             $"{memory.name}: invalidation condition #{i + 1} is missing — skipped at runtime, so it never closes the memory",
                             memory, null);
 
+            foreach (var condition in (unlock ?? System.Array.Empty<Fact>()).Concat(invalidation ?? System.Array.Empty<Fact>()))
+                if (condition is ElapsedFact elapsed) AddElapsedIssue(elapsed, memory, null, issues);
+
             var gates = index.GetGates(memory);
             if (memory.effects?.startdialog == null && gates.Count == 0)
                 Add(issues, "V15", IssueSeverity.Warning,
@@ -262,6 +266,27 @@ namespace Game.Editor.QuestExplorer
 
         public static bool IsStored(Fact fact) => fact is KilledFact || fact is DialogueFact || fact is WorldFact || fact is RecipeFact;
 
+        // V18 — an ElapsedFact that can never time correctly.
+        private static void AddElapsedIssue(ElapsedFact fact, UnityEngine.Object owner, QuestPartLocation? loc,
+            List<ValidationIssue> issues)
+        {
+            string problem = ElapsedFactProblem(fact);
+            if (problem != null)
+                Add(issues, "V18", IssueSeverity.Error, $"{owner.name}: ElapsedFact '{fact.name}' {problem}", fact, loc);
+        }
+
+        /// <summary>Why an <see cref="ElapsedFact"/> is misconfigured, or null when it is fine.</summary>
+        public static string ElapsedFactProblem(ElapsedFact fact)
+        {
+            if (fact == null) return null;
+            if (fact.Source == null) return "has no source — always false";
+            if (fact.Source is ElapsedFact) return "uses another ElapsedFact as its source — always false";
+            if (!IsStored(fact.Source))
+                return $"source '{fact.Source.name}' is computed — it has no \"became true\" time, so the delay never applies";
+            if (fact.Hours < 0f) return "has negative hours";
+            return null;
+        }
+
         /// <summary>
         /// False for computed facts missing their target (WorldStateManager would log a warning on every
         /// evaluation) — live polling skips them.
@@ -271,6 +296,7 @@ namespace Game.Editor.QuestExplorer
             null => false,
             QuestFact qf => qf.Quest != null,
             SkillFact sf => sf.Skill != null,
+            ElapsedFact ef => ef.Source != null && !(ef.Source is ElapsedFact) && IsEvaluable(ef.Source),
             _ => true
         };
 

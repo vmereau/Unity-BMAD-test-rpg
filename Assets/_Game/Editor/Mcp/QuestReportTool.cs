@@ -12,7 +12,7 @@ namespace Game.Editor.Mcp
     /// </summary>
     [McpForUnityTool("quest_report",
         Description = "Quest Explorer data as Markdown: quests, their parts and facts, who sets/reads each fact, " +
-                      "involved NPC memories, gated choices and validator issues (V1-V17). " + QuestReport.USAGE)]
+                      "involved NPC memories, gated choices and validator issues (V1-V18). " + QuestReport.USAGE)]
     public static class QuestReportTool
     {
         public class Parameters

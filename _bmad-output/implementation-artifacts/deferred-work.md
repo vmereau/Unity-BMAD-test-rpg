@@ -1102,3 +1102,15 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   areas (or a rebuild-time check) would catch it.
 - **Opener timing edge.** A witnessed chase that times out while the player is still in the container UI ends before
   the take, so Hobb still says "someone's been through my things" later (accepted in spec-hobb-hut-ownership).
+
+## From spec-timed-dialogue-facts (2026-11-19)
+
+- **V18 doesn't see scene talk openers.** The validator checks `ElapsedFact`s in quest parts and memory conditions only.
+  An opener (`NPCPresence._talkOpeners`) with a bad `ElapsedFact` (no source, computed source) only logs at runtime.
+  Index scene opener conditions in Quest Explorer to cover them.
+- **Quest Explorer readers stop at the `ElapsedFact`.** A stored fact read only through an `ElapsedFact` lists no
+  readers (e.g. `WorldFact_Hobb_BelongingsRummaged`). Resolve `ElapsedFact.Source` as a reader in `QuestReferenceIndex`.
+- **No "source never set" check for an `ElapsedFact`.** V3 skips computed facts, so an `ElapsedFact` over a stored fact
+  nothing sets stays always false with no issue. Extend V3 (or V18) to the source's setters.
+- **A witnessed theft of any of Hobb's goods spends the pending box opener.** The 2 h delay widens the window in which
+  catching the player stealing something else cancels it (the opener isn't tied to an incident; see above).

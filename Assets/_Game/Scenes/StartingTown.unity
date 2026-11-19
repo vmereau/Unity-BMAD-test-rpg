@@ -23630,7 +23630,7 @@ PrefabInstance:
     - target: {fileID: 2441576283753789042, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _talkOpeners.Array.data[0].condition
       value: 
-      objectReference: {fileID: 11400000, guid: 4cff7d50b9512ce49b115ebf5c5e297c, type: 2}
+      objectReference: {fileID: 11400000, guid: 76342c0ba508f1c46b4877be090a7fe9, type: 2}
     - target: {fileID: 2441576283753789042, guid: ea73572b6a4e79d4fbe41fdea8c1e693, type: 3}
       propertyPath: _talkOpeners.Array.data[0].cancelWhenCaught
       value: 1
