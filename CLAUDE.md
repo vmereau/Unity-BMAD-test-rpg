@@ -114,7 +114,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts, theft / gold request payloads |
 | Save / Time | `Scripts/Core/Save/CLAUDE.md`, `Scripts/Core/Time/CLAUDE.md` | `SaveSystem` / save files / restore rules; `GameClock`, `GameTime`, `DayNightController` |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
-| AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
+| AI | `Scripts/AI/CLAUDE.md` (+ `PERCEPTION.md`, `COMBAT.md`, `RANGED_EQUIPMENT.md`, `KNOCKOUT.md`, `RELATIONS.md`) | Entity brains, health, factions, entity presence / loot, rules; topic files: perception / witness / theft / trespass, melee / tactics / blocking / potions / stance, ranged / NPC equipment, knockout / execute / looting, relationship / mutual defense |
+| NPC AI | `Scripts/AI/NPC/CLAUDE.md` | NPC routines and sleep, `NPCPresence` dialogue (forced topics, talk openers, close), toll gates, StartingTown routine cast |
 | Combat | `Scripts/Combat/CLAUDE.md` (+ `PLAYER_COMBO.md`, `BOW.md`, `EXECUTE.md`) | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; topic files: player combo, bow aim/arrows, execute stomp |
 | Player | `Scripts/Player/CLAUDE.md` (+ `PLAYER_STATES.md`, `CAMERA.md`) | `PlayerStateManager` gates, `IsAirborne`, animation driver, lock-on; topic files: sneak / swim / stamina / stance / unconscious, Cinemachine OTS camera |
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
