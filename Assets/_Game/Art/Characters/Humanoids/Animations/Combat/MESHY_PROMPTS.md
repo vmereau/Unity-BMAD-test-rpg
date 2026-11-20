@@ -6,7 +6,7 @@
 Meshy limits: **400 characters** per prompt, **2 s minimum duration** (count the whole text before sending), no "start from another
 clip", no loop toggle. **Duration is set in the Meshy UI**, not in the prompt.
 
-## Verdict (2026-11-03): not usable for weapon attacks yet
+## Verdict: not usable for weapon attacks yet
 
 Meshy animates **without a weapon**, so nothing keeps a sword path consistent. `TwoHandGripConstraint` aims the blade
 along the 15–20 cm left-hand → right-hand line, and in the Meshy attacks that line swings behind the body and runs along
@@ -18,7 +18,7 @@ blade-direction track. Retry when Meshy can take a prop or a reference clip.
 
 ---
 
-## Rules (from the failures of the first 2H batch, 2026-11-03; templates below are v1, see Verdict)
+## Rules (from the failures of the first 2H batch; templates below are v1, see Verdict)
 
 The banned words below apply to **prompt text only** — labels in this file may use them.
 
@@ -56,7 +56,7 @@ The banned words below apply to **prompt text only** — labels in this file may
 
 The current event timings do **not** carry over — re-tune all four events and `attackSteps` after import.
 
-## Two-handed templates (v1 — generated 2026-11-03, rejected: see Verdict)
+## Two-handed templates (v1 — rejected: see Verdict)
 
 Guard sentence (shared, verbatim): `A warrior holds a heavy two-handed sword in a front guard: left foot forward,
 knees bent, both hands on the hilt at waist height, blade upright in front of the chest.`

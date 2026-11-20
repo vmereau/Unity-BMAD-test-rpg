@@ -204,7 +204,7 @@ These author hand-owned geometry once; they are not part of the run order.
   existing `Terrain_StartingArea` surface and asset-manager bake path.
 - **`Tools/World/Dress Home Yard`** (`HomeYardDresser`) rebuilds `PlayersZone/HomeYardDressing` (every home-yard prop
   and both night lights): rerunning asks first, then discards hand edits inside it with no undo; rebake afterwards. It
-  refuses unless both huts are unscaled `WorkerHut_Home` instances. It no longer places Hobb's bed.
+  refuses unless both huts are unscaled `WorkerHut_Home` instances. It doesn't place Hobb's bed (hand-owned `PlayersZone/HobbsBed`).
 
 Site facts for all three: `Scenes/STARTING_TOWN.md` → Mafia buildings / Home yard art pass.
 

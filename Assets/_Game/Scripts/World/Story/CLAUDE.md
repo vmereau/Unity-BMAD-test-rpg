@@ -31,7 +31,7 @@ mate (Hobb, routine suspended and snapped to `_tentMateSpot` at the start) opens
 `RequestForcedTopic(node, thenTopics: true)` once the player is within `briefingDistance` (`EvaluateBriefing`; timeout
 counted only while it could open, not while Hobb fights; Hobb down → skipped; a player stopping short hears Hobb's
 `tentMateCallBarks`; a knockout restarts the briefing). Closing waits for a knocked-out player to get up; on the hut leg
-the Warden no longer holds the escort. The briefing ends on his topic list; when the player leaves (cursor relocked) →
+the Warden doesn't hold the escort. The briefing ends on his topic list; when the player leaves (cursor relocked) →
 fact set, guards / Hobb routines resumed. No hut wiring → warning, the arrival ends at the stage.
 
 **Details**

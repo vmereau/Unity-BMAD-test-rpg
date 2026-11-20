@@ -24,8 +24,8 @@ a summary panel. Allocation-free: numbers are formatted by hand into a cached `S
 
 ---
 
-## Test Scaffolding — EnemyRespawner (Story 3.1)
+## Test Scaffolding — EnemyRespawner
 
 `EnemyRespawner.cs` (namespace `Game.DevTools`) is attached to `ProgressionSystem` in TestScene. It re-enables dead entities after a configurable delay (default 5s). `EntityHealth.OnEnable()` resets `IsDead` and `CurrentHealth` on reactivation.
 
-**This is test scaffolding — superseded by Story 5-5 (no-enemy-respawn design).**
+**Test-only** — the game design has no enemy respawn; never use it in game scenes.

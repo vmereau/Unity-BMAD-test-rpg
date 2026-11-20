@@ -40,7 +40,7 @@
 - **Spine aim:** `BowAimCorrection` reads `EntityArcher` as its `IBowAimSource`; the player's calibration (`_arrowLineLocal` /
   `_arrowOriginLocal`) fits the `base_hero` NPC rig — measured ≈ 2° average error in play. Re-calibrate both if the rig changes.
 - **Perception LOS ignores the entity's own colliders** (all entities) — the side-on aim swings the archer's own head (ragdoll
-  collider) into the eye ray, which used to drop it into the last-seen chase mid-shot. A full hit buffer counts as blocked.
+  collider) into the eye ray, which would otherwise drop it into the last-seen chase mid-shot. A full hit buffer counts as blocked.
 - `BowAimCorrection` sits on every `NPC_base Variant`; it returns before capturing the pose while idle and resets (no writes)
   once the animator is off (ragdoll at death mid-aim).
 

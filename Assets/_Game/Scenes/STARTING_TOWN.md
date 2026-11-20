@@ -192,7 +192,7 @@ The camp's east side is open.
   and a rail would stand at the shoreline. It's cut into pieces of up to 3 m with every third one missing; its bars and
   posts are too thin for a bake, so each piece has a Not Walkable volume.
 - **Fight pit:** the bank comes from the terrain tool (`fight-pit` feature; capture rule in `Editor/World/CLAUDE.md` →
-  Valley terrain), but the `FightPit` root (rocks and gap posts) is hand-owned: Sites no longer builds it, so edit it
+  Valley terrain), but the `FightPit` root (rocks and gap posts) is hand-owned: Sites doesn't build it, so edit it
   freely. The bench, stone and log there are hand-placed. The crest is highest towards `fort-tower` and the gap faces
   north. The tower looks down into the bowl, so from a top eye at y 26.6 the bank alone hides only the near half of the
   floor; the detailed pit will replace this placeholder.
@@ -337,7 +337,7 @@ wanted again, restore vertical boxes (lip across the ring gap, walls on the pit'
 - The terrain tool keeps trees 3 m off the track, and Sites' `BuildRuinsRing` splits whichever ring wall it crosses
   (today `Wall_1_A` / `Wall_1_B`, a 7.8 m gap along the east wall, z −144.3 to −152, 5 m square to the track; Sites logs
   it; cut ends stop flush, only corners overlap), so moving the line moves the gap.
-- The NavMesh no longer links the shelf to the pad across the drop (edit-mode paths go round through the cleft, closed
+- The NavMesh doesn't link the shelf to the pad across the drop (edit-mode paths go round through the cleft, closed
   at runtime), so the shelf spiders can't follow the player down.
 
 **`CleftBlocker`** (Sites-owned, in `Quarry`; its height comes from the ground, so rerun Sites after a terrain run):
@@ -383,7 +383,7 @@ y≈6.3, turned 90° so its gable door faces east.
   0.1 m from the palisade and 0.3–0.5 m from the neighbouring hut walls (roof edges come within a few centimetres), too
   narrow for the player's 0.6 m capsule.
 - Hut 11 stands askew, so `GapBoards` closes the one wider wedge at its north corner; move the boards if hut 11 moves.
-- The plot is no longer a way between the Player's Zone and the mafia fire.
+- The plot is not a way between the Player's Zone and the mafia fire.
 - Its one door (2 m wide, world z 14.4..16.4) opens into the lane between huts 25 and 27; keep that lane and hut 25's
   north-facing door clear.
 - `Furnishings` (three bunks along the rear wall, mess table, crates at the palisade end, barrels beside the door) is
@@ -432,8 +432,8 @@ The first spot of Area 1 at final quality, and the visual reference for the rest
 
 **Hobb sleeps (`spec-npc-routine-sleep`):**
 
-- `PlayersZone/HobbsBed` (hand-owned, outside `HomeYardDressing`) is a `Bed_WorkerPallet` instance at the old dressed
-  `HobbBed` pose (the dresser no longer places it), owned by Hobb (`Ownership`), name tag "Hobb's bed".
+- `PlayersZone/HobbsBed` (hand-owned, outside `HomeYardDressing`) is a `Bed_WorkerPallet` instance
+  (the dresser doesn't place it), owned by Hobb (`Ownership`), name tag "Hobb's bed".
 - Children `NpcApproach` (−2.32, 0.72, 44.28, on the NavMesh, facing the bed) and `NpcSleepAnchor` (local 0.2, −0.48,
   0.09, yaw −90 — head toward the bed's +X end, by `HobbsBox`).
 - His 21–06 routine block is Sleep in it.

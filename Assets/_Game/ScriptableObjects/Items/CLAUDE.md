@@ -44,7 +44,7 @@ All types live in namespace `Game.Inventory`.
 **New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (drawn hand, grip poses, Hip/Back
 sheath socket, animator override, default combo steps) — no code. Add a new `XxxSO : WeaponSO` class only when
 the family needs new **fields**. `SwordSO` is kept (renaming would break asset `m_Script` refs) even though the
-class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
+class name doesn't determine the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
 
 **Forged weapons (crafted bonus):** an inventory slot is `(ItemSO, Count)` and saves store `itemId`, so a copy can't carry
 "was crafted". A crafted weapon is its **own asset** `Weapon_<Name>_Forged` with better stats, its `WeaponSO.baseWeapon` →

@@ -2,7 +2,7 @@
 
 > Loaded when Claude accesses this NPC's data. Character sheet for Dock Guard — read it before writing any dialogue, memory or behaviour for this NPC.
 >
-> **Draft (2026-11-09):** created as the night watch of `RestrictedAreas/RA_Docks`
+> **Status: draft.** Night watch of `RestrictedAreas/RA_Docks`
 > (`spec-restricted-areas-trespass`). Identity fields marked TBD are still open.
 
 ---

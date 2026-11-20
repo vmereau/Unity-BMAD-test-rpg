@@ -32,13 +32,13 @@ All StartingTown NPCs are direct scene instances of this variant.
   and adds its own `NPCPresence : EntityPresence` + a hip-pinned `InteractionCollider` (referenced by
   `HumanoidAIAnimationDriver._transformsToPinToHips` — do **not** delete it). `NPCPresence._onLootRequested`
   must be wired on the variant itself (the base wiring is removed with the base component).
-- **Model = nested `Prefabs/Characters/Humanoid_BaseHero.prefab`** (child `Character`, spec-npc-base-hero-model;
-  replaced the Mixamo `Idle.fbx` dummy). The model prefab owns the Animator (base-hero avatar, `Humanoid_Base`, root
+- **Model = nested `Prefabs/Characters/Humanoid_BaseHero.prefab`** (child `Character`, spec-npc-base-hero-model).
+  The model prefab owns the Animator (base-hero avatar, `Humanoid_Base`, root
   motion off), body `base_hero` + `Head` SMRs (player meshes / materials), the player's 5 sockets (same bones / offsets),
   the fist hitboxes `WeaponSocket/UnarmedHitbox` + `LeftHand/LeftWeaponSocket/UnarmedHitbox_L` (both active, dormant, no
   Rigidbody) and the 11-body ragdoll (layer 0). The variant adds only `EntityAnimationEventReceiver`
   on `Character` and the `Hitbox` child (L7). Placeholder until real NPC bodies exist. Every StartingTown NPC is an instance
-  of this variant (Brann was re-instanced 2026-11-13 — keep NPCs as instances, never unpack them). Swapping the model: instantiate the new model prefab as `Character` in the variant's
+  of this variant — keep NPCs as instances, never unpack them. Swapping the model: instantiate the new model prefab as `Character` in the variant's
   contents (`PrefabUtility.LoadPrefabContents`), re-add the receiver + `Hitbox`, retarget every root reference that
   pointed into the old `Character` (bridge `_animator`, driver `_transformsToPinToHips`, attacker `Unarmed`), delete the
   old one, then `PrefabUtility.RemoveUnusedOverrides` on the scene NPC instances. `NpcModelPrefabTests` guards it.

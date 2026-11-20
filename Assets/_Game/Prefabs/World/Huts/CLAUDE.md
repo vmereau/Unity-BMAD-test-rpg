@@ -42,7 +42,7 @@ owned, on the scene instance: switch `RestrictedArea` on and list the owner(s) (
 plus hours and warnings if needed. Hobb's `worker-mate` is the first (owner `NPC_TentMate`, all day, one warning).
 
 A rebuild keeps those overrides: `SaveAsPrefabAsset` over the existing prefab keeps a child's fileID when its name
-and path are unique and unchanged (checked 2026-11-19). Renaming or moving `RestrictedArea` in the builder drops
+and path are unique and unchanged. Renaming or moving `RestrictedArea` in the builder drops
 every instance's owners. Siblings that share a name (`Side`, `Front`, `Rear`, `Roof` pieces, nested kit prefabs) get
 new fileIDs on every rebuild (a large but harmless prefab diff), so never put a scene override on one of them.
 Set the active flag through `SerializedObject` (`m_IsActive`) or the Inspector: a bare

@@ -14,7 +14,7 @@
 | `Data/Origins/Origin_Joiner` | `Origin_Joiner.png` | Joiner's workshop, oak strongbox lock, chisel roll + plane |
 | `Data/Origins/Origin_Wretch` | `Origin_Wretch.png` | Burnt village, rags, nothing in his hands |
 
-Shipped 2026-11-16: 896×1200 (3:4), Gemini. The Gemini ✦ watermark is still in the bottom-right corner
+Current images: 896×1200 (3:4), Gemini. The Gemini ✦ watermark is still in the bottom-right corner
 (user's call, paint it out later). A new origin needs a new image in the same template.
 
 ## Prompt template

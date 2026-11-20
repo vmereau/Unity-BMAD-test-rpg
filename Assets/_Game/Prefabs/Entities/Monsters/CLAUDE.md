@@ -20,8 +20,7 @@ Monster_DarknessSpider Variant.prefab  (variant of Assets/_Game/Prefabs/Entities
 ```
 
 **Spider `HitBox` values** (sized to the skinned-mesh bounds, legs included): `BoxCollider`,
-`isTrigger = true`, center `(0, 0.293, -0.064)`, size `(1.73, 0.498, 1.43)`. It replaced the old
-1.5 m-tall capsule (r 0.4, center y 0.75) that floated above the model as a workaround.
+`isTrigger = true`, center `(0, 0.293, -0.064)`, size `(1.73, 0.498, 1.43)`.
 
 ---
 
@@ -65,7 +64,7 @@ written there are unversioned and fragile. Instead **copy the attack clip into t
 `AnimatorOverrideController` slot at it, and author events on the copy (the tuner writes `.anim` events in
 seconds). The vendor pack stays untouched.
 
-### DarknessSpider Bite (2026-10-01)
+### DarknessSpider Bite
 
 - **Fangs are the chelicerae** (`cephalothorax/Dummy025/chelicere_[LR]_[ab]`), front = +Z.
   `hook_L/R` are under `Abdomen_3` — the abdomen tip, **not** the fangs.
@@ -77,5 +76,5 @@ seconds). The vendor pack stays untouched.
   `DarknessSpider.overrideController`. `HitboxEnable("Bite")` frame 7 (0.233 s), `HitboxDisable("Bite")`
   frame 13 (0.433 s). Lunge starts f6–8, fangs fully forward f10–12 (z ≈ 0.37 m from root), recoil from
   f14. Picked from sampled bone positions — refine visually with the tuner.
-- `EnemyType_DarknessSpider`: `AttackRange` 2.2 → **0.8**, `EngageStoppingDistance` 1.8 → **0.65**
+- `EnemyType_DarknessSpider`: `AttackRange` **0.8**, `EngageStoppingDistance` **0.65**
   (reach ≈ 0.37 + 0.15 + 0.1 + 0.3 = 0.92).

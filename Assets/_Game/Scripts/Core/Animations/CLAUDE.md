@@ -48,9 +48,9 @@ Symmetric on both sides: bridge + driver.
 - **One Animator per entity, owned by its matching bridge.** The monster bridge owns the
   monster controller's Animator; the humanoid bridge owns `Humanoid_Template`'s Animator.
   Never write to an Animator from outside its bridge.
-- **`MonsterAnimationDriver` script GUID is `bc1ff05bbb035a34cb7a7f54f833aa88`** — preserved
-  from the original `EntityAnimationBridge.cs` via file `mv` (file + `.meta` renamed in
-  lockstep). Do not regenerate the `.meta` or every monster prefab loses its driver reference.
+- **`MonsterAnimationDriver` script GUID is `bc1ff05bbb035a34cb7a7f54f833aa88`** — monster
+  prefabs reference it. Do not regenerate the `.meta` or every monster prefab loses its driver reference;
+  a rename moves file + `.meta` in lockstep.
 - **`HumanoidAIAnimationDriver._runSpeed` must match the variant's `Entity.EngageSpeed`** —
   the 2D blend tree normalizes against `_runSpeed`. If a humanoid type uses
   `EngageSpeed = 6` but the driver's `_runSpeed` stays `4`, the blend tree saturates at 1.0

@@ -2,7 +2,7 @@
 
 > Loaded when Claude accesses this NPC's data. Character sheet for Warehouse Guard — read it before writing any dialogue, memory or behaviour for this NPC.
 >
-> **Draft (2026-11-09):** created as the test owner of `RestrictedAreas/RA_Warehouse`
+> **Status: draft.** Test owner of `RestrictedAreas/RA_Warehouse`
 > (`spec-restricted-areas-trespass`). Identity fields marked TBD are still open.
 
 ---
