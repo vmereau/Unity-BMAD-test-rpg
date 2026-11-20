@@ -1,7 +1,8 @@
 # CLAUDE.md — Assets/_Game/Scripts/Crafting
 
 > Loaded when Claude accesses files in this folder. Recipes and crafting stations (cooking, smithing). Namespace: `Game.Crafting`.
-> The cooking screen lives in `Scripts/UI/Crafting/` (`Game.UI`); the station prefab contract in `Prefabs/CLAUDE.md`.
+> The cooking / smithing screen (`CookingUI` & co.) lives in `Scripts/UI/Crafting/` (`Game.UI`) — documented in
+> `Scripts/UI/Crafting/CLAUDE.md`; the station prefab contract in `Prefabs/CLAUDE.md`.
 
 ---
 
@@ -29,25 +30,27 @@
   doesn't list recipe items as setters yet (the recipe is enough to avoid "never set").
 - `RecipeFact._recipeId` is the save key — never rename it once shipped. It also keys the craft count.
 
+---
+
 ## Craft count (saved, not a fact)
 
 - `WorldStateManager.AddRecipeCraft` / `GetRecipeCraftCount` (keyed by `RecipeFact.ToString()`), a separate int store
   so facts stay bool-only. Saved as the optional `SaveData.recipeCrafts` (`CaptureRecipeCrafts` / `RestoreRecipeCrafts`;
   null in older saves → all 0, no version bump). No event.
-- `CookingUI` counts every successful cook of a recipe's output (Recipes tab **or** a matching Experiment cook — not
-  the failed dish, not a refunded craft) and shows `FormatCraftCount` ("Never cooked" / "Cooked once" / "Cooked N
-  times") via `CookingUI._recipeActions` → `CookingRecipeActions._craftCountText` (the recipe card's Requires block).
+- Shown on the recipe card: `Scripts/UI/Crafting/CLAUDE.md` → Craft count.
+
+---
 
 ## Smithing (anvil)
 
 - `SmithingStation_Anvil` (`Prefabs/World/SmithingStations/`, by Edric in `StartingTown`): `CookingStation` with
   `_kind = Smithing`, `_requiredSkill = SkillFact_Smithing_Learned`, prompt "Forge", name "Anvil".
-- Smithing = **Recipes tab only** (Experiment tab button hidden, experiment input rejected), grid lists
-  `isCraftingMaterial` items, button "Forge", count "Never forged / Forged once / Forged N times".
+- Smithing screen mode (Recipes tab only, Forge button / count): `Scripts/UI/Crafting/CLAUDE.md`.
 - Recipes are learned only from recipe items (`Item_Recipe_ShortIronSword`, given once by Edric after Smithing is
   learned — `Data/NPCs/BlackSmith/CLAUDE.md`). Ingots: Edric's shop.
-- **Crafted bonus = a forged asset**, not instance data: the recipe outputs `Weapon_<Name>_Forged` (same name, higher stats,
-  `baseWeapon` → the standard `Weapon_<Name>`; detail category "Weapon · Forged"). Details: `ScriptableObjects/Items/CLAUDE.md`.
+- **Crafted bonus = a forged asset** (`Weapon_<Name>_Forged`), not instance data — owned by `ScriptableObjects/Items/CLAUDE.md` → Forged weapons.
+
+---
 
 ## First-meal bonus
 
@@ -55,26 +58,3 @@ A cooked food can grant a one-time permanent bonus (e.g. Apple Mushroom Sandwich
 the food item, not on the recipe, so a bought / looted copy counts too. Details: `ScriptableObjects/Items/CLAUDE.md`
 (`PotionItemSO`); claim key in `Data/Facts/CLAUDE.md`.
 
----
-
-## Cooking screen (`Scripts/UI/Crafting/`)
-
-- `CookingUI` (`IScreenPanel`, nested in `UICanvas`, inactive): shared player grid + **Experiment** / **Recipes** tabs
-  (cooking opens on Experiment, inactive tab tinted; smithing — see above — has Recipes only). Same lifecycle as `ContainerUI` (Esc / `OnPlayerDied` close, input
-  disposed in `OnDestroy`); `SaveSystem` refuses save / load while `IsOpen`.
-- **Player grid lists the station's materials only** (both tabs; `CookingRules.IsMaterialFor` — ingredients for cooking, `isCraftingMaterial` for smithing). Each `ItemSlotUI` keeps its real inventory index as `SlotIndex`, so
-  grid child position ≠ inventory index — resolve a clicked slot with `FindGridSlot(SlotIndex)`, never `GetChild(index)`.
-- **Experiment:** only `ItemSO.isIngredient` items are accepted (others, e.g. a meal dragged from the action bar,
-  show "<name> isn't an ingredient"). Cooked meals (`PotionItemSO` `Meal`) are never ingredients. 3
-  `CookingIngredientSlotUI` (`_slotIndex` 0–2) **references** (`ItemSO`, like action bar slots), reset on every open. Set by dropping an inventory / action bar slot or double-clicking a grid slot (first empty slot);
-  cleared by right-click, double-click or dragging out. Slots show the icon only — no stack count (a cook uses one unit). Cook consumes one unit per filled slot → the matching station recipe's output
-  (learning it the first time: "New recipe: …") or `_failedDish` (`Item_ReplenishingStew`). The preview never reveals
-  an unknown recipe ("Unknown result"). After a cook, slots whose item ran short clear.
-- **Recipes:** station recipes ∩ known, as `CookingRecipeRowUI` rows (`Prefabs/UI/Cooking/CookingRecipeRow.prefab`).
-  The detail is an **item card**: a nested `ItemDetailPanel` (`_recipeItemPanel`, `Show(output, ItemPriceContext.None)` →
-  header + category, stat rows, description, no price) with `CookingRecipeActions.prefab` (`_recipeActions`) nested
-  under its `ActionsContainer`: "Requires" + ingredients `have/need` (missing tinted), craft count, Cook / Forge
-  button (`CraftButton`; needs every ingredient). `RecipeDetail` has no layout group — the panel is anchor-stretched
-  (like `ContainerUI`), and its `LayoutElement.preferredWidth` 273 keeps the inventory / station split (889 / 942).
-- Every cook goes through `TryCraft`: consume all, add the result, refund everything if a step fails; then
-  `OnActionBarUsed(REFRESH_ONLY_SLOT)` so the HUD bar and this screen refresh.

@@ -2,7 +2,7 @@
 
 > Loaded when Claude accesses item prefabs. Covers world-item (dropped / pickup) prefabs.
 > Weapons have their own two-prefab convention: `Weapons/CLAUDE.md`. Shields (`Shields/<Name>/`) use the same `_World` /
-> `_Visual` split without a hitbox — see `ShieldSO` in `ScriptableObjects/Items/CLAUDE.md`. Item data: `ScriptableObjects/Items/CLAUDE.md`.
+> `_Visual` split without a hitbox — see Shield prefabs below. Item data (incl. `ShieldSO` fields): `ScriptableObjects/Items/CLAUDE.md`.
 
 ---
 
@@ -19,3 +19,14 @@ A prefab assigned to `ItemSO.worldItemPrefab` **must** have, on its root:
 **Drop:** `InventoryUI.DropItem` instantiates the prefab 1.5 m in front of / 0.5 m above the player and
 applies `AddForce(forward * 2f + Vector3.up * 1f, ForceMode.Impulse)`. An item without `worldItemPrefab`
 is not droppable (the drop is skipped with a `GameLog` warning).
+
+---
+
+## Shield prefabs (`Shields/<Name>/`)
+
+`<Name>_World` (Rigidbody, BoxCollider, `ItemPickup`, `InteractionHighlight`, layer 8)
+and `<Name>_Visual` (root → `Drawn` / `Sheathed` → `Mesh`, **no hitbox**). The `Mesh` child normalizes the art: **front +Z, up +Y,
+grip (back of the handle) at the origin** (Hivemind shields face +X: `Mesh` rot (0, −90, 0), pos = −(rot × grip)).
+
+`ShieldSO.backPose` (`Sheathed` pose on `BackWeaponSocket`) offsets: bind pose: face backward, world-up, Kite (0, −0.47, −0.016)
+puts its top at the neck, Round (0, −0.08, 0.018); both clear the player and `NPC_base` bodies by ~1.5–2 cm; meshes at 0.8 scale.

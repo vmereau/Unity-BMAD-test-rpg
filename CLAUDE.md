@@ -111,7 +111,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 |------|------------------------------|--------|
 | Assembly & input | `CLAUDE.md` | `Game.asmdef`, `InputSystem_Actions` dual-file contract |
 | Scenes | `Scenes/CLAUDE.md` | Core.unity managers, MCP scene-load quirk |
-| Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts |
+| Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts, theft / gold request payloads |
+| Save / Time | `Scripts/Core/Save/CLAUDE.md`, `Scripts/Core/Time/CLAUDE.md` | `SaveSystem` / save files / restore rules; `GameClock`, `GameTime`, `DayNightController` |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
 | AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
 | Combat | `Scripts/Combat/CLAUDE.md` (+ `PLAYER_COMBO.md`, `BOW.md`, `EXECUTE.md`) | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; topic files: player combo, bow aim/arrows, execute stomp |
@@ -120,7 +121,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
 | World | `Scripts/World/CLAUDE.md` (+ `INTERACTION.md`, `DIALOGUE_SYSTEM.md`, `FACT_OBJECTS.md`) | Interaction, dialogue, containers, doors/locks, `PersistentID` / `SaveableObject`; topic files: interaction / theft / trespass / doors / beds, dialogue flow, fact- and clock-driven world objects |
 | Story sequences | `Scripts/World/Story/CLAUDE.md` | `ArrivalSequence` (event-001); story sequences may drive components directly |
-| Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem` → `CookingUI`, `CookingRules` |
+| Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem`, `CookingRules`, smithing |
+| Crafting UI | `Scripts/UI/Crafting/CLAUDE.md` | `CookingUI` (cooking / smithing screen), recipe card, craft count |
 | Status effects | `Scripts/StatusEffects/CLAUDE.md` | `StatusEffectSO` / catalog, clock-driven `StatusEffectHost` (food heal over time), payout math |
 | Audio | `Scripts/Audio/CLAUDE.md` | `MusicPlayer`, `SfxPlayer` (pooled one-shots via `OnSfxRequested`), `SoundCueSO`, `MainMixer` + volume settings, footsteps |
 | Sound clips | `Art/Sounds/CLAUDE.md` | SFX naming / import recipe, cue assets, ElevenLabs prompt table |
@@ -135,8 +137,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
 | Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut shells (kit pieces), shell contract, home yard dressing tool |
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
-| Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
-| Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
+| Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` (+ `WEAPON_TOOLS.md`) | `_World` / `_Visual` convention, sockets, grip; topic file: Weapon Creator / Pose Tuner |
+| Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
 | Environment / ruins / camp kit | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log; camp kit rules (wall modules, roofs, scale, custom Blender pieces) |
 | UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
