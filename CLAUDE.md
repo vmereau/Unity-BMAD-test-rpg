@@ -118,7 +118,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Player | `Scripts/Player/CLAUDE.md` (+ `PLAYER_STATES.md`, `CAMERA.md`) | `PlayerStateManager` gates, `IsAirborne`, animation driver, lock-on; topic files: sneak / swim / stamina / stance / unconscious, Cinemachine OTS camera |
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
-| World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
+| World | `Scripts/World/CLAUDE.md` (+ `INTERACTION.md`, `DIALOGUE_SYSTEM.md`, `FACT_OBJECTS.md`) | Interaction, dialogue, containers, doors/locks, `PersistentID` / `SaveableObject`; topic files: interaction / theft / trespass / doors / beds, dialogue flow, fact- and clock-driven world objects |
+| Story sequences | `Scripts/World/Story/CLAUDE.md` | `ArrivalSequence` (event-001); story sequences may drive components directly |
 | Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem` → `CookingUI`, `CookingRules` |
 | Status effects | `Scripts/StatusEffects/CLAUDE.md` | `StatusEffectSO` / catalog, clock-driven `StatusEffectHost` (food heal over time), payout math |
 | Audio | `Scripts/Audio/CLAUDE.md` | `MusicPlayer`, `SfxPlayer` (pooled one-shots via `OnSfxRequested`), `SoundCueSO`, `MainMixer` + volume settings, footsteps |
