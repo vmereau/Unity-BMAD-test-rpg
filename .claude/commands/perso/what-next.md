@@ -1,10 +1,10 @@
 ---
-description: Review recent specs, the game's design goals and the deferred-work backlog, then advise what to work on next
+description: Review recent specs, design documents ready to build, the game's design goals and the deferred-work backlog, then advise what to work on next
 argument-hint: "[optional focus, e.g. combat, area 1, polish, quick wins]"
 ---
 
-Advise the user on what to work on next. Read the project's recent history, its design intent and its open
-backlog, then recommend a short, ranked list of next steps. **This command is read-only — do not edit any file,
+Advise the user on what to work on next. Read the project's recent history, its design intent, the design documents
+waiting to be built and its open backlog, then recommend a short, ranked list of next steps. **This command is read-only — do not edit any file,
 create a spec or start implementing.** It ends with a recommendation and a question.
 
 Optional focus from the user: `$ARGUMENTS` (empty → no focus, consider everything).
@@ -16,6 +16,7 @@ Optional focus from the user: `$ARGUMENTS` (empty → no focus, consider everyth
 | Game identity & aims | `_bmad-output/gdd.md` | Read `Executive Summary`, `Goals and Context`, `Core Gameplay`, `Development Epics`, `Success Metrics`, `Out of Scope` (use `grep -n "^## "` to find them; skip the rest unless the focus needs it) |
 | Story / world | `_bmad-output/narrative-design.md`, `_bmad-output/story-2026-05-03.md` | Skim headings + the opening sections — enough to know the setting, the arrival beat and the current area |
 | Recent work | `_bmad-output/implementation-artifacts/spec-*.md` | Frontmatter (`title`, `type`, `created`, `status`) + the `## Intent` section |
+| Design handoffs | `docs/World/world-index.md`, `docs/World/**/*.md` | Design work done away from Unity (often on mobile) and waiting for a desktop implementation session. Read each doc's status line and the `Status` columns of `world-index.md` |
 | Backlog | `_bmad-output/implementation-artifacts/deferred-work.md` | Every `## From <spec> (<date>)` section; a struck-through item (`~~…~~`) is **resolved** — ignore it |
 | What shipped | `git log` | Confirms what actually landed, and when |
 
@@ -33,6 +34,25 @@ Do **not** plan from `epics.md` or `sprint-status.yaml` — they are obsolete (s
   (e.g. "new-game flow: start menu → origins → artwork → play scenarios").
 - Flag every spec whose `status:` is not `done` (draft, ready, in-progress, in-review…) — unfinished work is
   always a candidate, and a stale one may need closing or dropping rather than finishing.
+
+### 1b — Design handoffs
+
+Quest, NPC, dialogue and area designs are written in `docs/World/` (often from a mobile session without Unity) and
+handed to the desktop by marking them `ready`. Nothing else announces them, so find them here:
+
+- Status lines vary in format — a `status:` frontmatter key, a bare `Status: …` line, `> Status: \`ready\``, `- Status: ready`. Find them with
+  `grep -rniE "^(> |- )?status:" docs/World --include=*.md` and read the value; ignore `QUEST_SPEC_TEMPLATE.md` and
+  table rows (`| … | Status | … |`) inside docs.
+- Also read the `Status` column of every table in `docs/World/world-index.md`.
+- A doc is a **handoff** when its status is `ready` (or `ready-for-dev` / `designed`). `draft` / `proposed` is still being
+  designed — mention it only if it matches the user's focus. `implemented` / `done` is finished.
+- For each handoff, read enough of the doc to say what it asks for in Unity, and check whether a spec already covers
+  it: `grep -l "<doc path or quest id>" _bmad-output/implementation-artifacts/spec-*.md`. A doc marked `ready` but
+  already covered by a `done` spec is probably a stale status — say so instead of recommending it.
+- Note the doc's last commit date (`git log -1 --format=%cd -- <doc>`) so the user sees how fresh it is.
+- Pick the build command: a quest spec under `docs/World/Quests/` → `/quests:implement <QuestId>`; NPC dialogue →
+  `NPC:dialogue` / `NPC:teach-dialogue` / `NPC:shop-dialogue`; a new NPC → `NPC:create`; anything else (areas,
+  systems, mixed) → `gds-quick-dev` pointed at the doc path.
 
 ### 2 — Design intent
 
@@ -66,12 +86,15 @@ Output, in this order and in this shape (keep the whole answer scannable — no 
 ## Where the project stands
 <3-5 lines: what the game is, the near-term target, what the last ~2 weeks delivered (themes, not a spec list)>
 
+## Ready designs (handoffs)
+<bullet per `ready` design doc: path, what it asks for, last updated, already covered? · Build with: <command> — or "None">
+
 ## Unfinished specs
 <bullet per non-done spec: title, status, created, one-line "finish / close / drop" advice — or "None">
 
 ## Recommended next steps
 1. **<Short name>** — <kind, size> · <why now, in one or two sentences, tied to the design aims or recent work>
-   Covers: <deferred items / spec it continues / GDD section>  ·  Start with: `gds-quick-dev` <one-line intent>
+   Covers: <design doc / deferred items / spec it continues / GDD section>  ·  Start with: <`gds-quick-dev` one-line intent, or the build command from 1b>
 2. …  (3 to 5 items, ranked)
 
 ## Quick wins
@@ -82,10 +105,12 @@ Output, in this order and in this shape (keep the whole answer scannable — no 
 ```
 
 Rules for the recommendations:
-- Every item cites its source (deferred-work section, spec slug, GDD section) so the user can check it.
+- Every item cites its source (design doc path, deferred-work section, spec slug, GDD section) so the user can check it.
+- A `ready` design doc is work the user has already decided on — rank it high unless it is blocked by a missing
+  system or a progress-blocking bug outranks it.
 - Mix kinds when it makes sense — don't recommend five polish tasks if a core pillar is missing, and don't push
   a large new system when a progress-blocking bug is open.
-- No invented work: every recommendation must come from the specs, the backlog, or a verified GDD gap.
+- No invented work: every recommendation must come from the specs, a design doc, the backlog, or a verified GDD gap.
 
 Finish with one question: which item the user wants to start (offer to launch `gds-quick-dev` with the drafted
-intent), or whether they want a different focus.
+intent, or the design doc's build command), or whether they want a different focus.
