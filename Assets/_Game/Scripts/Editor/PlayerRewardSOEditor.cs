@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using Game.Progression;
 
@@ -42,3 +43,4 @@ namespace Game.Editor
         }
     }
 }
+#endif

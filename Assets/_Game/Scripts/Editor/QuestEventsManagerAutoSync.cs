@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Linq;
 using Game.Quest;
 using UnityEditor;
@@ -87,3 +88,4 @@ namespace Game.Editor
         }
     }
 }
+#endif
