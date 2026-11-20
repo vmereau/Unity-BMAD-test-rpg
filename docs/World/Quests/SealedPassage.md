@@ -383,4 +383,4 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
       face is jump-climbable at any steepness), `Tools/World/Check Goat Track Drop` (CharacterController simulation) passes,
       sculpt captured, NavMesh rebaked, `Shape_GoatTrackDrop` trigger over the pit
 - [x] 2026-11-19 (`0e871d8`): `DropBlockers` removed by design — the drop is no longer one-way, so
-      `Tools/World/Check Goat Track Drop` is expected to fail.
+      the `Tools/World/Check Goat Track Drop` tool and its tests were deleted.

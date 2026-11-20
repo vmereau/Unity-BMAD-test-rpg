@@ -134,8 +134,8 @@ namespace Game.Editor.World
 
         /// <summary>
         /// Cuts the pit behind a drop down to its foot height: a clean landing floor in front of the ledge. The terrain face alone
-        /// is still jump-climbable (a CharacterController counts terrain contacts as ground at any steepness), so the one-way part
-        /// is StartingTown SealedPassage/GoatTrack/DropBlockers, proven by Tools/World/Check Goat Track Drop.
+        /// is still jump-climbable (a CharacterController counts terrain contacts as ground at any steepness): only vertical box
+        /// faces would make the drop one-way, and StartingTown has none there by design (the pit can be climbed back out of).
         /// </summary>
         private static void CutDropPit(Terrain terrain, Vector2 top, Vector2 foot, float floor)
         {
