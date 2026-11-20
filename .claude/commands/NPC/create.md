@@ -97,7 +97,7 @@ Using the answers collected, generate the `CLAUDE.md` for this NPC by filling in
 - Replace `<NPC_NAME>` in the heading with the display name
 - Fill every table row and section with the user's answers
 - For fields the user left blank, keep the comment placeholder text so it is clear what belongs there
-- Fill the Asset Reference table with correct paths for this NPC
+- Fill the Asset Reference table with NPC-specific rows only (scene path, routine, shop, quest role, non-default prefab) — the default folder layout / prefab is stated in `Data/NPCs/CLAUDE.md`
 - Save as `Assets/_Game/Data/NPCs/<NPCName>/CLAUDE.md`
 
 ---

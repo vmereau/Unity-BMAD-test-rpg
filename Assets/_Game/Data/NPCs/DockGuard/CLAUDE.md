@@ -1,10 +1,8 @@
-# NPC Identity — Dock Guard
+# CLAUDE.md — Assets/_Game/Data/NPCs/DockGuard
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Dock Guard — read it before writing any dialogue, memory or behaviour for this NPC.
 >
-> **Draft (2026-11-09):** created as the night watch of `RestrictedAreas/RA_Docks`
+> **Status: draft.** Night watch of `RestrictedAreas/RA_Docks`
 > (`spec-restricted-areas-trespass`). Identity fields marked TBD are still open.
 
 ---
@@ -60,8 +58,6 @@
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Every line ends on the rule: closed, out, off-limits
 
 ---
@@ -70,8 +66,7 @@
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/DockGuard/NPC_DockGuard.asset` |
 | KilledFact | `Assets/_Game/Data/Enemies/StartingTown/Generic/KilledFact_DockGuard.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/DockGuard/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/DockGuard/Memories/` |
+| Dialogues | none yet |
+| Memories | none yet |
 | Scene instance | `StartingTown.unity` → `DockGuard` (`NPC_base Variant` + `NpcRoutine`) |

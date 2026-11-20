@@ -1,15 +1,32 @@
-# NPC Identity — Reeve Wendel Pell
+# CLAUDE.md — Assets/_Game/Data/NPCs/FarmReeve
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Reeve Wendel Pell — read it before writing any dialogue, memory or behaviour for this NPC.
+
+---
 
 ## Core Identity
 
-- Name: Reeve Wendel Pell (farm manager).
-- Profession: the Company's reeve of the farm and its tithe barn.
-- Affiliation: The Company (`Faction_Company`).
-- Age: late 50s.
+| Field | Value |
+|-------|-------|
+| **Name** | Reeve Wendel Pell |
+| **Nickname / Known As** | Reeve Pell (`entityName`), Pell |
+| **Profession** | Farm manager: the Company's reeve of the farm and its tithe barn |
+| **Faction / Affiliation** | The Company (`Faction_Company`) |
+| **Location** | Outside the east door of the manager's house, all day |
+| **Age** | Late 50s |
 
-## Personality and Background
+---
 
-Fussy, precise and suspicious. Pell is a bookkeeper at heart, happier with a tally stick than a person. Every week he counts the tithe barn, and every week it is short. Not by much, just enough that someone is being careful. He is determined to find them, and anyone new is a suspect.
+## Personality
+
+| Field | Value |
+|-------|-------|
+| **Alignment** | TBD |
+| **Traits** | Fussy, precise, suspicious |
+| **Fears / Flaws** | Being blamed for the missing grain; happier with a tally stick than a person |
+| **Desires / Goals** | Find whoever is skimming the tithe barn |
+
+---
 
 ## Speech Style
 
@@ -23,10 +40,37 @@ Fussy, precise and suspicious. Pell is a bookkeeper at heart, happier with a tal
 **Sample line:**
 > "I write it all down, every sack, every strip and every pair of hands. Forty-one sacks in on Tuesday and forty in the barn, so you'll understand why I count twice."
 
-## Relationships and Routine
+---
 
-Answers to Warden Voss and fears being blamed for the missing grain. He is the way into the farm's work and the barn (later theft and food-reserve quests for the worker path). He stands all day outside the east door of the manager's house (`WorkSiteManagers/FarmReeve_Spot`).
+## Background
 
-## Assets
+Pell is a bookkeeper at heart. Every week he counts the tithe barn, and every week it is short. Not by much, just enough
+that someone is being careful. He is determined to find them, and anyone new is a suspect. He answers to Warden Voss and
+is the way into the farm's work and the barn.
 
-`NPC_FarmReeve.asset`, `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Farm`), `Dialogues/Work/` (repeatable), TitheBarnShortfall topics `Dialogues/Shortfall/` (quest start; the sighting choice, gated on `Mem_FarmReeve_GateSeenVenn`, starts the quest (sets `Accepted`) and gives the "real proof" warning; `Choice_FarmReeve_Shortfall_Venn` then sets `NeedProof` and ends on `Text_FarmReeve_Shortfall_VennAccept`), `ShortfallReport/` (open from quest start; name Venn by handing over `Item_BrannsTally`, the no-proof Venn line gated on `Mem_FarmReeve_GateCaught` sets `NeedProof`, Pim gated on `Mem_FarmReeve_GateDeal`), `ShortfallAfter/` (one repeatable aftermath per ending), `Memories/`. Head: placeholder copy of the WarehouseGuard mesh (`HeadAppearance_FarmReeve`) until `/characters:portrait-face`. Scene instance under the hand-owned `WorkSiteManagers` root.
+## Dialogue Writing Rules (NPC-specific)
+
+- TBD
+
+---
+
+## Quest Role — TitheBarnShortfall
+
+The barn-theft quest `TitheBarnShortfall` (`Data/Quests/TitheBarnShortfall/`) starts with him. Topics:
+
+- `Dialogues/Shortfall/` — quest start; the sighting choice, gated on `Mem_FarmReeve_GateSeenVenn`, starts the quest
+  (sets `Accepted`) and gives the "real proof" warning; `Choice_FarmReeve_Shortfall_Venn` then sets `NeedProof` and ends
+  on `Text_FarmReeve_Shortfall_VennAccept`.
+- `Dialogues/ShortfallReport/` — open from quest start; name Venn by handing over `Item_BrannsTally`, the no-proof Venn
+  line gated on `Mem_FarmReeve_GateCaught` sets `NeedProof`, Pim gated on `Mem_FarmReeve_GateDeal`.
+- `Dialogues/ShortfallAfter/` — one repeatable aftermath per ending.
+
+---
+
+## Asset Reference
+
+| Asset | Path |
+|-------|------|
+| Scene | Instance under the hand-owned `WorkSiteManagers` root; stands all day at `WorkSiteManagers/FarmReeve_Spot` |
+| Dialogues | `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Farm`), `Dialogues/Work/` (repeatable), quest topics above |
+| Head | Placeholder copy of the WarehouseGuard mesh (`HeadAppearance_FarmReeve`) until `/characters:portrait-face` |

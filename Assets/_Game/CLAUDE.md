@@ -8,10 +8,10 @@
 
 `Game.asmdef` exists with:
 - `"name": "Game"`, `"autoReferenced": true`
-- `"references": ["Unity.InputSystem", "Unity.TextMeshPro", "Unity.Cinemachine", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]` (URP refs added for `Scripts/Rendering/`)
+- `"references": ["Unity.InputSystem", "Unity.TextMeshPro", "Unity.Cinemachine", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]` (URP refs are needed by `Scripts/Rendering/`)
 
 All scripts under `Assets/_Game/` compile into the **`Game` assembly** (not `Assembly-CSharp`).
-`InputSystem_Actions.cs` was moved from `Assets/` root into `Assets/_Game/` so it compiles into `Game`.
+`InputSystem_Actions.cs` must live in `Assets/_Game/` (not `Assets/` root) so it compiles into `Game`.
 
 **Consequence:** Any future auto-generated file placed at `Assets/` root will be in `Assembly-CSharp` and invisible to `Game` scripts — always move such files inside `Assets/_Game/`.
 
@@ -34,8 +34,8 @@ If you only edit `.inputactions`, the runtime `FindAction("Block", throwIfNotFou
 - **Player:** Move, Look, Attack, Interact, Crouch (C — sneak toggle, `PlayerSneak`), Jump, Previous, Next,
   Sprint, Block, Dodge, InventoryToggle, LockOn, ActionBar1–6, DrawWeapon (R), CharacterStatsToggle (P),
   QuestLogToggle (J), SkillsToggle (K), QuickSave (F5), QuickLoad (F9), ToggleStealthDebug (F3,
-  `StealthDebugOverlay`), Execute (F, `PlayerExecution`) — **no Cancel action**. Hand-added actions (QuickSave onward) have no
-  `IPlayerActions` callback entries — read them through `_input.Player.<Action>`.
+  `StealthDebugOverlay`), Execute (F, `PlayerExecution`) — **no Cancel action**. `IPlayerActions` only has callbacks up to
+  Sprint — every action from Block onward has none; read them through `_input.Player.<Action>`.
 - **UI:** Navigate, Submit, **Cancel** (Escape), Point, **Click** (left mouse), RightClick, MiddleClick,
   ScrollWheel, TrackedDevice*, DialogueOption1–9 / DialogueOption0, DialogueAdvance (Space / Enter / Numpad
   Enter / E — hand-added, no `IUIActions` callback; read through `_input.UI.DialogueAdvance`), BulkModifier

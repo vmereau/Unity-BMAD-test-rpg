@@ -9,7 +9,7 @@
 
 | File | Role |
 |------|------|
-| `ScriptableObjects/StatusEffects/StatusEffectSO` | Effect **type** (behavior only): `effectId` (save ID — never change), `displayName`, `icon` / `iconTint` (HUD; no icon → tinted square), `kind` (`Heal` only), `tickIntervalSeconds` (game s, 60 = 2 real s), `stacking` (`Stack` + `maxStacks` 0 = unlimited, drops the oldest past the cap / `Refresh` = replace). Assets `Data/StatusEffects/SE_*.asset` |
+| `ScriptableObjects/StatusEffects/StatusEffectSO` | Effect **type** (behavior only): `effectId` (save ID — never change), `displayName`, `icon` / `iconTint` (HUD; no icon → tinted square), `kind` (`Heal` only), `tickIntervalSeconds` (game s, 60 = 7.5 real s at 180 min/day), `stacking` (`Stack` + `maxStacks` 0 = unlimited, drops the oldest past the cap / `Refresh` = replace). Assets `Data/StatusEffects/SE_*.asset` |
 | `ScriptableObjects/StatusEffects/StatusEffectCatalogSO` | `Data/StatusEffects/StatusEffectCatalog.asset` — **hand-maintained** list, `FindById` for save restore. A new effect missing here is dropped on load (warn) |
 | `StatusEffectInstance` | One application: `AppliedAt` / `ExpiresAt` (absolute `GameClock.Now` seconds), `TotalAmount`, mutable `PaidAmount` |
 | `StatusEffectMath` | Pure (`StatusEffectMathTests`): `PaidBy` (quantized to whole ticks, exactly `total` at expiry), `DueNow`, `AddInstance` (stacking), `PendingOf`, `CountOf`, `FormatRemaining` ("20m" / "1h05"), `FormatDuration` ("1 h 30 min") |

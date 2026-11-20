@@ -64,7 +64,7 @@ If the user has not provided the full teaching content in `$ARGUMENTS`, ask for 
 
 For **CREATE**, you need at minimum:
 - Topic label (the `StartDialogueNode.text` — shown as the button in the topic list, e.g. "Teach me something")
-- Whether this topic is repeatable (`isRepeatable`) — default `true`, ask if not obvious
+- Whether this topic is one-shot — there is no `isRepeatable` flag: a one-shot topic sets `StartDialogueNode.dialogueFact` and adds that same fact to the memory's `invalidationConditions` (`Data/NPCs/DIALOGUE.md`); repeatable = `dialogueFact` null. Default repeatable, ask if not obvious
 - Optional intro text spoken by the NPC before the choice menu (a `TextDialogueNode` prompt)
 - The list of teaching options (see per-option fields below)
 - Optional confirmation text after a choice is made
@@ -133,7 +133,7 @@ Before creating or modifying any assets, present a concise plan to the user:
 [CREATE / EDIT] — <NPC> / Teachings/<TopicName>
 
 Assets to create:
-  - Start_<NPC>_<Topic>.asset       (isRepeatable: <true/false>, text: "<label>")
+  - Start_<NPC>_<Topic>.asset       (dialogueFact: <none = repeatable / DialogueFact_<NPC>_<Name> = one-shot>, text: "<label>")
   - Text_<NPC>_<Topic>.asset        ("<intro text...>")   ← if intro text provided
   - TeachChoice_<NPC>_<Topic>.asset
       choices[0]: "+2 Strength" — StatBased, LP: 1, Gold: 30    ← text field value in quotes
@@ -198,4 +198,4 @@ After each asset creation, check Unity console for errors (`read_console`).
 After all assets are created/modified:
 - Confirm no Unity compilation or import errors in the console
 - List every asset created or modified with its path
-- Note any fields the user may want to review in the Inspector (e.g. memory unlock conditions, `isRepeatable` flag, `SkillSO` reference)
+- Note any fields the user may want to review in the Inspector (e.g. memory unlock conditions, the one-shot `dialogueFact` + matching memory `invalidationConditions`, `SkillSO` reference)

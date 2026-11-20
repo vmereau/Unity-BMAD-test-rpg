@@ -1,9 +1,20 @@
 # CLAUDE.md — Assets/_Game/ScriptableObjects/Items
 
-> Loaded when Claude accesses files in this folder. Covers the Item SO hierarchy, how to create new item types, and integration points.
+> Loaded when Claude accesses files in this folder. Covers the Item SO hierarchy, field tables, `Resolved*` rules, forged
+> weapons and save IDs. Prefab requirements / drop: `Prefabs/Items/CLAUDE.md`; runtime systems: `Scripts/Inventory/CLAUDE.md`.
 > **New generic item from a model folder:** `/items:create <folder> [Name]` (`Editor/Items/ItemAssetBuilder`) —
 > creates `Data/Items/Item_<Name>.asset`, `Prefabs/Items/Item_<Name>.prefab`, `Art/Items/<Name>/` (FBX, maps,
 > `M_<Name>.mat`) and the icon, then syncs `ItemCatalog`. Weapons use the Weapon Creator instead.
+
+---
+
+## Topic files
+
+| File | Read when |
+|------|-----------|
+| `ADDING_ITEM_TYPES.md` | Adding a new `ItemSO` subclass (usable or equippable) |
+
+Gold coins (`GoldItemSO`, `Item_Gold`): `Scripts/Inventory/CLAUDE.md` → Gold loot.
 
 ---
 
@@ -18,8 +29,8 @@ ItemSO                              (base — any item in the inventory)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
     │   ├── SwordSO                 (Weapons/SwordSO.cs — every melee weapon)
-    │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/CLAUDE.md)
-    ├── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
+    │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/BOW.md)
+    ├── ArmorSO                     (Helmet/Armor/Necklace slots; a ring asset uses `slot = Ring1` and equips to Ring1 or Ring2 — `EquipmentRules`)
     └── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
@@ -28,20 +39,25 @@ WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArch
 
 All types live in namespace `Game.Inventory`.
 
-**`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
+**`WeaponSO` is abstract** — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
 
 **New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (drawn hand, grip poses, Hip/Back
 sheath socket, animator override, default combo steps) — no code. Add a new `XxxSO : WeaponSO` class only when
 the family needs new **fields**. `SwordSO` is kept (renaming would break asset `m_Script` refs) even though the
-class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
+class name doesn't determine the family. See `Prefabs/Items/Weapons/CLAUDE.md` for the normalized mesh frame.
 
 **Forged weapons (crafted bonus):** an inventory slot is `(ItemSO, Count)` and saves store `itemId`, so a copy can't carry
 "was crafted". A crafted weapon is its **own asset** `Weapon_<Name>_Forged` with better stats, its `WeaponSO.baseWeapon` →
 the standard `Weapon_<Name>` (bought / looted). Both keep the **same `itemName`** — `IsForged` → detail category
 "Weapon · Forged" tells them apart, and the bonus is simply the higher Damage value (no extra comparison row). The
 smithing recipe outputs the forged one. Both share the `_Visual`
-prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (10) /
-`Weapon_ShortIronSword_Forged` (14), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
+prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (12) /
+`Weapon_ShortIronSword_Forged` (16), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
+
+**`WeaponSO` fields** (`WeaponSO.cs`): `archetype`, `damageBonus` (base damage; raw hit = it + the wielder's
+`scalingStat`, 1:1), `scalingStat` (Strength for melee, Dexterity for bows), `baseWeapon` (forged → standard
+counterpart), `comboSteps`, `animatorOverrideController`, `stanceDamage` (0 = archetype), `knockDown`
+(`KnockDownOverride`: Archetype / Yes / No).
 
 **Weapon-level overrides win over the archetype:**
 - `ResolvedComboSteps` = `comboSteps` if > 0, else `archetype.defaultComboSteps` (min 1), else `WeaponSO.DEFAULT_COMBO_STEPS` (2).
@@ -63,12 +79,15 @@ prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `We
 
 | Field | Type | Purpose |
 |---|---|---|
+| `itemId` | `string` | Stable save ID — auto-generated, never edit. Clear it on a duplicated asset so it regenerates |
 | `itemName` | `string` | Display name in UI |
 | `description` | `string` | Shown in detail panel |
 | `icon` | `Sprite` | Inventory slot + detail panel icon |
 | `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
+| `buyValue` | `int` | Price the player pays a trader (default 1) |
+| `sellValue` | `int` | Price a trader pays the player (default 1) |
 | `isCraftingMaterial` | `bool` | Smithing material (`Item_IronIngot`): the only items an anvil's grid lists. Detail category **Crafting Material** (after the ingredient rule) |
 | `isQuestItem` | `bool` | Quest item: detail category **Quest Item** (wins over every other rule), Misc filter tab. It can't be sold (`NPCTradeUI.SellItem`), dropped (`InventoryUI.DropItem`), put into a container (`ContainerUI.PutItem`) or bound to the action bar (`ActionBarSystem.Assign`); the matching buttons are hidden. It only leaves the player through a dialogue choice's `requiredItem`. One rule: `ItemSO.CanPlayerPart`. Example: `Data/Items/Quest/Item_Notice_*` (Warden's errand), `sellValue` 0, no world prefab |
 | `isIngredient` | `bool` | Accepted by the cooking Experiment slots and the only items the cooking grid lists (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (raw food `PotionItemSO`, future non-edible ingredients) can be one. Its detail category is **Ingredient**, whatever the class. Never set it on a cooked meal |
@@ -161,42 +180,10 @@ consumable. Create via **Assets → Create → Items → Recipe Item**. Details:
 
 ---
 
-## Adding a New Item Type
-
-### Gold loot
-
-`GoldItemSO : ItemSO` represents one gold coin (`GoldValue = 1`). `Item_Gold.asset` is stackable for container/NPC stock. Player `InventorySystem.AddItem` converts it immediately through `OnGoldLootRequested`; it is not manually usable or stored in player slots. Its detail category is Currency; its filter remains Misc. `Item_Gold.prefab` is a coin-shaped placeholder with normal pickup physics. Icon prompt: `docs/Gold-Icon-Prompt.md`.
-
-### Usable item (context menu "Use")
-1. Extend `UsableItemSO` (abstract), override `OnUse(GameObject user)`.
-2. Add `[CreateAssetMenu]`.
-3. If it has numeric effects, add its rows (and category) in `ItemDetailFormatter` + `ItemDetailFormatterTests`. The Consumable/Reusable tag row is automatic.
-4. The context menu **Use** button and the detail **Use** button appear automatically (`item is UsableItemSO`);
-   they are interactable only while `CanUse()` is true (virtual, default true — override it when a use would surely be
-   rejected, e.g. `RecipeItemSO` when known). `OnUse` must still reject by itself: action bar / double-click skip `CanUse`.
-
-### Equippable item (wearable gear)
-1. Extend `EquipableItemSO` (abstract), override `CanEquip() => true`.
-2. Add `[CreateAssetMenu]`.
-3. Define which `EquipmentSlot` the item targets (either hardcoded like `WeaponSO`, or via a `slot` field like `ArmorSO`).
-4. Add the slot resolution to `EquipmentRules.TryGetTargetSlot` **and** `FitsSlot` (`Scripts/Inventory/EquipmentRules.cs`, tested) — never in `EquipmentSystem` itself. A weapon that needs both hands overrides `WeaponSO.OccupiesOffhand`.
-5. Stat bonus rows are automatic for any `EquipableItemSO`; add type-specific rows and a category in `ItemDetailFormatter` (concrete types before abstract bases in its `switch`) + tests. No prefab change needed.
-6. The **Equip/Unequip** detail button is handled by `InventoryDetailActions` for any `EquipableItemSO`.
-7. The context menu **Equip** button in `InventoryUI.ShowContextMenu()` also appears automatically — it checks `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click on the equipment slot or the Unequip detail button.
-
-### Item detail panel
-`ItemDetailPanelUI` (`Scripts/UI/Inventory/`) has no per-type sections: it paints a category line, data-driven stat rows,
-the description and a price, all computed by `ItemDetailFormatter`. Action buttons live in the per-host actions prefabs
-(`InventoryDetailActions`, `TradeDetailActions`, `ContainerDetailActions`). See `Scripts/UI/Inventory/CLAUDE.md`.
-
----
-
 ## ShieldSO (concrete) — spec-shield-offhand-blocking
 
 `Assets/_Game/ScriptableObjects/Items/ShieldSO.cs`, menu **Items → Shield**. Data: `Data/Items/Shields/Shield_<Name>.asset`;
-prefabs `Prefabs/Items/Shields/<Name>/` — `<Name>_World` (Rigidbody, BoxCollider, `ItemPickup`, `InteractionHighlight`, layer 8)
-and `<Name>_Visual` (root → `Drawn` / `Sheathed` → `Mesh`, **no hitbox**). The `Mesh` child normalizes the art: **front +Z, up +Y,
-grip (back of the handle) at the origin** (Hivemind shields face +X: `Mesh` rot (0, −90, 0), pos = −(rot × grip)).
+prefabs `Prefabs/Items/Shields/<Name>/` (`_World` / `_Visual` hierarchy, `Mesh` normalisation: `Prefabs/Items/CLAUDE.md` → Shield prefabs).
 
 | Field | Purpose |
 |---|---|
@@ -204,21 +191,10 @@ grip (back of the handle) at the origin** (Hivemind shields face +X: `Mesh` rot 
 | `blockStaminaCost` | Player stamina per absorbed hit (and the minimum to raise the block) |
 | `perfectBlockWindow` | Player perfect-block window (s) |
 | `heldPose` | `Drawn` pose in the offhand socket — solved so the shield faces forward, world-up, in the in-game block (sword override, `IsBlocking`, UpperBody weight 1, evaluated with `Animator.Update` — **not** `clip.SampleAnimation`: `Block Idle` turns the hips ~90°, the masked layer doesn't) |
-| `backPose` | `Sheathed` pose on `BackWeaponSocket` (bind pose: face backward, world-up, Kite (0, −0.47, −0.016) puts its top at the neck, Round (0, −0.08, 0.018); both clear the player and `NPC_base` bodies by ~1.5–2 cm; meshes at 0.8 scale) |
+| `backPose` | `Sheathed` pose on `BackWeaponSocket` (tuned offsets: `Prefabs/Items/CLAUDE.md` → Shield prefabs) |
 
 Detail panel: category "Shield", rows Block Stamina / Perfect Block, then Defense. Shields: `Shield_RoundWoodShield`
 (+3, 20, 0.35 s, 40 g) and `Shield_KiteWoodShield` (+6, 12, 0.2 s, 60 g); both sold by the Storekeeper.
-
----
-
-## Runtime Integration
-
-| System | File | Role |
-|---|---|---|
-| `InventorySystem` | `Scripts/Inventory/InventorySystem.cs` | Holds `List<InventorySlot>` at runtime; `AddItem` (stacks stackable items), `RemoveItem` (removes whole slot), `DecrementStack` (removes one unit), `MoveItem` |
-| `ItemPickup` | `Scripts/Inventory/ItemPickup.cs` | World interactable; calls `InventorySystem.AddItem(_item)` and destroys itself |
-| `InventoryUI` | `Scripts/UI/Inventory/InventoryUI.cs` | Reads `InventorySystem.Items`; calls `UseItem` / `DropItem` |
-| `ItemDetailPanelUI` | `Scripts/UI/Inventory/ItemDetailPanelUI.cs` | Paints an `ItemSO` (category, stat rows, description, price) from `ItemDetailFormatter` |
 
 ---
 
@@ -232,19 +208,12 @@ Detail panel: category "Shield", rows Block Stamina / Perfect Block, then Defens
 
 ---
 
-## Drop Behaviour
-
-**Every item that should be droppable must have `worldItemPrefab` assigned** — otherwise the drop is
-skipped (`GameLog` warning). Prefab requirements and drop physics: `Prefabs/Items/CLAUDE.md`.
-
----
-
 ## Code Review Checklist — Items
 
 | Severity | Pattern |
 |---|---|
 | HIGH | New `UsableItemSO` subclass returns `true` from `OnUse` when the use actually failed — item will be consumed incorrectly |
-| HIGH | `worldItemPrefab` left unassigned on a droppable item — drop silently no-ops |
+| HIGH | `worldItemPrefab` left unassigned on a droppable item — `InventoryUI.DropItem` refuses the drop (`GameLog.Warn`, item kept) |
 | MEDIUM | New item type with numeric fields but no category/stat rows in `ItemDetailFormatter` (+ `ItemDetailFormatterTests`) — detail panel shows only the generic rows. `ItemDetailPanelUI` has no per-type code; never add cases there |
 | MEDIUM | `OnUse` calls `GetComponent` on `user` without a null guard — logs no error if component is missing |
 | MEDIUM | New stackable item type (`maxStacks > 1`) without verifying `worldItemPrefab` has `ItemPickup` + `Rigidbody` — dropped items must be re-pickable |

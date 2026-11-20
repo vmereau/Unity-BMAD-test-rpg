@@ -1,8 +1,6 @@
-# NPC Identity — <NPC_NAME>
+# CLAUDE.md — Assets/_Game/Data/NPCs/<NPCName>
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for <NPC_NAME> — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -53,8 +51,6 @@
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - <!-- e.g. "Never use contractions — Edric speaks in full sentences" -->
 - <!-- e.g. "Do not reference magic or the gods — he is strictly secular" -->
 - <!-- e.g. "Greeting topics should always feel slightly impatient, like he has work to do" -->
@@ -65,7 +61,7 @@
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/<NPCName>/NPC_<NPCName>.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/<NPCName>/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/<NPCName>/Memories/` |
-| Prefab | `Assets/_Game/Prefabs/NPCs/<NPCName>.prefab` *(if exists)* |
+<!-- NPC-specific rows only (the folder layout and the NPC_base Variant scene instance are the default — Data/NPCs/CLAUDE.md).
+     Typical rows: Scene (StartingTown path + NpcRoutine spots / hours), Shop, quest role, KilledFact, non-default prefab or entity name.
+     Drop the section if there is nothing NPC-specific yet. -->
+| Scene | <!-- e.g. StartingTown `WorkSiteManagers/<NPCName>`; routine 06–21 Stand `<Spot>`, 21–06 Sleep `<Bed>` --> |

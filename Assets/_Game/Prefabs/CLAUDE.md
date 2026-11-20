@@ -15,13 +15,17 @@
 | `Entities/` | `Entity_base`, `NPC_base Variant`, variant-editing gotchas |
 | `Entities/Monsters/` | Monster hierarchy, hit-detection contract, monster attack recipe |
 | `Items/` | World-item (drop / pickup) prefab requirements |
-| `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes, Weapon Creator |
+| `Items/Weapons/` | `_World` / `_Visual`, `Drawn` / `Sheathed`, normalized frame, archetypes; Weapon Creator / Weapon Pose Tuner in `WEAPON_TOOLS.md` |
 | `Harvestables/` | Fixed world resources (plants…) — contract below |
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 | `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
 | `World/Huts/` | Art-pass worker hut shells built from kit pieces (generated; own `CLAUDE.md`) |
 | `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
+| `World/Containers/` | `Base_Container` |
+| `World/Doors/` | `Door Base`, `Simple door`, `Poor small door` |
+| `World/House`, `World/VillageHouse` | Loose house prefabs |
+| `Combat/` | `Projectile_Arrow` (bow projectile — `Scripts/Combat/BOW.md`) |
 | `World/Tent_Graybox` | Placeholder worker tent (BanditVillage tarp, sacks, log). All camp tents are instances, so real art is one prefab swap |
 
 ---
@@ -30,14 +34,16 @@
 
 | Layer | Used for | Who queries it |
 |-------|----------|----------------|
-| **Characters (6)** | Root of every entity | `LockOnSystem` (`m_Bits: 64`) |
+| Player (3) | `Player.prefab` root | — |
+| Water (4) | `Water_Volume` roots (trigger box) | `PlayerSwimming._waterMask` (`m_Bits: 16`) |
+| **Characters (6)** | Root of every entity | `LockOnSystem._lockOnLayerMask` (`m_Bits: 192`: layers 6 + 7) |
 | **CharacterHitbox (7)** | Hurtboxes: trigger collider on a child (`Hitbox` / `HitBox`) | `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`) |
 | **Interactable (8)** | World item roots, entity `InteractionCollider` children, containers/doors | `InteractionSystem` raycast |
 | **Harvestable (9)** | Harvestable roots (plants, …) | `InteractionSystem` raycast (Player `_raycastMask` = 768: layers 8 + 9) |
 | Default (0) | Attacker-side `WeaponHitbox` GOs, weapon `_Visual` prefabs | — (explicit-mask queries) |
 
-- Hurtboxes and interaction colliders are **triggers** so they never block movement or ragdolls.
-- `WeaponHitbox` GOs need no Rigidbody, and anything under a ragdoll Animator must not have one.
+- Interaction colliders are **triggers** so they never block movement or ragdolls; anything under a ragdoll Animator
+  must not have a Rigidbody. Hurtbox / `WeaponHitbox` physics contract: `Scripts/Combat/CLAUDE.md` → WeaponHitbox.
 
 ---
 
@@ -62,7 +68,7 @@ leaving its sides ends the swim at once and the player falls.
 
 New lake recipe:
 1. Dig the basin below the top of the box. In `StartingTown` the valley water is one volume with its top at y = −2, so add a new
-   lake to `layout.json` and `Area1TerrainBuilder` instead of hand-digging: the next build overwrites hand edits (`Scenes/CLAUDE.md`).
+   lake to `layout.json` and `Area1TerrainBuilder` instead of hand-digging: the next build overwrites hand edits (`Editor/World/CLAUDE.md` → Hand edits).
 2. Keep one shoreline at a walkable slope (`CharacterController.slopeLimit` 45°): there is no climb-out animation, so a
    steep bank traps the player.
 3. Rebake the NavMesh. Scene bakes collect render meshes: the prefab keeps the surface out and marks the box unwalkable, but
@@ -90,7 +96,7 @@ New lake recipe:
 - `_onSleepRequested` (`OnBedSleepRequested`) is set on the base, so every look inherits it. Beds are stateless — no
   `SaveableObject` / save ID.
 - `Bed_WoodBed_01a` = HouseForge `SM_WoodBed_01a` (in the `HDRP (Default)` folder, but `S_MasterORM` has a URP target;
-  long axis = local X). No longer placed in a scene; kept as the richer look.
+  long axis = local X).
 - `Bed_WorkerPallet` = the laborer's bed modelled in Blender (`Art/Environment/Camp/models/worker bed/`,
   `WorkerBed_Model.prefab` = FBX + one solid box). 2.0 × 0.9 m, long axis = local X, **pillow at +X**, the straw tear
   on +Z. Instance `Bed` in the player's hut in StartingTown. Hobb's hut uses the bare model, so it is not a second

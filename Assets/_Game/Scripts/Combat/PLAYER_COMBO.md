@@ -62,8 +62,8 @@ dropped cleanly: the outgoing exit ends the attack and `SetAttacking(false)` cle
 
 ## `PlayerAttackTracker` — Attack Lifecycle
 
-Unity fires `OnStateEnter(next)` at transition **start** and `OnStateExit(previous)` at transition **end**,
-so the outgoing state's exit would otherwise tear down a chain in flight. `PlayerAttackTracker` (pure,
+The outgoing state's exit would otherwise tear down a chain in flight (crossfade callback order:
+`.claude/rules/attack-pipeline.md` → State callbacks across crossfades). `PlayerAttackTracker` (pure,
 `Tests/EditMode/PlayerAttackTrackerTests`) follows what the Animator actually plays:
 
 - **Active attack states** — `Enter` +1, `Exit` −1 (clamped at 0). The attack ends (`EndAttack()`) only when
@@ -81,7 +81,7 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
 - **Cancels — dodge, block, jump / fall** end any melee swing at any moment through `PlayerCombat.CancelAttack()`
   (full reset, stamina not refunded), never `SetAttacking(false)` alone — a leftover `_comboStep` made the next press
   fire `Attack_2/3` from `CombatIdle`, which has no such transition. Dodge: `DodgeController`. Block: `OnBlockStarted`
-  (after its stamina check; `CanBlock` / `CanJump` no longer exclude `IsAttacking`). Jump / fall: `Update` cancels
+  (after its stamina check; `CanBlock` / `CanJump` don't exclude `IsAttacking`). Jump / fall: `Update` cancels
   when `IsAttacking && IsAirborne`. On the Animator, Base Layer AnyState dodge / jump / fall and each attack state's
   `IsBlocking` exit pull the clip (`Controllers/CLAUDE.md`). The GDD allows these instant cancels pending playtest.
 - **Every attack is full-body** (Base Layer, spec-full-body-attacks-root-motion): `CanMove()` is false while
@@ -110,14 +110,10 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
   - **Fresh press while a cancelled swing still blends out** (move / block / dodge): `Press(isChainStep: ActiveStates > 0)` —
     the outgoing exit is still to come, and a resync to 0 would let it end the new attack.
   - `AttackCancel` is a **bool**, not a trigger: a trigger set during an exit-time blend would latch and cut the next swing.
-  - Verified in play (2026-11-17, stepped 50 fps): jab move-cancel at its 1.33 s close (Animator out in 0.24 s); restart
-    from Hook (0.15 s transition) and from the jab itself (self-transition) chains on normally; a press mid exit blend and a
-    fresh press 0.1 s after a move-cancel both start a full jab (hit window opens); Uppercut recovery 0.93 s after its enter.
 - `HandleVisualsRefreshed` cancels any attack: `Refresh()` swaps the controller, which resets the Animator without an
   SMB exit (equip / load mid-swing would otherwise stay `IsAttacking`, rooted, until the stall watchdog).
 - `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
-- **Never detect chains with `GetNextAnimatorStateInfo(layer).IsTag(...)` in `OnStateExit`** — the
-  transition may already be complete, so it returns an empty state.
+- Chain detection never uses `GetNextAnimatorStateInfo` in `OnStateExit` — `.claude/rules/attack-pipeline.md`.
 
 ---
 
@@ -144,9 +140,6 @@ a 0 multiplier — a struct element just added in the Inspector — into 1.
 - "Unarmed" = no `WeaponSO` equipped, read from `EquipmentSystem` (`IsUnarmed()`), not `_currentWeaponSO`.
 - The clips' hit events also carry a string id (`UnarmedLeft` / `Unarmed`) for NPCs. The player's receiver is
   parameterless and ignores it; **the player's hand comes from the config**. Keep both in sync when a step changes hand.
-- Verified in play (2026-11-16, stepped at 60 fps, logged a frame or two after each event): left window 0.36–0.60 s
-  after the Attack_1 enter (events at 0.33 / 0.57 s), then the right hand only in Attack_2 and the left only in Attack_3,
-  the other hand never; a full chain travels 1.15 m and resets to step 1.
 
 ---
 

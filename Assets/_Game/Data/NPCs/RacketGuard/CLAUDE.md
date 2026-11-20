@@ -1,8 +1,6 @@
-# NPC Identity — Guard Harl
+# CLAUDE.md — Assets/_Game/Data/NPCs/RacketGuard
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Guard Harl — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -56,8 +54,6 @@ loses any fight to the player, he never collects again.
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Calls the player "new meat" until the player earns something better
 - Every favor has a price; coin he hands over should feel like a loan
 
@@ -67,9 +63,5 @@ loses any fight to the player, he never collects again.
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/RacketGuard/NPC_RacketGuard.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/RacketGuard/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/RacketGuard/Memories/` |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |
 | Toll racket | `TollRacket_Harl.asset` (facts `WorldFact_Toll_*`, signals in `Dialogues/Toll/`); scene gates under `StartingTown/TollGates` |
 | Toll dialogue | `Dialogues/Toll/` — **forced** topics (`Start_RacketGuard_Toll`, `_TollOtherGate`) opened by `TollGate`, not exposed by a memory (Quest Explorer may list them as unattributed — expected). `Memories/Toll/Mem_RacketGuard_TollCanDefer` gates the "can't pay" choice; `Mem_RacketGuard_TollBeaten` + `Dialogues/TollBeaten/` = his grudging line after losing |

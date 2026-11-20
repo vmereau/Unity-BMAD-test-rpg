@@ -2,9 +2,9 @@
 
 > Design language for everything the ancient civilization left behind: architecture, symbols, props.
 > Read `Art/ART_DIRECTION.md` first — this file specialises it, it never overrides it.
-> Prompt templates and the look-test batch live in `Art/Environment/CLAUDE.md`.
+> Prompt templates live in `Art/Environment/CLAUDE.md`; the look-test batch in `Art/Environment/RUINS_LOOK_TEST.md`.
 > Lore source of truth: `_bmad-output/narrative-design.md` (*The Ancient Civilization*, *The Ruins*,
-> *Visual Storytelling*). Status: **first pass, 2026-11-10 — to be validated by the look test.**
+> *Visual Storytelling*). Status: **first pass — to be validated by the look test.**
 
 ---
 

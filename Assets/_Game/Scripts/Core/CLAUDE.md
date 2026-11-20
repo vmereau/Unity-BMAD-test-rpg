@@ -16,50 +16,14 @@
 | `GameSession` | **Static.** Start-menu → `Core` hand-off: `RequestLoad(slot)` / `HasPendingLoad` / `TryTakePendingLoad` (taken by `SaveSystem.Start`); `SetOrigin(id)` / `TakeOriginId()` (New Game origin, taken on the new-game boot), reset on play. See `Scenes/CLAUDE.md` → Boot flow. |
 | `PlayScenario` | **Static** `PlayScenarios` + enums. Editor play-scenario hand-off (EditorPrefs read under `#if UNITY_EDITOR`; key includes `Application.dataPath`; `Active` = snapshot taken once per Play at `BeforeSceneLoad`, OpenScenes outside Play / in builds / when `playModeStartScene` is null). `BeforeSceneLoad` sets the Wretch origin for the arrival scenarios; pure `ArrivalOverrideFor` / `OriginFor` (`PlayScenarioTests`). See `Scenes/CLAUDE.md` → Boot flow. |
 | `State/WorldStateManager` | Central runtime state singleton (on the `WorldStateManager` GO in `Core.unity`). Kill tracking + flat key/bool world-fact store backed by typed Fact SOs. `CaptureFacts` / `RestoreFacts` for save / load. Also the game time each stored fact turned true (`TryGetFactSetTime`, `Capture` / `RestoreFactSetTimes`, read from `GameClock.Active`) → computed `ElapsedFact` (timed dialogue, `Data/Facts/CLAUDE.md`). `Update` raises `OnFactChanged` once when a pending `ElapsedFact`'s delay ends (deadlines registered by `IsElapsed`, skipped while `SaveSystem.IsLoading`). |
-| `Save/` | Save / load — see below. |
-| `Time/GameClock` | The single world clock (GO `GameClock` in `Core.unity`) — no `Instance` singleton (only `WorldStateManager` / `SaveSystem` have one): Core readers hold a serialized ref (scene override on the Core `Player` instance) or listen to its events; **region-scene** readers (can't reference Core) read `static GameClock.Active` (set in `Awake`, cleared in `OnDestroy`, reset on play; null without Core — e.g. `NpcRoutine`). `Now` = absolute game seconds since day 1 00:00 (`double`), advanced by scaled `deltaTime` × `GameTime.Rate` (`TimeConfigSO.realMinutesPerGameDay`, asset: 96 → 1 h = 4 real min), so pausing stops it; frozen while `SaveSystem.IsLoading` (restore happens before the async reload). Raises `OnHourChanged` (`GameEventSO_Int`, 0–23) per crossed hour; `bool SkipTo(target)` (false = not in the future, nothing changes) raises `OnTimeSkipped` (`GameEventSO_Float`, seconds) then one `OnHourChanged`. `Restore(double?)` (null / NaN / negative → `startHour`) raises nothing — hour listeners must re-read the time on `OnLoadFinished`. `[ContextMenu] Skip 1 hour` for dev. |
-| `Time/GameTime` | **Static, pure.** Day / hour / minute derived from world seconds, `NextHour(now, hour)` (exact HH:00, target = now → +24 h), `CrossedHours` (per-frame hour events, capped at a day), `Format` ("Day 4, 06:00"), `Rate`. Tested by `GameTimeTests`. |
-| `Time/DayNightController` | Visual day / night (GO `DayNightController` in `Core.unity`, children `Sun` — soft shadows — and `Moon`). Reads `GameClock.Now` **every frame** (no events → sleep skips / loads follow on the next frame) and drives sun / moon arcs (pitch ≥ `minLightElevation`), intensities, trilight ambient, reflection intensity and the skybox `_Exposure` (runtime material copies, one per source, kept for the session) from `DayNightConfigSO` (`Data/Config/DayNightConfig`: sunrise 6 / sunset 22 → 64 real min day, 32 night at 96 min/day; 1 h twilight fade). The sun is disabled at night, so URP promotes the `Moon` to main light — it has soft shadows and the procedural skybox's disc follows it. `[DefaultExecutionOrder(100)]` (after `GameClock`). **The only writer of `RenderSettings`**; re-applies them on `SceneManager.activeSceneChanged` (RenderSettings belong to the active scene — in the editor that can be the region). |
-| `Time/DayNightMath` | **Static, pure.** `HourOfDay`, `Daylight` (0 night → 1, twilight ramps), `DayProgress` / `NightProgress` (night wraps midnight; in the day the moon rests where it set until mid-day), `ArcElevation` / `ArcAzimuth`, `IsValidDay`. Tested by `DayNightMathTests`. |
+| `Save/` | Save / load (`SaveSystem`, `SaveFileStore`, `SaveData`, converters, `ISaveable`) — `Save/CLAUDE.md`. |
+| `Time/` | World clock + day / night (`GameClock`, `GameTime`, `DayNightController`, `DayNightMath`) — `Time/CLAUDE.md`. |
 | `State/WorldFactPrefix` | Canonical key prefixes (`enum`). Use the typed setters (`RegisterKill`, `SetWorldEvent`, `SetDialoguePlayed`, `SetRecipeKnown`, `ClaimMealBonus`) — never build fact-key strings by hand at call sites. |
-
----
-
-## Save / Load (`Save/`)
-
-Spec: `_bmad-output/implementation-artifacts/tech-spec-save-load-system.md`.
-
-- `SaveSystem` — singleton on the `SaveSystem` GO in `Core.unity`. Captures region object state into an in-memory
-  cache (on region unload and on save), writes / reads slots, F5 / F9 (own `InputSystem_Actions` enabling only
-  `QuickSave` / `QuickLoad`), autosave (region transition, quest completion — deferred until `CanSave`).
-  Load = facts → `SceneLoader.ReloadRegion` → objects (`RegionLoaded`, one frame after load so `PersistentID.Start`
-  ran) → player → `QuestEventsManager.ReseedState`. Raises `OnLoadStarted` / `OnLoadFinished` (menus, death screen,
-  loading overlay listen) and `OnSaveNotification` (toasts). `FinishLoad` / `FailLoad` always reset
-  `Time.timeScale = 1` and lock the cursor.
-- **New-game origin:** `HandleRegionLoaded(isStartup)` (not loading) resolves `GameSession.TakeOriginId()` through
-  `_originCatalog` (`Data/Origins/OriginCatalog`, unknown / none → Wretch) and calls `PlayerSaveAdapter.ApplyOrigin`
-  (`PlayerStats.AddBaseStat`, `PlayerSkills.GrantSkillSilently`, `WorldFact_Origin_<Id>` + `_hadBelongingsFact`) **before**
-  `BuildSaveData` — so Restart keeps it. This one gate covers menu New Game, Play in Core, failed menu loads and dev skips.
-- `SaveSystem.BlockSaving(owner)` / `UnblockSaving(owner)` (static, reset on play): `CanSave` refuses ("Can't save right
-  now") while any owner holds a block — for region-scene story sequences that can't be saved mid-way (`ArrivalSequence`).
-  Loading stays allowed; the owner must unblock from `OnDisable` too.
-- `CanSave(out reason)` reasons are player-facing (F5 toast, Game Menu Save button subtitle). Loading is allowed
-  while dead but not in dialogue / trade / looting.
-- `SaveFileStore` — static, synchronous, never throws. Files `Application.persistentDataPath/Saves/save_{slot}.json`
-  (slots `quick`, `auto`, `slot_1..10`), written to `*.tmp` then replaced. Error strings are public constants.
-- World time: optional `SaveData.worldTimeSeconds` (`double?`, null in older saves → no version bump), captured in
-  `BuildSaveData`, restored with the facts in `BeginLoad` (`GameClock.Restore`, no events). Save / load are refused while
-  `SleepUI.IsOpen` (panel or fade).
-- Fact times: optional `SaveData.factSetTimes` (fact key → game seconds it turned true; null in older saves → every true
-  fact counts as long elapsed), restored with the facts in `BeginLoad`, cleared on a failed start-menu load.
-- Status effects: `PlayerSaveData.statusEffects` (`StatusEffectSaveData`: effectId, absolute appliedAt / expiresAt,
-  total, paid; missing in older saves → none), restored by `PlayerSaveAdapter` after `RestoreHealth` via
-  `StatusEffectHost.Restore` — they resume from the clock restored in `BeginLoad`. See `Scripts/StatusEffects/CLAUDE.md`.
-- `SaveData` — plain classes, no Unity types (`SVector3` / `SQuaternion`); Newtonsoft Json.
-- **Restore without events:** restore methods set state directly and raise only value-changed events — never
-  `_onLevelUp`, `_onSkillLearned`, `_onXPGained`, `RegisterKill` / `RegisterDeath` (they grant LP / XP / toasts).
-- Object identity: `SaveableObject` (`Scripts/World/CLAUDE.md`); item identity: `ItemSO.itemId` + `ItemCatalog`
-  (`ScriptableObjects/Items/CLAUDE.md`).
+| `GoldLootRequest` | Synchronous gold-pickup request (`OnGoldLootRequested`): player `InventorySystem.AddItem` raises it for a `GoldItemSO`, `GoldSystem` (`Scripts/Economy/`) credits it. `TryAccept()` claims it once so duplicate listeners can't pay twice; unaccepted = addition rejected. Rule: `Scripts/Inventory/CLAUDE.md` → Gold loot. |
+| `GoldTheftRequest` | Synchronous gold-theft request (spec-knockout-gold-looting): `EntityBrain` (knockout loot) asks the victim's `GoldSystem` for `BaseAmount + Fraction × gold`; `TryHandle(goldBefore, taken)` fills the result once. Unhandled = no receiver. |
+| `StolenGoodsLedger` | **Static, runtime only (not saved).** Per-theft-incident record (spec-theft-return-or-fight, keyed by `TheftCommittedData.theftId`) of items (`StolenItemCount`) and gold taken; written by the player's `StolenGoodsTracker` (`Scripts/World/`), read by the catching NPC. Refused incidents stay marked until recovered or the brawl ends. `ClearAll` on play. |
+| `StolenGoodsRequest` | Synchronous query / take request (spec-theft-return-or-fight, `OnStolenGoodsRequested`): `EntityBrain` asks the victim how many stolen items / gold it still carries (`Take` = remove them). The victim's `InventorySystem` fills the item part, `GoldSystem` the gold part; an unhandled part = nothing available. |
+| `ContainerItemTakenData` | Payload of `OnContainerItemTaken` (`sourceInventory`, `item`), raised by `ContainerUI` per item moved to the player; read by `ContainerTakeFact` and `StolenGoodsTracker` (`Scripts/World/`). |
 
 ---
 

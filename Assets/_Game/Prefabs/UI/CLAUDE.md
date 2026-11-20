@@ -38,9 +38,8 @@ UICanvas                 (Canvas + GraphicRaycaster + UIScreenManager — NO Can
 
 ## Rules
 
-- **No `CanvasScaler`** (removed in story 6-1): HUD elements use fixed pixel sizes.
-- **`EventSystem` is a child of `UICanvas`**, not a second root — a prefab asset must have a single root,
-  and a second root breaks Prefab Mode. It lives here so it always ships with the Player.
+- **No `CanvasScaler`**: HUD elements use fixed pixel sizes.
+- **`EventSystem` is a child of `UICanvas`**, not a second root. It lives here so it always ships with the Player.
 - `DialoguePanel` is a nested `PrefabInstance`; `DialogueUI._dialogueSystem` ↔ `DialogueSystem._dialogueUI`
   are cross-wired via **Player.prefab** overrides — don't try to wire them inside `UICanvas.prefab` alone.
 - Screens that must hear events while hidden (`GameMenu`, `DeathScreen`, `LoadingOverlay`) keep their component on an

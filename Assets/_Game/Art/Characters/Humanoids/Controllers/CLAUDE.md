@@ -21,10 +21,11 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   nothing on UpperBody** — tag it instead (below).
 - **UpperBody weight** is not authored: `PlayerAnimationDriver` / `HumanoidAIAnimationDriver` step it every frame with
   `UpperBodyWeight` (`Scripts/Core/Animations/`) from the Animator's **state tags**, read on each layer's destination
-  state (next state during a transition): Base tag `Attack` or `FullBody` → 0; else UpperBody tag `UpperBodyAction` or
-  `IsInCombat` → 1; else 0 (blend `PlayerConfigSO.upperBodyBlendTime` / the NPC driver's `_upperBodyBlendTime`, 0.15 s).
+  state (next state during a transition): Base tag `Attack` or `FullBody` → 0; else UpperBody tag `UpperBodyAction` **or** the
+  driver's in-combat flag (the `IsInCombat` bool param; `CombatIdle` itself has no tag) → 1; else 0 (blend `PlayerConfigSO.upperBodyBlendTime` / the NPC driver's `_upperBodyBlendTime`, 0.15 s).
   Tags: `Attack` = the three attack states; `FullBody` = JumpRise, Falling, Dodging, Dodge back, Stagger_1/2,
-  KnockedDown, GettingUp, Death, Dead (not Landing: a block / draw pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, BowDrawArrow/Aim/Fire. **A new
+  KnockedDown, GettingUp, Death, Dead, Unconscious, Sleeping, Swim Locomotion, PickUp, Execute (not Landing: a block / draw
+  pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, Drink, BowDrawArrow/Aim/Fire. **A new
   full-body Base state must get the `FullBody` tag** or the carry pose plays over it in combat.
 - **Attacks are full-body.** Every attack state exits to `LockOn Locomotion` on `IsBlocking` (listed first — block-cancel),
   then the recovery cancels (`AttackCancel` bool, player-only — NPCs never set it, spec-attack-recovery-cancel):
@@ -33,7 +34,8 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   (AnyState is evaluated first — it would otherwise shadow the 0.15 s restart from Attack_2/3). Attack clips stay root-baked (`applyRootMotion` off everywhere): the Mixamo clips
   are in place (net root travel 0), so the player's forward step is scripted (`PlayerAttackStep`, `Scripts/Combat/PLAYER_COMBO.md`).
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
-  `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
+  `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `Attack` (trigger — unused by humanoid code; only
+  `MonsterAnimationBridge` sets an `Attack` trigger, on monster controllers), `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
   `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
@@ -143,7 +145,7 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   `LockOn Locomotion`. Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
   down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
   `applyRootMotion` off; so does the Player). The Player sets them through `PlayerStance` → `PlayerStateManager` →
-  `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance).
+  `PlayerAnimationDriver` (`Scripts/Player/PLAYER_STATES.md` → Stance).
 - **Unconscious** (spec-unconscious-knockout): AnyState → `Unconscious` (`KnockDown` + `IsUnconscious`, listed just before
   AnyState → `KnockedDown`, which now requires `IsUnconscious == false`). `Unconscious` plays the same `Knocked Down` clip
   (non-looping → holds the last, on-the-ground frame) and goes to `GettingUp` on `IsUnconscious == false` with **no exit

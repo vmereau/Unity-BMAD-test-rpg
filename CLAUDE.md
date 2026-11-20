@@ -10,7 +10,7 @@
 - **Engine:** Unity 6000.6.2f1 (Unity 6.6)
 - **Render Pipeline:** URP 17.x (`Assets/Settings/PC_RPAsset`, `PC_Renderer`)
 - **Input:** Unity Input System — generated class `InputSystem_Actions` at `Assets/_Game/InputSystem_Actions.cs`; legacy input disabled
-- **Camera:** Cinemachine 3.x, third-person over-the-shoulder
+- **Camera:** Cinemachine (package 6.6.0, 3.x API), third-person over-the-shoulder
 - **Platform:** PC Windows x64 → Steam distribution
 - **Game type:** 3D RPG
 
@@ -110,23 +110,28 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Area | File (under `Assets/_Game/`) | Covers |
 |------|------------------------------|--------|
 | Assembly & input | `CLAUDE.md` | `Game.asmdef`, `InputSystem_Actions` dual-file contract |
-| Scenes | `Scenes/CLAUDE.md` | Core.unity managers, MCP scene-load quirk |
-| Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts |
+| Scenes | `Scenes/CLAUDE.md` (+ `STARTING_TOWN.md`) | Boot flow, play scenarios, Core.unity managers, MCP scene-load quirk, StartingTown overview; topic file: per-site layout facts — read before placing / moving anything in StartingTown |
+| Area 1 world tools | `Editor/World/CLAUDE.md` | `Tools/World/...` builders: run order, terrain capture, NavMesh bake rule, hand edits, grading, root ownership, play tests |
+| Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts, theft / gold request payloads |
+| Save / Time | `Scripts/Core/Save/CLAUDE.md`, `Scripts/Core/Time/CLAUDE.md` | `SaveSystem` / save files / restore rules; `GameClock`, `GameTime`, `DayNightController` |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
-| AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
-| Combat | `Scripts/Combat/CLAUDE.md` | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; `PLAYER_COMBO.md` = player attack/combo pipeline |
-| Player | `Scripts/Player/CLAUDE.md` | Cinemachine OTS setup, input map, `PlayerStateManager`, animation driver, swimming |
+| AI | `Scripts/AI/CLAUDE.md` (+ `PERCEPTION.md`, `COMBAT.md`, `RANGED_EQUIPMENT.md`, `KNOCKOUT.md`, `RELATIONS.md`) | Entity brains, health, factions, entity presence / loot, rules; topic files: perception / witness / theft / trespass, melee / tactics / blocking / potions / stance, ranged / NPC equipment, knockout / execute / looting, relationship / mutual defense |
+| NPC AI | `Scripts/AI/NPC/CLAUDE.md` | NPC routines and sleep, `NPCPresence` dialogue (forced topics, talk openers, close), toll gates, StartingTown routine cast |
+| Combat | `Scripts/Combat/CLAUDE.md` (+ `PLAYER_COMBO.md`, `BOW.md`, `EXECUTE.md`) | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; topic files: player combo, bow aim/arrows, execute stomp |
+| Player | `Scripts/Player/CLAUDE.md` (+ `PLAYER_STATES.md`, `CAMERA.md`) | `PlayerStateManager` gates, `IsAirborne`, animation driver, lock-on; topic files: sneak / swim / stamina / stance / unconscious, Cinemachine OTS camera |
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
-| World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |
-| Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem` → `CookingUI`, `CookingRules` |
+| World | `Scripts/World/CLAUDE.md` (+ `INTERACTION.md`, `DIALOGUE_SYSTEM.md`, `FACT_OBJECTS.md`) | Interaction, dialogue, containers, doors/locks, `PersistentID` / `SaveableObject`; topic files: interaction / theft / trespass / doors / beds, dialogue flow, fact- and clock-driven world objects |
+| Story sequences | `Scripts/World/Story/CLAUDE.md` | `ArrivalSequence` (event-001); story sequences may drive components directly |
+| Crafting | `Scripts/Crafting/CLAUDE.md` | `RecipeSO`, `CookingStation` → `CookingSystem`, `CookingRules`, smithing |
+| Crafting UI | `Scripts/UI/Crafting/CLAUDE.md` | `CookingUI` (cooking / smithing screen), recipe card, craft count |
 | Status effects | `Scripts/StatusEffects/CLAUDE.md` | `StatusEffectSO` / catalog, clock-driven `StatusEffectHost` (food heal over time), payout math |
 | Audio | `Scripts/Audio/CLAUDE.md` | `MusicPlayer`, `SfxPlayer` (pooled one-shots via `OnSfxRequested`), `SoundCueSO`, `MainMixer` + volume settings, footsteps |
 | Sound clips | `Art/Sounds/CLAUDE.md` | SFX naming / import recipe, cue assets, ElevenLabs prompt table |
 | Stealth | `Scripts/Stealth/CLAUDE.md` | `IStealthTarget`, `StealthDetection` formula, `StealthConfigSO`, detection gizmos + F3 overlay |
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
-| UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`, `Skills/`) | Canvas, cursor, UI input lifecycle; HUD (incl. toasts), screens, dialogue, quest UI, skills tab |
+| UI | `Scripts/UI/CLAUDE.md` (+ `Crafting/`, `Dialogue/`, `HUD/`, `Inventory/` (+ `CONTAINER_TRADE.md`), `Quest/`, `Screens/`, `Skills/`) | Canvas, cursor, UI input lifecycle, `IScreenPanel` contract, drag ghosts; HUD (incl. toasts), screens, dialogue, inventory / container / trade, quest UI, skills tab |
 | Prefabs | `Prefabs/CLAUDE.md` | Layer rules + index of the prefab-family files below |
 | Player prefab | `Prefabs/Player/CLAUDE.md` | Player hierarchy, camera/audio ownership, sockets, hurtbox |
 | UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
@@ -134,19 +139,21 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
 | Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut shells (kit pieces), shell contract, home yard dressing tool |
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
-| Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` | `_World` / `_Visual` convention, sockets, grip |
-| Items data | `ScriptableObjects/Items/CLAUDE.md` | `ItemSO` family |
+| Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` (+ `WEAPON_TOOLS.md`) | `_World` / `_Visual` convention, sockets, grip; topic file: Weapon Creator / Pose Tuner |
+| Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
-| Environment / ruins / camp kit | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log; camp kit rules (wall modules, roofs, scale, custom Blender pieces) |
-| UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
+| Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`, `RUINS_LOOK_TEST.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet); topic file: look-test batch + verdict log |
+| Camp kit | `Art/Environment/Camp/CLAUDE.md` | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces) |
+| UI art | `Art/UI/CLAUDE.md` (+ `UI_METRICS.md`) | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview); topic file: UI metrics, screen catalog |
+| Inventory filter glyphs | `Art/UI/Inventory/CLAUDE.md` | Filter-glyph icon prompt and import settings |
 | Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
-| Character models | `Art/Characters/Humanoids/CLAUDE.md` | Character concept prompt template, Meshy → Mixamo → Unity import pipeline, player body swap, head/body split |
-| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Attack clip events, per-clip hit/combo timings |
+| Character models | `Art/Characters/Humanoids/CLAUDE.md` (+ `PIPELINE.md`, `HEADS_SKIN.md`) | Character concept + face portrait prompt templates; topic files: Meshy → Mixamo → Unity pipeline, body swap, head/body split; NPC heads, portrait faces, skin tones |
+| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` (+ `BAKE_RECIPES.md`, `MESHY_PROMPTS.md`) | Attack clip events, per-clip hit/combo timings; topic file: Blender / `.anim` bake recipes |
 | Humanoid controller | `Art/Characters/Humanoids/Controllers/CLAUDE.md` | `Humanoid_Template` layers/params, SMB wiring, combo transition rules |
 
 ---

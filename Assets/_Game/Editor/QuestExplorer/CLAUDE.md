@@ -98,8 +98,6 @@ Claude can't click the window — it reads the same data as text:
   early, a missing invalidation reference never closes it. That's why V14 is an Error.
 - `ChoiceOption.requiredMemory` must be in the **owning NPC's** `memories` list (runtime checks only that
   NPC's active memories), or the choice never shows (V17).
-- Older Unity versions' `DeleteArrayElementAtIndex` on an object-reference array nulls the element instead
-  of removing it. Not seen on Unity 6.6, but `RemoveMemoryCondition` checks `arraySize` and deletes again.
 - Memory condition rows capture array indices: after an edit the row is disabled until the debounced
   rebuild redraws it. An edited memory stays listed ("edited — no longer involved") for the session, even
   if the edit removed its last quest link (`QuestExplorerWindow.EditedMemories`).

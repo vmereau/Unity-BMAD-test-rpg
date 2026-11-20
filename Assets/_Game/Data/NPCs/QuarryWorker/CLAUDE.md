@@ -1,8 +1,6 @@
-# NPC Identity — Bren
+# CLAUDE.md — Assets/_Game/Data/NPCs/QuarryWorker
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Bren — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -53,8 +51,6 @@ and the next morning a Company door sealed it. Bren believes the boy was walled 
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Full sentences, natural rhythm (DIALOGUE.md → Voice); no ellipses or stage pauses.
 - He never calls the Company evil outright; the bitterness shows in understatement ("They'd have charged him for dying").
 - Grief stays under the surface; he deflects with dry jokes rather than tears.
@@ -77,5 +73,4 @@ memory per ending). A player who took the ring before accepting gets an extra So
 |-------|------|
 | NPCEntity | `Assets/_Game/Data/NPCs/QuarryWorker/NPC_QuarryWorker.asset` (copied from Tam's: Neutral faction, base head until `/characters:portrait-face`) |
 | Dialogues | `Assets/_Game/Data/NPCs/QuarryWorker/Dialogues/` (Greeting, SouthFace, Waiting, Report, After) |
-| Memories | `Assets/_Game/Data/NPCs/QuarryWorker/Memories/` |
 | Scene instance | StartingTown `WorkSiteManagers/QuarryWorker` (`NPC_base Variant`, `NpcRoutine`: `QuarryWorker_Spot` 06–21, `Spot_QuarryWorker_Night` 21–06); `_killedFact` = `KilledFact_QuarryWorker` |

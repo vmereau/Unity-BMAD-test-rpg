@@ -63,7 +63,7 @@ If the user has not provided the full dialogue content in `$ARGUMENTS`, ask for 
 
 For **CREATE**, you need at minimum:
 - Topic label (the `StartDialogueNode.text` — shown as the button in the topic list)
-- Whether this topic is repeatable (`isRepeatable`) — default true, ask if not obvious
+- Whether this topic is one-shot — there is no `isRepeatable` flag: a one-shot topic sets `StartDialogueNode.dialogueFact` and adds that same fact to the memory's `invalidationConditions` (`Data/NPCs/DIALOGUE.md`); repeatable = `dialogueFact` null. Default repeatable, ask if not obvious
 - The NPC's speech lines (one or more, honoring the 300-character limit per `TextDialogueNode`)
 - Whether the chain includes player choices (`ChoiceDialogueNode`) — if unclear, ask
 
@@ -101,7 +101,7 @@ Before creating or modifying any assets, present a concise plan to the user:
 [CREATE / EDIT] — <NPC> / <TopicName>
 
 Assets to create:
-  - Start_<NPC>_<Topic>.asset  (isRepeatable: <true/false>)
+  - Start_<NPC>_<Topic>.asset  (dialogueFact: <none = repeatable / DialogueFact_<NPC>_<Name> = one-shot>)
   - Text_<NPC>_<Topic>.asset   ("<first line...>")
   - Text_<NPC>_<Topic>_2.asset ("<second line...>")  ← if split needed
   - Choice_<NPC>_<Topic>.asset ← if choices present
@@ -141,4 +141,4 @@ After each asset creation, check Unity console for errors (`read_console`).
 After all assets are created/modified:
 - Confirm no Unity compilation or import errors in the console
 - List every asset created or modified with its path
-- Note any fields the user may want to review in the Inspector (e.g. unlock conditions on a memory, `isRepeatable` flag)
+- Note any fields the user may want to review in the Inspector (e.g. unlock conditions on a memory, the one-shot `dialogueFact` + matching memory `invalidationConditions`)

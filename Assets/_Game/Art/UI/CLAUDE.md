@@ -1,17 +1,25 @@
 # CLAUDE.md — Art/UI
 
-> UI art: AI-generated **UI sprites** (`Sprites/`), layout previews (`Previews/`) and item icons (`Items/`,
-> own CLAUDE.md). Covers the sprite catalog, the sprite prompt template, the Unity import recipe and the UI
-> metrics. Use `/ui:create <element|screen>` to get ready-to-use prompts. Art direction (palette, materials,
+> Loaded when Claude accesses files in this folder. UI art: AI-generated **UI sprites** (`Sprites/`), layout
+> previews (`Previews/`), item icons (`Items/`, own CLAUDE.md) and inventory filter glyphs (`Inventory/`, own CLAUDE.md).
+> Covers the sprite catalog, the sprite prompt template and the Unity import recipe. Use `/ui:create <element|screen>` to get ready-to-use prompts. Art direction (palette, materials,
 > banned words): `Art/ART_DIRECTION.md`. UI **code** rules: `Scripts/UI/CLAUDE.md`; `UICanvas` hierarchy:
 > `Prefabs/UI/CLAUDE.md`.
+
+---
+
+## Topic Files
+
+| File | Read when |
+|------|-----------|
+| `UI_METRICS.md` | Sizing a sprite for a screen, resolving a screen name into its sprites, or re-measuring the layout (UI metrics + screen catalog) |
 
 ---
 
 ## Goal: Implementable Sprites, Not Screenshots
 
 Every generation produces **one reusable sprite** that drops into an existing `Image` — never a screen
-mockup. Tested 2026-10-22: a full-screen restyle (`Mockups/action bar mockup test.png`) comes back as a
+mockup. A full-screen restyle test (`Mockups/action bar mockup test.png`) comes back as a
 painted scene — UI baked into the background, items painted into slots, layout ignored, Gemini watermark —
 nothing in it can be sliced or reused.
 
@@ -32,7 +40,7 @@ What makes a sprite implementable:
 
 | Concern | Owner |
 |---------|-------|
-| Exact sizes, layout, fonts | The **prefab** `RectTransform`s — mirrored in *UI Metrics* |
+| Exact sizes, layout, fonts | The **prefab** `RectTransform`s — mirrored in `UI_METRICS.md` |
 | Look of each element | The **sprite** (this folder) |
 | Border thickness on screen | **Sprite border** (Sprite Editor) + `Image.pixelsPerUnitMultiplier` |
 | States (hover / selected / pressed / disabled) | **Unity tint** by default (one sprite); a variant sprite only when the shape must change (Sprite Swap) |
@@ -46,7 +54,7 @@ the border thickness wanted in game; the import step converts it.
 
 | Sprite | Used by (prefab → `Image`) | In-game sizes | On-screen border | Image type | States |
 |--------|---------------------------|---------------|------------------|------------|--------|
-| `SlotWell` ✅ | `ActionBarSlot` background, `ItemSlot` background (wired 2026-10-22, border 128/134 src px); `EquipmentSlot` not yet | 64×64, 80×80, 200×64 | 6 (action bar, icon 52), 4 (item slot, icon 72) | Sliced | Tint — `_normalColor` 0.85 gray, `_hoverColor` warm (1, .95, .85), `_selectedColor` brass (1, .82, .5); optional `SlotWell_Selected` |
+| `SlotWell` ✅ | `ActionBarSlot` background, `ItemSlot` background (border 128/134 src px); `EquipmentSlot` not yet | 64×64, 80×80, 200×64 | 6 (action bar, icon 52), 4 (item slot, icon 72) | Sliced | Tint — `_normalColor` 0.85 gray, `_hoverColor` warm (1, .95, .85), `_selectedColor` brass (1, .82, .5); optional `SlotWell_Selected` |
 | `Panel` | Inventory / detail / quest / skills / stats panels, container & trade columns, dialogue band, game-menu window, confirm window | 384×800 … 1100×300 | 16 | Sliced | — |
 | `Card` | Interaction prompt card, notification toast, speech bubble | ~147×61, toast rows | 6 | Sliced | — |
 | `Button` | `Common/ActionButton` (menus, death screen, confirm, detail actions) | 420×72, 220×72, 160×80 | 8 | Sliced | Tint (`ActionButton` uses Color Tint) |
@@ -55,23 +63,8 @@ the border thickness wanted in game; the import step converts it.
 | `BarTrack` | Health / stamina / XP bar background | 384×22, 384×6 | 3 (XP: 1) | Sliced | — |
 | `BarFill` | Health / stamina / XP fill — **one neutral sprite tinted per bar** (dull red, ochre, brass) | 384×22 inset 2 | none | Health: **Filled** horizontal (`fillAmount`); stamina / XP: Simple (scaled by `localScale.x`) | — |
 
-Not 9-slice sprites — **filter glyph icons** `Inventory/UI_Filter_<Name>.png` (All, Weapons, Armor, Potions,
-Meals, Ingredients, Crafting, BooksRecipes, Misc): the `Icon` of `InventoryFilterTab` (inset 5 in a 52×52
-`SlotWell` tab), imported Sprite, Max Size 128. Bone glyph on the flat panel brown, made by the user from:
-
-```
-Square minimalist UI icon for a dark medieval fantasy RPG in the style of Gothic 1 and 2, square image.
-Subject: {GLYPH}.
-A simple bold flat silhouette emblem, like a mark burned into dark leather: few shapes, thick clean
-strokes, no fine detail, no texture noise, readable at 32 pixels.
-The emblem is one flat color, pale bone-parchment (#D8CCB0), with a very slightly hand-made edge.
-Centered, seen straight-on, filling about 70% of the frame, with an even margin on all sides.
-On a flat solid near-black brown background (#2B2118), no gradient, no vignette, no frame, no border.
-No text, no letters, no numbers, no shading, no highlights, no glow, no drop shadow, no watermark.
-```
-
-`{GLYPH}` = one plain object (e.g. Weapons `a single straight sword pointing upward, with a plain crossguard
-and a round pommel`). A new filter tab needs a new glyph in the same wording.
+Not 9-slice sprites — **filter glyph icons** `Inventory/UI_Filter_<Name>.png` (inventory filter tabs): own
+prompt and import in `Inventory/CLAUDE.md`.
 
 Sprites not worth generating: crosshair (8×8), dividers / hairlines (use a 1-px tinted `Image`), scrollbars
 (tinted `Panel` / `Button` at small size).
@@ -159,7 +152,7 @@ Variant `<state change>` examples: `SlotWell_Selected` → `the frame is dull br
 ## Layout Tools (`Editor/UI/UILayoutCapture`)
 
 - `UILayoutCapture.Measure("<Screen>", depth)` — the screen's rects at 1920×1080 (x,y top-left, w×h, grid
-  cells, font sizes). Use it to refresh *UI Metrics* and to read the in-game size of an element.
+  cells, font sizes). Use it to refresh `UI_METRICS.md` and to read the in-game size of an element.
 - `UILayoutCapture.Capture("<Screen>")` — renders the screen of `UICanvas.prefab` offscreen (edit mode, no
   scene change) to `Previews/UI_<Screen>_Preview.png`; empty item grids get `ItemSlot` placeholders,
   runtime-toggled panels are shown, every `Image` rect is outlined. A **preview of the implemented UI**, not
@@ -180,54 +173,3 @@ Variant `<state change>` examples: `SlotWell_Selected` → `the frame is dull br
 - **Stat polarity colors** (`StatPolarity`) and the **illegal (theft) prompt red** are text tints — use the
   palette's muted green / dried-blood red, never saturated.
 - Tab bar labels: **"Inventory" · "Quests" · "Stats" · "Skills"** (keys I · J · P · K).
-
----
-
-## UI Metrics (1920×1080, origin top-left — measured 2026-10-22)
-
-Re-measure with `UILayoutCapture.Measure` after any layout change and update this table.
-
-| Screen | Element | Rect (x, y, w×h) | Notes |
-|--------|---------|------------------|-------|
-| HUD | Health bar | 768, 928, 384×22 | Bottom-centre stack, 20 % of screen width |
-| HUD | Stamina bar | 768, 961, 384×22 | |
-| HUD | XP bar | 768, 988, 384×6 | No label |
-| HUD | Action bar | 758, 996, 404×64 | 6 slots 64×64, gap 4, icon 52, key label font 10, stack font 12 |
-| HUD | Interaction prompt | centre, ~147×61 | Auto-width card above target, key badge 32×32 |
-| HUD | Toast stack | full width, y 236, h 100 | Upper third |
-| Menus | Tab bar | 460, 31, 1000×100 | 4 tabs 243×100, font 40 |
-| Inventory | Equipment column | 92, 140, 200×800 | 7 slots 200×64 stacked (Offhand added 2026-11-17, not re-measured) |
-| Inventory | Item grid panel | 576, 140, 768×800 | Filter strip 591,154 738×52 (9 tabs 52×52, gap 6); grid 591,216, cells 80×80, gap 5 → 8 columns; Gold footer 591,902 h30 font 24 (measured 2026-10-29) |
-| Inventory | Item detail | 1440, 140, 384×800 | Header 96 (icon + name + category), price row, action buttons (Drop / Use / Equip) |
-| Container / Trade | 3 columns | x 30 / 660 / 1290, y 30, each 600×1020 | Grid · detail · grid; side headers 40 tall font 30; grids 6 columns |
-| Quest log | List | 96, 140, 480×800 | Started / Completed / Failed tabs 80 tall |
-| Quest log | Info | 672, 140, 1152×800 | Header 160 |
-| Character | Panel | 660, 140, 600×800 | Single centred column |
-| Skills | Panel | 660, 190, 600×700 | List 220 wide · detail 332 wide |
-| Dialogue | Panel | 410, 618, 1100×300 | Bottom band (bottom edge y 918); content column ~1034; name font 28 (torch), text 25 (parchment), advance button 36 tall |
-| Game menu | Window | 460, 80, 1000×920 | Centred column of 5 buttons 420×72 |
-| Death screen | Column | centred | Title font 96, 4 buttons 420×72, gap 18 |
-| Confirm dialog | Window | 600, 380, 720×320 | Message font 32, Yes / No 220×72 |
-
-Typography scale in use: HUD 10–12, body 25–32, headers 30–40, title 96.
-
----
-
-## Screen Catalog (what exists in code)
-
-Use it to resolve a screen name into the sprites it needs. Elements come from `Scripts/UI/**/CLAUDE.md` —
-re-check the owning file before relying on a count.
-
-| Screen | Key | Elements (owning doc) | Sprites |
-|--------|-----|-----------------------|---------|
-| **HUD** | — | Health / stamina / XP bars, action bar of **6** slots (key labels 1–6, stack counts), interaction prompt card `[E] <verb> <name>`, toast stack, speech bubbles (`HUD/`) | `BarTrack`, `BarFill`, `SlotWell`, `KeyBadge`, `Card` |
-| **Inventory** | I | Item grid, item detail panel, equipment column (**7** slots: weapon, offhand, helmet, armor, ring ×2, necklace), context menu, tab bar (`Inventory/`) | `Panel`, `SlotWell`, `Button`, `Tab` |
-| **Container / loot** | E | Two grids + detail with Take / Put (Put hidden for corpse loot) (`Inventory/`) | `Panel`, `SlotWell`, `Button` |
-| **Trade** | dialogue | Merchant + player grids, detail with Price / Sells for, Buy / Sell (`Inventory/`) | `Panel`, `SlotWell`, `Button` |
-| **Quest log** | J | Started / Completed / Failed tabs, quest list, quest info (`Quest/`) | `Panel`, `Tab`, `Button` |
-| **Character** | P | Level, XP, learning points, HP, stamina, base stats (`Screens/`) | `Panel` |
-| **Skills** | K | Skill list rows, detail panel with requirement rows (`Skills/`) | `Panel`, `Button`, `SlotWell` |
-| **Dialogue** | — | NPC name, response text, Continue / End / Trade button, numbered topics (1–9, 0), choices (`Dialogue/`) | `Panel`, `Button` |
-| **Game menu** | Esc | Resume / Save / Load / Options / Quit, save-slot list, confirm dialog (`Screens/`) | `Panel`, `Button` |
-| **Death screen** | — | Title, Load last save / Load quicksave / Restart / Quit (`Screens/`) | `Button` |
-| **Loading** | — | Black overlay "Loading…" (`Screens/`) | none |

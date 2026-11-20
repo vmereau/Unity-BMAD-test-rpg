@@ -11,7 +11,7 @@ Each NPC must have its own dedicated subfolder:
 ```
 Assets/_Game/Data/NPCs/
   <NPCName>/
-    CLAUDE.md                  ← NPC identity (instantiated NPC_IDENTITY_TEMPLATE.md) — READ FIRST
+    CLAUDE.md                  ← NPC identity (instantiated NPC_IDENTITY_TEMPLATE.md) — READ FIRST (see below)
     NPC_<NPCName>.asset        ← NPCEntity (menu Game/NPC/NPC Data)
     Dialogues/
       <TopicName>/
@@ -26,21 +26,27 @@ Assets/_Game/Data/NPCs/
     Memories/
       Mem_<NPC>_<Topic>.asset
       ...
+    Facts/                     ← optional: facts owned by this NPC (e.g. TentMate/Facts/, BlackSmith/Facts/)
+    <other NPC-owned data>     ← optional, at the folder root: e.g. RacketGuard/TollRacket_Harl.asset (TollRacketSO),
+                                 CompanyGuard/Barks_Arrival_*.asset (BarkSetSO used by the arrival sequence)
 ```
+
+**Per-NPC `<NPCName>/CLAUDE.md`** is the canonical character sheet (instantiated `NPC_IDENTITY_TEMPLATE.md`): read it
+before writing any dialogue, memory or behavioural asset for that NPC and keep it up to date as the character develops.
+Its *Dialogue Writing Rules* extend `DIALOGUE.md` for that NPC. Defaults it does not repeat: `NPC_<NPCName>.asset`,
+`Dialogues/`, `Teachings/` and `Memories/` follow the layout above, and the scene object is an instance of
+`Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab). Its *Asset Reference* lists only NPC-specific
+rows (scene path, routine, shop, quest role, killed fact, non-default entity / prefab).
 
 Shared dialogue used by every NPC lives in `Shared/Dialogues/` — `TheftReturn/` (`Start_TheftReturn` → `Choice_TheftReturn`
 give-back / refuse with `Signal_TheftReturn_GiveBack` / `_Refuse`, referenced by `StealthConfig`; opened after the scold
-line when a caught thief still carries stolen goods — `Scripts/AI/CLAUDE.md` → Theft return). Not reachable from a memory,
+line when a caught thief still carries stolen goods — `Scripts/AI/PERCEPTION.md` → Theft return). Not reachable from a memory,
 so Quest Explorer may list it as unattributed.
 
 Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dialogue/Bark Set`, name
-`Barks_<Purpose>`) — one-liners said in speech bubbles, e.g. `Barks_SneakWarning` (referenced by
-`Data/Entities/WitnessProfile_Humanoid`), `Barks_TheftAlert` (chase bubble), `Barks_TheftScold` /
-`Barks_TheftScold_Item` (forced scold dialogue line), `Barks_TrespassAlert` (owner spots a trespasser) /
-`Barks_TrespassScold` (trespass scold line; both fall back to the theft sets when unassigned), `Barks_Woken` (a sleeper
-woken by the player, `WitnessProfileSO.WokenBarks`), and the player-relationship
-sets wired in `CombatConfig` — `Barks_HostileSight`, `Barks_FriendlyAssist`, `Barks_FriendlyWarn`,
-`Barks_FriendlyDisappointed` (`Scripts/AI/CLAUDE.md` → Player relationship). Lines never repeat twice in a row.
+`Barks_<Purpose>`) — one-liners said in speech bubbles (sneak warning, theft / trespass alerts and scolds, woken
+sleeper, knockout, player-relationship lines…). Which code reads which set is in the SOs that reference them
+(`Data/Entities/WitnessProfile_Humanoid`, `CombatConfig` — see `Scripts/AI/PERCEPTION.md` and `Scripts/AI/RELATIONS.md`). Lines never repeat twice in a row.
 
 Every `NPC_<Name>.asset` references `WitnessProfile_Humanoid` in `_witnessProfile` (reaction to a sneaking player;
 auto-assigned by `NPCEntity.Reset()` from the Create menu, **not** when created through MCP / `CreateInstance` — set
@@ -69,6 +75,8 @@ through MCP `execute_code` (`AssetDatabase.CreateAsset`) — afterwards run the 
 ## NPC Identity Check
 
 When entering any NPC subfolder, immediately check whether a `CLAUDE.md` exists inside it.
+Exempt: combat-only NPCs with no dialogue (empty `memories`, no `Dialogues/`, e.g. `Bandit/`) and the non-NPC
+folders `Barks/` and `Shared/`.
 
 - **If `CLAUDE.md` is missing or does not contain an NPC identity section:** ask the user:
   > "No NPC identity found for `<NPCName>`. Would you like me to create the folder and identity

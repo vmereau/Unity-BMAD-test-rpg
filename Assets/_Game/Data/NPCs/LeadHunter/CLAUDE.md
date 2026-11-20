@@ -1,15 +1,32 @@
-# NPC Identity — Corvin Ash
+# CLAUDE.md — Assets/_Game/Data/NPCs/LeadHunter
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Corvin Ash — read it before writing any dialogue, memory or behaviour for this NPC.
+
+---
 
 ## Core Identity
 
-- Name: Corvin Ash (npc-010, Lead Hunter).
-- Profession: lead hunter and manager of the Hunting Grounds (area-004).
-- Affiliation: The Company in name only (`Faction_Company`); independent-minded.
-- Age: late 30s.
+| Field | Value |
+|-------|-------|
+| **Name** | Corvin Ash (npc-010) |
+| **Nickname / Known As** | Lead Hunter |
+| **Profession** | Lead hunter and manager of the Hunting Grounds (area-004) |
+| **Faction / Affiliation** | The Company in name only (`Faction_Company`); independent-minded |
+| **Location** | By the fire ring at the hunting camp, all day |
+| **Age** | Late 30s |
 
-## Personality and Background
+---
 
-Calm, observant and quietly amused by the camp's hierarchy. Ash keeps the Company fed and in return is mostly left alone, which suits him. He speaks to the player as an equal, the first person in the camp to do so. Something has been taking his snares whole, stakes and all, and leaving no tracks he knows.
+## Personality
+
+| Field | Value |
+|-------|-------|
+| **Alignment** | TBD |
+| **Traits** | Calm, observant, quietly amused by the camp's hierarchy |
+| **Fears / Flaws** | TBD |
+| **Desires / Goals** | To be left alone; find what has been taking his snares |
+
+---
 
 ## Speech Style
 
@@ -23,10 +40,24 @@ Calm, observant and quietly amused by the camp's hierarchy. Ash keeps the Compan
 **Sample line:**
 > "Out here you learn to be quiet or you learn to be hungry, and the forest doesn't care which lesson you pick."
 
-## Relationships and Routine
+---
 
-Tolerates Warden Voss and the arrow count. He is a seed of the independent path (with npc-004, the hunter across the river). He stands all day by the fire ring at the hunting camp (`WorkSiteManagers/LeadHunter_Spot`).
+## Background
 
-## Assets
+Ash keeps the Company fed and in return is mostly left alone, which suits him. He tolerates Warden Voss and the arrow
+count. Something has been taking his snares whole, stakes and all, and leaving no tracks he knows. He is a seed of the
+independent path (with npc-004, the hunter across the river).
 
-`NPC_LeadHunter.asset`, `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Hunting`), `Dialogues/Work/` (repeatable), `Memories/`. Head: placeholder copy of the DockGuard mesh (`HeadAppearance_LeadHunter`) until `/characters:portrait-face`. Scene instance under the hand-owned `WorkSiteManagers` root.
+## Dialogue Writing Rules (NPC-specific)
+
+- TBD
+
+---
+
+## Asset Reference
+
+| Asset | Path |
+|-------|------|
+| Scene | Instance under the hand-owned `WorkSiteManagers` root; stands all day at `WorkSiteManagers/LeadHunter_Spot` |
+| Dialogues | `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Hunting`), `Dialogues/Work/` (repeatable) |
+| Head | Placeholder copy of the DockGuard mesh (`HeadAppearance_LeadHunter`) until `/characters:portrait-face` |

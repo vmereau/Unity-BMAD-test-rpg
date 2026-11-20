@@ -1,15 +1,32 @@
-# NPC Identity — Overseer Dace
+# CLAUDE.md — Assets/_Game/Data/NPCs/QuarryOverseer
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Overseer Dace — read it before writing any dialogue, memory or behaviour for this NPC.
+
+---
 
 ## Core Identity
 
-- Name: Overseer Dace (quarry manager).
-- Profession: Company overseer of the Stone Quarry (area-002).
-- Affiliation: The Company (`Faction_Company`).
-- Age: early 50s.
+| Field | Value |
+|-------|-------|
+| **Name** | Overseer Dace |
+| **Nickname / Known As** | Dace |
+| **Profession** | Quarry manager: Company overseer of the Stone Quarry (area-002) |
+| **Faction / Affiliation** | The Company (`Faction_Company`) |
+| **Location** | By the sledge on the quarry floor, all day |
+| **Age** | Early 50s |
 
-## Personality and Background
+---
 
-Hard, practical and tired. Dace measures people in blocks cut and tallies met, and has no patience for fear. He was a mason before the Company made him an overseer, and he still respects good stonework more than any person. He opened a new cut behind the crack in the south face with his trusted cutters, then the Company sealed it with a locked door. He keeps the men away from it as "Company business" and dismisses their stories about it, but never explains it.
+## Personality
+
+| Field | Value |
+|-------|-------|
+| **Alignment** | TBD |
+| **Traits** | Hard, practical, tired; no patience for fear |
+| **Fears / Flaws** | Resents every quota increase; measures people in blocks cut and tallies met |
+| **Desires / Goals** | Keep the men away from the sealed south-face cut |
+
+---
 
 ## Speech Style
 
@@ -23,10 +40,26 @@ Hard, practical and tired. Dace measures people in blocks cut and tallies met, a
 **Sample line:**
 > "Meet your tally and you eat. Miss it and you owe, and owing in this quarry is a hole you dig with your own hands, so cut straight and you won't need to."
 
-## Relationships and Routine
+---
 
-Takes orders from Warden Voss and resents every quota increase. He is the way into the quarry's work and, later, the sealed passage (quest-002, with npc-009). He stands all day by the sledge on the quarry floor (`WorkSiteManagers/QuarryOverseer_Spot`).
+## Background
 
-## Assets
+Dace was a mason before the Company made him an overseer, and he still respects good stonework more than any person. He
+opened a new cut behind the crack in the south face with his trusted cutters, then the Company sealed it with a locked
+door. He keeps the men away from it as "Company business" and dismisses their stories about it, but never explains it.
+He takes orders from Warden Voss. He is the way into the quarry's work and, later, the sealed passage (quest-002, with
+npc-009).
 
-`NPC_QuarryOverseer.asset`, `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Quarry`), `Dialogues/Work/` (repeatable), `Memories/`. Head: placeholder copy of the Bandit mesh (`HeadAppearance_QuarryOverseer`) until `/characters:portrait-face`. Scene instance under the hand-owned `WorkSiteManagers` root.
+## Dialogue Writing Rules (NPC-specific)
+
+- TBD
+
+---
+
+## Asset Reference
+
+| Asset | Path |
+|-------|------|
+| Scene | Instance under the hand-owned `WorkSiteManagers` root; stands all day at `WorkSiteManagers/QuarryOverseer_Spot` |
+| Dialogues | `Dialogues/Notice/` (one-time Warden's-errand delivery, needs `Item_Notice_Quarry`), `Dialogues/Work/` (repeatable) |
+| Head | Placeholder copy of the Bandit mesh (`HeadAppearance_QuarryOverseer`) until `/characters:portrait-face` |

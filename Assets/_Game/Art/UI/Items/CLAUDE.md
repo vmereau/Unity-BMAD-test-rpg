@@ -11,7 +11,9 @@
 ## Naming & Import
 
 - File name: `Item_<Name>_Icon.png` (PascalCase name, e.g. `Item_Lockpick_Icon.png`). Older files
-  (`sword.png`, `health potion.png`, `Weapon_Axe_Icon.png`, `Armor_*_Icon.png`) predate this rule.
+  predate this rule: `sword.png`, `health potion.png`, `mana potion.png`, `Weapon_*_Icon.png` (`Axe`, `Flamberge`,
+  `HuntingBow`, `big sword`), `Shield_*_Icon.png` (`KiteWoodShield`, `RoundWoodShield`), `Armor_*_Icon.png`, and the
+  lower-case `Item_darkness_spider_head_Icon.png` / `Item_darkness_spider_leg_Icon.png`.
 - Existing icons are ~128 px on a flat neutral gray background — generate at 512×512, then set the
   texture's Max Size to 128 or 256 in the importer. Texture Type: Sprite (2D and UI).
 

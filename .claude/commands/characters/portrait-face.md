@@ -13,8 +13,9 @@ images are projected onto it. Work through the steps in order and **stop at ever
 
 Read in full, they are the source of truth (never restate them from memory):
 - `Assets/_Game/Art/ART_DIRECTION.md` (banned words, character direction)
-- `Assets/_Game/Art/Characters/Humanoids/CLAUDE.md`: *Face Portrait Prompt*, *NPC head variants*, *NPC portrait faces*,
-  *NPC skin tones* (recipe, landmarks, gotchas)
+- `Assets/_Game/Art/Characters/Humanoids/CLAUDE.md`: *Face Portrait Prompt*
+- `Assets/_Game/Art/Characters/Humanoids/HEADS_SKIN.md`: *NPC head variants*, *NPC portrait faces*, *NPC skin tones*
+  (recipe, landmarks, gotchas)
 - `Tools/Blender/README.md` and `Tools/Blender/configs/heads/refs/PROMPTS.md` (the `{FACE}` lines already used)
 
 ## Step 1 — Pick the NPC
@@ -97,8 +98,8 @@ tweaks.
    `try { Game.Editor.Characters.SkinnedHeadVariantBaker.BakeAll(); return "baked"; } catch (System.Exception e) { return "FAIL: " + e.Message; }`
    (not in play mode). A failure → read the message (exact-join / neck UV / bind space), fix, re-export.
 3. **New head only:** assign `Data/Characters/Heads/HeadAppearance_<Name>.asset` to the NPC's `NPCEntity._head`, add the
-   pair to the shipped lists in `NpcHeadAppearanceTests.cs` / `NpcSkinToneTests.cs` (head count) and to the *Shipped*
-   list in `Humanoids/CLAUDE.md`.
+   pair to the shipped lists in `NpcHeadAppearanceTests.cs` / `NpcSkinToneTests.cs` (head count). `Humanoids/HEADS_SKIN.md`
+   keeps no per-NPC list (it points to `Data/Characters/Heads/`): don't add one.
 
 ## Step 8 — Verify (HALT)
 
@@ -112,9 +113,9 @@ tweaks.
 ## Step 9 — Wrap up
 
 - Run EditMode tests (`run_tests`) — all must pass.
-- Docs: mark the NPC as a portrait face in the *Shipped* list of `Humanoids/CLAUDE.md`; remove it from the
+- Docs: remove the NPC from the
   "Portrait faces for the other NPCs" entry in `_bmad-output/implementation-artifacts/deferred-work.md`. Record any new
-  gotcha in *NPC portrait faces → Gotchas*.
+  gotcha in `HEADS_SKIN.md` → *NPC portrait faces* → *Gotchas*.
 - Summarize (deform, checks, files changed) and offer to commit with `/perso:commit`
   (scope `npc`, e.g. `feat(npc): give the cook a portrait-matched face`). Commit the refs (images, landmark JSON,
   PROMPTS.md) with the head; the `_debug_*` overlays are gitignored.

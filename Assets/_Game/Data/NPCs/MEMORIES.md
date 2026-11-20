@@ -10,7 +10,7 @@
 bridge between world state and NPC behaviour. Each memory entry:
 
 1. Declares **conditions** (world fact keys) that must be true for the memory to be active
-2. Applies **effects** while active: dialogue topics, shop modifiers, routine overrides, quest hooks
+2. Exposes its **effect** while active: one dialogue topic (`effects.startdialog`) — the only effect that exists
 
 `NPCMemoryComponent` (on the NPC prefab) holds a reference to `NPCEntity` and evaluates all
 memory entries on demand via `GetActiveMemories()`. The dialogue system queries this to build
@@ -91,4 +91,4 @@ unless the referenced memory `IsActive()`.
 - [ ] Asset named `Mem_<NPC>_<Topic>.asset`
 - [ ] `unlockConditions` populated (or left empty for always-active)
 - [ ] `effects.startdialog` set to the corresponding `StartDialogueNode` (if dialogue-bearing)
-- [ ] Memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`). Menu fallback: `Game/Dev/Sync All NPC Memories`
+- [ ] Memory saved under `<NPCName>/Memories/` (sync into `NPCEntity.memories`: `CLAUDE.md`)

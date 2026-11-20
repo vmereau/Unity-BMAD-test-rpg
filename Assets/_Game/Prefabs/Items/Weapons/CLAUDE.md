@@ -1,12 +1,21 @@
 # CLAUDE.md — Assets/_Game/Prefabs/Items/Weapons
 
-> Loaded when Claude accesses weapon prefab files. Covers the two-prefab convention, Drawn/Sheathed child convention, normalized weapon frame, archetypes, the Weapon Creator, hitbox requirements, and SO wiring.
+> Loaded when Claude accesses weapon prefab files. Covers the two-prefab convention, Drawn/Sheathed child convention, normalized weapon frame, archetypes, hitbox requirements, and SO wiring.
+
+---
+
+## Topic files
+
+| File | Read when |
+|------|-----------|
+| `WEAPON_TOOLS.md` | Creating a weapon (`Tools/Items/Weapon Creator`) or tuning grip / archetype poses (`Tools/Combat/Weapon Pose Tuner`) |
 
 ---
 
 ## Two-Prefab Convention
 
-Each weapon lives in its own folder and ships as **two prefabs**:
+Each weapon lives in its own folder and ships as **two prefabs**. The Weapon Creator writes `{Family}/{Name}/`
+(`WEAPON_TOOLS.md`); the `Swords/SwordBase/` example is a legacy hand-made folder kept for its GUID (see GUID Note):
 
 ```
 Swords/SwordBase/
@@ -26,7 +35,7 @@ Swords/SwordBase/
 
 ---
 
-## Drawn / Sheathed Child Convention (Story 7.12)
+## Drawn / Sheathed Child Convention
 
 `EquipmentVisuals.ApplyCombatVisibility()` looks for children named **exactly** `Drawn` and `Sheathed` on the weapon visual root and toggles their `SetActive` state based on `IsInCombat`.
 
@@ -46,12 +55,11 @@ Swords/SwordBase/
 
 ## Hitbox Shape Collider
 
-`WeaponHitbox` sweeps with physics queries (see `Scripts/Combat/CLAUDE.md`) — **no Rigidbody** on the
-`_Visual` root and no layer requirement. The `BoxCollider` on the **`Drawn` child GO** (same GO as
-`WeaponHitbox`) is only the sweep **shape**: keep it **disabled** (`WeaponHitbox.Awake` also disables it).
-Box/Sphere/Capsule only. Do NOT place it on the visual root or on a sub-child. `GetComponentInChildren<WeaponHitbox>(true)`
-from `ActiveWeaponGO` (the root) finds it regardless of depth. Per-weapon reach tuning = the
-`WeaponHitbox` `_reachPadding` / `_verticalReach` fields on `Drawn`.
+The sweep-shape `BoxCollider` sits on the **`Drawn` child GO** itself (same GO as `WeaponHitbox`) — do NOT place it
+on the visual root or on a sub-child. Per-weapon reach tuning = the `WeaponHitbox` `_reachPadding` / `_verticalReach`
+fields on `Drawn`. Shape rules (disabled, Box/Sphere/Capsule, no Rigidbody, no layer requirement):
+`Scripts/Combat/CLAUDE.md` → WeaponHitbox; lookup via `GetComponentInChildren<WeaponHitbox>(true)`: same file →
+PlayerCombat Hitbox Binding.
 
 Note: nested prefab children can't be reparented under a stripped transform via YAML — keep the collider as a component on `Drawn`, not in a separate sub-prefab.
 
@@ -92,7 +100,7 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
 
 - **Once a weapon has an archetype, editing its prefab's `Drawn`/`Sheathed` transforms has no in-game effect.**
   Tune the archetype (affects the whole family) or the `Mesh` child (this weapon only) — with the **Weapon Pose Tuner**
-  (below), not by typing values blind.
+  (`WEAPON_TOOLS.md`), not by typing values blind.
 - **Null archetype** → prefab poses are used unchanged and the weapon sheathes on `UndrawnWeaponSocket` (legacy path).
 - **Drawn hand:** `drawnHand = Left` → `LeftWeaponSocket` under `mixamorig:LeftHand` (mirror of the right socket offset).
   Left asked for but `_leftWeaponSocket` unassigned → right hand + one warning (`ResolveDrawnSocket`).
@@ -105,66 +113,17 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
   `Bow_AnimatorOverride` swaps only the draw / sheathe clips), `Archetype_TwoHanded` (Right hand, **Back** socket,
   `TwoHanded_AnimatorOverride`, 2 combo steps, stance 45 + knockdown, `attackStaminaMultiplier` 2; drawn pose = edge
   reference + fallback (two-hand grip below); sheathed pose = hilt above the right shoulder, blade down-left).
-- **Two-hand grip (`twoHandedGrip`, spec `spec-two-hand-grip-constraint.md`):** the Mixamo 2H clips don't keep a constant
-  hand relationship (hand line drifts ~50° within one swing; `2hand blocking` holds the other way round), so no rigid
-  `drawnPose` fits. `TwoHandGripConstraint` (Player root, `[DefaultExecutionOrder(250)]`, after `BowAimCorrection` 200)
-  re-aims `Drawn` every frame while drawn: grip on `DrawnSocket`, blade (+Y) = left socket → right socket line, edge (+Z) =
-  `drawnPose`'s edge projected ⊥ blade then rolled `gripRoll`°, moved `gripSlide` m along the blade (`TwoHandGripMath`,
-  tested). The result is **blended** with the rigid `drawnPose` by `GripWeight`: 1 for hands 0.10–0.40 m apart (measured
-  clips: 0.19–0.35), easing to 0 as the left hand lets go (0.55 m — sheathe, knockdown, death) or the solve degenerates
-  (hands < 5 cm, edge reference near the blade), so the hand-off never pops. `drawnPose` matters for its **edge
-  direction** and as that rigid pose. No arm IK: the clips place the hands. `drawnHand = Left` + `twoHandedGrip` is
-  unsupported (warns once). `WeaponHitbox` runs at order **300** so its sweep sees the re-aimed blade.
+- **Two-hand grip (`twoHandedGrip`, spec `spec-two-hand-grip-constraint.md`):** `Drawn` is re-aimed every frame by `TwoHandGripConstraint` — algorithm in `Scripts/Inventory/CLAUDE.md` → TwoHandGripConstraint.
 - **Flamberge** (`TwoHanded/Flamberge/`): `Drawn` box trimmed to the blade (centre `(0, 0.91, 0)`, size `(0.03, 1.32, 0.08)`).
 - **Bows** (`Bow/HuntingBow/`): `Drawn` has **no** `WeaponHitbox` / shape collider — `PlayerCombat` never melee-swings a `BowSO`.
 - Never hardcode per-weapon offsets in `EquipmentVisuals.cs`.
 
 ---
 
-## Weapon Creator (`Tools/Items/Weapon Creator`)
-
-Use it for every new weapon instead of hand-building prefabs. Inputs: name, C# type, base model, **archetype**
-(required), **grip point** (model local), **blade axis**, **edge axis** (must be on different axes). It:
-
-- strips every `Collider`, `Rigidbody`, `LODGroup` and `_LOD1+` child from the model (keeps LOD0),
-- builds `_Visual` (no Rigidbody; root → `Drawn` [**disabled** `BoxCollider` fitted to the renderers + `WeaponHitbox`]
-  → `Mesh`; `Sheathed` → `Mesh`), both `Mesh` children normalized, `Drawn`/`Sheathed` left at identity,
-- builds `_World` (un-normalized model, root `BoxCollider` fitted to **all** renderers),
-- writes `Data/Items/Weapons/{Family}/Weapon_{Name}.asset` and `Prefabs/Items/Weapons/{Family}/{Name}/`
-  (`{Family}` = archetype name without `Archetype_`), sets `archetype`, leaves `comboSteps = 0` /
-  `animatorOverrideController = null` (inherit) unless edited, and generates the icon.
-
-**Always verify grip and edge direction afterwards** with the Weapon Pose Tuner. The fitted hitbox
-covers the whole mesh — shrink it by hand for head-only hitboxes (e.g. the Axe keeps a head-only box).
-
----
-
-## Weapon Pose Tuner (`Tools/Combat/Weapon Pose Tuner`)
-
-`Editor/WeaponPoseTunerWindow.cs`, edit mode only. Select the Player (scene or Prefab Mode) → **Use Selection**, pick a
-`WeaponSO`, mode **Drawn / Sheathed**, a clip (the weapon's override clips, or any clip in **Clip Override**), scrub frames.
-The `_Visual` is previewed (`HideFlags.DontSave`) on the socket `EquipmentVisuals` would use, with the archetype poses; in
-Drawn mode the `Drawn` hitbox box is drawn in orange.
-
-- **Select Pose Node** → move / rotate `Drawn` / `Sheathed` → **Save Pose to Archetype** (whole family; saved in socket
-  space from world, so moving the preview root is harmless; Undo-able).
-- **Select Grip (Mesh)** → **Save Grip to Weapon** writes that local pose to **both** `Drawn/Mesh` and `Sheathed/Mesh` of
-  the `_Visual` prefab (saved in place, GUID kept; **not Undo-able**, refused while that prefab is open in Prefab Mode).
-  **Revert** rebuilds the preview from the assets.
-- Save Pose is disabled while the preview sits on a fallback socket (Left / Back asked but unassigned). The sampled pose
-  is stopped and the rig restored before any scene / prefab save, then re-sampled. Edit mode only.
-- **Two-hand grip archetype, Drawn mode:** the preview is re-solved like the runtime (after each sample and every
-  repaint); Save Pose / Select Pose Node are disabled — edit `gripRoll` / `gripSlide` on the archetype and watch the
-  preview. Grip (Mesh) and the Sheathed pose stay tunable as usual.
-- **After tuning in the Player's Prefab Mode, discard the stage changes** — only the archetype / weapon prefab are meant to
-  change. Saving the Player stage writes Cinemachine's edit-mode camera position and UI layout values into `Player.prefab`.
-
----
-
 ## GUID Note — SwordBase_Visual.prefab
 
 The `.meta` GUID for `SwordBase_Visual.prefab` is manually crafted (`d5e6f7a8b9c0d1e2f3a4b5c6d7e8f901`) and
-`Weapon_TestSword.equipVisualPrefab` references its root GO by fileID `100000000`. **Never delete this `.meta`
+`Weapon_TestSword`, `Weapon_ShortIronSword` and `Weapon_ShortIronSword_Forged` (`equipVisualPrefab`) reference its root GO by fileID `100000000`. **Never delete this `.meta`
 file or re-create the prefab** — edit it in place (`PrefabUtility.LoadPrefabContents` / `SaveAsPrefabAsset` on
 the same path). Otherwise the reference silently breaks (weapon shows the placeholder cube with no error).
 
@@ -176,7 +135,7 @@ New weapons: use the Weapon Creator — it wires the SO references itself (no YA
 
 | Severity | Pattern |
 |----------|---------|
-| MEDIUM | `_Visual` root still carries a (legacy) Rigidbody, or the `Drawn` shape `BoxCollider` is left enabled — both are dead physics participants since the sweep rework |
+| MEDIUM | `_Visual` root still carries a (legacy) Rigidbody, or the `Drawn` shape `BoxCollider` is left enabled — both are dead physics participants |
 | HIGH | `Drawn` or `Sheathed` child named incorrectly (wrong case, extra suffix) — `ApplyCombatVisibility` silently no-ops, both children stay visible simultaneously |
 | HIGH | `WeaponHitbox` + trigger collider placed on `Sheathed` child — hitbox would be active on hip socket instead of hand |
 | HIGH | `Mesh` child not normalized (weapon uses an archetype but the mesh pivot/axes are raw art-pack) — weapon sits offset/rotated in hand and on hip |

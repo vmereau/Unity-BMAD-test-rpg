@@ -146,7 +146,7 @@ When `limitStat > 0` on a StatBased choice:
 ## Chain Example
 
 ```
-Start_Trainer_Teach           isRepeatable=true, text="Teach me something"
+Start_Trainer_Teach           dialogueFact=null (repeatable), text="Teach me something"
   └─ nextNode → Text_Trainer_Teach        text="What would you like to learn?"
                   └─ nextNode → TeachChoice_Trainer_Teach
                                   ├─ choices[0]: "+2 Strength"
@@ -185,7 +185,7 @@ Start_Trainer_Teach           isRepeatable=true, text="Teach me something"
 - [ ] `Teachings/` subfolder exists under NPC folder (create if missing)
 - [ ] `Teachings/<TopicName>/` subfolder created
 - [ ] `StartDialogueNode` created and linked to a topic memory (`effects.startdialog`)
-- [ ] Topic memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`) (or existing memory updated)
+- [ ] Topic memory saved under `<NPCName>/Memories/` (or existing memory updated)
 - [ ] Gate memories (for `requiredMemory`) also saved under the same NPC's `Memories/` folder
 - [ ] `SkillFact` assets created in `Assets/_Game/Data/Player/` if gating by skill learned state
 - [ ] Each `TeachChoiceOption.text` is the name/description only — no LP or gold cost (the game UI generates those)

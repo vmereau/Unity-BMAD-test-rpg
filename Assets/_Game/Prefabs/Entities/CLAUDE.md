@@ -32,12 +32,13 @@ All StartingTown NPCs are direct scene instances of this variant.
   and adds its own `NPCPresence : EntityPresence` + a hip-pinned `InteractionCollider` (referenced by
   `HumanoidAIAnimationDriver._transformsToPinToHips` — do **not** delete it). `NPCPresence._onLootRequested`
   must be wired on the variant itself (the base wiring is removed with the base component).
-- **Model = nested `Prefabs/Characters/Humanoid_BaseHero.prefab`** (child `Character`, spec-npc-base-hero-model;
-  replaced the Mixamo `Idle.fbx` dummy). The model prefab owns the Animator (base-hero avatar, `Humanoid_Base`, root
+- **Model = nested `Prefabs/Characters/Humanoid_BaseHero.prefab`** (child `Character`, spec-npc-base-hero-model).
+  The model prefab owns the Animator (base-hero avatar, `Humanoid_Base`, root
   motion off), body `base_hero` + `Head` SMRs (player meshes / materials), the player's 5 sockets (same bones / offsets),
-  `WeaponSocket/UnarmedHitbox` and the 11-body ragdoll (layer 0). The variant adds only `EntityAnimationEventReceiver`
+  the fist hitboxes `WeaponSocket/UnarmedHitbox` + `LeftHand/LeftWeaponSocket/UnarmedHitbox_L` (both active, dormant, no
+  Rigidbody) and the 11-body ragdoll (layer 0). The variant adds only `EntityAnimationEventReceiver`
   on `Character` and the `Hitbox` child (L7). Placeholder until real NPC bodies exist. Every StartingTown NPC is an instance
-  of this variant (Brann was re-instanced 2026-11-13 — keep NPCs as instances, never unpack them). Swapping the model: instantiate the new model prefab as `Character` in the variant's
+  of this variant — keep NPCs as instances, never unpack them. Swapping the model: instantiate the new model prefab as `Character` in the variant's
   contents (`PrefabUtility.LoadPrefabContents`), re-add the receiver + `Hitbox`, retarget every root reference that
   pointed into the old `Character` (bridge `_animator`, driver `_transformsToPinToHips`, attacker `Unarmed`), delete the
   old one, then `PrefabUtility.RemoveUnusedOverrides` on the scene NPC instances. `NpcModelPrefabTests` guards it.
@@ -51,18 +52,18 @@ All StartingTown NPCs are direct scene instances of this variant.
 - **Attack wiring:**
   - Root: `EntityMeleeAttacker` (`_hitboxes = [{ "Unarmed", UnarmedHitbox }, { "UnarmedLeft", UnarmedHitbox_L }]`, `_animationDriver` = root `HumanoidAIAnimationDriver`); `EntityBrain._meleeAttacker` = it.
     At runtime `NpcArmament` swaps the two fists ↔ `Weapon` (the equipped sword's hitbox) — never both registered.
-    `UnarmedHitbox_L` lives in `Humanoid_BaseHero.prefab` under `LeftHand/LeftWeaponSocket` (active, dormant, no Rigidbody).
   - Root equipment (spec-npc-equipment): `EquipmentSystem` (`_inventorySystem` = root inventory, `_npcOwned`),
     `EquipmentVisuals` (sockets / `base_hero` / `mixamorig:Hips` / `Character` Animator under the nested model,
     `_defaultAnimatorController` = `Humanoid_Base`, both GameEvent channels **empty**), `NpcArmament` (those + root
-    inventory + `CombatConfig`). Re-wire all three after a model swap (`Scripts/AI/CLAUDE.md` → NPC equipment).
-  - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. **Apply Root Motion off**
-    (variant override — the nested model defaults it on; with it on, full-body attack clips move `Character` away from
-    the agent root and a cut swing leaves the offset). `HumanoidAIAnimationDriver.Awake` forces it off + warns.
-  - `.../WeaponSocket/UnarmedHitbox`: **active** but dormant (SphereCollider disabled, window closed).
+    inventory + `CombatConfig`). Re-wire all three after a model swap (`Scripts/AI/RANGED_EQUIPMENT.md` → NPC equipment).
+  - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. Root motion stays off (set in the
+    model prefab, see above); `HumanoidAIAnimationDriver.Awake` forces it off + warns.
+  - Both fist hitboxes (`UnarmedHitbox`, `UnarmedHitbox_L`): **active** but dormant (SphereCollider disabled, window closed).
     **No Rigidbody** — `HumanoidAIAnimationDriver` treats every Rigidbody under the Animator as ragdoll.
-- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. In-place punches (root motion off), fist
-  hitbox centre at full extension, measured on the Player rig (same skeleton, 2026-11-16): lead jab 0.79 m forward, hook
+- NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. Swings step forward through root
+  `EntityAttackStep` (`NavMeshAgent.Move`, stops `_contactMargin` short of the target's body —
+  `.claude/rules/attack-pipeline.md`); the reach figures below ignore that step (worst case). Fist hitbox centre at
+  full extension, measured on the Player rig (same skeleton, 2026-11-16): lead jab 0.79 m forward, hook
   0.62–0.70 m (0.25–0.4 m to the right), uppercut 0.56–0.65 m. + radius 0.25 + `_reachPadding` 0.3 → every step reaches
   the player hurtbox (r 0.3) at the 1.3 m stopping distance; the uppercut has the least margin (~0.1 m). Not re-verified
   on an NPC in play. Re-measure (Animator `cullingMode = AlwaysAnimate` — a culled off-camera Animator doesn't pose

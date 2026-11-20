@@ -38,8 +38,8 @@ QuestLogUI
 
 ## IScreenPanel Contract
 
-- `OnScreenOpen()` → `CursorManager.Unlock()` + `RefreshList()` (auto-selects).
-- `OnScreenClose()` → `_infoPanel.Hide()` (clears step toggles) + `CursorManager.Lock()`.
+Contract (cursor unlock / lock): `Scripts/UI/CLAUDE.md`. `QuestLogUI.OnScreenOpen()` also calls `RefreshList()`
+(auto-selects); `OnScreenClose()` also calls `_infoPanel.Hide()` (clears step toggles) before `CursorManager.Lock()`.
 
 ---
 

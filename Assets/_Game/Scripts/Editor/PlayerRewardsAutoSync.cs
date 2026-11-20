@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Linq;
 using Game.Progression;
 using UnityEditor;
@@ -86,3 +87,4 @@ namespace Game.Editor
         }
     }
 }
+#endif

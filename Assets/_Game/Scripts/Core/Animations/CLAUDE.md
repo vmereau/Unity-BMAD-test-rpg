@@ -48,9 +48,9 @@ Symmetric on both sides: bridge + driver.
 - **One Animator per entity, owned by its matching bridge.** The monster bridge owns the
   monster controller's Animator; the humanoid bridge owns `Humanoid_Template`'s Animator.
   Never write to an Animator from outside its bridge.
-- **`MonsterAnimationDriver` script GUID is `bc1ff05bbb035a34cb7a7f54f833aa88`** — preserved
-  from the original `EntityAnimationBridge.cs` via file `mv` (file + `.meta` renamed in
-  lockstep). Do not regenerate the `.meta` or every monster prefab loses its driver reference.
+- **`MonsterAnimationDriver` script GUID is `bc1ff05bbb035a34cb7a7f54f833aa88`** — monster
+  prefabs reference it. Do not regenerate the `.meta` or every monster prefab loses its driver reference;
+  a rename moves file + `.meta` in lockstep.
 - **`HumanoidAIAnimationDriver._runSpeed` must match the variant's `Entity.EngageSpeed`** —
   the 2D blend tree normalizes against `_runSpeed`. If a humanoid type uses
   `EngageSpeed = 6` but the driver's `_runSpeed` stays `4`, the blend tree saturates at 1.0
@@ -63,15 +63,9 @@ Symmetric on both sides: bridge + driver.
   `CancelAttack()` (called by `EntityMeleeAttacker.EndAttack`) resets the attack triggers — an
   `Attack_1` set before the Base Layer took it (disengage during the `IsInCombat`
   blend) would otherwise fire as a damage-less punch on the next combat entry. Monster: no-op.
-- **`SetWarning(bool)` is a held bool, not a trigger.** The warning telegraph must hold for the
-  multi-second warning timer and exit cleanly, so the seam method takes a bool (not a one-shot
-  trigger). `MonsterAnimationBridge.SetWarning` writes the `IsWarning` bool animator param;
-  `MonsterAnimationDriver.SetWarning` forwards to it. `HumanoidAIAnimationDriver.SetWarning`
-  warn-logs only on `active == true` (so it logs once on warning enter, silent on the `false`
-  exit) — humanoid warning animation is deferred to the humanoid AI combat epic. `EntityBrain`
-  owns the warning *logic* (stop, face, timer, escalate) identically for both; only the humanoid
-  *animation* is stubbed. `SetBool` on a controller missing the `IsWarning` param is a silent
-  no-op in Unity, so the C# is safe to ship before the controller is wired.
+- **`SetWarning(bool)` is a held bool, not a trigger** (the telegraph holds for the warning timer):
+  `MonsterAnimationDriver.SetWarning` → `MonsterAnimationBridge` `IsWarning` bool; `HumanoidAIAnimationDriver.SetWarning`
+  is an empty no-op — the humanoid warning pose comes from `SetInCombat(true)`.
 - **Stance seam:** `TriggerStagger(int variant)` / `TriggerKnockDown()` default to `TriggerGetHit()` (monsters: GetHit
   fallback); `ClearStanceReaction()` default no-op. Humanoid → `HumanoidAnimationBridge.PlayStagger` / `PlayKnockDown` /
   `ResetStanceTriggers`. Like `ResetAttackTriggers`, these bridge methods write several parameters on purpose: one hit
@@ -86,7 +80,9 @@ Symmetric on both sides: bridge + driver.
   before any early return; it uses `HumanoidAnimationBridge.Animator` — drivers do lifecycle work on the bridge's Animator,
   only animator *parameters* are bridge-only):
   attacks play full-body on the Base Layer, so root motion would move the `Character` child away from the agent root
-  (lock-on, colliders and hitbox owners stay at the root). NPCs attack in place — no NPC attack step.
+  (lock-on, colliders and hitbox owners stay at the root). NPC swings still step forward: `EntityAttackStep`
+  (`Scripts/AI`, on `NPC_base Variant`; monsters have none) moves the root via `NavMeshAgent.Move` — see
+  `.claude/rules/attack-pipeline.md`.
 - **NavMeshAgent humanoid AI is always grounded** — `HumanoidAIAnimationDriver.DriveLocomotion`
   hard-codes `IsGrounded = true`, `IsRising = false`. Revisit if AI ever leaves the navmesh.
 
@@ -99,7 +95,7 @@ Symmetric on both sides: bridge + driver.
 | HIGH | `EntityBrain`, `EntityHealth`, or `SMB_DeathState` referencing a concrete driver/bridge type instead of `AIAnimationDriver` |
 | HIGH | `Animator.Set*` call from outside the matching bridge component |
 | HIGH | Player code routed through `AIAnimationDriver` — Player is not AI |
+| HIGH | New monster base controller whose attack state lacks `SMB_EntityAttackState` — an interrupted attack leaves the hit window open (phantom bites) |
 | MEDIUM | `HumanoidAIAnimationDriver._runSpeed` left at default `4f` on a variant whose `Entity.EngageSpeed > 4` |
 | MEDIUM | New monster `Trigger*` parameter added to `MonsterAnimationBridge` but not exposed via `AIAnimationDriver` virtual method — humanoid driver can't no-op-stub it |
-| HIGH | New monster base controller whose attack state lacks `SMB_EntityAttackState` — an interrupted attack leaves the hit window open (phantom bites) |
 | MEDIUM | `IsWarning` animator param missing on a monster controller using warning detection — `SetBool` no-ops silently, so the warning telegraph never plays (no error, no clip). Verify the param name matches exactly (case-sensitive). |

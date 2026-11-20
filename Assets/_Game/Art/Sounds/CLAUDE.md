@@ -11,8 +11,8 @@
 - `MainMixer.mixer` — Master → Music, SFX (exposed `MusicVolume`, `SfxVolume`).
 - `SFX/Cue_<Name>.asset` — one `SoundCueSO` per sound; drag the clips into its `clips` array.
 - Clips: `<category>/SFX_<Name>_<N>.<ext>` — lowercase category folders: `humanoids/` (footsteps, hurt voice),
-  `humanoids/combat/` (swings, hits, blocks, draw / sheathe), e.g. `humanoids/combat/SFX_Block_1.mp3`, no spaces.
-  The file name doesn't have to match the cue (`SFX_Male_hurt_N` → `Cue_PlayerHurt`). 3–4 takes per cue — the cue picks one at random, never the same twice
+  `humanoids/combat/` (swings, hits, blocks, draw / sheathe), e.g. `humanoids/combat/SFX_HitFlesh_1.mp3`, no spaces.
+  The file name doesn't have to match the cue (`SFX_Male_hurt_N` → `Cue_PlayerHurt`). Aim for 3–4 takes per cue (some have fewer, e.g. Draw 1, Sheathe 2) — the cue picks one at random, never the same twice
   in a row. Commit each clip with its `.meta` (let Unity import before committing).
 
 ## Import recipe (short SFX)
@@ -34,13 +34,13 @@ tone: dry, close, weighty, no music, no reverb tail unless stated.
 | `SwingHeavy` | 0.9 s | heavy two-handed greatsword swing, deep slow whoosh, weighty air displacement, dry |
 | `UnarmedSwing` | 0.4 s | quick punch swing, cloth rustle and air whoosh, short |
 | `HitFlesh` | 0.7 s | sword slash hitting flesh and leather armor, wet meaty impact, brutal, medieval combat, dry |
-| `Block` | 0.8 s | sword blocked by sword, heavy metal clang with crunch, steel on steel impact, short ring tail |
-| `PerfectBlock` | 1.2 s | perfect sword parry, sharp bright high-pitched metallic ring, clean steel ping with shimmering tail |
+| `Block` | 0.8 s | sword blocked by sword, heavy metal clang with crunch, steel on steel impact, short ring tail — *prompt only, not generated (`Cue_Block.clips` empty)* |
+| `PerfectBlock` | 1.2 s | perfect sword parry, sharp bright high-pitched metallic ring, clean steel ping with shimmering tail — *prompt only, not generated (`Cue_PerfectBlock.clips` empty)* |
 | `Draw` | 1.0 s | drawing a steel sword from a leather scabbard, metallic scrape, ending with a ring |
 | `Sheathe` | 1.0 s | sliding a steel sword into a leather scabbard, scrape ending with a soft thud |
 | `PlayerHurt` | 0.6 s | male warrior pain grunt, short, gritty, medieval, no words |
-| `WaterSplash` | 1.0 s | body plunging into a lake, heavy water splash, close mic, no reverb |
-| `WaterExit` | 1.0 s | person wading out of shallow water, water dripping and sloshing off clothes, close mic |
-| `SwimStroke` | 0.8 s | single swimming stroke, arm pulling through calm water, soft splash and swirl, close mic |
+| `WaterSplash` | 1.0 s | body plunging into a lake, heavy water splash, close mic, no reverb — *prompt only, not generated (`Cue_WaterSplash.clips` empty)* |
+| `WaterExit` | 1.0 s | person wading out of shallow water, water dripping and sloshing off clothes, close mic — *prompt only, not generated (`Cue_WaterExit.clips` empty)* |
+| `SwimStroke` | 0.8 s | single swimming stroke, arm pulling through calm water, soft splash and swirl, close mic — *prompt only, not generated (`Cue_SwimStroke.clips` empty)* |
 
 New sounds: add a row here, create `Cue_<Name>.asset`, wire it (see `Scripts/Audio/CLAUDE.md` → Where sounds are raised).
