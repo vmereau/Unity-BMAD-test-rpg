@@ -13,7 +13,8 @@ Read in full:
 
 1. `Assets/_Game/Art/ART_DIRECTION.md` — palette, *Materials Vocabulary*, banned words.
 2. `Assets/_Game/Art/UI/CLAUDE.md` — *Goal*, *Sprite Catalog*, *AI Generation*, *Prompt template*, slot
-   table, *Writing `{ELEMENT}`*, *Import Into Unity*, *Screen Catalog*.
+   table, *Writing `{ELEMENT}`*, *Import Into Unity*.
+3. `Assets/_Game/Art/UI/UI_METRICS.md` — *Screen Catalog*, *UI Metrics*.
 
 These are the single source of truth — never restate the template, the palette or the import values from
 memory.

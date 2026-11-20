@@ -141,16 +141,18 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` (+ `WEAPON_TOOLS.md`) | `_World` / `_Visual` convention, sockets, grip; topic file: Weapon Creator / Pose Tuner |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
-| Environment / ruins / camp kit | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet), look-test batch + verdict log; camp kit rules (wall modules, roofs, scale, custom Blender pieces) |
-| UI art | `Art/UI/CLAUDE.md` | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview), UI metrics, screen catalog |
+| Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`, `RUINS_LOOK_TEST.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet); topic file: look-test batch + verdict log |
+| Camp kit | `Art/Environment/Camp/CLAUDE.md` | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces) |
+| UI art | `Art/UI/CLAUDE.md` (+ `UI_METRICS.md`) | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview); topic file: UI metrics, screen catalog |
+| Inventory filter glyphs | `Art/UI/Inventory/CLAUDE.md` | Filter-glyph icon prompt and import settings |
 | Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |
 | Item icons | `Art/UI/Items/CLAUDE.md` | Icon naming/import, Gothic-style AI prompt template, `generate_image` (Gemini via OpenRouter) |
 | NPC data | `Data/NPCs/CLAUDE.md` (+ per-NPC folders) | NPC data SOs, memories, dialogue |
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
-| Character models | `Art/Characters/Humanoids/CLAUDE.md` | Character concept prompt template, Meshy → Mixamo → Unity import pipeline, player body swap, head/body split |
-| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` | Attack clip events, per-clip hit/combo timings |
+| Character models | `Art/Characters/Humanoids/CLAUDE.md` (+ `PIPELINE.md`, `HEADS_SKIN.md`) | Character concept + face portrait prompt templates; topic files: Meshy → Mixamo → Unity pipeline, body swap, head/body split; NPC heads, portrait faces, skin tones |
+| Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` (+ `BAKE_RECIPES.md`, `MESHY_PROMPTS.md`) | Attack clip events, per-clip hit/combo timings; topic file: Blender / `.anim` bake recipes |
 | Humanoid controller | `Art/Characters/Humanoids/Controllers/CLAUDE.md` | `Humanoid_Template` layers/params, SMB wiring, combo transition rules |
 
 ---

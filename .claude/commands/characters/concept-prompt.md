@@ -42,7 +42,7 @@ Reply with exactly these sections:
 2. **Back prompt** — the same with the back-view `{VIEW}`, in a fenced code block.
 3. **Attach** — which reference image(s) to attach for each prompt (image-to-image), or "none".
 4. One line reminding the next steps: Meshy image-to-3D → upload the **full zip** to Mixamo → import
-   per the *Pipeline* section (offer to do the Unity import).
+   per `Assets/_Game/Art/Characters/Humanoids/PIPELINE.md` (offer to do the Unity import).
 
 Then offer to run the generation with `generate_image` (mode `image` with the reference when a
 provider is configured).

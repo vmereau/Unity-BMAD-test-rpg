@@ -1,7 +1,7 @@
 # CLAUDE.md — Assets/_Game/Prefabs/World/Huts
 
 > Art-pass worker hut shells for the Area 1 camp, assembled from Hivemind kit pieces.
-> Kit rules (pieces, scale) live in `Art/Environment/CLAUDE.md` → *Camp Kit*; light values are the constants at the
+> Kit rules (pieces, scale) live in `Art/Environment/Camp/CLAUDE.md`; light values are the constants at the
 > top of `Editor/World/HomeYardDresser`.
 
 ---

@@ -107,7 +107,8 @@ still no glow or bloom. Template: `Art/UI/Origins/CLAUDE.md`.
 ### Characters
 Realistic adult proportions, weathered commoners rather than heroes; outfits close-fitting, layered,
 practical, muted and dirty. Role is readable from clothing (guard = functional armor, farmer = linen
-and dirt). Template + Meshy pipeline: `Art/Characters/Humanoids/CLAUDE.md` (`/characters:concept-prompt`).
+and dirt). Template: `Art/Characters/Humanoids/CLAUDE.md` (`/characters:concept-prompt`); Meshy pipeline:
+`Art/Characters/Humanoids/PIPELINE.md`.
 
 ### Props, weapons, 3D models
 Plausible real-world construction (a sword has a real crossguard and a wrapped grip), believable scale,
@@ -149,9 +150,9 @@ language: `Art/Environment/ANCIENT_CIVILIZATION.md`; templates: `Art/Environment
 |-------|-----------------------------------|---------|
 | Item icons | `Art/UI/Items/CLAUDE.md` | `/items:icon-prompt` |
 | UI sprites (slots, panels, buttons, bars) | `Art/UI/CLAUDE.md` | `/ui:create` |
-| UI filter glyphs (inventory filter tabs) | `Art/UI/CLAUDE.md` → filter glyph prompt | — |
+| UI filter glyphs (inventory filter tabs) | `Art/UI/Inventory/CLAUDE.md` | — |
 | Origin illustrations (hero in his past) | `Art/UI/Origins/CLAUDE.md` | — |
 | Character concept sheets | `Art/Characters/Humanoids/CLAUDE.md` | `/characters:concept-prompt` |
 | NPC face portraits (front + side, for portrait faces) | `Art/Characters/Humanoids/CLAUDE.md` → *Face Portrait Prompt* | `/characters:portrait-face` |
-| Ancient ruins (mood concepts, image-to-3D sheets) | `Art/Environment/CLAUDE.md` (design: `Art/Environment/ANCIENT_CIVILIZATION.md`) | — |
-| Camp kit (wall modules, roofs, custom Blender pieces) | `Art/Environment/CLAUDE.md` → *Camp Kit* | — |
+| Ancient ruins (mood concepts, image-to-3D sheets) | `Art/Environment/CLAUDE.md` (design: `Art/Environment/ANCIENT_CIVILIZATION.md`; look-test batch: `Art/Environment/RUINS_LOOK_TEST.md`) | — |
+| Camp kit (wall modules, roofs, custom Blender pieces) | `Art/Environment/Camp/CLAUDE.md` | — |
