@@ -114,8 +114,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
 | AI | `Scripts/AI/CLAUDE.md` | Entity brains, health, factions, NPC presence/memory |
-| Combat | `Scripts/Combat/CLAUDE.md` | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; `PLAYER_COMBO.md` = player attack/combo pipeline |
-| Player | `Scripts/Player/CLAUDE.md` | Cinemachine OTS setup, input map, `PlayerStateManager`, animation driver, swimming |
+| Combat | `Scripts/Combat/CLAUDE.md` (+ `PLAYER_COMBO.md`, `BOW.md`, `EXECUTE.md`) | `WeaponHitbox`, hit resolution, hitbox binding, draw/sheathe; topic files: player combo, bow aim/arrows, execute stomp |
+| Player | `Scripts/Player/CLAUDE.md` (+ `PLAYER_STATES.md`, `CAMERA.md`) | `PlayerStateManager` gates, `IsAirborne`, animation driver, lock-on; topic files: sneak / swim / stamina / stance / unconscious, Cinemachine OTS camera |
 | Progression | `Scripts/Player/Progression/CLAUDE.md` | XP / level / LP / skills event chain |
 | Inventory | `Scripts/Inventory/CLAUDE.md` | Inventory, equipment, action bar, pickups |
 | World | `Scripts/World/CLAUDE.md` | Interaction, dialogue, containers, doors/locks, `PersistentID` |

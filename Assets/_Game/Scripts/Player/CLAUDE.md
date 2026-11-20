@@ -1,6 +1,14 @@
 # CLAUDE.md — Assets/_Game/Scripts/Player
 
-> Loaded when Claude accesses files in this folder. Covers CameraController, PlayerController, PlayerAnimationDriver, PlayerStateManager, and related systems.
+> Loaded when Claude accesses files in this folder. Covers PlayerStateManager gating, PlayerAnimationDriver,
+> PlayerController velocity and LockOnSystem.
+
+## Topic files
+
+| File | Read when |
+|------|-----------|
+| `PLAYER_STATES.md` | Touching `PlayerPotionDrinker`, `PlayerSneak`, `PlayerSwimming` / `SwimRules`, `PlayerMovementStamina` / `PlayerFallDamage` / `MovementStaminaRules`, `PlayerStance`, or the unconscious flow in `PlayerHealth` |
+| `CAMERA.md` | Touching `CameraController`, `CameraRigMath` or the `CinemachineCamera` setup on the Player prefab |
 
 ---
 
@@ -19,11 +27,11 @@
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 | Aggroed | `IsAggroed` (read-only, cached per frame) | — computed: `EntityBrain.IsAnyFighting(player FactionMember)` = any active brain in Warning / Engaging / Attacking / Searching on the player, any faction. **Not** `IsInCombat` (drawn weapon) |
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
-| Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. While aiming: `PlayerController` faces the camera yaw + `PlayerConfigSO.aimStanceYaw` (45° side-on stance) with no sprint; `Game.Combat.BowAimCorrection` turns the spine onto the crosshair after the Animator (`Scripts/Combat/CLAUDE.md`); `CameraController` blends `CombatConfigSO.aimFollowOffset` / `aimFieldOfView` / `aimSensitivityMultiplier` (refs `_stateManager`, `_cinemachineCamera`). R is blocked while aiming |
+| Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. R is blocked while aiming (`PLAYER_STATES.md` → Bow aim) |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 | Swim   | `IsSwimming` (blocks attack, block, aim, R, dodge, jump, sneak) | `PlayerSwimming` → `SetSwimming(bool)` |
-| Drink potion | `CanDrink()` / `IsDrinking` (blocks attack, block, aim, R, dodge, jump, execute, sprint — walking free; inventory open allowed, not `IsBusy`) | `PlayerPotionDrinker` (Player root, `IPotionDrinker`) → `SetDrinking(bool)`; `PotionItemSO.OnUse` hands it potions (kind `Potion`), the caller consumes the item on start. Heal at `CombatConfigSO.drinkHealTime`; interrupted (potion lost before the sip) by `PlayerHealth.DamageRevision` change, incapacitated, dead, swimming, execute / scripted hold, a load. `DodgeController` checks `IsDrinking` itself; `PlayerAnimationDriver` re-pushes `IsDrinking` every frame |
-| Execute (F) | `CanExecute()` / `IsExecuting` (part of `IsBusy`); `CanContinueExecute` keeps a running stomp alive (ignores `IsExecuting`) | `PlayerExecution` → `SetExecuting(bool)` (exits sneak; flow: `Scripts/Combat/CLAUDE.md` → Execute) |
+| Drink potion | `CanDrink()` / `IsDrinking` (not part of `IsBusy`) | `PlayerPotionDrinker` → `SetDrinking(bool)` (`PLAYER_STATES.md` → Drinking) |
+| Execute (F) | `CanExecute()` / `IsExecuting` (part of `IsBusy`); `CanContinueExecute` keeps a running stomp alive (ignores `IsExecuting`) | `PlayerExecution` → `SetExecuting(bool)` (exits sneak; flow: `Scripts/Combat/EXECUTE.md`) |
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
@@ -33,83 +41,7 @@
 - `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
 - `IsInCombat` defaults to `false` — weapon is sheathed on game start.
 
-### Sneak — PlayerSneak
-
-`PlayerSneak` (Player root, implements `Game.Stealth.IStealthTarget`) owns the **Crouch (C)** toggle and
-reads Sprint/Move: Sprint held while moving → `ExitSneakToSprint()` (clears `IsSneaking`, fires
-`SneakToSprint` → `sneak to sprint` clip into running). `CanSneak() = !IsBusy && !IsAirborne && !IsDodging`
-— attacking and blocking are allowed and **never** clear sneak. The other exits live in
-`PlayerStateManager`: `SetDodging(true)`, `NotifyJumpStarted()`, `SetDead(true)` and `SetInDialogue(true)` (NPC conversations only — pickups, doors and containers keep the stance) clear `IsSneaking`
-without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking off a ledge). `PlayerController` uses `PlayerConfigSO.sneakSpeed` while sneaking.
-`PlayerSaveAdapter.Restore` forces `SetSneaking(false)` (sneak is not saved). `VisibilityPoint` = feet +
-`StealthConfigSO.standing/sneakingVisibilityHeight` (the AI line-of-sight aim point).
-
-### Swimming — PlayerSwimming (spec-water-and-swimming)
-
-`PlayerSwimming` (Player root, `[DefaultExecutionOrder(-10)]`, before `PlayerController`) finds water with one
-`OverlapSphereNonAlloc` just above the feet on `_waterMask` (layer `Water`, triggers only); surface = highest
-`collider.bounds.max.y`. No water script, no trigger callbacks (those would also fire for child hitboxes). Pure rules:
-`SwimRules` (`SwimRulesTests`). Tunables: `PlayerConfigSO` `[Header("Swimming")]`.
-
-- **Depths** = surface above the feet. Keep `swimExitDepth < swimEnterDepth <= swimFloatDepth`, or the float height
-  ends the swim at once. The shore needs no code: rising ground pushes the `CharacterController` up past the exit depth.
-- **`PlayerController`:** `ApplySwimHeight` replaces jump + gravity while swimming; speed = `swimSpeed` / `swimSprintSpeed`.
-- **Sprint:** `IsSwimSprinting` drains `swimSprintStaminaPerSecond`, consumed in whole points (`StaminaSystem.Consume` logs
-  and raises the HUD event each call). Empty → normal speed until Sprint is released.
-- **Gates:** `!IsSwimming` wraps the instance `Can*` methods; the pure `Evaluate*` signatures stay untouched. `IsAirborne`
-  stays false while swimming. `DodgeController` checks `IsSwimming` itself. `LockOnSystem` releases and refuses a lock.
-- **Weapon:** `PlayerCombat.SheatheForSwimming` ends attack / aim / block and sheathes instantly, without a clip (the
-  swim state is full-body, which hides the UpperBody sheathe).
-- `PlayerAnimationDriver` pushes `IsSwimming` **every frame**: `Refresh()` and `Rebind()` reset all parameters.
-- A dodge delays the swim until it ends. Death clears `IsSwimming`; the body sinks. Not saved: detection re-runs after a load.
-- **Stance reactions:** the driver sends `IsSwimming && !IsIncapacitated`, so a stagger / knockdown clip isn't cut by the
-  held bool. `CameraController` limits look-up to `_swimPitchMin` while swimming (the surface is invisible from below).
-- Water surface and basin recipe: `Prefabs/CLAUDE.md` → Water volumes.
-
-### Aggro movement costs & fall damage (spec-movement-stamina-fall-damage)
-
-- `PlayerMovementStamina` (Player root, `[DefaultExecutionOrder(-5)]`: after `PlayerSwimming`, before `PlayerController`):
-  while `IsAggroed`, running (Sprint + move, `CanMove`, not swimming / sneaking / aiming / drinking / dodging) drains
-  `SprintStaminaPerSecond` in whole points (`MovementStaminaRules.DrainStep`, same pattern as swim sprint); short →
-  `IsRunExhausted` → `PlayerController` drops to walk speed until Sprint is released. `TryPayJump()` (called by
-  `ApplyJump` after `CanJump` + input) charges `JumpStaminaCost` while aggroed; short → no jump, nothing spent. Out of
-  aggro both are free. Base values `PlayerConfigSO` `[Header("Aggro")]`; **modifiers go through
-  `SprintDrainMultiplier` / `JumpCostMultiplier`** (equipment / skills / stats) — never edit the config at runtime.
-- `PlayerFallDamage` (Player root, `LateUpdate`): fall = highest y since `CharacterController.isGrounded` was last true
-  − landing y; `MovementStaminaRules.FallDamage` (`[Header("Fall Damage")]` `fallSafeHeight` 11, `fallDamagePerMetre`
-  4) → `PlayerHealth.TakeUnmitigatedDamage` (no Defense, never a knockout, hurt sound, can kill). Any grounded frame ends
-  the fall — a CC counts steep terrain contacts as ground, so sliding down a face is several short falls (the goat-track
-  drop's ~10 m + ~7 m steps deal nothing). Swimming, death, unconscious, a one-frame move > 4 m **sideways or upward**
-  (never downward: a hitch mid-fall must not cancel it) and `ResetFall()` (called by `PlayerController.ResetVerticalVelocity`,
-  i.e. a load teleport) cancel it. A landing in swimmable water (`PlayerSwimming.IsInSwimmableWater` — a fast fall can hit a
-  shallow pool's floor before swim mode starts) deals nothing. Landings ≥ 2 m log their height (tuning).
-- The run debt is kept between runs (tapping Sprint never runs free); exhaustion clears on Sprint release or aggro end.
-  `PlayerSneak.IsSprintingWhileMoving` ignores an exhausted Shift (walk speed, so sneak isn't dropped).
-
-### Stance — PlayerStance (spec-player-stance-stagger-knockdown)
-
-`PlayerStance` (Player root, `Game.Combat.IStanceTarget`) runs the shared `StanceMeter` with the `CombatConfigSO`
-`[Header("Player Stance")]` settings — same rules as `EntityStance` (`Scripts/AI/CLAUDE.md` → Stance). AI hits call
-`ApplyStanceDamage` (landed) / `ApplyBlockedStanceDamage` (regular block: × `blockStanceMultiplier`, never knockdown);
-perfect block / dodge never reach it. Hyper-armor: `playerAttackStanceResistance` while `IsAttacking`. A reaction →
-`PlayerCombat.InterruptForStance()` (attack + combo ended, block lowered, PB window closed, aim stopped) then
-`PlayerStateManager.BeginStagger(variant)` / `BeginKnockDown()` (flag + exits sneak + `PlayerAnimationDriver.PlayStagger`
-/ `PlayKnockDown`); recovery → `EndStanceReaction()`. Health damage still lands while down. `SetDead(true)` clears the
-flags (and the meter refills while dead); `PlayerSaveAdapter.Restore` calls `ResetStance()` (a load mid-reaction rebinds
-the Animator). Systems outside the `Can*` gates check `IsIncapacitated` themselves: `DodgeController`, `InteractionSystem`
-(no focus / E), `ActionBarSystem.TryUseSlot`, `UIScreenManager.OpenTab` (an equip mid-reaction would swap the controller),
-`PlayerController` lock-on rotation. Hidden — no UI, not saved.
-
-### Unconscious — PlayerHealth (spec-unconscious-knockout)
-
-A 0-HP blow from a non-hostile humanoid knocks the player out (rule in `Scripts/AI/CLAUDE.md` → Unconscious): no
-`_onPlayerDied`, no death screen. `PlayerHealth.KnockOut` → `PlayerCombat.InterruptForStance()` +
-`PlayerStateManager.SetUnconscious(true)` (`IsUnconscious` is part of `IsIncapacitated` → every gate closes; clears
-block / attack / aim / sneak / stance flags; held knocked down clip) and raises `OnPlayerKnockedOut` (`GameEventSO_Void`):
-`UIScreenManager`, `ContainerUI`, `CookingUI`, `SleepUI`, `NPCTradeUI` and `DialogueSystem` close like on a death. `PlayerHealth.Update` regains HP (HUD event each
-tick), then `BeginGetUp()` (get-up clip), then `SetUnconscious(false)`. Monster / hostile hits still kill a downed player
-(`SetDead` clears the flag). Not saved: `RestoreHealth` clears it with `resetAnimator: true`. `PlayerStance` refills and
-ignores stance while unconscious.
+Per-state detail (Bow aim, Drinking, Sneak, Swimming, aggro movement costs & fall damage, Stance, Unconscious): `PLAYER_STATES.md`.
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
 
@@ -134,15 +66,7 @@ can call the driver before its `Awake` — never read `_humanoidBridge` directly
 
 ### Locomotion — Unified 2D Blend Tree
 
-The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see `Art/Characters/Humanoids/Controllers/CLAUDE.md`) uses a **single `LockOn Locomotion` state** (2D Freeform Cartesian blend tree) for all movement — there is no separate 1D free-locomotion state. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` from local-space velocity, then forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`:
-
-```csharp
-Vector3 worldHoriz = new Vector3(velocity.x, 0f, velocity.z);
-Vector3 localVelocity = transform.InverseTransformDirection(worldHoriz);
-normX = Mathf.Clamp(localVelocity.x / runSpeed, -1f, 1f);
-normZ = Mathf.Clamp(localVelocity.z / runSpeed, -1f, 1f);
-_humanoidBridge.SetMovement(normX, normZ);
-```
+The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see `Art/Characters/Humanoids/Controllers/CLAUDE.md`) uses a **single `LockOn Locomotion` state** (2D Freeform Cartesian blend tree) for all movement — there is no separate 1D free-locomotion state. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` = the Y-stripped velocity in local space ÷ `PlayerConfigSO.runSpeed`, clamped to ±1, and forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`.
 
 - **Free movement:** character faces movement direction → `localVelocity.z ≈ speed`, `x ≈ 0` → forward clips play
 - **Lock-on:** character faces target → strafing produces non-zero `x` → strafe clips play
@@ -173,79 +97,18 @@ _humanoidBridge.SetMovement(normX, normZ);
 
 ## CharacterController.velocity Includes Y Component
 
-`CharacterController.velocity.magnitude` is **never 0 when grounded** because `PlayerController` constantly applies `GROUNDED_VELOCITY = -2f` to keep the character snapped to the ground.
-
-**Always strip the Y component before feeding velocity into blend trees:**
-
-```csharp
-Vector3 worldHoriz = new Vector3(
-    _characterController.velocity.x, 0f, _characterController.velocity.z);
-```
+`PlayerController` always applies `GROUNDED_VELOCITY = -2` while grounded, so `CharacterController.velocity` is never zero —
+strip Y before feeding it into blend trees or speed checks.
 
 ---
 
-## Float Accumulation & Euler Angle Quirks (CameraController)
 
-- **Unbounded yaw:** accumulated `_yaw` must be normalized: `_yaw %= 360f;` — without this,
-  float precision degrades after extended play (thousands of degrees → sub-degree jitter).
-- **Pitch from `eulerAngles`:** Unity returns `eulerAngles.x` in [0, 360]. A −10° pitch is
-  stored as 350°. Use `Mathf.DeltaAngle(0f, eulerAngles.x)` to get a proper signed value
-  before clamping, or the pitch will snap to `_pitchMax` on the first frame.
+## Camera
+
+`CameraController`, Cinemachine OTS rig, look-up / swim / aim rig writes, teleport warp and cursor lock: `CAMERA.md`.
 
 ---
 
-## Cinemachine 3.x — Over-the-Shoulder Setup
-
-The project uses `com.unity.cinemachine` **6.6.0** (`Packages/manifest.json`) — the Cinemachine 3.x API, namespace `Unity.Cinemachine`.
-Assembly reference in `Game.asmdef`: `"Unity.Cinemachine"`.
-Components are sibling MonoBehaviours on the `CinemachineCamera` GameObject — not nested pipeline stages.
-
-Working OTS configuration (spec-third-person-camera-spring-arm):
-- **Body:** `CinemachineThirdPersonFollow` — a real orbit + spring arm around `CameraTarget` (pitch+yaw):
-  shoulder = target + yaw-heading × `ShoulderOffset (0.3, 0.5, 0)`, camera = shoulder − targetForward ×
-  `CameraDistance 4.5`, `CameraSide 1`, `VerticalArmLength 0`, `Damping (0.1, 0.25, 0.15)`.
-  - **Collision = its `AvoidObstacles` only:** `CollisionFilter` = **Default + Interactable** (257 — closed doors and
-    containers have solid Interactable colliders), `IgnoreTag Player`, radius 0.2, `DampingIntoCollision 0` (instant
-    pull-in, never clips), `DampingFromCollision 0.5` (slow ease-out). Characters, Harvestable, Water never move the
-    camera. Small props still block, but only when they sit on the pivot→camera arm (by design).
-  - The orbit puts the camera metres behind the player, so anything that measures a distance along the camera ray
-    must measure it from the player (`InteractionSystem._reachOrigin`, `Scripts/World/CLAUDE.md`).
-  - **Never add `CinemachineDeoccluder` / `CinemachineDecollider`.** The Deoccluder zoomed in on any one-frame
-    occluder (NPCs, pickups); the Decollider's Terrain Resolution casts *down from 10 m above the camera* and lifts it
-    onto any Default collider (wall tops, roofs) — the old "camera slides upward near walls" bug.
-  - Don't fake an orbit with pitch-driven `FollowOffset` changes (the old `CinemachineFollow` +
-    `LockToTargetWithWorldUp` setup did, with `_lookDownHeightRise` / `_lookDownZoomIn`) — it felt like the camera
-    sliding away from the player indoors.
-- **`CameraController` rig writes** (every `LateUpdate`, pure rules in `CameraRigMath` + `CameraRigMathTests`):
-  bow aim lerps shoulder / distance to `CombatConfigSO.aimFollowOffset` (x, y = shoulder, −z = distance, floored at
-  `MinArmDistance`); then the distance × `RigDistanceScale` (look-up shortening: 1 at level / looking down →
-  `_lookUpDistanceScale` 0.5 at `_pitchMin`, faded out by the aim blend so the short aim arm isn't halved again).
-  While swimming the upward pitch limit eases to `_swimPitchMin` (−5° ≈ 0.25 m above the surface; Water isn't a
-  collider, so this limit is the only thing keeping the camera dry) at `_swimPitchEaseSpeed`, pushing `_pitch` up with
-  it every frame (menus open too). Base shoulder / distance are read from the component in `Awake` — tune them on the
-  prefab; play-mode edits on the component are overwritten each frame.
-- **Teleports:** `CameraController.DetectWarp` calls `CinemachineCore.OnTargetObjectWarped` when `CameraTarget` jumps
-  more than `_warpDistance` (3 m) in a frame — otherwise the rig damping sweeps the camera across the map after a
-  load / spawn / story teleport. Teleport code doesn't need to notify the camera.
-- **Aim:** `CinemachineRotateWithFollowTarget` — inherits `CameraTarget` world rotation directly
-  (`CinemachineSameAsFollowTarget` is **deprecated** in the 3.x API — do not use it)
-- **Do NOT use** `CinemachineRotationComposer` for OTS — it aim-corrects toward a world point
-  and cancels the vertical pitch driven by `CameraController`
-- **Do NOT add** `CinemachineInputAxisController` or `CinemachinePanTilt` — dual input causes
-  rotation fighting with `CameraController`
-
-`CameraController.cs` owns all mouse input and writes to `CameraTarget.rotation`.
-Cinemachine reads `CameraTarget` passively — it never takes direct input.
-
----
-
-## Cursor Lock in CameraController
-
-Escape unlocks via `_input.UI.Cancel.WasPressedThisFrame()`, left-click re-locks via
-`_input.UI.Click.WasPressedThisFrame()` — the Player map has no Cancel action, so `CameraController` enables /
-disables the **UI** map alongside the Player map. Full action list: `Assets/_Game/CLAUDE.md`.
-
----
 
 ## LockOnSystem — Target Acquisition
 
@@ -269,10 +132,9 @@ target **or** player unconscious (neutral fights end in knockouts), `lockOnBreak
 | HIGH | `Animator.SetTrigger/SetBool` for humanoid player animations called outside `HumanoidAnimationBridge` — all animator calls for the player must go through `HumanoidAnimationBridge` (owner) via `PlayerAnimationDriver`'s public methods (`SetBlocking`, `PlayAttack`, `PlayDodge`, `SetInCombat`) |
 | HIGH | `CanAttack()` or `CanBlock()` returns true when weapon is sheathed — both gates require `IsInCombat == true`; test scenarios must press R before attacking |
 | HIGH | `PlayerAnimationDriver` reads `_characterController.isGrounded` directly for the animator `IsGrounded` bool — must read `!_stateManager.IsAirborne` so the coyote-time grace applies; raw `isGrounded` causes falling-clip flicker on slopes/ledges |
+| HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `Humanoid_Template`; locomotion uses `VelocityX`/`VelocityZ` only |
 | MEDIUM | Action-gating code uses `!_characterController.isGrounded` instead of `_stateManager.IsAirborne` — bypasses the coyote window and reintroduces single-frame action cancellation on slope crests |
 | MEDIUM | Code sets `_verticalVelocity` to a positive value (jump, launcher, knockback) without calling `_stateManager.NotifyJumpStarted()` — the coyote window will swallow the upward motion and delay the rising animation by `_coyoteTime` seconds |
-| HIGH | `Speed` or `IsLockedOn` animator parameters added — these do not exist in `Humanoid_Template`; locomotion uses `VelocityX`/`VelocityZ` only |
 | MEDIUM | `CharacterController.velocity.magnitude` used for animation — Y component inflates value; strip Y before normalizing |
 | MEDIUM | Accumulated angle (`_yaw`, `_angle`) without `% 360f` modulo |
 | MEDIUM | `eulerAngles` used as signed source without `Mathf.DeltaAngle` conversion |
-| MEDIUM | `Keyboard.current` / `Mouse.current` used instead of `InputSystem_Actions` action map |

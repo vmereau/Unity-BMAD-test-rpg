@@ -1,10 +1,15 @@
 # CLAUDE.md — Assets/_Game/Scripts/Combat
 
 > Loaded when Claude accesses files in this folder. Covers `WeaponHitbox`, hit resolution, how
-> `PlayerCombat` binds its hitbox, and draw/sheathe. Namespace: `Game.Combat`.
->
-> **Touching `PlayerCombat`'s attack/combo flow, `AnimationEventReceiver` or `SMB_AttackState`?**
-> Read `PLAYER_COMBO.md` in this folder first.
+> `PlayerCombat` binds its hitbox, draw/sheathe and shield blocking. Namespace: `Game.Combat`.
+
+## Topic files
+
+| File | Read when |
+|------|-----------|
+| `PLAYER_COMBO.md` | Touching `PlayerCombat`'s attack/combo flow, `AnimationEventReceiver` or `SMB_AttackState` |
+| `BOW.md` | Touching the bow: `BowSO`, aim / nock / fire in `PlayerCombat`, `SMB_BowAimState`, `BowAimCorrection`, spread (`BowSpreadMath`), `ArrowProjectile` / `ArrowFlightMath` |
+| `EXECUTE.md` | Touching `PlayerExecution`, `IExecutable`, `ExecuteMath` or the `ExecuteImpact` / `ExecuteEnd` clip events |
 
 ---
 
@@ -134,120 +139,23 @@ sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 
 Right click raises the block only with a shield **in hand**: `EquipmentVisuals.ShieldInHand` (a `ShieldSO` in the Offhand slot
 and a drawn weapon visual — fists never draw the shield). The shield is snapshotted at the raise (`_blockShield`):
-`HasEnough` / per-hit `Consume` use `ShieldSO.blockStaminaCost`, the perfect-block window is `ShieldSO.perfectBlockWindow`
-(`CombatConfigSO` no longer has block stamina / window fields). `HandleVisualsRefreshed` lowers a raised block whose shield left
+`HasEnough` / per-hit `Consume` use `ShieldSO.blockStaminaCost`, the perfect-block window is `ShieldSO.perfectBlockWindow`.
+`HandleVisualsRefreshed` lowers a raised block whose shield left
 the hand (unequipped, two-hander equipped). Every lower goes through `LowerBlock()`. Values: Round 20 stamina / 0.35 s / +3
 armor, Kite 12 / 0.2 s / +6. The block still plays the sword's `Block Idle` (no shield clip yet — `deferred-work.md`). NPC side:
 `Scripts/AI/CLAUDE.md` → Blocking.
 
 ---
 
-## Ranged — Bow (`BowSO` → `ArrowProjectile`)
+## Ranged — Bow
 
-With a `BowSO` equipped (`EquippedBow`, read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` —
-only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't block and has no hip-fire:
-
-- **Aim (spec `spec-bow-aim-draw-fire.md`):** Block started / canceled (right click) → `StartAim` / `StopAim`
-  (`PlayerStateManager.SetAiming` → `IsAiming` bool → UpperBody layer `BowDrawArrow_State` → looping `BowAim_State`).
-  `StartAim` is gated by `CanAim()`. `UpdateBowAim` ends the aim as soon as `CanAim()` fails or the bow is unequipped
-  (dodge, jump, R, menu, death, sheathed). `StopAim` also runs on an unblocked hit (`TryReceiveHit`),
-  `HandleVisualsRefreshed`, `OnDisable` and at the top of `OnDrawWeaponStarted` (R ends the aim, then switches;
-  `CanSwitchWeapon` / `CanAim` also exclude each other and a still-raised block). A held right click never resumes the
-  aim (only `Block.started` starts it).
-- **Nock:** `SMB_BowAimState.OnStateEnter` → the Animator GO's `IBowNockListener` (`AnimationEventReceiver` →
-  `OnBowAimEntered()`; NPCs: `EntityAnimationEventReceiver` → `EntityArcher`) sets `_arrowNocked` (ignored when not aiming).
-  The `bowNockTimeout` watchdog forces it if that enter is lost — a shot on a **forced** nock skips `PlayBowFire`
-  (the layer isn't in `BowAim_State`, so `BowFire` would latch and replay the release + re-nock on the next enter).
-- **Shot:** `TryAttack` requires `IsAiming && _arrowNocked`, then `TryFireBow` (returns bool). Success clears the nock
-  and fires `BowFire` (`BowFire_State` → `BowDrawArrow_State` → re-nock at the aim enter). A refused shot keeps the nock.
-  Ignored while a melee swing is still playing (`IsAttacking`).
-- **Aim correction (spec `spec-bow-aim-spine-correction.md`):** the Mixamo archer clips are side-on (clip hips +90°,
-  spine −90°), but on the masked UpperBody layer the hips come from locomotion, so no fixed body yaw lines the bow up.
-  `BowAimCorrection` (Player root, and `NPC_base Variant` root for NPC archers, `LateUpdate`) reads the same-GO
-  `IBowAimSource` (`PlayerCombat`: crosshair point on the camera ray; `EntityArcher`: target chest on the chest → target ray —
-  spec-ai-ranged-combat-style) and blends a weight toward `IsBowAiming` (`aimBlendSpeed`, unscaled — same as
-  the aim camera). It then turns Spine → Chest → UpperChest (yaw about world up, then pitch about the line's horizontal
-  right axis) so the **chest-locked arrow line** points at the source's aim point (player: same ray as the shot; false
-  without a bow or camera). Each bone takes `AimCorrectionMath.BoneStep` = what's left ÷ bones left (re-measured per
-  bone), clamped to `aimCorrectionMaxAnglePerBone`, plus one residual pass on UpperChest (the hand origin moves with
-  it). Blend is linear: `(1 − weight)` of the animated-pose delta is held back. Remaining yaw > 120° (target behind the
-  line, e.g. aim started while running at the camera) fades the correction out by 160°. Aim points closer than
-  `aimCorrectionMinDistance` past the bow are pushed out along the source's view ray. Bone writes only — no animator params.
-  Math is covered by `AimCorrectionMathTests`.
-  - **`[DefaultExecutionOrder(200)]`:** `CinemachineBrain` runs at **100** (its MonoImporter order). A tie leaves the
-    camera pose a frame stale.
-  - **No stacking:** the component caches the animated local rotations and the ones it wrote. If a bone still holds its
-    own write (the Animator didn't evaluate — paused, culled), it restores the animated pose before correcting again.
-    `OnDisable` does the same.
-  - **The arrow line is calibrated, not measured live.** A live right-hand → left-hand line swings during `Draw arrow` /
-    `Fire arrow`, when the hand goes to the quiver. `_arrowLineLocal` / `_arrowOriginLocal` = left − right hand / the right
-    hand, in UpperChest local space, from `Aim Overdraw` sampled at 50 % on the Player prefab
-    (`PrefabUtility.LoadPrefabContents` + `clip.SampleAnimation(root, t)`). Re-calibrate if the bow clips or the
-    character model change. Selected in play, the component draws the line as a cyan gizmo.
-  - Stance: `PlayerController` faces camera yaw + `PlayerConfigSO.aimStanceYaw` (45°, was `aimBodyYawOffset`); the
-    correction makes up the rest.
-
-- **Spread (spec `spec-bow-aim-spread-arrow-drop.md`):** `_aimProgress` 0 (cone `aimSpreadMaxAngle`, 4° in `Data/Config/CombatConfig.asset`; code default 5°) → 1 (0°, perfect).
-  Full until the nock; then `BowSpreadMath.StepProgress` shrinks it over `aimSpreadShrinkDuration` (1.5 s) while still, or
-  widens it back (`aimMoveWidenMultiplier` × that rate) while the CharacterController's horizontal speed >
-  `aimMoveSpeedThreshold`. Reset on `StartAim` and after every shot. Scaled time. The shot ray = `SampleCone` (uniform
-  over the disk) around the crosshair ray, through `GetAimPoint(maxDistance, spreadDeg)`, then `ClampToCone` around bow → centre point (a sampled ray grazing a near
-  edge would otherwise bend the shot far past the cone); `TryGetAimPoint` (spine correction) keeps the centre ray. The
-  camera (`AimCamera`, shared with the ring) is re-resolved lazily after a reload. `TryGetAimSpread` feeds the HUD ring (`AimSpreadUI`). Math: `BowSpreadMathTests`.
-
-Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` → ammo `CountOf > 0` (else `OnCombatNotification`
-"Out of arrows" toast) → `Consume` stamina (checked) → `TryConsume` ammo → fire. A refused shot spends nothing.
-
-- Aim = crosshair ray (`ViewportPointToRay(0.5, 0.5)`) on Default + CharacterHitbox, skipping the player's own colliders,
-  hits closer than the player along the ray (wall behind the OTS camera) and non-hurtbox triggers; no hit → `maxAimDistance`.
-  Launch origin = `EquipmentVisuals.ActiveWeaponGO`.
-- **Triggers count only on the CharacterHitbox layer** (aim and arrow) — `GetComponentInParent<IDamageable>()` on any trigger
-  would let an NPC's perception / interaction sphere take the hit.
-- Damage is snapshotted at fire time: `DamageMath.WeaponRaw(bow.damageBonus, Dexterity)` (the bow's `scalingStat`);
-  the target's armor applies on impact.
-- `ArrowProjectile`: no Rigidbody; integrates its own velocity. Straight for `BowSO.gravityDelay` (0.25 s), then
-  `ArrowFlightMath.GravityFactor` ramps `Physics.gravity × gravityScale` (0.5) in over `gravityRampTime` (0.5 s) — at
-  40 m/s ≈ 0 m drop at 10 m, 0.03 m at 20 m, 0.65 m at 40 m, 2.5 m at 60 m. Faces its velocity every frame; per-frame `SphereCastNonAlloc`
-  along this frame's displacement (closest valid hit — results are unsorted).
-  `IDamageable` → the shooter's `onHit` callback (player: `PlayerCombat.ResolveHit`, same `TryReceiveHit` / sneak rule as
-  melee; NPC archers: `EntityArcher`, faction-filtered — `Scripts/AI/CLAUDE.md` → Ranged), destroyed. Solid collider →
-  spawns `ammoItem.worldItemPrefab` kinematic at the impact pose (a normal pickup, not saved), **moved into the hit
-  collider's scene** — `Instantiate` targets the active scene (Core), where a reload would leave a duplicate arrow. **Prefab frame: root = arrow
-  tip, shaft along −Z** — `Projectile_Arrow` and `Item_Arrow` share it so the stuck arrow lines up.
+Aim, nock, shot, `BowAimCorrection`, spread and `ArrowProjectile`: `BOW.md`.
 
 ---
 
-## Execute stomp (F — `Execute` action, spec-execute-unconscious-npc)
+## Execute stomp (F)
 
-`PlayerExecution` (Player root) finishes off an **unconscious NPC** (`IExecutable`, implemented by `EntityHealth` — rules in
-`Scripts/AI/CLAUDE.md` → Unconscious). No lock-on: lock-on is hostile-only and knockouts only happen to non-hostiles.
-
-- **Target** (only while `PlayerStateManager.CanExecute()`: in combat, any weapon incl. bow; not busy / airborne / swimming /
-  attacking / blocking / aiming / dodging / switching). A focused interactable decides (`OnInteractionFocusChanged`): its
-  own `IExecutable` if in reach, else **no target**. With no focus: `OverlapSphereNonAlloc` (`executeRange` +
-  `executeScanPadding`) on CharacterHitbox, nearest in reach. In reach = `CanBeExecuted` + `ExecuteMath.IsCandidate`
-  (`executeRange` on the ground plane, `executeConeHalfAngle`) + `HasAccess` (`executeVerticalReach`, and no
-  `executeOcclusionMask` hit between the player and the chest **except the body's own colliders** — humanoid ragdoll bones
-  are solid Default colliders and the chest point lies inside them; a plain `Linecast` rejected every body).
-  `CurrentTarget` / `CurrentTargetPoint` are polled by the HUD prompt, so the `[F]` row always matches what F does.
-- **F started** → re-scan → `ExecuteMath.AlignStance` (keeps the approach bearing, or the facing when standing on the body;
-  puts `executeFootOffset` — the clip's landing foot, measured (−0.45, 0, 0.88) — on the chest) → `SetExecuting(true)`; the
-  player slides with the CharacterController and turns over `executeAlignDuration`, with `Physics.IgnoreCollision` against
-  the body's solid colliders for the whole stomp (its limbs stopped the slide short). `IsExecuting` is part of `IsBusy`;
-  dodge / E / action bar / tabs / lock-on rotation check it themselves.
-- **Kill = the `ExecuteImpact` clip event only** (`AnimationEventReceiver` → `OnExecuteImpact` → `target.Execute`). Before
-  it — checked every `Update` **and again in the event** (a hit resolved later in the frame) — cancel on: F released,
-  `!CanContinueExecute` (dead, incapacitated, held, airborne, swimming, cursor unlocked), any damage
-  (`PlayerHealth.DamageRevision` changed — a heal in the same frame can't hide it), `SaveSystem.IsLoading` (a kill during
-  the async reload would land in the restored facts), or the target no longer executable (getting up). Cancel =
-  `IsExecuting` false, 0.2 s blend out, the NPC stays down. A foot farther than `executeImpactTolerance` from the chest only
-  logs a warning (retune the offset). After the impact, release does nothing.
-- **End:** `ExecuteEnd` event, or the watchdog (`executeClipDuration` + `executeWatchdogMargin`, warns). Events earlier than
-  `executeMinEventDelay` are ignored: a just-cancelled clip blending out can still fire its impact. `PlayerAnimationDriver`
-  re-pushes `IsExecuting` every frame (a controller swap resets parameters).
-- **Verified in play (2026-11-16, StartingTown):** kill at +0.76 s, end at +1.8 s, foot 2 cm from the chest; release at
-  +0.4 s and a 5-damage hit both cancel with the NPC still down. Drive such checks with `EditorApplication.Step()` in a
-  paused editor — an unfocused editor barely ticks.
+`PlayerExecution` finishing off an unconscious NPC: `EXECUTE.md`.
 
 ---
 
