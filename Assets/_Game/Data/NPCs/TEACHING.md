@@ -146,7 +146,7 @@ When `limitStat > 0` on a StatBased choice:
 ## Chain Example
 
 ```
-Start_Trainer_Teach           isRepeatable=true, text="Teach me something"
+Start_Trainer_Teach           dialogueFact=null (repeatable), text="Teach me something"
   └─ nextNode → Text_Trainer_Teach        text="What would you like to learn?"
                   └─ nextNode → TeachChoice_Trainer_Teach
                                   ├─ choices[0]: "+2 Strength"

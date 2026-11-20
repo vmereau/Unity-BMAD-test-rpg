@@ -97,8 +97,8 @@ tweaks.
    `try { Game.Editor.Characters.SkinnedHeadVariantBaker.BakeAll(); return "baked"; } catch (System.Exception e) { return "FAIL: " + e.Message; }`
    (not in play mode). A failure → read the message (exact-join / neck UV / bind space), fix, re-export.
 3. **New head only:** assign `Data/Characters/Heads/HeadAppearance_<Name>.asset` to the NPC's `NPCEntity._head`, add the
-   pair to the shipped lists in `NpcHeadAppearanceTests.cs` / `NpcSkinToneTests.cs` (head count) and to the *Shipped*
-   list in `Humanoids/CLAUDE.md`.
+   pair to the shipped lists in `NpcHeadAppearanceTests.cs` / `NpcSkinToneTests.cs` (head count). `Humanoids/CLAUDE.md`
+   keeps no per-NPC list (it points to `Data/Characters/Heads/`): don't add one.
 
 ## Step 8 — Verify (HALT)
 
@@ -112,7 +112,7 @@ tweaks.
 ## Step 9 — Wrap up
 
 - Run EditMode tests (`run_tests`) — all must pass.
-- Docs: mark the NPC as a portrait face in the *Shipped* list of `Humanoids/CLAUDE.md`; remove it from the
+- Docs: remove the NPC from the
   "Portrait faces for the other NPCs" entry in `_bmad-output/implementation-artifacts/deferred-work.md`. Record any new
   gotcha in *NPC portrait faces → Gotchas*.
 - Summarize (deform, checks, files changed) and offer to commit with `/perso:commit`

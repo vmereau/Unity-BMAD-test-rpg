@@ -10,7 +10,7 @@
 - **Engine:** Unity 6000.6.2f1 (Unity 6.6)
 - **Render Pipeline:** URP 17.x (`Assets/Settings/PC_RPAsset`, `PC_Renderer`)
 - **Input:** Unity Input System — generated class `InputSystem_Actions` at `Assets/_Game/InputSystem_Actions.cs`; legacy input disabled
-- **Camera:** Cinemachine 3.x, third-person over-the-shoulder
+- **Camera:** Cinemachine (package 6.6.0, 3.x API), third-person over-the-shoulder
 - **Platform:** PC Windows x64 → Steam distribution
 - **Game type:** 3D RPG
 

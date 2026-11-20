@@ -26,6 +26,9 @@ Assets/_Game/Data/NPCs/
     Memories/
       Mem_<NPC>_<Topic>.asset
       ...
+    Facts/                     ← optional: facts owned by this NPC (e.g. TentMate/Facts/, BlackSmith/Facts/)
+    <other NPC-owned data>     ← optional, at the folder root: e.g. RacketGuard/TollRacket_Harl.asset (TollRacketSO),
+                                 CompanyGuard/Barks_Arrival_*.asset (BarkSetSO used by the arrival sequence)
 ```
 
 Shared dialogue used by every NPC lives in `Shared/Dialogues/` — `TheftReturn/` (`Start_TheftReturn` → `Choice_TheftReturn`
@@ -34,13 +37,9 @@ line when a caught thief still carries stolen goods — `Scripts/AI/CLAUDE.md` �
 so Quest Explorer may list it as unattributed.
 
 Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dialogue/Bark Set`, name
-`Barks_<Purpose>`) — one-liners said in speech bubbles, e.g. `Barks_SneakWarning` (referenced by
-`Data/Entities/WitnessProfile_Humanoid`), `Barks_TheftAlert` (chase bubble), `Barks_TheftScold` /
-`Barks_TheftScold_Item` (forced scold dialogue line), `Barks_TrespassAlert` (owner spots a trespasser) /
-`Barks_TrespassScold` (trespass scold line; both fall back to the theft sets when unassigned), `Barks_Woken` (a sleeper
-woken by the player, `WitnessProfileSO.WokenBarks`), and the player-relationship
-sets wired in `CombatConfig` — `Barks_HostileSight`, `Barks_FriendlyAssist`, `Barks_FriendlyWarn`,
-`Barks_FriendlyDisappointed` (`Scripts/AI/CLAUDE.md` → Player relationship). Lines never repeat twice in a row.
+`Barks_<Purpose>`) — one-liners said in speech bubbles (sneak warning, theft / trespass alerts and scolds, woken
+sleeper, knockout, player-relationship lines…). Which code reads which set is in the SOs that reference them
+(`Data/Entities/WitnessProfile_Humanoid`, `CombatConfig` — see `Scripts/AI/CLAUDE.md`). Lines never repeat twice in a row.
 
 Every `NPC_<Name>.asset` references `WitnessProfile_Humanoid` in `_witnessProfile` (reaction to a sneaking player;
 auto-assigned by `NPCEntity.Reset()` from the Create menu, **not** when created through MCP / `CreateInstance` — set
@@ -69,6 +68,8 @@ through MCP `execute_code` (`AssetDatabase.CreateAsset`) — afterwards run the 
 ## NPC Identity Check
 
 When entering any NPC subfolder, immediately check whether a `CLAUDE.md` exists inside it.
+Exempt: combat-only NPCs with no dialogue (empty `memories`, no `Dialogues/`, e.g. `Bandit/`) and the non-NPC
+folders `Barks/` and `Shared/`.
 
 - **If `CLAUDE.md` is missing or does not contain an NPC identity section:** ask the user:
   > "No NPC identity found for `<NPCName>`. Would you like me to create the folder and identity

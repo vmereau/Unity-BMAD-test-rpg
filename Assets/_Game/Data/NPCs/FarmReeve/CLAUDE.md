@@ -25,7 +25,7 @@ Fussy, precise and suspicious. Pell is a bookkeeper at heart, happier with a tal
 
 ## Relationships and Routine
 
-Answers to Warden Voss and fears being blamed for the missing grain. He is the way into the farm's work and the barn (later theft and food-reserve quests for the worker path). He stands all day outside the east door of the manager's house (`WorkSiteManagers/FarmReeve_Spot`).
+Answers to Warden Voss and fears being blamed for the missing grain. He is the way into the farm's work and the barn (the barn-theft quest `TitheBarnShortfall`, `Data/Quests/TitheBarnShortfall/`, starts with him). He stands all day outside the east door of the manager's house (`WorkSiteManagers/FarmReeve_Spot`).
 
 ## Assets
 

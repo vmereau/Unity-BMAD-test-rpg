@@ -11,7 +11,7 @@ clip", no loop toggle. **Duration is set in the Meshy UI**, not in the prompt.
 Meshy animates **without a weapon**, so nothing keeps a sword path consistent. `TwoHandGripConstraint` aims the blade
 along the 15–20 cm left-hand → right-hand line, and in the Meshy attacks that line swings behind the body and runs along
 the torso (the blade cut through the player). The rigid right-wrist pose is no better: weaponless wrists are arbitrary.
-Mirroring fixed the guard, not the cut. The 2H set went **back to Mixamo**; the v1 clips are kept untracked in
+Mirroring fixed the guard, not the cut. The 2H set went **back to Mixamo**; the v1 clips are kept (tracked) in
 `two handed/meshy test/`. Use Meshy for motions where the weapon path doesn't matter (locomotion, reactions, unarmed / NPC
 idles). Two-handed attacks need weapon-aware sources (Mixamo great-sword packs, paid packs, Blender) or a per-clip
 blade-direction track. Retry when Meshy can take a prop or a reference clip.

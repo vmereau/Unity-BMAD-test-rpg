@@ -10,7 +10,7 @@
 bridge between world state and NPC behaviour. Each memory entry:
 
 1. Declares **conditions** (world fact keys) that must be true for the memory to be active
-2. Applies **effects** while active: dialogue topics, shop modifiers, routine overrides, quest hooks
+2. Exposes its **effect** while active: one dialogue topic (`effects.startdialog`) — the only effect that exists
 
 `NPCMemoryComponent` (on the NPC prefab) holds a reference to `NPCEntity` and evaluates all
 memory entries on demand via `GetActiveMemories()`. The dialogue system queries this to build

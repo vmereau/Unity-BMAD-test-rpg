@@ -13,15 +13,14 @@
 ```
 Art/Environment/
 ├── ANCIENT_CIVILIZATION.md      — design language (pillars, forms, metrics, notation, layers)
-├── Ruins/
-│   ├── Concepts/                — image-to-3D input sheets (one object, off-white background)
-│   └── models/<piece name>/     — Meshy zip content (FBX + textures), one folder per piece
 └── Camp/
     ├── Concepts/                — image-to-3D input sheets rendered from the Blender models
     ├── Materials/               — `M_Camp_*`: URP Lit materials on kit textures, for custom camp pieces
     └── models/<piece name>/     — FBX + model prefab; `Source~/` holds the .blend (Unity ignores `~` folders)
 Art/Artworks/Ruins/              — mood concepts (full scenes). `Artworks/Starting area/Ruins.png`
                                    is the pre-design concept, kept as the "before"
+└── Concepts/                    — ruin piece image-to-3D sheets (one object, off-white background) and their
+                                   FBX (`P3 slot gateway.fbx`, hand-repaired `P3 slot gateway repaired.blend` / `.fbx`)
 ```
 
 ---
@@ -154,8 +153,7 @@ No statues, no faces, no creatures, no carved figures, no ornament, no columns, 
 ### P1 — Bored stele (simplest piece: flat faces + one circle)
 
 Target size 1.2 × 2.4 × 8.4 m. Save the image as
-`Assets/_Game/Art/Environment/Ruins/Concepts/P1 bored stele.png`, the Meshy zip content in
-`Assets/_Game/Art/Environment/Ruins/models/bored stele/`.
+`Assets/_Game/Art/Artworks/Ruins/Concepts/P1 bored stele.png` (generated), the model next to it in the same folder.
 
 ```
 Single isolated object, three-quarter view from slightly above, reference image for a 3D model, for a dark medieval fantasy RPG in the style of Gothic 1 and 2.
@@ -172,8 +170,7 @@ Plain solid off-white background, no floor, no floor shadow, no text, no frame.
 ### P2 — Ring segment (curvature + notation)
 
 Target: one seventh of a ring of 8.4 m outer radius, section 1.2 × 1.2 m. Image →
-`Assets/_Game/Art/Environment/Ruins/Concepts/P2 ring segment.png`, model →
-`Assets/_Game/Art/Environment/Ruins/models/ring segment/`.
+`Assets/_Game/Art/Artworks/Ruins/Concepts/P2 ring segment.png` (generated), model next to it in the same folder.
 
 ```
 Single isolated object, three-quarter view from slightly above, reference image for a 3D model, for a dark medieval fantasy RPG in the style of Gothic 1 and 2.
@@ -190,8 +187,8 @@ Plain solid off-white background, no floor, no floor shadow, no text, no frame.
 ### P3 — Slot gateway block (kit piece: void, thickness, fillets)
 
 Target: block 4.8 wide × 9.6 tall × 2.4 m deep, slot 1.2 × 8.4 m. Image →
-`Assets/_Game/Art/Environment/Ruins/Concepts/P3 slot gateway.png`, model →
-`Assets/_Game/Art/Environment/Ruins/models/slot gateway/`.
+`Assets/_Game/Art/Artworks/Ruins/Concepts/P3 slot gateway.png` (generated), model →
+`Assets/_Game/Art/Artworks/Ruins/Concepts/P3 slot gateway.fbx` (+ hand-repaired `P3 slot gateway repaired.blend` / `.fbx`).
 
 ```
 Single isolated object, three-quarter view from slightly above, reference image for a 3D model, for a dark medieval fantasy RPG in the style of Gothic 1 and 2.
@@ -212,12 +209,12 @@ with the reason — it is the evidence for the next template change.
 
 | ID | Tool | Verdict (keep / retry / reject) | What worked | What drifted | Change for next pass |
 |----|------|---------------------------------|-------------|--------------|----------------------|
-| M1 | | | | | |
-| M2 | | | | | |
-| M3 | | | | | |
-| P1 | | | | | |
-| P2 | | | | | |
-| P3 | | | | | |
+| M1 | | pending verdict (image generated) | | | |
+| M2 | | not generated yet | | | |
+| M3 | | not generated yet | | | |
+| P1 | | pending verdict (image generated, no model) | | | |
+| P2 | | pending verdict (image generated, no model) | | | |
+| P3 | | pending verdict (image + model generated) | | model repaired by hand in Blender (`P3 slot gateway repaired.blend` / `.fbx`) | |
 
 After the log is filled: update the templates and `ANCIENT_CIVILIZATION.md` (drop its "first pass"
 status line), then decide Meshy vs. exact modelling for the kit.

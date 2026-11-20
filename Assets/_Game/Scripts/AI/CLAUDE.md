@@ -340,7 +340,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 
 - **Opt-in by data:** `Entity._combatStyle` (`CombatStyleSO`, `Data/Entities/CombatStyles/`) + `EntityCombatTactics` on the
   root (`NPC_base Variant`). No style / no component → the plain chase-and-swing (monsters). Styles: `CombatStyle_CompanyGuard`
-  (the six guards — patient, "competent but beatable") and `CombatStyle_Bandit` (pushier).
+  (the seven Company guards, `BarnGuard` Venn included — patient, "competent but beatable") and `CombatStyle_Bandit` (pushier).
 - **Brain integration:** `HandleEngage` → `_tactics.Tick(target, distToTarget, IsAttackReady())` (the brain's **3D**
   distance — a flat one never matches the brain's range check on stairs) instead of the straight chase; enters Attacking
   only with a token on the **current** target (`HoldsAttackToken` → `WantsAttackOn(target)`) within `AttackRange`.
@@ -390,7 +390,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   dead / unconscious, `IsSwitchingWeapon`, drinking a potion, **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold),
   or **no shield in hand** (spec-shield-offhand-blocking): `NpcArmament.ShieldInHand` = a `ShieldSO` in the Offhand slot and the
   weapon drawn (`EquipmentVisuals.ShieldInHand`) — so never with fists, a bow, or without `NpcArmament`. Guards (`CompanyGuard_*`,
-  Dock / Racket / Warehouse guards, Warden) carry `Shield_KiteWoodShield`, the bandit `Shield_RoundWoodShield`
+  Dock / Racket / Warehouse / Barn guards, Warden) carry `Shield_KiteWoodShield`, the bandit `Shield_RoundWoodShield`
   (`NPCEntity._startingEquipment`). The shield's `defenseBonus` adds to `Entity.Armor` in `EntityHealth.TakeDamage`
   (`NpcArmament.ShieldArmorBonus`; body armor still doesn't count). Shield stamina / window are player-only — NPCs keep the
   style's `perfectBlockChance`. A bow swap bumps the shield into the inventory; `NpcArmament.EquipCarriedShield` re-equips it
@@ -417,7 +417,8 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
 
 - **Opt-in by data:** `CombatStyleSO` "Potions" (`drinkHealthThreshold` 0 = never; guard 0.35, bandit 0.25 but no potion) +
   `EntityPotionDrinker` on the root (`NPC_base Variant`) + a drinkable `PotionItemSO` (`IsDrunk`: kind `Potion`, not an ingredient) in the NPC `InventorySystem`
-  (the six Company guards: one `Item_Health_Potion` each, scene `_startingItems` overrides in StartingTown). Meals / raw
+  (six of the seven Company guards: one `Item_Health_Potion` each, scene `_startingItems` overrides in StartingTown;
+  `BarnGuard` (Venn) has none). Meals / raw
   food are never drunk.
 - **Decision** (`CombatTacticsRules.WantsDrink`, checked **first**, before the held-token rule — the token is given back):
   health ≤ threshold, has a potion, `DrinksUsed < maxDrinksPerFight`, off `drinkCooldown` → `BackOff` (destination past
@@ -660,7 +661,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   **`_onEquipmentChanged` / `_onVisualsRefreshed` unwired**) and `NpcArmament`, which refreshes the visuals directly.
 - **Loadout:** `NPCEntity._startingEquipment` is added to the NPC inventory and equipped in `NpcArmament.Start` (skipped on a
   corpse). Equipped items leave the inventory → not lootable. Guards (all `Faction_Company`: CompanyGuard_ArrivalLeft /
-  Right, DockGuard, WarehouseGuard, Harl, Warden) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword` + `Shield_KiteWoodShield`;
+  Right, DockGuard, WarehouseGuard, Harl, Warden, BarnGuard Venn) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword` + `Shield_KiteWoodShield`;
   the bandit carries `Weapon_HuntingBow` + `Weapon_Axe` + `Shield_RoundWoodShield` (shields equipped after weapons — see Blocking). A `BowSO` next to a melee weapon is **added to the inventory but not equipped** (fights
   start with the melee weapon).
 - **Ranged switch** (spec-ai-ranged-combat-style): `SetRanged(bool)` → `AdvanceWeaponChange` in `Update`, one step at a time,

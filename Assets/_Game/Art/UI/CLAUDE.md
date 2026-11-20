@@ -196,7 +196,7 @@ Re-measure with `UILayoutCapture.Measure` after any layout change and update thi
 | HUD | Interaction prompt | centre, ~147×61 | Auto-width card above target, key badge 32×32 |
 | HUD | Toast stack | full width, y 236, h 100 | Upper third |
 | Menus | Tab bar | 460, 31, 1000×100 | 4 tabs 243×100, font 40 |
-| Inventory | Equipment column | 92, 140, 200×800 | 7 slots 200×64 stacked (Offhand added 2026-11-17, not re-measured) |
+| Inventory | Equipment column | 92, 140, 200×800 | 7 slots 200×64 stacked — **stale**: measured with 6 slots, before Offhand was added; re-measure with `UILayoutCapture.Measure("Inventory")` |
 | Inventory | Item grid panel | 576, 140, 768×800 | Filter strip 591,154 738×52 (9 tabs 52×52, gap 6); grid 591,216, cells 80×80, gap 5 → 8 columns; Gold footer 591,902 h30 font 24 (measured 2026-10-29) |
 | Inventory | Item detail | 1440, 140, 384×800 | Header 96 (icon + name + category), price row, action buttons (Drop / Use / Equip) |
 | Container / Trade | 3 columns | x 30 / 660 / 1290, y 30, each 600×1020 | Grid · detail · grid; side headers 40 tall font 30; grids 6 columns |
@@ -231,3 +231,8 @@ re-check the owning file before relying on a count.
 | **Game menu** | Esc | Resume / Save / Load / Options / Quit, save-slot list, confirm dialog (`Screens/`) | `Panel`, `Button` |
 | **Death screen** | — | Title, Load last save / Load quicksave / Restart / Quit (`Screens/`) | `Button` |
 | **Loading** | — | Black overlay "Loading…" (`Screens/`) | none |
+| **Crafting** (cooking / smithing) | E on a station | `CookingUI`: station-materials grid, Experiment (3 ingredient slots, cooking only) / Recipes tabs, recipe rows + item card with Cook / Forge (`Scripts/Crafting/CLAUDE.md`). `UILayoutCapture` key `Crafting` | not catalogued |
+| **Main menu** | — | New Game / Continue / Load Game / Quit, shared save-slot list, confirm (`MainMenuUI`, `Scenes/MainMenu.unity`; `Screens/`) | not catalogued |
+| **Origin pick** | New Game | One button per origin, artwork, name + details, Begin (`OriginPickUI`; `Screens/`, art `Origins/`) | not catalogued |
+| **Options** | Game menu | Music / SFX volume slider rows (`OptionsUI`, Game Menu sub-panel; `Screens/`) | not catalogued |
+| **Sleep** | E on a bed | "Day N, HH:MM" header, hour picker (− / +), "Sleep until HH:00 (N h)", Sleep button, fade (`SleepUI`; `Screens/`) | not catalogued |

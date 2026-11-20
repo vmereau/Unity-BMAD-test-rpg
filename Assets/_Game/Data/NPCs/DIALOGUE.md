@@ -220,6 +220,9 @@ Start_Blacksmith_Make         dialogueFact=null (repeatable), text="What can you
                                   └─ choices[2]: "A hammer" → Text_Blacksmith_Make_Hammer (nextNode=null)
 ```
 
+The example shows the naming rule. The real chain in `BlackSmith/Dialogues/Make/` predates it
+(`Start_What_can_you_make`, `Text_Make`, `Choice_Make`, `Text_make_sword` / `_axe` / `_hammer`).
+
 ---
 
 ## Naming Conventions

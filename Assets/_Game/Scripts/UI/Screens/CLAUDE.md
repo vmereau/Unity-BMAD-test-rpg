@@ -10,7 +10,7 @@
 
 | Script | Purpose |
 |--------|---------|
-| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (P) and `SkillsToggle` (K) input actions. Manages `PlayerStateManager` state transitions and tab-button wiring. |
+| `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (P) and `SkillsToggle` (K) input actions. Reads `PlayerStateManager` (never writes it) to refuse `OpenTab` while `IsInDialogue` / `IsDead` / `IsIncapacitated` / `IsExecuting`; wires the tab buttons. |
 | `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
 | `OptionsUI` | Game Menu sub-panel (not a tab), implements `IScreenPanel` (the Game Menu owns the cursor). `MusicVolumeRow` / `SfxVolumeRow` sliders → `MusicVolumeSettings.Set` / `SfxVolumeSettings.Set` live; `OnScreenOpen` syncs the slider without notify, `OnScreenClose` flushes PlayerPrefs. Add new settings as rows that are siblings of `Title` under `OptionsUI`. |
@@ -43,7 +43,7 @@ public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills 
 2. If the requested tab is already active → close it (toggle).
 3. Otherwise → close current tab, open new tab.
 4. `OnScreenOpen()` / `OnScreenClose()` are called on the panel's `IScreenPanel` implementation.
-5. `PlayerStateManager` is set to `InMenu` when any tab is open, restored to `Idle` on close.
+5. No player state is set — `OpenTab` only reads `PlayerStateManager` (`IsInDialogue` / `IsDead` / `IsIncapacitated` / `IsExecuting` → refuse).
 
 ---
 

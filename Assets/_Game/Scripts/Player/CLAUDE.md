@@ -113,14 +113,14 @@ ignores stance while unconscious.
 
 ### IsAirborne is Coyote-Smoothed, Not Raw `!isGrounded`
 
-`PlayerStateManager.IsAirborne` is **not** `!_characterController.isGrounded` — it includes a coyote-time grace window (`_coyoteTime`, `[SerializeField]`, default `0.1s`). The property returns `false` for `_coyoteTime` seconds after `isGrounded` last returned `true`, so single-frame ungroundings on slope crests, step edges, and small ledges do not flip the player into the airborne state.
+`PlayerStateManager.IsAirborne` is **not** `!_characterController.isGrounded` — it includes a coyote-time grace window (`_coyoteTime`, `[SerializeField]`, default `0.5s`, also the `Player.prefab` value). The property returns `false` for `_coyoteTime` seconds after `isGrounded` last returned `true`, so single-frame ungroundings on slope crests, step edges, and small ledges do not flip the player into the airborne state.
 
 Consequences:
 - **`PlayerAnimationDriver.Update()` must drive the animator `IsGrounded` bool via `!_stateManager.IsAirborne`** — never query `_characterController.isGrounded` directly for animation. Doing so reintroduces the falling-clip flicker on slopes and breaks the single-source-of-truth contract.
 - **`PlayerController.ApplyGravity()` intentionally still uses raw `_characterController.isGrounded`** — gravity must engage on the actual physical ungrounding, otherwise real falls feel floaty for ~100 ms. Only the *gameplay* airborne concept (action gating + animation) gets the grace window; physics stays raw.
 - **Active jumps must call `_stateManager.NotifyJumpStarted()`** — coyote time should only forgive *passive* ungroundings (slopes, ledges). When the player jumps on purpose, `PlayerController.ApplyJump()` calls `NotifyJumpStarted()` right after setting `_verticalVelocity = jumpForce`, which expires the coyote window so `IsAirborne` becomes true on the very next frame. Without this call, the rising/fall animation is delayed by the full `_coyoteTime` window. Any future system that programmatically launches the player upward (knockback, ability, etc.) should do the same.
 - **Coyote-jump is still enabled** — `CanJump()` is evaluated *before* `NotifyJumpStarted()` is called, so the player can still jump for `_coyoteTime` seconds after walking off a ledge. If you ever want strict no-coyote-jump, change `CanJump()` alone to query raw `isGrounded`.
-- Tuning: bump `_coyoteTime` to `0.15`–`0.3s` if flicker persists on a specific slope; lower to `0.05`–`0.08s` if mid-jump actions become possible due to the grace.
+- Tuning: raise `_coyoteTime` if flicker persists on a specific slope; lower it if mid-jump actions or late ledge jumps become possible due to the grace.
 
 ---
 
@@ -196,7 +196,7 @@ Vector3 worldHoriz = new Vector3(
 
 ## Cinemachine 3.x — Over-the-Shoulder Setup
 
-The project uses **Cinemachine 3.1.6** (`com.unity.cinemachine`, namespace `Unity.Cinemachine`).
+The project uses `com.unity.cinemachine` **6.6.0** (`Packages/manifest.json`) — the Cinemachine 3.x API, namespace `Unity.Cinemachine`.
 Assembly reference in `Game.asmdef`: `"Unity.Cinemachine"`.
 Components are sibling MonoBehaviours on the `CinemachineCamera` GameObject — not nested pipeline stages.
 
@@ -228,7 +228,7 @@ Working OTS configuration (spec-third-person-camera-spring-arm):
   more than `_warpDistance` (3 m) in a frame — otherwise the rig damping sweeps the camera across the map after a
   load / spawn / story teleport. Teleport code doesn't need to notify the camera.
 - **Aim:** `CinemachineRotateWithFollowTarget` — inherits `CameraTarget` world rotation directly
-  (`CinemachineSameAsFollowTarget` is **deprecated** in 3.1.6 — do not use it)
+  (`CinemachineSameAsFollowTarget` is **deprecated** in the 3.x API — do not use it)
 - **Do NOT use** `CinemachineRotationComposer` for OTS — it aim-corrects toward a world point
   and cancels the vertical pitch driven by `CameraController`
 - **Do NOT add** `CinemachineInputAxisController` or `CinemachinePanTilt` — dual input causes

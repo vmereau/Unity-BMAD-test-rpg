@@ -1,6 +1,6 @@
 # CLAUDE.md — Assets/_Game/Scripts/UI/Dialogue
 
-> NPC dialogue overlay. Rendered on the Menus Canvas (sortingOrder above HUD).
+> NPC dialogue overlay. `DialoguePanel` is a direct `UICanvas` child (nested prefab; sibling after `Menus`, `Game` and the world-screen prefabs), not under the `Menus` canvas.
 
 ---
 

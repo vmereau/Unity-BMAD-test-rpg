@@ -12,7 +12,8 @@
 Combat/
 ├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
 ├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 (+ attack 2 refined, Blender) / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
-│                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`)
+│                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`);
+│                 `meshy test/` = rejected Meshy text-to-motion tries (`MESHY_PROMPTS.md`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
@@ -23,6 +24,7 @@ Combat/
 ├── dodge roll.fbx
 ├── Dodge back.fbx
 ├── execute stomp.fbx — clip `Execute Stomp` (player execute, see below)
+├── knocked down.fbx, getting up.fbx — knockdown fall / stand-up
 └── MESHY_PROMPTS.md — Meshy text-to-motion prompt rules, 2H templates, durations, import checklist, prompt log
 ```
 
@@ -55,8 +57,8 @@ Author/retime them with the **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`) — i
 2-step combo: `lead jab` → `2hand attack refined` (Attack_1), `Hook` → `2hand attack 2 refined` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
-**All weapon attack clips are in place** (the unarmed boxing clips are handled differently — see Unarmed below) (measured: net root XZ travel 0, body offset at most 0.63 m that returns to the start), so
-they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
+**All weapon attack clips stay in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to
+the start; the unarmed boxing clips are handled differently, see Unarmed below), so they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
 `attackSteps` start / duration in **seconds** against the clip lengths and hit windows (hit time = HitboxEnable × length).
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
@@ -69,9 +71,11 @@ strike is the overhead diagonal 0.42–0.61 (blade tip in front from 0.45).
 
 Attack_1 window from hand-speed sampling (original clip): wind-up overhead until ~0.30, downswing 0.33–0.50, follow-through to ~0.58.
 In the refined clip the blade is horizontal and in front 0.44–0.55, inside the unchanged 0.33–0.58 window.
-`ComboWindowClose` must stay **below `Attack_1_State → CombatIdle` exit time (0.81)** — a press after it spends stamina
-(×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past 0.81, which is safe only
-because the combo transition is listed first with `interruptionSource = Destination` (the outgoing exit can't cut it).
+`ComboWindowClose` must stay **below the `Attack_1_State → LockOn Locomotion` exit-time transition (≈ 0.8065)** — a press
+after it spends stamina (×2 here) on a trigger the exiting state never takes. 0.58 + the 0.42 s combo blend ends past
+0.8065, which is safe only because the combo transition (`Attack_2`) is listed **before** the exit-time transition (after
+the `IsBlocking` exit and the `AttackCancel` transitions) with `interruptionSource = Destination` (the outgoing exit
+can't cut it).
 `2hand idle` / `2hand blocking` have `loopTime` on. All 2H clips: root rotation / Y / XZ baked into pose.
 `2hand idle` (Mixamo) is a front guard like the attacks. Meshy text-to-motion replacements were tried and rejected
 (`MESHY_PROMPTS.md` → Verdict).
@@ -114,18 +118,19 @@ Custom timings tuned to each arc (faster connect, different wind-up) — **never
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `lead jab.fbx` (`lead jab`, 1.80 s, frames 0–54) | Attack_1 — left hand | 0.185 (f10) | 0.315 (f17) | 0.315 | 0.741 (f40) |
-| `Hook.fbx` (`Hook`, 1.83 s, frames **10–65**) | Attack_2 — right hand | 0.309 (f27) | 0.436 (f34) | 0.436 | 0.764 (f52) |
-| `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 0–40) | Attack_3 — left hand, finisher | 0.275 (f11) | 0.400 (f16) | — | 0.70 (f28) |
+| `lead jab.fbx` (`lead jab`, 1.80 s, frames 1–55) | Attack_1 — left hand | 0.185 (f11) | 0.315 (f18) | 0.315 | 0.741 (f41) |
+| `Hook.fbx` (`Hook`, 1.83 s, frames **11–66**) | Attack_2 — right hand | 0.309 (f28) | 0.436 (f35) | 0.436 | 0.764 (f53) |
+| `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 1–41) | Attack_3 — left hand, finisher | 0.275 (f12) | 0.400 (f17) | — | 0.70 (f29) |
 
-Spec: `spec-unarmed-combo-rework`. Frame numbers are source frames; normalized = (frame − firstFrame) / clip frames.
+Spec: `spec-unarmed-combo-rework`. Frame numbers are source frames of the Blender re-export (importer take `Scene`, numbering starts at 1);
+normalized = (frame − firstFrame) / clip frames.
 Measured on the Player rig (fist hitbox, player-local, 2026-11-16):
 
-- **lead jab** — left fist speeds up from f10 (peak 4.8 m/s at f12), full extension f14–15 at (0.20, 0.96, 0.79).
-- **Hook** — right fist swings wide from f26 (10 m/s at f28–29), crosses the front f29–33, ends at (0.25, 1.45, 0.70).
-  The first 10 source frames (slow guard-to-wind-up) are trimmed in the importer: the trimmed start has hip yaw 78°,
+- **lead jab** — left fist speeds up from f11 (peak 4.8 m/s at f13), full extension f15–16 at (0.20, 0.96, 0.79).
+- **Hook** — right fist swings wide from f27 (10 m/s at f29–30), crosses the front f30–34, ends at (0.25, 1.45, 0.70).
+  The first 10 source frames (f1–10, slow guard-to-wind-up) are trimmed in the importer: the trimmed start has hip yaw 78°,
   the lead jab's yaw at its combo window (77°), and the hit lands 0.57 s after the chain instead of 0.90 s.
-- **Uppercut** — left fist drops back f7–9, drives up f11–16 (12 m/s at f14), in front at f12–15 (z 0.36–0.65), then
+- **Uppercut** — left fist drops back f8–10, drives up f12–17 (12 m/s at f15), in front at f13–16 (z 0.36–0.65), then
   goes overhead. Its start is not trimmed: the 0.42 s combo blend covers the drop-back.
 
 **Hit event ids:** the three clips' `HitboxEnable` / `HitboxDisable` carry a string — `UnarmedLeft` (lead jab,

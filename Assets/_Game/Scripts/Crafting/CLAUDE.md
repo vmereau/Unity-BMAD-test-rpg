@@ -36,7 +36,7 @@
   null in older saves → all 0, no version bump). No event.
 - `CookingUI` counts every successful cook of a recipe's output (Recipes tab **or** a matching Experiment cook — not
   the failed dish, not a refunded craft) and shows `FormatCraftCount` ("Never cooked" / "Cooked once" / "Cooked N
-  times") in `_recipeCraftCountText` under the recipe detail.
+  times") via `CookingUI._recipeActions` → `CookingRecipeActions._craftCountText` (the recipe card's Requires block).
 
 ## Smithing (anvil)
 

@@ -40,8 +40,8 @@ Never touch `Cursor.lockState` / `Cursor.visible` / `CursorLockMode` — use `Cu
 
 ## Input
 
-UI scripts that own an `InputSystem_Actions` (`UIScreenManager`, `DialogueUI`, `ContainerUI`,
-`NPCTradeUI`, `CookingUI`) follow one lifecycle:
+UI scripts that own an `InputSystem_Actions` (`UIScreenManager`, `MainMenuUI`, `SleepUI`, `DialogueUI`,
+`ContainerUI`, `NPCTradeUI`, `GiveItemUI`, `CookingUI`) follow one lifecycle:
 
 - create it in `Awake`; enable maps + subscribe in `OnEnable`; unsubscribe in `OnDisable`;
   **`Dispose()` in `OnDestroy`** so input survives disable/re-enable cycles;
@@ -74,4 +74,4 @@ Action names (Cancel, Click, DialogueOption*, toggles): `Assets/_Game/CLAUDE.md`
 | MEDIUM | `CanvasScaler` added to `UICanvas` — every fixed-pixel HUD layout would rescale |
 | MEDIUM | `GetComponent*` in `Update` — cache in `Awake` |
 | MEDIUM | Game-state polling in `Update` instead of a `GameEventSO` subscription |
-| LOW | `new WaitForSeconds()` inside fade coroutines — cache instances |
+| LOW | `new WaitForSeconds()` inside fade coroutines — cache per instance only, never in a `static` / shared field (concurrent coroutines would share one deadline — see `HUD/CLAUDE.md` toasts) |

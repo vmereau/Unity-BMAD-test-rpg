@@ -187,7 +187,7 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
   - Stance: `PlayerController` faces camera yaw + `PlayerConfigSO.aimStanceYaw` (45°, was `aimBodyYawOffset`); the
     correction makes up the rest.
 
-- **Spread (spec `spec-bow-aim-spread-arrow-drop.md`):** `_aimProgress` 0 (cone `aimSpreadMaxAngle`, 5°) → 1 (0°, perfect).
+- **Spread (spec `spec-bow-aim-spread-arrow-drop.md`):** `_aimProgress` 0 (cone `aimSpreadMaxAngle`, 4° in `Data/Config/CombatConfig.asset`; code default 5°) → 1 (0°, perfect).
   Full until the nock; then `BowSpreadMath.StepProgress` shrinks it over `aimSpreadShrinkDuration` (1.5 s) while still, or
   widens it back (`aimMoveWidenMultiplier` × that rate) while the CharacterController's horizontal speed >
   `aimMoveSpeedThreshold`. Reset on `StartAim` and after every shot. Scaled time. The shot ray = `SampleCone` (uniform

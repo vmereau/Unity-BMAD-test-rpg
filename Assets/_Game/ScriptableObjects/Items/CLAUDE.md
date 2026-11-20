@@ -19,7 +19,7 @@ ItemSO                              (base — any item in the inventory)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
     │   ├── SwordSO                 (Weapons/SwordSO.cs — every melee weapon)
     │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/CLAUDE.md)
-    ├── ArmorSO                     (occupies Helmet/Armor/Ring1/Necklace slots)
+    ├── ArmorSO                     (Helmet/Armor/Necklace slots; a ring asset uses `slot = Ring1` and equips to Ring1 or Ring2 — `EquipmentRules`)
     └── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
@@ -28,7 +28,7 @@ WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArch
 
 All types live in namespace `Game.Inventory`.
 
-**`WeaponSO` is abstract** (Story 7.10) — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
+**`WeaponSO` is abstract** — `ScriptableObject.CreateInstance<WeaponSO>()` will return null. Always instantiate a concrete subclass (e.g. `SwordSO`).
 
 **New weapon family = new `WeaponArchetypeSO` asset** in `Data/Items/Weapons/Archetypes/` (drawn hand, grip poses, Hip/Back
 sheath socket, animator override, default combo steps) — no code. Add a new `XxxSO : WeaponSO` class only when
@@ -40,8 +40,13 @@ class name no longer determines the family. See `Prefabs/Items/Weapons/CLAUDE.md
 the standard `Weapon_<Name>` (bought / looted). Both keep the **same `itemName`** — `IsForged` → detail category
 "Weapon · Forged" tells them apart, and the bonus is simply the higher Damage value (no extra comparison row). The
 smithing recipe outputs the forged one. Both share the `_Visual`
-prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (10) /
-`Weapon_ShortIronSword_Forged` (14), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
+prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `Weapon_ShortIronSword` (12) /
+`Weapon_ShortIronSword_Forged` (16), `Prefabs/Items/Weapons/Swords/ShortIronSword/`.
+
+**`WeaponSO` fields** (`WeaponSO.cs`): `archetype`, `damageBonus` (base damage; raw hit = it + the wielder's
+`scalingStat`, 1:1), `scalingStat` (Strength for melee, Dexterity for bows), `baseWeapon` (forged → standard
+counterpart), `comboSteps`, `animatorOverrideController`, `stanceDamage` (0 = archetype), `knockDown`
+(`KnockDownOverride`: Archetype / Yes / No).
 
 **Weapon-level overrides win over the archetype:**
 - `ResolvedComboSteps` = `comboSteps` if > 0, else `archetype.defaultComboSteps` (min 1), else `WeaponSO.DEFAULT_COMBO_STEPS` (2).
@@ -63,12 +68,15 @@ prefab; each has its own `_World` variant (its `ItemPickup._item`). Example: `We
 
 | Field | Type | Purpose |
 |---|---|---|
+| `itemId` | `string` | Stable save ID — auto-generated, never edit. Clear it on a duplicated asset so it regenerates |
 | `itemName` | `string` | Display name in UI |
 | `description` | `string` | Shown in detail panel |
 | `icon` | `Sprite` | Inventory slot + detail panel icon |
 | `maxStacks` | `int` | Max units per inventory slot (default 1 = non-stackable) |
 | `IsStackable` | `bool` (computed) | `true` when `maxStacks > 1`; drives stacking logic in `InventorySystem` |
 | `worldItemPrefab` | `GameObject` | Prefab spawned when the item is dropped |
+| `buyValue` | `int` | Price the player pays a trader (default 1) |
+| `sellValue` | `int` | Price a trader pays the player (default 1) |
 | `isCraftingMaterial` | `bool` | Smithing material (`Item_IronIngot`): the only items an anvil's grid lists. Detail category **Crafting Material** (after the ingredient rule) |
 | `isQuestItem` | `bool` | Quest item: detail category **Quest Item** (wins over every other rule), Misc filter tab. It can't be sold (`NPCTradeUI.SellItem`), dropped (`InventoryUI.DropItem`), put into a container (`ContainerUI.PutItem`) or bound to the action bar (`ActionBarSystem.Assign`); the matching buttons are hidden. It only leaves the player through a dialogue choice's `requiredItem`. One rule: `ItemSO.CanPlayerPart`. Example: `Data/Items/Quest/Item_Notice_*` (Warden's errand), `sellValue` 0, no world prefab |
 | `isIngredient` | `bool` | Accepted by the cooking Experiment slots and the only items the cooking grid lists (`Scripts/Crafting/CLAUDE.md`). A flag, not a subclass: any item type (raw food `PotionItemSO`, future non-edible ingredients) can be one. Its detail category is **Ingredient**, whatever the class. Never set it on a cooked meal |
@@ -244,7 +252,7 @@ skipped (`GameLog` warning). Prefab requirements and drop physics: `Prefabs/Item
 | Severity | Pattern |
 |---|---|
 | HIGH | New `UsableItemSO` subclass returns `true` from `OnUse` when the use actually failed — item will be consumed incorrectly |
-| HIGH | `worldItemPrefab` left unassigned on a droppable item — drop silently no-ops |
+| HIGH | `worldItemPrefab` left unassigned on a droppable item — `InventoryUI.DropItem` refuses the drop (`GameLog.Warn`, item kept) |
 | MEDIUM | New item type with numeric fields but no category/stat rows in `ItemDetailFormatter` (+ `ItemDetailFormatterTests`) — detail panel shows only the generic rows. `ItemDetailPanelUI` has no per-type code; never add cases there |
 | MEDIUM | `OnUse` calls `GetComponent` on `user` without a null guard — logs no error if component is missing |
 | MEDIUM | New stackable item type (`maxStacks > 1`) without verifying `worldItemPrefab` has `ItemPickup` + `Rigidbody` — dropped items must be re-pickable |

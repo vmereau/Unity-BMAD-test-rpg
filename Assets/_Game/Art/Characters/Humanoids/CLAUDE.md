@@ -14,9 +14,9 @@ not for beauty. Art direction comes from `Art/ART_DIRECTION.md` (realistic, dark
 muted earthy palette, grounded and worn). Keep every line **verbatim** — only `{VIEW}`, `{OUTFIT}`
 and the optional reference line change.
 
-**Base hero (first test, 2026-10-09):** front / back views in `models/`
+**Base hero:** front / back views in `models/`
 (`test hero front view.png`, `test hero back view.png`) → `models/test base hero/` (current player body).
-Generated with Gemini 2.5 Flash Image, free tier.
+Generated with Gemini 2.5 Flash Image.
 
 ### Prompt template
 
@@ -120,7 +120,7 @@ Plain solid light gray background, no text, no frame.
 
 The player body is the `Character` child of `Prefabs/Player/Player.prefab` (see `Prefabs/Player/CLAUDE.md`).
 To swap: instantiate the new FBX as `Character`, move the hand-added sockets (`WeaponSocket` +
-`UnarmedHitbox`, `UndrawnWeaponSocket`, `BackWeaponSocket`, `HelmetSocket`) to the same-named bones with
+`UnarmedHitbox`, `LeftWeaponSocket` + `UnarmedHitbox_L`, `UndrawnWeaponSocket`, `BackWeaponSocket`, `HelmetSocket`) to the same-named bones with
 the same local offsets, set the root `Animator.avatar` and `EquipmentVisuals._bodyRenderer`, delete the
 old `Character`. The dev tool `Game/Dev/Wire EquipmentVisuals on Player Prefab` still looks for
 `Beta_Surface` — don't run it on a swapped body.
@@ -204,9 +204,9 @@ body; hair, beard, eyes and ink keep their colour.
 Landmarks (game metres, face toward −Y in Blender): seam 1.585, chin underside ≈ 1.595, mouth 1.635, nose tip 1.68,
 iris centres x ±0.0353 / z 1.7197 (r ≈ 3 mm), brows z 1.735, crown 1.86; side of the neck x ≈ 0.062 at y 0–0.03,
 z 1.60–1.64 (the Company collar hides everything below z ≈ 1.615 from the side: keep a neck decal above it).
-Shipped (13): Warden (portrait face), Cook, Blacksmith, TentMate (portrait), Tam (portrait), Brann, Storekeeper (portrait), Harl, DockGuard, GuardLeft /
-GuardRight (`CompanyGuard_ArrivalLeft` / `Right`), WarehouseGuard, Bandit. Company brand on the five rank-and-file
-guards (Harl, DockGuard, both arrival guards, WarehouseGuard), not on the Warden (officer).
+Shipped heads: the `HeadAppearanceSO` assets in `Data/Characters/Heads/` (who uses which: `NPCEntity.Head` / `_head`).
+Several NPCs can share a head's mesh / material (17 assets, 13 distinct meshes — e.g. a placeholder copy until
+`/characters:portrait-face`). Company brand only on the rank-and-file guards' heads, not on the Warden (officer).
 
 Gotchas:
 - Frozen = within 12 mm of any vertex at or below the seam (distance-based; the chin overhangs the neck).
@@ -238,7 +238,7 @@ Run it end to end with `/characters:portrait-face [NPC]` (prompts → landmarks 
 
 Fixes the "same man, different hair" look: the face's eyes, nose, lips and skin come from a portrait instead of the
 shared Meshy texture, and its shape follows the portrait's landmarks. Same neck contract and bake as the head variants
-above. Pilot: Warden, Tam, Storekeeper; then TentMate (Old Hobb).
+above.
 
 1. **Portraits:** prompts from *Face Portrait Prompt* above (the filled `{FACE}` lines are kept in `refs/PROMPTS.md`);
    the user generates `refs/<name>_front.png` and `refs/<name>_side.png` (side made image-to-image from the front),
@@ -308,9 +308,8 @@ Skin colour is a shader parameter, not a texture: no per-tone textures or materi
   of tones then works on it.
 - **Tones:** `SkinToneSO` (`Data/Characters/SkinTones/Tone_*`: Fair `#CFA58A`, Olive `#B08A66`, Weathered `#A8704E`, Deep
   `#5A3A28`) on `NPCEntity._skinTone`. Runtime: `NpcSkinTone` (on `NPC_base Variant`) → `SkinToneMaterials` (static cache,
-  one material copy per source × tone, SRP Batcher-safe). Shipped: Tam Fair, Brann Olive, Storekeeper Deep, Harl Weathered,
-  DockGuard Fair, CompanyGuard_ArrivalLeft Fair, CompanyGuard_ArrivalRight Olive, WarehouseGuard Deep, Bandit Weathered.
-  Warden, Cook, Blacksmith and TentMate are untoned (their heads are toneable).
+  one material copy per source × tone, SRP Batcher-safe). Which NPC uses which
+  tone: `NPCEntity.SkinTone` / `_skinTone` on each `NPC_*.asset` (null = untoned; every baked head is toneable).
 - **Verify:** `Tools/Blender/verify_skin_tones.cs` → `Temp/SkinTones/` (untoned diff must be 0).
 
 Gotchas:

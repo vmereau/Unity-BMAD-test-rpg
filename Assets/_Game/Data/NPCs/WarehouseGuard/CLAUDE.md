@@ -73,6 +73,6 @@
 |-------|------|
 | NPCEntity | `Assets/_Game/Data/NPCs/WarehouseGuard/NPC_WarehouseGuard.asset` |
 | KilledFact | `Assets/_Game/Data/Enemies/StartingTown/Generic/KilledFact_WarehouseGuard.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/WarehouseGuard/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/WarehouseGuard/Memories/` |
+| Dialogues | none yet |
+| Memories | none yet |
 | Scene instance | `StartingTown.unity` → `WarehouseGuard` (`NPC_base Variant`) |

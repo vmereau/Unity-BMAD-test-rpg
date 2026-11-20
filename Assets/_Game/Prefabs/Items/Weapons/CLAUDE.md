@@ -6,7 +6,8 @@
 
 ## Two-Prefab Convention
 
-Each weapon lives in its own folder and ships as **two prefabs**:
+Each weapon lives in its own folder and ships as **two prefabs**. The Weapon Creator writes `{Family}/{Name}/`
+(below); the `Swords/SwordBase/` example is a legacy hand-made folder kept for its GUID (see GUID Note):
 
 ```
 Swords/SwordBase/
@@ -164,7 +165,7 @@ Drawn mode the `Drawn` hitbox box is drawn in orange.
 ## GUID Note — SwordBase_Visual.prefab
 
 The `.meta` GUID for `SwordBase_Visual.prefab` is manually crafted (`d5e6f7a8b9c0d1e2f3a4b5c6d7e8f901`) and
-`Weapon_TestSword.equipVisualPrefab` references its root GO by fileID `100000000`. **Never delete this `.meta`
+`Weapon_TestSword`, `Weapon_ShortIronSword` and `Weapon_ShortIronSword_Forged` (`equipVisualPrefab`) reference its root GO by fileID `100000000`. **Never delete this `.meta`
 file or re-create the prefab** — edit it in place (`PrefabUtility.LoadPrefabContents` / `SaveAsPrefabAsset` on
 the same path). Otherwise the reference silently breaks (weapon shows the placeholder cube with no error).
 

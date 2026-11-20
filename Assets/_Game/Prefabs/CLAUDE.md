@@ -22,6 +22,10 @@
 | `World/Beds/` | Beds (multi-look) — contract below |
 | `World/Huts/` | Art-pass worker hut shells built from kit pieces (generated; own `CLAUDE.md`) |
 | `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
+| `World/Containers/` | `Base_Container` |
+| `World/Doors/` | `Door Base`, `Simple door`, `Poor small door` |
+| `World/House`, `World/VillageHouse` | Loose house prefabs |
+| `Combat/` | `Projectile_Arrow` (bow projectile — `Scripts/Combat/CLAUDE.md`) |
 | `World/Tent_Graybox` | Placeholder worker tent (BanditVillage tarp, sacks, log). All camp tents are instances, so real art is one prefab swap |
 
 ---
@@ -30,7 +34,9 @@
 
 | Layer | Used for | Who queries it |
 |-------|----------|----------------|
-| **Characters (6)** | Root of every entity | `LockOnSystem` (`m_Bits: 64`) |
+| Player (3) | `Player.prefab` root | — |
+| Water (4) | `Water_Volume` roots (trigger box) | `PlayerSwimming._waterMask` (`m_Bits: 16`) |
+| **Characters (6)** | Root of every entity | `LockOnSystem._lockOnLayerMask` (`m_Bits: 192`: layers 6 + 7) |
 | **CharacterHitbox (7)** | Hurtboxes: trigger collider on a child (`Hitbox` / `HitBox`) | `WeaponHitbox` sweeps (`QueryTriggerInteraction.Collide`) |
 | **Interactable (8)** | World item roots, entity `InteractionCollider` children, containers/doors | `InteractionSystem` raycast |
 | **Harvestable (9)** | Harvestable roots (plants, …) | `InteractionSystem` raycast (Player `_raycastMask` = 768: layers 8 + 9) |
@@ -90,7 +96,7 @@ New lake recipe:
 - `_onSleepRequested` (`OnBedSleepRequested`) is set on the base, so every look inherits it. Beds are stateless — no
   `SaveableObject` / save ID.
 - `Bed_WoodBed_01a` = HouseForge `SM_WoodBed_01a` (in the `HDRP (Default)` folder, but `S_MasterORM` has a URP target;
-  long axis = local X). No longer placed in a scene; kept as the richer look.
+  long axis = local X).
 - `Bed_WorkerPallet` = the laborer's bed modelled in Blender (`Art/Environment/Camp/models/worker bed/`,
   `WorkerBed_Model.prefab` = FBX + one solid box). 2.0 × 0.9 m, long axis = local X, **pillow at +X**, the straw tear
   on +Z. Instance `Bed` in the player's hut in StartingTown. Hobb's hut uses the bare model, so it is not a second

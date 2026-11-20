@@ -72,6 +72,6 @@
 |-------|------|
 | NPCEntity | `Assets/_Game/Data/NPCs/DockGuard/NPC_DockGuard.asset` |
 | KilledFact | `Assets/_Game/Data/Enemies/StartingTown/Generic/KilledFact_DockGuard.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/DockGuard/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/DockGuard/Memories/` |
+| Dialogues | none yet |
+| Memories | none yet |
 | Scene instance | `StartingTown.unity` → `DockGuard` (`NPC_base Variant` + `NpcRoutine`) |
