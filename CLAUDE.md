@@ -131,7 +131,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Stealth | `Scripts/Stealth/CLAUDE.md` | `IStealthTarget`, `StealthDetection` formula, `StealthConfigSO`, detection gizmos + F3 overlay |
 | Rendering | `Scripts/Rendering/CLAUDE.md` | `InteractionOutlineFeature` (URP RenderGraph), `Outline` rendering layer, outline shaders |
 | Dev tools | `Scripts/Debug/CLAUDE.md` | `Game.DevTools` namespace rule, respawn scaffolding |
-| UI | `Scripts/UI/CLAUDE.md` (+ `Dialogue/`, `HUD/`, `Inventory/`, `Quest/`, `Screens/`, `Skills/`) | Canvas, cursor, UI input lifecycle; HUD (incl. toasts), screens, dialogue, quest UI, skills tab |
+| UI | `Scripts/UI/CLAUDE.md` (+ `Crafting/`, `Dialogue/`, `HUD/`, `Inventory/` (+ `CONTAINER_TRADE.md`), `Quest/`, `Screens/`, `Skills/`) | Canvas, cursor, UI input lifecycle, `IScreenPanel` contract, drag ghosts; HUD (incl. toasts), screens, dialogue, inventory / container / trade, quest UI, skills tab |
 | Prefabs | `Prefabs/CLAUDE.md` | Layer rules + index of the prefab-family files below |
 | Player prefab | `Prefabs/Player/CLAUDE.md` | Player hierarchy, camera/audio ownership, sockets, hurtbox |
 | UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |

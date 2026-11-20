@@ -1,7 +1,8 @@
 # CLAUDE.md — Assets/_Game/Scripts/UI
 
 > Loaded when Claude accesses files in this folder. Project rules shared by all UI scripts.
-> Sub-folder CLAUDE.md files cover each UI subsystem; the `UICanvas` hierarchy is in `Prefabs/UI/CLAUDE.md`.
+> Sub-folder CLAUDE.md files (`HUD/`, `Inventory/`, `Crafting/`, `Quest/`, `Skills/`, `Dialogue/`, `Screens/`) cover
+> each UI subsystem; the `UICanvas` hierarchy is in `Prefabs/UI/CLAUDE.md`.
 
 ---
 
@@ -11,7 +12,7 @@
 |--------|--------------|
 | `HUD/` | Health / stamina / XP bars, action bar, interaction prompt card, notification toasts |
 | `Inventory/` | Inventory grid, item detail panel + formatter, equipment, container (incl. loot) and trade screens |
-| `Crafting/` | Cooking / smithing screen (`CookingUI` Experiment / Recipes tabs, smithing = Recipes only, ingredient reference slots, recipe rows, recipe item card + `CookingRecipeActions`, inventory-grid adapter) — see `Scripts/Crafting/CLAUDE.md` |
+| `Crafting/` | Cooking / smithing screen (`CookingUI` Experiment / Recipes tabs, smithing = Recipes only, ingredient reference slots, recipe rows, recipe item card + `CookingRecipeActions`, inventory-grid adapter) — see `Scripts/UI/Crafting/CLAUDE.md` |
 | `Quest/` | Quest log screen, quest list / info panels |
 | `Skills/` | Skills tab: skill list, skill detail panel + formatter |
 | `Dialogue/` | NPC dialogue panel, topic / choice display, keyboard shortcuts |
@@ -38,6 +39,17 @@ Never touch `Cursor.lockState` / `Cursor.visible` / `CursorLockMode` — use `Cu
 
 ---
 
+## IScreenPanel Contract
+
+Every panel in the tab bar implements `IScreenPanel` (`Screens/IScreenPanel.cs`: `OnScreenOpen()` / `OnScreenClose()`,
+called by `UIScreenManager` when the tab becomes active / is dismissed); the world screens `ContainerUI` / `NPCTradeUI`
+implement it too.
+
+- `OnScreenOpen()` is responsible for calling `CursorManager.Unlock()`; `OnScreenClose()` for `CursorManager.Lock()`.
+- Do **not** call `SetActive` inside the panel — `UIScreenManager` handles panel root activation.
+
+---
+
 ## Input
 
 UI scripts that own an `InputSystem_Actions` (`UIScreenManager`, `MainMenuUI`, `SleepUI`, `DialogueUI`,
@@ -56,7 +68,7 @@ Action names (Cancel, Click, DialogueOption*, toggles): `Assets/_Game/CLAUDE.md`
 
 - Subscribe to `GameEventSO<T>` channels in `OnEnable` / unsubscribe in `OnDisable` — never in `Start`
   (missed first raises) and never poll game state in `Update`.
-- Drag & drop ghosts are parented to the root Canvas with `raycastTarget = false` (otherwise they block the
+- Drag & drop ghosts (`ItemSlotUI`, `ActionBarSlotUI`, …) are parented to the root Canvas with `raycastTarget = false` (otherwise they block the
   drop target) and destroyed by whichever of `OnEndDrag` / `OnDrop` runs, null-guarded — **and in the slot's `OnDisable`**
   (`OnEndDrag` never reaches a slot disabled / destroyed mid-drag, so the ghost would leak).
 - Text is `TMP_Text` only.

@@ -17,14 +17,13 @@
 ## DialogueUI Architecture
 
 - **Three display states** (`DisplayState` enum): `Topics` (initial topic list), `Text` (NPC response), `Choices` (branching choice buttons).
-- Subscribes to `InputSystem_Actions` in `OnEnable`/`OnDisable`; disposes in `OnDestroy`.
-- `_input` is initialized in `Awake` — the `OnDisable` null guard is **required** (see root `CLAUDE.md`).
+- Input lifecycle (`InputSystem_Actions`) and cursor (open → `Unlock`, close → `Lock`): `Scripts/UI/CLAUDE.md`.
 - Topic buttons are instantiated from `_topicButtonPrefab` into `_topicsContainer`; destroyed and recreated each time the topic list refreshes.
 - Keyboard slots 1–9 and 0 map to choices via `_slotCallbacks[1..10]`; index 0 is unused. One `HandleSlot` handler serves all ten `DialogueOption*` actions (`_slotActions`). Options past slot 10 are still shown, unnumbered and click-only; **Farewell / Leave are always added** so the player can't be trapped — including a `[Leave]` on a choice node whose options were all filtered out by memory gates.
 - **Single advance path (Text state):** click, key 1, `UI/DialogueAdvance` (Space / Enter / Numpad Enter / E) and `_nextNodeButton` all go through `TryAdvance()` — first press completes a running typewriter reveal, the next runs `_slotCallbacks[1]` (the per-node advance action). Don't wire per-node listeners on `_nextNodeButton`; set `_slotCallbacks[1]`.
 - **Input grace:** `SetState` (and completing a reveal) stamps `_shownAt`; keys, clicks and option buttons are ignored for `_inputGrace` (0.2 s, unscaled) after it. Escape is not gated.
 - `_nextNodeButton` navigation is forced to **None** in `Awake`: a selected button would get the UI module's Submit (Enter) in the same frame as `DialogueAdvance` and skip a line.
-- **One node = one window:** Text state shows only the current node's line in `ResponseText` (no history, no echo of the player's pick — a faded history was tried and removed as hard to read). Choices / Teach show the NPC prompt above the options.
+- **One node = one window:** Text state shows only the current node's line in `ResponseText` (no history, no echo of the player's pick). Choices / Teach show the NPC prompt above the options.
 - **Choice prompt = text-node line:** `Choice Text` copies `ResponseText`'s style (parchment, size 25; Ellipsis so a >4-line prompt can't draw over the rows; no `ContentSizeFitter` — `ContentArea` VLG, spacing 10, sizes it) and is typed out by the same reveal (`StartReveal(target, line)`, `_revealText`). While it reveals, the option rows are hidden via a `CanvasGroup` on `TopicsScrollView` (alpha 0, no raycasts); number keys, `DialogueAdvance` and panel clicks only complete the reveal (`SkipReveal` → `MarkShown`); a natural completion in `Update` also calls `MarkShown`, so the grace always applies once the rows appear. `CompleteReveal` always re-shows the rows (`ClearContents` relies on it).
 - **Option list scroll:** `TopicsScrollView` ScrollRect sensitivity 30, thin brass `Scrollbar` (6 px, transparent track, `AutoHideAndExpandViewport`, spacing 4), `LayoutElement.minHeight` 100; `SetState` force-rebuilds `TopicsContent` and resets it to the top on every new list; `ClearTopicButtons` deactivates rows before `Destroy` (deferred) so stale rows don't count in that frame's bounds.
 - **Option rows:** every label goes through `DialogueOptionFormat.Label`. Topics are ordered unseen → seen (`OrderUnseenFirst`), numbered in display order; choices keep authored order. Seen = `DialogueSystem.IsTopicSeen` / `IsChoiceSeen` (persisted, set on **pick** in `StartTopic` / `SelectChoice(choice, node)` — always pass the node). Trade / Teach-tagged options and teach choices are never dimmed. Teach rows use `GetTeachCostShortfall` for the red cost parts.
@@ -43,21 +42,20 @@
   is open `IsInputAllowed` is false. After a give whose choice ends the chain, `DialogueSystem` calls the public `RestoreTopics()`.
 - **Forced line** (`OpenLine(npcName, line)`, NPC-initiated, e.g. a theft scold): opens straight in `Text` with no topic list; `_forcedLine` makes click, slot 1, `_nextNodeButton` and Escape all call `DialogueSystem.Close()`. Reset by `Open()` / `Close()`.
 
-## Cursor
-
-- Opens panel → `CursorManager.Unlock()`.
-- Closes panel → `CursorManager.Lock()`.
+---
 
 ## Dependencies
 
 - `DialogueSystem` — provides `StartDialogueNode[]` and drives state transitions.
 - `GameEventSO` channels for dialogue open/close wired via `DialogueSystem`.
 
+---
+
 ## Gotchas
 
 - `_cachedStartNodes` defaults to `Array.Empty<StartDialogueNode>()` — safe to iterate before any dialogue loads.
 - `_nextNodeButton` advances text-state nodes; it is shown/hidden depending on `DisplayState`.
-- `ClearContents()` hides `_choiceNodeText` — every Choices-state method must re-show it via `ShowChoicePrompt()` (teach nodes once rendered with their NPC text invisible).
+- `ClearContents()` hides `_choiceNodeText` — every Choices-state method must re-show it via `ShowChoicePrompt()`.
 - The key that closes a dialogue fires in an input callback **before** `Update`, with the cursor already relocked — `PlayerStateManager.DialogueEndedThisFrame` (part of `IsBusy`, also checked by `InteractionSystem`) stops it from jumping, attacking or re-interacting that frame.
 - Typewriter uses TMP `maxVisibleCharacters` with `ForceMeshUpdate(true)` to count characters (rich-text tags excluded).
 - Do **not** destroy `_topicsContainer` children directly — call the dedicated clear method to avoid stale `UnityAction` callbacks on the button prefab instances.

@@ -2,7 +2,7 @@
 
 > Screen management contract, full-screen tab panels, the Esc Game Menu (save / load / options / quit), death screen
 > and loading overlay.
-> The Skills tab panel lives in `Scripts/UI/Skills/`.
+> The Skills tab panel lives in `Scripts/UI/Skills/`. `IScreenPanel` contract, cursor and input lifecycle: `Scripts/UI/CLAUDE.md`.
 
 ---
 
@@ -11,7 +11,7 @@
 | Script | Purpose |
 |--------|---------|
 | `UIScreenManager` | Opens/closes full-screen tabs. Owns `InputSystem_Actions`; listens to `InventoryToggle` (I), `QuestLogToggle` (J), `CharacterStatsToggle` (P) and `SkillsToggle` (K) input actions. Reads `PlayerStateManager` (never writes it) to refuse `OpenTab` while `IsInDialogue` / `IsDead` / `IsIncapacitated` / `IsExecuting`; wires the tab buttons. |
-| `IScreenPanel` | Interface contract: `OnScreenOpen()` and `OnScreenClose()`. All full-screen panels must implement this. |
+| `IScreenPanel` | Interface every full-screen tab panel implements — contract in `Scripts/UI/CLAUDE.md` → IScreenPanel Contract. |
 | `CharacterStatsUI` | Character stats screen. Shows level, XP, LP, HP, stamina, and all base stats. Implements `IScreenPanel`. |
 | `OptionsUI` | Game Menu sub-panel (not a tab), implements `IScreenPanel` (the Game Menu owns the cursor). `MusicVolumeRow` / `SfxVolumeRow` sliders → `MusicVolumeSettings.Set` / `SfxVolumeSettings.Set` live; `OnScreenOpen` syncs the slider without notify, `OnScreenClose` flushes PlayerPrefs. Add new settings as rows that are siblings of `Title` under `OptionsUI`. |
 | `GameMenuUI` | Esc menu: Resume / Save Game / Load Game / Options / Quit (confirm). Pauses (`timeScale = 0`) + unlocks cursor; Close restores both. Save button disabled with `SaveSystem.CanSave` reason. Hides (without touching timeScale / cursor) on `OnLoadStarted`. |
@@ -20,18 +20,16 @@
 | `OriginPickUI` | New Game origin pick (`Window/OriginPick` in `MainMenu.unity`): one `ActionButton` per `OriginCatalogSO` origin (built in `Awake`, label auto-sized, selected one tinted), the origin's artwork (`Artwork` Image left of `Details`, `OriginSO.artwork`, hidden when null; images in `Art/UI/Origins/`), name + detail text (`FormatDetails`: description, bonuses, skill, belongings "Sent ahead with the Company baggage cart:" or "You arrive with nothing.", tested by `PlayerOriginTests`), Begin. `Show(onBegin)` selects the default origin; `MainMenuUI` hides it in `ShowMain` (Back / Esc). |
 | `ConfirmDialogUI` | Shared Yes / No modal (`Prefabs/UI/ConfirmDialog.prefab`) (`Show(message, onYes, onNo)`, `Cancel`, `Hide`, `IsOpen`). `SaveSystem` ignores F9 while it's open. |
 | `DeathScreenUI` | On `OnPlayerDied` waits 2 s (realtime), pauses, unlocks the cursor: Load last save (newest valid slot) / Load quicksave (if valid) / Restart (only with no valid save → `SaveSystem.RestartNewGame`) / Quit. Re-shows if a load finishes with the player still dead. |
-| `SleepUI` | Bed sleep panel (`SleepScreen`, always active): an hour picker. `Open(clock, defaultHour, onConfirm(int))` (default = `TimeConfigSO.morningHour`); `−` / `+` buttons and horizontal `UI.Navigate` (arrows / A-D; stepped only when the direction changes from 0 — Navigate is a PassThrough Vector2 that performs on every value change) step the target with `SleepRules.StepHour`; the panel buttons have Navigation None and `SleepButton` is re-selected on open and after each step, so Enter / Space always confirm; `TargetText` "Sleep until HH:00 (N h)" ("under 1 h" for a sub-hour gap) and the "Day N, HH:MM" header refresh in `Update` only when the minute / target / hour count changes (the clock runs while open); Sleep → `onConfirm(targetHour)`. `PlaySleep(atBlack)` (unscaled fade out → callback → fade in → `Close`), `Cancel` (Esc, ignored mid-fade), closes on `OnPlayerDied` / `OnPlayerKnockedOut`. `IsOpen` covers the fade (save / load blocked). |
+| `SleepUI` | Bed sleep panel (`SleepScreen`, always active): hour picker + sleep fade — see SleepUI below |
 | `LoadingOverlayUI` | Black "Loading…" panel on its own Canvas (sort 100), driven by `OnLoadStarted` / `OnLoadFinished`. |
 
 ---
 
 ## ScreenTab Enum
 
-```csharp
-public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills = 3 }
-```
-
-- `_tabPanelRoots[]` and `_tabButtons[]` in `UIScreenManager` are indexed by this enum.
+- `ScreenTab` is declared in `UIScreenManager.cs`; `_tabPanelRoots[]` and `_tabButtons[]` in `UIScreenManager` are
+  indexed by it and must have the same length, ordered by `ScreenTab` value — a mismatch causes
+  `IndexOutOfRangeException` at runtime.
 - Adding a new tab requires: new enum value + new entry in both arrays (on `UICanvas.prefab`) + a `TabButton_*` in
   `TabBar.prefab`. Inserting before an existing value shifts it — reorder both arrays in the same change.
 
@@ -47,24 +45,6 @@ public enum ScreenTab { Inventory = 0, QuestLog = 1, CharacterStats = 2, Skills 
 
 ---
 
-## IScreenPanel Contract
-
-Every panel in the tab bar must implement `IScreenPanel`:
-
-```csharp
-public interface IScreenPanel
-{
-    void OnScreenOpen();   // Called by UIScreenManager when this tab becomes active
-    void OnScreenClose();  // Called by UIScreenManager when this tab is dismissed
-}
-```
-
-- `OnScreenOpen()` is responsible for calling `CursorManager.Unlock()`.
-- `OnScreenClose()` is responsible for calling `CursorManager.Lock()`.
-- Do **not** call `SetActive` inside the panel — `UIScreenManager` handles panel root activation.
-
----
-
 ## CharacterStatsUI Notes
 
 - Holds direct MonoBehaviour refs (`LevelSystem`, `XPSystem`, etc.) — intentional prototype shortcut; no dedicated event channel exposes all needed values yet.
@@ -75,8 +55,7 @@ public interface IScreenPanel
 
 ## Input Handling
 
-- `UIScreenManager` owns the `InputSystem_Actions` instance for menu toggles.
-- `_input` is initialized in `Awake` — the `OnDisable` null guard is mandatory (see root `CLAUDE.md`).
+- `UIScreenManager` owns the `InputSystem_Actions` instance for menu toggles (lifecycle: `Scripts/UI/CLAUDE.md` → Input).
 - `UI.Cancel` (Esc) routing in `UIScreenManager.HandleCancel`: open tab → close it; Game Menu open →
   `GameMenuUI.HandleBack()` (confirm → sub-panel → Resume); otherwise open the Game Menu **only if**
   `_wasGameplayLastFrame` (sampled in `LateUpdate`: cursor locked, not dead, not loading). The previous-frame sample is
@@ -89,6 +68,20 @@ public interface IScreenPanel
 
 ---
 
+## SleepUI
+
+- `Open(clock, defaultHour, onConfirm(int))` (default = `TimeConfigSO.morningHour`).
+- `−` / `+` buttons and horizontal `UI.Navigate` (arrows / A-D; stepped only when the direction changes from 0 — Navigate
+  is a PassThrough Vector2 that performs on every value change) step the target with `SleepRules.StepHour`.
+- The panel buttons have Navigation None and `SleepButton` is re-selected on open and after each step, so Enter / Space
+  always confirm.
+- `TargetText` "Sleep until HH:00 (N h)" ("under 1 h" for a sub-hour gap) and the "Day N, HH:MM" header refresh in
+  `Update` only when the minute / target / hour count changes (the clock runs while open); Sleep → `onConfirm(targetHour)`.
+- `PlaySleep(atBlack)` (unscaled fade out → callback → fade in → `Close`), `Cancel` (Esc, ignored mid-fade), closes on
+  `OnPlayerDied` / `OnPlayerKnockedOut`. `IsOpen` covers the fade (save / load blocked).
+
+---
+
 ## Pause Rule
 
 Only the Game Menu and the death screen set `Time.timeScale = 0`; character tabs never pause. Every exit path restores
@@ -98,5 +91,4 @@ it (Resume / Esc, load finish / fail). Coroutines and fades used while paused mu
 
 ## Gotchas
 
-- `_tabPanelRoots` and `_tabButtons` must have the same length and be ordered by `ScreenTab` value — mismatch causes `IndexOutOfRangeException` at runtime.
 - `UIScreenManager` does **not** implement `IScreenPanel` itself — it is the controller, not a panel.
