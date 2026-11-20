@@ -3,7 +3,7 @@
 > id: npc-009
 > type: npc
 > name: Bren
-> status: draft
+> status: implemented
 > location: area-002 — Stone Quarry floor by day, tent camp at night
 > faction: none
 > role: quest-giver
