@@ -87,7 +87,7 @@ without a stand-up clip; `PlayerSneak` also clears it when `IsAirborne` (walking
 ## Stance — PlayerStance (spec-player-stance-stagger-knockdown)
 
 `PlayerStance` (Player root, `Game.Combat.IStanceTarget`) runs the shared `StanceMeter` with the `CombatConfigSO`
-`[Header("Player Stance")]` settings — same rules as `EntityStance` (`Scripts/AI/CLAUDE.md` → Stance). AI hits call
+`[Header("Player Stance")]` settings — same rules as `EntityStance` (`Scripts/AI/COMBAT.md` → Stance). AI hits call
 `ApplyStanceDamage` (landed) / `ApplyBlockedStanceDamage` (regular block: × `blockStanceMultiplier`, never knockdown);
 perfect block / dodge never reach it. Hyper-armor: `playerAttackStanceResistance` while `IsAttacking`. A reaction →
 `PlayerCombat.InterruptForStance()` (attack + combo ended, block lowered, PB window closed, aim stopped) then
@@ -102,7 +102,7 @@ the Animator). Systems outside the `Can*` gates check `IsIncapacitated` themselv
 
 ## Unconscious — PlayerHealth (spec-unconscious-knockout)
 
-A 0-HP blow from a non-hostile humanoid knocks the player out (rule in `Scripts/AI/CLAUDE.md` → Unconscious): no
+A 0-HP blow from a non-hostile humanoid knocks the player out (rule in `Scripts/AI/KNOCKOUT.md` → Unconscious): no
 `_onPlayerDied`, no death screen. `PlayerHealth.KnockOut` → `PlayerCombat.InterruptForStance()` +
 `PlayerStateManager.SetUnconscious(true)` (`IsUnconscious` is part of `IsIncapacitated` → every gate closes; clears
 block / attack / aim / sneak / stance flags; held knocked down clip) and raises `OnPlayerKnockedOut` (`GameEventSO_Void`):

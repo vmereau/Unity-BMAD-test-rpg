@@ -1,8 +1,6 @@
-# NPC Identity — Old Hobb
+# CLAUDE.md — Assets/_Game/Data/NPCs/TentMate
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Old Hobb — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -52,8 +50,6 @@ Hobb signed the same false contract years ago. He knows where everything is, and
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Practical logistics only: places, routines, rules
 - Warm through actions, never through speeches
 - Leaves judgments of people to the Beaten Worker
@@ -64,9 +60,6 @@ Hobb signed the same false contract years ago. He knows where everything is, and
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/TentMate/NPC_TentMate.asset` |
 | Dialogues | `Assets/_Game/Data/NPCs/TentMate/Dialogues/` — `Arrival/Start_TentMate_ArrivalBriefing` is event-001's forced briefing (`ArrivalSequence_Event001.hutBriefing`), in no memory |
-| Memories | `Assets/_Game/Data/NPCs/TentMate/Memories/` |
 | Facts | `Facts/WorldFact_Hobb_BelongingsRummaged` (set by `HobbsBox`'s `ContainerTakeFact`), `WorldFact_Hobb_RummageOpenerPlayed`, `ElapsedFact_Hobb_BelongingsRummaged_2h` (the opener's condition: 2 game hours after the take), `KilledFact_HobbsBox` (the box's save key) |
 | Suspicion opener | `Dialogues/Suspicion/Start_TentMate_Rummaged` → `Text_TentMate_Rummaged`: the scene `NPCPresence._talkOpeners` entry, pending 2 game hours after an unseen take (cancelled at once when Hobb witnessed the theft). In no memory, so Quest Explorer may list it as unattributed |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

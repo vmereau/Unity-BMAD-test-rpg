@@ -145,7 +145,7 @@ interrupt cleanup (hitbox and `IsAttacking` stay on).
   `LockOn Locomotion`. Clips: `Combat/Unarmed/stagger 1/2.fbx` (placeholder for every weapon), `Combat/knocked
   down.fbx` → `Combat/getting up.fbx` — Humanoid, root rotation / Y / XZ baked into pose (NPC Animators have
   `applyRootMotion` off; so does the Player). The Player sets them through `PlayerStance` → `PlayerStateManager` →
-  `PlayerAnimationDriver` (`Scripts/Player/CLAUDE.md` → Stance).
+  `PlayerAnimationDriver` (`Scripts/Player/PLAYER_STATES.md` → Stance).
 - **Unconscious** (spec-unconscious-knockout): AnyState → `Unconscious` (`KnockDown` + `IsUnconscious`, listed just before
   AnyState → `KnockedDown`, which now requires `IsUnconscious == false`). `Unconscious` plays the same `Knocked Down` clip
   (non-looping → holds the last, on-the-ground frame) and goes to `GettingUp` on `IsUnconscious == false` with **no exit

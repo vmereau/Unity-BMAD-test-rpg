@@ -3,16 +3,22 @@ paths:
   - "Assets/_Game/Scripts/Combat/**"
   - "Assets/_Game/Scripts/AI/**"
   - "Assets/_Game/Scripts/Core/Animations/**"
-  - "Assets/_Game/Art/Characters/**"
+  - "Assets/_Game/Art/Characters/Humanoids/Animations/**"
+  - "Assets/_Game/Art/Characters/Humanoids/Controllers/**"
+  - "Assets/_Game/Art/Characters/Monsters/**"
   - "Assets/_Game/Editor/HitboxTuner*.cs"
   - "Assets/_Game/Prefabs/Entities/**"
+  - "Assets/_Game/Prefabs/Player/**"
+  - "Assets/_Game/Scripts/Player/PlayerAttackStep.cs"
+  - "Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs"
+  - "Assets/_Game/ScriptableObjects/Items/Weapons/**"
 ---
 
 # Attack Pipeline — Shared Contract (Player + AI)
 
 Melee attacks for the Player and for AI entities follow one pipeline. Folder files hold the local
 details: `Scripts/Combat/CLAUDE.md` (`WeaponHitbox`), `Scripts/Combat/PLAYER_COMBO.md` (player combo),
-`Scripts/AI/CLAUDE.md` (`EntityMeleeAttacker`), `Art/Characters/Humanoids/Controllers/CLAUDE.md`
+`Scripts/AI/COMBAT.md` (`EntityMeleeAttacker`), `Art/Characters/Humanoids/Controllers/CLAUDE.md`
 (controller authoring), `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` (player clip timings).
 
 ```

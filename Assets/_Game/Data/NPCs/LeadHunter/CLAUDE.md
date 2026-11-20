@@ -1,4 +1,6 @@
-# NPC Identity — Corvin Ash
+# CLAUDE.md — Assets/_Game/Data/NPCs/LeadHunter
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Corvin Ash — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ## Core Identity
 

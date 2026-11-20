@@ -55,12 +55,11 @@ Swords/SwordBase/
 
 ## Hitbox Shape Collider
 
-`WeaponHitbox` sweeps with physics queries (see `Scripts/Combat/CLAUDE.md`) — **no Rigidbody** on the
-`_Visual` root and no layer requirement. The `BoxCollider` on the **`Drawn` child GO** (same GO as
-`WeaponHitbox`) is only the sweep **shape**: keep it **disabled** (`WeaponHitbox.Awake` also disables it).
-Box/Sphere/Capsule only. Do NOT place it on the visual root or on a sub-child. `GetComponentInChildren<WeaponHitbox>(true)`
-from `ActiveWeaponGO` (the root) finds it regardless of depth. Per-weapon reach tuning = the
-`WeaponHitbox` `_reachPadding` / `_verticalReach` fields on `Drawn`.
+The sweep-shape `BoxCollider` sits on the **`Drawn` child GO** itself (same GO as `WeaponHitbox`) — do NOT place it
+on the visual root or on a sub-child. Per-weapon reach tuning = the `WeaponHitbox` `_reachPadding` / `_verticalReach`
+fields on `Drawn`. Shape rules (disabled, Box/Sphere/Capsule, no Rigidbody, no layer requirement):
+`Scripts/Combat/CLAUDE.md` → WeaponHitbox; lookup via `GetComponentInChildren<WeaponHitbox>(true)`: same file →
+PlayerCombat Hitbox Binding.
 
 Note: nested prefab children can't be reparented under a stripped transform via YAML — keep the collider as a component on `Drawn`, not in a separate sub-prefab.
 

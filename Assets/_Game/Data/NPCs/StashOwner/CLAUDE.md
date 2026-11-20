@@ -1,4 +1,6 @@
-# NPC Identity — Brann
+# CLAUDE.md — Assets/_Game/Data/NPCs/StashOwner
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Brann — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ## Core Identity
 

@@ -6,7 +6,7 @@
 ---
 
 `PlayerExecution` (Player root) finishes off an **unconscious NPC** (`IExecutable`, implemented by `EntityHealth` — rules in
-`Scripts/AI/CLAUDE.md` → Unconscious). No lock-on: lock-on is hostile-only and knockouts only happen to non-hostiles.
+`Scripts/AI/KNOCKOUT.md` → Unconscious). No lock-on: lock-on is hostile-only and knockouts only happen to non-hostiles.
 
 - **Target** (only while `PlayerStateManager.CanExecute()`: in combat, any weapon incl. bow; not busy / airborne / swimming /
   attacking / blocking / aiming / dodging / switching). A focused interactable decides (`OnInteractionFocusChanged`): its

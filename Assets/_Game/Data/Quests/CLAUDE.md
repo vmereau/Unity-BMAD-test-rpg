@@ -48,10 +48,9 @@ QuestSO
 
 ## Naming Convention
 
-`WardensErrand` starts on `WorldFact_Arrival_Done` (end of event-001), steps through the four notice deliveries and completes when Voss's one-time report topic ends (`DialogueFact_Warden_Errand_Reported`); there is no work-site choice. Full flow: `docs/World/Quests/WardensErrand.md`.
-
-`HiddenStash` (quest-001, "Food for Tam") starts on `DialogueFact_HiddenStash_Asked` and completes when the player feeds Tam (`DialogueFact_HiddenStash_FedFood` or `_FedMeal`). Taking Brann's supplies (`WorldFact_HiddenStash_Taken`, set by the stash's `ContainerTakeFact` successful-transfer listener, not by opening the chest) is only a part of the optional step "Brann's supplies". Full encounter: `docs/World/Quests/HiddenStash.md`.
-
 `Quest_{QuestId}.asset` — e.g. `Quest_WardensErrand.asset`
 
 `questId` must match the filename suffix and be unique across all quests (used as the key in `QuestFact.ToString()`).
+
+Per-quest flows (start / completion facts, optional steps): `docs/World/Quests/<QuestId>.md` (`WardensErrand`,
+`HiddenStash`, `SealedPassage`, `TitheBarnShortfall`).

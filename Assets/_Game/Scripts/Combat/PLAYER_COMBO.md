@@ -62,8 +62,8 @@ dropped cleanly: the outgoing exit ends the attack and `SetAttacking(false)` cle
 
 ## `PlayerAttackTracker` — Attack Lifecycle
 
-Unity fires `OnStateEnter(next)` at transition **start** and `OnStateExit(previous)` at transition **end**,
-so the outgoing state's exit would otherwise tear down a chain in flight. `PlayerAttackTracker` (pure,
+The outgoing state's exit would otherwise tear down a chain in flight (crossfade callback order:
+`.claude/rules/attack-pipeline.md` → State callbacks across crossfades). `PlayerAttackTracker` (pure,
 `Tests/EditMode/PlayerAttackTrackerTests`) follows what the Animator actually plays:
 
 - **Active attack states** — `Enter` +1, `Exit` −1 (clamped at 0). The attack ends (`EndAttack()`) only when
@@ -116,8 +116,7 @@ so the outgoing state's exit would otherwise tear down a chain in flight. `Playe
 - `HandleVisualsRefreshed` cancels any attack: `Refresh()` swaps the controller, which resets the Animator without an
   SMB exit (equip / load mid-swing would otherwise stay `IsAttacking`, rooted, until the stall watchdog).
 - `PlayerStateManager.SetAttacking(false)` clears the `Attack_1/2/3` triggers (latched triggers auto-chained).
-- **Never detect chains with `GetNextAnimatorStateInfo(layer).IsTag(...)` in `OnStateExit`** — the
-  transition may already be complete, so it returns an empty state.
+- Chain detection never uses `GetNextAnimatorStateInfo` in `OnStateExit` — `.claude/rules/attack-pipeline.md`.
 
 ---
 

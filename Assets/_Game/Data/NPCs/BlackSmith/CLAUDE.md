@@ -1,8 +1,6 @@
-# NPC Identity — Edric the Greysmith
+# CLAUDE.md — Assets/_Game/Data/NPCs/BlackSmith
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Edric the Greysmith — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -52,8 +50,6 @@ Edric grew up in a small village, the son of a blacksmith. When his father retir
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - "aye" (lower case) closes a thought now and then, never on every line
 - Practical, full sentences: he sounds like a man who has work to get back to, but likes talking about the work
 - Avoid flowery or poetic language; plain craftsman vocabulary, and he swears when he means it
@@ -65,10 +61,7 @@ Edric grew up in a small village, the son of a blacksmith. When his father retir
 | Asset | Path |
 |-------|------|
 | NPCEntity | `Assets/_Game/Data/NPCs/BlackSmith/NPC_Blacksmith.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/BlackSmith/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/BlackSmith/Memories/` |
 | Teachings | One topic, `Teachings/Training/` ("What can you teach me?", `Mem_Blacksmith_Training`): rows +1 Strength (50 gold, cap 30) and Smithing (10 LP + 80 gold). The Smithing row is gated by the gate-only `Mem_Blacksmith_Smithing` (no start dialogue, invalidated by `SkillFact_Smithing_Learned`), so it disappears once learned |
 | Smithing recipe | `Dialogues/SmithingRecipe/` ("What should I forge first?", one-shot) + `Mem_Blacksmith_SmithingRecipe` — unlocked by `SkillFact_Smithing_Learned`; the start node's `DialogueFact_blacksmith_smithing_recipe_given` triggers `PlayerReward_blacksmith_smithing_recipe` (`Item_Recipe_ShortIronSword` ×1) |
 | Shop | `Dialogues/Shop/` ("I need iron") + `Mem_Blacksmith_Shop` — unlocked by `SkillFact_Smithing_Learned`; stock (`Item_IronIngot` ×10, `Weapon_ShortIronSword` ×1) on the `Blacksmith` instance in `StartingTown.unity` |
 | Anvil | `SmithingStation_Anvil` next to Edric in `StartingTown.unity` (needs Smithing) |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

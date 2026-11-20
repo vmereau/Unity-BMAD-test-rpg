@@ -52,8 +52,8 @@
 
 - New interactables implement `IInteractable` and are discovered by `InteractionSystem`'s raycast — no manual
   registration. Implemented by `InteractableObject`, `ContainerInteractable`, `ItemPickup`, `Harvestable`,
-  `CookingStation` (`Scripts/Crafting/`), `EntityPresence` (and its subclass `NPCPresence`; corpse loot + dialogue
-  subclass: `Scripts/AI/CLAUDE.md`).
+  `CookingStation` (`Scripts/Crafting/`), `EntityPresence` (and its subclass `NPCPresence`; corpse loot: `Scripts/AI/CLAUDE.md` →
+  EntityPresence loot; dialogue subclass: `Scripts/AI/NPC/CLAUDE.md` → NPCPresence).
 - **Outline is opt-in:** add `InteractionHighlight` to an interactable root; list only the meshes to outline (e.g. a
   door handle); no component = prompt-only. Every world item pickup carries one. The outline layer bit comes from
   `InteractionConfig.outlineRenderingLayer` and must match `InteractionOutlineFeature.outlineLayer` on `PC_Renderer`

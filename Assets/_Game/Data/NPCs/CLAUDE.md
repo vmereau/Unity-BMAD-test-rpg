@@ -11,7 +11,7 @@ Each NPC must have its own dedicated subfolder:
 ```
 Assets/_Game/Data/NPCs/
   <NPCName>/
-    CLAUDE.md                  ← NPC identity (instantiated NPC_IDENTITY_TEMPLATE.md) — READ FIRST
+    CLAUDE.md                  ← NPC identity (instantiated NPC_IDENTITY_TEMPLATE.md) — READ FIRST (see below)
     NPC_<NPCName>.asset        ← NPCEntity (menu Game/NPC/NPC Data)
     Dialogues/
       <TopicName>/
@@ -31,15 +31,22 @@ Assets/_Game/Data/NPCs/
                                  CompanyGuard/Barks_Arrival_*.asset (BarkSetSO used by the arrival sequence)
 ```
 
+**Per-NPC `<NPCName>/CLAUDE.md`** is the canonical character sheet (instantiated `NPC_IDENTITY_TEMPLATE.md`): read it
+before writing any dialogue, memory or behavioural asset for that NPC and keep it up to date as the character develops.
+Its *Dialogue Writing Rules* extend `DIALOGUE.md` for that NPC. Defaults it does not repeat: `NPC_<NPCName>.asset`,
+`Dialogues/`, `Teachings/` and `Memories/` follow the layout above, and the scene object is an instance of
+`Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab). Its *Asset Reference* lists only NPC-specific
+rows (scene path, routine, shop, quest role, killed fact, non-default entity / prefab).
+
 Shared dialogue used by every NPC lives in `Shared/Dialogues/` — `TheftReturn/` (`Start_TheftReturn` → `Choice_TheftReturn`
 give-back / refuse with `Signal_TheftReturn_GiveBack` / `_Refuse`, referenced by `StealthConfig`; opened after the scold
-line when a caught thief still carries stolen goods — `Scripts/AI/CLAUDE.md` → Theft return). Not reachable from a memory,
+line when a caught thief still carries stolen goods — `Scripts/AI/PERCEPTION.md` → Theft return). Not reachable from a memory,
 so Quest Explorer may list it as unattributed.
 
 Shared, non-NPC-specific data: `Barks/` holds `BarkSetSO` assets (menu `Game/Dialogue/Bark Set`, name
 `Barks_<Purpose>`) — one-liners said in speech bubbles (sneak warning, theft / trespass alerts and scolds, woken
 sleeper, knockout, player-relationship lines…). Which code reads which set is in the SOs that reference them
-(`Data/Entities/WitnessProfile_Humanoid`, `CombatConfig` — see `Scripts/AI/CLAUDE.md`). Lines never repeat twice in a row.
+(`Data/Entities/WitnessProfile_Humanoid`, `CombatConfig` — see `Scripts/AI/PERCEPTION.md` and `Scripts/AI/RELATIONS.md`). Lines never repeat twice in a row.
 
 Every `NPC_<Name>.asset` references `WitnessProfile_Humanoid` in `_witnessProfile` (reaction to a sneaking player;
 auto-assigned by `NPCEntity.Reset()` from the Create menu, **not** when created through MCP / `CreateInstance` — set

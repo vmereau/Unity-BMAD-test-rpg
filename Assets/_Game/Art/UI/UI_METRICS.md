@@ -53,7 +53,7 @@ re-check the owning file before relying on a count.
 | **Game menu** | Esc | Resume / Save / Load / Options / Quit, save-slot list, confirm dialog (`Screens/`) | `Panel`, `Button` |
 | **Death screen** | — | Title, Load last save / Load quicksave / Restart / Quit (`Screens/`) | `Button` |
 | **Loading** | — | Black overlay "Loading…" (`Screens/`) | none |
-| **Crafting** (cooking / smithing) | E on a station | `CookingUI`: station-materials grid, Experiment (3 ingredient slots, cooking only) / Recipes tabs, recipe rows + item card with Cook / Forge (`Scripts/Crafting/CLAUDE.md`). `UILayoutCapture` key `Crafting` | not catalogued |
+| **Crafting** (cooking / smithing) | E on a station | `CookingUI`: station-materials grid, Experiment (3 ingredient slots, cooking only) / Recipes tabs, recipe rows + item card with Cook / Forge (`Scripts/UI/Crafting/CLAUDE.md`; systems: `Scripts/Crafting/CLAUDE.md`). `UILayoutCapture` key `Crafting` | not catalogued |
 | **Main menu** | — | New Game / Continue / Load Game / Quit, shared save-slot list, confirm (`MainMenuUI`, `Scenes/MainMenu.unity`; `Screens/`) | not catalogued |
 | **Origin pick** | New Game | One button per origin, artwork, name + details, Begin (`OriginPickUI`; `Screens/`, art `Origins/`) | not catalogued |
 | **Options** | Game menu | Music / SFX volume slider rows (`OptionsUI`, Game Menu sub-panel; `Screens/`) | not catalogued |

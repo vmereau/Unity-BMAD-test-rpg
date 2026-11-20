@@ -55,7 +55,7 @@ All StartingTown NPCs are direct scene instances of this variant.
   - Root equipment (spec-npc-equipment): `EquipmentSystem` (`_inventorySystem` = root inventory, `_npcOwned`),
     `EquipmentVisuals` (sockets / `base_hero` / `mixamorig:Hips` / `Character` Animator under the nested model,
     `_defaultAnimatorController` = `Humanoid_Base`, both GameEvent channels **empty**), `NpcArmament` (those + root
-    inventory + `CombatConfig`). Re-wire all three after a model swap (`Scripts/AI/CLAUDE.md` → NPC equipment).
+    inventory + `CombatConfig`). Re-wire all three after a model swap (`Scripts/AI/RANGED_EQUIPMENT.md` → NPC equipment).
   - `Character` (Animator GO): `EntityAnimationEventReceiver` with `_attacker` assigned. Root motion stays off (set in the
     model prefab, see above); `HumanoidAIAnimationDriver.Awake` forces it off + warns.
   - Both fist hitboxes (`UnarmedHitbox`, `UnarmedHitbox_L`): **active** but dormant (SphereCollider disabled, window closed).

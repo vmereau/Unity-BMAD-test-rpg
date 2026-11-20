@@ -37,6 +37,8 @@ Drawn mode the `Drawn` hitbox box is drawn in orange.
   **Revert** rebuilds the preview from the assets.
 - Save Pose is disabled while the preview sits on a fallback socket (Left / Back asked but unassigned). The sampled pose
   is stopped and the rig restored before any scene / prefab save, then re-sampled. Edit mode only.
+- **`AnimationMode.StopAnimationMode` does not revert bones posed by a Humanoid clip** — the tuner snapshots the rig's
+  local transforms before sampling and restores them itself.
 - **Two-hand grip archetype, Drawn mode:** the preview is re-solved like the runtime (after each sample and every
   repaint); Save Pose / Select Pose Node are disabled — edit `gripRoll` / `gripSlide` on the archetype and watch the
   preview. Grip (Mesh) and the Sheathed pose stay tunable as usual.

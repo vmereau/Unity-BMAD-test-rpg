@@ -81,12 +81,12 @@ in **Rules** below.
 
 - `NpcHeadAppearance`: in `Awake` swaps the model's Head SMR mesh + material to `NPCEntity.Head` (`HeadAppearanceSO`). An
   incompatible mesh (bind-pose count / values, bone indices) → warning, default head kept. Asset pipeline:
-  `Art/Characters/Humanoids/CLAUDE.md` → NPC head variants.
+  `Art/Characters/Humanoids/HEADS_SKIN.md` → NPC head variants.
 - `NpcSkinTone`: in `Start` swaps every masked `SG_SkinLit` material under the model for a cached toned copy
   (`NPCEntity.SkinTone`); re-tones a rebuilt armor by polling `EquipmentVisuals.ArmorVisual` in `LateUpdate` (no cross-system
   event). A skin material without a mask (legacy / unbaked head) is kept, one warning; every shipped `M_Head_*` has its own
   mask. Cache (`SkinToneMaterials`): one copy per source × tone, plain materials (SRP Batcher-safe), cleared on
-  `SubsystemRegistration`. Pipeline: `Art/Characters/Humanoids/CLAUDE.md` → NPC skin tones.
+  `SubsystemRegistration`. Pipeline: `Art/Characters/Humanoids/HEADS_SKIN.md` → NPC skin tones.
 
 ---
 
@@ -135,7 +135,7 @@ shows its world-space `EntityUI` on hover. `NameTag` is null-guarded (`""` witho
   (dedupe is per `WeaponHitbox`).
 - **Known gap:** spider `AttackRange` 0.8 is root-to-root, but agent avoidance holds it ≈ 1.0 m from an NPC →
   spiders engage NPCs but never bite them (they do bite the player). Retune the spider SO if needed.
-- **`EntityBrain.IsAnyFighting(member)`** (static, over `_active`): some brain `IsFighting` that member — backs the player's `PlayerStateManager.IsAggroed` (aggro run / jump stamina costs, `Scripts/Player/CLAUDE.md`).
+- **`EntityBrain.IsAnyFighting(member)`** (static, over `_active`): some brain `IsFighting` that member — backs the player's `PlayerStateManager.IsAggroed` (aggro run / jump stamina costs, `Scripts/Player/PLAYER_STATES.md` → Aggro movement costs).
 - **`EntityBrain.EndBrawl(target)`**: disengages a fight with that target back to the routine (story sequences calling off a
   scripted brawl); no-op otherwise.
 - **`EntityBrain.Say(line, duration, priority)`**: scripted speech bubble over the NPC (story sequences); false without a

@@ -1,4 +1,6 @@
-# NPC Identity — Overseer Dace
+# CLAUDE.md — Assets/_Game/Data/NPCs/QuarryOverseer
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Overseer Dace — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ## Core Identity
 

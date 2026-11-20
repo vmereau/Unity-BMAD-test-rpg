@@ -1,7 +1,7 @@
 # CLAUDE.md — Assets/_Game/Scripts/World/Story
 
 > Loaded when Claude accesses files in this folder. Scripted story sequences (`ArrivalSequence`,
-> `ArrivalSequenceRules`). Namespace: `Game.World`. Scene layout of the arrival: `Scenes/CLAUDE.md`.
+> `ArrivalSequenceRules`). Namespace: `Game.World`. Scene layout of the arrival: `Scenes/STARTING_TOWN.md` → Arrival sequence.
 
 ---
 
@@ -43,5 +43,5 @@ fact set, guards / Hobb routines resumed. No hut wiring → warning, the arrival
 - `Release` ends the Warden's brawl (`EntityBrain.EndBrawl`). `OnDisable` (region unload) mid speech / briefing
   requests the speaker's dialogue close (`NPCPresence.RequestDialogueClose`) before `Release`.
 - Dev: `_devStart` (None / SkipAll / SkipToHutEscort, Editor / `Debug.isDebugBuild`; an editor play scenario other
-  than Open Scenes overrides it — `PlayScenarios.ArrivalOverrideFor`, see `Scenes/CLAUDE.md`) or context menus
+  than Open Scenes overrides it — `PlayScenarios.ArrivalOverrideFor`, see `Scenes/CLAUDE.md` → Boot flow) or context menus
   **Dev: Skip Arrival** / **Dev: Skip to Hut Escort**.

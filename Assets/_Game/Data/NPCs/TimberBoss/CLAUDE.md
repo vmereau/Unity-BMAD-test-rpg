@@ -1,4 +1,6 @@
-# NPC Identity — Gorm Holl
+# CLAUDE.md — Assets/_Game/Data/NPCs/TimberBoss
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Gorm Holl — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ## Core Identity
 

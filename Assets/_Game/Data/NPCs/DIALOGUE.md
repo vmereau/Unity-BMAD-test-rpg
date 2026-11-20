@@ -91,7 +91,7 @@ system through an `NPCMemoryEntrySO` (via `effects.startdialog`). When creating 
 
 Then either:
 - Create `Mem_<NPC>_<Topic>.asset` in `<NPCName>/Memories/`, set `effects.startdialog` to the
-  new `StartDialogueNode`, and save the memory under `<NPCName>/Memories/` (auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`)); OR
+  new `StartDialogueNode`, and save the memory under `<NPCName>/Memories/` (sync into `NPCEntity.memories`: `CLAUDE.md`); OR
 - Open the existing `NPCMemoryEntrySO` and set its `effects.startdialog` to the new node.
 
 ---
@@ -241,7 +241,7 @@ The example shows the naming rule. The real chain in `BlackSmith/Dialogues/Make/
 - [ ] NPC subfolder exists (e.g. `TentMate/`)
 - [ ] `Dialogues/<TopicName>/` subfolder created
 - [ ] `StartDialogueNode` asset created and linked to a memory (`effects.startdialog`)
-- [ ] Memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`) (or existing memory updated)
+- [ ] Memory saved under `<NPCName>/Memories/` (or existing memory updated)
 - [ ] No single `TextDialogueNode.text` exceeds 300 characters
 - [ ] Last node in each chain has `nextNode = null`
 - [ ] `ChoiceDialogueNode` usage confirmed with user if branching is involved

@@ -1,8 +1,6 @@
-# NPC Identity — Gerrit
+# CLAUDE.md — Assets/_Game/Data/NPCs/BarnWorker
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Gerrit — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -67,7 +65,4 @@ Topics: `Greeting`, `BarnTalk` (one-shot).
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/BarnWorker/NPC_BarnWorker.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/BarnWorker/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/BarnWorker/Memories/` |
 | Scene | StartingTown `TitheBarnShortfall/BarnWorker_Gerrit` (NPC_base Variant instance). Routine: 06–21 Stand `Spot_BarnWorker_Threshing`, 21–06 Sleep `TitheBarnShortfall/BarnWorkerBed` (next to Pim's) |

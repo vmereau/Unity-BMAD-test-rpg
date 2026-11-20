@@ -63,8 +63,8 @@ Never build a fact key by hand — always go through the typed `WorldStateManage
 ## `RegisterKill` vs `SetFact`
 
 `RegisterKill(fact, entity, playerCredited)` records the kill **and** raises `OnEntityKilled` (rewards; kill XP only when `playerCredited` — `Game.AI.KillCredit`).
-`SetFact(killedFact, true)` only records it — no XP, no rewards, no despawn. Quest Explorer's
-play-mode **Toggle** uses the raw `SetFact`.
+`SetFact(killedFact, true)` only records it — no XP, no rewards, no despawn (Quest Explorer's play-mode Toggle:
+`Editor/QuestExplorer/CLAUDE.md` → Rules / Gotchas).
 
 ---
 

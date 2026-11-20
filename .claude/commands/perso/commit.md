@@ -33,7 +33,7 @@ git add <specific files>
 Prefer specific file paths over `git add -A`. Exclude files that should not be committed (secrets, generated artefacts already in `.gitignore`, etc.).
 
 ### 5 — Write the commit message
-Follow `.claude/git-conventions.md` exactly:
+Follow `.claude/rules/git-conventions.md` exactly:
 - `<type>(<scope>): <short description>` — imperative, lowercase, ≤ 72 chars
 - Optional body explaining *what* and *why*
 - `BREAKING CHANGE:` footer if applicable

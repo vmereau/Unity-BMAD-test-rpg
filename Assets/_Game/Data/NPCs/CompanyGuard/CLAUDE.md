@@ -1,8 +1,6 @@
-# NPC Identity — Company Guard (arrival escort)
+# CLAUDE.md — Assets/_Game/Data/NPCs/CompanyGuard
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Company Guard (arrival escort) — read it before writing any dialogue, memory or behaviour for this NPC.
 >
 > **Draft (2026-11-12):** created for event-001 (`spec-area-1-arrival-escort-beating`). Two nameless rank-and-file
 > guards share this identity; each has its own entity asset so each keeps its own `KilledFact`.

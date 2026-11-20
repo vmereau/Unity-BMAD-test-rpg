@@ -27,18 +27,8 @@ Monster_DarknessSpider Variant.prefab  (variant of Assets/_Game/Prefabs/Entities
 
 ## Hit Detection Contract (WeaponHitbox sweeps)
 
-`WeaponHitbox` (attacker side, see `Scripts/Combat/CLAUDE.md`) runs `Physics.Overlap*NonAlloc`
-against Layer 7 with `QueryTriggerInteraction.Collide`. Consequences for targets:
-
-- The hurtbox is a **trigger** collider on a child GO, Layer 7 **CharacterHitbox** — trigger so it
-  never blocks movement or ragdolls.
-- **No Rigidbody needed** on the entity or the weapon; the layer collision matrix is irrelevant
-  (explicit-mask queries ignore it).
-- **Size the hurtbox to the real body.** Low targets are reached by the attacker's `_verticalReach`
-  (downward reach capsule), never by inflating the target's hurtbox.
-- The target is resolved with `GetComponentInParent<IDamageable>()` from the hurtbox collider —
-  `EntityHealth` (an `IDamageable`) must be on the root or any ancestor of `HitBox`. A sibling or
-  unrelated GO → hits silently ignored.
+Hurtbox contract (trigger on Layer 7, no Rigidbody, explicit-mask sweep, size to the real body — never inflate it,
+`IDamageable` on an ancestor): `Scripts/Combat/CLAUDE.md` → WeaponHitbox (*Target side*). Monster checklist below.
 
 ---
 
@@ -46,7 +36,7 @@ against Layer 7 with `QueryTriggerInteraction.Collide`. Consequences for targets
 
 Checklist when creating a new monster prefab (as a variant of `Entity_base`):
 
-- [ ] Hurtbox collider on a child GO wrapping the visible body (Box for wide/flat bodies, Capsule for upright ones)
+- [ ] Hurtbox collider on a child GO sized to the visible body (Box for wide/flat bodies, Capsule for upright ones) — never inflated
 - [ ] Hurtbox is a **trigger**, on **CharacterHitbox (Layer 7)**; root stays on **Characters (Layer 6)**
 - [ ] `EntityHealth` component is on the root GO or any ancestor of the hurtbox GO
 - [ ] No `Rigidbody` needed for hit detection
@@ -56,7 +46,7 @@ Checklist when creating a new monster prefab (as a variant of `Entity_base`):
 
 ## Monster Attacks (animation-driven hit windows)
 
-Recipe for any monster that attacks (see `Scripts/AI/CLAUDE.md`):
+Recipe for any monster that attacks (see `Scripts/AI/COMBAT.md` → EntityMeleeAttacker):
 
 1. `EntityMeleeAttacker` on the root (it resolves the root `FactionMember` itself); assign it to `EntityBrain._meleeAttacker`.
 2. `EntityAnimationEventReceiver` on the **Animator GO** (`CreatureVisual`), `_attacker` assigned.

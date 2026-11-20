@@ -19,7 +19,7 @@ Working OTS configuration (spec-third-person-camera-spring-arm):
     pull-in, never clips), `DampingFromCollision 0.5` (slow ease-out). Characters, Harvestable, Water never move the
     camera. Small props still block, but only when they sit on the pivot→camera arm (by design).
   - The orbit puts the camera metres behind the player, so anything that measures a distance along the camera ray
-    must measure it from the player (`InteractionSystem._reachOrigin`, `Scripts/World/CLAUDE.md`).
+    must measure it from the player (`InteractionSystem._reachOrigin`, `Scripts/World/INTERACTION.md` → InteractionSystem).
   - **Never add `CinemachineDeoccluder` / `CinemachineDecollider`.** The Deoccluder zoomed in on any one-frame
     occluder (NPCs, pickups); the Decollider's Terrain Resolution casts *down from 10 m above the camera* and lifts it
     onto any Default collider (wall tops, roofs) — the old "camera slides upward near walls" bug.

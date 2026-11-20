@@ -1,8 +1,6 @@
-# NPC Identity — Tam
+# CLAUDE.md — Assets/_Game/Data/NPCs/BeatenWorker
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Tam — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -52,8 +50,6 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Never dramatic, never sneers, never threatens; never asks outright for help
 - Tired but friendly: plain, warm sentences that run on a little when he is grateful; he thanks people and worries about them
 - When mocked or hurt he withdraws, sad and tired ("...Maybe. I'm too tired to argue with you."), never retaliates; that hesitation is his one ellipsis per topic
@@ -84,14 +80,3 @@ Tam has been in the camp for years and is simply worn out. The beatings took his
 - **Player relationship:** Neutral (Faction_Neutral) until fed — `_playerRelationship` Friendly while
   `DialogueFact_HiddenStash_FedFood` or `_FedMeal` is set (spec-player-relationship-tiers). Friendly + passive: hitting
   him only raises the "What are you doing?!" warn bubble; he never assists or retaliates.
-
----
-
-## Asset Reference
-
-| Asset | Path |
-|-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/BeatenWorker/NPC_BeatenWorker.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/BeatenWorker/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/BeatenWorker/Memories/` |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

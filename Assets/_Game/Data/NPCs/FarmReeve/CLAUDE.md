@@ -1,4 +1,6 @@
-# NPC Identity — Reeve Wendel Pell
+# CLAUDE.md — Assets/_Game/Data/NPCs/FarmReeve
+
+> Loaded when Claude accesses this NPC's data. Character sheet for Reeve Wendel Pell — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ## Core Identity
 

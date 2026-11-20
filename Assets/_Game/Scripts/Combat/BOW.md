@@ -71,7 +71,7 @@ Gate order: `CanAttack()` (drawn) → `fireCooldown` → stamina `HasEnough` →
   40 m/s ≈ 0 m drop at 10 m, 0.03 m at 20 m, 0.65 m at 40 m, 2.5 m at 60 m. Faces its velocity every frame; per-frame `SphereCastNonAlloc`
   along this frame's displacement (closest valid hit — results are unsorted).
   `IDamageable` → the shooter's `onHit` callback (player: `PlayerCombat.ResolveHit`, same `TryReceiveHit` / sneak rule as
-  melee; NPC archers: `EntityArcher`, faction-filtered — `Scripts/AI/CLAUDE.md` → Ranged), destroyed. Solid collider →
+  melee; NPC archers: `EntityArcher`, faction-filtered — `Scripts/AI/RANGED_EQUIPMENT.md` → Ranged), destroyed. Solid collider →
   spawns `ammoItem.worldItemPrefab` kinematic at the impact pose (a normal pickup, not saved), **moved into the hit
   collider's scene** — `Instantiate` targets the active scene (Core), where a reload would leave a duplicate arrow. **Prefab frame: root = arrow
   tip, shaft along −Z** — `Projectile_Arrow` and `Item_Arrow` share it so the stuck arrow lines up.

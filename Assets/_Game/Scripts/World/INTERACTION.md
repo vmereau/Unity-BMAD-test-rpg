@@ -64,7 +64,7 @@ item × count at the theft, and for an owned container every unit later taken fr
 on the remembered `sourceInventory`, `GoldItemSO` → gold amount) until any other container opens or this one reopens
 without a theft (`OnContainerOpenRequested`); `OnLoadStarted` clears the whole ledger. The player's `InventorySystem` /
 `GoldSystem` answer `OnStolenGoodsRequested` (`StolenGoodsRequest`: query or take, clamped to what is still carried).
-Consumers: `EntityBrain` theft return (`Scripts/AI/CLAUDE.md`).
+Consumers: `EntityBrain` theft return (`Scripts/AI/PERCEPTION.md` → Theft return).
 
 ---
 
@@ -83,7 +83,7 @@ brawl instead of warn / chase / scold), `ClearWarnings()` when the player is kno
   `StartGrace(s)` (owners ignore it, closes the open incident), `OpenIncident()` (negative ids so they never collide
   with `InteractionSystem`'s positive theft ids). Runtime only, not saved. Wire-box gizmos (orange, red = attack on
   sight or warnings recorded in play).
-- The reaction lives in `EntityPerception` / `EntityBrain` (`Scripts/AI/CLAUDE.md` → Trespass).
+- The reaction lives in `EntityPerception` / `EntityBrain` (`Scripts/AI/PERCEPTION.md` → Trespass).
 - Place areas under the scene root `RestrictedAreas`, never inside a tool-built root — except the worker hut shells,
   whose builder creates an inactive `RestrictedArea` child itself (`Prefabs/World/Huts/CLAUDE.md`).
 
@@ -130,7 +130,7 @@ treats it as legal), so focusing the leaf from inside is never a theft and spend
 
 **`Bed`** (`Prefabs/World/Beds/` — `Bed_Base` + one variant per look, contract in `Prefabs/CLAUDE.md`; prompt
 `Sleep`) raises `OnBedSleepRequested` (`GameEventSO_Void`) — no `SaveableObject` (no state). **NPC beds** (routine
-Sleep, `Scripts/AI/CLAUDE.md` → NPC sleep) also set `_npcApproach` (on the NavMesh, facing the bed) and
+Sleep, `Scripts/AI/NPC/CLAUDE.md` → NPC sleep) also set `_npcApproach` (on the NavMesh, facing the bed) and
 `_npcSleepAnchor` (root pose for the sleeping clip, `IsNpcBed`); while an NPC lies in it (`Occupant`, `TryOccupy` /
 `Release`) `CanInteract` is false. Owned beds (`Ownership`, `TheftKind.Other`) outline red and count as theft on use.
 

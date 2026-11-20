@@ -91,4 +91,4 @@ unless the referenced memory `IsActive()`.
 - [ ] Asset named `Mem_<NPC>_<Topic>.asset`
 - [ ] `unlockConditions` populated (or left empty for always-active)
 - [ ] `effects.startdialog` set to the corresponding `StartDialogueNode` (if dialogue-bearing)
-- [ ] Memory saved under `<NPCName>/Memories/` — auto-added to `NPCEntity.memories` by `NPCMemoriesAutoSync` (the asset must live under `<NPCName>/Memories/`). Menu fallback: `Game/Dev/Sync All NPC Memories`
+- [ ] Memory saved under `<NPCName>/Memories/` (sync into `NPCEntity.memories`: `CLAUDE.md`)

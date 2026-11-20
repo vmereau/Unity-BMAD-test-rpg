@@ -39,7 +39,7 @@
   unconscious, not getting up, not dead, `NPCEntity.CanBeExecuted` (per-NPC opt-out, default true). `ExecutePoint` = the
   body Animator's Chest bone (fallback Hips, then root). `Execute(executor)` → `Die(ragdollNow: true)`: a normal death
   (`RegisterDeath`, kill XP, lootable corpse) but straight to ragdoll — the standing death clip would lift the lying body.
-  Player side: `Scripts/Combat/CLAUDE.md` → Execute.
+  Player side: `Scripts/Combat/EXECUTE.md`.
 
 ---
 

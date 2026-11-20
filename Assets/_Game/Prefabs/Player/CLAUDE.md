@@ -1,7 +1,7 @@
 # CLAUDE.md — Assets/_Game/Prefabs/Player
 
 > Loaded when Claude accesses the Player prefab. Covers its hierarchy and wiring rules.
-> Camera behaviour (Cinemachine OTS) and player scripts: `Scripts/Player/CLAUDE.md`.
+> Camera behaviour (Cinemachine OTS): `Scripts/Player/CAMERA.md`; player scripts: `Scripts/Player/CLAUDE.md`.
 
 ---
 
@@ -19,8 +19,8 @@ Player.prefab
 │   PlayerStateManager, PlayerCombat, DodgeController, StaminaSystem, PlayerHealth, PlayerStats,
 │   PlayerSkills, InteractionSystem, InventorySystem, ActionBarSystem, EquipmentSystem, XPSystem,
 │   LevelSystem, LearningPointSystem, GoldSystem (_startingGold 0: every origin starts broke), LockOnSystem,
-│   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/CLAUDE.md),
-│   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Prefabs/Items/Weapons/CLAUDE.md),
+│   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/BOW.md),
+│   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Scripts/Inventory/CLAUDE.md → TwoHandGripConstraint),
 │   FootstepEmitter (distance-based steps, gated by PlayerStateManager as IFootstepGate — Scripts/Audio/CLAUDE.md)
 │   Also on the root: AnimationEventReceiver, PlayerAttackStep, PlayerExecution, PlayerFallDamage,
 │   PlayerMovementStamina, PlayerPotionDrinker, PlayerRewards, PlayerSaveAdapter, PlayerSneak, PlayerStance,
@@ -28,7 +28,7 @@ Player.prefab
 │   FactionMember
 ├── UICanvas             (nested prefab Prefabs/UI/UICanvas.prefab — see Prefabs/UI/CLAUDE.md)
 ├── CameraTarget         (pure Transform pivot, local Y 1.6 — Cinemachine Follow/LookAt target)
-├── Virtual Camera       (CinemachineCamera + CinemachineThirdPersonFollow + CinemachineRotateWithFollowTarget — no Deoccluder / Decollider, see Scripts/Player/CLAUDE.md)
+├── Virtual Camera       (CinemachineCamera + CinemachineThirdPersonFollow + CinemachineRotateWithFollowTarget — no Deoccluder / Decollider, see Scripts/Player/CAMERA.md)
 ├── Camera               (Camera + CinemachineBrain + AudioListener + UniversalAdditionalCameraData)
 ├── Character            (nested Mixamo FBX prefab, Humanoid rig)
 │   ├── base_hero                     (Body SMR below the neck — mesh `base_hero_body_baked`; hidden while armor is worn)

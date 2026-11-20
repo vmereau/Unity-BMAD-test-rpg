@@ -20,7 +20,7 @@
 layer-collision-matrix dependency.
 
 - **Shape = the Box/Sphere/Capsule collider on the same GO**, kept **permanently disabled** (shape
-  definition only). Any other collider type → `GameLog.Error` in `Awake`, hitbox is a no-op.
+  definition only; `Awake` also disables it). Any other collider type → `GameLog.Error` in `Awake`, hitbox is a no-op.
 - `Enable()` / `Disable()` open/close the hit window (driven by animation events + SMB safety nets).
   `IsWindowOpen` exposes it.
 - While open, `LateUpdate` sweeps the shape from last frame's pose to this one —
@@ -40,18 +40,30 @@ layer-collision-matrix dependency.
 - Pure logic (dedupe, owner/dead/null rejection, sub-step count, inflation math) is in `HitSweepTracker`
   — covered by `Tests/EditMode/HitSweepTrackerTests`.
 
+**Target side (hurtbox contract)** — consequences of the explicit-mask sweep for every hittable prefab:
+
+- The hurtbox is a **trigger** collider on a child GO, Layer 7 **CharacterHitbox** — trigger so it
+  never blocks movement or ragdolls.
+- **No Rigidbody needed** on the entity or the weapon; the layer collision matrix is irrelevant
+  (explicit-mask queries ignore it).
+- **Size the hurtbox to the real body.** Low targets are reached by the attacker's `_verticalReach`
+  (downward reach capsule), never by inflating the target's hurtbox.
+- The target is resolved with `GetComponentInParent<IDamageable>()` from the hurtbox collider —
+  `EntityHealth` (an `IDamageable`) must be on the root or any ancestor of the hurtbox. A sibling or
+  unrelated GO → hits silently ignored.
+
 ### Hit resolution
 
 Every hitbox owner resolves hits the same way: `target.TryReceiveHit(attacker)` → `TakeDamage(amount, attacker)`
-**only on `NotBlocked`** (the attacker overload lets the victim choose knockout vs death — `Scripts/AI/CLAUDE.md` → Unconscious); other results deal no damage. Player: `PlayerCombat.OnWeaponHit`. AI:
-`EntityMeleeAttacker` (see `Scripts/AI/CLAUDE.md`).
+**only on `NotBlocked`** (the attacker overload lets the victim choose knockout vs death — `Scripts/AI/KNOCKOUT.md` → Unconscious); other results deal no damage. Player: `PlayerCombat.OnWeaponHit`. AI:
+`EntityMeleeAttacker` (see `Scripts/AI/COMBAT.md`).
 
-**Stance** (player → AI; AI → player / NPC is in `Scripts/AI/CLAUDE.md` → Stance): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.
+**Stance** (player → AI; AI → player / NPC is in `Scripts/AI/COMBAT.md` → Stance): after `TakeDamage`, a live `IStanceTarget` gets `ApplyStanceDamage(amount, canKnockDown)`.
 Melee = `StanceMath.ComputeMeleeStanceDamage`: weapon `ResolvedStanceDamage` (archetype `stanceDamage`, or the weapon's
 own value when set; unarmed `CombatConfigSO.unarmedStanceDamage`) + Strength × `stancePerStrength`, × `finisherStanceMultiplier` on
 `IsMaxCombo()` (unarmed: × the step's `UnarmedAttack.stanceMultiplier` instead — `PLAYER_COMBO.md`). `canKnockDown` = `WeaponSO.ResolvedCanKnockDown` (archetype flag, weapon
 `KnockDownOverride`); unarmed never. Arrows snapshot the bow's resolved values at fire time (no Strength / finisher).
-Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/CLAUDE.md` → Stance.
+Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. Rules and AI side: `Scripts/AI/COMBAT.md` → Stance.
 
 **Melee stamina:** a swing costs `CombatConfigSO.attackStaminaCost` × `WeaponSO.ResolvedAttackStaminaMultiplier`
 (`PlayerCombat.MeleeAttackStaminaCost`; unarmed × 1; two-handed × 2).
@@ -73,9 +85,8 @@ Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. R
 - **Hitbox Tuner** (`Tools/Combat/Hitbox Tuner`, `Assets/_Game/Editor/HitboxTunerWindow.cs`) — scrub a
   clip on a scene / Prefab-Mode entity, see posed hitboxes + swept trail, add `Hitbox_<id>` to a bone,
   write/remove events.
-- **Weapon Pose Tuner** (`Tools/Combat/Weapon Pose Tuner`) — archetype drawn / sheathed poses and weapon grips, see
-  `Prefabs/Items/Weapons/CLAUDE.md`. **`AnimationMode.StopAnimationMode` does not revert bones posed by a Humanoid
-  clip** — the tuner snapshots the rig's local transforms before sampling and restores them itself.
+- **Weapon Pose Tuner** (`Tools/Combat/Weapon Pose Tuner`) — archetype drawn / sheathed poses and weapon grips:
+  `Prefabs/Items/Weapons/WEAPON_TOOLS.md` (incl. the `AnimationMode` bone-revert gotcha).
 - **Debug sweeps** — `Tools/Combat/Show Hitbox Sweeps` toggles `HitboxDebug.DrawSweeps` (editor-only,
   EditorPrefs). Play-mode gizmos: yellow samples fading over 1 s, red hits. Compiled out of builds.
 
@@ -92,9 +103,9 @@ Archetypes: sword 25 / no KD, axe 35 / KD, two-handed 45 / KD, bow 10 / no KD. R
   inactive while sheathed), `SetOwner` + subscribe `OnHit`. No weapon visual, or a visual without a
   hitbox → `BindUnarmedHitbox()` (activates and binds **both** hands, `_unarmedHitbox` + `_unarmedHitboxLeft`; the hand of
   each step is picked in `OnAttackStateEntered` — `PLAYER_COMBO.md` → Unarmed Combo).
-- `OnEnable` also calls `BindUnarmedHitbox()` directly — a startup safety net, because
-  `GameEventSO<T>.Raise()` iterates listeners last-added-first and `EquipmentVisuals.OnEnable` may raise
-  before `PlayerCombat` subscribed.
+- `OnEnable` also calls `BindUnarmedHitbox()` directly — a startup safety net, because listener order is not
+  guaranteed (`Scripts/Inventory/CLAUDE.md` → Rules) and `EquipmentVisuals.OnEnable` may raise before `PlayerCombat`
+  subscribed.
 - **Why not `_onEquipmentChanged`?** `PlayerCombat` would receive it before `EquipmentVisuals.Refresh()`
   ran → `ActiveWeaponGO` still stale/null.
 - **Why not a C# event?** Cross-system (`Game.Inventory` → `Game.Combat`) communication must use
@@ -143,7 +154,7 @@ and a drawn weapon visual — fists never draw the shield). The shield is snapsh
 `HandleVisualsRefreshed` lowers a raised block whose shield left
 the hand (unequipped, two-hander equipped). Every lower goes through `LowerBlock()`. Values: Round 20 stamina / 0.35 s / +3
 armor, Kite 12 / 0.2 s / +6. The block still plays the sword's `Block Idle` (no shield clip yet — `deferred-work.md`). NPC side:
-`Scripts/AI/CLAUDE.md` → Blocking.
+`Scripts/AI/COMBAT.md` → Blocking.
 
 ---
 

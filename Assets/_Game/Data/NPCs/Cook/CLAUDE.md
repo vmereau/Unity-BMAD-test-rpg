@@ -1,8 +1,6 @@
-# NPC Identity — Aldric Sorn (Camp Cook)
+# CLAUDE.md — Assets/_Game/Data/NPCs/Cook
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Aldric Sorn (Camp Cook) — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -52,8 +50,6 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Keep warmth on the surface even when discussing suspicious or dangerous topics
 - Never directly accuse or threaten — Aldric deflects with hospitality
 - Respond to personal questions about his past with a change of subject or a question back at the player
@@ -65,10 +61,5 @@ Aldric Sorn ran a modest inn in the capital before a failed deal left him owing 
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/Cook/NPC_Cook.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/Cook/Dialogues/` |
-| Teachings | `Assets/_Game/Data/NPCs/Cook/Teachings/` |
-| Memories | `Assets/_Game/Data/NPCs/Cook/Memories/` |
 | Shop | `Dialogues/Shop/` ("I need lockpicks") + `Mem_Cook_Shop` — unlocked by `SkillFact_BeginnerLockpicking_Learned`; stock (`Item_Lockpick` ×10) on the `Cook` instance in `StartingTown.unity` |
 | TitheBarnShortfall | `Dialogues/BarnTip/` (5 gold, quest started, until Venn is caught) and `Dialogues/Tally/` (5 gold, unlocked by `DialogueFact_FarmReeve_Shortfall_NeedProof`: Brann keeps tally slips in his stash) |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

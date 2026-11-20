@@ -1,8 +1,6 @@
-# NPC Identity — Warden Voss
+# CLAUDE.md — Assets/_Game/Data/NPCs/Warden
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Warden Voss — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -52,8 +50,6 @@ Voss runs Alderath Camp for the Company. He uses punishment as theater: every be
 
 ## Dialogue Writing Rules (NPC-specific)
 
-> These rules extend `DIALOGUE.md` for this NPC specifically.
-
 - Orders, never requests. Refusing him gets contempt, not anger
 - Refers to the player's debt whenever money comes up
 - No exposition: he assumes workers already know their place
@@ -69,14 +65,3 @@ Voss runs Alderath Camp for the Company. He uses punishment as theater: every be
 - Stripped beat (spec-player-origins): one-shot topic `Dialogues/Belongings/Start_Warden_Belongings` ("Where are my
   belongings?") via `Mem_Warden_Belongings`: unlocks on `WorldFact_Arrival_Done` + `WorldFact_Origin_HadBelongings` (never for
   the Wretch), invalidated by `DialogueFact_Warden_Belongings`. He denies any baggage cart exists. No quest, no log entry.
-
----
-
-## Asset Reference
-
-| Asset | Path |
-|-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/Warden/NPC_Warden.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/Warden/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/Warden/Memories/` |
-| Prefab | Scene instance of `Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab` (no dedicated prefab) |

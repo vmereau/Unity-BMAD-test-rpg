@@ -38,5 +38,5 @@ Spec: `_bmad-output/implementation-artifacts/tech-spec-save-load-system.md`.
 - `SaveData` — plain classes, no Unity types (`SVector3` / `SQuaternion`); Newtonsoft Json.
 - **Restore without events:** restore methods set state directly and raise only value-changed events — never
   `_onLevelUp`, `_onSkillLearned`, `_onXPGained`, `RegisterKill` / `RegisterDeath` (they grant LP / XP / toasts).
-- Object identity: `SaveableObject` (`Scripts/World/CLAUDE.md`); item identity: `ItemSO.itemId` + `ItemCatalog`
+- Object identity: `SaveableObject` (`Scripts/World/CLAUDE.md` → Persistence and save ids); item identity: `ItemSO.itemId` + `ItemCatalog`
   (`ScriptableObjects/Items/CLAUDE.md`).

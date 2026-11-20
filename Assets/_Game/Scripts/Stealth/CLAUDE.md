@@ -2,7 +2,7 @@
 
 > Loaded when Claude accesses files in this folder. Namespace `Game.Stealth`. Stealth contracts, the
 > detection math and its debug geometry. The perception component itself is `Scripts/AI/EntityPerception`
-> (see `Scripts/AI/CLAUDE.md` → Perception & stealth); the sneak stance is `Scripts/Player/PlayerSneak`.
+> (see `Scripts/AI/PERCEPTION.md` → Perception & stealth); the sneak stance is `Scripts/Player/PlayerSneak`.
 
 ---
 
@@ -48,7 +48,7 @@ the same frame, a loop), 360°, × `occludedHearingFactor` without LOS. Engaged:
 `CanHearTarget`, **not** `CanSeeTarget`; `LastSeenPosition` / `TimeSinceSeen` track the last time *sensed*, so an
 alerted entity that hears the target doesn't lose it and chases / searches the heard point.
 
-**Asleep** (`EntityPerception.IsAsleep`, set by the brain for routine Sleep — `Scripts/AI/CLAUDE.md` → NPC sleep):
+**Asleep** (`EntityPerception.IsAsleep`, set by the brain for routine Sleep — `Scripts/AI/NPC/CLAUDE.md` → NPC sleep):
 visibility 0, proximity radius 0, no thefts; hearing applies in every mode (witness included). `CurrentSightRange` /
 `CurrentProximityRadius` read 0; the F3 overlay draws only the hearing circles.
 

@@ -1,8 +1,6 @@
-# NPC Identity — Osric Venn
+# CLAUDE.md — Assets/_Game/Data/NPCs/BarnGuard
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Osric Venn — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -72,7 +70,4 @@ Topics: `NightPatrol` (00–03 via `HourWindowFact_Night_00_03`, until caught: "
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/BarnGuard/NPC_BarnGuard.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/BarnGuard/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/BarnGuard/Memories/` |
 | Scene | StartingTown `TitheBarnShortfall/BarnGuard_Removal/BarnGuard` (NPC_base Variant instance; wrapper has the `FactRemovedObject`). Routine: 06–21 Stand `Spot_BarnGuard_Gate`, 00–03 Stand `Spot_BarnGuard_BarnDoor` (label `Barn`), 21–00 / 03–06 Sleep `TitheBarnShortfall/BarnGuardBed` (pallet on barracks `Bunk_0`). Barn trigger: `TitheBarnShortfall/BarnDoorTrigger` (hours 0–3, NearSpot r 3) |

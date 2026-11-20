@@ -29,7 +29,7 @@ ItemSO                              (base — any item in the inventory)
 └── EquipableItemSO  (abstract)     (items that can be equipped to a slot)
     ├── WeaponSO  (abstract)        (occupies the Weapon slot; references a WeaponArchetypeSO)
     │   ├── SwordSO                 (Weapons/SwordSO.cs — every melee weapon)
-    │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/CLAUDE.md)
+    │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/BOW.md)
     ├── ArmorSO                     (Helmet/Armor/Necklace slots; a ring asset uses `slot = Ring1` and equips to Ring1 or Ring2 — `EquipmentRules`)
     └── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
 

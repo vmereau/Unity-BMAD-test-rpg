@@ -1,8 +1,6 @@
-# NPC Identity — Pim
+# CLAUDE.md — Assets/_Game/Data/NPCs/FieldHand
 
-> This file is the canonical character sheet for this NPC. It is the instantiated version of
-> `NPC_IDENTITY_TEMPLATE.md`. Read it before writing any dialogue, memory, or behavioural asset
-> for this NPC. Keep it up to date as the character develops.
+> Loaded when Claude accesses this NPC's data. Character sheet for Pim — read it before writing any dialogue, memory or behaviour for this NPC.
 
 ---
 
@@ -69,7 +67,4 @@ Topics: `Greeting`, `BarnTalk` (one-shot), `BarnTalkAgain` (repeat).
 
 | Asset | Path |
 |-------|------|
-| NPCEntity | `Assets/_Game/Data/NPCs/FieldHand/NPC_FieldHand.asset` |
-| Dialogues | `Assets/_Game/Data/NPCs/FieldHand/Dialogues/` |
-| Memories | `Assets/_Game/Data/NPCs/FieldHand/Memories/` |
 | Scene | StartingTown `TitheBarnShortfall/FieldHand_Removal/FieldHand_Pim` (NPC_base Variant instance; wrapper has the `FactRemovedObject`). Routine: 06–21 Stand `Spot_FieldHand_Strips` (wheat field edge), 21–06 Sleep `TitheBarnShortfall/FieldHandBed` (tent camp, west of Hobb's hut) |
