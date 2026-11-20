@@ -45,7 +45,7 @@
 | ID | Name | Giver | Area | Faction Path | Status |
 |----|------|-------|------|-------------|--------|
 | quest-001 | The Hidden Stash | npc-002 (informant) | area-001 | neutral | implemented |
-| quest-002 | The Sealed Passage (`SealedPassage`) | npc-009 | area-002 | worker / independent | implemented (door route; goat track deferred) |
+| quest-002 | The Sealed Passage (`SealedPassage`) | npc-009 | area-002 | worker / independent | implemented (door route, Dace's key, goat track) |
 | TitheBarnShortfall | Counted Twice (`TitheBarnShortfall`) | npc-016 | area-001 (farm) | Company / mafia hook | implemented |
 | WardensErrand | The Warden's Errand | npc-006 (Voss) | area-001 + work sites | neutral | implemented |
 

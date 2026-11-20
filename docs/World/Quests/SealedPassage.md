@@ -59,6 +59,7 @@ Who sets each type: `Assets/_Game/Data/Facts/CLAUDE.md`.
 | `KilledFact_QuarryWorker` | `KilledFact` | Bren's scene `PersistentID` (`Game/World/Generate Missing KilledFacts`); same asset on `NPC_QuarryWorker._killedFact` |
 | `QuestFact_SealedPassage_Started` | `QuestFact` | computed — IsStarted |
 | `QuestFact_SealedPassage_Completed` | `QuestFact` | computed — IsCompleted |
+| `QuestFact_SealedPassage_Step0` | `QuestFact` | computed — step 0 completed (read by `PlayerReward_SealedPassage_Step0`) |
 
 ### Already exists (reference only)
 
@@ -174,7 +175,7 @@ npcs:
           - NPC (choice prompt): "He went in the night before, I'm sure of it, and they shut him in. I can't go and look myself. If Dace catches me near that door I'll be hauling till I drop, and I'm too old to run from his guards."
           - Player: "What happened to the men who worked in there?"  → NPC: "Gone up to the fort, they told us. Better work, better food. Funny thing, though: I carry stone up to that fort every week, and I've never once seen any of them up there." → back to the choice
           - Player: "How would I get in?"  → NPC: "The lock's nothing special. Anyone who's had a lesson or two with a pick could open it. Or there's Dace's hut down on the floor; he leaves his keys lying about like nobody would dare." → NPC: "There's the old goat track over the rock from the wilderness side too, but I wouldn't. Things out there have eaten better men than us." → back to the choice
-          - Player: "I'll find out what happened to him."  → NPC: "You'd do that for a stranger? Then I owe you, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it." END  [sets: DialogueFact_QuarryWorker_PassageAccepted]
+          - Player: "I'll find out what happened to him."  → NPC: "You'd do that for a stranger? Then I owe you, friend, and I don't forget what I owe. Whatever you find in there, good or bad, come and tell me. Not knowing is the worst of it." END  [sets: DialogueFact_QuarryWorker_PassageAccepted]
           - Player: "Not my business."  → NPC: "No, I suppose it isn't. It's nobody's business, and that's the whole trouble with this place." END  (no fact: topic stays)
           - Player [requiredMemory: Mem_QuarryWorker_FoundFirst]: "I've been behind that door already. I found him."  [sets: DialogueFact_QuarryWorker_PassageAccepted]
               → NPC: "You've been in? Before I'd even asked? Then you know more than I do, friend, and I've waited long enough." → Choice_QuarryWorker_Report (the report below, ring row included)
@@ -251,8 +252,9 @@ Note: a rude answer in the opener closes Bren's south-face topic for good, so th
 - **`Item_Key_QuarrySouthDoor`** — new quest-flagged key item (placeholder icon), owned pickup in **Dace's hut**, a new
   small overseer's shed on the quarry floor near his sledge spot (`WorkSiteManagers/QuarryOverseer_Spot`).
 - **Goat track** — steep but walkable path from the forest edge south-east of the quarry, over the ring's rim onto a
-  ledge, then a one-way drop through the gap in the invisible `Quarry/RuinsRing` colliders into a pit on the ring's
-  floor: the way out is the cleft door's `InsideLatch`. A small group of existing hostile creatures along it.
+  ledge, then a drop through the gap in the invisible `Quarry/RuinsRing` colliders into a pit on the ring's
+  floor. The drop is **not one-way** (the `DropBlockers` were removed by design on 2026-11-19): the player can climb
+  back out of the pit, or leave through the cleft door's `InsideLatch`. A small group of existing hostile creatures along it.
 - **Ring-entry trigger (new setter)** — a trigger volume that sets `WorldFact_SealedPassage_RingEntered` when the player
   enters (reuse an existing fact-setting trigger if one exists; otherwise a small `WorldFactTrigger`).
 - **The new cut** — Company layer dressing past the door: scaffolding, a few left tools, painted survey numbers.
@@ -314,8 +316,8 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
 
 ## Design Checks
 
-- No soft-lock: the goat track is always open without skill or key; its drop is one-way (`SealedPassage/GoatTrack/DropBlockers`, checked by `Tools/World/Check Goat Track Drop`),
-  and the door opens from inside.
+- No soft-lock: the goat track is always open without skill or key; the pit can be climbed back out of (the one-way
+  `DropBlockers` were removed by design on 2026-11-19), and the door opens from inside.
 - The ring can be worn, sold or dropped: a worn ring still shows the ring row; a sold one leaves "brought nothing back".
 - Explored first: entering the ring and taking the ring before accepting sets `RingEntered` / `TokenTaken` anyway. Bren's
   SouthFace then offers "I've been behind that door already. I found him.", which starts the quest (both steps already
@@ -380,3 +382,5 @@ Scale reference: WardensErrand completion 100 XP, HiddenStash meal ending 100 XP
 - [x] Goat track: ledge + `drops` + drop pit (`Area1FortRamp`), invisible `SealedPassage/GoatTrack/DropBlockers` (a terrain
       face is jump-climbable at any steepness), `Tools/World/Check Goat Track Drop` (CharacterController simulation) passes,
       sculpt captured, NavMesh rebaked, `Shape_GoatTrackDrop` trigger over the pit
+- [x] 2026-11-19 (`0e871d8`): `DropBlockers` removed by design — the drop is no longer one-way, so
+      the `Tools/World/Check Goat Track Drop` tool and its tests were deleted.
