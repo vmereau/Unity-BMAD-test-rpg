@@ -110,7 +110,8 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Area | File (under `Assets/_Game/`) | Covers |
 |------|------------------------------|--------|
 | Assembly & input | `CLAUDE.md` | `Game.asmdef`, `InputSystem_Actions` dual-file contract |
-| Scenes | `Scenes/CLAUDE.md` | Core.unity managers, MCP scene-load quirk |
+| Scenes | `Scenes/CLAUDE.md` (+ `STARTING_TOWN.md`) | Boot flow, play scenarios, Core.unity managers, MCP scene-load quirk, StartingTown overview; topic file: per-site layout facts — read before placing / moving anything in StartingTown |
+| Area 1 world tools | `Editor/World/CLAUDE.md` | `Tools/World/...` builders: run order, terrain capture, NavMesh bake rule, hand edits, grading, root ownership, play tests |
 | Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts, theft / gold request payloads |
 | Save / Time | `Scripts/Core/Save/CLAUDE.md`, `Scripts/Core/Time/CLAUDE.md` | `SaveSystem` / save files / restore rules; `GameClock`, `GameTime`, `DayNightController` |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
