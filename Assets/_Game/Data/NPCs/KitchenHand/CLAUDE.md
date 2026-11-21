@@ -55,6 +55,7 @@ the real kitchen work while Aldric "sees to the guests" — and he has learned n
   time you eat a new dish it does you the most good. No "permanent bonus", no stat names.
 - **Never explicit about Aldric's knowledge or business** — no confirmation, no hints, no pointing the player to
   Aldric for "other things". If asked, he deflects to food or work ("He cooks, I cook. That's all I know.").
+- He encourages trying things: good cooks find dishes by mixing ingredients, not only from written recipes.
 - Short, energetic sentences; no long speeches.
 
 ---
@@ -64,5 +65,5 @@ the real kitchen work while Aldric "sees to the guests" — and he has learned n
 | Asset | Path |
 |-------|------|
 | Scene | Not placed yet — canteen cookhouse in StartingTown (Cook at (-6,20), fireplace at (-7,22)) |
-| Quest role | Cooking tutorial quest chain (recipes, first-eat meal bonuses) — to design with `quests:design` |
+| Quest role | Cooking tutorial quest chain — teaches recipe discovery by experimenting (station Experiment tab), recipe items (Storekeeper) and first-eat meal bonuses; to design with `quests:design` |
 | KilledFact | Not set — create and assign once placed with a `PersistentID` |

@@ -26,8 +26,8 @@ kitchen work while Aldric "sees to the guests" — and he has learned not to ask
 
 ## Role in Area
 
-Cooks for the workers at the canteen. For the player, he is the introduction to cooking: recipes, cooking at a
-station, and why eating varied meals matters (first-eat meal bonuses, explained in-world as "a varied diet is
+Cooks for the workers at the canteen. For the player, he is the introduction to cooking: discovering recipes by
+experimenting with ingredients, learning them from recipe items, cooking at a station, and why eating varied meals matters (first-eat meal bonuses, explained in-world as "a varied diet is
 good for the body"). He gives a short quest chain that teaches these systems. He keeps Aldric's fence business
 entirely out of his talk.
 
