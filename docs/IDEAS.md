@@ -33,7 +33,10 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 ## AI / NPCs
 
 ### Revoir Aldric (cuisinier) : intro cuisine + receleur, ou deux personnages ?
-- **Date:** 2026-11-21 · **Status:** brut
+- **Date:** 2026-11-21 · **Status:** à designer
+- **Decision (2026-11-21):** deux personnages. Aldric reste receleur ; Tob (npc-020,
+  `Data/NPCs/KitchenHand/`), aide de cuisine, fait l'intro cuisine via une suite de quêtes et ne parle
+  jamais des affaires d'Aldric. Reste à designer : la suite de quêtes cuisine (`quests:design`).
 - **Idea:** Aldric Sorn devrait présenter le système de cuisine au joueur (recettes, bonus du premier
   repas de chaque plat, cf. `spec-meal-permanent-stat-bonus`), en plus de son rôle de receleur
   (informations, crochets, quêtes de vol / pickpocket). Aujourd'hui il ne fait que la partie receleur
