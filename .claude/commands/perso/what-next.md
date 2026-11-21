@@ -1,5 +1,5 @@
 ---
-description: Review recent specs, design documents ready to build, the game's design goals and the deferred-work backlog, then advise what to work on next
+description: Review recent specs, design documents ready to build, the ideas inbox, the game's design goals and the deferred-work backlog, then advise what to work on next
 argument-hint: "[optional focus, e.g. combat, area 1, polish, quick wins]"
 ---
 
@@ -17,6 +17,7 @@ Optional focus from the user: `$ARGUMENTS` (empty → no focus, consider everyth
 | Story / world | `_bmad-output/narrative-design.md`, `_bmad-output/story-2026-05-03.md` | Skim headings + the opening sections — enough to know the setting, the arrival beat and the current area |
 | Recent work | `_bmad-output/implementation-artifacts/spec-*.md` | Frontmatter (`title`, `type`, `created`, `status`) + the `## Intent` section |
 | Design handoffs | `docs/World/world-index.md`, `docs/World/**/*.md` | Design work done away from Unity (often on mobile) and waiting for a desktop implementation session. Read each doc's status line and the `Status` columns of `world-index.md` |
+| Ideas inbox | `docs/IDEAS.md` | Quick ideas captured for later. Read every entry above `## Archived`; note its domain and `Status` (`brut` / `à designer`) |
 | Backlog | `_bmad-output/implementation-artifacts/deferred-work.md` | Every `## From <spec> (<date>)` section; a struck-through item (`~~…~~`) is **resolved** — ignore it |
 | What shipped | `git log` | Confirms what actually landed, and when |
 
@@ -53,6 +54,17 @@ handed to the desktop by marking them `ready`. Nothing else announces them, so f
 - Pick the build command: a quest spec under `docs/World/Quests/` → `/quests:implement <QuestId>`; NPC dialogue →
   `NPC:dialogue` / `NPC:teach-dialogue` / `NPC:shop-dialogue`; a new NPC → `NPC:create`; anything else (areas,
   systems, mixed) → `gds-quick-dev` pointed at the doc path.
+
+### 1c — Ideas inbox
+
+Read `docs/IDEAS.md` (skip `## Archived`). Ideas are not designed yet, so they are **design-session**
+candidates, not build candidates:
+- An `à designer` entry is one the user wants to explore — list it, with the design tool that fits
+  (`quests:design` for a quest, `NPC:create` / `NPC:dialogue` for NPCs, `bmad-forge-idea` or
+  `gds-brainstorm-game` for a mechanic, `gds-quick-dev` only if the idea is already small and clear).
+- A `brut` entry is mentioned only if it matches the user's focus or connects to a recommended step.
+- Check whether a spec or design doc already covers it (`grep -ril "<keyword>" _bmad-output/implementation-artifacts docs/World`);
+  if so, say the entry can move to `Archived` as `designé`.
 
 ### 2 — Design intent
 
@@ -92,6 +104,9 @@ Output, in this order and in this shape (keep the whole answer scannable — no 
 ## Unfinished specs
 <bullet per non-done spec: title, status, created, one-line "finish / close / drop" advice — or "None">
 
+## Ideas to design
+<bullet per `à designer` entry (plus focus-matching `brut` ones): title, domain, date · Explore with: <tool> — or "None">
+
 ## Recommended next steps
 1. **<Short name>** — <kind, size> · <why now, in one or two sentences, tied to the design aims or recent work>
    Covers: <design doc / deferred items / spec it continues / GDD section>  ·  Start with: <`gds-quick-dev` one-line intent, or the build command from 1b>
@@ -110,7 +125,8 @@ Rules for the recommendations:
   system or a progress-blocking bug outranks it.
 - Mix kinds when it makes sense — don't recommend five polish tasks if a core pillar is missing, and don't push
   a large new system when a progress-blocking bug is open.
-- No invented work: every recommendation must come from the specs, a design doc, the backlog, or a verified GDD gap.
+- No invented work: every recommendation must come from the specs, a design doc, the ideas inbox, the backlog, or a verified GDD gap.
+- An idea from `docs/IDEAS.md` can be a recommended step only as a **design session** (it has no spec yet).
 
 Finish with one question: which item the user wants to start (offer to launch `gds-quick-dev` with the drafted
 intent, or the design doc's build command), or whether they want a different focus.
