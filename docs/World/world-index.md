@@ -37,6 +37,7 @@
 | npc-017 | Osric Venn (Barn Guard) | area-001 fields gate / barracks / tithe barn (00–03) | Grain thief, TitheBarnShortfall; mafia-route hook | faction-001 (covert gang supplier) | placed (StartingTown) |
 | npc-018 | Pim (Field Hand) | Company farm strips / tent camp | Lead + scapegoat, TitheBarnShortfall | none | placed (StartingTown) |
 | npc-019 | Gerrit (Barn Worker) | Company farm threshing floor / tent camp | Lead, TitheBarnShortfall | none | placed (StartingTown) |
+| npc-020 | Tob (Kitchen Hand) | area-001 — Canteen cookhouse | Cooking tutor, cooking quest chain | none | draft |
 
 ---
 
