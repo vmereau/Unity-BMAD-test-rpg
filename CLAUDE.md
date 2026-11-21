@@ -24,6 +24,7 @@
 | **Art direction (all visual assets)** | `Assets/_Game/Art/ART_DIRECTION.md` |
 | **GDD / architecture / narrative** | `_bmad-output/gdd.md`, `game-architecture.md`, `narrative-design.md` |
 | **Obsolete plan (history only)** | `_bmad-output/epics.md`, `implementation-artifacts/sprint-status.yaml` |
+| **Ideas inbox (notes / ideas / suggestions for later)** | `docs/IDEAS.md` — see rule below |
 | **Story files + tech specs** | `_bmad-output/implementation-artifacts/*.md` |
 | **Superseded proposals / archived specs** | `_bmad-output/archive/` |
 | **All game source code** | `Assets/_Game/` |
@@ -31,6 +32,11 @@
 | **Editor-only tools** | `Assets/_Game/Editor/` (`Game.Editor` asmdef). `Assets/_Game/Scripts/Editor/` compiles into the runtime `Game` assembly and requires `#if UNITY_EDITOR` |
 | **Git conventions** | `.claude/rules/git-conventions.md` |
 | **Path-scoped rules** | `.claude/rules/attack-pipeline.md` (auto-loads for combat / AI / animation / entity files) |
+
+> **Ideas inbox:** when the user mentions a note, idea or suggestion to keep for later ("note",
+> "idée", "suggestion", "pour plus tard", "à explorer"…), add it to `docs/IDEAS.md` using its entry
+> template — not to `deferred-work.md` (technical leftovers from specs) nor `docs/World/` (finished
+> design). When they ask about their ideas / notes, read `docs/IDEAS.md` first.
 
 > **Never treat `_bmad/` or `_bmad-output/` as game source code.** They are BMAD
 > workflow artifacts. Always exclude them from code reviews and source analysis.
@@ -73,7 +79,7 @@ The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 | `ui:create <element\|screen> [state]` | Build prompts for implementable UI sprites (full-bleed, 9-slice, shared across screens) from the `Art/UI` sprite catalog, with `generate_image` calls and Unity import settings |
 | `characters:concept-prompt <outfit>` | Build a T-pose character concept prompt (base hero + outfit) for Meshy image-to-3D, from the `Art/Characters/Humanoids` template |
 | `characters:portrait-face [NPC]` | Give an NPC a portrait-matched face: front + side portrait prompts, then MediaPipe fit, projection, bake and assign (asks which NPC when none is given) |
-| `perso:what-next [focus]` | Read recent specs, GDD aims and `deferred-work.md`, then recommend ranked next steps (read-only) |
+| `perso:what-next [focus]` | Read recent specs, GDD aims, `docs/IDEAS.md` and `deferred-work.md`, then recommend ranked next steps (read-only) |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
 | `perso:claude-md-audit` | Periodic doc maintenance — find oversized, misplaced, duplicated or stale CLAUDE.md content and restructure it (one commit per part) |
