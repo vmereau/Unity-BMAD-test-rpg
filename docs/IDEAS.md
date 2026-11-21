@@ -30,6 +30,19 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 
 <!-- Add domain sections and entries below. -->
 
+## AI / NPCs
+
+### Revoir Aldric (cuisinier) : intro cuisine + receleur, ou deux personnages ?
+- **Date:** 2026-11-21 · **Status:** brut
+- **Idea:** Aldric Sorn devrait présenter le système de cuisine au joueur (recettes, bonus du premier
+  repas de chaque plat, cf. `spec-meal-permanent-stat-bonus`), en plus de son rôle de receleur
+  (informations, crochets, quêtes de vol / pickpocket). Aujourd'hui il ne fait que la partie receleur
+  (boutique de crochets, tuyaux de TitheBarnShortfall), sans rien sur la cuisine.
+- **To explore:** un seul personnage, ou deux ? Piste : Aldric garde le rôle de receleur et un aide de
+  cuisine (commis / marmiton) fait l'intro cuisine, et sert aussi d'intermédiaire vers le réseau
+  d'Aldric. Qui enseigne le crochetage ? Est-ce qu'il faut une chaîne de quêtes de voleur ?
+  `docs/World/NPCs/npc-011-innkeeper.md` parle encore d'une auberge : à mettre à jour.
+
 ---
 
 ## Archived
