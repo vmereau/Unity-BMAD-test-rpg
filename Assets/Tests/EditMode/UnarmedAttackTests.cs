@@ -154,7 +154,7 @@ public class UnarmedAttackTests
         Assert.That(mapped, Does.Contain("Draw unarmed"));
         Assert.That(mapped, Does.Contain("sheath unarmed"));
         if (!melee) return;
-        Assert.That(mapped, Does.Contain("lead jab"));
+        Assert.That(mapped, Does.Contain("lead jab step")); // Attack_1 base clip (spec-action-root-motion-jab-trial)
         Assert.That(mapped, Does.Contain("Hook"));
         Assert.That(mapped, Does.Contain("Uppercut"));
         Assert.That(mapped, Does.Contain("Unarmed Idle Guard"), "CombatIdle carry pose (base clip = baked unarmed guard)");

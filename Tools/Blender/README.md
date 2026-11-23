@@ -19,6 +19,26 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | `configs/2hand_attack_2.json` | Final inputs that produced `two handed/2hand attack 2 refined.fbx` (Attack_2 finisher) — `pitch_curve` |
 | `unarmed_foot_step.py` + `configs/unarmed/` | Leg IK edit of the unarmed combo clips so the feet follow the scripted `AttackStep` (see *Unarmed foot step*) |
 | `unarmed_foot_step_measure.cs` | Unity MCP `execute_code` body: per-frame toe / ankle positions of a clip on the Player rig (player-local JSON) |
+| `meshy_jab_fit.py` + `configs/unarmed/meshy_jab.json` + `sources/meshy_jab_v2_armature.fbx` | Fits a Meshy text-to-motion clip that travels (SMPL-H skeleton) to a wanted forward distance for clip root motion (see *Meshy jab fit*) |
+
+## Meshy jab fit
+
+`meshy_jab_fit.py` turns Meshy's stepping jab into `Unarmed/lead jab step.fbx`, the clip `ActionRootMotion` reads
+(`Scripts/Combat/PLAYER_COMBO.md`). `run(config)`: trim + retime (`first_frame`, `last_frame`, `speed`), turn the whole
+motion so the net pelvis travel is straight ahead, move the pelvis start onto the origin, scale every displacement from
+the start pose to `travel_m` (planted feet stay planted, start stance unchanged), shrink the pelvis dip and foot lift
+(`pelvis_height_scale`, `foot_lift_scale`), re-solve both legs with an analytic 2-bone IK, key every bone, export.
+`strip_source(raw, out)` makes the small armature-only source from the 16 MB download; `export_rig(raw, out)` exports the
+T-pose skeleton Unity builds the SMPL-H avatar from (`Unarmed/meshy smplh rig.fbx`).
+
+Gotchas:
+- Imported SMPL-H bones do not point along their own Y axis: aim a bone with the direction to its **child joint**.
+- A stripped (armature-only) FBX re-imports with keys shifted by + 1 frame **and its rest pose replaced by the first
+  frame's pose**: build the avatar rig from the raw download, never from the stripped source.
+- Scale foot heights about each ankle's lowest point, not its start height, or a planted foot floats.
+- `travel_m` is clip-space pelvis travel: 0.42 gives 0.40 m on the Player (0.42 peak, the exit blend cuts the settle back).
+- Keep the clip's start on the world origin, and `Animator.feetPivotActive` at 0 in game: at 1, blends drag the player
+  sideways (`PLAYER_COMBO.md` → Action root motion).
 
 ## Unarmed foot step
 

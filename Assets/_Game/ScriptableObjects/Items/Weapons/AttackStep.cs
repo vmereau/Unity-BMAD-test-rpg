@@ -18,13 +18,21 @@ namespace Game.Inventory
         [Min(0f)] public float startTime;
         [Tooltip("Seconds the step lasts.")]
         [Min(0f)] public float duration;
+        [Tooltip("Player only. > 0 = this attack's clip carries its own forward travel: ActionRootMotion applies the clip's " +
+                 "root displacement × this value and the scripted step above is not run (NPCs still use it — keep distance " +
+                 "close to the clip's travel). 0 = scripted step.")]
+        [Min(0f)] public float rootMotionScale;
 
-        public AttackStep(float distance, float startTime, float duration)
+        public AttackStep(float distance, float startTime, float duration, float rootMotionScale = 0f)
         {
             this.distance = distance;
             this.startTime = startTime;
             this.duration = duration;
+            this.rootMotionScale = rootMotionScale;
         }
+
+        /// <summary>True when the player moves by the clip's root motion instead of the scripted step.</summary>
+        public bool UsesRootMotion => rootMotionScale > 0f;
 
         /// <summary>
         /// Metres to travel between <paramref name="fromTime"/> and <paramref name="toTime"/> (seconds since the attack state

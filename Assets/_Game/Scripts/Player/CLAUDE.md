@@ -22,7 +22,7 @@
 | Block  | `CanBlock()`  | `PlayerCombat.SetBlocking()` |
 | Dodge  | `CanDodge()`  | `DodgeController.SetDodging()` |
 | Jump   | `CanJump()`   | — (read-only gate) |
-| Move   | `CanMove()`   | — (read-only gate; false during any attack — swings move through `PlayerAttackStep`) |
+| Move   | `CanMove()`   | — (read-only gate; false during any attack — swings move through `PlayerAttackStep`, or `ActionRootMotion` for a clip that carries its own travel: `Scripts/Combat/PLAYER_COMBO.md`) |
 | Attack steering | `CanSteerAttack()` / `IsAttackCommitted` | `PlayerCombat` → `SetAttackCommitted(bool)` (true at `HitboxEnable`, false on attack-state enter); `PlayerController` turns at `attackSteerSpeed` while it's true (`Scripts/Combat/PLAYER_COMBO.md`) |
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 | Aggroed | `IsAggroed` (read-only, cached per frame) | — computed: `EntityBrain.IsAnyFighting(player FactionMember)` = any active brain in Warning / Engaging / Attacking / Searching on the player, any faction. **Not** `IsInCombat` (drawn weapon) |

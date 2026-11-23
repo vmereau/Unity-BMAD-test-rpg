@@ -32,7 +32,10 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   `→ Attack_1_State` on `AttackCancel` + `Attack_1` (0.15 s, restart; self-transition on Attack_1), `→ LockOn Locomotion`
   on `AttackCancel` (0.2 s), then the combo / exit-time transitions. AnyState → `Attack_1` also requires `AttackCancel` false
   (AnyState is evaluated first — it would otherwise shadow the 0.15 s restart from Attack_2/3). Attack clips stay root-baked (`applyRootMotion` off everywhere): the Mixamo clips
-  are in place (net root travel 0), so the player's forward step is scripted (`PlayerAttackStep`, `Scripts/Combat/PLAYER_COMBO.md`).
+  are in place (net root travel 0), so the player's forward step is scripted (`PlayerAttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Exception: the base
+  `Attack_1_State` clip `lead jab step` keeps root XZ unbaked and the player reads its travel through `ActionRootMotion`
+  (`PLAYER_COMBO.md` → Action root motion). Re-keying the weapon overrides after a base clip change: *Base attack
+  clips and override keys* below.
 - **Parameters:** `VelocityX`, `VelocityZ`, `IsGrounded`, `IsRising`, `IsBlocking`, `IsDodging`,
   `IsDodgingBackwards`, `IsInCombat`, `Attack_1/2/3`, `Attack` (trigger — unused by humanoid code; only
   `MonsterAnimationBridge` sets an `Attack` trigger, on monster controllers), `GetHit`, `Death`, `IsSneaking`, `SneakToSprint`,
@@ -101,10 +104,10 @@ references a shared blend tree deletes it for every state (rebuilt once this way
 
 ### Base attack clips and override keys (spec-unarmed-combo-rework)
 
-Base motions: `Attack_1_State` = `lead jab`, `Attack_2_State` = `Hook`, `Attack_3_State` = `Uppercut` (three distinct
+Base motions: `Attack_1_State` = `lead jab step`, `Attack_2_State` = `Hook`, `Attack_3_State` = `Uppercut` (three distinct
 clips). Overrides are keyed on the **base clip**, so every weapon override must map all three, or that state plays the
-unarmed punch with a weapon in hand: sword `lead jab` → `SwordAttackLeft`, `Hook` → `SwordAttackThrust`, `Uppercut` →
-`SwordAttackLeft`; two-handed `lead jab` / `Uppercut` → `2hand attack refined`, `Hook` → `2hand attack 2 refined`.
+unarmed punch with a weapon in hand: sword `lead jab step` → `SwordAttackLeft`, `Hook` → `SwordAttackThrust`, `Uppercut` →
+`SwordAttackLeft`; two-handed `lead jab step` / `Uppercut` → `2hand attack refined`, `Hook` → `2hand attack 2 refined`.
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced. Same for `CombatIdle`
 (= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block

@@ -1172,3 +1172,23 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   so `BarnDoorTrigger`'s dependency on `QuestFact_TitheBarnShortfall_Started` is invisible to `quest_report`.
 - **No validator rule for `HourWindowFact` misuse.** It raises no change event, so in a quest part / talk opener /
   `FactRemovedObject` it would silently never update. A V-rule like V18 (ElapsedFact) would catch it.
+
+## From spec-action-root-motion-jab-trial (2026-11-23)
+
+- **NPC unarmed jab not checked in play.** NPCs now play `lead jab step` (1.07 s instead of 1.80 s, fist 0.63 m ahead of
+  the root instead of 0.79 m) with the scripted step (0.40 m, constant speed). Expect some foot slide, and re-check the
+  reach margin at the 1.3 m stopping distance (`Prefabs/Entities/CLAUDE.md`) and any AI timing tuned to the old clip.
+- **Ledge stop and lock-on untested for `ActionRootMotion`.** Dodge / block / jump cancels were not run one by one either.
+- **Trailing foot of `lead jab step` drags 5–7 cm above the ground** for most of the clip (Meshy source). Needs a foot
+  plan like `unarmed_foot_step.py`, or a regenerated source.
+- **Chaining jab → Hook early drops the rest of the jab's travel** (0.32 m instead of 0.40 m at the earliest press) and
+  blends into a Hook whose trimmed start was matched to the old jab's hip yaw. Look at the blend before tuning.
+- **A state with unbaked root XZ still blending out adds its travel to the jab.** Attack → attack blends are skipped;
+  `Landing` (unbaked) is not.
+- **A weapon without an animator override plays the base `lead jab step` with the weapon's scripted step**: the clip's
+  travel is dropped and the capsule slides by `defaultAttackStep` under stepping feet.
+- **`AttackStep.distance` and the clip's travel are two values to keep in sync for NPCs**, and a `rootMotionScale` on an
+  in-place or XZ-baked clip roots the player. No validation; a body swap with another avatar scale also changes the travel.
+- **`meshy_jab_fit.py` trusts its inputs** (no armature, no animation, `speed` 0, reversed frame range) and keys rotations
+  only (plus pelvis location).
+

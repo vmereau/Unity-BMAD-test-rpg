@@ -355,6 +355,7 @@ GameObject:
   - component: {fileID: 1265412054026202888}
   - component: {fileID: 4033639479376181343}
   - component: {fileID: 7347131422997516615}
+  - component: {fileID: 673440018406305621}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -1188,6 +1189,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Player.PlayerFallDamage
   _config: {fileID: 11400000, guid: b187ee82d09378f4888b6823b0af5d07, type: 2}
   _health: {fileID: 6838483035695751856}
+--- !u!114 &673440018406305621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2719960058802524000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eac36f91a444fa4c810f31b3c8c0d1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Player.ActionRootMotion
 --- !u!1 &2908738489711061366
 GameObject:
   m_ObjectHideFlags: 0

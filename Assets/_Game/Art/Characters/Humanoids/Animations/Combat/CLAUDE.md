@@ -17,7 +17,8 @@ Combat/
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
 │                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
-├── Unarmed/    — lead jab, Hook, Uppercut (the combo, Blender leg edits; Mixamo sources in `old/`), draw unarmed, sheath unarmed, stagger 1/2,
+├── Unarmed/    — lead jab step (Attack_1, Meshy + Blender fit, carries its own travel; `meshy smplh rig` = its avatar source),
+│                 lead jab (previous Attack_1, unreferenced, kept for a revert), Hook, Uppercut (Blender leg edits; Mixamo sources in `old/`), draw unarmed, sheath unarmed, stagger 1/2,
 │                 Unarmed Idle (source) → baked `Unarmed Idle Guard.anim` (the CombatIdle clip, see below)
 │                 → baked `Unarmed Block Guard.anim` (Block_State, high guard; `refs/` = the pose reference pictures)
 ├── Block Idle.fbx — shield-style block, now only the sword's (Sword override → `Block Idle`)
@@ -68,7 +69,7 @@ retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than ove
 
 ### Two handed (`two handed/`)
 
-2-step combo: `lead jab` → `2hand attack refined` (Attack_1), `Hook` → `2hand attack 2 refined` (Attack_2, finisher).
+2-step combo: `lead jab step` → `2hand attack refined` (Attack_1), `Hook` → `2hand attack 2 refined` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
 **All weapon attack clips stay in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to
@@ -106,7 +107,8 @@ Custom timings tuned to each arc (faster connect, different wind-up) — **never
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
-| `lead jab.fbx` (`lead jab`, 1.80 s, frames 1–55) | Attack_1 — left hand | 0.185 (f11) | 0.315 (f18) | 0.315 | 0.741 (f41) |
+| `lead jab step.fbx` (`lead jab step`, 1.07 s, frames 1–33) | Attack_1 — left hand | 0.27 | 0.41 | 0.41 | 0.78 |
+| `lead jab.fbx` (`lead jab`, 1.80 s, frames 1–55) | — (unreferenced since the root motion trial) | 0.185 (f11) | 0.315 (f18) | 0.315 | 0.741 (f41) |
 | `Hook.fbx` (`Hook`, 1.83 s, frames **11–66**) | Attack_2 — right hand | 0.309 (f28) | 0.436 (f35) | 0.436 | 0.764 (f53) |
 | `Uppercut.fbx` (`Uppercut`, 1.33 s, frames 1–41) | Attack_3 — left hand, finisher | 0.275 (f12) | 0.400 (f17) | — | 0.70 (f29) |
 
@@ -117,20 +119,38 @@ Measured on the Player rig (fist hitbox, player-local):
 - **lead jab** — left fist speeds up from f11 (peak 4.8 m/s at f13), full extension f15–16 at (0.20, 0.96, 0.79).
 - **Hook** — right fist swings wide from f27 (10 m/s at f29–30), crosses the front f30–34, ends at (0.25, 1.45, 0.70).
   The first 10 source frames (f1–10, slow guard-to-wind-up) are trimmed in the importer: the trimmed start has hip yaw 78°,
-  the lead jab's yaw at its combo window (77°), and the hit lands 0.57 s after the chain instead of 0.90 s.
+  the lead jab's yaw at its combo window (77°), and the hit lands 0.57 s after the chain instead of 0.90 s. Not
+  re-checked against `lead jab step` (different hip yaw at its window): look at the jab → Hook blend before tuning.
 - **Uppercut** — left fist drops back f8–10, drives up f12–17 (12 m/s at f15), in front at f13–16 (z 0.36–0.65), then
   goes overhead. Its start is not trimmed: the 0.42 s combo blend covers the drop-back.
 
-**Hit event ids:** the three clips' `HitboxEnable` / `HitboxDisable` carry a string — `UnarmedLeft` (lead jab,
+**`lead jab step` (spec-action-root-motion-jab-trial)** — the one clip that moves the player by its own root motion
+(`Scripts/Combat/PLAYER_COMBO.md` → Action root motion). Meshy text-to-motion v2 fitted by `Tools/Blender/meshy_jab_fit.py`
+(travel straightened, stride 1.22 m → 0.42 m, retimed × 1.4, 1.07 s).
+
+- Skeleton is **SMPL-H**, not Mixamo: its avatar is copied from `meshy smplh rig.fbx` (T-pose export, explicit human
+  mapping `Pelvis` → Hips, `L_Hip` → upper leg, `L_Knee` → lower leg, `L_Ankle` → foot, `L_Foot` → toes, `L_Collar` →
+  shoulder, `L_Shoulder` → upper arm, `L_Elbow` → lower arm, `L_Wrist` → hand). A Blender-exported clip can't build the
+  avatar itself: its model pose is the first animated frame, not a T-pose.
+- Import: root rotation baked (Original), root Y baked (Original) with **Offset 0.042** (the SMPL-H ankle sits higher
+  than the player's, so without it the feet float 4 cm; a positive offset lowers the body), root **XZ not baked**.
+- On the Player: fist furthest at 0.40 s, 0.63 m ahead of the root; lead foot planted from 0.45 s; the trailing foot
+  drags 5–7 cm above the ground until the end of the clip (source behaviour, scaled down).
+- Timing against the old jab: clip 1.80 s → 1.07 s, hit window opens at 0.33 s → 0.29 s, combo window 0.57–1.33 s →
+  0.44–0.83 s (about half as long). NPCs get the same timings through the shared controller.
+- Revert: point `Attack_1_State` back to `lead jab`, re-key the two weapon overrides, set
+  `unarmedAttacks[0].step` to 0.30 / 0.07 / 0.43 with `rootMotionScale` 0 (asset and the `CombatConfigSO` default).
+
+**Hit event ids:** the combo clips' `HitboxEnable` / `HitboxDisable` carry a string — `UnarmedLeft` (lead jab step,
 Uppercut) or `Unarmed` (Hook) — the NPC hitbox id. The player ignores it and reads the hand from
 `CombatConfigSO.unarmedAttacks` (`Scripts/Combat/PLAYER_COMBO.md`).
 
-**Import settings (all three; Loop Pose off):** root rotation baked, **Original** orientation; root Y baked, Original; root **XZ not
+**Import settings (`lead jab`, `Hook`, `Uppercut`; Loop Pose off):** root rotation baked, **Original** orientation; root Y baked, Original; root **XZ not
 baked**. The Mixamo boxing clips lunge up to 0.5 m and step back; with XZ unbaked and `applyRootMotion` off the Animator
-drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement. Orientation based
+drops that travel, so the punch is truly in place and the scripted `AttackStep` is the only movement (`lead jab step` is the exception: the player reads its travel, see above). Orientation based
 on **Body** turned the bladed stance square and sent the jab 35° to the left.
 
-**Foot step:** the three shipped FBX are Blender re-exports whose legs follow the scripted `AttackStep`; the untouched
+**Foot step:** `lead jab`, `Hook` and `Uppercut` are Blender re-exports whose legs follow the scripted `AttackStep`; the untouched
 Mixamo sources are in `Unarmed/old/` — recipe, per-clip foot plan and gotchas in `BAKE_RECIPES.md` → *Unarmed foot step*.
 
 **Guard poses:** `CombatIdle` plays the baked `Unarmed Idle Guard.anim` (from `Unarmed Idle.fbx`, kept as the bake

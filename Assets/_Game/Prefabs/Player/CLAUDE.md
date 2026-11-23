@@ -22,7 +22,7 @@ Player.prefab
 │   EquipmentVisuals, DialogueSystem, BowAimCorrection (calibrated arrow line — Scripts/Combat/BOW.md),
 │   TwoHandGripConstraint (order 250 — re-aims a drawn two-handed weapon through both hands, Scripts/Inventory/CLAUDE.md → TwoHandGripConstraint),
 │   FootstepEmitter (distance-based steps, gated by PlayerStateManager as IFootstepGate — Scripts/Audio/CLAUDE.md)
-│   Also on the root: AnimationEventReceiver, PlayerAttackStep, PlayerExecution, PlayerFallDamage,
+│   Also on the root: ActionRootMotion, AnimationEventReceiver, PlayerAttackStep, PlayerExecution, PlayerFallDamage,
 │   PlayerMovementStamina, PlayerPotionDrinker, PlayerRewards, PlayerSaveAdapter, PlayerSneak, PlayerStance,
 │   PlayerSwimming, SleepSystem, StatusEffectHost, StolenGoodsTracker, ContainerSystem, CookingSystem, DoorSystem,
 │   FactionMember

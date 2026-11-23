@@ -32,29 +32,16 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 
 ## Combat
 
-### Mouvement des attaques : root motion hybride au lieu de l'`AttackStep` scripté
-- **Date:** 2026-11-22 · **Status:** à designer
-- **Constat :** le projet n'utilise déjà plus la root motion (`applyRootMotion` off partout depuis
-  `spec-full-body-attacks-root-motion`). Les clips d'attaque sont sur place ; `PlayerAttackStep` / `EntityAttackStep`
-  poussent la capsule à vitesse constante (`AttackStep` en secondes) ; les pieds des clips à main nue ont été retouchés
-  dans Blender pour coller à ce déplacement (`spec-unarmed-attack-foot-step`). Problème : double source de vérité
-  (chiffres `AttackStep` ↔ pas retouchés à la main), pas synchronisé si la vitesse de l'Animator change (hit-stop, stat
-  de vitesse d'attaque — `deferred-work.md`), les NPC glissent encore (point ouvert dans `deferred-work.md`).
-- **Idea:** hybride « root motion lue et filtrée par le code », limité aux actions. La locomotion reste pilotée par le
-  code. Les clips d'action contiennent le vrai déplacement (on avance la racine dans Blender ou via Meshy, pieds
-  plantés). Un composant commun `ActionRootMotion` sur l'objet de l'Animator implémente `OnAnimatorMove` et ne lit
-  `animator.deltaPosition` que dans les états tagués choisis : garde l'horizontal seulement, multiplicateur par arme
-  (`rootMotionScale` remplace `attackSteps`), détection de rebord reprise de `PlayerAttackStep`, « motion warping »
-  léger en verrouillage (s'arrêter à bonne distance de la cible), puis `CharacterController.Move` (joueur) ou
-  `NavMeshAgent.Move` (NPC). Étendre ensuite à l'esquive, l'exécution, le relevé, le stagger.
-- **Variante :** outil éditeur qui extrait le déplacement de la racine de chaque clip en `AnimationCurve` (dans un SO),
-  échantillonnée en temps normalisé : déterministe, testable en EditMode, garde la règle « root motion off ».
-- **Première étape :** essai sur une seule attaque (jab ou coup à une main) ; juger la sensation, l'absence de
-  glissement des pieds et le comportement en verrouillage. Puis spec via `gds-quick-dev`.
-- **To explore:** `OnAnimatorMove` à l'exécution ou courbes extraites ; NPC dans le premier lot ou non (culling de
-  l'Animator à mettre sur `AlwaysAnimate` en combat, sinon pas de mouvement hors caméra) ; refaire les clips
-  (Meshy) ou retoucher les existants (Blender) ; règles à mettre à jour (« `applyRootMotion` off everywhere », garde
-  de `HumanoidAIAnimationDriver`, `.claude/rules/attack-pipeline.md`).
+### Root motion hybride : étendre après l'essai du jab
+- **Date:** 2026-11-23 · **Status:** à designer
+- **Constat :** l'essai (`spec-action-root-motion-jab-trial`) marche sur le jab à main nue du joueur : `ActionRootMotion`
+  (`OnAnimatorMove`) déplace la capsule de 0,40 m par le clip seul, pied planté à ~1 cm, annulation et combo corrects.
+  Clip Meshy (squelette SMPL-H) ajusté dans Blender (`Tools/Blender/meshy_jab_fit.py`).
+- **Idea:** après validation de la sensation en jeu, étendre : Hook et Uppercut (nouveaux clips ou retouche), armes,
+  « motion warping » en verrouillage (s'arrêter à bonne distance), puis esquive / exécution / relevé / stagger.
+- **To explore:** NPC (ils jouent le nouveau clip avec le pas scripté ; `NavMeshAgent.Move` + culling `AlwaysAnimate` en
+  combat) ; pied arrière du jab qui traîne 5–7 cm au-dessus du sol ; remplacer `attackSteps` par `rootMotionScale`
+  partout ou garder les deux ; Meshy ignore distance et direction (`.claude/rules/meshy-mcp.md`).
 
 ## AI / NPCs
 
@@ -86,3 +73,27 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 ---
 
 ## Archived
+
+### Mouvement des attaques : root motion hybride au lieu de l'`AttackStep` scripté
+- **Date:** 2026-11-22 · **Status:** designé (2026-11-23) → `_bmad-output/implementation-artifacts/spec-action-root-motion-jab-trial.md`
+- **Constat :** le projet n'utilise déjà plus la root motion (`applyRootMotion` off partout depuis
+  `spec-full-body-attacks-root-motion`). Les clips d'attaque sont sur place ; `PlayerAttackStep` / `EntityAttackStep`
+  poussent la capsule à vitesse constante (`AttackStep` en secondes) ; les pieds des clips à main nue ont été retouchés
+  dans Blender pour coller à ce déplacement (`spec-unarmed-attack-foot-step`). Problème : double source de vérité
+  (chiffres `AttackStep` ↔ pas retouchés à la main), pas synchronisé si la vitesse de l'Animator change (hit-stop, stat
+  de vitesse d'attaque — `deferred-work.md`), les NPC glissent encore (point ouvert dans `deferred-work.md`).
+- **Idea:** hybride « root motion lue et filtrée par le code », limité aux actions. La locomotion reste pilotée par le
+  code. Les clips d'action contiennent le vrai déplacement (on avance la racine dans Blender ou via Meshy, pieds
+  plantés). Un composant commun `ActionRootMotion` sur l'objet de l'Animator implémente `OnAnimatorMove` et ne lit
+  `animator.deltaPosition` que dans les états tagués choisis : garde l'horizontal seulement, multiplicateur par arme
+  (`rootMotionScale` remplace `attackSteps`), détection de rebord reprise de `PlayerAttackStep`, « motion warping »
+  léger en verrouillage (s'arrêter à bonne distance de la cible), puis `CharacterController.Move` (joueur) ou
+  `NavMeshAgent.Move` (NPC). Étendre ensuite à l'esquive, l'exécution, le relevé, le stagger.
+- **Variante :** outil éditeur qui extrait le déplacement de la racine de chaque clip en `AnimationCurve` (dans un SO),
+  échantillonnée en temps normalisé : déterministe, testable en EditMode, garde la règle « root motion off ».
+- **Première étape :** essai sur une seule attaque (jab ou coup à une main) ; juger la sensation, l'absence de
+  glissement des pieds et le comportement en verrouillage. Puis spec via `gds-quick-dev`.
+- **To explore:** `OnAnimatorMove` à l'exécution ou courbes extraites ; NPC dans le premier lot ou non (culling de
+  l'Animator à mettre sur `AlwaysAnimate` en combat, sinon pas de mouvement hors caméra) ; refaire les clips
+  (Meshy) ou retoucher les existants (Blender) ; règles à mettre à jour (« `applyRootMotion` off everywhere », garde
+  de `HumanoidAIAnimationDriver`, `.claude/rules/attack-pipeline.md`).

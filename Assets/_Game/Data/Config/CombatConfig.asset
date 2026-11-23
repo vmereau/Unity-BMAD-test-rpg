@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Combat.CombatConfigSO
   baseStaminaPool: 100
   attackStaminaCost: 20
-  blockStaminaCostPerHit: 15
   dodgeStaminaCost: 25
   staminaRegenRate: 20
   staminaRegenDelay: 1.5
-  perfectBlockWindowDuration: 0.25
   dodgeDuration: 0.5
   dodgeSpeed: 8
   baseHealth: 40
@@ -41,6 +39,8 @@ MonoBehaviour:
   unconsciousDuration: 8
   unconsciousRecoverHealthFraction: 0.15
   getUpDuration: 2.7
+  drinkHealTime: 1.55
+  drinkDuration: 2.5
   knockoutLootBaseGold: 15
   knockoutLootFractionMin: 0.1
   knockoutLootFractionMax: 0.2
@@ -62,6 +62,13 @@ MonoBehaviour:
   memberDefendRange: 12
   memberDefendBarks: {fileID: 11400000, guid: 4fabbef54c114dc98e1ca2a2ee8d3114, type: 2}
   maxAttackersPerTarget: 2
+  npcAimStanceYaw: 45
+  npcAimHeightFraction: 0.65
+  npcAimFallbackHeight: 1
+  npcClearShotRadius: 0.15
+  npcBowReleaseHold: 0.4
+  npcBowNockTimeout: 2.5
+  npcTargetVelocitySmoothTime: 0.15
   executeRange: 1.8
   executeConeHalfAngle: 70
   executeFootOffset: {x: -0.45, y: 0, z: 0.88}
@@ -82,11 +89,13 @@ MonoBehaviour:
     distance: 0.5
     startTime: 0.35
     duration: 0.35
+    rootMotionScale: 0
   unarmedAttacks:
   - step:
-      distance: 0.3
+      distance: 0.4
       startTime: 0.07
       duration: 0.43
+      rootMotionScale: 1
     hand: 1
     damageMultiplier: 1
     stanceMultiplier: 1
@@ -94,6 +103,7 @@ MonoBehaviour:
       distance: 0.35
       startTime: 0.27
       duration: 0.37
+      rootMotionScale: 0
     hand: 0
     damageMultiplier: 1
     stanceMultiplier: 1
@@ -101,6 +111,7 @@ MonoBehaviour:
       distance: 0.5
       startTime: 0.1
       duration: 0.37
+      rootMotionScale: 0
     hand: 1
     damageMultiplier: 1.5
     stanceMultiplier: 2

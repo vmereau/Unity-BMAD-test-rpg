@@ -10,6 +10,7 @@ paths:
   - "Assets/_Game/Prefabs/Entities/**"
   - "Assets/_Game/Prefabs/Player/**"
   - "Assets/_Game/Scripts/Player/PlayerAttackStep.cs"
+  - "Assets/_Game/Scripts/Player/ActionRootMotion*.cs"
   - "Assets/_Game/ScriptableObjects/Config/CombatConfigSO.cs"
   - "Assets/_Game/ScriptableObjects/Items/Weapons/**"
 ---
@@ -50,6 +51,11 @@ Rooted for the whole attack (no locomotion input / no agent walking) except the 
 `CombatConfigSO.ResolveAttackStep(weapon, index)` (archetype `attackSteps` / `unarmedAttacks` / `defaultAttackStep`).
 Player: `PlayerAttackStep` + wind-up steering until `HitboxEnable`. AI: `EntityAttackStep` (`NavMeshAgent.Move`) + brain
 facing until `EntityMeleeAttacker.IsAttackCommitted`. AI SMB carries `attackIndex` (0 = no step) like `SMB_AttackState`.
+
+**Player exception (trial):** a step with `AttackStep.rootMotionScale` > 0 moves the player by the clip's own root
+displacement through `ActionRootMotion` (`OnAnimatorMove`) instead of the scripted step — only the unarmed jab so far
+(`Scripts/Combat/PLAYER_COMBO.md` → Action root motion). AI entities ignore the scale and keep the scripted step;
+`applyRootMotion` stays off on every Animator.
 
 ## State callbacks across crossfades
 

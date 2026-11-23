@@ -63,7 +63,7 @@ All StartingTown NPCs are direct scene instances of this variant.
 - NPC Entity SOs: `AttackRange` 1.5, `EngageStoppingDistance` 1.3, combo 1–3. Swings step forward through root
   `EntityAttackStep` (`NavMeshAgent.Move`, stops `_contactMargin` short of the target's body —
   `.claude/rules/attack-pipeline.md`); the reach figures below ignore that step (worst case). Fist hitbox centre at
-  full extension, measured on the Player rig (same skeleton, 2026-11-16): lead jab 0.79 m forward, hook
+  full extension, measured on the Player rig (same skeleton, 2026-11-16; jab re-measured 2026-11-23 on the left hand bone): `lead jab step` 0.63 m forward (the old `lead jab` reached 0.79 m), hook
   0.62–0.70 m (0.25–0.4 m to the right), uppercut 0.56–0.65 m. + radius 0.25 + `_reachPadding` 0.3 → every step reaches
   the player hurtbox (r 0.3) at the 1.3 m stopping distance; the uppercut has the least margin (~0.1 m). Not re-verified
   on an NPC in play. Re-measure (Animator `cullingMode = AlwaysAnimate` — a culled off-camera Animator doesn't pose

@@ -106,6 +106,7 @@ namespace Game.Combat
         private float _aimProgress;
         private CharacterController _characterController; // movement check for the spread (optional)
         private PlayerAttackStep _attackStep;             // forward step of each swing (optional)
+        private ActionRootMotion _actionRootMotion;       // clip-driven travel of attacks with a rootMotionScale (optional)
         private PlayerStance _stance;                     // takes the stance hit when an NPC parries (optional)
 
         private WeaponHitbox _activeHitbox;
@@ -175,6 +176,7 @@ namespace Game.Combat
             _attackStep = GetComponent<PlayerAttackStep>();
             if (_attackStep == null)
                 GameLog.Warn(TAG, "PlayerAttackStep not found — swings stay in place");
+            _actionRootMotion = GetComponent<ActionRootMotion>(); // optional: without it every attack uses the scripted step
 
             _stance = GetComponent<PlayerStance>();
             if (_stance == null)
@@ -1053,7 +1055,20 @@ namespace Game.Combat
             _currentAttackIndex = attackIndex;
             SelectUnarmedHand(attackIndex); // window closed above, so the hand can change
             _stateManager.SetAttackCommitted(false);   // new combo step: its wind-up can steer again
-            if (_attackStep != null) _attackStep.Begin(ResolveAttackStep(attackIndex));
+            BeginAttackMovement(ResolveAttackStep(attackIndex));
+        }
+
+        // One owner per attack state: the clip's root motion (step.rootMotionScale > 0) or the scripted step. Starting one
+        // stops the other, so a combo step never inherits the previous step's movement.
+        private void BeginAttackMovement(AttackStep step)
+        {
+            bool useRootMotion = false;
+            if (_actionRootMotion != null)
+            {
+                if (step.UsesRootMotion) useRootMotion = _actionRootMotion.Begin(step.rootMotionScale); // false = can't run
+                else _actionRootMotion.Stop();
+            }
+            if (_attackStep != null) _attackStep.Begin(useRootMotion ? default : step);
         }
 
         // Forward step of attack state attackIndex (1..3) — shared rule with AI humanoids (CombatConfigSO.ResolveAttackStep).

@@ -1,0 +1,14 @@
+{
+  "source_fbx": "Tools/Blender/sources/meshy_jab_v2_armature.fbx",
+  "output_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/Unarmed/lead jab step.fbx",
+  "meshy_task_id": "01a209e7-cb7e-74f0-b0c4-dc1e619fc3bf",
+  "fps": 30,
+  "first_frame": 7,
+  "last_frame": 53,
+  "speed": 1.4,
+  "travel_m": 0.42,
+  "forward": [0.0, -1.0, 0.0],
+  "pelvis_height_scale": 0.5,
+  "foot_lift_scale": 0.35,
+  "action_name": "lead jab step"
+}

@@ -62,7 +62,7 @@ namespace Game.Player
             if (metres <= 0f) return;
 
             Vector3 delta = transform.forward * metres;
-            if (!HasGroundAhead(delta))
+            if (!HasGroundAhead(transform, _characterController, delta))
             {
                 _active = false;
                 return;
@@ -70,14 +70,17 @@ namespace Game.Player
             _characterController.Move(delta);
         }
 
-        // Ground below the capsule's front edge after the move, within MAX_GROUND_DROP of the feet.
-        private bool HasGroundAhead(Vector3 delta)
+        /// <summary>
+        /// Ledge probe shared with <see cref="ActionRootMotion"/>: ground below the capsule's leading edge after moving by
+        /// <paramref name="delta"/>, within <see cref="MAX_GROUND_DROP"/> of the feet.
+        /// </summary>
+        public static bool HasGroundAhead(Transform body, CharacterController controller, Vector3 delta)
         {
-            Vector3 feet = transform.position + _characterController.center
-                - Vector3.up * (_characterController.height * 0.5f);
-            Vector3 origin = feet + delta + transform.forward * _characterController.radius
-                + Vector3.up * _characterController.stepOffset;
-            return Physics.Raycast(origin, Vector3.down, _characterController.stepOffset + MAX_GROUND_DROP,
+            Vector3 heading = new Vector3(delta.x, 0f, delta.z);
+            heading = heading.sqrMagnitude > 1e-10f ? heading.normalized : body.forward;
+            Vector3 feet = body.position + controller.center - Vector3.up * (controller.height * 0.5f);
+            Vector3 origin = feet + delta + heading * controller.radius + Vector3.up * controller.stepOffset;
+            return Physics.Raycast(origin, Vector3.down, controller.stepOffset + MAX_GROUND_DROP,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
         }
     }
