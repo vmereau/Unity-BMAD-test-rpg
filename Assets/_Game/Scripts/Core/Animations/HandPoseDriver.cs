@@ -18,6 +18,11 @@ namespace Game.Animations
         [Tooltip("Optional: the entity's equipment visuals (weapon / shield in hand). Unassigned = unarmed (fists in combat).")]
         [SerializeField] private EquipmentVisuals _equipmentVisuals;
 
+        private const float CARRY_BLEND_TIME = 0.15f; // ≈ the CombatIdle ⇄ BowDrawArrow transition
+        private GameObject _carryVisual;
+        private float _carryWeight;
+        private bool _wasWeaponInHand;
+
         private void Awake()
         {
             if (_bridge == null) _bridge = GetComponent<HumanoidAnimationBridge>();
@@ -32,7 +37,7 @@ namespace Game.Animations
         {
             if (_bridge == null) return;
 
-            bool weaponInHand = false, leftHandWeapon = false, twoHanded = false, shieldInHand = false;
+            bool weaponInHand = false, leftHandWeapon = false, twoHanded = false, shieldInHand = false, hasCarryPose = false;
             if (_equipmentVisuals != null)
             {
                 weaponInHand = _equipmentVisuals.IsDrawn && _equipmentVisuals.ActiveWeaponGO != null;
@@ -41,13 +46,38 @@ namespace Game.Animations
                 {
                     leftHandWeapon = archetype.drawnHand == WeaponHand.Left;
                     twoHanded = archetype.twoHandedGrip;
+                    hasCarryPose = archetype.hasCarryPose;
                 }
                 shieldInHand = _equipmentVisuals.ShieldInHand;
             }
 
+            bool switching = _bridge.IsSwitchingWeapon;
+            bool carrySeat = HandPoseRule.CarrySeat(weaponInHand, hasCarryPose, leftHandWeapon && !twoHanded,
+                _bridge.IsUpperBodyCombatIdle, _bridge.IsBaseFullBody);
             HandPoseRule.Resolve(_bridge.IsInCombat, weaponInHand, leftHandWeapon, twoHanded, shieldInHand,
-                _bridge.IsSwitchingWeapon, _bridge.IsBaseDown, out HandPose left, out HandPose right);
+                switching, _bridge.IsBaseDown, out HandPose left, out HandPose right, carrySeat);
             _bridge.SetHandPoses(left, right);
+            if (hasCarryPose) StepCarrySeat(carrySeat, weaponInHand && !_wasWeaponInHand && !switching);
+            _wasWeaponInHand = weaponInHand;
+        }
+
+        // Bow seat in the hand (spec-bow-combat-idle): eased toward the carry seat while idling, toward the aiming seat
+        // otherwise, over the hand layers' blend time. A new weapon visual, or a weapon that appears in the hand without a
+        // draw clip (NPCs), starts on its target: nothing hides a slide there.
+        private void StepCarrySeat(bool carrySeat, bool appearedInHand)
+        {
+            float target = carrySeat ? 1f : 0f;
+            var visual = _equipmentVisuals.ActiveWeaponGO;
+            if (visual != _carryVisual || appearedInHand)
+            {
+                _carryVisual = visual;
+                _carryWeight = target;
+            }
+            else
+            {
+                _carryWeight = Mathf.MoveTowards(_carryWeight, target, Time.deltaTime / CARRY_BLEND_TIME);
+            }
+            _equipmentVisuals.SetCarryWeight(_carryWeight);
         }
     }
 }

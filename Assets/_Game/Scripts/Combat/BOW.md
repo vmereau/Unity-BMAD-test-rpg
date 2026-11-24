@@ -8,6 +8,10 @@
 With a `BowSO` equipped (`EquippedBow`, read from `EquipmentSystem.GetEquipped(Weapon)`, **not** `_currentWeaponSO` —
 only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't block and has no hip-fire:
 
+- **Idle (spec `spec-bow-combat-idle.md`):** drawn and not aiming, `CombatIdle` plays `Standing Bow Idle` (Mixamo,
+  through `Bow_AnimatorOverride`) with the bow in its **carry seat** (`Archetype_Bow.carryPose`, `BowCarry` fingers). The
+  bow re-seats to the aiming grip (`drawnPose`) in 0.15 s as the aim, draw or sheathe starts (`HandPoseDriver`). The
+  launch origin and `BowAimCorrection` don't read the Drawn child, so neither changes.
 - **Aim (spec `spec-bow-aim-draw-fire.md`):** Block started / canceled (right click) → `StartAim` / `StopAim`
   (`PlayerStateManager.SetAiming` → `IsAiming` bool → UpperBody layer `BowDrawArrow_State` → looping `BowAim_State`).
   `StartAim` is gated by `CanAim()`. `UpdateBowAim` ends the aim as soon as `CanAim()` fails or the bow is unequipped
