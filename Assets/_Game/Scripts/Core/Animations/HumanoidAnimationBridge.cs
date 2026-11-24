@@ -41,11 +41,23 @@ namespace Game.Animations
         private static readonly int IsDrinkingHash = Animator.StringToHash("IsDrinking");
         private static readonly int IsSleepingHash = Animator.StringToHash("IsSleeping");
         private static readonly int AttackCancelHash = Animator.StringToHash("AttackCancel");
+        private static readonly int LeftHandPoseHash = Animator.StringToHash("LeftHandPose");
+        private static readonly int RightHandPoseHash = Animator.StringToHash("RightHandPose");
+        private static readonly int DrawStateHash = Animator.StringToHash("Draw_State");
+        private static readonly int SheatheStateHash = Animator.StringToHash("Sheathe_State");
+        private static readonly int KnockedDownStateHash = Animator.StringToHash("KnockedDown");
+        private static readonly int UnconsciousStateHash = Animator.StringToHash("Unconscious");
+        private static readonly int DeathStateHash = Animator.StringToHash("Death");
+        private static readonly int DeadStateHash = Animator.StringToHash("Dead");
+        private static readonly int GettingUpStateHash = Animator.StringToHash("GettingUp");
 
         private const string UPPER_BODY_LAYER = "UpperBody";
         private static readonly int LockOnLocomotionHash = Animator.StringToHash("LockOn Locomotion");
 
         [SerializeField] private Animator _animator;
+
+        private RuntimeAnimatorController _handParamsCheckedFor; // controller the hand-pose params were looked up on
+        private bool _hasHandParams;
 
         private int _upperBodyLayer = -1; // cached once found; looked up again while missing (controller assigned late)
 
@@ -119,6 +131,54 @@ namespace Game.Animations
             _animator.SetBool(IsBlockingHash, value);
         }
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
+
+        /// <summary>The Animator's <c>IsInCombat</c> (false without a live Animator).</summary>
+        public bool IsInCombat => IsAnimatorLive && _animator.GetBool(IsInCombatHash);
+
+        /// <summary>
+        /// Finger poses of the <c>LeftHand</c> / <c>RightHand</c> layers (<see cref="HandPose"/>, spec-hand-pose-layer). Written
+        /// only on change (a controller swap resets the ints to 0 = Relaxed, so the Animator's value is compared, not a cache).
+        /// Silent no-op on a controller without the params (looked up once per controller).
+        /// </summary>
+        public void SetHandPoses(HandPose left, HandPose right)
+        {
+            if (!IsAnimatorLive) return;
+            var controller = _animator.runtimeAnimatorController;
+            if (controller != _handParamsCheckedFor)
+            {
+                _handParamsCheckedFor = controller;
+                _hasHandParams = HasIntParam(LeftHandPoseHash) && HasIntParam(RightHandPoseHash);
+            }
+            if (!_hasHandParams) return;
+            if (_animator.GetInteger(LeftHandPoseHash) != (int)left) _animator.SetInteger(LeftHandPoseHash, (int)left);
+            if (_animator.GetInteger(RightHandPoseHash) != (int)right) _animator.SetInteger(RightHandPoseHash, (int)right);
+        }
+
+        private bool HasIntParam(int hash)
+        {
+            foreach (var p in _animator.parameters)
+                if (p.nameHash == hash && p.type == AnimatorControllerParameterType.Int) return true;
+            return false;
+        }
+
+        // The state a layer is heading into (next during a transition, else current) is one of the given states.
+        private bool DestinationIs(int layer, int a, int b)
+        {
+            int hash = _animator.IsInTransition(layer)
+                ? _animator.GetNextAnimatorStateInfo(layer).shortNameHash
+                : _animator.GetCurrentAnimatorStateInfo(layer).shortNameHash;
+            return hash == a || hash == b;
+        }
+
+        /// <summary>True while the UpperBody layer plays (or heads into) the draw / sheathe clip.</summary>
+        public bool IsSwitchingWeapon => IsAnimatorLive && UpperBodyLayer >= 0
+            && DestinationIs(UpperBodyLayer, DrawStateHash, SheatheStateHash);
+
+        /// <summary>True while the Base Layer is in (or heading into) a knockdown, unconscious, death or get-up state.</summary>
+        public bool IsBaseDown => IsAnimatorLive
+            && (DestinationIs(0, KnockedDownStateHash, UnconsciousStateHash) || DestinationIs(0, DeathStateHash, DeadStateHash)
+                || DestinationIs(0, GettingUpStateHash, GettingUpStateHash));
+
         public void SetSwimming(bool value) => _animator?.SetBool(IsSwimmingHash, value);
 
         /// <summary>Execute stomp (player only, spec-execute-unconscious-npc): true enters <c>Execute</c>, false blends out.</summary>

@@ -1254,9 +1254,7 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-base-body-regen (2026-11-24) — split goal
 
-- **Hand-pose layer (spec 2, next):** masked hand layer in `Humanoid_Template` with closed fist (unarmed), one-hand
-  weapon grip, two-hand grip, bow grip, shield hold and relaxed (idle / walk), picked from the weapon / state. Needs the
-  5-finger rig from spec-base-body-regen. Player + NPCs.
+- ~~**Hand-pose layer (spec 2)**~~ — done in spec-hand-pose-layer.
 - **More hand poses:** tool / activity grips (smithing hammer, cooking, carrying…) after the base set ships.
 - `CompanyGruntArmorBuilder.Build()` copies the leather armor's stats / prices onto `Armor_CompanyGrunt` on every rebuild
   (it reset defense 8 → 15 during the v2 hand graft; reverted by hand). Make the item stats builder-independent.
@@ -1272,3 +1270,18 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
     `bake_neck_band` / `make_skin_masks._body` assume square textures that are a multiple of `bake_px`.
   - `BaseHeroV2Applier`: `SKIN_REF_LUMINANCE` is copied by hand from `make_skin_masks.py`; no rollback if the second
     prefab save fails after the first (both are validated first now).
+
+## From spec-hand-pose-layer (2026-11-24)
+
+- **Bow wrist:** in `Standing Aim Overdraw` the left wrist is pronated ~50° from a real bow grip, so the (vertical) riser
+  crosses the palm plane instead of lying in it. `Archetype_Bow.drawnPose` was moved (position only) so the riser sits in
+  the hand; a full wrap needs a wrist fix in the bow clips (or a canted bow).
+- **Right-hand string pose:** the bow's right hand stays `Relaxed` through draw / aim / release; a string-hook pose (and
+  per-state switching on the UpperBody bow states) is later work.
+- **Finger skin at the PIP crease:** in the fist and grips the v2 hand shows dark folds / pinched tips at the PIP joints
+  (weights from `fit_base_body.py`, not the pose). Retune the finger weight ramp if it reads badly in game.
+- Fist / grips leave up to ~5 mm of finger skin compressed against the palm (`HandPoseCapture` "inside palm"): contact,
+  not pass-through. PIP is capped at 81° by the avatar muscle range (limits left unchanged by design).
+- Two-hander: both hands keep `TwoHandGrip` while the weapon is drawn, even when the left hand lets go of the handle
+  (sheathe before WeaponSwap, knockdown; `TwoHandGripConstraint` treats > 0.55 m as let go). Could feed the constraint's
+  grip weight into the left-hand pose.

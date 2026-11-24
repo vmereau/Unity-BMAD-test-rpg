@@ -56,7 +56,13 @@ place: they keep the old FBX instance (sockets, ragdoll, components); only the f
   **bare-handed** outfit with sleeves ending at the wrist gets this for free; gloves / gauntlets would be cut off too
   (the test is Hand + finger weight, not the surface), so a gloved outfit needs its own hand fit.
 - **Heads** stay on the old bone order (Head SMR untouched; non-finger bind poses equal v2's).
-- Hand poses (closed fist, grips) are spec 2: the clips curl the fingers ~300° and fingers pass through the palm.
+- **Hand poses** (spec-hand-pose-layer): the clips' finger curves are always overridden by the `LeftHand` / `RightHand`
+  layers (`Controllers/CLAUDE.md`). A clip fist (every `Stretched` muscle −1) curls ~270° on this hand (MCP 110°, PIP / DIP
+  81° each) and sinks into the palm; PIP is capped at 81° by the avatar's muscle range, so the fist closes with MCP ~85°
+  and DIP ~73°. Grips assume the handle crosses the palm at the `WeaponSocket` (≈ palm skin, 9.6 cm from the wrist).
+  **Adding / retuning a pose:** edit `HandPoseBuilder.Poses`, check with `HandPoseCapture.Run(outDir, tags)` (edit-mode
+  close-ups + per-hand "inside palm" depth, joint curls and per-finger handle gaps; mutate `Poses` in `execute_code` to
+  try values without recompiling), then run `Tools/Characters/Build Hand Poses`.
 
 ---
 

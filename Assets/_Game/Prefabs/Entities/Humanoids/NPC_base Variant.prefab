@@ -420,6 +420,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9151045659581489891}
+    - targetCorrespondingSourceObject: {fileID: 8283577674775524483, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3168361467104106093}
   m_SourcePrefab: {fileID: 100100000, guid: e265604e8dcaaad4c81236c415d32664, type: 3}
 --- !u!114 &76150843049530146 stripped
 MonoBehaviour:
@@ -455,6 +458,7 @@ MonoBehaviour:
   _onDialogueRequested: {fileID: 11400000, guid: dea29e34f28379e4f9b312d51a1ec9e6, type: 2}
   _onDialogueCloseRequested: {fileID: 11400000, guid: 8a2b5e40d7331bf418092e0a81a0e36c, type: 2}
   _availableAfter: {fileID: 0}
+  _talkOpeners: []
 --- !u!114 &4585579539212275391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -722,6 +726,20 @@ MonoBehaviour:
   _config: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
   _arrowLineLocal: {x: -0.9895, y: 0.0821, z: -0.1191}
   _arrowOriginLocal: {x: 0.0416, y: 0.1979, z: 0.1472}
+--- !u!114 &3168361467104106093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202085857188219662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc8ce8daeeac37f4580a4a94ced87c40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Game.Animations.HandPoseDriver
+  _bridge: {fileID: 3168899758345796514}
+  _equipmentVisuals: {fileID: 8531843112707779696}
 --- !u!4 &8882236327865726265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1674852574886742708, guid: e265604e8dcaaad4c81236c415d32664, type: 3}

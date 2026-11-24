@@ -76,6 +76,14 @@ Symmetric on both sides: bridge + driver.
   `PlayerAnimationDriver` and `HumanoidAIAnimationDriver` each call `UpperBodyWeight.Target` + `Step` in `Update` with
   their own `IsInCombat` (NPC: cached in `SetInCombat`). Same rule for Player and NPCs — never write the weight elsewhere.
   `HumanoidAnimationBridge.TriggerGetHit` is skipped while `IsBaseFullBody` (GetHit has no clip and must not latch).
+- **Hand poses: one driver for the Player and NPCs** (spec-hand-pose-layer). `HandPoseDriver` (on `Player` and `NPC_base
+  Variant`, beside the bridge and `EquipmentVisuals`) runs the pure `HandPoseRule` every frame and writes the result with
+  `HumanoidAnimationBridge.SetHandPoses` (ints, written on change). Inputs: weapon in hand = `EquipmentVisuals.IsDrawn &&
+  ActiveWeaponGO != null`, the archetype's `drawnHand` / `twoHandedGrip`, `ShieldInHand`, and "fighting" = the Animator's
+  `IsInCombat` (`bridge.IsInCombat`), not `IsDrawn`: NPC brawls fight with the weapon sheathed. Empty hands stay relaxed
+  while `bridge.IsSwitchingWeapon` (UpperBody `Draw_State` / `Sheathe_State`: `IsInCombat` flips at the press, the weapon
+  arrives at WeaponSwap) and `bridge.IsBaseDown` (KnockedDown / Unconscious / Death / Dead / GettingUp). `HandPose` values are the
+  Animator ints — append new poses, never renumber (Relaxed = 0 = the default after a controller swap).
 - **NPC Animators never apply root motion.** `HumanoidAIAnimationDriver.Awake` forces `applyRootMotion = false` (warns,
   before any early return; it uses `HumanoidAnimationBridge.Animator` — drivers do lifecycle work on the bridge's Animator,
   only animator *parameters* are bridge-only):

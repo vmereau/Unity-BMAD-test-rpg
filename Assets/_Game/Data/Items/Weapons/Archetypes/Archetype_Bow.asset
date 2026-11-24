@@ -14,13 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.WeaponArchetypeSO
   drawnHand: 1
   drawnPose:
-    localPosition: {x: 0, y: 0, z: 0}
+    localPosition: {x: 0.0408, y: -0.0647, z: 0.0033}
     localEulerAngles: {x: 298.92, y: 293.9, z: 31.67}
   sheathedPose:
     localPosition: {x: 0, y: 0, z: 0}
     localEulerAngles: {x: 0, y: 0, z: 45}
+  twoHandedGrip: 0
+  gripRoll: 0
+  gripSlide: 0
   sheathSocket: 1
   animatorOverrideController: {fileID: 22100000, guid: 4d609877b6a39c24facdd577ee8dfef2, type: 2}
+  attackSteps: []
   defaultComboSteps: 1
+  attackStaminaMultiplier: 1
   stanceDamage: 10
   canKnockDown: 0
+  swingSound: {fileID: 0}

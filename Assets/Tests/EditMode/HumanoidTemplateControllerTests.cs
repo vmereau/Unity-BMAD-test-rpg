@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
+using Game.Animations;
 using UnityEditor.Animations;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -37,10 +39,49 @@ namespace Tests.EditMode
             sm.states.Select(c => c.state).FirstOrDefault(s => s.name == name);
 
         [Test]
-        public void Layers_AreBaseAndUpperBody_NoFullBodyLayer()
+        public void Layers_AreBaseUpperBodyThenHands_NoFullBodyLayer()
         {
             AnimatorController controller = LoadController();
-            Assert.That(controller.layers.Select(l => l.name), Is.EqualTo(new[] { "Base Layer", "UpperBody" }));
+            Assert.That(controller.layers.Select(l => l.name),
+                Is.EqualTo(new[] { "Base Layer", "UpperBody", "LeftHand", "RightHand" }));
+        }
+
+        // spec-hand-pose-layer: finger-only layers built by Tools/Characters/Build Hand Poses.
+        [TestCase(2, "LeftHand", "LeftHandPose", AvatarMaskBodyPart.LeftFingers, "LeftHand.")]
+        [TestCase(3, "RightHand", "RightHandPose", AvatarMaskBodyPart.RightFingers, "RightHand.")]
+        public void HandLayer_FingerMaskOneEventFreeFingerClipPerPose(int index, string name, string param,
+            AvatarMaskBodyPart fingers, string curvePrefix)
+        {
+            AnimatorController controller = LoadController();
+            AnimatorControllerLayer layer = controller.layers[index];
+            Assert.That(layer.name, Is.EqualTo(name));
+            Assert.That(layer.defaultWeight, Is.EqualTo(1f));
+            Assert.That(layer.blendingMode, Is.EqualTo(AnimatorLayerBlendingMode.Override));
+            Assert.That(layer.avatarMask, Is.Not.Null);
+            for (var part = AvatarMaskBodyPart.Root; part < AvatarMaskBodyPart.LastBodyPart; part++)
+                Assert.That(layer.avatarMask.GetHumanoidBodyPartActive(part), Is.EqualTo(part == fingers), $"{name} mask: {part}");
+
+            Assert.That(controller.parameters.Any(p => p.name == param && p.type == AnimatorControllerParameterType.Int), param);
+            Assert.That(layer.stateMachine.defaultState.name, Is.EqualTo(nameof(HandPose.Relaxed)));
+            foreach (HandPose pose in System.Enum.GetValues(typeof(HandPose)))
+            {
+                AnimatorState state = FindState(layer.stateMachine, pose.ToString());
+                Assert.That(state, Is.Not.Null, $"{name}: no state for {pose}");
+                var clip = state.motion as AnimationClip;
+                Assert.That(clip, Is.Not.Null, $"{name}/{pose}: no clip");
+                Assert.That(AnimationUtility.GetAnimationEvents(clip), Is.Empty, $"{name}/{pose}: clip events would fire on every layer");
+                Assert.That(AnimationUtility.GetObjectReferenceCurveBindings(clip), Is.Empty);
+                EditorCurveBinding[] curves = AnimationUtility.GetCurveBindings(clip);
+                Assert.That(curves, Is.Not.Empty, $"{name}/{pose}: no curves");
+                Assert.That(curves.All(b => b.propertyName.StartsWith(curvePrefix)), $"{name}/{pose}: non-finger curve");
+
+                AnimatorStateTransition[] entries = layer.stateMachine.anyStateTransitions.Where(t => t.destinationState == state).ToArray();
+                Assert.That(entries.Length, Is.EqualTo(1), $"{name}/{pose}: one AnyState transition");
+                Assert.That(entries[0].canTransitionToSelf, Is.False);
+                Assert.That(entries[0].conditions.Single().parameter, Is.EqualTo(param));
+                Assert.That(entries[0].conditions.Single().mode, Is.EqualTo(AnimatorConditionMode.Equals));
+                Assert.That(entries[0].conditions.Single().threshold, Is.EqualTo((float)(int)pose));
+            }
         }
 
         [Test]

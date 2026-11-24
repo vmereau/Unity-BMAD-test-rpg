@@ -28,6 +28,13 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
   KnockedDown, GettingUp, Death, Dead, Unconscious, Sleeping, Swim Locomotion, PickUp, Execute (not Landing: a block / draw
   pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, Drink, BowDrawArrow/Aim/Fire. **A new
   full-body Base state must get the `FullBody` tag** or the carry pose plays over it in combat.
+- **Hand layers** (spec-hand-pose-layer): **`LeftHand`** (index 2) / **`RightHand`** (index 3), Override, weight **1**,
+  finger-only masks (`Animations/HandPoses/HandMask_Left/Right`). They always replace the clips' fingers: one state per
+  `HandPose` (`Relaxed` default, `Fist`, `OneHandGrip`, `TwoHandGrip`, `BowGrip`, `ShieldHold`), AnyState → state on the int
+  `LeftHandPose` / `RightHandPose` == pose (0.12 s, no self-transition). **Built by `Tools/Characters/Build Hand Poses`**
+  (`Editor/Characters/HandPoseBuilder`, values in code): never hand-edit these layers or the clips. Driven by `HandPoseDriver`
+  (`Scripts/Core/Animations/CLAUDE.md`). Pose clips carry no events. A rebuild keeps each hand layer at its index; a new layer goes after them
+  (update the indices in `HumanoidTemplateControllerTests`).
 - **Attacks are full-body.** Every attack state exits to `LockOn Locomotion` on `IsBlocking` (listed first — block-cancel),
   then the recovery cancels (`AttackCancel` bool, player-only — NPCs never set it, spec-attack-recovery-cancel):
   `→ Attack_1_State` on `AttackCancel` + `Attack_1` (0.15 s, restart; self-transition on Attack_1), `→ LockOn Locomotion`
@@ -45,7 +52,7 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
   `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
   `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep), `ShieldInHand` (float 0 / 1, the
-  `Block_State` blend — written only on a raise, see below).
+  `Block_State` blend — written only on a raise, see below), `LeftHandPose` / `RightHandPose` (int `HandPose`, hand layers).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
