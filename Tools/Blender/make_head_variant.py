@@ -22,6 +22,9 @@ Config (JSON):
   paint           list of texture layers (see _paint_layer), applied in order on a copy of the base texture.
   render          {"out_dir": "Temp/HeadVariants"} (relative to project root)
   preview_tone    "#RRGGBB"? the NPC's SkinToneSO colour: mockups show the face as SG_SkinLit will tone it.
+  portrait        optional face source from a front + side portrait (see the portrait section).
+  meshy           optional face source from a Meshy 3D head: {"source", "texture", "landmarks", ...} (see the meshy
+                  section). One source per head: "portrait" or "meshy", never both.
 Paint only ever touches texels of head faces whose layer mask is > 0; body texels are copied unchanged.
 
 Skin mask (SG_SkinLit `_SkinMask`, spec-npc-faces-second-batch): every layer also updates a per-texel skin weight. It
@@ -561,8 +564,11 @@ def _blur(mask, px):
     return out
 
 
-def _paint(config, scene, head, body, unit, project=None):
-    """project: optional callable (p, n, c, c0, s) -> (c, s, report) run after the paint layers (portrait faces)."""
+def _paint(config, scene, head, body, unit, project=None, force_eyes=True):
+    """project: optional callable (p, n, c, c0, s) -> (c, s, report) run after the paint layers (portrait faces).
+    force_eyes: zero the skin weight inside the base eye ellipsoids after everything. Meshy heads pass False: their
+    projection keeps the eyes (sclera, iris) untoned itself, and the Meshy lids that cover part of the base eyeball
+    must stay toneable (forced to 0 they show as dark rings on Fair, pale rings on Deep)."""
     img = bpy.data.images.load(str(BASE_TEX), check_existing=False)
     size = img.size[0]
     if img.size[0] != img.size[1]:
@@ -589,7 +595,7 @@ def _paint(config, scene, head, body, unit, project=None):
     proj_report = None
     if project is not None:
         c, s, proj_report = project(p, nrm[idx].astype(np.float64), c, c0, s)
-    for e in sm_cfg["head"]["eyes"]:  # eyes are never skin, whatever a later layer's region covered
+    for e in (sm_cfg["head"]["eyes"] if force_eyes else []):  # eyes are never skin, whatever a later layer covered
         for sx in (1, -1):
             s *= 1 - _ellipsoid_in(p * np.array([sx, 1, 1]), e["center"], e["radius"])
     out = px.copy()
@@ -1125,8 +1131,9 @@ def _project_portrait(cfg, align, warp, deforms, p, n, c, c0, s_weight, base_pos
                          "white_balance_rgb_gamma": np.append(wb, gamma).round(3).tolist()}
 
 
-def _portrait_sheet(name, out_dir, renders, cfg):
-    """Mockup renders beside the portrait (front | portrait front | side | portrait side) in one PNG."""
+def _portrait_sheet(name, out_dir, renders, cfg, suffix="portrait"):
+    """Mockup renders beside the portrait (front | portrait front | side | portrait side) in one PNG.
+    Meshy heads pass their flat source renders as the "portrait" (suffix "meshy")."""
     ref = cfg["ref"]
     imgs = []
     for path in (renders[0], PROJECT / ref["front"]["image"], renders[2], PROJECT / ref["side"]["image"]):
@@ -1143,12 +1150,517 @@ def _portrait_sheet(name, out_dir, renders, cfg):
         rgba = np.ones((h, w, 4), dtype=np.float32)
         rgba[..., :3] = sheet[::-1]
         out.pixels.foreach_set(rgba.ravel())
-        out.filepath_raw = str(Path(out_dir) / f"{name}_portrait.png")
+        out.filepath_raw = str(Path(out_dir) / f"{name}_{suffix}.png")
         out.file_format = 'PNG'
         out.save()
     finally:
         bpy.data.images.remove(out)
-    return str(Path(out_dir) / f"{name}_portrait.png")
+    return str(Path(out_dir) / f"{name}_{suffix}.png")
+
+
+# ---------------------------------------------------------------------------------------------- meshy
+# spec-npc-meshy-heads: a Meshy multi-image-to-3D head (generated from the NPC's refs/ portraits) is a SHAPE + TEXTURE
+# source only. The canonical head is shrinkwrapped onto it (neck frozen) and its colours are baked into the canonical
+# UVs, so the bake / skin mask / tone / verify contracts stay those of every other head. Steps:
+#   1. meshy_trim_source(glb, out_dir, keep_above)  -> <stem>.obj + <stem>_BaseColor.png (Tools/Blender/sources/...)
+#   2. render_meshy_refs(config)                     -> refs/<stem>_front.png / _side.png / _frame.json
+#   3. uv run Tools/FaceRef/face_landmarks.py <front> <side> --out refs/<stem>_landmarks.json
+#   4. run(config)                                   -> mockups / export, as for a portrait face
+# Config block: "meshy": {"source": ".obj", "texture": ".png", "landmarks": ".json", ...MESHY_DEFAULTS overrides}.
+
+MESHY_DEFAULTS = {"max_mm": 25.0, "ray_mm": 30.0, "smooth_iters": 6, "max_texel_gap_mm": 12.0,
+                  "seam_fade_m": [1.585, 1.61], "exclude": [], "contrast": 1.0, "head_ratio_range": [0.7, 1.4],
+                  "eye_front_scale": 1.4, "skin_patches": None, "depth_band_m": [1.66, 1.78]}
+# exclude: soft ellipsoids ({"center", "radius", "inner"?, "mirror_x"?}) that keep the base SHAPE (not shrinkwrapped).
+# Ears: a Meshy ear rarely sits where the base ear does; exclude the base ears and move them with a config `deforms`
+# offset onto the Meshy ears, or the ear's texture is printed on the skull. eye_front_scale: inside the base eyes
+# (skin_masks.json eye ellipsoids x this) colours come from a straight front (+Y) projection, not the nearest point: the
+# base eyeball sits behind the Meshy lids, and nearest-point stretches the iris into a dark blot. 0 = nearest everywhere.
+# head_ratio_range: aligned Meshy (crown - eye line) / base (crown - eye line); outside = wrong landmarks or source.
+# skin_patches: null = MESHY_SKIN_PATCHES; override when hair / beard / a mark covers the forehead or cheeks.
+# depth_band_m: z band of the face (base head) whose median front gap sets the depth: above the mouth, so a sculpted
+# beard does not push the source back.
+MESHY_REF_PX = 1024
+BASE_CROWN_Z, BASE_EYE_Z = 1.86, 1.7197  # canonical head landmarks (game metres)
+# Clean skin patches for the colour statistics, on the REST base head (game metres): forehead centre and both cheeks.
+MESHY_SKIN_PATCHES = [{"center": [0.0, -0.105, 1.752], "radius": [0.022, 0.03, 0.009]},
+                      {"center": [0.045, -0.085, 1.655], "radius": [0.012, 0.03, 0.012], "mirror_x": True}]
+
+
+_TRACKED_IDS = ("objects", "meshes", "materials", "images", "cameras", "worlds", "collections", "node_groups",
+                "textures", "lights", "armatures", "actions")
+
+
+def _id_snapshot():
+    return {k: set(getattr(bpy.data, k)) for k in _TRACKED_IDS}
+
+
+def _remove_new_ids(before):
+    """Remove only the datablocks created since `before` (never a global orphan purge: the open file is the user's)."""
+    for k in _TRACKED_IDS:
+        coll = getattr(bpy.data, k)
+        for i in [x for x in coll if x not in before[k]]:
+            try:
+                coll.remove(i)
+            except (ReferenceError, RuntimeError):
+                pass
+
+
+def _base_color_image(obj, name):
+    """The image linked (directly or through a few nodes) to a Principled BSDF Base Color: never a normal / ORM map."""
+    for m in obj.data.materials:
+        if m is None or m.node_tree is None:
+            continue
+        bsdf = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+        if bsdf is None or not bsdf.inputs["Base Color"].is_linked:
+            continue
+        node, steps = bsdf.inputs["Base Color"].links[0].from_node, 0
+        while node is not None and node.type != 'TEX_IMAGE' and steps < 4:
+            linked = [i for i in node.inputs if i.is_linked]
+            node, steps = (linked[0].links[0].from_node if linked else None), steps + 1
+        if node is not None and node.type == 'TEX_IMAGE' and node.image is not None:
+            return node.image
+    raise RuntimeError(f"{name}: no image texture linked to a Principled BSDF Base Color")
+
+
+def _file_key(path):
+    """Content hash: the frame records the source and its renders; a changed one refuses the refs downstream."""
+    import hashlib
+    h = hashlib.sha1()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def meshy_trim_source(glb_path, out_dir, keep_above, max_faces=200000, tex_px=2048, stem=None):
+    """One-off: import a Meshy GLB (Blender Z-up, face toward -Y), delete everything below z = keep_above (source
+    units: the shoulders), decimate to max_faces and write <stem>.obj (UVs, no materials) + <stem>_BaseColor.png
+    (resized to tex_px) into out_dir. The raw GLB (~60 MB) is not kept in the repo."""
+    import bmesh
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = stem or Path(glb_path).stem
+    if bpy.context.window is None:
+        raise RuntimeError("meshy_trim_source needs interactive Blender (MCP add-on), not background mode")
+    before = _id_snapshot()
+    prev = bpy.context.window.scene
+    scene = bpy.data.scenes.new("_MeshyTrim")
+    bpy.context.window.scene = scene
+    try:
+        bpy.ops.import_scene.gltf(filepath=str(glb_path))
+        meshes = [o for o in scene.objects if o.type == 'MESH']
+        if len(meshes) != 1:
+            raise RuntimeError(f"{Path(glb_path).name}: expected one mesh, got {len(meshes)}")
+        obj = meshes[0]
+        obj.data.transform(obj.matrix_world)
+        obj.matrix_world.identity()
+        img = _base_color_image(obj, Path(glb_path).name)
+        if img.is_float:
+            raise ValueError(f"{img.name}: float base colour (pixels read linear): convert it to an 8-bit image first")
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < keep_above], context='VERTS')
+        bm.to_mesh(obj.data)
+        bm.free()
+        faces = len(obj.data.polygons)
+        if faces == 0:
+            raise ValueError(f"keep_above {keep_above} removed every face of {Path(glb_path).name}")
+        if faces > max_faces:
+            mod = obj.modifiers.new("_dec", 'DECIMATE')
+            mod.ratio = max_faces / faces
+            bpy.ops.object.select_all(action='DESELECT')
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        obj.data.materials.clear()
+        obj_path = out_dir / f"{stem}.obj"
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True)
+        bpy.ops.wm.obj_export(filepath=str(obj_path), export_selected_objects=True, export_uv=True,
+                              export_normals=False, export_materials=False, apply_modifiers=True)
+        tex_path = out_dir / f"{stem}_BaseColor.png"
+        img.scale(tex_px, tex_px)  # packed GLB image: copy into a fresh image to write it as a file
+        px = np.empty(tex_px * tex_px * 4, dtype=np.float32)
+        img.pixels.foreach_get(px)
+        out = bpy.data.images.new("_MeshyTrim_tex", tex_px, tex_px, alpha=False)
+        try:
+            out.pixels.foreach_set(px)
+            out.filepath_raw = str(tex_path)
+            out.file_format = 'PNG'
+            out.save()
+        finally:
+            bpy.data.images.remove(out)
+        return {"obj": str(obj_path), "texture": str(tex_path), "faces": len(obj.data.polygons),
+                "faces_before_decimate": faces}
+    finally:
+        bpy.context.window.scene = prev
+        bpy.data.scenes.remove(scene)
+        _remove_new_ids(before)
+
+
+def _meshy_import(source):
+    """Import the trimmed OBJ into the current scene. Returns (object, verts (N,3) source units)."""
+    before = set(bpy.data.objects)
+    bpy.ops.wm.obj_import(filepath=str(source))
+    new = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
+    if len(new) != 1:
+        raise RuntimeError(f"{Path(source).name}: expected one mesh, got {len(new)}")
+    obj = new[0]
+    if obj.data.uv_layers.active is None or len(obj.data.polygons) == 0:
+        me = obj.data
+        bpy.data.objects.remove(obj, do_unlink=True)
+        bpy.data.meshes.remove(me)
+        raise ValueError(f"{Path(source).name}: no faces or no UVs (re-run meshy_trim_source)")
+    obj.data.transform(obj.matrix_world)
+    obj.matrix_world.identity()
+    co = np.empty(len(obj.data.vertices) * 3)
+    obj.data.vertices.foreach_get("co", co)
+    return obj, co.reshape(-1, 3)
+
+
+def _meshy_paths(mc):
+    src = PROJECT / mc["source"]
+    stem = src.stem
+    return {"source": src, "texture": PROJECT / mc["texture"], "landmarks": PROJECT / mc["landmarks"],
+            "frame": REFS / f"{stem}_frame.json", "front": REFS / f"{stem}_front.png", "side": REFS / f"{stem}_side.png"}
+
+
+def render_meshy_refs(config_path):
+    """Flat (emission) ortho front / side renders of the trimmed Meshy source on plain light grey, framed on its own
+    bounding box (any scale), + <stem>_frame.json (pixel -> source mapping, source hash). Then run face_landmarks.py."""
+    config = json.loads(Path(config_path).read_text(encoding="utf-8-sig"))
+    mc = config.get("meshy")
+    if not isinstance(mc, dict) or not all(k in mc for k in ("source", "texture", "landmarks")):
+        raise ValueError("meshy: expected {\"source\": .obj, \"texture\": .png, \"landmarks\": .json}")
+    paths = _meshy_paths(mc)
+    for k in ("source", "texture"):
+        if not paths[k].is_file():
+            raise FileNotFoundError(f"meshy {k}: {paths[k]} not found (run meshy_trim_source)")
+    if bpy.context.window is None:
+        raise RuntimeError("render_meshy_refs needs interactive Blender (MCP add-on), not background mode")
+    # New renders invalidate any landmarks measured on the old ones: delete them so run() asks for face_landmarks.py.
+    lm = paths["landmarks"]
+    for old in (lm, lm.with_name(lm.stem + "_debug_front.png"), lm.with_name(lm.stem + "_debug_side.png")):
+        if old.is_file():
+            old.unlink()
+    before = _id_snapshot()
+    prev = bpy.context.window.scene
+    scene = bpy.data.scenes.new("_MeshyRefs")
+    bpy.context.window.scene = scene
+    try:
+        obj, co = _meshy_import(paths["source"])
+        img = bpy.data.images.load(str(paths["texture"]), check_existing=False)
+        mat = bpy.data.materials.new("_MR_flat")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        for n in list(nt.nodes):
+            nt.nodes.remove(n)
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        emit = nt.nodes.new("ShaderNodeEmission")
+        tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = img
+        nt.links.new(tex.outputs["Color"], emit.inputs["Color"])
+        nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+        obj.data.materials.clear(); obj.data.materials.append(mat)
+        world = bpy.data.worlds.new("_MR_World")
+        scene.world = world
+        world.use_nodes = True  # Blender 5: world.color alone is ignored, set the Background node
+        bg = next(n for n in world.node_tree.nodes if n.type == 'BACKGROUND')
+        bg.inputs["Color"].default_value = (0.6, 0.6, 0.6, 1.0)
+        bg.inputs["Strength"].default_value = 1.0
+        cd = bpy.data.cameras.new("_MR_Ortho"); cd.type = 'ORTHO'
+        cam = bpy.data.objects.new("_MR_Ortho", cd); scene.collection.objects.link(cam)
+        scene.camera = cam
+        scene.render.engine = 'BLENDER_EEVEE'
+        scene.render.film_transparent = False
+        scene.view_settings.view_transform = 'Standard'
+        scene.render.resolution_x = scene.render.resolution_y = MESHY_REF_PX
+        lo, hi = co.min(0), co.max(0)
+        span = float((hi - lo).max()) * 1.15
+        frame = {"source_sha1": _file_key(paths["source"]),
+                 "front": {"center": [float(lo[0] + hi[0]) / 2, float(lo[2] + hi[2]) / 2], "scale": span, "px": MESHY_REF_PX},
+                 "side": {"center": [float(lo[1] + hi[1]) / 2, float(lo[2] + hi[2]) / 2], "scale": span, "px": MESHY_REF_PX}}
+        for view in ("front", "side"):
+            f = frame[view]
+            cd.ortho_scale = f["scale"]
+            if view == "front":  # looking +Y: image right = +X, up = +Z
+                cam.location = (f["center"][0], lo[1] - 2.0, f["center"][1])
+                cam.rotation_euler = (math.radians(90), 0, 0)
+            else:  # looking -X: image right = +Y, so the face points left
+                cam.location = (hi[0] + 2.0, f["center"][0], f["center"][1])
+                cam.rotation_euler = (math.radians(90), 0, math.radians(90))
+            cd.clip_end = 10.0
+            scene.render.filepath = str(paths[view])
+            bpy.ops.render.render(write_still=True)
+            frame[view]["sha1"] = _file_key(paths[view])
+        paths["frame"].write_text(json.dumps(frame, indent=2), encoding="utf-8")
+        return {"front": str(paths["front"]), "side": str(paths["side"]), "frame": str(paths["frame"]),
+                "next": f"uv run Tools/FaceRef/face_landmarks.py {paths['front'].relative_to(PROJECT).as_posix()} "
+                        f"{paths['side'].relative_to(PROJECT).as_posix()} --out {Path(mc['landmarks']).as_posix()}"}
+    finally:
+        bpy.context.window.scene = prev
+        bpy.data.scenes.remove(scene)
+        _remove_new_ids(before)
+
+
+def _frame_px(f, u, v):
+    """Pixel (u right, v down) of a Meshy ref render -> (horizontal, z) source units."""
+    s, n = f["scale"], f["px"]
+    return f["center"][0] + ((np.asarray(u) + 0.5) / n - 0.5) * s, f["center"][1] + (0.5 - (np.asarray(v) + 0.5) / n) * s
+
+
+def _meshy_inputs(config):
+    """Validate every Meshy input BEFORE the scene is touched (files, landmarks vs renders vs source)."""
+    mc = config.get("meshy")
+    if mc is None:
+        return None
+    if not isinstance(mc, dict) or not all(k in mc for k in ("source", "texture", "landmarks")):
+        raise ValueError("meshy: expected {\"source\": .obj, \"texture\": .png, \"landmarks\": .json, ...}")
+    cfg = dict(MESHY_DEFAULTS, **mc)
+    paths = _meshy_paths(mc)
+    fixes = {"source": "run meshy_trim_source", "texture": "run meshy_trim_source", "frame": "run render_meshy_refs",
+             "front": "run render_meshy_refs", "side": "run render_meshy_refs",
+             "landmarks": "run Tools/FaceRef/face_landmarks.py on the render_meshy_refs images"}
+    for k, fix in fixes.items():
+        if not paths[k].is_file():
+            raise FileNotFoundError(f"meshy {k}: {paths[k]} not found ({fix})")
+    frame = json.loads(paths["frame"].read_text(encoding="utf-8-sig"))
+    ref = json.loads(paths["landmarks"].read_text(encoding="utf-8-sig"))
+    base = json.loads(BASE_LANDMARKS.read_text(encoding="utf-8-sig"))
+    try:
+        ok = (len(ref["front"]["points"]) == 478 and len(base["front"]["points"]) == 478
+              and all(len(ref[v]["size"]) == 2 and ref[v]["image"] and frame[v]["px"] > 0 and frame[v]["sha1"]
+                      and len(frame[v]["center"]) == 2 and frame[v]["scale"] > 0 for v in ("front", "side")))
+    except (KeyError, TypeError):
+        ok = False
+    if not ok:
+        raise ValueError("meshy: frame or landmarks incomplete (re-run render_meshy_refs, then face_landmarks.py)")
+    if frame.get("source_sha1") != _file_key(paths["source"]):
+        raise ValueError(f"meshy: {paths['source'].name} changed since render_meshy_refs (re-run it, then face_landmarks.py)")
+    for view in ("front", "side"):
+        if frame[view]["sha1"] != _file_key(paths[view]):
+            raise ValueError(f"meshy: {paths[view].name} is not the render_meshy_refs output (re-run it, then face_landmarks.py)")
+        if ref[view]["size"] != [frame[view]["px"]] * 2:
+            raise ValueError(f"meshy landmarks: {view} size {ref[view]['size']} was not measured on the current "
+                             f"render_meshy_refs images ({frame[view]['px']} px): re-run face_landmarks.py")
+        if Path(ref[view]["image"]).name != paths[view].name:
+            raise ValueError(f"meshy landmarks: {view} image {ref[view]['image']} is not {paths[view].name}")
+    if base["front"]["size"] != [ORTHO["front"]["px"]] * 2:
+        raise ValueError("base landmarks: front size does not match ORTHO (re-run render_base_refs)")
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    ramp = lambda v: isinstance(v, (list, tuple)) and len(v) == 2 and all(num(x) for x in v) and v[0] < v[1]
+    bad = [k for k in ("max_mm", "ray_mm", "max_texel_gap_mm", "contrast") if not (num(cfg[k]) and cfg[k] > 0)]
+    bad += [k for k in ("eye_front_scale",) if not (num(cfg[k]) and cfg[k] >= 0)]
+    bad += [k for k in ("seam_fade_m", "head_ratio_range", "depth_band_m") if not ramp(cfg[k])]
+    if not (isinstance(cfg["smooth_iters"], int) and cfg["smooth_iters"] >= 0):
+        bad.append("smooth_iters")
+    if bad:
+        raise ValueError(f"meshy: invalid {bad} (positive numbers, ramps [low, high], smooth_iters int >= 0)")
+    if cfg["skin_patches"] is None:
+        cfg["skin_patches"] = MESHY_SKIN_PATCHES
+    for key in ("exclude", "skin_patches"):
+        if not isinstance(cfg[key], list) or (key == "skin_patches" and not cfg[key]):
+            raise ValueError(f"meshy {key}: expected a list of ellipsoids")
+        for e in cfg[key]:
+            if not (isinstance(e, dict) and isinstance(e.get("center"), list) and len(e["center"]) == 3
+                    and all(num(x) for x in e["center"]) and 0 <= e.get("inner", 0.5) < 1):
+                raise ValueError(f"meshy {key}: each entry needs center [x,y,z], radius [rx,ry,rz], inner in [0, 1)")
+            _radius(e.get("radius"))
+    cfg.update(paths=paths, frame=frame, ref=ref, base=base)
+    # _portrait_sheet reads ref[view]["image"] relative to the project: point it at the Meshy renders.
+    cfg["sheet_ref"] = {v: {"image": paths[v].relative_to(PROJECT).as_posix()} for v in ("front", "side")}
+    return cfg
+
+
+def _ellipsoids_weight(p, ellipsoids):
+    """max over soft ellipsoids (inner fraction full weight), mirrored on X when asked."""
+    w = np.zeros(len(p))
+    for e in ellipsoids:
+        inner = e.get("inner", 0.5)
+        for sx in ((1, -1) if e.get("mirror_x") else (1,)):
+            d = np.sqrt(((((p * np.array([sx, 1, 1])) - np.array(e["center"])) / _radius(e["radius"])) ** 2).sum(1))
+            w = np.maximum(w, 1 - _smooth(d, inner, 1.0))
+    return w
+
+
+def _meshy_fit(cfg, head, base_pos, freeze, unit):
+    """Align the Meshy source on the base head and shrinkwrap the head onto it.
+    Returns (warp(points, freeze_w) -> displaced points, report, surface) where surface = (bvh, verts, tris, tri_uv)."""
+    from mathutils.bvhtree import BVHTree
+    obj, src = _meshy_import(cfg["paths"]["source"])
+    me = obj.data
+    try:
+        me.calc_loop_triangles()
+        tris = np.array([t.vertices[:] for t in me.loop_triangles], dtype=np.int64)
+        loops = np.array([t.loops[:] for t in me.loop_triangles], dtype=np.int64)
+        uv = np.empty(len(me.loops) * 2)
+        me.uv_layers.active.data.foreach_get("uv", uv)
+        tri_uv = uv.reshape(-1, 2)[loops]
+    finally:
+        bpy.data.objects.remove(obj, do_unlink=True)
+        bpy.data.meshes.remove(me)
+    # ---- alignment: 2D similarity (eye corners + nasion, as portraits) in the front plane, scale applied to depth.
+    ref, base = cfg["ref"], cfg["base"]
+    rpts = np.array(ref["front"]["points"])
+    bpts = np.array(base["front"]["points"])
+    sx, sz = _frame_px(cfg["frame"]["front"], rpts[:, 0], rpts[:, 1])
+    bx, bz = _ortho_to_game("front", bpts[:, 0], bpts[:, 1])
+    s, rot, t = _similarity(np.stack([sx, sz], 1)[MP_ALIGN], np.stack([bx, bz], 1)[MP_ALIGN])
+    xz = (s * (rot @ src[:, [0, 2]].T)).T + t
+    g = np.stack([xz[:, 0], src[:, 1] * s, xz[:, 1]], 1)
+    # Head size check (the source is in arbitrary units, so the raw scale says nothing): crown above the eye line.
+    ratio = float((g[:, 2].max() - BASE_EYE_Z) / (BASE_CROWN_Z - BASE_EYE_Z))
+    lo, hi = cfg["head_ratio_range"]
+    if not lo <= ratio <= hi:
+        raise RuntimeError(f"meshy: aligned head ratio {ratio:.2f} (crown above the eyes vs the base) outside "
+                           f"{cfg['head_ratio_range']} (wrong landmarks or source?)")
+    tri_list = tris.tolist()
+    bvh = BVHTree.FromPolygons([Vector(p) for p in g], tri_list)
+    # Depth: the median front-plane offset over the upper face (nose to forehead) puts the Meshy face on the base face.
+    zlo, zhi = cfg["depth_band_m"]
+    face = np.where((np.abs(base_pos[:, 0]) < 0.05) & (base_pos[:, 2] > zlo) & (base_pos[:, 2] < zhi)
+                    & (base_pos[:, 1] < -0.05))[0]
+    dys = []
+    for i in face:
+        hit = bvh.ray_cast(Vector((base_pos[i, 0], -1.0, base_pos[i, 2])), Vector((0, 1, 0)))
+        if hit[0] is not None:
+            dys.append(hit[0].y - base_pos[i, 1])
+    if len(dys) < 40:
+        raise RuntimeError(f"meshy: only {len(dys)} face vertices hit the aligned source (alignment off?)")
+    dy = float(np.median(dys))
+    g[:, 1] -= dy
+    bvh = BVHTree.FromPolygons([Vector(p) for p in g], tri_list)
+    # ---- shrinkwrap: each moving vertex goes to the closest surface hit along its normal (either way), else the
+    # nearest point; excluded regions (config) keep the base shape; then the field is smoothed over the mesh.
+    mw3 = head.matrix_world.to_3x3()
+    nrm = np.array([list((mw3 @ v.normal).normalized()) for v in head.data.vertices])
+    ray = cfg["ray_mm"] / 1000.0
+    disp = np.zeros_like(base_pos)
+    known = np.zeros(len(base_pos), dtype=bool)
+    for i in np.where(freeze > 0)[0]:
+        p, n = Vector(base_pos[i]), Vector(nrm[i])
+        best = None
+        for d in (n, -n):
+            hit = bvh.ray_cast(p, d, ray)
+            if hit[0] is not None and (best is None or hit[3] < best[1]):
+                best = (hit[0], hit[3])
+        if best is None:
+            loc = bvh.find_nearest(p, ray)[0]
+            if loc is None:
+                continue
+            best = (loc, 0.0)
+        disp[i] = np.array(best[0]) - base_pos[i]
+        known[i] = True
+    region = 1 - _ellipsoids_weight(base_pos, cfg["exclude"]) if cfg["exclude"] else np.ones(len(base_pos))
+    disp *= region[:, None]
+    edges = np.array([e.vertices[:] for e in head.data.edges], dtype=np.int64)
+    deg = np.bincount(edges.ravel(), minlength=len(base_pos)).astype(np.float64)
+    for _ in range(cfg["smooth_iters"]):
+        acc = np.zeros_like(disp)
+        np.add.at(acc, edges[:, 0], disp[edges[:, 1]])
+        np.add.at(acc, edges[:, 1], disp[edges[:, 0]])
+        avg = acc / np.maximum(deg, 1)[:, None]
+        disp = np.where((freeze > 0)[:, None], 0.5 * disp + 0.5 * avg, 0.0)
+    disp *= region[:, None]  # smoothing must not leak shape back into an excluded region
+    max_m = cfg["max_mm"] / 1000.0
+    norm = np.linalg.norm(disp, axis=1)
+    over = norm > max_m
+    disp[over] *= (max_m / norm[over])[:, None]
+    tree = KDTree(len(base_pos))
+    for i, p in enumerate(base_pos):
+        tree.insert(Vector(p), i)
+    tree.balance()
+
+    def warp(points, fw):
+        """Vertex displacement field at arbitrary points (inverse-distance over the 4 nearest vertices) x freeze."""
+        out = np.empty_like(points)
+        for k, p in enumerate(points):
+            near = tree.find_n(Vector(p), 4)
+            if near[0][2] < 1e-9:
+                d = disp[near[0][1]]
+            else:
+                w = np.array([1.0 / dist for _, _, dist in near])
+                d = (w[:, None] * disp[[i for _, i, _ in near]]).sum(0) / w.sum()
+            out[k] = p + d * fw[k]
+        return out
+
+    report = {"scale": float(s), "head_ratio": ratio, "max_shape_mm": float(norm[freeze > 0].max() * 1000), "roll_deg": float(np.degrees(np.arctan2(rot[1, 0], rot[0, 0]))),
+              "depth_offset_mm": dy * 1000, "missed_vertices": int(((freeze > 0) & ~known).sum()),
+              "clamped_vertices": int((over & (freeze > 0)).sum()),
+              "mean_shape_mm": float(norm[freeze > 0].mean() * 1000), "source_faces": len(tris)}
+    return warp, report, (bvh, g, tris, tri_uv)
+
+
+def _project_meshy(cfg, warp, surface, deforms, p, n, c, c0, s_weight, base_pos):
+    """Bake the Meshy colours into the canonical UVs: each (warped) texel takes the colour at its nearest point on the
+    aligned source. Skin moves to the base skin colour (white balance + luminance, as portraits); hair, beard and eyes
+    keep their colour. Fades to the painted base just above the neck seam (z seam_fade_m)."""
+    bvh, g, tris, tri_uv = surface
+    tex = _load_rgb(cfg["paths"]["texture"]).astype(np.float32)
+    lw = np.array([0.299, 0.587, 0.114])
+    fw = _freeze_at(p, base_pos)
+    q = _deform(warp(p, fw), fw, deforms)
+    gap = cfg["max_texel_gap_mm"] / 1000.0
+    fi = np.full(len(q), -1, dtype=np.int64)
+    loc = np.zeros_like(q)
+    for k, x in enumerate(q):
+        hit = bvh.find_nearest(Vector(x), gap)
+        if hit[0] is not None:
+            loc[k] = hit[0]
+            fi[k] = hit[2]
+    eyes = json.loads(SKIN_MASKS_CONFIG.read_text(encoding="utf-8-sig"))["base"]["head"]["eyes"]
+    if cfg["eye_front_scale"] > 0:
+        eye_w = _ellipsoids_weight(p, [{"center": e["center"], "radius": list(np.array(e["radius"]) * cfg["eye_front_scale"]),
+                                        "inner": 0.99, "mirror_x": True} for e in eyes])
+        for k in np.where(eye_w > 0)[0]:
+            hit = bvh.ray_cast(Vector((q[k, 0], q[k, 1] - 0.05, q[k, 2])), Vector((0, 1, 0)), 0.1)
+            if hit[0] is not None:
+                loc[k] = hit[0]
+                fi[k] = hit[2]
+    ok = fi >= 0
+    a, b, cc = (g[tris[fi[ok], j]] for j in range(3))
+    v0, v1, v2 = b - a, cc - a, loc[ok] - a
+    d00, d01, d11 = (v0 * v0).sum(1), (v0 * v1).sum(1), (v1 * v1).sum(1)
+    d20, d21 = (v2 * v0).sum(1), (v2 * v1).sum(1)
+    den_raw = d00 * d11 - d01 * d01
+    degen = np.abs(den_raw) < 1e-24  # zero-area triangle: take its first corner's UV
+    den = np.where(degen, 1.0, den_raw)
+    wb_ = np.where(degen, 0.0, np.clip((d11 * d20 - d01 * d21) / den, 0, 1))
+    wc_ = np.where(degen, 0.0, np.clip((d00 * d21 - d01 * d20) / den, 0, 1))
+    wa_ = np.clip(1 - wb_ - wc_, 0, 1)
+    tot = wa_ + wb_ + wc_  # clipped weights renormalised: the UV stays inside the triangle
+    wa_, wb_, wc_ = wa_ / tot, wb_ / tot, wc_ / tot
+    tuv = tri_uv[fi[ok]]
+    uv = wa_[:, None] * tuv[:, 0] + wb_[:, None] * tuv[:, 1] + wc_[:, None] * tuv[:, 2]
+    h, w_ = tex.shape[:2]
+    sample = np.zeros((len(q), 3))
+    sample[ok] = _bilinear(tex, uv[:, 0] * w_, (1 - uv[:, 1]) * h)
+    lin = _srgb_to_linear(sample)
+    # Colour statistics: the same clean skin patches on the rest head, in the Meshy samples and the base texture.
+    patch = (_ellipsoids_weight(p, [dict(e, inner=0.99) for e in cfg["skin_patches"]]) > 0.5) & ok
+    if patch.sum() < 50:
+        raise RuntimeError(f"meshy: only {int(patch.sum())} texels in the skin patches")
+    ref_mu = np.maximum(lin[patch].mean(0), 1e-4)
+    b_mu = np.maximum(_srgb_to_linear(c0[patch]).mean(0), 1e-4)
+    gamma = float(cfg["contrast"])
+    lr, lb = max((ref_mu * lw).sum(), 1e-4), max((b_mu * lw).sum(), 1e-4)
+    wbal = (b_mu / lb) / (ref_mu / lr)
+    chroma_mu = ref_mu / max(ref_mu.sum(), 1e-4)
+    s_l = np.maximum((lin * lw).sum(1), 1e-5)
+    scaled = np.clip(lin / s_l[:, None] * wbal * (lb * (s_l / lr) ** gamma)[:, None], 0, 1)
+    chroma = lin / np.maximum(lin.sum(1, keepdims=True), 1e-4)
+    dist = 2 * np.linalg.norm(chroma - chroma_mu, axis=1) + np.maximum(0, 1 - s_l / max(lr, 1e-4))
+    # Much lighter than the skin AND neutral (grey) = sclera, grey / white hair: never skin (a neutral grey is close to
+    # skin in chroma). Skin highlights keep the skin's warm hue and stay skin, or they show untoned on light tones.
+    neutral = 1 - _smooth(np.linalg.norm(chroma - 1 / 3, axis=1), 0.03, 0.08)
+    k_skin = (1 - _smooth(dist, 0.35, 0.7)) * (1 - _smooth(s_l / max(lr, 1e-4), 1.5, 2.0) * neutral)
+    mapped = scaled * k_skin[:, None] + lin * (1 - k_skin[:, None])
+    lo, hi = cfg["seam_fade_m"]
+    wt = _smooth(p[:, 2], lo, hi) * ok
+    c = c * (1 - wt[:, None]) + _linear_to_srgb(mapped) * wt[:, None]
+    s_weight = s_weight * (1 - wt) + k_skin * wt
+    return c, s_weight, {"baked_texels": int(ok.sum()), "missed_texels": int((~ok).sum()), "patch_texels": int(patch.sum()),
+                         "white_balance_rgb_gamma": np.append(wbal, gamma).round(3).tolist()}
 
 
 # ---------------------------------------------------------------------------------------------- render / export
@@ -1295,12 +1807,15 @@ def run(config_path, export=False, render=True, preview_tone=None):
     if config.get("preview_tone"):
         _tone_rgb(config["preview_tone"])  # fail before the paint pass, not after
     name = config["name"]
-    portrait = _portrait_inputs(config)  # every portrait input is checked before the scene is touched
+    if config.get("portrait") is not None and config.get("meshy") is not None:
+        raise ValueError(f"{name}: a head has one face source, 'portrait' or 'meshy', not both")
+    portrait = _portrait_inputs(config)  # every portrait / meshy input is checked before the scene is touched
+    meshy = _meshy_inputs(config)
     scene, rig, head, body, unit = _load()
     base_pos = _positions(head, unit)
     base_normals = [Vector(c.vector) for c in head.data.corner_normals]
     base_uv = [Vector(l.uv) for l in head.data.uv_layers.active.data]
-    freeze = _freeze_weights(base_pos, SEAM_TOL_M if portrait is not None else 0.0)
+    freeze = _freeze_weights(base_pos, SEAM_TOL_M if (portrait is not None or meshy is not None) else 0.0)
     deforms = config.get("deforms", [])
     project, fit_report = None, None
     start = base_pos
@@ -1309,8 +1824,12 @@ def run(config_path, export=False, render=True, preview_tone=None):
         start = warp(base_pos, freeze)  # landmark warp first, then the config's own deforms
         fit_report["clamped_vertices"] = fit_report.pop("stats")["clamped"]
         project = lambda p, n, c, c0, s: _project_portrait(portrait, align, warp, deforms, p, n, c, c0, s, base_pos)
+    elif meshy is not None:
+        warp, fit_report, surface = _meshy_fit(meshy, head, base_pos, freeze, unit)
+        start = warp(base_pos, freeze)
+        project = lambda p, n, c, c0, s: _project_meshy(meshy, warp, surface, deforms, p, n, c, c0, s, base_pos)
     # Paint / masks use the rest (undeformed) positions; the projection maps them through the same warp.
-    pixels, size, mask, proj_report = _paint(config, scene, head, body, unit, project)
+    pixels, size, mask, proj_report = _paint(config, scene, head, body, unit, project, force_eyes=meshy is None)
     pos = _deform(start, freeze, deforms)
     _set_positions(head, unit, pos)
     _fix_normals(head, freeze, base_normals)
@@ -1343,6 +1862,22 @@ def run(config_path, export=False, render=True, preview_tone=None):
         if report["max_deform_m"] * 1000 > portrait["max_mm"] + 0.01:  # config deforms on top of the warp
             report.setdefault("warnings", []).append(
                 f"max deform {report['max_deform_m'] * 1000:.1f} mm exceeds max_mm {portrait['max_mm']} (config deforms)")
+    if meshy is not None:
+        report["meshy"] = dict(fit_report, **(proj_report or {}))
+        if fit_report["clamped_vertices"]:
+            report.setdefault("warnings", []).append(
+                f"{fit_report['clamped_vertices']} vertices clamped to max_mm {meshy['max_mm']}")
+        if fit_report["missed_vertices"]:
+            report.setdefault("warnings", []).append(
+                f"{fit_report['missed_vertices']} vertices found no Meshy surface within ray_mm {meshy['ray_mm']}")
+        missed = report["meshy"].get("missed_texels", 0)
+        if missed > 0.03 * (missed + report["meshy"].get("baked_texels", 0)):
+            report.setdefault("warnings", []).append(
+                f"{missed} head texels found no Meshy surface within max_texel_gap_mm {meshy['max_texel_gap_mm']} "
+                "(they keep the painted base colour)")
+        if report["max_deform_m"] * 1000 > meshy["max_mm"] + 0.01:  # config deforms (ears) on top of the shrinkwrap
+            report.setdefault("warnings", []).append(
+                f"max deform {report['max_deform_m'] * 1000:.1f} mm exceeds max_mm {meshy['max_mm']} (config deforms)")
     preview = _toned(pixels, mask, config["preview_tone"]) if config.get("preview_tone") else pixels
     img, mat = _preview_material(name, preview, size)
     saved = {o: list(o.data.materials) for o in (head, body)}
@@ -1356,6 +1891,9 @@ def run(config_path, export=False, render=True, preview_tone=None):
             report["renders"] = _render(scene, rig, head, name, out_dir)
             if portrait is not None:
                 report["renders"].append(_portrait_sheet(name, out_dir, report["renders"], portrait))
+            if meshy is not None:
+                report["renders"].append(_portrait_sheet(name, out_dir, report["renders"], {"ref": meshy["sheet_ref"]},
+                                                         suffix="meshy"))
     finally:
         rig.scale = (unit, unit, unit)
         bpy.context.view_layer.update()

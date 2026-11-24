@@ -5,7 +5,7 @@
 //  - Temp/HeadTones/heads.png: one row per planned face + tone (PLAN below); columns = face front, face three-quarter,
 //    left neck (Company brand side) bare, left neck in Company armor, bare body / armored torso.
 var PLAN = new (string head, string tone, bool armored)[] {
-    ("Tam", "Tone_Fair", false), ("Brann", "Tone_Olive", false), ("Storekeeper", "Tone_Deep", false),
+    ("Tam", "Tone_Fair", false), ("Brann", "Tone_Olive", false), ("Storekeeper", "Tone_Deep", false), ("StorekeeperMeshy", "Tone_Deep", false),
     ("Harl", "Tone_Weathered", true), ("DockGuard", "Tone_Fair", true), ("GuardLeft", "Tone_Fair", true),
     ("GuardRight", "Tone_Olive", true), ("WarehouseGuard", "Tone_Deep", true), ("Bandit", "Tone_Weathered", false) };
 var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Prefabs/Characters/Humanoid_BaseHero.prefab");

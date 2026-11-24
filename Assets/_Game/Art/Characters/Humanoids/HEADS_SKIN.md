@@ -1,6 +1,6 @@
-# NPC Heads and Skin — head variants, portrait faces, skin tones
+# NPC Heads and Skin — head variants, portrait faces, Meshy heads, skin tones
 
-> Read when making or editing an NPC head (painted variant or portrait face), its skin mask, or skin tones
+> Read when making or editing an NPC head (painted variant, portrait face or Meshy head), its skin mask, or skin tones
 > (`SG_SkinLit`, `SkinToneSO`). Run the portrait flow with `/characters:portrait-face`. Portrait prompt: `CLAUDE.md`
 > → *Face Portrait Prompt*; neck contract: `PIPELINE.md` → *Head / body split*.
 
@@ -126,6 +126,49 @@ Gotchas:
   shows as speckles.
 - `run()` renders only the man's left; to see his right, exec the script with `("r34", -40), ("rside", -90)` added to
   the `_render` angle tuple in memory (rendering after `run()` returns gives magenta: the preview image is freed).
+
+---
+
+## NPC Meshy heads (spec-npc-meshy-heads)
+
+A Meshy multi-image-to-3D head, made from the NPC's existing `refs/` front + side portraits, is used as a **shape +
+texture source only**: never rigged, never shipped as a mesh. The canonical head is shrinkwrapped onto it (neck frozen)
+and its colours are baked into the canonical UVs, so the export, `Bake Head Variants`, skin mask, tones and verify
+scripts are those of every other head. First head: `StorekeeperMeshy` (`configs/heads/storekeepermeshy.json`), on
+`NPC_Storekeeper` (the portrait head `Storekeeper` stays shipped, unused).
+
+1. **Generate:** `meshy_multi_image_to_3d` with `[<name>_front, <name>_side]`, `meshy-7.1` + texture `meshy-7` 4K,
+   `remove_lighting`, GLB (30 credits; rules in `.claude/rules/meshy-mcp.md`). Download to the scratchpad.
+2. **Trim:** `meshy_trim_source(glb, "Tools/Blender/sources/meshy_heads/<name>", keep_above=-0.45, stem="<name>_meshy")`
+   → `<stem>.obj` (200k faces, LFS) + `<stem>_BaseColor.png` (2048). The raw GLB (~60 MB) is not kept.
+3. **Refs:** `render_meshy_refs(config)` → `refs/<stem>_front.png` / `_side.png` / `_frame.json` (flat ortho renders framed
+   on the source's own bbox; the frame stores hashes of the source and both renders, and old landmarks are deleted),
+   then `uv run Tools/FaceRef/face_landmarks.py` on them → `refs/<stem>_landmarks.json`. `run()` refuses a changed
+   source or render.
+4. **Config:** `"meshy": {"source", "texture", "landmarks"}` (+ `MESHY_DEFAULTS` overrides), `paint: []`. Then mockup →
+   export → bake → verify, as for any variant (`<Name>_meshy.png` sheet = mockups beside the Meshy renders).
+
+How it works (`make_head_variant.py`, meshy section): front similarity on eye corners + nasion (as portraits, scale
+applied to depth too; `head_ratio_range` refuses an aligned head whose crown-above-eyes is off by more than 0.7–1.4×)
++ a depth offset (median front-plane gap over the upper face, `depth_band_m`, so a sculpted beard does not bias it;
+`skin_patches` overrides the forehead / cheek colour patches); every moving vertex goes to the nearest
+surface hit along ± its normal (`ray_mm`), Laplacian-smoothed, capped at `max_mm`. Texels take the colour of their nearest
+point on the aligned source; inside the eyes (`eye_front_scale` × the skin-mask eye ellipsoids) a straight front
+projection instead. Skin moves to the base skin colour (white balance + luminance from forehead / cheek patches, as
+portraits), fading to the painted base over `seam_fade_m` (1.585 → 1.61) so the neck matches the body.
+
+Gotchas:
+- **Ears:** a Meshy ear does not sit where the base ear does (Storekeeper: 19 mm lower) and nearest-point prints it on the
+  skull. Exclude the base ears from the shrinkwrap (`meshy.exclude`) and move them with a `deforms` offset (wide region,
+  rz ≈ 0.14, or the ear is squashed). Measure on a side overlay of the aligned source vs the base head (ortho 0.36 m).
+- **Eyes:** nearest-point on the base eyeball stretches the Meshy iris into a dark blot: hence the front projection.
+  Meshy heads also skip `_paint`'s forced eye zero (`force_eyes=False`): the Meshy lids cover part of the base eyeball,
+  and forced untoned they show as dark rings on Fair / pale rings on Deep. Sclera and grey hair stay untoned through the
+  skin weight instead (much lighter than the skin **and** neutral grey; a plain brightness test leaves skin highlights
+  untoned: blotches on Fair).
+- Judge tones on a Unity sheet with a **light** tone too (Fair): a Deep-only check hides untoned texels.
+- `verify_head_tones.cs` on a fresh preview scene can report a large untoned diff on the first head rendered (Bandit,
+  227/255) that a second pass shows as 0: re-check per head before blaming a mask.
 
 ---
 

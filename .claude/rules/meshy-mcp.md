@@ -41,6 +41,19 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   so clips meant to chain need their starts matched in Blender (`Tools/Blender/meshy_motion_fit.py`, `start_match`).
 - Two create calls sent in parallel both run; each is charged.
 
+## Multi-image to 3D (`meshy_multi_image_to_3d`) — NPC heads
+
+- Used for NPC heads from the existing portrait pair (`refs/<name>_front.png` + `_side.png`, local `file_paths`):
+  `meshy-7.1` + texture `meshy-7`, 4K, `remove_lighting`, GLB = 30 credits, done in ~90 s. Pipeline:
+  `Assets/_Game/Art/Characters/Humanoids/HEADS_SKIN.md` → *NPC Meshy heads*.
+- From a head-and-shoulders front + side profile it still builds the **whole head**: back of the skull, both ears, hair
+  volume and the shoulders, with a delit texture close to the portrait (identity kept).
+- Output GLB ~60 MB: 1.65M faces, one 4096 base colour, normalised to about ±1 unit (shoulders width), glTF import faces
+  **−Y**, Z up. Trim and decimate it (`meshy_trim_source`) before keeping anything in the repo.
+- Hair and beard are **sculpted** (curl bumps on the scalp): use it as a shape source only through a smoothed fit.
+- The generated head's proportions differ from the portrait-derived base: Storekeeper's ears came out 19 mm lower and the
+  crown ~20 mm lower than the canonical head once aligned on the eyes.
+
 ## Preset animations (`meshy_animate`)
 
 - Needs a `rig_task_id` from an API rigging task (5 credits, textured humanoid `.glb`, public URL). There is none for

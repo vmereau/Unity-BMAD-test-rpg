@@ -1225,3 +1225,18 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   press): log the current state as its own column to make that exact.
 - **One unexplained outlier**: the first single jab of one play session travelled 0.445 m; three later ones 0.397–0.404 m
   on the same clip and code.
+
+## From spec-npc-meshy-heads (2026-11-24)
+
+- **Eyes are untoned through the colour rule only** (`force_eyes=False` on Meshy heads): a light-brown / hazel iris close
+  to the skin's chroma could get toned. If a Meshy NPC has light eyes, force skin 0 inside a smaller eyeball core
+  (base eye ellipsoids x ~0.6) while keeping the lids toneable.
+- **Shrinkwrap ignores inner geometry**: every moving vertex is cast along ± its normal, so an eyeball back, inner mouth
+  or teeth (if the canonical head has them) could be pulled onto the outer Meshy skin. Not visible on StorekeeperMeshy;
+  check before a head with an open mouth.
+- **Back of the skull is shrinkwrapped too** (spec planned a fade to 0): the Meshy crown sits ~20 mm lower than the base,
+  so the crown moves down up to `max_mm`. Accepted on the Storekeeper sheet; check helmets still sit right on him.
+- **Ear placement is measured by hand** (side overlay, config `deforms` + `meshy.exclude`); automate it (ear landmark on
+  the side render) before a batch of Meshy heads.
+- **`_project_meshy` runs three Python-level KDTree / BVH queries per head texel** (~30 s per run): batch / vectorise
+  if a larger texture or many heads make it slow.

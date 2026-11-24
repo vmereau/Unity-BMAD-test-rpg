@@ -158,7 +158,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Quest / skill data | `Data/Quests/CLAUDE.md`, `Data/Skills/CLAUDE.md` | Quest and skill assets |
 | Facts | `Data/Facts/CLAUDE.md` | Fact types, keys, who sets / reads them, naming |
 | Quest Explorer | `Editor/QuestExplorer/CLAUDE.md` | `Tools/Quests/Quest Explorer`: reference index, validator, editing; `QuestReport` + MCP `quest_report` for Claude |
-| Character models | `Art/Characters/Humanoids/CLAUDE.md` (+ `PIPELINE.md`, `HEADS_SKIN.md`) | Character concept + face portrait prompt templates; topic files: Meshy → Mixamo → Unity pipeline, body swap, head/body split; NPC heads, portrait faces, skin tones |
+| Character models | `Art/Characters/Humanoids/CLAUDE.md` (+ `PIPELINE.md`, `HEADS_SKIN.md`) | Character concept + face portrait prompt templates; topic files: Meshy → Mixamo → Unity pipeline, body swap, head/body split; NPC heads, portrait faces, Meshy heads, skin tones |
 | Combat animations | `Art/Characters/Humanoids/Animations/Combat/CLAUDE.md` (+ `BAKE_RECIPES.md`, `MESHY_PROMPTS.md`) | Attack clip events, per-clip hit/combo timings; topic file: Blender / `.anim` bake recipes |
 | Humanoid controller | `Art/Characters/Humanoids/Controllers/CLAUDE.md` | `Humanoid_Template` layers/params, SMB wiring, combo transition rules |
 
