@@ -102,6 +102,17 @@ public class UnarmedAttackTests
     }
 
     [Test]
+    public void Config_EveryStepMovesThePlayerByItsClip()
+    {
+        // spec-action-root-motion-unarmed-combo: a scripted step in the middle of the chain would cut the travel at its
+        // crossfade (ActionRootMotion only carries the blend between two clip-driven attacks).
+        UnarmedAttack[] attacks = LoadConfig().unarmedAttacks;
+        Assert.That(attacks, Is.Not.Empty);
+        foreach (UnarmedAttack attack in attacks)
+            Assert.That(attack.step.UsesRootMotion, Is.True);
+    }
+
+    [Test]
     public void Config_OnlyTheFinisherHitsHarder()
     {
         UnarmedAttack[] attacks = LoadConfig().unarmedAttacks;
@@ -155,8 +166,18 @@ public class UnarmedAttackTests
         Assert.That(mapped, Does.Contain("sheath unarmed"));
         if (!melee) return;
         Assert.That(mapped, Does.Contain("lead jab step")); // Attack_1 base clip (spec-action-root-motion-jab-trial)
-        Assert.That(mapped, Does.Contain("Hook"));
-        Assert.That(mapped, Does.Contain("Uppercut"));
+        Assert.That(mapped, Does.Contain("hook step"));     // Attack_2 base clip (spec-action-root-motion-unarmed-combo)
+        Assert.That(mapped, Does.Contain("uppercut step")); // Attack_3 base clip
+        // Stale keys: GetOverrides only lists the base controller's clips, so an entry left on a replaced base clip
+        // (the old Hook / Uppercut) is only visible in the serialized list.
+        var baseClips = new HashSet<AnimationClip>(controller.runtimeAnimatorController.animationClips);
+        SerializedProperty entries = new SerializedObject(controller).FindProperty("m_Clips");
+        for (int i = 0; i < entries.arraySize; i++)
+        {
+            var original = entries.GetArrayElementAtIndex(i).FindPropertyRelative("m_OriginalClip").objectReferenceValue as AnimationClip;
+            Assert.That(original, Is.Not.Null, file + ": override entry " + i + " has no original clip");
+            Assert.That(baseClips, Does.Contain(original), file + ": override keyed on '" + original.name + "', not a base clip");
+        }
         Assert.That(mapped, Does.Contain("Unarmed Idle Guard"), "CombatIdle carry pose (base clip = baked unarmed guard)");
         Assert.That(mapped, Does.Contain("Unarmed Block Guard"), "Block_State (base clip = baked unarmed high guard)");
         string blockTarget = null;

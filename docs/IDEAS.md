@@ -36,8 +36,10 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 - **Date:** 2026-11-23 · **Status:** à designer
 - **Constat :** l'essai (`spec-action-root-motion-jab-trial`) marche sur le jab à main nue du joueur : `ActionRootMotion`
   (`OnAnimatorMove`) déplace la capsule de 0,40 m par le clip seul, pied planté à ~1 cm, annulation et combo corrects.
-  Clip Meshy (squelette SMPL-H) ajusté dans Blender (`Tools/Blender/meshy_jab_fit.py`).
-- **Idea:** après validation de la sensation en jeu, étendre : Hook et Uppercut (nouveaux clips ou retouche), armes,
+  Clip Meshy (squelette SMPL-H) ajusté dans Blender (`Tools/Blender/meshy_motion_fit.py`).
+- **Fait (2026-11-24, `spec-action-root-motion-unarmed-combo`) :** Hook et Uppercut (clips Meshy `hook step` /
+  `uppercut step`) : tout le combo à main nue avance par ses clips, déplacement continu dans les fondus.
+- **Idea:** étendre ensuite : armes,
   « motion warping » en verrouillage (s'arrêter à bonne distance), puis esquive / exécution / relevé / stagger.
 - **To explore:** NPC (ils jouent le nouveau clip avec le pas scripté ; `NavMeshAgent.Move` + culling `AlwaysAnimate` en
   combat) ; pied arrière du jab qui traîne 5–7 cm au-dessus du sol ; remplacer `attackSteps` par `rootMotionScale`

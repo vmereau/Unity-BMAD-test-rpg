@@ -47,17 +47,25 @@ The banned words below apply to **prompt text only** — labels in this file may
    imported **mirrored**. A clip whose hands cross (hands < 5 cm apart, then the order swaps) can't be fixed by
    mirroring — say "left hand stays above the right on the hilt the whole time" and regenerate.
 
-## Clips that travel (root motion, spec-action-root-motion-jab-trial)
+## Clips that travel (root motion, spec-action-root-motion-jab-trial, spec-action-root-motion-unarmed-combo)
 
 For a clip whose own displacement moves the player. Generated through the Meshy MCP (`meshy_text_to_motion`, `prime`,
 10 credits each); general MCP quirks: `.claude/rules/meshy-mcp.md`.
 
 - Describe the lead foot stepping, the action, then **the rear foot following**, and end with "finishes standing in the
   guard, one short step ahead of where he started". "Returns to the guard" makes the character walk back to the start.
-- Do not try to control the distance or the direction in words (ignored): fit both with `Tools/Blender/meshy_jab_fit.py`.
+- Do not try to control the distance or the direction in words (ignored): fit both with `Tools/Blender/meshy_motion_fit.py`.
+- **Name the punch with its boxing name and say "punch"** ("throws a fast right hook punch at head height", "a fast
+  left uppercut punch: the left fist dips to the waist and punches upward"), in the same sentence as the lead step. A
+  described path alone ("throws a horizontal hook … across the front", "drops to waist height then drives up") gave a
+  step with no punch: the fist stayed within 9 cm of the guard, or rose at under 1 m/s.
+- Every generation picks its own guard: stance length 0.26–0.55 m, width 0.05–0.48 m for the same opening words. Clips
+  of one combo never line up as generated — match the starts in Blender (`CLAUDE.md` → *Matching a chained clip's start*).
+- Fist speed comes out at about 6–7 m/s (5.8 and 6.7 measured; Mixamo punches: 10–12 m/s): retime with `speed` where the
+  hit timing allows (uppercut × 1.8; the hook stays at real time for its 0.47 s hit).
 - Avoid "shuffle", "slides", "tiny": they produced a deep crouch and a waist-high punch.
 - The MCP output is an SMPL-H skeleton, not the "animated_mixamo" FBX of the web UI: avatar and import settings in
-  `CLAUDE.md` → Unarmed → `lead jab step`.
+  `CLAUDE.md` → Unarmed → `lead jab step`, `hook step`, `uppercut step`.
 
 ## Durations (set in the Meshy UI)
 
@@ -127,3 +135,7 @@ Record every generation: date, clip, template version, duration, exact prompt, v
 | 2026-11-23 | Unarmed jab with step, v1 (MCP, prime) | — | 2.0 s | `A boxer stands in a fighting guard: left foot forward, knees bent, both fists raised at chin height. He takes one short step forward with the left foot and throws a straight left jab at head height, then the right foot follows and he returns to the guard. Faces forward the whole time, torso turns less than 45 degrees. Ends in the same guard pose, about 0.3 m ahead of the start.` | Lead foot lunges 0.65 m on a 45° diagonal and comes back, rear foot never follows, net travel 0.12 m → **rejected** |
 | 2026-11-23 | Unarmed jab with step, v2 (MCP, prime) | — | 2.0 s | `A boxer in a fighting guard, left foot forward, knees bent, fists at chin height, advances straight ahead. The left foot takes one short step straight forward and the left fist jabs straight ahead at head height as the foot lands. Then the right foot steps forward the same distance. He keeps facing straight ahead and finishes standing in the guard, one short step ahead of where he started.` | Step, jab at head height, rear foot follows; 1.22 m of travel 24° to the left, hit at 0.70 s, last 8 frames lift the lead foot again → **kept**, fitted in Blender (`lead jab step`) |
 | 2026-11-23 | Unarmed jab with step, v3 (MCP, prime) | — | 2.0 s | `A boxer in a fighting guard, left foot forward, knees bent, fists at chin height. He shuffles forward a tiny step: the left foot slides forward half a foot length and the left fist snaps a quick straight jab at head height, then the right foot slides forward the same small distance. He stays upright, faces straight ahead and finishes in the same guard, barely ahead of where he started.` | 0.9 m at 45°, pelvis drops to 0.59 m, jab at 0.93 m height → **rejected** |
+| 2026-11-24 | Unarmed hook with step, v1 (MCP, prime) | — | 2.0 s | `A boxer in a fighting guard, left foot forward, knees bent, fists at chin height, advances straight ahead. The left foot takes one short step forward and the right fist throws a horizontal hook at head height across the front as the foot lands. Then the right foot steps forward the same distance. He keeps facing straight ahead and finishes in the guard, one short step ahead of where he started.` | 1.9 m of travel in a deep lunge (pelvis 0.88 → 0.62 m), the right fist never leaves the guard (≤ 9 cm relative to the pelvis) → **rejected** |
+| 2026-11-24 | Unarmed uppercut with step, v1 (MCP, prime) | — | 2.0 s | `A boxer in a fighting guard, left foot forward, knees bent, fists at chin height, advances straight ahead. The left foot takes one short step forward and the left fist drops to waist height then drives up to chin height in front as the foot lands. Then the right foot steps forward the same distance. He faces straight ahead and finishes in the guard, one short step ahead of where he started.` | 1.9 m, two lead steps, the fist only rises with the body (0.9 m/s) → **rejected** |
+| 2026-11-24 | Unarmed hook with step, v2 (MCP, prime) | — | 2.0 s | `A boxer in a fighting stance, left foot forward, fists at chin height, steps forward with the left foot and throws a fast right hook punch at head height, the right fist swinging in from the side. Then the right foot steps forward and he stands in his guard again, one step ahead of where he started. He faces forward the whole time.` | Lead step, right fist sweeps 0.9 m across at 6.7 m/s (peak at 0.53 s), hips turn 84°, rear foot follows, lead foot re-sets; 0.71 m of travel 27° to the left, square 0.48 m wide stance → **kept**, fitted in Blender (`hook step`) |
+| 2026-11-24 | Unarmed uppercut with step, v2 (MCP, prime) | — | 2.0 s | `A boxer in a fighting stance, left foot forward, fists at chin height, steps forward with the left foot and throws a fast left uppercut punch: the left fist dips to the waist and punches upward to chin height. Then the right foot steps forward and he stands in his guard again, one step ahead of where he started. He faces forward the whole time.` | Lead step, fist dips and rises 0.5 m at 5.8 m/s (peak at 0.87–0.93 s) above head height, rear foot follows twice; 1.10 m of travel 23° to the left, ends turned 21° → **kept**, fitted in Blender (`uppercut step`) |

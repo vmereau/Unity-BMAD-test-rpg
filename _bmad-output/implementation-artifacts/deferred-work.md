@@ -1175,20 +1175,53 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-action-root-motion-jab-trial (2026-11-23)
 
-- **NPC unarmed jab not checked in play.** NPCs now play `lead jab step` (1.07 s instead of 1.80 s, fist 0.63 m ahead of
-  the root instead of 0.79 m) with the scripted step (0.40 m, constant speed). Expect some foot slide, and re-check the
-  reach margin at the 1.3 m stopping distance (`Prefabs/Entities/CLAUDE.md`) and any AI timing tuned to the old clip.
+- ~~NPC unarmed jab not checked in play.~~ Checked in spec-action-root-motion-unarmed-combo (three-hit NPC combo, see
+  that spec's notes). Still open: the reach margin at the 1.3 m stopping distance in a real fight, and AI timing tuned to
+  the old clips.
 - **Ledge stop and lock-on untested for `ActionRootMotion`.** Dodge / block / jump cancels were not run one by one either.
 - **Trailing foot of `lead jab step` drags 5–7 cm above the ground** for most of the clip (Meshy source). Needs a foot
   plan like `unarmed_foot_step.py`, or a regenerated source.
-- **Chaining jab → Hook early drops the rest of the jab's travel** (0.32 m instead of 0.40 m at the earliest press) and
-  blends into a Hook whose trimmed start was matched to the old jab's hip yaw. Look at the blend before tuning.
-- **A state with unbaked root XZ still blending out adds its travel to the jab.** Attack → attack blends are skipped;
-  `Landing` (unbaked) is not.
+- ~~Chaining jab → Hook early drops the rest of the jab's travel.~~ Resolved in spec-action-root-motion-unarmed-combo:
+  the travel carries on through clip-driven attack → attack crossfades.
+- **A state with unbaked root XZ still blending out adds its travel to the jab.** Blends from a scripted attack are
+  skipped; `Landing` (unbaked) is not.
 - **A weapon without an animator override plays the base `lead jab step` with the weapon's scripted step**: the clip's
   travel is dropped and the capsule slides by `defaultAttackStep` under stepping feet.
 - **`AttackStep.distance` and the clip's travel are two values to keep in sync for NPCs**, and a `rootMotionScale` on an
   in-place or XZ-baked clip roots the player. No validation; a body swap with another avatar scale also changes the travel.
-- **`meshy_jab_fit.py` trusts its inputs** (no armature, no animation, `speed` 0, reversed frame range) and keys rotations
-  only (plus pelvis location).
+- **`meshy_motion_fit.py` keys rotations only** (plus pelvis location). Its input guards (no armature, no animation,
+  `speed` ≤ 0, reversed frame range, bad `fade`) were added in spec-action-root-motion-unarmed-combo.
 
+## From spec-action-root-motion-unarmed-combo (2026-11-24)
+
+- **The hook's lean moves the capsule 6 cm sideways and back** (Unity roots the clip on the centre of mass). Chained
+  early the combo ends 3 cm left of the line, chained late 6 cm right (the 8° travel yaw overshoots there). A root that
+  follows the feet rather than the centre of mass needs another root source than the Humanoid default.
+- **Travel of a step depends on the press time** (hook 0.33–0.40 m, uppercut 0.45–0.52 m): the 0.42 s combo blend
+  weights each clip's first frames down. The blend duration is shared with the sword / two-handed combos, so it was
+  left alone; a per-weapon transition (or a shorter blend) would make the unarmed steps constant.
+- **Late Hook → Uppercut press: the root backs up at 0.2 m/s for a few frames** before the lunge (the hook's settle
+  back, already scaled to 40 %), and the rear foot slides 3 cm through that blend.
+- **At Animator speed 0.5 the planted-foot slide reaches 4–5 cm through the crossfades** (the blends scale with the Animator speed, so the poses are the same: the measure counts a foot as planted below
+  0.3 m/s, and slowed steps fall under that threshold. Read the full-speed slide numbers as a lower bound).
+- **NPC foot slide not measured directly.** Their scripted path stays within 7 cm of the player's clip-driven path
+  over a three-hit combo (TentMate, flat ground), so up to that much slide under the feet is expected. No real fight
+  was run: reach against the 1.3 m stopping distance is still to check (fist 0.59–0.62 m ahead of the root for the three clips).
+- **Uppercut's rear foot ends 6 cm short of the jab's start stance** (leg at full reach on its last 3 frames) and the
+  jab's trailing-foot hover is unchanged.
+- **Ledge stop and lock-on still untested** for the two new steps (same code path as the jab; cancel was run on both).
+- **The old `Hook.fbx` / `Uppercut.fbx` / `lead jab.fbx` and their `unarmed_foot_step.py` configs are now dead weight**
+  kept for a revert: delete them once the clip-driven combo is accepted.
+- **Not run in play:** a sword / two-handed swing after the change (covered by the override-key test only), dodge /
+  block / jump cancels one by one on the new steps, and a scripted attack blending into a clip-driven one (no such pair
+  exists in the shipped data; covered by the pure `AppliesDuringBlend` test).
+- **No automated test of `ActionRootMotion.Begin`'s chain decision** (which attack was entered last): a PlayMode test
+  asserting travel inside the restart blend and after a cancel + fresh press would pin it. `CancelAttack` must not
+  be made to reset that memory.
+- **`meshy_motion_fit.py`**: a `speed` that does not divide the frame range drops the tail of the source (uppercut: last
+  source frame used 59.6 of 61, reported as `last_source_frame`); `backtrack_scale` also acts on a lean back before the
+  lunge; `facing_offset_deg` is implemented but no config uses it.
+- **`action_root_motion_analyse.py` tells a chain crossfade from the idle → jab blend by time** (0.3 s after the first
+  press): log the current state as its own column to make that exact.
+- **One unexplained outlier**: the first single jab of one play session travelled 0.445 m; three later ones 0.397–0.404 m
+  on the same clip and code.

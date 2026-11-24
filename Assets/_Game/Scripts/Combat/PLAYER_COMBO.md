@@ -74,7 +74,7 @@ The outgoing state's exit would otherwise tear down a chain in flight (crossfade
 - `OnHitboxEnable()` / `OnComboWindowOpen()` are ignored while `!IsAttacking` — a cancelled / force-ended attack
   still blending out keeps firing clip events.
 - `OnComboWindowClose()` is ignored while `ShouldIgnoreWindowClose` (step queued **or** 2 states active): the
-  outgoing clip fires its close event during the crossfade (Hook's 0.76 inside the `Attack_2 → Attack_3`
+  outgoing clip fires its close event during the crossfade (`hook step`'s 0.70 inside the `Attack_2 → Attack_3`
   blend). Resetting there zeroed `_comboStep` mid-chain and looped Attack_1 instead of the finisher.
 - **Stall watchdog** — every enter/exit/clip event refreshes the activity time; `IsAttacking` with no activity
   for `CombatConfigSO.attackStallTimeout` (1.5 s) force-ends the attack (trigger never taken, lost exit).
@@ -91,18 +91,19 @@ The outgoing state's exit would otherwise tear down a chain in flight (crossfade
     `WeaponArchetypeSO.attackSteps[index − 1]`, else `CombatConfigSO.defaultAttackStep`; unarmed:
     `CombatConfigSO.unarmedAttacks[index − 1].step`. `AttackStep` = distance (m, 0 = rooted) + start / duration in **seconds since
     the state entered** (not normalized). The step stops when `IsAttacking` clears (any cancel) or a dodge starts; a combo
-    step's enter replaces the previous step. Weapon clips are in place (Mixamo, net root travel 0); the unarmed clips keep root XZ unbaked so their lunge is
-    dropped (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed).
-  - **Clip root motion (trial, spec-action-root-motion-jab-trial)** — an attack whose `AttackStep.rootMotionScale` is > 0
-    moves by its clip instead: `PlayerCombat.BeginAttackMovement` starts `ActionRootMotion` (Player root) and leaves
-    `PlayerAttackStep` idle; a step with scale 0 does the opposite, so each attack state has one mover. When
-    `ActionRootMotion.Begin` returns false (component missing or disabled) the scripted step runs instead. Only the unarmed
-    jab uses it (`lead jab step`, scale 1). Details: *Action root motion* below.
+    step's enter replaces the previous step. Weapon clips are in place (Mixamo, net root travel 0); the unarmed clips keep root XZ unbaked: the player reads that travel (next bullet) and NPCs
+    drop it (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed).
+  - **Clip root motion (spec-action-root-motion-jab-trial, spec-action-root-motion-unarmed-combo)** — an attack whose
+    `AttackStep.rootMotionScale` is > 0 moves by its clip instead: `PlayerCombat.BeginAttackMovement` starts
+    `ActionRootMotion` (Player root) and leaves `PlayerAttackStep` idle; a step with scale 0 does the opposite, so each
+    attack state has one mover. When `ActionRootMotion.Begin` returns false (component missing or disabled) the scripted
+    step runs instead. The whole unarmed combo uses it (`lead jab step`, `hook step`, `uppercut step`, scale 1); weapons
+    keep the scripted step. Details: *Action root motion* below.
   - **Wind-up steering** — `PlayerController` turns toward the raw camera-relative input at `PlayerConfigSO.attackSteerSpeed`
     while `CanSteerAttack()` (attacking, not `IsAttackCommitted`). `OnHitboxEnable` commits (`SetAttackCommitted(true)`);
     each attack-state enter re-opens it; `SetAttacking` clears it. Lock-on still always faces the target.
 - **Recovery cancel** (spec-attack-recovery-cancel): a real (not ignored) `ComboWindowClose` while `IsAttacking` calls
-  `_attackTracker.OpenRecovery()`; every finisher clip has one (Uppercut 0.70, `2hand attack 2 refined` 0.80, sword thrust).
+  `_attackTracker.OpenRecovery()`; every finisher clip has one (`uppercut step` 0.70, `2hand attack 2 refined` 0.80, sword thrust).
   `IsRecoveryOpen` is cleared by any press, attack-state enter and `Reset`. While open:
   - **Move** (`Player/Move` ≥ `CombatConfigSO.recoveryCancelMoveThreshold`, `UpdateRecoveryMoveCancel`) →
     `SetAttackCancel(true)` + `CancelAttack()`: move input this frame, Base `Attack_N → LockOn Locomotion` (0.2 s).
@@ -132,8 +133,8 @@ a 0 multiplier — a struct element just added in the Inspector — into 1.
 | Step | Clip | Hand | Step (m, start s, duration s) | Damage × | Stance × |
 |------|------|------|-------------------------------|----------|----------|
 | 1 | `lead jab step` | Left | clip root motion (`rootMotionScale` 1, ≈ 0.40 m); scripted 0.40, 0.07, 0.43 for NPCs | 1 | 1 |
-| 2 | `Hook` | Right | 0.35, 0.27, 0.37 | 1 | 1 |
-| 3 | `Uppercut` | Left | 0.50, 0.10, 0.37 | 1.5 | 2 |
+| 2 | `hook step` | Right | clip root motion (scale 1, 0.33–0.40 m in a chain); scripted 0.37, 0.17, 0.50 for NPCs | 1 | 1 |
+| 3 | `uppercut step` | Left | clip root motion (scale 1, 0.45–0.52 m in a chain); scripted 0.48, 0.15, 0.50 for NPCs | 1.5 | 2 |
 
 - **Hand:** `Player.prefab` has `UnarmedHitbox` (right, `_unarmedHitbox`) and `UnarmedHitbox_L` (left,
   `_unarmedHitboxLeft`). Unarmed binds both (owner + `OnHit`). `OnAttackStateEntered` closes the window, then
@@ -148,14 +149,14 @@ a 0 multiplier — a struct element just added in the Inspector — into 1.
 
 ---
 
-## Action root motion (`ActionRootMotion`, trial on the jab)
+## Action root motion (`ActionRootMotion`, the unarmed combo)
 
 Hybrid from `docs/IDEAS.md`: locomotion stays code-driven, an action clip carries its own travel. `ActionRootMotion`
 implements `OnAnimatorMove` on the Player root (the Animator's GameObject), which makes Unity hand root motion to the
 script — `applyRootMotion` stays off in the prefab and nothing moves unless the component is active.
 
 - Active from `Begin(scale)` (attack-state enter) until the attack ends: same stop conditions as `PlayerAttackStep`
-  (not attacking, dodging, busy, airborne, controller disabled), plus `Stop()` when the next combo state takes over.
+  (not attacking, dodging, busy, airborne, controller disabled), or a scripted attack state taking over (`Begin` with scale 0).
 - Each frame: `animator.deltaPosition` → `ActionRootMotionMath.Filter` (horizontal only, × scale) → shared ledge probe
   (`PlayerAttackStep.HasGroundAhead`) → `CharacterController.Move`, then a separate 2 cm downward `Move`. The clip's
   rotation is never applied. A failed ledge probe skips that frame's travel only (the scripted step stops for good):
@@ -166,18 +167,36 @@ script — `applyRootMotion` stays off in the prefab and nothing moves unless th
 - **Keep the downward `Move` separate.** `isGrounded` reflects the last `Move`, and this one runs after
   `PlayerController`'s gravity move; a horizontal-only move reports "not grounded" for the whole swing, and a
   mixed horizontal + down move slides the capsule down slopes.
-- `deltaPosition` is the blend of every playing state, so a state with **unbaked root XZ** blending out adds its own
-  travel. Hook / Uppercut (unbaked, Mixamo lunge) are kept out two ways: jab → Hook stops the component when Hook
-  enters, and the recovery restart `Attack_2/3 → Attack_1` skips the delta while both states of the transition are
-  tagged `Attack`. Locomotion, idle and dodge clips are XZ-baked (0). Not covered: `Landing` (unbaked) still blending
-  out when the jab starts.
-- **Chaining early shortens the jab.** `Stop()` runs when the Hook state enters (start of the crossfade), so the rest
-  of the jab's travel is dropped and Hook's scripted step takes over.
-- Measured in play (jab from idle, flat ground): numbers in `spec-action-root-motion-jab-trial` → Implementation Notes.
-- NPCs do not have the component: they play the same clip with the scripted step (`EntityAttackStep`), so
-  `unarmedAttacks[0].step.distance` stays close to the clip's travel.
+- **Attack → attack crossfades keep the travel when both attacks are clip-driven.** `deltaPosition` is the weighted mix
+  of both clips, so jab → hook → uppercut and the recovery restart (uppercut → jab) carry on moving through the blend:
+  measured, no frame of travel is dropped or doubled (the root speed changes by at most 0.12 m/s between frames). The
+  speed follows the clips: at a late press both can be at rest, and the hook's settle back shows as 0.2 m/s backward
+  for a few frames. `PlayerCombat.BeginAttackMovement` calls `Begin` for **every** attack state (scale 0 = scripted), so
+  the component knows whether the attack entered before this one was clip-driven (`_lastAttackClipDriven`, kept across
+  `Stop()`: a cancelled swing still blends out when a fresh press arrives — measured, the new jab keeps its 0.40 m);
+  `ActionRootMotionMath.AppliesDuringBlend` then applies the mix. When
+  the outgoing attack was moved by the scripted step (a weapon clip, or a clip with unbaked root XZ whose lunge is
+  dropped on purpose), the mix carries travel that was never applied: the blend is waited out, as before.
+- **Every step of a clip-driven chain must be clip-driven** (`UnarmedAttackTests.Config_EveryStepMovesThePlayerByItsClip`):
+  a scripted step in the middle stops the component at its enter and the next crossfade is waited out.
+- **A crossfade trades travel, it does not add it.** The outgoing clip's remaining travel fades out while the incoming
+  clip's first 0.42 s fades in, so a chain covers less than the sum of its clips (three hits: 1.21–1.24 m against
+  0.40 + 0.42 + 0.60 m of clip travel) and each step's share depends on the press time. Start a clip's lunge late in the
+  blend when its distance matters (`uppercut step` moves from 0.13 s; starting at 0 s lost half of it) and tune
+  `travel_m` against the travel measured in a chain.
+- Locomotion, idle and dodge clips are XZ-baked (0). Not covered: `Landing` (unbaked) still blending out when the jab
+  starts.
+- **Unity moves the root by the centre of mass, not the hips.** A punch that leans sideways moves the capsule sideways
+  and back (hook: 6 cm) while the feet stay planted; chaining cuts the return. Straighten it in the fit (`travel_yaw_deg`),
+  never by filtering the delta in code: the pose is root-relative, so a dropped delta becomes foot slide.
+- Measured in play (single jab, chains at the earliest / middle / latest press, recovery restart, half speed): numbers
+  in `spec-action-root-motion-unarmed-combo` → Implementation Notes. Re-measure with
+  `Tools/Blender/action_root_motion_play_measure.cs` + `action_root_motion_analyse.py`.
+- NPCs do not have the component: they play the same clips with the scripted step (`EntityAttackStep`), so each
+  `unarmedAttacks[i].step` stays close to the travel the player gets from that clip **in a chain** (measured: their
+  path stays within 7 cm of the player's).
 - A new root-motion clip: travel straight ahead in the clip, root XZ **not** baked, rotation and Y baked on Original
-  (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed, `Tools/Blender/README.md` → *Meshy jab fit*).
+  (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed, `Tools/Blender/README.md` → *Meshy motion fit*).
 
 ---
 
@@ -207,5 +226,6 @@ leaves phantom hits after the animation.
 | MEDIUM | New attack clip event handler that doesn't call `_attackTracker.Event(...)` — long clips trip the stall watchdog |
 | MEDIUM | Hit window closed with `_activeHitbox.Disable()` instead of `CloseHitWindows()` — unarmed has two hands bound |
 | MEDIUM | Attack given a `rootMotionScale` while its clip is in place or root-baked (XZ) — the player no longer moves on that swing |
+| MEDIUM | One step of a clip-driven combo given `rootMotionScale` 0 (or the reverse) — the travel stops at that crossfade |
 | MEDIUM | `ActionRootMotion` moving with one combined horizontal + downward `Move`, or with `feetPivotActive` left at 1 — slope slide / extra travel in blends |
 | MEDIUM | Unarmed step changes hand in `CombatConfigSO.unarmedAttacks` but the clip's event id (`Unarmed` / `UnarmedLeft`) isn't updated — NPCs punch with the wrong hand |

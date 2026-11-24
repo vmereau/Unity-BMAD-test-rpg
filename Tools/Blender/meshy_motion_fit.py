@@ -1,4 +1,6 @@
 """Fit a Meshy text-to-motion clip that travels (SMPL-H skeleton) to a wanted forward distance, then export an FBX.
+One script for every clip read by ActionRootMotion (unarmed jab, hook, uppercut): one config per clip in
+configs/unarmed/meshy_*.json.
 
 Meshy ignores distance and direction words (.claude/rules/meshy-mcp.md): the stepping jab travels 1.22 m, 24 degrees off
 to the left. In game the clip's root displacement moves the player (ActionRootMotion), so the travel must be right in
@@ -14,9 +16,30 @@ the clip itself. This script:
      kept), keys every bone on every frame and exports an armature-only FBX.
 Spine, arms and head keep their source local rotations.
 
+Optional, all off by default (the jab config uses none of them):
+  - `lateral_scale` (1): scales the sideways part of every displacement. Meshy bodies swing off the travel line and
+    come back (hook: 0.18 m); below 1 the path is straighter, planted feet stay planted.
+  - `backtrack_scale` (1, within 0..1): scales how far the pelvis comes back from its furthest point forward so far. A
+    punch leans in and settles back (hook: 7 cm); in game that is travel the player loses again, and how much depends
+    on when the next attack is chained. Below 1 the body settles less, the feet are untouched. `travel_m` is set before
+    this correction: the clip then ends further than `travel_m` (the report gives `net_travel_m` / `peak_travel_m`).
+  - `facing_offset_deg` (0): turns the body (start stance, bone orientations) about the vertical without turning the
+    travel, to line a clip's facing up with the clip it chains from.
+  - `travel_yaw_deg` (0): turns the travel line, not the body, by this angle to the character's right. Unity moves the
+    player by the centre of mass, which leans into a hook and only comes back at the end of the clip: a chain cuts that
+    return, and a few degrees of travel yaw put the lean back on the line at the combo window.
+  - `start_match` / `end_match`: `{"L": {"offset": [x, y, z], "fade": [f0, f1], "lift_m": 0.0}, "R": [{...}, {...}]}`.
+    Meshy cannot start from a pose, so a foot is moved by `offset` (metres, fitted space: -Y forward, +X the character's
+    left) at the first (start) or last (end) output frame, and the offset fades out (start) or in (end) across the
+    output frames `fade` - pick frames where that foot is in the air, or add `lift_m` to turn the fade into a small
+    step. A foot takes one spec or a list (e.g. a height that lands in 5 frames and a sideways part released later).
+    The offset is the difference measured in Unity (meshy_motion_measure.cs) between the previous clip inside its combo
+    window and this clip's first frame.
+  - `foot_shift`: `{"R": [x, y, z]}` moves a foot's whole path by a constant (a narrower or wider stance all clip long).
+
 Run (Blender MCP) - pass `__file__` so relative config paths resolve from the repo root:
-    path = r"<repo>/Tools/Blender/meshy_jab_fit.py"
-    ns = {"__file__": path, "__name__": "meshy_jab_fit"}; exec(open(path).read(), ns)
+    path = r"<repo>/Tools/Blender/meshy_motion_fit.py"
+    ns = {"__file__": path, "__name__": "meshy_motion_fit"}; exec(open(path).read(), ns)
     result = ns["run"](ns["load_config"](r"<repo>/Tools/Blender/configs/unarmed/meshy_jab.json"))
 `strip_source(raw_fbx, out_fbx)` turns a 16 MB Meshy download (mannequin meshes) into the small armature-only source.
 `export_rig(source_fbx, out_fbx)` exports the T-pose skeleton Unity builds the SMPL-H avatar from (once per skeleton).
@@ -36,10 +59,20 @@ LEGS = {"L": ("L_Hip", "L_Knee", "L_Ankle"), "R": ("R_Hip", "R_Knee", "R_Ankle")
 REACH = 0.985  # of thigh + shin: beyond it the 2-bone solve has no knee bend left
 
 
+def _no_duplicate_keys(pairs):
+    seen = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError("config key '%s' is given twice (JSON keeps only the last): for two specs on one foot, "
+                             "use a list" % key)
+        seen[key] = value
+    return seen
+
+
 def load_config(path):
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     with open(path, encoding="utf-8") as f:
-        cfg = json.load(f)
+        cfg = json.load(f, object_pairs_hook=_no_duplicate_keys)
     for key in ("source_fbx", "output_fbx"):
         if not os.path.isabs(cfg[key]):
             cfg[key] = os.path.join(root, cfg[key])
@@ -57,7 +90,11 @@ def _clear():
 def _import(path):
     _clear()
     bpy.ops.import_scene.fbx(filepath=path)
-    arm = next(o for o in bpy.context.scene.objects if o.type == 'ARMATURE')
+    arm = next((o for o in bpy.context.scene.objects if o.type == 'ARMATURE'), None)
+    if arm is None:
+        raise ValueError("no armature in %s" % path)
+    if arm.animation_data is None or arm.animation_data.action is None:
+        raise ValueError("no animation on the armature of %s" % path)
     for pb in arm.pose.bones:
         pb.rotation_mode = 'QUATERNION'
     return arm
@@ -124,14 +161,61 @@ def _aim(arm, name, child, head, target):
     _set_world(arm, name, new)
 
 
+def _smooth(x):
+    x = min(max(x, 0.0), 1.0)
+    return x * x * (3.0 - 2.0 * x)
+
+
+def _foot_offsets(cfg, count):
+    """Per output frame (1-based) and foot: foot_shift + start_match / end_match offsets, in fitted space."""
+    offsets = {key: [Vector((0.0, 0.0, 0.0)) for _ in range(count + 1)] for key in LEGS}
+
+    def check(block, key):
+        if key not in LEGS:
+            raise ValueError("%s: unknown foot '%s' (use L / R)" % (block, key))
+
+    for key, shift in (cfg.get("foot_shift") or {}).items():
+        check("foot_shift", key)
+        for frame in range(1, count + 1):
+            offsets[key][frame] = offsets[key][frame] + Vector(shift)
+    for block, at_start in (("start_match", True), ("end_match", False)):
+        for key, specs in (cfg.get(block) or {}).items():
+            check(block, key)
+            for spec in (specs if isinstance(specs, list) else [specs]):
+                if "offset" not in spec or "fade" not in spec or len(spec["offset"]) != 3 or len(spec["fade"]) != 2:
+                    raise ValueError("%s.%s: needs \"offset\": [x, y, z] and \"fade\": [f0, f1]" % (block, key))
+                f0, f1 = float(spec["fade"][0]), float(spec["fade"][1])
+                if not 1.0 <= f0 < f1 <= count:
+                    raise ValueError("%s.%s: fade %s must be increasing output frames within 1..%d"
+                                     % (block, key, spec["fade"], count))
+                offset, lift = Vector(spec["offset"]), float(spec.get("lift_m", 0.0))
+                for frame in range(1, count + 1):
+                    s = _smooth((frame - f0) / (f1 - f0))
+                    weight = 1.0 - s if at_start else s
+                    offsets[key][frame] = (offsets[key][frame] + offset * weight
+                                           + Vector((0.0, 0.0, lift * math.sin(math.pi * s))))
+    return offsets
+
+
 def run(cfg):
+    first, last, speed = float(cfg["first_frame"]), float(cfg["last_frame"]), float(cfg["speed"])
+    if speed <= 0.0:
+        raise ValueError("speed must be > 0 (got %s)" % speed)
+    if last <= first:
+        raise ValueError("last_frame (%s) must be after first_frame (%s)" % (last, first))
     scene = bpy.context.scene
     arm = _import(cfg["source_fbx"])
     scene.render.fps = cfg.get("fps", 30)
     source_action = arm.animation_data.action
-    first, last, speed = float(cfg["first_frame"]), float(cfg["last_frame"]), float(cfg["speed"])
     count = int(math.floor((last - first) / speed + 1e-6)) + 1
-    forward = Vector(cfg.get("forward", [0.0, -1.0, 0.0])).normalized()
+    foot_offsets = _foot_offsets(cfg, count)
+    facing = Vector(cfg.get("forward", [0.0, -1.0, 0.0]))
+    facing.z = 0.0  # travel and its sideways part are measured on the ground plane
+    if facing.length < 1e-6:
+        raise ValueError("forward must have a horizontal part (got %s)" % cfg.get("forward"))
+    facing.normalize()
+    # travel line: `forward` turned to the character's right (clockwise seen from above) by travel_yaw_deg
+    forward = Matrix.Rotation(-math.radians(cfg.get("travel_yaw_deg", 0.0)), 3, 'Z') @ facing
     tracked = [PELVIS] + [b for leg in LEGS.values() for b in leg]
 
     # 1. sample the source
@@ -156,9 +240,11 @@ def run(cfg):
         raise ValueError("source clip has no net travel (%.3f m): nothing to straighten or scale" % source_travel)
     k = cfg["travel_m"] / source_travel
     # signed angle about +Z turning the source travel onto `forward`
-    phi = math.atan2(forward.y, forward.x) - math.atan2(travel.y, travel.x)
-    turn = Matrix.Rotation(phi, 4, 'Z')
-    turn3 = turn.to_3x3()
+    phi = math.atan2(facing.y, facing.x) - math.atan2(travel.y, travel.x)
+    turn3 = Matrix.Rotation(math.atan2(forward.y, forward.x) - math.atan2(travel.y, travel.x), 3, 'Z')  # every displacement
+    body = Matrix.Rotation(phi + math.radians(cfg.get("facing_offset_deg", 0.0)), 4, 'Z')  # start stance, orientations
+    body3 = body.to_3x3()
+    k_side = cfg.get("lateral_scale", 1.0)
     kz_pelvis = cfg.get("pelvis_height_scale", 1.0)
     kz_foot = cfg.get("foot_lift_scale", 1.0)
 
@@ -172,13 +258,26 @@ def run(cfg):
         base = start[name]
         # relative to the pelvis start, which lands on the world origin: Unity keeps a clip's own XZ offset as a root
         # offset ("Based Upon: Original"), and blending into the clip then drags the player sideways by that offset
-        placed = turn3 @ (xy(base) - origin) + k * (turn3 @ (xy(pos) - xy(base)))
+        move = turn3 @ (xy(pos) - xy(base))
+        along = forward * move.dot(forward)
+        placed = body3 @ (xy(base) - origin) + k * (along + k_side * (move - along))
         placed.z = height_ref[name] + kz * (pos.z - height_ref[name])
         return placed
 
     def fit_matrix(name, world, kz):
         loc, rot, scale = world.decompose()
-        return Matrix.LocRotScale(fit_point(name, loc, kz), turn.to_quaternion() @ rot, scale)
+        return Matrix.LocRotScale(fit_point(name, loc, kz), body.to_quaternion() @ rot, scale)
+
+    # Pelvis settle-back: per frame, how far to push the pelvis forward again (backtrack_scale < 1).
+    backtrack = cfg.get("backtrack_scale", 1.0)
+    if not 0.0 <= backtrack <= 1.0:
+        raise ValueError("backtrack_scale must be within 0..1 (got %s)" % backtrack)
+    settle = 1.0 - backtrack
+    pelvis_push, furthest = [], -1e9
+    for frame in frames:
+        progress = fit_point(PELVIS, frame["world"][PELVIS].translation, kz_pelvis).dot(forward)
+        furthest = max(furthest, progress)
+        pelvis_push.append(forward * (settle * (furthest - progress)))
 
     # 2. rebuild every frame on a new action
     arm.animation_data.action = None
@@ -189,7 +288,9 @@ def run(cfg):
         for pb in arm.pose.bones:
             pb.matrix_basis = frame["basis"][pb.name]
         bpy.context.view_layer.update()
-        _set_world(arm, PELVIS, fit_matrix(PELVIS, frame["world"][PELVIS], kz_pelvis))
+        pelvis = fit_matrix(PELVIS, frame["world"][PELVIS], kz_pelvis)
+        pelvis.translation = pelvis.translation + pelvis_push[i]
+        _set_world(arm, PELVIS, pelvis)
 
         row = {"pelvis": [round(c, 4) for c in _world(arm, PELVIS).translation]}
         for key, (thigh, shin, ankle) in LEGS.items():
@@ -198,7 +299,7 @@ def run(cfg):
             src_ankle = frame["world"][ankle].translation
             l1, l2 = (src_knee - src_hip).length, (src_ankle - src_knee).length
             hip = _world(arm, thigh).translation.copy()
-            target = fit_point(ankle, src_ankle, kz_foot)
+            target = fit_point(ankle, src_ankle, kz_foot) + foot_offsets[key][out_frame]
             reach = target - hip
             if reach.length > REACH * (l1 + l2):
                 target = hip + reach.normalized() * REACH * (l1 + l2)
@@ -208,7 +309,7 @@ def run(cfg):
             axis = reach / dist
             along = (l1 * l1 - l2 * l2 + dist * dist) / (2.0 * dist)
             height = math.sqrt(max(l1 * l1 - along * along, 0.0))
-            hint = turn3 @ (src_knee - src_hip)            # knee stays on the source's side
+            hint = body3 @ (src_knee - src_hip)            # knee stays on the source's side
             bend = hint - hint.dot(axis) * axis
             if bend.length < 1e-6:                          # straight source leg: bend toward the travel direction
                 bend = forward - forward.dot(axis) * axis
@@ -229,12 +330,15 @@ def run(cfg):
         report["frames"][out_frame] = row
 
     action = arm.animation_data.action
-    action.name = cfg.get("action_name", "lead jab step")
+    action.name = cfg.get("action_name") or os.path.splitext(os.path.basename(cfg["output_fbx"]))[0]
     for fcurve in _fcurves(action):
         for point in fcurve.keyframe_points:
             point.interpolation = 'LINEAR'
     scene.frame_start, scene.frame_end = 1, count
     _export(arm, cfg["output_fbx"])
+    progress = [Vector(report["frames"][f]["pelvis"]).dot(forward) for f in sorted(report["frames"])]
+    report.update({"net_travel_m": round(progress[-1], 3), "peak_travel_m": round(max(progress), 3),
+                   "last_source_frame": round(first + (count - 1) * speed, 2)})
     report.update({"output": cfg["output_fbx"], "frame_count": count, "seconds": round((count - 1) / scene.render.fps, 3),
                    "source_travel_m": round(source_travel, 3), "scale_k": round(k, 4),
                    "turn_deg": round(math.degrees(phi), 2)})

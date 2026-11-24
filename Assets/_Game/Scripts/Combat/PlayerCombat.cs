@@ -1062,12 +1062,9 @@ namespace Game.Combat
         // stops the other, so a combo step never inherits the previous step's movement.
         private void BeginAttackMovement(AttackStep step)
         {
-            bool useRootMotion = false;
-            if (_actionRootMotion != null)
-            {
-                if (step.UsesRootMotion) useRootMotion = _actionRootMotion.Begin(step.rootMotionScale); // false = can't run
-                else _actionRootMotion.Stop();
-            }
+            // Begin is told about every attack state: scale 0 stops it and records that this attack is scripted, which
+            // decides whether the next crossfade's root motion is applied. False = scripted step, or it can't run.
+            bool useRootMotion = _actionRootMotion != null && _actionRootMotion.Begin(step.rootMotionScale);
             if (_attackStep != null) _attackStep.Begin(useRootMotion ? default : step);
         }
 

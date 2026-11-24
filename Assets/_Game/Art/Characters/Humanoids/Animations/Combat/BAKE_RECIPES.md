@@ -45,6 +45,9 @@ lifted, never sliding); the untouched Mixamo sources are in `Unarmed/old/` (own 
 (README → *Unarmed foot step*). Upper body / arms / events / lengths / import flags unchanged; body pose relative to the
 hips identical, the whole body shifts 1.8–3.0 cm in the hit windows (Unity re-centres the body on the moved legs).
 
+These three clips are no longer referenced: the combo plays the `* step` clips since spec-action-root-motion-unarmed-combo
+(`CLAUDE.md` → Unarmed). The recipe is kept for a revert.
+
 | Clip | Step (m / start / dur, s) | Foot plan (clip time, s) | Planted drift on the Player (unblended) |
 |------|------|------|------|
 | lead jab | 0.30 / 0.07 / 0.43 | lead push-step 0.10–0.37; rear held, drags up 0.50–0.77 | rear 0.9 cm, lead 0.1 cm (lead creeps ≈ 5 cm f34–39: knee at full extension) |

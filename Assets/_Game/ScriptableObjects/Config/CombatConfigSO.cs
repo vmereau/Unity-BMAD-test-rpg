@@ -209,8 +209,8 @@ namespace Game.Combat
         public UnarmedAttack[] unarmedAttacks =
         {
             new UnarmedAttack(new AttackStep(0.4f, 0.07f, 0.43f, 1f), WeaponHand.Left), // clip root motion (lead jab step)
-            new UnarmedAttack(new AttackStep(0.35f, 0.27f, 0.37f), WeaponHand.Right),
-            new UnarmedAttack(new AttackStep(0.5f, 0.1f, 0.37f), WeaponHand.Left, 1.5f, 2f),
+            new UnarmedAttack(new AttackStep(0.37f, 0.17f, 0.5f, 1f), WeaponHand.Right),    // clip root motion (hook step)
+            new UnarmedAttack(new AttackStep(0.48f, 0.15f, 0.5f, 1f), WeaponHand.Left, 1.5f, 2f), // clip root motion (uppercut step)
         };
 
         /// <summary>

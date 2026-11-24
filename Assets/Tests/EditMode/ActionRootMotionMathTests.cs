@@ -35,6 +35,21 @@ namespace Tests.EditMode
             => Assert.That(ActionRootMotionMath.Filter(new Vector3(0.1f, 0.2f, 0.3f), -1f), Is.EqualTo(Vector3.zero));
 
         [Test]
+        public void AppliesDuringBlend_OutsideAnAttackBlend_AlwaysApplies()
+        {
+            Assert.That(ActionRootMotionMath.AppliesDuringBlend(false, false), Is.True);
+            Assert.That(ActionRootMotionMath.AppliesDuringBlend(false, true), Is.True);
+        }
+
+        [Test]
+        public void AppliesDuringBlend_ChainedFromAClipDrivenAttack_KeepsTheTravel()
+            => Assert.That(ActionRootMotionMath.AppliesDuringBlend(true, true), Is.True);
+
+        [Test]
+        public void AppliesDuringBlend_FromAScriptedAttack_WaitsTheBlendOut()
+            => Assert.That(ActionRootMotionMath.AppliesDuringBlend(true, false), Is.False);
+
+        [Test]
         public void AttackStep_DefaultsToTheScriptedStep()
         {
             var step = new AttackStep(0.3f, 0.1f, 0.4f);

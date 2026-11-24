@@ -33,6 +33,13 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   expect to trim both ends and retime.
 - Measure before judging: import in a new Blender scene and sample pelvis, ankles and wrists per frame. Three clips
   that read the same in the prompt differed by a factor of 10 in net travel.
+- **A described arm path is not a punch.** "Throws a horizontal hook … across the front" and "drops to waist height then
+  drives up" gave the step and no strike. "Throws a fast right hook punch" / "a fast left uppercut punch: …" in the same
+  sentence as the lead step gave both. Check the wrist relative to the pelvis and its speed (the kept punches: 5.8 and 6.7 m/s).
+  Prompt wording: `MESHY_PROMPTS.md` → *Clips that travel*.
+- **The guard is different in every generation** (stance 0.26–0.55 m long, 0.05–0.48 m wide for the same opening words),
+  so clips meant to chain need their starts matched in Blender (`Tools/Blender/meshy_motion_fit.py`, `start_match`).
+- Two create calls sent in parallel both run; each is charged.
 
 ## Preset animations (`meshy_animate`)
 

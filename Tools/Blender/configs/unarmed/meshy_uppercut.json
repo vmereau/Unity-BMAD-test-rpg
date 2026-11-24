@@ -1,0 +1,25 @@
+{
+  "source_fbx": "Tools/Blender/sources/meshy_uppercut_v2_armature.fbx",
+  "output_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/Unarmed/uppercut step.fbx",
+  "meshy_task_id": "01a20aad-195e-7670-97b6-a6c3995a67a3",
+  "fps": 30,
+  "first_frame": 2,
+  "last_frame": 61,
+  "speed": 1.8,
+  "travel_m": 0.57,
+  "forward": [0.0, -1.0, 0.0],
+  "lateral_scale": 0.5,
+  "pelvis_height_scale": 0.7,
+  "foot_lift_scale": 0.5,
+  "end_match": {
+    "L": {
+      "offset": [-0.07, 0.01, 0.0],
+      "fade": [19, 24]
+    },
+    "R": {
+      "offset": [0.07, 0.02, 0.0],
+      "fade": [28, 32]
+    }
+  },
+  "action_name": "uppercut step"
+}

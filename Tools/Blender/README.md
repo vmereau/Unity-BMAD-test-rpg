@@ -17,19 +17,47 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | `verify_skin_tones.cs` | Unity MCP `execute_code` body: untoned `SG_SkinLit` vs URP Lit pixel diff + tone sheet (face, hands, body, armor) of every `Tone_*` → `Temp/SkinTones/` |
 | `configs/2hand_attack_1.json` | Final inputs that produced `two handed/2hand attack refined.fbx` (Attack_1) — constant `target_pitch_deg` |
 | `configs/2hand_attack_2.json` | Final inputs that produced `two handed/2hand attack 2 refined.fbx` (Attack_2 finisher) — `pitch_curve` |
-| `unarmed_foot_step.py` + `configs/unarmed/` | Leg IK edit of the unarmed combo clips so the feet follow the scripted `AttackStep` (see *Unarmed foot step*) |
+| `unarmed_foot_step.py` + `configs/unarmed/` | Leg IK edit of the unarmed combo clips so the feet follow the scripted `AttackStep` (see *Unarmed foot step*) — the previous Mixamo clips, unreferenced since spec-action-root-motion-unarmed-combo, kept for a revert |
 | `unarmed_foot_step_measure.cs` | Unity MCP `execute_code` body: per-frame toe / ankle positions of a clip on the Player rig (player-local JSON) |
-| `meshy_jab_fit.py` + `configs/unarmed/meshy_jab.json` + `sources/meshy_jab_v2_armature.fbx` | Fits a Meshy text-to-motion clip that travels (SMPL-H skeleton) to a wanted forward distance for clip root motion (see *Meshy jab fit*) |
+| `meshy_motion_fit.py` + `configs/unarmed/meshy_jab.json` / `meshy_hook.json` / `meshy_uppercut.json` + `sources/meshy_*_armature.fbx` | Fits a Meshy text-to-motion clip that travels (SMPL-H skeleton) to a wanted forward distance and to the stance of the clip it chains from, for clip root motion (see *Meshy motion fit*) |
+| `meshy_motion_measure.cs` | Unity MCP `execute_code` body (edit mode): per-frame root travel and root-relative hips / feet / hands of the three clips on the Player rig — the input of the `start_match` / `end_match` offsets |
+| `action_root_motion_play_measure.cs` + `action_root_motion_analyse.py` | Unity MCP `execute_code` body (play mode) that runs an unarmed chain through `PlayerCombat.TryAttack` with chosen press times and logs one CSV row per frame; the Python script turns the CSVs into travel per attack, sideways drift, root speed inside the crossfades, planted-foot slide and velocity jumps |
 
-## Meshy jab fit
+## Meshy motion fit
 
-`meshy_jab_fit.py` turns Meshy's stepping jab into `Unarmed/lead jab step.fbx`, the clip `ActionRootMotion` reads
-(`Scripts/Combat/PLAYER_COMBO.md`). `run(config)`: trim + retime (`first_frame`, `last_frame`, `speed`), turn the whole
-motion so the net pelvis travel is straight ahead, move the pelvis start onto the origin, scale every displacement from
-the start pose to `travel_m` (planted feet stay planted, start stance unchanged), shrink the pelvis dip and foot lift
-(`pelvis_height_scale`, `foot_lift_scale`), re-solve both legs with an analytic 2-bone IK, key every bone, export.
-`strip_source(raw, out)` makes the small armature-only source from the 16 MB download; `export_rig(raw, out)` exports the
-T-pose skeleton Unity builds the SMPL-H avatar from (`Unarmed/meshy smplh rig.fbx`).
+`meshy_motion_fit.py` turns a stepping Meshy clip into a clip `ActionRootMotion` reads (`Scripts/Combat/PLAYER_COMBO.md`):
+`Unarmed/lead jab step.fbx`, `hook step.fbx`, `uppercut step.fbx`, one config each. `run(config)`: trim + retime
+(`first_frame`, `last_frame`, `speed`), turn the whole motion so the net pelvis travel is straight ahead, move the pelvis
+start onto the origin, scale every displacement from the start pose to `travel_m` (planted feet stay planted, start stance
+unchanged), shrink the pelvis dip and foot lift (`pelvis_height_scale`, `foot_lift_scale`), re-solve both legs with an
+analytic 2-bone IK, key every bone, export. `strip_source(raw, out)` makes the small armature-only source from the 16 MB
+download; `export_rig(raw, out)` exports the T-pose skeleton Unity builds the SMPL-H avatar from (`Unarmed/meshy smplh
+rig.fbx`, shared by the three clips).
+
+Options added for clips that chain (all off by default; `meshy_jab.json` uses none and still reproduces
+`lead jab step.fbx` bone for bone):
+
+| Key | What |
+|-----|------|
+| `lateral_scale` | Scales the sideways part of every displacement (hook 0.25, uppercut 0.5): a straighter path, planted feet stay planted |
+| `travel_yaw_deg` | Turns the travel line, not the body, to the character's right (hook 8°) |
+| `backtrack_scale` | Scales how far the pelvis settles back after its furthest point (hook 0.4); feet untouched |
+| `facing_offset_deg` | Turns the body without turning the travel (unused so far) |
+| `foot_shift` | `{"R": [x, y, z]}` constant offset of a foot's whole path (hook: rear foot 0.27 m inward) |
+| `start_match` / `end_match` | Per foot, one spec or a list of `{"offset": [x, y, z], "fade": [f0, f1], "lift_m": 0}`: the foot is moved by `offset` at the first / last frame and the offset fades out / in over the output frames `fade` |
+
+Offsets are metres in fitted space: **−Y forward, +X the character's left, Z up** (Unity x right, z forward → Blender
+x = −x, y = −z). A new chained clip, in order:
+
+1. Run the config without matching, import (copy `lead jab step.fbx.meta`: new GUID, clip name, frame range — the controller and the overrides then
+   reference that clip by its `internalID`, so edit events on the existing clip entry, never rebuild the list), sample the
+   previous clip and the new one with `meshy_motion_measure.cs`.
+2. Offset = previous clip's foot inside its combo window − new clip's foot at frame 0, both relative to the root. Fade it
+   while that foot is in the air. The measured gain is 1: one pass put the feet within 4 cm.
+3. Tune `travel_m` against the travel **in a chain**, measured in play (`action_root_motion_play_measure.cs`): the
+   crossfade eats part of each clip (`PLAYER_COMBO.md` → Action root motion).
+4. Author the four events with the Hitbox Tuner or `ModelImporter.clipAnimations` (normalized time).
+
 
 Gotchas:
 - Imported SMPL-H bones do not point along their own Y axis: aim a bone with the direction to its **child joint**.
@@ -37,6 +65,15 @@ Gotchas:
   frame's pose**: build the avatar rig from the raw download, never from the stripped source.
 - Scale foot heights about each ankle's lowest point, not its start height, or a planted foot floats.
 - `travel_m` is clip-space pelvis travel: 0.42 gives 0.40 m on the Player (0.42 peak, the exit blend cuts the settle back).
+  With `backtrack_scale` the clip ends further than `travel_m` (hook: 0.33 → 0.37 net in the clip, 0.42 on the Player);
+  the report's `net_travel_m` / `peak_travel_m` give the clip's own values.
+- Unity's root follows the **centre of mass**, not the pelvis: a straight pelvis path still gives a root that leans with
+  the torso (hook: 13 cm to the left before `travel_yaw_deg`). Setting the importer's motion node to `Pelvis` is no fix
+  (the root then sits at hip height and turns with the hips).
+- A foot offset that asks for more than the leg's reach is clamped (`reach_clamped_frames` in the report) and the foot
+  lifts: shorten the offset rather than lowering the pelvis.
+- The script clears the open Blender file; run the play-mode harness on a flat spot and put the player back between runs
+  (after ~3.5 m the StartingTown spawn has scenery in the way), and refill stamina (5 swings empty it).
 - Keep the clip's start on the world origin, and `Animator.feetPivotActive` at 0 in game: at 1, blends drag the player
   sideways (`PLAYER_COMBO.md` → Action root motion).
 

@@ -1,0 +1,36 @@
+{
+  "source_fbx": "Tools/Blender/sources/meshy_hook_v2_armature.fbx",
+  "output_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/Unarmed/hook step.fbx",
+  "meshy_task_id": "01a20aad-15fa-7053-9c64-3e5b934a300f",
+  "fps": 30,
+  "first_frame": 2,
+  "last_frame": 51,
+  "speed": 1.0,
+  "travel_m": 0.33,
+  "forward": [0.0, -1.0, 0.0],
+  "lateral_scale": 0.25,
+  "pelvis_height_scale": 0.5,
+  "foot_lift_scale": 0.5,
+  "foot_shift": {
+    "R": [0.27, 0.0, 0.0]
+  },
+  "start_match": {
+    "L": {
+      "offset": [-0.1, -0.03, 0.0],
+      "fade": [3, 16]
+    },
+    "R": {
+      "offset": [0.0, 0.18, 0.1],
+      "fade": [1, 6]
+    }
+  },
+  "action_name": "hook step",
+  "travel_yaw_deg": 8.0,
+  "backtrack_scale": 0.4,
+  "end_match": {
+    "R": {
+      "offset": [-0.055, -0.115, 0.0],
+      "fade": [14, 30]
+    }
+  }
+}

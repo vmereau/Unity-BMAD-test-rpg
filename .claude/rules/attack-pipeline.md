@@ -52,10 +52,11 @@ Rooted for the whole attack (no locomotion input / no agent walking) except the 
 Player: `PlayerAttackStep` + wind-up steering until `HitboxEnable`. AI: `EntityAttackStep` (`NavMeshAgent.Move`) + brain
 facing until `EntityMeleeAttacker.IsAttackCommitted`. AI SMB carries `attackIndex` (0 = no step) like `SMB_AttackState`.
 
-**Player exception (trial):** a step with `AttackStep.rootMotionScale` > 0 moves the player by the clip's own root
-displacement through `ActionRootMotion` (`OnAnimatorMove`) instead of the scripted step — only the unarmed jab so far
-(`Scripts/Combat/PLAYER_COMBO.md` → Action root motion). AI entities ignore the scale and keep the scripted step;
-`applyRootMotion` stays off on every Animator.
+**Player exception:** a step with `AttackStep.rootMotionScale` > 0 moves the player by the clip's own root displacement
+through `ActionRootMotion` (`OnAnimatorMove`) instead of the scripted step — the whole unarmed combo (`lead jab step`,
+`hook step`, `uppercut step`), whose travel carries on through the attack → attack crossfades
+(`Scripts/Combat/PLAYER_COMBO.md` → Action root motion). AI entities ignore the scale and keep the scripted step, tuned to
+the travel the player gets in a chain; `applyRootMotion` stays off on every Animator.
 
 ## State callbacks across crossfades
 
