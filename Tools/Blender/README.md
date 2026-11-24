@@ -213,7 +213,8 @@ outer opening and supplies its own atlas patch/name; leather defaults remain unc
 A separate close-fitting cloth sleeve copies the canonical head's lower surface and influences,
 with 4 mm radial clearance. Its top slopes lower beneath the chin and higher at the sides/back,
 covering the shoulder-weighted skin during attacks without changing the original head asset.
-The source colors, emblem and UVs remain on the main garment. Hands retain the generated skin texture.
+The source colors, emblem and UVs remain on the main garment. The generated bare hands are replaced at bake time by
+the base hero v2 hands (`OutfitHandGraft`, see *Base hero v2 body*).
 
 The builder creates a separate armor item, canonical baked mesh, visual prefab, compact torso pickup
 and torso-cropped concept icon. Stats/prices initially match leather armor; no NPC, shop, quest or
@@ -225,3 +226,23 @@ player starting-inventory distribution is added. Pickups use the outfit torso's 
 can otherwise retain stale skin matrices even while bone transforms and baked meshes update;
 an apparently motionless sleeve is not proof of incorrect weights. Preview samples are finite,
 not a guarantee for every possible pose or external head/rig.
+
+## Base hero v2 body
+
+`fit_base_body.py` + `configs/base_body_v2.json` rebuild the player / NPC body from the raw Meshy download in
+`sources/base_hero_v2/` (gitignored, keep it locally: the fit cannot run without it):
+
+```python
+m = runpy.run_path(root + "Tools/Blender/fit_base_body.py")
+rep = m["run"](m["load_config"](root + "Tools/Blender/configs/base_body_v2.json"))   # export=True by default
+mk = runpy.run_path(root + "Tools/Blender/make_skin_masks.py")
+mk["run"](root + "Tools/Blender/configs/skin_masks.json", only=["BaseHeroV2"])        # -> ref_luminance
+```
+
+Outputs: `models/base hero v2/base hero v2.fbx` (armature + `base_hero` body, 2 material slots; the canonical head is
+not exported, it never changes), `T_BaseHeroV2_BaseColor.png` / `_Normal.png` (rewritten from the immutable sources
+with the neck band baked in) and the mask. Then in Unity: copy `ref_luminance` into
+`BaseHeroV2Applier.SKIN_REF_LUMINANCE`, reimport, run `Tools/Characters/Apply Base Hero V2 Body`, then re-bake the
+outfits (`SkinnedNeckBaker.BakeLeather()`, `CompanyGruntArmorBuilder.Build()`) so their grafted hands follow the body.
+Steps, contracts and gotchas: `Assets/_Game/Art/Characters/Humanoids/PIPELINE.md` → *Base hero v2 body*.
+`render_views(scene, views, out_dir, size, clay)` renders ortho previews of the fit scene `_BodyV2Fit`.

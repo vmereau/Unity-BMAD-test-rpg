@@ -1251,3 +1251,24 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   bodies, lock-on strafe and sneak bases (spine bend) were not measured — palm contact and head clearance may drift there.
 - **`Sword Braced Guard.anim` is 3.4 MB** (every source curve kept, dense keys, uncompressed). Strip the constant curves to
   two keys or enable compression if repo size matters.
+
+## From spec-base-body-regen (2026-11-24) — split goal
+
+- **Hand-pose layer (spec 2, next):** masked hand layer in `Humanoid_Template` with closed fist (unarmed), one-hand
+  weapon grip, two-hand grip, bow grip, shield hold and relaxed (idle / walk), picked from the weapon / state. Needs the
+  5-finger rig from spec-base-body-regen. Player + NPCs.
+- **More hand poses:** tool / activity grips (smithing hammer, cooking, carrying…) after the base set ships.
+- `CompanyGruntArmorBuilder.Build()` copies the leather armor's stats / prices onto `Armor_CompanyGrunt` on every rebuild
+  (it reset defense 8 → 15 during the v2 hand graft; reverted by hand). Make the item stats builder-independent.
+- Base hero v2: faint sawtooth where the neck band switches atlas (trapezius, 1.53 m) and a few small marks along the
+  seam in some poses (`Temp/HeadVariants` sheets). Cosmetic.
+- spec-base-body-regen review (deferred, robustness of tools that work today):
+  - `SkinnedNeckBaker.BakeLeather`: the rollback restores the meshes but not `LeatherArmor_Visual.prefab` (saved by
+    `OutfitHandGraft.ApplyToVisual` inside the same try).
+  - `fit_base_body.py`: `run()` has no try/finally (a failure leaves the window on `_BodyV2Fit`, maybe in edit mode);
+    `_new_scene` removes objects but not their datablocks (re-runs accumulate meshes / images, names get `.001`);
+    `finger_joints` reads `fingers[0]` before the count check and labels fingers by width rank (a long thin thumb track
+    could displace the pinky); `deform` has hard mask edges at z 1.15 / x 0; `neck_zip` keeps floating islands;
+    `bake_neck_band` / `make_skin_masks._body` assume square textures that are a multiple of `bake_px`.
+  - `BaseHeroV2Applier`: `SKIN_REF_LUMINANCE` is copied by hand from `make_skin_masks.py`; no rollback if the second
+    prefab save fails after the first (both are validated first now).

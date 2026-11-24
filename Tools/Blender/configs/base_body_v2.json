@@ -1,0 +1,37 @@
+{
+    "source_glb": "Tools/Blender/sources/base_hero_v2/base_hero_v2_raw.glb",
+    "texture_dir": "Tools/Blender/sources/base_hero_v2/textures",
+    "canonical_split": "Assets/_Game/Art/Characters/Humanoids/models/test base hero/base hero split.fbx",
+    "output_fbx": "Assets/_Game/Art/Characters/Humanoids/models/base hero v2/base hero v2.fbx",
+    "seam_m": 1.585,
+    "scale_adjust": 1.0,
+    "neck_blend_z": [
+        1.49,
+        1.55
+    ],
+    "neck_blend_r": [
+        0.085,
+        0.12
+    ],
+    "neck_push_z": [
+        1.45,
+        1.49
+    ],
+    "zip_z": 1.578,
+    "uv_sample_below_m": 0.012,
+    "neck_uv_z": 1.53,
+    "neck_push_r": [
+        0.09,
+        0.12
+    ],
+    "max_faces": 70000,
+    "neck_band": {
+        "old_texture": "Assets/_Game/Art/Characters/Humanoids/models/test base hero/Meshy_AI_Neutral_Figure_T_Pose_1009121619_texture.png",
+        "z": [1.47, 1.53],
+        "r": [0.08, 0.12],
+        "ray_m": 0.05,
+        "bake_px": 2048,
+        "out_base_color": "Assets/_Game/Art/Characters/Humanoids/models/base hero v2/T_BaseHeroV2_BaseColor.png",
+        "out_normal": "Assets/_Game/Art/Characters/Humanoids/models/base hero v2/T_BaseHeroV2_Normal.png"
+    }
+}

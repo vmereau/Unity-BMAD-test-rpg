@@ -21,7 +21,42 @@
    - Normals **Calculate** (60°) — Mixamo exports none. Animation import off.
    - Unity does not extract the embedded texture: remap the material to a URP Lit `.mat` built from the
      Meshy PNGs (base color + normal map; metallic / roughness unused).
-4. Mixamo's auto-rig gives **index-finger bones only** (no thumb) — fine for Humanoid, hands look stiff.
+4. Mixamo's auto-rig gives at most thumb / index / middle chains, often misplaced (the old base hero had `Middle1`
+   mid-palm and fused fingers: torn fists). The base hero body is now fitted in Blender instead (*Base hero v2 body*).
+
+---
+
+## Base hero v2 body (spec-base-body-regen)
+
+The player and every `Humanoid_BaseHero` NPC wear the v2 body: a Meshy multi-image regeneration of the same man
+(`models/base hero v2/`), fitted onto the **canonical skeleton** with five-finger hands. The prefabs are rebound in
+place: they keep the old FBX instance (sockets, ragdoll, components); only the finger bones and the body change.
+
+- **Fit (Blender):** `Tools/Blender/fit_base_body.py` + `configs/base_body_v2.json`, `run(load_config(cfg))` in the MCP
+  Blender. Steps: align / deform the Meshy source onto the canonical joints (forearm twist turns the palms-forward
+  input palms-down), neck blend onto the canonical surface + relax, decimate, zip to the exact canonical seam ring
+  (1.585 m, by arc length), retract thin sheets (Meshy's thumb web sail), find the five fingers, build
+  `mixamorig:{Side}Hand{Thumb|Index|Middle|Ring|Pinky}1-4`, weights (canonical transfer + finger split with a knuckle
+  ramp, radial falloff and a 2-chain web blend), slim the fingers 15 %, bake the neck colour band, export.
+- **Neck:** faces above 1.53 m lying on the canonical surface are material slot 1 (`M_TestBaseHero`, the head's atlas)
+  with UVs projected from the canonical body, so the seam carries the head's own texture. Below, the v2 base colour is
+  blended into the old texture over 1.47–1.53 m (selected-to-active bake, 2048, rays that miss are left out).
+- **Unity:** `Tools/Characters/Apply Base Hero V2 Body` (`BaseHeroV2Applier.ApplyAll()`, idempotent): material
+  `M_BaseHeroV2Body` (SG_SkinLit, `_SkinRefLuminance` from `make_skin_masks.py`), overwrites `base_hero_body_baked` in
+  place (non-finger bind poses snapped to the canonical rig, join validated: positions / normals / weights exact, each
+  body ring UV one of the head's), sets the finger bone transforms and adds Ring / Pinky on `Player` + `Humanoid_BaseHero`,
+  rebinds the `base_hero` SMR (v2 bone order, 2 materials), and puts `BaseHeroV2Avatar.asset` on every base-hero Animator.
+- **Avatar gotcha:** Blender writes a skinned mesh beside its armature node, so the FBX keeps an extra `Armature.001` above
+  Hips and its own avatar does not bind to the prefabs (`GetBoneTransform` → null). The applier builds the avatar from a
+  flattened copy (Hips under the root) with the FBX's human mapping.
+- **Outfits:** an outfit's own bare hands are replaced by the v2 hands (`OutfitHandGraft`, run inside
+  `SkinnedNeckBaker.BakeLeather` and `CompanyGruntArmorBuilder.Build`): hand skin (Hand + finger weight ≥ 0.45 past
+  |x| 0.70) is dropped, the body hand is appended as submesh 1 (`M_BaseHeroV2Body`) 8 mm inside the cuff, and the
+  outfit is rebound to the v2 bone order (each outfit submesh keeps its material; hands are the last slot). A new
+  **bare-handed** outfit with sleeves ending at the wrist gets this for free; gloves / gauntlets would be cut off too
+  (the test is Hand + finger weight, not the surface), so a gloved outfit needs its own hand fit.
+- **Heads** stay on the old bone order (Head SMR untouched; non-finger bind poses equal v2's).
+- Hand poses (closed fist, grips) are spec 2: the clips curl the fingers ~300° and fingers pass through the palm.
 
 ---
 
@@ -63,7 +98,9 @@ Head includes the character's exposed neck skin. All parts use the original base
   has proper leather UVs; no outfit-owned skin bridge or collapsed UV (0,0) fan. This is a fitting pass on an
   already canonical outfit, not an automatic fitter for arbitrary Meshy models. Outputs are staged before copying.
 - **Bake:** after Blender generation run `Tools/Characters/Bake Leather Neck Parts`, or
-  `Game.Editor.Characters.SkinnedNeckBaker.BakeLeather()` through Unity MCP. It bakes all three transient meshes,
+  `Game.Editor.Characters.SkinnedNeckBaker.BakeLeather()` through Unity MCP. It saves the head and the leather outfit
+  (v2 hands grafted); the canonical body is baked only as the head-join reference (`base_hero_body_baked` is the v2
+  body, written by `BaseHeroV2Applier`). It bakes all three transient meshes,
   validates the exposed skin join and canonical bind space, repairs collapsed imported garment UVs inside the
   neck region, regenerates tangents, aligns the exposed head/body normal-map frames, and validates UVs before saving meshes in place (GUIDs retained).
   Import new scripts and request compilation before calling them through MCP; a clear console alone does not

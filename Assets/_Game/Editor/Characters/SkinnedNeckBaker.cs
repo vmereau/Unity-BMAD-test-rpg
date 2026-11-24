@@ -7,11 +7,15 @@ using UnityEngine;
 
 namespace Game.Editor.Characters
 {
-    /// <summary>Validated import-to-asset step for the sample canonical neck pipeline.</summary>
+    /// <summary>
+    /// Validated import-to-asset step for the sample canonical neck pipeline: the canonical head and the leather
+    /// outfit (with the base hero v2 hands grafted on). The canonical body is baked only to validate the head join.
+    /// </summary>
     public static class SkinnedNeckBaker
     {
         private const string TAG = "[SkinnedNeckBaker]";
         private const string MODELS = "Assets/_Game/Art/Characters/Humanoids/models/";
+        private const string LEATHER_VISUAL = "Assets/_Game/Prefabs/Items/Armors/LeatherArmor_Visual.prefab";
 
         [MenuItem("Tools/Characters/Bake Leather Neck Parts")]
         private static void BakeMenu()
@@ -51,9 +55,15 @@ namespace Game.Editor.Characters
                 Require(SkinnedNeckValidator.ValidateNeckUV(meshes[0], 1.48f, 1.62f, .17f));
                 int repaired = RepairNeckUV(meshes[2], 1.48f, 1.62f, .17f);
                 Require(SkinnedNeckValidator.ValidateNeckUV(meshes[2], 1.48f, 1.62f, .17f));
+                // The outfit's own bare hands are replaced by the base hero v2 hands (v2 bone order from here on).
+                var grafted = OutfitHandGraft.Graft(meshes[2], names, out string[] armorBones);
+                UnityEngine.Object.DestroyImmediate(meshes[2]);
+                meshes[2] = grafted;
+                // The canonical body is only the reference for the head join: base_hero_body_baked is the v2 body
+                // now, written by BaseHeroV2Applier.
                 string[] outputs = {
                     MODELS + "test base hero/base_hero_head_baked.asset",
-                    MODELS + "test base hero/base_hero_body_baked.asset",
+                    null,
                     MODELS + "humanoid leather armor/LeatherArmor_baked.asset"
                 };
                 // Validate the complete batch, then retain rollback copies until
@@ -65,16 +75,21 @@ namespace Game.Editor.Characters
                 {
                     for (int i = 0; i < outputs.Length; i++)
                     {
+                        if (outputs[i] == null) continue;
                         var existing = AssetDatabase.LoadAssetAtPath<Mesh>(outputs[i]);
                         existed[i] = existing != null;
                         if (existing != null) backups[i] = UnityEngine.Object.Instantiate(existing);
                     }
                     saveStarted = true;
+                    Mesh savedArmor = null;
                     for (int i = 0; i < meshes.Count; i++)
                     {
-                        SkinnedMeshBaker.SaveMesh(meshes[i], outputs[i]);
+                        if (outputs[i] == null) continue;
+                        var saved = SkinnedMeshBaker.SaveMesh(meshes[i], outputs[i]);
                         meshes[i] = null; // SaveMesh transfers ownership or destroys the temporary.
+                        if (i == 2) savedArmor = saved;
                     }
+                    OutfitHandGraft.ApplyToVisual(LEATHER_VISUAL, savedArmor, armorBones);
                     AssetDatabase.SaveAssets();
                 }
                 catch (Exception failure)
@@ -84,6 +99,7 @@ namespace Game.Editor.Characters
                     for (int i = 0; i < outputs.Length; i++)
                         try
                         {
+                            if (outputs[i] == null) continue;
                             if (existed[i]) { SkinnedMeshBaker.SaveMesh(backups[i], outputs[i]); backups[i] = null; }
                             else if (AssetDatabase.LoadMainAssetAtPath(outputs[i]) != null) AssetDatabase.DeleteAsset(outputs[i]);
                         }
@@ -95,7 +111,7 @@ namespace Game.Editor.Characters
                 {
                     foreach (var backup in backups) if (backup != null) UnityEngine.Object.DestroyImmediate(backup);
                 }
-                return $"Baked canonical head/body/armor; {repairedCaps} hidden-cap and {repaired} garment UV triangle repairs; all rest checks passed.";
+                return $"Baked canonical head and leather armor (v2 hands grafted); {repairedCaps} hidden-cap and {repaired} garment UV triangle repairs; all rest checks passed.";
             }
             finally
             {

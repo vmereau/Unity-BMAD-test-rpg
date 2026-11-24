@@ -162,9 +162,57 @@ def _armor(cfg):
             bpy.data.objects.remove(o, do_unlink=True)
 
 
-def run(config_path):
+def _body(cfg):
+    """Stand-alone body FBX (base hero v2): same trouser-band rule as the base body, on its own atlas."""
+    scene = bpy.data.scenes.get("HeadVariant") or bpy.context.window.scene
+    bpy.context.window.scene = scene
+    before = set(scene.objects)
+    bpy.ops.import_scene.fbx(filepath=str(PROJECT / cfg["fbx"]))
+    new = [o for o in scene.objects if o not in before]
+    try:
+        rig = next(o for o in new if o.type == 'ARMATURE')
+        mesh = next(o for o in new if o.type == 'MESH' and o.data.uv_layers.active is not None)
+        rig.data.pose_position = 'REST'
+        bpy.context.view_layer.update()
+        unit = rig.matrix_world.to_scale().x
+        # material slot 1 = the neck band on the head's old atlas (fit_base_body.canonical_neck_uvs): its UVs index
+        # another texture, so it must not write into this mask
+        if len(mesh.data.materials) > 1:
+            import bmesh
+            bm = bmesh.new()
+            bm.from_mesh(mesh.data)
+            bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index > 0], context='FACES_ONLY')
+            bm.to_mesh(mesh.data)
+            bm.free()
+            mesh.data.update()
+        tex, size = _load_texture(PROJECT / cfg["texture"])
+        # a 4K bake comes back empty (Cycles); bake the mask at bake_px and box-downsample the texture to match
+        bake = cfg.get("bake_px", 2048)
+        if size > bake:
+            k = size // bake
+            tex = tex.reshape(bake, k, bake, k, 3).mean(axis=(1, 3))
+            size = bake
+        p, cov = _bake_vertex_values(scene, mesh, _rest_positions(mesh, unit), size)
+        mask = np.zeros((size, size))
+        mask[cov] = _body_mask(p[cov], tex[cov], cfg["body"])
+        mask = HV["_blur"](mask, cfg.get("blur_px", 2)) * cov
+        HV["_save_mask"](mask, PROJECT / cfg["out"])
+        return {"out": cfg["out"], "ref_luminance": _ref_luminance(tex, (mask > 0.9) & cov), "coverage": int((mask > 0.5).sum())}
+    finally:
+        for o in new:
+            bpy.data.objects.remove(o, do_unlink=True)
+
+
+def run(config_path, only=None):
+    """only: optional list of entry names ("base", a body or an armor name) to rebuild; default all."""
     cfg = json.loads(Path(config_path).read_text(encoding="utf-8"))
-    out = {"base": _base(cfg["base"])}
+    out = {}
+    if only is None or "base" in only:
+        out["base"] = _base(cfg["base"])
+    for b in cfg.get("bodies", []):
+        if only is None or b["name"] in only:
+            out[b["name"]] = _body(b)
     for a in cfg.get("armor", []):
-        out[a["name"]] = _armor(a)
+        if only is None or a["name"] in only:
+            out[a["name"]] = _armor(a)
     return out

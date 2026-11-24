@@ -24,8 +24,12 @@ muted earthy palette, grounded and worn). Keep every line **verbatim** — only 
 and the optional reference line change.
 
 **Base hero:** front / back views in `models/`
-(`test hero front view.png`, `test hero back view.png`) → `models/test base hero/` (current player body).
-Generated with Gemini 2.5 Flash Image.
+(`test hero front view.png`, `test hero back view.png`) → `models/test base hero/` (old body; its canonical skeleton and
+head remain the contract). Current body: `models/base hero v2/` (`PIPELINE.md` → *Base hero v2 body*).
+Generated with Gemini 2.5 Flash Image. Its fingers touch, and Meshy fused them into a mitten (torn fists):
+the hands line now asks for visible gaps, palms toward the camera (palms down shows the fingers edge-on, so they
+overlap). The fit turns the hands palms-down onto the canonical rig. v2 refs (same man, Meshy image-to-image
+`nano-banana-pro`, 9 credits each; back view from the new front + old back): `models/base hero v2/refs/`.
 
 ### Prompt template
 
@@ -34,8 +38,10 @@ Full-body character reference sheet, {VIEW}, of a realistic adult male human for
 medieval fantasy RPG in the style of Gothic 1 and 2.
 {REFERENCE}
 Strict T-pose: standing straight, arms extended horizontally to the sides at shoulder height,
-palms facing down, fingers straight and slightly apart, legs straight with feet shoulder-width
-apart, head facing forward, neutral expression.
+palms facing forward toward the camera, legs straight with feet shoulder-width apart, head facing
+forward, neutral expression.
+Hands open and flat, all five fingers straight and spread wide apart with a clear gap of background
+between every finger, thumb held well away from the index finger, hands fully visible and sharp.
 Average build, lean and wiry with realistic proportions, about 30 years old, a weathered commoner,
 not a hero and not a bodybuilder.
 Short cropped dark brown hair close to the scalp, short stubble beard, no long hair.

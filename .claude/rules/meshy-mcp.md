@@ -63,3 +63,12 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
 - Needs a `rig_task_id` from an API rigging task (5 credits, textured humanoid `.glb`, public URL). There is none for
   this project's characters (they are rigged through Mixamo), so the preset library is not directly usable.
 - `meshy_list_animations` is free; filter with `category` / `search` (the full library is long).
+
+## Multi-image to 3D — full-body characters (base hero v2)
+
+- `pose_mode: "t-pose"` re-posed the hands palms-down and **fused the index and middle fingers**. Without it, a
+  palms-forward concept with spread fingers gave five clean, separate fingers (the fit turns the palms down).
+- meshy-7.1 + meshy-7, Ultra geometry, 4K = 35 credits. The glTF import splits vertices at UV seams: weld
+  (`remove_doubles` 1e-6) before walking boundaries. The thumb web comes out as a thin double-sided sail
+  (`fit_base_body.retract_sheets`), the neck texture under the chin is the underside of Meshy's own chin (shadow,
+  stubble), and the neck UVs change island every few degrees: never project new faces into that atlas.

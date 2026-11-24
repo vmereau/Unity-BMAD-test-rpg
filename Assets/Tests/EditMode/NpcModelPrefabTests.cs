@@ -13,7 +13,9 @@ public class NpcModelPrefabTests
 {
     private const string VARIANT = "Assets/_Game/Prefabs/Entities/Humanoids/NPC_base Variant.prefab";
     private const string MODEL = "Assets/_Game/Prefabs/Characters/Humanoid_BaseHero.prefab";
-    private const string HERO_FBX = "Assets/_Game/Art/Characters/Humanoids/models/test base hero/rigged test hero with textures.fbx";
+    // spec-base-body-regen: the v2 avatar (flattened v2 rig, all five fingers) replaces the old FBX avatar.
+    private const string HERO_AVATAR = "Assets/_Game/Art/Characters/Humanoids/models/base hero v2/BaseHeroV2Avatar.asset";
+    private const string PLAYER = "Assets/_Game/Prefabs/Player/Player.prefab";
 
     private static readonly string[] Sockets =
         { "WeaponSocket", "LeftWeaponSocket", "UndrawnWeaponSocket", "BackWeaponSocket", "HelmetSocket" };
@@ -54,10 +56,61 @@ public class NpcModelPrefabTests
 
         var animator = _character.GetComponent<Animator>();
         Assert.IsNotNull(animator);
-        Assert.AreEqual(HERO_FBX, AssetDatabase.GetAssetPath(animator.avatar));
+        Assert.AreEqual(HERO_AVATAR, AssetDatabase.GetAssetPath(animator.avatar));
         Assert.IsFalse(animator.applyRootMotion);
         Assert.IsNotNull(animator.runtimeAnimatorController);
         Assert.IsNotNull(_character.GetComponent<EntityAnimationEventReceiver>());
+    }
+
+    private static readonly string[] Fingers = { "Thumb", "Index", "Middle", "Ring", "Little" };
+    private static readonly string[] Phalanges = { "Proximal", "Intermediate", "Distal" };
+
+    [Test]
+    public void Avatar_MapsAllThirtyFingerBones()
+    {
+        var avatar = AssetDatabase.LoadAssetAtPath<Avatar>(HERO_AVATAR);
+        Assert.IsNotNull(avatar);
+        Assert.IsTrue(avatar.isValid && avatar.isHuman);
+        var mapped = new System.Collections.Generic.HashSet<string>();
+        foreach (HumanBone bone in avatar.humanDescription.human) mapped.Add(bone.humanName);
+        foreach (string side in new[] { "Left", "Right" })
+            foreach (string finger in Fingers)
+                foreach (string phalanx in Phalanges)
+                    Assert.IsTrue(mapped.Contains($"{side} {finger} {phalanx}"), $"{side} {finger} {phalanx} not mapped");
+    }
+
+    [Test]
+    public void Character_AnimatorResolvesEveryFingerBone()
+    {
+        // The avatar must bind to the prefab hierarchy (Hips directly under the model root), not only be valid.
+        var animator = _character.GetComponent<Animator>();
+        animator.Rebind();
+        foreach (string side in new[] { "Left", "Right" })
+            foreach (string finger in Fingers)
+                foreach (string phalanx in Phalanges)
+                {
+                    var bone = (HumanBodyBones)System.Enum.Parse(typeof(HumanBodyBones), side + finger + phalanx);
+                    Assert.IsNotNull(animator.GetBoneTransform(bone), $"{bone} does not resolve on the NPC model");
+                }
+    }
+
+    [Test]
+    public void Player_UsesTheV2AvatarOnBothAnimators()
+    {
+        var player = PrefabUtility.LoadPrefabContents(PLAYER);
+        try
+        {
+            // The root Animator and the Character model's Animator; nothing may keep the old three-finger avatar.
+            int v2 = 0;
+            foreach (var animator in player.GetComponentsInChildren<Animator>(true))
+            {
+                string path = animator.avatar != null ? AssetDatabase.GetAssetPath(animator.avatar) : "";
+                Assert.IsFalse(path.EndsWith("rigged test hero with textures.fbx"), $"{animator.name} keeps the old avatar");
+                if (path == HERO_AVATAR) v2++;
+            }
+            Assert.GreaterOrEqual(v2, 2);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(player); }
     }
 
     [Test]

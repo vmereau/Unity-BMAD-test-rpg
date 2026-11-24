@@ -58,3 +58,6 @@ Assets/Hivemind.meta
 /Assets/HEROIC FANTASY CREATURES FULL PACK VOL 1
 /_bmad
 /Packages
+
+# Raw Meshy downloads used by the Blender fit scripts (large, kept locally)
+Tools/Blender/sources/base_hero_v2/

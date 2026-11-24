@@ -59,6 +59,7 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 8d0156f603d449746b3fb1601aa110a6, type: 2}
+  - {fileID: 2100000, guid: 975bbe873051d7d428d17fcd7accb57a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,44 +108,69 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.SkinnedBodyPart
   _renderer: {fileID: 567479953259994498}
   _boneNames:
-  - mixamorig:RightHandMiddle3
-  - mixamorig:RightHandMiddle2
-  - mixamorig:RightHandIndex2
-  - mixamorig:RightHandIndex3
-  - mixamorig:RightHandIndex1
-  - mixamorig:RightHandMiddle1
-  - mixamorig:RightHand
-  - mixamorig:RightHandThumb2
-  - mixamorig:RightHandThumb1
-  - mixamorig:RightHandThumb3
-  - mixamorig:RightForeArm
-  - mixamorig:RightArm
-  - mixamorig:Spine2
-  - mixamorig:RightShoulder
-  - mixamorig:RightFoot
-  - mixamorig:RightToeBase
-  - mixamorig:RightLeg
-  - mixamorig:Spine1
-  - mixamorig:RightUpLeg
   - mixamorig:Hips
   - mixamorig:Spine
-  - mixamorig:LeftUpLeg
+  - mixamorig:Spine1
+  - mixamorig:Spine2
   - mixamorig:Neck
   - mixamorig:Head
-  - mixamorig:LeftLeg
+  - mixamorig:HeadTop_End
   - mixamorig:LeftShoulder
   - mixamorig:LeftArm
-  - mixamorig:LeftFoot
-  - mixamorig:LeftToeBase
   - mixamorig:LeftForeArm
   - mixamorig:LeftHand
-  - mixamorig:LeftHandMiddle1
   - mixamorig:LeftHandThumb1
-  - mixamorig:LeftHandThumb3
   - mixamorig:LeftHandThumb2
-  - mixamorig:LeftHandMiddle2
+  - mixamorig:LeftHandThumb3
+  - mixamorig:LeftHandThumb4
   - mixamorig:LeftHandIndex1
-  - mixamorig:LeftHandMiddle3
   - mixamorig:LeftHandIndex2
   - mixamorig:LeftHandIndex3
+  - mixamorig:LeftHandIndex4
+  - mixamorig:LeftHandMiddle1
+  - mixamorig:LeftHandMiddle2
+  - mixamorig:LeftHandMiddle3
+  - mixamorig:LeftHandMiddle4
+  - mixamorig:LeftHandRing1
+  - mixamorig:LeftHandRing2
+  - mixamorig:LeftHandRing3
+  - mixamorig:LeftHandRing4
+  - mixamorig:LeftHandPinky1
+  - mixamorig:LeftHandPinky2
+  - mixamorig:LeftHandPinky3
+  - mixamorig:LeftHandPinky4
+  - mixamorig:RightShoulder
+  - mixamorig:RightArm
+  - mixamorig:RightForeArm
+  - mixamorig:RightHand
+  - mixamorig:RightHandThumb1
+  - mixamorig:RightHandThumb2
+  - mixamorig:RightHandThumb3
+  - mixamorig:RightHandThumb4
+  - mixamorig:RightHandIndex1
+  - mixamorig:RightHandIndex2
+  - mixamorig:RightHandIndex3
+  - mixamorig:RightHandIndex4
+  - mixamorig:RightHandMiddle1
+  - mixamorig:RightHandMiddle2
+  - mixamorig:RightHandMiddle3
+  - mixamorig:RightHandMiddle4
+  - mixamorig:RightHandRing1
+  - mixamorig:RightHandRing2
+  - mixamorig:RightHandRing3
+  - mixamorig:RightHandRing4
+  - mixamorig:RightHandPinky1
+  - mixamorig:RightHandPinky2
+  - mixamorig:RightHandPinky3
+  - mixamorig:RightHandPinky4
+  - mixamorig:LeftUpLeg
+  - mixamorig:LeftLeg
+  - mixamorig:LeftFoot
+  - mixamorig:LeftToeBase
+  - mixamorig:LeftToe_End
+  - mixamorig:RightUpLeg
+  - mixamorig:RightLeg
+  - mixamorig:RightFoot
+  - mixamorig:RightToeBase
+  - mixamorig:RightToe_End
   _rootBoneName: mixamorig:Hips

@@ -67,7 +67,9 @@ try
         camera.transform.position = target + offset; camera.transform.LookAt(target); camera.Render();
         var old = RenderTexture.active; try { RenderTexture.active = rt; sheet.ReadPixels(new Rect(0, 0, S, S), col * S, (rows - 1 - row) * S); } finally { RenderTexture.active = old; }
     }
-    var baseBody = body.sharedMaterial; var baseHead = head.sharedMaterial; var baseArmor = armor.sharedMaterial;
+    // Every material slot: the v2 body carries the neck band (slot 1), outfits the grafted v2 hands (slot 1).
+    var baseBody = body.sharedMaterials; var baseHead = head.sharedMaterials; var baseArmor = armor.sharedMaterials;
+    void Set(SkinnedMeshRenderer r, Material[] source, System.Func<Material, Material> map) => r.sharedMaterials = source.Select(map).ToArray();
 
     // Untoned check: SG_SkinLit vs URP Lit copies, bare face + body and armored hand.
     var lit = Shader.Find("Universal Render Pipeline/Lit");
@@ -83,7 +85,8 @@ try
     for (int k = 0; k < 2; k++)
     {
         bool sg = k == 0;
-        body.sharedMaterial = sg ? baseBody : LitCopy(baseBody); head.sharedMaterial = sg ? baseHead : LitCopy(baseHead); armor.sharedMaterial = sg ? baseArmor : LitCopy(baseArmor);
+        System.Func<Material, Material> pick = m => sg ? m : LitCopy(m);
+        Set(body, baseBody, pick); Set(head, baseHead, pick); Set(armor, baseArmor, pick);
         body.enabled = true; outfit.SetActive(false);
         Shot(cmp[k], 0, 0, 1, face, fwd * .6f);
         Shot(cmp[k], 1, 0, 1, chest + Vector3.up * .5f, fwd * 3.2f);
@@ -106,9 +109,8 @@ try
     for (int row = 0; row < rows.Length; row++)
     {
         var tone = rows[row];
-        body.sharedMaterial = Game.AI.SkinToneMaterials.Get(baseBody, tone);
-        head.sharedMaterial = Game.AI.SkinToneMaterials.Get(baseHead, tone);
-        armor.sharedMaterial = Game.AI.SkinToneMaterials.Get(baseArmor, tone);
+        System.Func<Material, Material> toned = m => Game.AI.SkinToneMaterials.Get(m, tone);
+        Set(body, baseBody, toned); Set(head, baseHead, toned); Set(armor, baseArmor, toned);
         body.enabled = true; outfit.SetActive(false);
         Shot(sheet, 0, row, rows.Length, face, fwd * .6f);
         Shot(sheet, 1, row, rows.Length, face, (fwd + right * .8f).normalized * .6f);
@@ -121,7 +123,7 @@ try
     }
     sheet.Apply();
     System.IO.File.WriteAllBytes($"{folder}/tones.png", sheet.EncodeToPNG());
-    body.sharedMaterial = baseBody; head.sharedMaterial = baseHead; armor.sharedMaterial = baseArmor;
+    body.sharedMaterials = baseBody; head.sharedMaterials = baseHead; armor.sharedMaterials = baseArmor;
 }
 finally { graph.Destroy(); }
 return report.ToString();

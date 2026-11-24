@@ -28,7 +28,9 @@ namespace Game.Editor.Characters
         public const string HEADS = MODELS + "heads";
         public const string APPEARANCES = "Assets/_Game/Data/Characters/Heads";
         private const string TARGET = MODELS + "test base hero/rigged test hero with textures.fbx";
-        private const string BODY = MODELS + "test base hero/base_hero_body_baked.asset";
+        // The canonical body is the head-join reference (baked in memory: base_hero_body_baked is the v2 body, in another
+        // bone order, since spec-base-body-regen; its seam matches the canonical ring, see BaseHeroV2Applier).
+        private const string SPLIT = MODELS + "test base hero/base hero split.fbx";
         private const string BASE_MATERIAL = MODELS + "test base hero/M_TestBaseHero.mat";
         // Canonical neck interface (Humanoids/CLAUDE.md): exposed skin seam, hidden stump bottom, neck-UV check top, radius.
         private const float SEAM = 1.585f;
@@ -55,17 +57,23 @@ namespace Game.Editor.Characters
         {
             if (!AssetDatabase.IsValidFolder(HEADS)) throw new InvalidOperationException($"No head folder at {HEADS}.");
             var target = AssetDatabase.LoadAssetAtPath<GameObject>(TARGET)?.GetComponentInChildren<SkinnedMeshRenderer>();
-            var body = AssetDatabase.LoadAssetAtPath<Mesh>(BODY);
             var baseMaterial = AssetDatabase.LoadAssetAtPath<Material>(BASE_MATERIAL);
-            if (target == null || body == null || baseMaterial == null)
-                throw new InvalidOperationException("Canonical target, baked body or base material is missing.");
+            var split = AssetDatabase.LoadAssetAtPath<GameObject>(SPLIT);
+            var bodySource = split != null
+                ? Array.Find(split.GetComponentsInChildren<SkinnedMeshRenderer>(), r => r.name.Contains("_body"))
+                : null;
+            if (target == null || bodySource == null || baseMaterial == null)
+                throw new InvalidOperationException("Canonical target, canonical split body or base material is missing.");
             if (Array.Exists(target.bones, bone => bone == null))
                 throw new InvalidOperationException("The canonical target has a missing bone.");
             var names = Array.ConvertAll(target.bones, bone => bone.name);
 
             var heads = new List<Head>();
+            Mesh body = null;
             try
             {
+                body = SkinnedMeshBaker.Bake(bodySource, target, null, "canonical_body_reference", out string bodyError);
+                if (body == null) throw new InvalidOperationException("Canonical body reference: " + bodyError);
                 foreach (string folder in AssetDatabase.GetSubFolders(HEADS))
                 {
                     string name = Path.GetFileName(folder);
@@ -102,6 +110,7 @@ namespace Game.Editor.Characters
             finally
             {
                 foreach (var head in heads) if (head.Mesh != null) UnityEngine.Object.DestroyImmediate(head.Mesh);
+                if (body != null) UnityEngine.Object.DestroyImmediate(body);
             }
         }
 

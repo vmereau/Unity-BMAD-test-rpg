@@ -59,6 +59,10 @@ namespace Game.Editor.Characters
                 // Tangents must follow final UVs, including repaired corners.
                 mesh.RecalculateTangents();
                 ValidateShadingFrames(mesh);
+                // The outfit's fused bare hands are replaced by the base hero v2 hands (v2 bone order from here on).
+                var grafted = OutfitHandGraft.Graft(mesh, names, out names);
+                UnityEngine.Object.DestroyImmediate(mesh);
+                mesh = grafted;
             }
             catch
             {
@@ -89,7 +93,7 @@ namespace Game.Editor.Characters
                 template.name = "CompanyGruntArmor_Visual";
                 var renderer = template.GetComponent<SkinnedMeshRenderer>();
                 renderer.sharedMesh = mesh;
-                renderer.sharedMaterial = material;
+                renderer.sharedMaterials = new[] { material, OutfitHandGraft.HandMaterial };
                 template.GetComponent<SkinnedBodyPart>().EditorSetup(renderer,names,target.rootBone.name);
                 // The leather template carries conservative root-space bounds.
                 // Setting localBounds on an intentionally skeleton-less SMR
@@ -134,7 +138,7 @@ namespace Game.Editor.Characters
             EditorUtility.SetDirty(item);
             AssetDatabase.SaveAssets();
             Game.Editor.Save.ItemCatalogAutoSync.SyncItemCatalog();
-            return $"Built Company armor: {mesh.vertexCount} vertices, {mesh.bindposes.Length} canonical bones. Leather-equivalent provisional stats/prices.";
+            return $"Built Company armor: {mesh.vertexCount} vertices, {mesh.bindposes.Length} v2 bones (v2 hands grafted). Leather-equivalent provisional stats/prices.";
         }
 
         private static void ValidateShadingFrames(Mesh mesh)
