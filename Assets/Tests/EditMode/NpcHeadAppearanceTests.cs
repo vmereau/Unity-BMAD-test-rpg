@@ -17,14 +17,15 @@ public class NpcHeadAppearanceTests
 
     private static readonly (string npc, string head)[] Assigned =
     {
-        ("Warden/NPC_Warden", "Warden"), ("Cook/NPC_Cook", "Cook"),
-        ("BlackSmith/NPC_Blacksmith", "Blacksmith"), ("TentMate/NPC_TentMate", "TentMate"),
+        ("Warden/NPC_Warden", "WardenMeshy"), ("Cook/NPC_Cook", "Cook"),
+        ("BlackSmith/NPC_Blacksmith", "Blacksmith"), ("TentMate/NPC_TentMate", "TentMateMeshy"),
         // spec-npc-faces-second-batch
-        ("BeatenWorker/NPC_BeatenWorker", "Tam"), ("StashOwner/NPC_StashOwner", "Brann"),
-        ("Storekeeper/NPC_Storekeeper", "Storekeeper"), ("RacketGuard/NPC_RacketGuard", "Harl"),
+        ("BeatenWorker/NPC_BeatenWorker", "TamMeshy"), ("StashOwner/NPC_StashOwner", "Brann"),
+        ("Storekeeper/NPC_Storekeeper", "StorekeeperMeshy"), ("RacketGuard/NPC_RacketGuard", "Harl"),
         ("DockGuard/NPC_DockGuard", "DockGuard"), ("CompanyGuard/NPC_CompanyGuard_ArrivalLeft", "GuardLeft"),
         ("CompanyGuard/NPC_CompanyGuard_ArrivalRight", "GuardRight"),
         ("WarehouseGuard/NPC_WarehouseGuard", "WarehouseGuard"), ("Bandit/NPC_Bandit", "Bandit"),
+        // spec-npc-meshy-heads: Warden, TentMate, BeatenWorker and Storekeeper moved to their Meshy heads (above).
     };
 
     private GameObject _root;

@@ -250,7 +250,7 @@ public class NpcSkinToneTests
             Assert.AreEqual(baseRef, head.GetFloat("_SkinRefLuminance"), 1e-6f, $"{head.name}: base ref luminance (same tone transform at the neck)");
             Assert.AreEqual(0f, head.GetFloat("_SkinToneStrength"), 1e-6f, $"{head.name}: untoned by default");
         }
-        Assert.AreEqual(13, heads, "shipped head materials (spec-npc-faces-second-batch)");
+        Assert.AreEqual(17, heads, "shipped head materials (13 painted / portrait + 4 Meshy: spec-npc-meshy-heads)");
     }
 
     [Test]
