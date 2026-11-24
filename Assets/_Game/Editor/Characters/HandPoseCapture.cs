@@ -35,12 +35,9 @@ namespace Game.Editor.Characters
             public readonly string Tag, Clip, Weapon, Shield;
             public readonly float NormalizedTime;
             public readonly HandPose? Left, Right;
-            public readonly bool Carry; // weapon at its archetype carryPose (bow idle seat)
-            public Case(string tag, string clip, float normalizedTime, HandPose? left, HandPose? right, string weapon = null, string shield = null,
-                bool carry = false)
+            public Case(string tag, string clip, float normalizedTime, HandPose? left, HandPose? right, string weapon = null, string shield = null)
             {
                 Tag = tag; Clip = clip; NormalizedTime = normalizedTime; Left = left; Right = right; Weapon = weapon; Shield = shield;
-                Carry = carry;
             }
         }
 
@@ -55,7 +52,6 @@ namespace Game.Editor.Characters
             new Case("braced", ANIM + "Combat/one handed/Sword Braced Guard.anim", 0.2f, HandPose.Relaxed, HandPose.OneHandGrip, SWORD),
             new Case("shield", ANIM + "Combat/Block Idle.fbx", 0.2f, HandPose.ShieldHold, HandPose.OneHandGrip, SWORD, SHIELD),
             new Case("bow", ANIM + "Combat/Bow/Bow Aim Overdraw.anim", 0.3f, HandPose.BowGrip, HandPose.Relaxed, BOW),
-            new Case("bowidle", ANIM + "Combat/Bow/Standing Bow Idle.fbx", 0.5f, HandPose.BowCarry, HandPose.Relaxed, BOW, carry: true),
         };
 
         /// <summary>
@@ -139,7 +135,7 @@ namespace Game.Editor.Characters
                     Transform handle = null;
                     if (c.Weapon != null)
                     {
-                        var weaponVisual = AttachWeapon(c.Weapon, rightSocket, leftSocket, c.Carry);
+                        var weaponVisual = AttachWeapon(c.Weapon, rightSocket, leftSocket);
                         spawned.Add(weaponVisual);
                         handle = RequireChild(weaponVisual, "Drawn");
                     }
@@ -156,7 +152,7 @@ namespace Game.Editor.Characters
                     {
                         report.AppendLine($"   {(left ? "L" : "R")} {Penetration(body, baked, left)} | {Curls(animator, left)}");
                         HandPose? handPose = left ? c.Left : c.Right;
-                        if (handle != null && handPose is HandPose.OneHandGrip or HandPose.TwoHandGrip or HandPose.BowGrip or HandPose.BowCarry)
+                        if (handle != null && handPose is HandPose.OneHandGrip or HandPose.TwoHandGrip or HandPose.BowGrip)
                             report.AppendLine($"     grip {Wrap(animator, left, handle)}");
                         if (shield != null && handPose == HandPose.ShieldHold)
                             report.AppendLine($"     shield {Wrap(animator, left, shield)}");
@@ -225,7 +221,7 @@ namespace Game.Editor.Characters
             animator.enabled = false;
         }
 
-        private static GameObject AttachWeapon(string weaponPath, Transform rightSocket, Transform leftSocket, bool carry = false)
+        private static GameObject AttachWeapon(string weaponPath, Transform rightSocket, Transform leftSocket)
         {
             var weapon = AssetDatabase.LoadAssetAtPath<WeaponSO>(weaponPath);
             if (weapon == null || weapon.equipVisualPrefab == null)
@@ -238,12 +234,6 @@ namespace Game.Editor.Characters
             var sheathed = visual.transform.Find("Sheathed");
             drawn.gameObject.SetActive(true);
             if (sheathed != null) sheathed.gameObject.SetActive(false);
-            if (carry)
-            {
-                if (weapon.archetype == null || !weapon.archetype.hasCarryPose)
-                    throw new InvalidOperationException($"HandPoseCapture: {weaponPath} has no carry seat");
-                weapon.archetype.carryPose.ApplyTo(drawn);
-            }
             if (weapon.archetype != null && weapon.archetype.twoHandedGrip)
                 TwoHandGripConstraint.Apply(drawn, rightSocket, leftSocket, weapon.archetype);
             return visual;

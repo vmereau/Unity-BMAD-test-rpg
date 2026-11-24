@@ -84,13 +84,6 @@ Symmetric on both sides: bridge + driver.
   while `bridge.IsSwitchingWeapon` (UpperBody `Draw_State` / `Sheathe_State`: `IsInCombat` flips at the press, the weapon
   arrives at WeaponSwap) and `bridge.IsBaseDown` (KnockedDown / Unconscious / Death / Dead / GettingUp). `HandPose` values are the
   Animator ints — append new poses, never renumber (Relaxed = 0 = the default after a controller swap).
-  **Bow carry seat (spec-bow-combat-idle):** for a left-hand, rigid archetype with `hasCarryPose`
-  (`EquipmentVisuals.UsesCarrySeat`), `HandPoseRule.CarrySeat` is true only in the combat idle: bow in hand, UpperBody heading
-  into `CombatIdle` (`bridge.IsUpperBodyCombatIdle`) and the Base Layer not full-body (`IsBaseFullBody`). It picks
-  `BowCarry` fingers, and the driver eases a weight 0 → 1 in 0.15 s (scaled time) into `EquipmentVisuals.SetCarryWeight`
-  (Drawn child: `drawnPose` → `carryPose`). Aim, draw / sheathe, drink, dodge, stagger, knockdown and death keep `drawnPose`.
-  A new weapon visual, or a weapon appearing in the hand without a draw clip (NPCs), snaps to the target;
-  `RefreshWeapon` keeps the weight when it rebuilds the same family. Same component on the Player and NPCs.
 - **NPC Animators never apply root motion.** `HumanoidAIAnimationDriver.Awake` forces `applyRootMotion = false` (warns,
   before any early return; it uses `HumanoidAnimationBridge.Animator` — drivers do lifecycle work on the bridge's Animator,
   only animator *parameters* are bridge-only):

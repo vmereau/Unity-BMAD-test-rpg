@@ -45,7 +45,6 @@ namespace Game.Animations
         private static readonly int RightHandPoseHash = Animator.StringToHash("RightHandPose");
         private static readonly int DrawStateHash = Animator.StringToHash("Draw_State");
         private static readonly int SheatheStateHash = Animator.StringToHash("Sheathe_State");
-        private static readonly int CombatIdleStateHash = Animator.StringToHash("CombatIdle");
         private static readonly int KnockedDownStateHash = Animator.StringToHash("KnockedDown");
         private static readonly int UnconsciousStateHash = Animator.StringToHash("Unconscious");
         private static readonly int DeathStateHash = Animator.StringToHash("Death");
@@ -174,10 +173,6 @@ namespace Game.Animations
         /// <summary>True while the UpperBody layer plays (or heads into) the draw / sheathe clip.</summary>
         public bool IsSwitchingWeapon => IsAnimatorLive && UpperBodyLayer >= 0
             && DestinationIs(UpperBodyLayer, DrawStateHash, SheatheStateHash);
-
-        /// <summary>True while the UpperBody layer plays (or heads into) <c>CombatIdle</c>, the weapon's carry pose.</summary>
-        public bool IsUpperBodyCombatIdle => IsAnimatorLive && UpperBodyLayer >= 0
-            && DestinationIs(UpperBodyLayer, CombatIdleStateHash, CombatIdleStateHash);
 
         /// <summary>True while the Base Layer is in (or heading into) a knockdown, unconscious, death or get-up state.</summary>
         public bool IsBaseDown => IsAnimatorLive

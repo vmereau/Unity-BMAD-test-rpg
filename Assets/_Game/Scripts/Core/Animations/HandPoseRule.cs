@@ -12,7 +12,6 @@ namespace Game.Animations
         TwoHandGrip = 3,
         BowGrip = 4,
         ShieldHold = 5,
-        BowCarry = 6,
     }
 
     /// <summary>
@@ -30,15 +29,14 @@ namespace Game.Animations
         /// <param name="shieldInHand">A shield is held in the offhand.</param>
         /// <param name="switchingWeapon">A draw / sheathe clip is playing (UpperBody <c>Draw_State</c> / <c>Sheathe_State</c>).</param>
         /// <param name="down">The Base Layer is in a knockdown / unconscious / death / get-up state.</param>
-        /// <param name="carrySeat">The bow sits in its idle carry seat (<see cref="CarrySeat"/>): fingers on that seat.</param>
         public static void Resolve(bool inCombat, bool weaponInHand, bool leftHandWeapon, bool twoHanded, bool shieldInHand,
-            bool switchingWeapon, bool down, out HandPose left, out HandPose right, bool carrySeat = false)
+            bool switchingWeapon, bool down, out HandPose left, out HandPose right)
         {
             if (weaponInHand)
             {
                 if (leftHandWeapon)
                 {
-                    left = carrySeat ? HandPose.BowCarry : HandPose.BowGrip;
+                    left = HandPose.BowGrip;
                     right = HandPose.Relaxed;
                 }
                 else if (twoHanded)
@@ -56,13 +54,5 @@ namespace Game.Animations
 
             left = right = inCombat && !switchingWeapon && !down ? HandPose.Fist : HandPose.Relaxed;
         }
-
-        /// <summary>
-        /// The drawn left-hand weapon (bow) sits in its carry seat (<c>WeaponArchetypeSO.carryPose</c>, spec-bow-combat-idle)
-        /// only while the combat idle shows: UpperBody heading into <c>CombatIdle</c> and the Base Layer not in a full-body
-        /// state. Aim, draw / sheathe, drink, dodge, stagger, knockdown and death keep the aiming seat (<c>drawnPose</c>).
-        /// </summary>
-        public static bool CarrySeat(bool weaponInHand, bool hasCarryPose, bool leftHandWeapon, bool upperBodyIdle, bool baseFullBody) =>
-            weaponInHand && hasCarryPose && leftHandWeapon && upperBodyIdle && !baseFullBody;
     }
 }

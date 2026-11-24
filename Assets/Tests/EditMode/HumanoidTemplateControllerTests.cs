@@ -190,23 +190,6 @@ namespace Tests.EditMode
             Assert.That(twoHanded["Block Idle"], Is.EqualTo("2hand blocking"));
         }
 
-        // spec-bow-combat-idle: the bow's CombatIdle is the untouched Mixamo standing idle (looping, event-free).
-        [Test]
-        public void BowOverride_CombatIdleIsTheStandingBowIdle()
-        {
-            var overrides = Overrides(COMBAT + "Bow/Bow_AnimatorOverride.overrideController");
-            Assert.That(overrides["Unarmed Idle Guard"], Is.EqualTo("Standing Bow Idle"));
-            var clips = new SerializedObject(AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(
-                COMBAT + "Bow/Bow_AnimatorOverride.overrideController")).FindProperty("m_Clips");
-            for (int i = 0; i < clips.arraySize; i++)
-                Assert.That(clips.GetArrayElementAtIndex(i).FindPropertyRelative("m_OverrideClip").objectReferenceValue,
-                    Is.Not.Null, "no empty override entries (ApplyOverrides leaves one per unmapped clip)");
-            AnimationClip clip = AssetDatabase.LoadAllAssetsAtPath(COMBAT + "Bow/Standing Bow Idle.fbx").OfType<AnimationClip>()
-                .Single(c => !c.name.StartsWith("__preview"));
-            Assert.That(AnimationUtility.GetAnimationClipSettings(clip).loopTime, Is.True);
-            Assert.That(AnimationUtility.GetAnimationEvents(clip), Is.Empty);
-        }
-
         // spec-bow-hand-grip: the aim states play the wrist-corrected bakes (Tools/Characters/Bake Bow Wrist Clips).
         [TestCase("BowDrawArrow_State", "Bow Draw Arrow.anim", false)]
         [TestCase("BowAim_State", "Bow Aim Overdraw.anim", true)]

@@ -309,45 +309,5 @@ namespace Tests.EditMode
             Vector3 after = newPos + newRot * (meshPos + meshRot * meshPoint); // mesh under the Mesh child under the new parent
             Assert.That(Vector3.Distance(before, after), Is.LessThan(POS_TOLERANCE));
         }
-
-        // spec-bow-combat-idle: the Drawn child blends between the aiming seat (0) and the carry seat (1).
-        [Test]
-        public void BlendPose_EndsAreThePoses_MidIsHalfway()
-        {
-            var from = new WeaponPose { localPosition = new Vector3(0.1f, 0f, 0f), localEulerAngles = new Vector3(0f, 0f, 0f) };
-            var to = new WeaponPose { localPosition = new Vector3(0.3f, 0.2f, 0f), localEulerAngles = new Vector3(0f, 90f, 0f) };
-            EquipmentVisuals.BlendPose(from, to, 0f, out var p0, out var r0);
-            EquipmentVisuals.BlendPose(from, to, 1f, out var p1, out var r1);
-            EquipmentVisuals.BlendPose(from, to, 0.5f, out var pm, out var rm);
-            EquipmentVisuals.BlendPose(from, to, 2f, out var pc, out _);
-            Assert.That(Vector3.Distance(p0, from.localPosition), Is.LessThan(POS_TOLERANCE));
-            Assert.That(Quaternion.Angle(r0, Quaternion.identity), Is.LessThan(ANGLE_TOLERANCE));
-            Assert.That(Vector3.Distance(p1, to.localPosition), Is.LessThan(POS_TOLERANCE));
-            Assert.That(Quaternion.Angle(r1, Quaternion.Euler(0f, 90f, 0f)), Is.LessThan(ANGLE_TOLERANCE));
-            Assert.That(Vector3.Distance(pm, new Vector3(0.2f, 0.1f, 0f)), Is.LessThan(POS_TOLERANCE));
-            Assert.That(Quaternion.Angle(rm, Quaternion.Euler(0f, 45f, 0f)), Is.LessThan(ANGLE_TOLERANCE));
-            Assert.That(Vector3.Distance(pc, to.localPosition), Is.LessThan(POS_TOLERANCE), "weight is clamped");
-        }
-
-        [TestCase(WeaponHand.Left, false, true, ExpectedResult = true)]
-        [TestCase(WeaponHand.Left, false, false, ExpectedResult = false)]
-        [TestCase(WeaponHand.Right, false, true, ExpectedResult = false)]
-        [TestCase(WeaponHand.Left, true, true, ExpectedResult = false)]
-        public bool UsesCarrySeat_OnlyRigidLeftHandWeapons(WeaponHand hand, bool twoHanded, bool hasCarryPose)
-        {
-            var archetype = Track(ScriptableObject.CreateInstance<WeaponArchetypeSO>());
-            archetype.drawnHand = hand;
-            archetype.twoHandedGrip = twoHanded;
-            archetype.hasCarryPose = hasCarryPose;
-            return EquipmentVisuals.UsesCarrySeat(archetype);
-        }
-
-        [Test]
-        public void BowArchetype_HasACarrySeat()
-        {
-            var bow = UnityEditor.AssetDatabase.LoadAssetAtPath<WeaponArchetypeSO>("Assets/_Game/Data/Items/Weapons/Archetypes/Archetype_Bow.asset");
-            Assert.That(bow, Is.Not.Null);
-            Assert.That(bow.hasCarryPose, Is.True);
-        }
     }
 }

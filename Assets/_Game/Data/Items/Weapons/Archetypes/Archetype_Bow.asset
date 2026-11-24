@@ -19,10 +19,6 @@ MonoBehaviour:
   sheathedPose:
     localPosition: {x: -0.038, y: -0.138, z: -0.083}
     localEulerAngles: {x: 359.8, y: 0.1, z: 167.4}
-  hasCarryPose: 1
-  carryPose:
-    localPosition: {x: 0.0288, y: -0.0767, z: 0.0033}
-    localEulerAngles: {x: 298.92, y: 293.9, z: 31.67}
   twoHandedGrip: 0
   gripRoll: 0
   gripSlide: 0

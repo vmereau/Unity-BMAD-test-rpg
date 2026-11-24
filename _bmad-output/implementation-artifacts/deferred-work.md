@@ -730,8 +730,9 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-unarmed-idle-posture-fix (2026-11-16)
 
-- ~~**A drawn bow plays the unarmed fist guard**~~ — done 2026-11-24 (spec-bow-combat-idle): `Standing Bow Idle` with an
-  idle-only carry seat.
+- **A drawn bow plays the unarmed fist guard** (pre-existing): `Bow_AnimatorOverride` has no `CombatIdle` entry, so the
+  bow's carry pose is the unarmed guard (now `Unarmed Idle Guard.anim`, with a stronger lean and fists further out).
+  Map a bow idle onto `Unarmed Idle Guard` in the override when one exists.
 
 ## From spec-unarmed-high-guard-block (2026-11-16)
 

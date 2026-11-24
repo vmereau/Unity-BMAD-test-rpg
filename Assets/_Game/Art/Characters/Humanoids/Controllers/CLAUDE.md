@@ -124,8 +124,7 @@ unarmed punch with a weapon in hand: sword `lead jab step` → `SwordAttackLeft`
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced (or re-key in place: set
 each entry's `m_OriginalClip` to the new base clip, which leaves no stale entry). Same for `CombatIdle`
-(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`, bow → `Standing Bow Idle`, the untouched
-Mixamo clip played with the bow's carry seat — spec-bow-combat-idle) and `Block_State` (= `Unarmed Block
+(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block
 Guard.anim`, the unarmed high guard; sword → `Sword Braced Guard`, two-handed → `2hand blocking`). The player and styled
 NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.
 

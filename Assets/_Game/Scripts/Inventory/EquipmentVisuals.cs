@@ -25,8 +25,6 @@ namespace Game.Inventory
         [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
         private GameObject _weaponVisual;
-        private Transform _weaponDrawn; // the weapon visual's Drawn child (null without one)
-        private float _carryWeight; // drawnPose (0) → carryPose (1) on _weaponDrawn
         private WeaponArchetypeSO _currentArchetype;
         private AnimatorOverrideController _currentWeaponOverride; // equipped weapon's override, applied unless forced default
         private bool _forceDefaultController; // NPC fists with a weapon equipped (ForceDefaultController)
@@ -155,12 +153,9 @@ namespace Game.Inventory
 
         private void RefreshWeapon(bool applyAnimatorController)
         {
-            var previousArchetype = _currentArchetype;
-            float previousCarryWeight = _carryWeight;
             if (_weaponVisual != null)
                 Destroy(_weaponVisual);
             _weaponVisual = null;
-            _weaponDrawn = null;
             _currentArchetype = null;
             _currentWeaponOverride = null;
             _backSocketWarned = false;
@@ -179,9 +174,6 @@ namespace Game.Inventory
                 _weaponVisual.transform.localPosition = Vector3.zero;
                 _weaponVisual.transform.localRotation = Quaternion.identity;
                 ApplyArchetypePoses(_weaponVisual, _currentArchetype);
-                _weaponDrawn = _weaponVisual.transform.Find("Drawn");
-                _carryWeight = 0f;
-                if (_currentArchetype == previousArchetype) SetCarryWeight(previousCarryWeight); // rebuilt mid-idle: keep the seat
                 ApplyCombatVisibility(_weaponVisual, _isInCombat);
                 GameLog.Info(TAG, $"Weapon visual attached (prefab: {weapon.equipVisualPrefab.name})");
             }
@@ -417,36 +409,6 @@ namespace Game.Inventory
             if (archetype != null && archetype.sheathSocket == WeaponSheathSocket.Back && backSocket != null)
                 return backSocket;
             return hipSocket;
-        }
-
-        /// <summary>
-        /// Bow seat in the hand (spec-bow-combat-idle): places the weapon's Drawn child between the archetype's
-        /// <c>drawnPose</c> (0, aiming) and <c>carryPose</c> (1, idle). Driven every frame by <c>HandPoseDriver</c>; no-op
-        /// for an archetype without a carry seat or a visual without a Drawn child.
-        /// </summary>
-        public void SetCarryWeight(float weight)
-        {
-            if (_weaponDrawn == null || !UsesCarrySeat(_currentArchetype)) return;
-            weight = Mathf.Clamp01(weight);
-            if (weight == _carryWeight) return;
-            _carryWeight = weight;
-            BlendPose(_currentArchetype.drawnPose, _currentArchetype.carryPose, weight, out var position, out var rotation);
-            _weaponDrawn.SetLocalPositionAndRotation(position, rotation);
-        }
-
-        /// <summary>
-        /// A carry seat applies to a rigid left-hand weapon (bow) only: a right-hand weapon's fingers never follow it and a
-        /// two-hand grip re-aims the Drawn child itself (TwoHandGripConstraint).
-        /// </summary>
-        public static bool UsesCarrySeat(WeaponArchetypeSO archetype) =>
-            archetype != null && archetype.hasCarryPose && archetype.drawnHand == WeaponHand.Left && !archetype.twoHandedGrip;
-
-        /// <summary>Pure blend of two Drawn poses: lerp on the position, slerp on the rotation (tested).</summary>
-        public static void BlendPose(WeaponPose from, WeaponPose to, float t, out Vector3 position, out Quaternion rotation)
-        {
-            t = Mathf.Clamp01(t);
-            position = Vector3.Lerp(from.localPosition, to.localPosition, t);
-            rotation = Quaternion.Slerp(Quaternion.Euler(from.localEulerAngles), Quaternion.Euler(to.localEulerAngles), t);
         }
 
         /// <summary>
