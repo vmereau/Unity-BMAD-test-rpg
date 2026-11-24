@@ -183,7 +183,8 @@ public class UnarmedAttackTests
         string blockTarget = null;
         foreach (KeyValuePair<AnimationClip, AnimationClip> pair in pairs)
             if (pair.Key.name == "Unarmed Block Guard" && pair.Value != null) blockTarget = pair.Value.name;
-        Assert.That(blockTarget, Is.EqualTo(file.StartsWith("two handed") ? "2hand blocking" : "Block Idle"),
+        // Weapon guard without a shield (spec-one-hand-braced-block); a held shield plays the base Block Idle.
+        Assert.That(blockTarget, Is.EqualTo(file.StartsWith("two handed") ? "2hand blocking" : "Sword Braced Guard"),
             "each melee family keeps its own block");
     }
 }

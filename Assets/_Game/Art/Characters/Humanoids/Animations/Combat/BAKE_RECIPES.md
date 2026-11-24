@@ -117,6 +117,42 @@ on knuckle (weight 3), wrist (1) and elbow (0.5) targets, then front / side rend
 - Muscle offsets are unbounded in the solver unless capped: an uncapped fit pushed Right Shoulder Front-Back to +2.05.
 Re-bake from `execute_code` like the idle guard (copy curves + settings, add the constants) if the idle guard changes.
 
+
+---
+
+## One-hand braced guard (`one handed/Sword Braced Guard.anim`, spec-one-hand-braced-block)
+`Block_State` for a one-hander **without a shield** (Sword override, `ShieldInHand` 0): blade diagonal up-left across the
+face line, hilt in front of the right chest, left palm flat behind the blade at mid-length. Source: Meshy text-to-motion
+`sword braced guard source.fbx` (prompt log: `MESHY_PROMPTS.md`), armature-only, avatar copied from `Unarmed/meshy smplh
+rig.fbx` (like `lead jab step`), root baked, loop. The bake keeps every source curve (spine / neck / head breathing,
+loop seam ≤ 0.06 muscle units) and **replaces** both arms with constants (a brace is rigid; the source arms drift 13 cm):
+- Right: Shoulder Down-Up −0.812, Front-Back 0.234; Arm Down-Up −0.438, Front-Back −0.207, Twist 0.269; Forearm Stretch
+  −0.484, Twist −0.821; Hand Down-Up −0.715, In-Out 0.826. Right fingers (`RightHand.*`, thumb excluded): Stretched −0.8,
+  Spread 0 (a fist; the `SwordIdle` values splay the fingers). Thumb from `SwordIdle` at t 0.
+- Left: Shoulder Down-Up −0.564, Front-Back −0.429; Arm Down-Up 0.613, Front-Back −0.855, Twist 0.067; Forearm Stretch
+  0.303, Twist −0.609; Hand Down-Up −0.159, In-Out 0.049. Left fingers (thumb excluded): Stretched 0.15, Spread 0 (positive
+  over-extends: 0.6 looked clawed).
+Targets (Player-local, x right, y up, z forward; base `Idle` + `UpperBodyMask`, sword = archetype `drawnPose` in
+`WeaponSocket`, blade = `Drawn` +Y, edge = +Z): grip (0.15, 1.32, 0.32), blade (−0.62, 0.68, 0.25), edge forward ⟂ blade,
+right elbow (0.28, 1.12, 0.10); left palm centre (lerp hand → middle proximal, 0.6) at grip + 0.42 × blade − 0.045 × edge,
+palm normal (cross(thumb − middle, fingers)) along the edge, fingers across the blade (up), left elbow below the palm.
+Result: grip within 3 cm, blade within 2°, edge 31° off forward, palm 4 mm; over Idle / Walking / Running the palm stays
+on the blade (≤ 4.6 cm from its axis = the contact offset) and the blade ≥ 0.28 m from the head centre.
+**Edge forward, not flat forward:** with a one-hand grip the flat-forward orientation is out of reach (edge 100° off,
+every wrist muscle at ±1); the classic parry edge is what the wrist allows.
+Fitting: random search (600 samples in ±0.9) then coordinate descent (steps 0.2 → 0.012), weights pos / 0.02–0.03 m,
+blade / 4–5°, edge / 15–20°, elbow / 0.06 m, plus a penalty for |muscle| > 0.8. Evaluate by writing constant curves into
+an in-memory copy of the clip and re-creating its `AnimationClipPlayable` (≈ 4 ms per pose). Gotchas:
+- **`HumanPoseHandler.SetHumanPose` does nothing on an instantiated `Player.prefab`** (bones unchanged, Animator enabled or
+  not) — `GetHumanPose` works. Fit through clip curves instead.
+- **The raw Meshy download doesn't take the shared SMPL-H avatar** ("Transform 'Reference' not found"): strip it first
+  (`meshy_motion_fit.strip_source` logic). The Blender MCP session may hold other work: import / export in a temporary
+  scene (`bpy.data.scenes.new`, `window.scene = …`) and delete it, rather than running the script's `_clear()`.
+- `AnimatorOverrideController.ApplyOverrides` serialises an empty `m_Clips` entry for every unmapped clip: delete the
+  null-override entries through `SerializedObject` afterwards.
+Re-bake from `execute_code` (copy the source clip, set the constants above, copy `AnimationClipSettings`) if the source or
+the player body changes; re-fit if the arms no longer meet the targets.
+
 ---
 
 ## Two-part draw / sheathe → one baked `.anim`

@@ -956,7 +956,8 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ### From spec-shield-offhand-blocking (2026-11-17)
 
-- **Shield block / idle clips:** the block reuses the sword's `Block Idle` (left forearm raised forward). `ShieldSO.heldPose` is
+- **Shield block / idle clips:** the block reuses the sword's `Block Idle` (left forearm raised forward; since
+  spec-one-hand-braced-block it plays only with a shield in hand, the sword alone has `Sword Braced Guard`). `ShieldSO.heldPose` is
   solved for that block pose, so in combat idle / locomotion (hand hanging) the shield sits flat at the hip — the two hand
   orientations are 118° apart, no rigid grip fits both. Needs a shield guard idle + block clip (UpperBody override for
   one-hand + shield), then re-solve `heldPose`.
@@ -1240,3 +1241,13 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   the side render) before a batch of Meshy heads.
 - **`_project_meshy` runs three Python-level KDTree / BVH queries per head texel** (~30 s per run): batch / vectorise
   if a larger texture or many heads make it slow.
+
+### From spec-one-hand-braced-block (2026-11-24)
+
+- **One-handed axe plays the braced guard:** `Archetype_OneHandedAxe` shares `Sword_AnimatorOverride`, so an axe without a
+  shield blocks with `Sword Braced Guard` (left palm at 0.42 m along the haft, fitted for the sword's blade). Give the axe
+  its own override / guard if it reads wrong.
+- **Braced guard checked on the Player only:** fitted and measured over Idle / Walking / Running on `Player.prefab`. NPC
+  bodies, lock-on strafe and sneak bases (spine bend) were not measured — palm contact and head clearance may drift there.
+- **`Sword Braced Guard.anim` is 3.4 MB** (every source curve kept, dense keys, uncompressed). Strip the constant curves to
+  two keys or enable compression if repo size matters.

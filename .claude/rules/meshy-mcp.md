@@ -40,6 +40,10 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
 - **The guard is different in every generation** (stance 0.26–0.55 m long, 0.05–0.48 m wide for the same opening words),
   so clips meant to chain need their starts matched in Blender (`Tools/Blender/meshy_motion_fit.py`, `start_match`).
 - Two create calls sent in parallel both run; each is charged.
+- **Weapon words don't place the arms.** "Holds a sword hilt in front of his right shoulder, blade angled up-left" gave the
+  right hand at face height, and with the sword attached in Unity the blade pointed right (130° off); the left "palm on
+  the blade" ended 21 cm from it. Meshy animates no weapon, so the wrist orientation is arbitrary. The
+  body (bladed torso, breathing loop) was usable: fit the arms in Unity (`Combat/BAKE_RECIPES.md` → One-hand braced guard).
 
 ## Multi-image to 3D (`meshy_multi_image_to_3d`) — NPC heads
 

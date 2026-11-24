@@ -75,7 +75,8 @@
 
 - **Opt-in by data:** `CombatStyleSO` "Blocking" (`blockChance` 0 = never; guard 0.4, bandit 0.25) + `EntityGuard` on the root
   (`NPC_base Variant`). A parallel check, not a `CombatAction`: `Block_State` is UpperBody-only, so the NPC keeps circling /
-  backing off with its guard up.
+  backing off with its guard up. The raise passes `NpcArmament.ShieldInHand` (`AIAnimationDriver.SetBlocking(true, shield)`),
+  which picks the shield guard or the weapon's own guard (spec-one-hand-braced-block).
 - **Brain:** `Update` ticks `_guard.Tick(_currentTarget)` after the state switch while Engaging / Attacking **and tactics are
   active** (else `End()`); `EndTactics()` also ends it (single release point). `IsAttackReady()` is false and `HandleAttack`
   won't `ExecuteAttack` while `IsRaised` — `IsBlocking` cancels attack states (block-cancel transitions). `DebugStateName`

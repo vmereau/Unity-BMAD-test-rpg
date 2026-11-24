@@ -86,7 +86,7 @@ namespace Game.Player
             Bridge.SetUpperBodyWeight(_upperBodyWeight);
         }
 
-        public void SetBlocking(bool value) => Bridge.SetBlocking(value);
+        public void SetBlocking(bool value, bool shieldInHand) => Bridge.SetBlocking(value, shieldInHand);
         public void PlayAttack(int triggerHash) => Bridge.PlayAttack(triggerHash);
         public void ResetAttackTriggers() => Bridge.ResetAttackTriggers();
         public void SetAttackCancel(bool value) => Bridge.SetAttackCancel(value);

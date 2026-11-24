@@ -117,5 +117,45 @@ namespace Tests.EditMode
             Assert.That(baseSm.anyStateTransitions.Any(t => t.destinationState != null && t.destinationState.name == "GetHit"),
                 Is.False);
         }
+
+        // spec-one-hand-braced-block: the shield is an offhand that changes the block clip, not only its values.
+        private const string COMBAT = "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/";
+
+        [Test]
+        public void BlockState_BlendsWeaponAndShieldGuard_OnShieldInHand()
+        {
+            AnimatorController controller = LoadController();
+            Assert.That(controller.parameters.Any(p => p.name == "ShieldInHand" && p.type == UnityEngine.AnimatorControllerParameterType.Float),
+                "float ShieldInHand");
+            AnimatorState block = FindState(controller.layers[1].stateMachine, "Block_State");
+            Assert.That(block, Is.Not.Null);
+            Assert.That(block.tag, Is.EqualTo("UpperBodyAction"));
+            var tree = block.motion as BlendTree;
+            Assert.That(tree, Is.Not.Null, "Block_State plays a blend tree");
+            Assert.That(tree.blendType, Is.EqualTo(BlendTreeType.Simple1D));
+            Assert.That(tree.blendParameter, Is.EqualTo("ShieldInHand"));
+            Assert.That(tree.children.Select(c => (c.motion.name, c.threshold)),
+                Is.EqualTo(new[] { ("Unarmed Block Guard", 0f), ("Block Idle", 1f) }));
+        }
+
+        [Test]
+        public void SwordOverride_BracedGuardWithoutShield_BlockIdleWithShield()
+        {
+            var overrides = Overrides(COMBAT + "one handed/Sword_AnimatorOverride.overrideController");
+            Assert.That(overrides["Unarmed Block Guard"], Is.EqualTo("Sword Braced Guard"));
+            Assert.That(overrides["Block Idle"], Is.Null, "a shield in hand plays the base Block Idle");
+            var twoHanded = Overrides(COMBAT + "two handed/TwoHanded_AnimatorOverride.overrideController");
+            Assert.That(twoHanded["Unarmed Block Guard"], Is.EqualTo("2hand blocking"));
+            Assert.That(twoHanded["Block Idle"], Is.EqualTo("2hand blocking"));
+        }
+
+        private static Dictionary<string, string> Overrides(string path)
+        {
+            var oc = AssetDatabase.LoadAssetAtPath<UnityEngine.AnimatorOverrideController>(path);
+            Assert.That(oc, Is.Not.Null, path);
+            var list = new List<KeyValuePair<UnityEngine.AnimationClip, UnityEngine.AnimationClip>>();
+            oc.GetOverrides(list);
+            return list.GroupBy(kv => kv.Key.name).ToDictionary(g => g.Key, g => g.First().Value != null ? g.First().Value.name : null);
+        }
     }
 }

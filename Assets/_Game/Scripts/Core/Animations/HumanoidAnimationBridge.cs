@@ -15,6 +15,7 @@ namespace Game.Animations
         private static readonly int VelocityXHash = Animator.StringToHash("VelocityX");
         private static readonly int VelocityZHash = Animator.StringToHash("VelocityZ");
         private static readonly int IsBlockingHash = Animator.StringToHash("IsBlocking");
+        private static readonly int ShieldInHandHash = Animator.StringToHash("ShieldInHand");
         private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
         private static readonly int IsDodgingBackwardsHash = Animator.StringToHash("IsDodgingBackwards");
         private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
@@ -106,7 +107,17 @@ namespace Game.Animations
 
         public void SetGrounded(bool value) => _animator?.SetBool(IsGroundedHash, value);
         public void SetRising(bool value) => _animator?.SetBool(IsRisingHash, value);
-        public void SetBlocking(bool value) => _animator?.SetBool(IsBlockingHash, value);
+        /// <summary>
+        /// Raises / lowers the guard. <paramref name="shieldInHand"/> picks the <c>Block_State</c> clip (float
+        /// <c>ShieldInHand</c>: 0 = the weapon's own guard, 1 = the shield guard) and is written only on a raise, so the exit
+        /// blend keeps the clip it raised with (spec-one-hand-braced-block).
+        /// </summary>
+        public void SetBlocking(bool value, bool shieldInHand)
+        {
+            if (_animator == null) return;
+            if (value) _animator.SetFloat(ShieldInHandHash, shieldInHand ? 1f : 0f);
+            _animator.SetBool(IsBlockingHash, value);
+        }
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
         public void SetSwimming(bool value) => _animator?.SetBool(IsSwimmingHash, value);
 

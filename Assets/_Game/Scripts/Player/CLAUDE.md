@@ -35,7 +35,7 @@
 
 **Rules:**
 - Never implement action gates inline — always check `PlayerStateManager.Can*()` first.
-- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
+- State is set via `SetAttacking(bool, int triggerHash)`, `SetBlocking(bool, bool shieldInHand)`, `SetDodging(bool, bool isBackward)`, `SetInCombat(bool)`.
 - `IsBusy` is `true` when dead, staggered / knocked down / unconscious (`IsIncapacitated`), held by a story sequence (`IsScriptedHold`, `SetScriptedHold` — camera stays free), the cursor is unlocked or on the frame a dialogue closed (`DialogueEndedThisFrame`) — all `Can*` methods return `false` while busy. `DodgeController` doesn't use `CanDodge()`; it checks `IsIncapacitated` (and `IsExecuting`) itself — so do `InteractionSystem`, `ActionBarSystem.TryUseSlot`, `UIScreenManager.OpenTab` and `PlayerController`'s lock-on rotation: **a new state in `IsBusy` must be added to those five too.**
 - `CanAttack()` and `CanBlock()` both require `IsInCombat == true` — pressing R draws/sheathes the weapon. `CanDodge()` is unchanged.
 - `CanBlock()`, `CanJump()` and `CanDodge()` allow an attack in progress — block / jump / dodge cancel the swing (`PlayerCombat.CancelAttack()`, see `Scripts/Combat/PLAYER_COMBO.md`).
@@ -80,7 +80,7 @@ The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see 
 
 | `PlayerAnimationDriver` method | Forwards to | Animator effect |
 |--------------------------------|-------------|-----------------|
-| `SetBlocking(bool)` | `HumanoidAnimationBridge.SetBlocking` | Sets `IsBlocking` bool |
+| `SetBlocking(bool, bool shieldInHand)` | `HumanoidAnimationBridge.SetBlocking` | Sets `IsBlocking` bool; on a raise also the `ShieldInHand` float (block clip) |
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
 | `ResetAttackTriggers()` | `HumanoidAnimationBridge.ResetAttackTriggers` | Clears `Attack_1/2/3` — called by `PlayerStateManager.SetAttacking(false)` so an untaken trigger can't stay latched |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |

@@ -156,8 +156,9 @@ Right click blocks in every melee mode — fists, one-hander, two-hander; a bow 
 `_blockStaminaCost`). `BlockSourceChanged()` (held shield ≠ snapshot, or a bow equipped) lowers a raised block in
 `HandleVisualsRefreshed` and fails `TryReceiveHit` closed — the next press snapshots the new values. Every lower goes through
 `LowerBlock()`. Shields: Round 20 stamina / 0.35 s / +3 armor, Kite 12 / 0.2 s / +6. Clips (`Block_State` + overrides):
-fists `Unarmed Block Guard`, two-hander `2hand blocking`, sword (shield or not) `Block Idle` (no shield clip yet —
-`deferred-work.md`). NPC side: `Scripts/AI/COMBAT.md` → Blocking.
+fists `Unarmed Block Guard`, two-hander `2hand blocking`, sword alone `Sword Braced Guard` (blade diagonal, left palm on
+the blade), sword + shield `Block Idle` — picked by the `ShieldInHand` float passed to `SetBlocking(true, shield != null)`
+(`Controllers/CLAUDE.md` → `Block_State`). NPC side: `Scripts/AI/COMBAT.md` → Blocking.
 
 ---
 

@@ -233,11 +233,14 @@ namespace Game.Player
 
         // ── State setters (called by PlayerCombat / DodgeController) ─────────
 
-        /// <summary>Sets blocking state and drives the IsBlocking animator bool via PlayerAnimator.</summary>
-        public void SetBlocking(bool value)
+        /// <summary>
+        /// Sets blocking state and drives the IsBlocking animator bool via PlayerAnimator; <paramref name="shieldInHand"/>
+        /// picks the shield guard clip on a raise (spec-one-hand-braced-block).
+        /// </summary>
+        public void SetBlocking(bool value, bool shieldInHand)
         {
             IsBlocking = value;
-            _playerAnimator.SetBlocking(value);
+            _playerAnimator.SetBlocking(value, shieldInHand);
         }
 
         /// <summary>
@@ -430,7 +433,7 @@ namespace Game.Player
             if (_playerAnimator == null) return;
             if (value)
             {
-                _playerAnimator.SetBlocking(false);
+                _playerAnimator.SetBlocking(false, false);
                 _playerAnimator.SetAiming(false);
                 _playerAnimator.ClearStanceReaction();
                 _playerAnimator.SetUnconscious(true);
@@ -480,7 +483,7 @@ namespace Game.Player
 
             if (value)
             {
-                _playerAnimator.SetBlocking(false);
+                _playerAnimator.SetBlocking(false, false);
                 _playerAnimator.SetSneaking(false);
                 _playerAnimator.SetAiming(false);
                 _playerAnimator.SetDrinking(false);

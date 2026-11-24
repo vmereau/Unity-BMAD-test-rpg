@@ -31,8 +31,11 @@ namespace Game.Animations
         public virtual void SetUnconscious(bool down) { }
         /// <summary>Lying asleep (<c>IsSleeping</c>, spec-npc-routine-sleep) / back up. Default: no clip (monsters).</summary>
         public virtual void SetSleeping(bool asleep) { }
-        /// <summary>Guard up / down (<c>IsBlocking</c>, spec-ai-npc-blocking). Default: no block animation (monsters).</summary>
-        public virtual void SetBlocking(bool blocking) { }
+        /// <summary>
+        /// Guard up / down (<c>IsBlocking</c>, spec-ai-npc-blocking); <paramref name="shieldInHand"/> picks the shield guard
+        /// clip on a raise (spec-one-hand-braced-block). Default: no block animation (monsters).
+        /// </summary>
+        public virtual void SetBlocking(bool blocking, bool shieldInHand) { }
         /// <summary>Potion drink on / off (<c>IsDrinking</c>, spec-potion-drink-animation). Default: no clip (monsters).</summary>
         public virtual void SetDrinking(bool drinking) { }
         /// <summary>Bow aim on / off (<c>IsAiming</c>, spec-ai-ranged-combat-style). Default: no bow states (monsters).</summary>

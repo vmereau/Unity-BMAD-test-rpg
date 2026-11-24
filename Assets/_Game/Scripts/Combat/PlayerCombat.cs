@@ -350,7 +350,7 @@ namespace Game.Combat
 
             _blockShield = shield; // before SetBlocking: anything reacting to the raise sees the shield
             _blockStaminaCost = staminaCost;
-            _stateManager.SetBlocking(true); // also drives animator IsBlocking bool
+            _stateManager.SetBlocking(true, shield != null); // also drives animator IsBlocking + ShieldInHand (clip)
 
             // Open perfect block window (a 0 s window never opens — the countdown only runs while > 0)
             _isPerfectBlockWindowOpen = window > 0f;
@@ -374,7 +374,7 @@ namespace Game.Combat
         // Clears the block state (animator bool, perfect-block window, shield snapshot).
         private void LowerBlock()
         {
-            _stateManager.SetBlocking(false); // also drives animator IsBlocking bool
+            _stateManager.SetBlocking(false, false); // also drives animator IsBlocking bool (ShieldInHand kept for the exit)
             _isPerfectBlockWindowOpen = false;
             _perfectBlockWindowTimer = 0f;
             _blockShield = null;
@@ -610,7 +610,7 @@ namespace Game.Combat
             }
             // Same source (e.g. fists → two-hander, no shield): the block stays, but the controller reset cleared IsBlocking.
             else if (_stateManager != null && _stateManager.IsBlocking)
-                _stateManager.SetBlocking(true);
+                _stateManager.SetBlocking(true, _blockShield != null);
             UnbindWeaponHitbox();
             // Story 7.10: cache weapon SO for comboSteps query
             BindWeaponHitbox();

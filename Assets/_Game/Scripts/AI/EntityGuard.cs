@@ -30,6 +30,7 @@ namespace Game.AI
         private FactionMember _target;
         private IMeleeThreat _threat;
         private bool _raised;
+        private bool _raisedWithShield; // ShieldInHand at the raise: the guard clip stays the same for the whole hold
 
         /// <summary>Guard currently up (incl. the hold after the threat ended). The brain never swings while true.</summary>
         public bool IsRaised => _raised;
@@ -84,7 +85,7 @@ namespace Game.AI
             };
             SetRaised(_plan.Tick(input, Time.deltaTime, Random.value, Random.value));
             // A controller swap (NpcArmament) resets every animator parameter: keep re-sending a raised guard.
-            if (_raised && _animationDriver != null) _animationDriver.SetBlocking(true);
+            if (_raised && _animationDriver != null) _animationDriver.SetBlocking(true, _raisedWithShield);
         }
 
         /// <summary>Drops the guard and forgets the target. Idempotent.</summary>
@@ -130,7 +131,9 @@ namespace Game.AI
         {
             if (raised == _raised) return;
             _raised = raised;
-            if (_animationDriver != null) _animationDriver.SetBlocking(raised);
+            // Clip picked at the raise and kept for the hold: a shield change mid-guard must not snap the blend tree.
+            _raisedWithShield = raised && _armament != null && _armament.ShieldInHand;
+            if (_animationDriver != null) _animationDriver.SetBlocking(raised, _raisedWithShield);
             GameLog.Info(TAG, $"{gameObject.name} guard {(raised ? "up" : "down")}");
         }
     }

@@ -10,7 +10,9 @@
 
 ```
 Combat/
-├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride
+├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride;
+│                 `sword braced guard source.fbx` (Meshy) → baked `Sword Braced Guard.anim` (block without a shield,
+│                 `BAKE_RECIPES.md`)
 ├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 (+ attack 2 refined, Blender) / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`);
 │                 `meshy test/` = rejected Meshy text-to-motion tries (`MESHY_PROMPTS.md`)
@@ -22,7 +24,7 @@ Combat/
 │                 Blender leg edits, unreferenced, kept for a revert; untouched sources in `old/`), draw unarmed, sheath unarmed, stagger 1/2,
 │                 Unarmed Idle (source) → baked `Unarmed Idle Guard.anim` (the CombatIdle clip, see below)
 │                 → baked `Unarmed Block Guard.anim` (Block_State, high guard; `refs/` = the pose reference pictures)
-├── Block Idle.fbx — shield-style block, now only the sword's (Sword override → `Block Idle`)
+├── Block Idle.fbx — shield guard: `Block_State` blend child at `ShieldInHand` 1 (sword + shield in hand)
 ├── dodge roll.fbx
 ├── Dodge back.fbx
 ├── execute stomp.fbx — clip `Execute Stomp` (player execute, see below)

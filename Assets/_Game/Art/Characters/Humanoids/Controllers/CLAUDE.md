@@ -10,7 +10,8 @@
 Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Weapon families swap clips via
 `AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Combat/one handed/Sword_AnimatorOverride`,
 `Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). Both melee overrides
-replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); the two-handed one also replaces
+replace the weapon block (`Unarmed Block Guard` → `Sword Braced Guard` / `2hand blocking`; the shield guard `Block Idle`
+plays from the base, the two-handed override maps it to `2hand blocking` too); the two-handed one also replaces
 `unarmed stagger 1/2`. The bow has no block entry (right click aims).
 
 - **Layers** (spec-full-body-attacks-root-motion): **`Base Layer`** holds locomotion (`LockOn Locomotion` 2D blend
@@ -43,7 +44,8 @@ replace the block (`Unarmed Block Guard` → `Block Idle` / `2hand blocking`); t
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
   `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
-  `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep).
+  `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep), `ShieldInHand` (float 0 / 1, the
+  `Block_State` blend — written only on a raise, see below).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
 
@@ -114,8 +116,17 @@ unarmed punch with a weapon in hand: sword `lead jab step` → `SwordAttackLeft`
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced (or re-key in place: set
 each entry's `m_OriginalClip` to the new base clip, which leaves no stale entry). Same for `CombatIdle`
 (= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block
-Guard.anim`, the unarmed high guard; sword → `Block Idle`, two-handed → `2hand blocking`). The player and styled
+Guard.anim`, the unarmed high guard; sword → `Sword Braced Guard`, two-handed → `2hand blocking`). The player and styled
 NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.
+
+**`Block_State` is a 1D blend tree on `ShieldInHand`** (spec-one-hand-braced-block): `Unarmed Block Guard` @0 = the
+weapon's own guard (each override maps it), `Block Idle` @1 = the shield guard (sword + shield in hand). The shield is an
+offhand that changes the block clip, not a separate override controller (a controller swap resets every parameter). Written
+only through `HumanoidAnimationBridge.SetBlocking(value, shieldInHand)`, which sets the float **only when raising**: the exit
+blend must keep the clip it raised with. Player: `PlayerCombat` passes `_blockShield != null` (raise + re-push after a
+controller reset); NPCs: `EntityGuard` passes `NpcArmament.ShieldInHand` (raise + per-tick re-send). A new weapon
+family's override maps `Unarmed Block Guard` to its guard and leaves `Block Idle` unless it can never hold a shield
+(`TwoHanded_AnimatorOverride` maps both). Tests: `HumanoidTemplateControllerTests` (blend tree, overrides).
 
 **Replacing an FBX in place can leave a state playing no clip.** The editor's compiled controller keeps the destroyed
 old clip: `state.motion` and the YAML look right, but at runtime the state reports `length` 1.00 and an empty
