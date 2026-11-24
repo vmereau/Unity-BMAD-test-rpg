@@ -120,18 +120,24 @@ namespace Game.AI
             }
         }
 
+        /// <summary>True once a loadout is in place (see <see cref="Equipped"/>'s save note) — the guard needs it.</summary>
+        public bool IsReady => _ready;
+
         /// <summary>
-        /// A shield is held in the offhand of the drawn weapon (spec-shield-offhand-blocking) — required to guard. False with
-        /// fists, a sheathed weapon, a bow / two-hander, or no shield.
+        /// A shield is held in the offhand of the drawn weapon (spec-shield-offhand-blocking) — guarding with it uses the full
+        /// perfect-block chance. False with fists, a sheathed weapon, a bow / two-hander, or no shield.
         /// </summary>
         public bool ShieldInHand => _ready && _visuals.ShieldInHand;
 
-        /// <summary>Armor added to <c>Entity.Armor</c>: the equipped shield's <c>defenseBonus</c> (body armor isn't counted).</summary>
+        /// <summary>
+        /// Armor added to <c>Entity.Armor</c>: the equipped shield's <c>defenseBonus</c> (body armor isn't counted). None in a fists
+        /// fight — the shield stays on the back (spec-unshielded-blocking).
+        /// </summary>
         public float ShieldArmorBonus
         {
             get
             {
-                ShieldSO shield = _ready ? _equipment.EquippedShield : null;
+                ShieldSO shield = _ready && !_fistsRequested ? _equipment.EquippedShield : null;
                 return shield != null ? shield.defenseBonus : 0f;
             }
         }

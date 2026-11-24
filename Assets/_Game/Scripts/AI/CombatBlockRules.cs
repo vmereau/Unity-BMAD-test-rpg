@@ -113,6 +113,13 @@ namespace Game.AI
             return perfectRoll < perfectBlockChance ? HitResult.PerfectBlock : HitResult.Blocked;
         }
 
+        /// <summary>
+        /// Perfect-block chance of a guard (spec-unshielded-blocking): the style's chance with a shield in hand, × the style's
+        /// <c>unshieldedPerfectBlockMultiplier</c> without one (fists, two-hander, bare one-hander).
+        /// </summary>
+        public static float PerfectBlockChance(float styleChance, bool shieldInHand, float unshieldedMultiplier) =>
+            shieldInHand ? styleChance : styleChance * unshieldedMultiplier;
+
         /// <summary>Guard broken: stance at or below the stagger threshold — no guard until it regenerates above it.</summary>
         public static bool IsGuardBroken(float currentStance, float maxStance, float staggerThreshold) =>
             currentStance <= StanceMath.ThresholdValue(maxStance, staggerThreshold);

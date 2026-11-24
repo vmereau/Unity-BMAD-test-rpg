@@ -16,9 +16,15 @@ namespace Game.Combat
         public float baseStaminaPool = 100f;
 
         [Header("Stamina Costs")]
-        // Block stamina and the perfect-block window come from the equipped ShieldSO (spec-shield-offhand-blocking).
+        // A shield in hand sets the block stamina and perfect-block window (ShieldSO); without one the unshielded values apply.
         public float attackStaminaCost = 20f;
         public float dodgeStaminaCost = 25f;
+
+        [Header("Unshielded Block (fists, two-hander, bare one-hander)")]
+        [Tooltip("Stamina spent per hit absorbed by a block without a shield in hand (also needed to raise it).")]
+        [Min(0f)] public float unshieldedBlockStaminaCost = 25f;
+        [Tooltip("Perfect-block window (s) opened when raising a block without a shield in hand. 0 = never.")]
+        [Min(0f)] public float unshieldedPerfectBlockWindow = 0.2f;
 
         [Header("Stamina Recovery")]
         [Tooltip("Stamina units recovered per second after the regen delay elapses.")]

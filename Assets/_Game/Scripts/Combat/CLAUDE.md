@@ -1,7 +1,7 @@
 # CLAUDE.md — Assets/_Game/Scripts/Combat
 
 > Loaded when Claude accesses files in this folder. Covers `WeaponHitbox`, hit resolution, how
-> `PlayerCombat` binds its hitbox, draw/sheathe and shield blocking. Namespace: `Game.Combat`.
+> `PlayerCombat` binds its hitbox, draw/sheathe and blocking. Namespace: `Game.Combat`.
 
 ## Topic files
 
@@ -146,15 +146,18 @@ sheathed stance when `IsInCombat || IsSwitchingWeapon`.
 
 ---
 
-## Blocking — shield only (spec-shield-offhand-blocking)
+## Blocking (spec-shield-offhand-blocking, spec-unshielded-blocking)
 
-Right click raises the block only with a shield **in hand**: `EquipmentVisuals.ShieldInHand` (a `ShieldSO` in the Offhand slot
-and a drawn weapon visual — fists never draw the shield). The shield is snapshotted at the raise (`_blockShield`):
-`HasEnough` / per-hit `Consume` use `ShieldSO.blockStaminaCost`, the perfect-block window is `ShieldSO.perfectBlockWindow`.
-`HandleVisualsRefreshed` lowers a raised block whose shield left
-the hand (unequipped, two-hander equipped). Every lower goes through `LowerBlock()`. Values: Round 20 stamina / 0.35 s / +3
-armor, Kite 12 / 0.2 s / +6. The block still plays the sword's `Block Idle` (no shield clip yet — `deferred-work.md`). NPC side:
-`Scripts/AI/COMBAT.md` → Blocking.
+Right click blocks in every melee mode — fists, one-hander, two-hander; a bow aims instead. Values come from the pure
+`PlayerCombat.ResolveBlockValues(shield, config)` (`PlayerBlockValuesTests`): a shield **in hand**
+(`EquipmentVisuals.ShieldInHand` = a `ShieldSO` in the Offhand slot and a drawn weapon visual — fists never draw it) gives
+`ShieldSO.blockStaminaCost` / `perfectBlockWindow`; no shield gives `CombatConfigSO.unshieldedBlockStaminaCost` (25) /
+`unshieldedPerfectBlockWindow` (0.2 s). Shield (or null) and the cost are snapshotted at the raise (`_blockShield`,
+`_blockStaminaCost`). `BlockSourceChanged()` (held shield ≠ snapshot, or a bow equipped) lowers a raised block in
+`HandleVisualsRefreshed` and fails `TryReceiveHit` closed — the next press snapshots the new values. Every lower goes through
+`LowerBlock()`. Shields: Round 20 stamina / 0.35 s / +3 armor, Kite 12 / 0.2 s / +6. Clips (`Block_State` + overrides):
+fists `Unarmed Block Guard`, two-hander `2hand blocking`, sword (shield or not) `Block Idle` (no shield clip yet —
+`deferred-work.md`). NPC side: `Scripts/AI/COMBAT.md` → Blocking.
 
 ---
 

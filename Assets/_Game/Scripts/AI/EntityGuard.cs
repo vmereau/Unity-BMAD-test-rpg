@@ -46,7 +46,7 @@ namespace Game.AI
             _armament = GetComponent<NpcArmament>();
             _drinker = GetComponent<EntityPotionDrinker>();
             if (_armament == null)
-                GameLog.Warn(TAG, $"{gameObject.name}: EntityGuard without NpcArmament never guards (blocking needs a shield in hand)");
+                GameLog.Warn(TAG, $"{gameObject.name}: EntityGuard without NpcArmament never guards (blocking needs a melee loadout)");
         }
 
         private void OnDisable() => End();
@@ -105,7 +105,9 @@ namespace Game.AI
             CombatStyleSO style = Style;
             if (!_raised || style == null || attacker == null || !CanGuard()) return HitResult.NotBlocked;
             bool inArc = InReachAndArc(attacker.transform.position - transform.position, style);
-            HitResult result = CombatBlockRules.ResolveBlock(true, inArc, Random.value, style.perfectBlockChance);
+            float perfectChance = CombatBlockRules.PerfectBlockChance(style.perfectBlockChance, _armament.ShieldInHand,
+                style.unshieldedPerfectBlockMultiplier);
+            HitResult result = CombatBlockRules.ResolveBlock(true, inArc, Random.value, perfectChance);
             if (result != HitResult.NotBlocked) GameLog.Info(TAG, $"{gameObject.name} {result} vs {attacker.name}");
             return result;
         }
@@ -115,14 +117,14 @@ namespace Game.AI
             && CombatBlockRules.IsInFrontArc(transform.forward, toAttacker, style.guardArcAngle);
 
         // Never mid-swing, staggered / knocked down, down, switching weapon, drinking (the opening), with a broken guard,
-        // or without a shield in hand.
+        // without a loadout, or in ranged mode.
         private bool CanGuard() =>
             (_drinker == null || !_drinker.IsDrinking) &&
             (_health == null || (!_health.IsDead && !_health.IsUnconscious))
             && (_stance == null || (!_stance.IsIncapacitated && !_stance.IsGuardBroken))
             && (_attacker == null || !_attacker.IsInSwing)
-            // Shield-only (spec-shield-offhand-blocking): a shield in the offhand of the drawn weapon (never with a bow / fists).
-            && _armament != null && !_armament.IsSwitchingWeapon && _armament.ShieldInHand;
+            // Any melee mode guards (spec-unshielded-blocking): fists, one-hander (shield or not), two-hander — never a bow.
+            && _armament != null && _armament.IsReady && !_armament.IsChangingWeapon && !_armament.IsRanged;
 
         private void SetRaised(bool raised)
         {

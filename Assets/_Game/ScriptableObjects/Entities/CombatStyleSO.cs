@@ -54,6 +54,8 @@ namespace Game.AI
         [Range(0f, 1f)] public float blockChance = 0f;
         [Tooltip("Chance a blocked hit is a perfect block (parry: the attacker's stance is hit).")]
         [Range(0f, 1f)] public float perfectBlockChance = 0f;
+        [Tooltip("Multiplier on perfectBlockChance when guarding without a shield in hand (fists, two-hander, bare one-hander).")]
+        [Range(0f, 1f)] public float unshieldedPerfectBlockMultiplier = 0.5f;
         [Tooltip("Minimum seconds between the attacker's wind-up and the guard going up.")]
         [Min(0f)] public float reactionDelayMin = 0.15f;
         [Tooltip("Maximum seconds between the attacker's wind-up and the guard going up.")]

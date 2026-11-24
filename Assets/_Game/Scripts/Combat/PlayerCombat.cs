@@ -81,8 +81,10 @@ namespace Game.Combat
         // Perfect block timing state (owned by PlayerCombat, not PlayerStateManager)
         private bool _isPerfectBlockWindowOpen = false;
         private float _perfectBlockWindowTimer = 0f;
-        // Shield the raised block uses (spec-shield-offhand-blocking): its stamina cost applies per absorbed hit.
+        // Shield the raised block uses (null = unshielded block, spec-unshielded-blocking) and the stamina cost per absorbed
+        // hit snapshotted at the raise (the shield's, else CombatConfigSO.unshieldedBlockStaminaCost).
         private ShieldSO _blockShield;
+        private float _blockStaminaCost;
 
         // Hit detection — pre-allocated buffer; reused per attack to avoid per-frame allocation
         private readonly Collider[] _hitBuffer = new Collider[10];
@@ -327,15 +329,12 @@ namespace Game.Combat
                 return;
             }
 
-            // Blocking is shield-only (spec-shield-offhand-blocking): a shield in the offhand of a drawn melee weapon.
+            // Any melee mode blocks (spec-unshielded-blocking): a shield in hand sets the values, else the weaker
+            // unshielded ones (fists, two-hander, one-hander alone).
             ShieldSO shield = HeldShield();
-            if (shield == null)
-            {
-                GameLog.Info(TAG, "Cannot block — no shield in hand");
-                return;
-            }
+            (float staminaCost, float window) = ResolveBlockValues(shield, _config);
 
-            if (!_staminaSystem.HasEnough(shield.blockStaminaCost))
+            if (!_staminaSystem.HasEnough(staminaCost))
             {
                 GameLog.Warn(TAG, "Cannot block: insufficient stamina");
                 return;
@@ -350,12 +349,13 @@ namespace Game.Combat
             }
 
             _blockShield = shield; // before SetBlocking: anything reacting to the raise sees the shield
+            _blockStaminaCost = staminaCost;
             _stateManager.SetBlocking(true); // also drives animator IsBlocking bool
 
             // Open perfect block window (a 0 s window never opens — the countdown only runs while > 0)
-            _isPerfectBlockWindowOpen = shield.perfectBlockWindow > 0f;
-            _perfectBlockWindowTimer = shield.perfectBlockWindow;
-            GameLog.Info(TAG, $"Perfect block window opened ({shield.perfectBlockWindow:F2}s, {shield.itemName})");
+            _isPerfectBlockWindowOpen = window > 0f;
+            _perfectBlockWindowTimer = window;
+            GameLog.Info(TAG, $"Perfect block window opened ({window:F2}s, {(shield != null ? shield.itemName : "unshielded")})");
 
             // Reset any in-progress combo — cannot combo mid-block
             ResetAttackCombo();
@@ -378,7 +378,21 @@ namespace Game.Combat
             _isPerfectBlockWindowOpen = false;
             _perfectBlockWindowTimer = 0f;
             _blockShield = null;
+            _blockStaminaCost = 0f;
         }
+
+        /// <summary>
+        /// Stamina per absorbed hit and perfect-block window of a block raised with <paramref name="shield"/> in hand (its own
+        /// values), or without a shield (null: <c>CombatConfigSO.unshielded*</c>) — spec-unshielded-blocking.
+        /// </summary>
+        public static (float staminaCost, float perfectWindow) ResolveBlockValues(ShieldSO shield, CombatConfigSO config)
+        {
+            if (shield != null) return (shield.blockStaminaCost, shield.perfectBlockWindow);
+            return config != null ? (config.unshieldedBlockStaminaCost, config.unshieldedPerfectBlockWindow) : (0f, 0f);
+        }
+
+        // The block source no longer matches the raise: shield gained / lost / swapped, or a bow now equipped (no block).
+        private bool BlockSourceChanged() => HeldShield() != _blockShield || EquippedBow != null;
 
         // The equipped shield when it is held in the offhand (drawn one-handed melee weapon), else null.
         private ShieldSO HeldShield()
@@ -587,12 +601,16 @@ namespace Game.Combat
             // Refresh() reassigns runtimeAnimatorController, which resets every animator parameter — re-push the
             // stance, or a drawn player stays in LockOn Locomotion and Attack_1 (only taken from CombatIdle) latches.
             if (_stateManager != null) _stateManager.SetInCombat(_stateManager.IsInCombat);
-            // Shield unequipped (or its weapon swapped for fists / a two-hander) under a raised block: no guard without it.
-            if (_stateManager != null && _stateManager.IsBlocking && HeldShield() != _blockShield) // gone, or swapped mid-block
+            // The block's source changed under a raised block (shield gained / lost / swapped, bow equipped): lower it, the
+            // next press snapshots the new values.
+            if (_stateManager != null && _stateManager.IsBlocking && BlockSourceChanged())
             {
                 LowerBlock();
-                GameLog.Info(TAG, "Block lowered — shield no longer in hand");
+                GameLog.Info(TAG, "Block lowered — shield in hand changed or bow equipped");
             }
+            // Same source (e.g. fists → two-hander, no shield): the block stays, but the controller reset cleared IsBlocking.
+            else if (_stateManager != null && _stateManager.IsBlocking)
+                _stateManager.SetBlocking(true);
             UnbindWeaponHitbox();
             // Story 7.10: cache weapon SO for comboSteps query
             BindWeaponHitbox();
@@ -1216,11 +1234,11 @@ namespace Game.Combat
                 return HitResult.NotBlocked;
             }
 
-            // Fail closed: a block whose shield left the hand (or was never snapshotted) absorbs nothing.
-            if (_blockShield == null || HeldShield() != _blockShield)
+            // Fail closed: a block whose source changed since the raise (shield / bow) absorbs nothing.
+            if (BlockSourceChanged())
             {
                 LowerBlock();
-                GameLog.Warn(TAG, "Hit received — block lowered, shield no longer in hand");
+                GameLog.Warn(TAG, "Hit received — block lowered, shield in hand changed or bow equipped");
                 return HitResult.NotBlocked;
             }
 
@@ -1232,8 +1250,8 @@ namespace Game.Combat
                 return HitResult.PerfectBlock;
             }
 
-            // Regular block — consume the shield's stamina cost per hit
-            bool consumed = _staminaSystem.Consume(_blockShield.blockStaminaCost);
+            // Regular block — consume the cost snapshotted at the raise (shield or unshielded)
+            bool consumed = _staminaSystem.Consume(_blockStaminaCost);
             if (!consumed)
             {
                 // Block broken by hit — stamina exhausted; SetBlocking also clears the animator bool

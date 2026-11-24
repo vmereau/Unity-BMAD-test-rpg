@@ -15,6 +15,8 @@ MonoBehaviour:
   baseStaminaPool: 100
   attackStaminaCost: 20
   dodgeStaminaCost: 25
+  unshieldedBlockStaminaCost: 25
+  unshieldedPerfectBlockWindow: 0.2
   staminaRegenRate: 20
   staminaRegenDelay: 1.5
   dodgeDuration: 0.5

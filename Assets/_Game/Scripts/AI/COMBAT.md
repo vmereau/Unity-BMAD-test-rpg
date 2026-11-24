@@ -90,19 +90,21 @@
   is read. The threat must be a live, enabled component (a disabled `PlayerCombat` keeps stale flags). A raised guard is
   re-sent to the animator every tick — an `NpcArmament` controller swap resets every parameter.
 - **Can't guard** (drops at once; a step that started meanwhile is never read): own `IsInSwing`, staggered / knocked down,
-  dead / unconscious, `IsSwitchingWeapon`, drinking a potion, **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold),
-  or **no shield in hand** `NpcArmament.ShieldInHand` = a `ShieldSO` in the Offhand slot and the
-  weapon drawn (`EquipmentVisuals.ShieldInHand`) — so never with fists, a bow, or without `NpcArmament`. Guards (`CompanyGuard_*`,
+  dead / unconscious, `IsChangingWeapon`, drinking a potion, **guard broken** (`EntityStance.IsGuardBroken`: stance ≤ threshold),
+  **ranged mode** (`NpcArmament.IsRanged`), or no ready `NpcArmament` (`IsReady`). Any melee mode guards
+  (spec-unshielded-blocking): fists, one-hander, two-hander. A shield in hand (`NpcArmament.ShieldInHand` = a `ShieldSO` in
+  the Offhand slot and the weapon drawn) keeps the full `perfectBlockChance`; without one it is × the style's
+  `unshieldedPerfectBlockMultiplier` (0.5, `CombatBlockRules.PerfectBlockChance`) and no shield armor. Guards (`CompanyGuard_*`,
   Dock / Racket / Warehouse / Barn guards, Warden) carry `Shield_KiteWoodShield`, the bandit `Shield_RoundWoodShield`
   (`NPCEntity._startingEquipment`). The shield's `defenseBonus` adds to `Entity.Armor` in `EntityHealth.TakeDamage`
-  (`NpcArmament.ShieldArmorBonus`; body armor still doesn't count). Shield stamina / window are player-only — NPCs keep the
-  style's `perfectBlockChance`. A bow swap bumps the shield into the inventory; `NpcArmament.EquipCarriedShield` re-equips it
+  (`NpcArmament.ShieldArmorBonus`; none in a fists fight — the shield stays on the back; body armor still doesn't count). Shield stamina / window are player-only — NPCs use the
+  style's `perfectBlockChance` (halved without a shield, above). A bow swap bumps the shield into the inventory; `NpcArmament.EquipCarriedShield` re-equips it
   on the way back to melee and on wake-up — only the shield it stowed (`_stowedShield`), never trade stock. `GrantLoadout`
   equips shields after weapons (a loadout shield next to a two-hander is carried, warned). A restored living NPC with no
   offhand and no shield in its inventory gets its starting shield back (pre-shield saves). The shield stays equipped (not
   lootable) when the NPC goes down, like armor — unless a bow swap had stowed it in the (lootable) inventory.
 - **Hit:** `EntityHealth.TryReceiveHit` → `EntityGuard.ResolveHit(attacker)`: raised + attacker in the front arc **and within
-  `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance`; else `NotBlocked`. Any attacker in reach is
+  `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance` (× the unshielded multiplier without a shield); else `NotBlocked`. Any attacker in reach is
   blocked, not only the read target. Arrows share the check: a point-blank shot into a raised guard is blocked, a distant
   shooter is never blocked or parried (the parry would stagger the player at range).
 - A blocked hit raises no damage reaction (no `HealthChanged`), like the player's own block — a guarding NPC doesn't retarget

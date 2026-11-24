@@ -224,4 +224,14 @@ public class CombatBlockRulesTests
         Assert.IsTrue(plan.IsRaised);
         return plan;
     }
+
+    // --- spec-unshielded-blocking ---
+
+    [Test]
+    public void PerfectBlockChance_FullWithShield_ScaledWithout()
+    {
+        Assert.AreEqual(0.4f, CombatBlockRules.PerfectBlockChance(0.4f, true, 0.5f), 1e-5f);
+        Assert.AreEqual(0.2f, CombatBlockRules.PerfectBlockChance(0.4f, false, 0.5f), 1e-5f);
+        Assert.AreEqual(0f, CombatBlockRules.PerfectBlockChance(0f, false, 0.5f), 1e-5f);
+    }
 }
