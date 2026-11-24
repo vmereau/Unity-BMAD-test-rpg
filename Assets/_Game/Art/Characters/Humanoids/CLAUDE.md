@@ -12,7 +12,7 @@
 | File | Read when |
 |------|-----------|
 | `PIPELINE.md` | Importing a Meshy model (Meshy → Mixamo → Unity), swapping the player body, editing `Humanoid_BaseHero.prefab`, the head / body split + neck interface, the Company grunt armor |
-| `HEADS_SKIN.md` | NPC head variants, portrait faces (`/characters:portrait-face`), Meshy 3D heads, skin masks and skin tones (`SG_SkinLit`) |
+| `HEADS_SKIN.md` | NPC head variants, portrait faces (`/characters:portrait-face`), Meshy 3D heads (`/characters:meshy-head`), skin masks and skin tones (`SG_SkinLit`) |
 
 ---
 

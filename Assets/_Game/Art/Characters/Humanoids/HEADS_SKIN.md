@@ -131,6 +131,8 @@ Gotchas:
 
 ## NPC Meshy heads (spec-npc-meshy-heads)
 
+Run it end to end with `/characters:meshy-head [NPC]` (cost → generate → trim → refs / landmarks → ear fit → bake → verify → assign).
+
 A Meshy multi-image-to-3D head, made from the NPC's existing `refs/` front + side portraits, is used as a **shape +
 texture source only**: never rigged, never shipped as a mesh. The canonical head is shrinkwrapped onto it (neck frozen)
 and its colours are baked into the canonical UVs, so the export, `Bake Head Variants`, skin mask, tones and verify
