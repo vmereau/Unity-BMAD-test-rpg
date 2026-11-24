@@ -1273,9 +1273,7 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 
 ## From spec-hand-pose-layer (2026-11-24)
 
-- **Bow wrist:** in `Standing Aim Overdraw` the left wrist is pronated ~50° from a real bow grip, so the (vertical) riser
-  crosses the palm plane instead of lying in it. `Archetype_Bow.drawnPose` was moved (position only) so the riser sits in
-  the hand; a full wrap needs a wrist fix in the bow clips (or a canted bow).
+- ~~**Bow wrist:**~~ resolved by spec-bow-hand-grip (handle across the palm + baked wrist offsets).
 - **Right-hand string pose:** the bow's right hand stays `Relaxed` through draw / aim / release; a string-hook pose (and
   per-state switching on the UpperBody bow states) is later work.
 - **Finger skin at the PIP crease:** in the fist and grips the v2 hand shows dark folds / pinched tips at the PIP joints
@@ -1285,3 +1283,16 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
 - Two-hander: both hands keep `TwoHandGrip` while the weapon is drawn, even when the left hand lets go of the handle
   (sheathe before WeaponSwap, knockdown; `TwoHandGripConstraint` treats > 0.55 m as let go). Could feed the constraint's
   grip weight into the left-hand pose.
+
+## From spec-bow-hand-grip (2026-11-24)
+
+- **Right-hand string pose** (extends the spec-hand-pose-layer item above; the user chose to defer it again): the bow mesh is static (straight string, no bone), so
+  at full draw the right hand is far from the string. Needs a bendable string (bone or shader) plus a string-hook finger
+  pose on the UpperBody bow states.
+- **Sheathe Bow release:** the palm is 2 cm from the back grip at the release frame (0.325), but the bow turns ~49° there
+  (the sheathe clip doesn't bring the hand back the way the draw takes it). A Blender wrist edit of `Standing Disarm
+  Bow` around 0.30–0.35 would make it seamless.
+- **Bow on the back at rest:** the seamless sheathed pose hangs the bow nearly vertical along the spine, the upper tip
+  above the head. A diagonal carry would need a Draw Bow arm edit.
+- **Combat idle with the bow:** `CombatIdle` plays the unarmed boxing guard (`Unarmed Idle Guard`) with the bow in the
+  left fist. A bow-specific idle (override on the guard) would read better.

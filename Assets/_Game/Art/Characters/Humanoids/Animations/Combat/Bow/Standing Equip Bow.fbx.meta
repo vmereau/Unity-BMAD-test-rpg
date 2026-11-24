@@ -56,7 +56,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000u
       curves: []
       events:
-      - time: 0.45
+      - time: 0.3
         functionName: WeaponSwap
         data: 
         objectReferenceParameter: {instanceID: 0}

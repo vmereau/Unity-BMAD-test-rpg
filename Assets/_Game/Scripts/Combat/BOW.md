@@ -42,7 +42,8 @@ only set by `OnVisualsRefreshed`, null after a disable/enable), the bow can't bl
     `OnDisable` does the same.
   - **The arrow line is calibrated, not measured live.** A live right-hand → left-hand line swings during `Draw arrow` /
     `Fire arrow`, when the hand goes to the quiver. `_arrowLineLocal` / `_arrowOriginLocal` = left − right hand / the right
-    hand, in UpperChest local space, from `Aim Overdraw` sampled at 50 % on the Player prefab
+    hand, in UpperChest local space, from `Aim Overdraw` sampled at 50 % on the Player prefab (still valid for the
+    wrist-baked `Bow Aim Overdraw.anim`: its offsets turn the hand, not move it — spec-bow-hand-grip)
     (`PrefabUtility.LoadPrefabContents` + `clip.SampleAnimation(root, t)`). Re-calibrate if the bow clips or the
     character model change. Selected in play, the component draws the line as a cyan gizmo.
   - Stance: `PlayerController` faces camera yaw + `PlayerConfigSO.aimStanceYaw` (45°); the

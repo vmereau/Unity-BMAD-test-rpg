@@ -75,14 +75,16 @@ namespace Game.Editor.Characters
                 new Finger(-0.45f, -1f, -0.6f, -0.6f),
                 new Finger(-0.6f, -1f, -0.8f, -0.6f),
             },
-            // The riser is ~4 cm deep and crosses the palm at an angle (the aim clip's wrist is pronated): less MCP curl.
+            // Riser handle (5.5 cm wide along the fingers, 4.2 cm deep) across the palm at 30° (spec-bow-hand-grip): the
+            // proximal phalanges lie along its side, the middle ones close over its face. Little finger curls more at the
+            // PIP (an open one pushes its tip into the flaring riser). Gaps: tips 1–12 mm off the surface.
             [HandPose.BowGrip] = new[]
             {
-                new Finger(-0.5f, -0.8f, -0.5f, 0.5f),
-                new Finger(-0.1f, -1f, -0.5f, -0.6f),
-                new Finger(-0.1f, -1f, -0.5f, -0.3f),
-                new Finger(-0.1f, -1f, -0.5f, -0.6f),
-                new Finger(-0.25f, -1f, -0.7f, -0.6f),
+                new Finger(-0.5f, -0.6f, -0.3f, 0.3f),
+                new Finger(-0.05f, -0.25f, -0.16f, -0.6f),
+                new Finger(-0.45f, -0.35f, -0.23f, -0.3f),
+                new Finger(-0.45f, -0.15f, -0.1f, -0.6f),
+                new Finger(-0.2f, -0.9f, -0.59f, -0.6f),
             },
             // The shield's handle bar behind the boss: same closure as the weapon grip (bar ~2 cm thick).
             [HandPose.ShieldHold] = new[]

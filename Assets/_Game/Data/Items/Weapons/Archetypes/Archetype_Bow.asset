@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::Game.Inventory.WeaponArchetypeSO
   drawnHand: 1
   drawnPose:
-    localPosition: {x: 0.0408, y: -0.0647, z: 0.0033}
-    localEulerAngles: {x: 298.92, y: 293.9, z: 31.67}
+    localPosition: {x: 0.0228, y: -0.0276, z: -0.0626}
+    localEulerAngles: {x: 347.22, y: 337.61, z: 300.23}
   sheathedPose:
-    localPosition: {x: 0, y: 0, z: 0}
-    localEulerAngles: {x: 0, y: 0, z: 45}
+    localPosition: {x: -0.038, y: -0.138, z: -0.083}
+    localEulerAngles: {x: 359.8, y: 0.1, z: 167.4}
   twoHandedGrip: 0
   gripRoll: 0
   gripSlide: 0

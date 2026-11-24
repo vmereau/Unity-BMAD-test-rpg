@@ -51,7 +51,7 @@ namespace Game.Editor.Characters
             new Case("2hand", ANIM + "Combat/two handed/2hand Idle.fbx", 0.2f, HandPose.TwoHandGrip, HandPose.TwoHandGrip, TWO_HANDER),
             new Case("braced", ANIM + "Combat/one handed/Sword Braced Guard.anim", 0.2f, HandPose.Relaxed, HandPose.OneHandGrip, SWORD),
             new Case("shield", ANIM + "Combat/Block Idle.fbx", 0.2f, HandPose.ShieldHold, HandPose.OneHandGrip, SWORD, SHIELD),
-            new Case("bow", ANIM + "Combat/Bow/Standing Aim Overdraw.fbx", 0.3f, HandPose.BowGrip, HandPose.Relaxed, BOW),
+            new Case("bow", ANIM + "Combat/Bow/Bow Aim Overdraw.anim", 0.3f, HandPose.BowGrip, HandPose.Relaxed, BOW),
         };
 
         /// <summary>

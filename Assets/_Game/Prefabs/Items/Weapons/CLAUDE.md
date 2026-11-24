@@ -108,9 +108,17 @@ the `drawnPose` (in that hand socket's space) / `sheathedPose`, the `sheathSocke
   tune it when the first Back weapon exists). If the archetype asks for Back but the socket is unassigned,
   `EquipmentVisuals` warns once and falls back to the hip.
 - Current archetypes: `Archetype_OneHandedSword`, `Archetype_OneHandedAxe` (the axe reuses `Sword_AnimatorOverride`),
-  `Archetype_Bow` (**Left** hand; Back socket; drawn pose derived from `Aim Overdraw` at 50 % — belly (+Z) along the
-  right-hand → left-hand line, limbs (+Y) along UpperChest up — sheathed pose a guess, tune in play mode;
-  `Bow_AnimatorOverride` swaps only the draw / sheathe clips), `Archetype_TwoHanded` (Right hand, **Back** socket,
+  `Archetype_Bow` (**Left** hand; Back socket; `Bow_AnimatorOverride` swaps only the draw / sheathe clips; spec
+  `spec-bow-hand-grip.md`). **Drawn pose = grip, not aim:** the handle (Drawn y ±0.075, z 0.065–0.107) lies across the
+  left palm at 30° toward the fingers, its string-side face on the palm (handle centre 4.6 cm out along the palm normal), and
+  `BowGrip` fingers close over it. The bow's aim orientation comes from the wrist offsets in the baked bow clips
+  (`BowClipWristBaker`), so **changing `drawnPose` means re-fitting those offsets**. **Sheathed pose = the in-hand pose at
+  the Draw Bow `WeaponSwap` frame** (0.30), expressed in `BackWeaponSocket` space: the grab is seamless and the bow hangs
+  along the spine. Changing `drawnPose` or the draw clip means re-deriving it (`inverse(Back) × LeftWeaponSocket ×
+  drawnPose` at that frame). Sheathe Bow releases at 0.325, where the palm is closest (2 cm; the bow turns ~49° there).
+  Both poses were derived on `Humanoid_BaseHero` (v2 body, same sockets as the Player): a body with other proportions
+  gets a near-seamless grab, not an exact one.
+- `Archetype_TwoHanded` (Right hand, **Back** socket,
   `TwoHanded_AnimatorOverride`, 2 combo steps, stance 45 + knockdown, `attackStaminaMultiplier` 2; drawn pose = edge
   reference + fallback (two-hand grip below); sheathed pose = hilt above the right shoulder, blade down-left).
 - **Two-hand grip (`twoHandedGrip`, spec `spec-two-hand-grip-constraint.md`):** `Drawn` is re-aimed every frame by `TwoHandGripConstraint` — algorithm in `Scripts/Inventory/CLAUDE.md` → TwoHandGripConstraint.

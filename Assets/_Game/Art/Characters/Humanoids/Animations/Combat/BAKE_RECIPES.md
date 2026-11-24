@@ -163,3 +163,18 @@ bring forward) is merged, not given a second state. No committed bake tool yet �
 `AnimationClipSettings` (loopTime off, `stopTime` = total); one `WeaponSwap` event **in seconds** at the middle of the gap
 (the hand is at the back there). Re-bake after changing the source parts' import settings. Keep the longest clip under
 `CombatConfigSO.weaponSwitchTimeout` (2.5 s at speed 1).
+
+---
+
+## Bow wrist (`Bow/Bow Draw Arrow|Aim Overdraw|Fire Arrow.anim`, spec-bow-hand-grip)
+The UpperBody bow states play bakes of the three Mixamo FBX made by **`Tools/Characters/Bake Bow Wrist Clips`**
+(`Editor/Characters/BowClipWristBaker`, idempotent, GUIDs kept; rewires the states). The bake copies every curve and the
+clip settings and adds **one constant offset set to all three clips** (no wrist turn at the state transitions):
+`Left Hand Down-Up` +0.819, `Left Hand In-Out` +0.594, `Left Forearm Twist In-Out` +0.488. Each value is clamped to
+±1, or to the source's own value where the clip already goes past it (Draw arrow's In-Out reaches 1.54: 15 keys held).
+Why: `Archetype_Bow.drawnPose` puts the handle across the palm (a real grip), which turns the bow ~80° from where the
+clips' pronated wrist held it. Fitted (coordinate descent, `HumanPoseHandler`, **restore `bodyPosition` /
+`bodyRotation` per sample**) against the previous in-hand orientation over Aim Overdraw: 11° residual (3° on the
+limbs' axis). Fire arrow: mean 23°, max 33° (ends 14–16°); Draw arrow ends 11° off (its middle, with the bow low, up to 55°: no target
+there). Wrist / forearm-twist muscles don't move the hand bone (0 mm), so `BowAimCorrection`'s arrow line stays
+calibrated. Re-fit if `drawnPose`, the clips or the body change.

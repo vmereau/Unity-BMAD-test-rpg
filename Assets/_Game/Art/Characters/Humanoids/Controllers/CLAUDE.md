@@ -70,8 +70,10 @@ maps them to `draw sword` / `sheath sword`; `Bow_AnimatorOverride`
 
 ### Bow aim states (UpperBody layer — player and NPC archers)
 
-`CombatIdle → BowDrawArrow_State` (`Draw arrow`, IsAiming, 0.15 s) `→ BowAim_State` (`Aim Overdraw`, looping, exit 0.9)
-`→ BowFire_State` (`Fire arrow`, BowFire trigger) `→ BowDrawArrow_State` (exit 0.85, IsAiming). Each of the three states
+`CombatIdle → BowDrawArrow_State` (`Bow Draw Arrow.anim`, IsAiming, 0.15 s) `→ BowAim_State` (`Bow Aim Overdraw.anim`,
+looping, exit 0.9) `→ BowFire_State` (`Bow Fire Arrow.anim`, BowFire trigger) `→ BowDrawArrow_State` (exit 0.85,
+IsAiming). The three clips are left-wrist bakes of the Mixamo FBX (`Tools/Characters/Bake Bow Wrist Clips`,
+`Combat/BAKE_RECIPES.md` → Bow wrist): re-bake, don't hand-edit. Each of the three states
 also has `→ CombatIdle` (IsAiming false, 0.15 s), listed **first**. `BowAim_State` carries `SMB_BowAimState`: its enter =
 arrow nocked (the Animator GO's `IBowNockListener`). The bow clips sit directly in the base controller (not in an override):
 only a bow sets `IsAiming` — the player, and NPC archers through `AIAnimationDriver.SetAiming` / `TriggerBowFire`

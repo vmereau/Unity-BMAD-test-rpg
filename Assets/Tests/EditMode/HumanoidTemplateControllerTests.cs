@@ -190,6 +190,71 @@ namespace Tests.EditMode
             Assert.That(twoHanded["Block Idle"], Is.EqualTo("2hand blocking"));
         }
 
+        // spec-bow-hand-grip: the aim states play the wrist-corrected bakes (Tools/Characters/Bake Bow Wrist Clips).
+        [TestCase("BowDrawArrow_State", "Bow Draw Arrow.anim", false)]
+        [TestCase("BowAim_State", "Bow Aim Overdraw.anim", true)]
+        [TestCase("BowFire_State", "Bow Fire Arrow.anim", false)]
+        public void BowStates_PlayTheWristBakes(string stateName, string clipFile, bool loops)
+        {
+            AnimatorController controller = LoadController();
+            AnimatorState state = FindState(controller.layers.First(l => l.name == "UpperBody").stateMachine, stateName);
+            Assert.That(state, Is.Not.Null, stateName);
+            Assert.That(AssetDatabase.GetAssetPath(state.motion), Is.EqualTo(COMBAT + "Bow/" + clipFile));
+            var clip = (UnityEngine.AnimationClip)state.motion;
+            Assert.That(clip.isHumanMotion, Is.True, "humanoid muscle curves");
+            Assert.That(clip.events, Is.Empty);
+            Assert.That(clip.isLooping, Is.EqualTo(loops));
+            if (stateName == "BowAim_State")
+                Assert.That(state.behaviours.OfType<Game.Combat.SMB_BowAimState>().Count(), Is.EqualTo(1), "the nock SMB");
+        }
+
+        // Stale-bake guard: the .anim is its FBX source plus the wrist offsets (re-run Bake Bow Wrist Clips if this fails
+        // after a reimport or an offset change).
+        [Test]
+        public void BowWristBakes_MatchSourcePlusOffsets()
+        {
+            foreach (var (source, baked, _) in Game.Editor.Characters.BowClipWristBaker.Clips)
+            {
+                var src = AssetDatabase.LoadAllAssetsAtPath(source).OfType<UnityEngine.AnimationClip>()
+                    .First(c => !c.name.StartsWith("__preview"));
+                var bake = AssetDatabase.LoadAssetAtPath<UnityEngine.AnimationClip>(baked);
+                Assert.That(bake, Is.Not.Null, baked);
+                Assert.That(bake.length, Is.EqualTo(src.length).Within(1e-4f), baked);
+                Assert.That(AnimationUtility.GetCurveBindings(bake).Length, Is.EqualTo(AnimationUtility.GetCurveBindings(src).Length), baked);
+                foreach (var (muscle, offset) in Game.Editor.Characters.BowClipWristBaker.WristOffsets)
+                {
+                    var binding = EditorCurveBinding.FloatCurve(string.Empty, typeof(Animator), muscle);
+                    var s = AnimationUtility.GetEditorCurve(src, binding).keys;
+                    var b = AnimationUtility.GetEditorCurve(bake, binding).keys;
+                    Assert.That(b.Length, Is.EqualTo(s.Length), $"{baked} {muscle}");
+                    for (int k = 0; k < s.Length; k++)
+                        Assert.That(b[k].value, Is.EqualTo(Game.Editor.Characters.BowClipWristBaker.OffsetValue(s[k].value, offset))
+                            .Within(1e-4f), $"{baked} {muscle} key {k}");
+                }
+            }
+        }
+
+        [Test]
+        public void BowWristBake_AddsOffsetWithinRange_KeepsOutOfRangeSourceValue()
+        {
+            Assert.That(Game.Editor.Characters.BowClipWristBaker.OffsetValue(0.1f, 0.5f), Is.EqualTo(0.6f).Within(1e-5f));
+            Assert.That(Game.Editor.Characters.BowClipWristBaker.OffsetValue(0.8f, 0.5f), Is.EqualTo(1f));
+            Assert.That(Game.Editor.Characters.BowClipWristBaker.OffsetValue(1.5f, 0.5f), Is.EqualTo(1.5f));
+            Assert.That(Game.Editor.Characters.BowClipWristBaker.OffsetValue(-1.2f, 0.5f), Is.EqualTo(-0.7f).Within(1e-5f));
+        }
+
+        // spec-bow-hand-grip: the bow changes hands where the left hand is on its grip on the back.
+        [TestCase("Standing Equip Bow.fbx", 0.30f)]
+        [TestCase("Standing Disarm Bow.fbx", 0.325f)]
+        public void BowDrawSheathe_WeaponSwapOnTheGrabFrame(string file, float normalizedTime)
+        {
+            var clip = AssetDatabase.LoadAllAssetsAtPath(COMBAT + "Bow/" + file).OfType<UnityEngine.AnimationClip>()
+                .First(c => !c.name.StartsWith("__preview"));
+            var swaps = clip.events.Where(e => e.functionName == "WeaponSwap").ToArray();
+            Assert.That(swaps.Length, Is.EqualTo(1));
+            Assert.That(swaps[0].time / clip.length, Is.EqualTo(normalizedTime).Within(0.005f));
+        }
+
         private static Dictionary<string, string> Overrides(string path)
         {
             var oc = AssetDatabase.LoadAssetAtPath<UnityEngine.AnimatorOverrideController>(path);
