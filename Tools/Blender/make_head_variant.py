@@ -1164,7 +1164,8 @@ def _portrait_sheet(name, out_dir, renders, cfg, suffix="portrait"):
 # UVs, so the bake / skin mask / tone / verify contracts stay those of every other head. Steps:
 #   1. meshy_trim_source(glb, out_dir, keep_above)  -> <stem>.obj + <stem>_BaseColor.png (Tools/Blender/sources/...)
 #   2. render_meshy_refs(config)                     -> refs/<stem>_front.png / _side.png / _frame.json
-#   3. uv run Tools/FaceRef/face_landmarks.py <front> <side> --out refs/<stem>_landmarks.json
+#   3. uv run Tools/FaceRef/face_landmarks.py <front> --front-only --out refs/<stem>_landmarks.json (the side render
+#      is for the sheet only: the profile detector is tuned for portraits, and the fit aligns on the front alone)
 #   4. run(config)                                   -> mockups / export, as for a portrait face
 # Config block: "meshy": {"source": ".obj", "texture": ".png", "landmarks": ".json", ...MESHY_DEFAULTS overrides}.
 
@@ -1396,7 +1397,7 @@ def render_meshy_refs(config_path):
         paths["frame"].write_text(json.dumps(frame, indent=2), encoding="utf-8")
         return {"front": str(paths["front"]), "side": str(paths["side"]), "frame": str(paths["frame"]),
                 "next": f"uv run Tools/FaceRef/face_landmarks.py {paths['front'].relative_to(PROJECT).as_posix()} "
-                        f"{paths['side'].relative_to(PROJECT).as_posix()} --out {Path(mc['landmarks']).as_posix()}"}
+                        f"--front-only --out {Path(mc['landmarks']).as_posix()}"}
     finally:
         bpy.context.window.scene = prev
         bpy.data.scenes.remove(scene)
@@ -1429,8 +1430,9 @@ def _meshy_inputs(config):
     base = json.loads(BASE_LANDMARKS.read_text(encoding="utf-8-sig"))
     try:
         ok = (len(ref["front"]["points"]) == 478 and len(base["front"]["points"]) == 478
-              and all(len(ref[v]["size"]) == 2 and ref[v]["image"] and frame[v]["px"] > 0 and frame[v]["sha1"]
-                      and len(frame[v]["center"]) == 2 and frame[v]["scale"] > 0 for v in ("front", "side")))
+              and len(ref["front"]["size"]) == 2 and ref["front"]["image"]
+              and all(frame[v]["px"] > 0 and frame[v]["sha1"] and len(frame[v]["center"]) == 2 and frame[v]["scale"] > 0
+                      for v in ("front", "side")))
     except (KeyError, TypeError):
         ok = False
     if not ok:
@@ -1440,11 +1442,11 @@ def _meshy_inputs(config):
     for view in ("front", "side"):
         if frame[view]["sha1"] != _file_key(paths[view]):
             raise ValueError(f"meshy: {paths[view].name} is not the render_meshy_refs output (re-run it, then face_landmarks.py)")
-        if ref[view]["size"] != [frame[view]["px"]] * 2:
-            raise ValueError(f"meshy landmarks: {view} size {ref[view]['size']} was not measured on the current "
-                             f"render_meshy_refs images ({frame[view]['px']} px): re-run face_landmarks.py")
-        if Path(ref[view]["image"]).name != paths[view].name:
-            raise ValueError(f"meshy landmarks: {view} image {ref[view]['image']} is not {paths[view].name}")
+    if ref["front"]["size"] != [frame["front"]["px"]] * 2:  # only the front landmarks are used (side: sheet only)
+        raise ValueError(f"meshy landmarks: front size {ref['front']['size']} was not measured on the current "
+                         f"render_meshy_refs images ({frame['front']['px']} px): re-run face_landmarks.py")
+    if Path(ref["front"]["image"]).name != paths["front"].name:
+        raise ValueError(f"meshy landmarks: front image {ref['front']['image']} is not {paths['front'].name}")
     if base["front"]["size"] != [ORTHO["front"]["px"]] * 2:
         raise ValueError("base landmarks: front size does not match ORTHO (re-run render_base_refs)")
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)

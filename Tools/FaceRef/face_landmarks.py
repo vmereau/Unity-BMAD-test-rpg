@@ -175,24 +175,29 @@ def _debug(front, side, out):
 def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument("front", help="front portrait (or base head front render)")
-    ap.add_argument("side", help="side profile facing left (or base head side render)")
+    ap.add_argument("side", nargs="?", help="side profile facing left (or base head side render)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--front-only", action="store_true",
+                    help="front landmarks only (Meshy head renders: make_head_variant aligns on the front alone)")
     args = ap.parse_args(argv)
-    for p in (args.front, args.side):
+    if not args.front_only and args.side is None:
+        raise SystemExit("side profile required (or pass --front-only)")
+    for p in (args.front,) if args.front_only else (args.front, args.side):
         if not Path(p).is_file():
             raise SystemExit(f"{p}: file not found")
     front = front_landmarks(args.front)
-    side = side_profile(args.side)
+    side = None if args.front_only else side_profile(args.side)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     rel = lambda p: (Path(p).resolve().relative_to(PROJECT).as_posix() if Path(p).resolve().is_relative_to(PROJECT)
                      else Path(p).resolve().as_posix())  # absolute outside the project (Blender joins it to PROJECT)
-    front["image"], side["image"] = rel(front["image"]), rel(side["image"])
-    out.write_text(json.dumps({"front": front, "side": side}, indent=1), encoding="utf-8")
-    front["image"], side["image"] = str(PROJECT / front["image"]), str(PROJECT / side["image"])
+    data = {"front": dict(front, image=rel(front["image"]))}
+    if side is not None:
+        data["side"] = dict(side, image=rel(side["image"]))
+    out.write_text(json.dumps(data, indent=1), encoding="utf-8")
     _debug(front, side, out)
-    print(f"{out}: {len(front['points'])} front landmarks, profile {len(side['edge'])} rows, "
-          f"features {side['features']}")
+    print(f"{out}: {len(front['points'])} front landmarks" + ("" if side is None else
+          f", profile {len(side['edge'])} rows, features {side['features']}"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a8c49e9fbb5ce84893da3c8749ce2cb, type: 3}
+  m_Name: HeadAppearance_TentMateMeshy
+  m_EditorClassIdentifier: Game::Game.NPC.HeadAppearanceSO
+  _mesh: {fileID: 4300000, guid: e3ebfab0296cb4a4db3c30764026c373, type: 2}
+  _material: {fileID: 2100000, guid: 46b12a60313e40a449b360f8af58c16c, type: 2}

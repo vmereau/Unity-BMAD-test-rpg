@@ -1,0 +1,51 @@
+{
+    "name": "WardenMeshy",
+    "note": "Warden (untoned, officer: no Company brand) from a Meshy multi-image-to-3D head (spec-npc-meshy-heads): shape + texture baked onto the canonical head from sources/meshy_heads/warden (task 01a20d0f-d9a2-77d6-8421-02b19d5a078b, meshy-7.1 + meshy-7 4K, from refs/warden_front + _side)",
+    "deforms": [
+        {
+            "center": [
+                0.087,
+                0.006,
+                1.721
+            ],
+            "radius": [
+                0.03,
+                0.08,
+                0.14
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "offset": [
+                0,
+                0.0035,
+                -0.015
+            ],
+            "mirror_x": true
+        }
+    ],
+    "paint": [],
+    "meshy": {
+        "source": "Tools/Blender/sources/meshy_heads/warden/warden_meshy.obj",
+        "texture": "Tools/Blender/sources/meshy_heads/warden/warden_meshy_BaseColor.png",
+        "landmarks": "Tools/Blender/configs/heads/refs/warden_meshy_landmarks.json",
+        "exclude": [
+            {
+                "center": [
+                    0.087,
+                    0.006,
+                    1.721
+                ],
+                "radius": [
+                    0.022,
+                    0.04,
+                    0.06
+                ],
+                "inner": 0.6,
+                "mirror_x": true
+            }
+        ]
+    }
+}

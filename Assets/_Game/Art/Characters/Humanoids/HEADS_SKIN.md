@@ -134,8 +134,9 @@ Gotchas:
 A Meshy multi-image-to-3D head, made from the NPC's existing `refs/` front + side portraits, is used as a **shape +
 texture source only**: never rigged, never shipped as a mesh. The canonical head is shrinkwrapped onto it (neck frozen)
 and its colours are baked into the canonical UVs, so the export, `Bake Head Variants`, skin mask, tones and verify
-scripts are those of every other head. First head: `StorekeeperMeshy` (`configs/heads/storekeepermeshy.json`), on
-`NPC_Storekeeper` (the portrait head `Storekeeper` stays shipped, unused).
+scripts are those of every other head. Shipped: `StorekeeperMeshy` (NPC_Storekeeper), `TamMeshy` (NPC_BeatenWorker),
+`TentMateMeshy` (NPC_TentMate), `WardenMeshy` (NPC_Warden); configs `configs/heads/<name>meshy.json`. The portrait
+heads they replaced stay shipped, unused.
 
 1. **Generate:** `meshy_multi_image_to_3d` with `[<name>_front, <name>_side]`, `meshy-7.1` + texture `meshy-7` 4K,
    `remove_lighting`, GLB (30 credits; rules in `.claude/rules/meshy-mcp.md`). Download to the scratchpad.
@@ -143,7 +144,8 @@ scripts are those of every other head. First head: `StorekeeperMeshy` (`configs/
    → `<stem>.obj` (200k faces, LFS) + `<stem>_BaseColor.png` (2048). The raw GLB (~60 MB) is not kept.
 3. **Refs:** `render_meshy_refs(config)` → `refs/<stem>_front.png` / `_side.png` / `_frame.json` (flat ortho renders framed
    on the source's own bbox; the frame stores hashes of the source and both renders, and old landmarks are deleted),
-   then `uv run Tools/FaceRef/face_landmarks.py` on them → `refs/<stem>_landmarks.json`. `run()` refuses a changed
+   then `uv run Tools/FaceRef/face_landmarks.py refs/<stem>_front.png --front-only --out refs/<stem>_landmarks.json`
+   (the fit uses the front only; the profile detector is tuned for portrait framing and refused TentMate's render). `run()` refuses a changed
    source or render.
 4. **Config:** `"meshy": {"source", "texture", "landmarks"}` (+ `MESHY_DEFAULTS` overrides), `paint: []`. Then mockup →
    export → bake → verify, as for any variant (`<Name>_meshy.png` sheet = mockups beside the Meshy renders).
@@ -158,7 +160,7 @@ projection instead. Skin moves to the base skin colour (white balance + luminanc
 portraits), fading to the painted base over `seam_fade_m` (1.585 → 1.61) so the neck matches the body.
 
 Gotchas:
-- **Ears:** a Meshy ear does not sit where the base ear does (Storekeeper: 19 mm lower) and nearest-point prints it on the
+- **Ears:** a Meshy ear does not sit where the base ear does (Storekeeper 19, TentMate 20, Tam and Warden 15 mm lower) and nearest-point prints it on the
   skull. Exclude the base ears from the shrinkwrap (`meshy.exclude`) and move them with a `deforms` offset (wide region,
   rz ≈ 0.14, or the ear is squashed). Measure on a side overlay of the aligned source vs the base head (ortho 0.36 m).
 - **Eyes:** nearest-point on the base eyeball stretches the Meshy iris into a dark blot: hence the front projection.

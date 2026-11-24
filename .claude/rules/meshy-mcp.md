@@ -48,7 +48,7 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   `Assets/_Game/Art/Characters/Humanoids/HEADS_SKIN.md` → *NPC Meshy heads*.
 - From a head-and-shoulders front + side profile it still builds the **whole head**: back of the skull, both ears, hair
   volume and the shoulders, with a delit texture close to the portrait (identity kept).
-- Output GLB ~60 MB: 1.65M faces, one 4096 base colour, normalised to about ±1 unit (shoulders width), glTF import faces
+- Output GLB 60–256 MB (1.6M–7.6M faces, varies per generation; the 256 MB one takes ~3 min to import and trim), one 4096 base colour, normalised to about ±1 unit (shoulders width), glTF import faces
   **−Y**, Z up. Trim and decimate it (`meshy_trim_source`) before keeping anything in the repo.
 - Hair and beard are **sculpted** (curl bumps on the scalp): use it as a shape source only through a smoothed fit.
 - The generated head's proportions differ from the portrait-derived base: Storekeeper's ears came out 19 mm lower and the

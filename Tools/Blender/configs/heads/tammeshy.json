@@ -1,0 +1,52 @@
+{
+    "name": "TamMeshy",
+    "preview_tone": "#CFA58A",
+    "note": "Tam head (used by BeatenWorker, Tone_Fair) from a Meshy multi-image-to-3D head (spec-npc-meshy-heads): shape + texture baked onto the canonical head from sources/meshy_heads/tam (task 01a20d0f-bfc7-723e-b249-e094d36d46d6, meshy-7.1 + meshy-7 4K, from refs/tam_front + _side)",
+    "deforms": [
+        {
+            "center": [
+                0.087,
+                0.006,
+                1.721
+            ],
+            "radius": [
+                0.03,
+                0.08,
+                0.14
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ],
+            "offset": [
+                0,
+                -0.0025,
+                -0.015
+            ],
+            "mirror_x": true
+        }
+    ],
+    "paint": [],
+    "meshy": {
+        "source": "Tools/Blender/sources/meshy_heads/tam/tam_meshy.obj",
+        "texture": "Tools/Blender/sources/meshy_heads/tam/tam_meshy_BaseColor.png",
+        "landmarks": "Tools/Blender/configs/heads/refs/tam_meshy_landmarks.json",
+        "exclude": [
+            {
+                "center": [
+                    0.087,
+                    0.006,
+                    1.721
+                ],
+                "radius": [
+                    0.022,
+                    0.04,
+                    0.06
+                ],
+                "inner": 0.6,
+                "mirror_x": true
+            }
+        ]
+    }
+}
