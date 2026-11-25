@@ -52,7 +52,8 @@
   `EquipmentVisuals` (the base hero's 5 sockets, `base_hero` body, `mixamorig:Hips`, default controller `Humanoid_Base`,
   **`_onEquipmentChanged` / `_onVisualsRefreshed` unwired**) and `NpcArmament`, which refreshes the visuals directly.
 - **Loadout:** `NPCEntity._startingEquipment` is added to the NPC inventory and equipped in `NpcArmament.Start` (skipped on a
-  corpse). Equipped items leave the inventory → not lootable. Guards (all `Faction_Company`: CompanyGuard_ArrivalLeft /
+  corpse). Equipped items leave the inventory → not lootable while up (weapon + shield return to it when down, see
+  **Down**). Guards (all `Faction_Company`: CompanyGuard_ArrivalLeft /
   Right, DockGuard, WarehouseGuard, Harl, Warden, BarnGuard Venn) wear `Armor_CompanyGrunt` + `Weapon_ShortIronSword` + `Shield_KiteWoodShield`;
   the bandit carries `Weapon_HuntingBow` + `Weapon_Axe` + `Shield_RoundWoodShield` (shields equipped after weapons — see `COMBAT.md` → Blocking). A `BowSO` next to a melee weapon is **added to the inventory but not equipped** (fights
   start with the melee weapon).
@@ -77,9 +78,10 @@
 - **Draw / sheathe:** armed NPCs play the clips on combat entry / exit (`AIAnimationDriver.TriggerWeaponSwitch`); the visual
   moves on `WeaponSwap`, or after `CombatConfigSO.weaponSwitchTimeout / weaponSwitchAnimSpeed`. `HandleAttack` waits while
   `IsSwitchingWeapon`.
-- **Down:** knockout / death → `OnDowned`: weapon unequipped into the inventory (lootable), visual removed with
-  `Refresh(false)` (controller kept), armor stays equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon
-  still in the inventory is re-equipped, a looted one leaves the NPC on fists for good; full refresh.
+- **Down:** knockout / death → `OnDowned`: weapon and shield unequipped into the inventory (lootable; the shield is kept
+  as `_stowedShield`, spec-npc-shield-loot-on-down), visuals removed with `Refresh(false)` (controller kept), armor stays
+  equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon still in the inventory is re-equipped, a looted
+  one → another carried weapon, else fists; then `EquipCarriedShield` (shield back if not looted and the offhand is free); full refresh.
 - **Saved:** `SaveableObject` captures `NpcArmament.Equipped` + `DroppedWeapon` (`ObjectSaveData.equipped` / `droppedWeaponId`, via the shared `EquipmentSaveConverter`) once `HasLoadout` (null before
   `Start`, so a corpse hidden at load keeps its authored armor). No catalog → restore skipped, authored loadout kept. Restore runs after `Start`, so
   `RestoreLoadout` replaces the granted loadout (`RestoreEquipped` never touches the already-restored inventory) and sets

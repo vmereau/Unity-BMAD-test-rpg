@@ -102,8 +102,9 @@
   style's `perfectBlockChance` (halved without a shield, above). A bow swap bumps the shield into the inventory; `NpcArmament.EquipCarriedShield` re-equips it
   on the way back to melee and on wake-up — only the shield it stowed (`_stowedShield`), never trade stock. `GrantLoadout`
   equips shields after weapons (a loadout shield next to a two-hander is carried, warned). A restored living NPC with no
-  offhand and no shield in its inventory gets its starting shield back (pre-shield saves). The shield stays equipped (not
-  lootable) when the NPC goes down, like armor — unless a bow swap had stowed it in the (lootable) inventory.
+  offhand re-equips its starting shield only if its inventory still holds it (never granted anew: a looted shield stays
+  gone). Going down (knockout / death) drops the shield into the lootable inventory with the weapon; wake-up re-equips it
+  if not looted (`RANGED_EQUIPMENT.md` → Down, spec-npc-shield-loot-on-down).
 - **Hit:** `EntityHealth.TryReceiveHit` → `EntityGuard.ResolveHit(attacker)`: raised + attacker in the front arc **and within
   `guardThreatRange`** → `Blocked`, or `PerfectBlock` on `perfectBlockChance` (× the unshielded multiplier without a shield); else `NotBlocked`. Any attacker in reach is
   blocked, not only the read target. Arrows share the check: a point-blank shot into a raised guard is blocked, a distant

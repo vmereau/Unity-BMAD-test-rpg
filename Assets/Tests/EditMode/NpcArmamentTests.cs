@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Game.AI;
 using Game.Inventory;
 using Game.NPC;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
@@ -146,6 +148,88 @@ namespace Tests.EditMode
         public void OnDowned_Unarmed_IsNoOp()
         {
             _armament.OnDowned();
+            Assert.AreEqual(0, _inventory.Count);
+        }
+
+        private ShieldSO Shield()
+        {
+            var shield = Create<ShieldSO>("Shield");
+            shield.itemName = "Shield";
+            return shield;
+        }
+
+        // Re-equipping a shield in EditMode builds its placeholder visual (Destroy + renderer.material: edit-mode-only errors).
+        private static void ExpectShieldPlaceholderError()
+        {
+            LogAssert.Expect(LogType.Error, new Regex("Destroy may not be called from edit mode"));
+            LogAssert.Expect(LogType.Error, new Regex("Instantiating material due to calling renderer.material"));
+        }
+
+        // spec-npc-shield-loot-on-down
+        [Test]
+        public void OnDowned_ShieldGoesToInventory_WithWeapon_ArmorStaysEquipped()
+        {
+            SwordSO sword = Sword();
+            ShieldSO shield = Shield();
+            ArmorSO armor = Armor();
+            GiveAndEquip(armor);
+            GiveAndEquip(sword);
+            GiveAndEquip(shield);
+
+            _armament.OnDowned();
+
+            Assert.IsNull(_equipment.EquippedShield);
+            Assert.AreEqual(1, _inventory.CountOf(shield), "the shield is lootable");
+            Assert.AreEqual(1, _inventory.CountOf(sword), "the weapon is lootable");
+            Assert.AreSame(armor, _equipment.GetEquipped(EquipmentSlot.Armor));
+        }
+
+        [Test]
+        public void OnWokeUp_ShieldStillThere_ReEquipsWeaponAndShield()
+        {
+            SwordSO sword = Sword();
+            ShieldSO shield = Shield();
+            GiveAndEquip(sword);
+            GiveAndEquip(shield);
+            _armament.OnDowned();
+
+            ExpectShieldPlaceholderError();
+            _armament.OnWokeUp();
+
+            Assert.AreSame(sword, _equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.AreSame(shield, _equipment.EquippedShield);
+            Assert.AreEqual(0, _inventory.Count);
+        }
+
+        [Test]
+        public void OnWokeUp_ShieldLooted_NoShield()
+        {
+            SwordSO sword = Sword();
+            ShieldSO shield = Shield();
+            GiveAndEquip(sword);
+            GiveAndEquip(shield);
+            _armament.OnDowned();
+            for (int i = 0; i < _inventory.Count; i++) // the player loots the shield only
+                if (_inventory.Items[i].Item == shield) { _inventory.RemoveItem(i); break; }
+
+            _armament.OnWokeUp();
+
+            Assert.AreSame(sword, _equipment.GetEquipped(EquipmentSlot.Weapon));
+            Assert.IsNull(_equipment.EquippedShield);
+        }
+
+        [Test]
+        public void OnDowned_ShieldOnly_DropsAndReEquipsOnWake()
+        {
+            ShieldSO shield = Shield();
+            GiveAndEquip(shield);
+
+            _armament.OnDowned();
+            Assert.AreEqual(1, _inventory.CountOf(shield));
+
+            ExpectShieldPlaceholderError();
+            _armament.OnWokeUp();
+            Assert.AreSame(shield, _equipment.EquippedShield);
             Assert.AreEqual(0, _inventory.Count);
         }
     }

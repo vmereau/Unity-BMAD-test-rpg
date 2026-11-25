@@ -22,8 +22,8 @@ namespace Game.AI
     /// with an empty id open every hitbox.</item>
     /// <item>Draw / sheathe: armed NPCs play the clips on combat entry / exit; the visual moves on the <c>WeaponSwap</c>
     /// event (<see cref="CompleteWeaponSwitch"/>), or on a timeout.</item>
-    /// <item>Down (knocked out / dead): the weapon is unequipped into the inventory (lootable), the armor stays. Waking
-    /// with it still there re-equips it; looted → fists for good.</item>
+    /// <item>Down (knocked out / dead): the weapon and the shield are unequipped into the inventory (lootable), the armor
+    /// stays. Waking with them still there re-equips them; a looted weapon → fists for good, a looted shield → none.</item>
     /// <item>Ranged (spec-ai-ranged-combat-style): a <see cref="BowSO"/> in the loadout next to a melee weapon stays in the
     /// inventory. <see cref="SetRanged"/> swaps weapons as one locked chain (sheathe → swap the equipped weapon → draw);
     /// with the bow in hand no melee hitbox is registered.</item>
@@ -193,7 +193,7 @@ namespace Game.AI
         private void Start()
         {
             if (!_ready) return;
-            // A corpse keeps what its saved inventory holds: armor only (worn, never lootable), no fresh weapon.
+            // A corpse keeps what its saved inventory holds: armor only (worn, never lootable), no fresh weapon / shield.
             // A restored loadout (a hidden corpse re-activated by the save restore) is already in place.
             if (!_loadoutRestored) GrantLoadout(includeWeapons: _health == null || !_health.IsDead);
             Rebuild();
@@ -270,7 +270,7 @@ namespace Game.AI
 
         private void GrantItem(EquipableItemSO item, bool includeWeapons, bool hasMelee)
         {
-            if (item == null || (!includeWeapons && item is WeaponSO)) return;
+            if (item == null || (!includeWeapons && item is WeaponSO or ShieldSO)) return; // a corpse wears armor only
             if (!_inventory.AddItem(item))
             {
                 GameLog.Warn(TAG, $"{gameObject.name}: loadout item {item.itemName} could not be added to the inventory");
@@ -378,7 +378,10 @@ namespace Game.AI
             SyncDrawState();
         }
 
-        /// <summary>Knocked out / killed: the weapon goes into the (lootable) inventory, the armor stays equipped.</summary>
+        /// <summary>
+        /// Knocked out / killed: the weapon and the shield go into the (lootable) inventory, the armor stays equipped
+        /// (spec-npc-shield-loot-on-down). The shield is kept as <c>_stowedShield</c>, re-equipped on wake if not looted.
+        /// </summary>
         public void OnDowned()
         {
             if (!_ready) return;
@@ -389,17 +392,31 @@ namespace Game.AI
             _fistsRequested = false; // the fight is over (don't rely on SetCombatState(false) having run first)
             if (_driver != null) _driver.ClearWeaponSwitch();
             WeaponSO weapon = EquippedWeapon;
-            if (weapon == null) return;
-            _equipment.Unequip(EquipmentSlot.Weapon);
-            _droppedWeapon = weapon;
+            ShieldSO shield = _equipment.EquippedShield;
+            if (weapon == null && shield == null) return;
+            if (weapon != null)
+            {
+                _equipment.Unequip(EquipmentSlot.Weapon);
+                _droppedWeapon = weapon;
+                GameLog.Info(TAG, $"{gameObject.name} is down — {weapon.itemName} dropped into its inventory");
+            }
+            if (shield != null)
+            {
+                // A shield in hand means none is stowed (a bow / two-hander pushes it out), so nothing is overwritten.
+                _equipment.Unequip(EquipmentSlot.Offhand);
+                _stowedShield = shield;
+                GameLog.Info(TAG, $"{gameObject.name} is down — {shield.itemName} dropped into its inventory");
+            }
             _visuals.SetCombatState(false);
             _visuals.Refresh(false); // keep the controller: a swap would stand the body up
             ApplyHitboxes(null);
             _attacker.SetWieldedWeapon(null);
-            GameLog.Info(TAG, $"{gameObject.name} is down — {weapon.itemName} dropped into its inventory");
         }
 
-        /// <summary>Back up: re-equips the dropped weapon if it is still in the inventory (else fists), rebuilds the mode.</summary>
+        /// <summary>
+        /// Back up: re-equips the dropped weapon if it is still in the inventory (else fists), then the dropped shield if still
+        /// there and the weapon leaves the offhand free, and rebuilds the mode.
+        /// </summary>
         public void OnWokeUp()
         {
             if (!_ready) return;
@@ -426,8 +443,8 @@ namespace Game.AI
             Rebuild();
         }
 
-        // Offhand empty and the weapon leaves it free: re-equip the shield a bow / two-hander swap stowed — only that one,
-        // never trade stock or another shield the inventory happens to hold. Gone (looted / sold) → forgotten.
+        // Offhand empty and the weapon leaves it free: re-equip the shield a bow / two-hander swap (or going down) stowed —
+        // only that one, never trade stock or another shield the inventory happens to hold. Gone (looted / sold) → forgotten.
         private void EquipCarriedShield()
         {
             if (_stowedShield == null || _equipment.EquippedShield != null || EquippedWeapon is { OccupiesOffhand: true }) return;
@@ -442,10 +459,10 @@ namespace Game.AI
             GameLog.Info(TAG, $"{gameObject.name} takes its {shield.itemName} back in hand");
         }
 
-        // Restore (no stowed state is saved): a living NPC without an offhand item takes back its starting shield — from the
-        // inventory if it carries it (stowed by a bow at save time: stowed again while the bow is held), else granted anew
-        // (save written before shields existed — guards would never block again).
-        private void GrantMissingStartingShield()
+        // Restore (no stowed state is saved): a living NPC without an offhand item takes back its starting shield if its
+        // inventory still holds it (stowed by a bow, or dropped while down at save time: stowed again while the bow is held).
+        // Never granted anew — a shield looted from it stays gone (spec-npc-shield-loot-on-down).
+        private void ReEquipCarriedStartingShield()
         {
             if (_equipment.EquippedShield != null) return;
             if (_persistentID == null || _persistentID.Entity is not NPCEntity npc || npc.StartingEquipment == null) return;
@@ -453,11 +470,7 @@ namespace Game.AI
             foreach (EquipableItemSO item in npc.StartingEquipment)
                 if (item is ShieldSO shield) { starting = shield; break; }
             if (starting == null) return;
-            if (_inventory.CountOf(starting) <= 0)
-            {
-                if (!_inventory.AddItem(starting)) return;
-                GameLog.Info(TAG, $"{gameObject.name}: restored loadout had no shield — {starting.itemName} granted");
-            }
+            if (_inventory.CountOf(starting) <= 0) return;
             if (EquippedWeapon is { OccupiesOffhand: true }) _stowedShield = starting;
             else _equipment.Equip(starting);
         }
@@ -487,7 +500,7 @@ namespace Game.AI
                 }
             }
             _stowedShield = null;
-            if (!killed) GrantMissingStartingShield();
+            if (!killed) ReEquipCarriedStartingShield();
             if (!_started || !isActiveAndEnabled) return; // Start / OnEnable rebuild later
             if (_driver != null) _driver.ClearWeaponSwitch();
             _visuals.SetCombatState(false);
