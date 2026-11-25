@@ -31,7 +31,8 @@ ItemSO                              (base — any item in the inventory)
     │   ├── SwordSO                 (Weapons/SwordSO.cs — every melee weapon)
     │   └── BowSO                   (Weapons/BowSO.cs — ranged: ammoItem, projectilePrefab, speed, cooldown; see Scripts/Combat/BOW.md)
     ├── ArmorSO                     (Helmet/Armor/Necklace slots; a ring asset uses `slot = Ring1` and equips to Ring1 or Ring2 — `EquipmentRules`)
-    └── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
+    ├── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
+    └── TorchSO                     (occupies Offhand; light source, no stats; heldPose / stowPose — see TorchSO below)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
   + WeaponPose (struct), WeaponSheathSocket (Hip/Back), WeaponHand (Right/Left), SignedAxis, WeaponGripMath (static) — all in Weapons/
@@ -71,8 +72,7 @@ counterpart), `comboSteps`, `animatorOverrideController`, `stanceDamage` (0 = ar
 
 `EquipableItemSO.offhandArmPose` (`OffhandArmPose`: `None` / `TorchHold`, append-only ints, spec-sword-shield-take-combo):
 the left-arm pose held while the item is in the Offhand slot (`LeftArm` Animator layer, idle and locomotion only, actions play the clips' arm —
-`Scripts/Core/Animations/CLAUDE.md`). `None` on shields: the sword-and-shield clips already hold one. No torch item exists
-yet; a torch sets `TorchHold`.
+`Scripts/Core/Animations/CLAUDE.md`). `None` on shields: the sword-and-shield clips already hold one. `Item_Torch` sets `TorchHold`.
 
 `EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.
 
@@ -200,6 +200,23 @@ prefabs `Prefabs/Items/Shields/<Name>/` (`_World` / `_Visual` hierarchy, `Mesh` 
 
 Detail panel: category "Shield", rows Block Stamina / Perfect Block, then Defense. Shields: `Shield_RoundWoodShield`
 (+3, 20, 0.35 s, 40 g) and `Shield_KiteWoodShield` (+6, 12, 0.2 s, 60 g); both sold by the Storekeeper.
+
+---
+
+## TorchSO (concrete) — spec-torch-offhand-item
+
+`Assets/_Game/ScriptableObjects/Items/TorchSO.cs`, menu **Items → Torch**. Data: `Data/Items/Item_Torch.asset` (5 g / 1 g,
+`offhandArmPose = TorchHold`, no stats, never used up); prefabs `Prefabs/Items/Torch/` (`Prefabs/Items/CLAUDE.md` → Torch).
+
+| Field | Purpose |
+|---|---|
+| `heldPose` | `Drawn` pose in `LeftWeaponSocket`: shaft halfway between the Torch Hold fist's axis and upright-forward (the fist axis alone leans the flame back over the head) |
+| `stowPose` | `Sheathed` pose on the hip socket (back-left of the belt, head up and back). **Unused today:** the stowed torch is hidden |
+
+Equips to Offhand like a shield and replaces one; unlike a shield it **stays equipped next to a two-hander or bow**
+(`EquipmentRules.CoexistsWithTwoHands`) and is stowed while one is drawn. Detail category "Torch", no stat rows, filter Misc.
+Built with `ItemAssetBuilder` (base `ItemSO`), then turned into a `TorchSO` by swapping the asset's `m_Script` GUID — keeps
+`itemId` and every reference.
 
 ---
 

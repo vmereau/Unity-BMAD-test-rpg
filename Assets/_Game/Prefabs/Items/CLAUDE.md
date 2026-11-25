@@ -22,6 +22,13 @@ is not droppable (the drop is skipped with a `GameLog` warning).
 
 ---
 
+## Torch prefabs (`Torch/`, spec-torch-offhand-item)
+
+`Torch_World` (builder output, moved here: `Model` laid on its side, rot (0, 0, 90), box fitted) and `Torch_Visual`
+(root → `Drawn` / `Sheathed` → `Mesh`; `Drawn/Flame` = `TorchLight` + `FireFX` (`Multistory Dungeons 2` `Torch_Fire_FX_01`,
+URP particles, scale 0.4) + point `Light` (`#E0A35A`, 4, 8 m, soft shadows)). `Mesh` frame: **shaft +Y, head up, grip at the
+origin** (Meshy FBX 0.01 units at scale 55 = 0.55 m, `Mesh` pos y +0.12). No collider on the visual.
+
 ## Shield prefabs (`Shields/<Name>/`)
 
 `<Name>_World` (Rigidbody, BoxCollider, `ItemPickup`, `InteractionHighlight`, layer 8)

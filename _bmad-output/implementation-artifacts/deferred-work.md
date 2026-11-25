@@ -1350,16 +1350,13 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   combat idle) would end the swings in their own stance.
 - ~~**The rest of the Mixamo Sword and Shield Pack**~~ — block idle and locomotion done (spec-sword-shield-pack-locomotion);
   the attack exit leg snap above is gone for the sword (the combat locomotion idle is `sword shield idle`). Leftovers below.
-- **Torch item.** `OffhandArmPose.TorchHold` and the `LeftArm` layer are ready; no torch `EquipableItemSO`, prefab, light
-  or Offhand slot rule exists (`EquipmentRules` only sends `ShieldSO` to Offhand). The stand-in stick touched the blade in
-  the finisher's landing crouch: re-measure with the real prefab's grip.
+- ~~**Torch item.**~~ Done (spec-torch-offhand-item); leftovers in its section below.
 - **Sword NPC travel** not measured in play (`attackSteps` 0.52 / 0.39 / 0.78 m copied from the player's buffered chain).
 - **`sword_combo_play_measure.cs` teleport home** left the player unable to attack (or falling through the world when the
   start was captured before the arrival skip): runs 2+ were refused. This session turned the player 180° between runs
   instead; fix the harness (or teleport + wait for `isGrounded` and re-lock the cursor).
-- **Review (deferred):** `EquipmentVisuals.OffhandArmPose` reads the slot only — a torch stowed while sheathed (like a
-  shield on the back) would still raise the arm with an empty fist: gate it on an "off-hand visual held" flag when the
-  torch item lands. A buffered combo press still fires if the player starts moving before the window opens (the move
+- **Review (deferred):** ~~`EquipmentVisuals.OffhandArmPose` reads the slot only~~ (gated on `TorchInHand`,
+  spec-torch-offhand-item). A buffered combo press still fires if the player starts moving before the window opens (the move
   cancel only arms after `ComboWindowClose`); drop the buffer on move input if that feels wrong. `SetDead` /
   `SetUnconscious` end the attack without `ResetAttackCombo` (buffer kept, harmless: cleared on the next state enter).
   `OffhandArmLayerBuilder` run before `HandPoseBuilder` on a fresh controller would put `LeftArm` before the hand layers.
@@ -1383,3 +1380,22 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   `CombatLocomotion`); checked in play only. `SetCombatLocomotion` does not check the parameter exists (fine while every
   humanoid uses Humanoid_Template). The flag reaches the drivers through two components' `Update`s with no execution
   order: one frame late on an equip change.
+
+## From spec-torch-offhand-item (2026-11-25)
+
+- **NPC torches** — NPCs never carry one (`NpcArmament` handles shields only; `HandPoseDriver` would already apply
+  `TorchHold` from `EquipmentVisuals`). Night patrols / guards with torches need the armament grant + a douse rule.
+- **Stowed torch shown on the hip** — hidden today (user decision). `TorchSO.stowPose` is solved (back-left of the belt,
+  head up and back) and `Torch_Visual/Sheathed` exists: drop the `SetActive(held)` in `EquipmentVisuals.PlaceTorch`.
+- **Blade touch** — the torch comes within 3.6 cm (axis to axis) of the short sword for ~0.06 s in the first sword-and-shield
+  cut (clip's own left arm). Accepted, not tuned.
+- **Torch in the action bar while drawn** equips at once (no sheathe → equip → draw swap like weapons / shields): over a
+  held shield, the shield vanishes and the torch appears in the same frame. Route `TorchSO` through `OnEquipSwapRequested`
+  when an offhand item is held (`ActionBarSystem.cs` ~261) if it looks wrong.
+- **Stow timing** — the torch hides / reappears at the two-hander / bow draw clip's WeaponSwap event (`_isInCombat`), so it
+  stays in the left hand for the first part of the draw. Hide it at `BeginWeaponSwitch` if that reads badly.
+- **NPC torch handling** (with NPC torches above): `NpcArmament.GrantItem` would equip a corpse's torch, `OnDowned` leaves it
+  equipped and lit (not lootable), and NPCs never get `SetTorchDoused`.
+- **Grip seat** — `heldPose` was solved on the idle Torch Hold frame; walking / running keep the same arm pose, but no
+  per-clip check was done. Re-solve if `Torch Hold.anim` is re-fitted.
+- **Light budget** — one soft-shadowed point light (6 cube faces) follows the player; drop `_castShadows` if frame time suffers.

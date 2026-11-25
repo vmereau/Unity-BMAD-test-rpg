@@ -83,3 +83,11 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   (`remove_doubles` 1e-6) before walking boundaries. The thumb web comes out as a thin double-sided sail
   (`fit_base_body.retract_sheets`), the neck texture under the chin is the underside of Meshy's own chin (shadow,
   stubble), and the neck UVs change island every few degrees: never project new faces into that atlas.
+
+## Image to 3D — props (`meshy_image_to_3d`)
+
+- **Feed an upright, flat-lit front view, not the icon.** `meshy-t2` smart topology from a diagonal three-quarter icon of
+  a torch built **two crossed sticks** (an X). An `image_to_image` of the same image ("standing perfectly vertical, front
+  view, flat shadowless light", nano-banana-pro, 9 credits) gave a clean single shaft. Keep the icon image as the icon.
+- `meshy-t2` + `meshy-n1` 2K at `target_polycount` 3000 = 15 credits, ~2,750 tris, FBX 0.01 units long (scale 55 for
+  0.55 m), centred at the origin, the long axis on +Y as in the image. Base colour only (no PBR maps with n1).
