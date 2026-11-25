@@ -178,3 +178,22 @@ clips' pronated wrist held it. Fitted (coordinate descent, `HumanPoseHandler`, *
 limbs' axis). Fire arrow: mean 23°, max 33° (ends 14–16°); Draw arrow ends 11° off (its middle, with the bow low, up to 55°: no target
 there). Wrist / forearm-twist muscles don't move the hand bone (0 mm), so `BowAimCorrection`'s arrow line stays
 calibrated. Re-fit if `drawnPose`, the clips or the body change.
+
+----
+
+## Bow idle (`Bow/Bow Idle.anim`, spec-bow-idle-compensated-bake)
+The bow's `CombatIdle` (through `Bow_AnimatorOverride`) is a bake of the Mixamo `Standing Bow Idle.fbx` made by
+**`Tools/Characters/Bake Bow Idle Clip`** (`Editor/Characters/BowIdleBaker`, idempotent, GUID kept; offsets in code).
+Why: the source is a side-on stance (hips 63°, shoulders 55°, head forward), and `UpperBodyMask` takes the hips from
+locomotion, so unbaked the chest faces −6° and the head −57°. The bake adds constant offsets so that, over the `Idle`
+legs, the masked UpperChest equals the source's full-body UpperChest turned to **25° right of the root** (0.3° residual)
+and the head equals the source's head turned to forward. Only part of the 58° is given back: the full turn over forward
+legs reads as a wrung torso. Turn alone is not enough — the clip's lean was authored for the side-on hips, so the fit
+covers Front-Back, Left-Right and Twist (three equal steps on Spine / Chest / UpperChest) and Nod, Tilt and Turn (Head,
+Neck at half). Fitted by coordinate descent on bone rotations with `BowIdleBaker.Rig` (the two-layer playable the Animator
+runs; `SampleAnimation` can't read a masked layer). `BowIdleBaker.Measure` returns the yaws; a test pins them.
+- **The source FBX has no skin, so its avatar must be `Copy From Other Avatar` (`Idle.fbx`).** With `Create From This
+  Model` Unity takes the idle pose as the T-pose and every muscle reads ~0 (Head Turn 0.03 instead of −1.34): the clip
+  plays as a flat, wrong pose with no error. Check any Mixamo "without skin" download the same way.
+- The bow's carry seat and `BowCarry` fingers are fitted on this clip (`Prefabs/Items/Weapons/CLAUDE.md`): re-check
+  both (`HandPoseCapture bowidle`, which also renders the body) after a re-fit.

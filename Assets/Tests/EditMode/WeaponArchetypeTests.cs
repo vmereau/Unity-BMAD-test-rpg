@@ -309,5 +309,70 @@ namespace Tests.EditMode
             Vector3 after = newPos + newRot * (meshPos + meshRot * meshPoint); // mesh under the Mesh child under the new parent
             Assert.That(Vector3.Distance(before, after), Is.LessThan(POS_TOLERANCE));
         }
+
+        // spec-bow-idle-compensated-bake: the Drawn child blends between the aiming seat (0) and the carry seat (1).
+        [Test]
+        public void BlendPose_EndsAreThePoses_MidIsHalfway()
+        {
+            var from = new WeaponPose { localPosition = new Vector3(0.1f, 0f, 0f), localEulerAngles = new Vector3(0f, 0f, 0f) };
+            var to = new WeaponPose { localPosition = new Vector3(0.3f, 0.2f, 0f), localEulerAngles = new Vector3(0f, 90f, 0f) };
+            EquipmentVisuals.BlendPose(from, to, Vector3.zero, 0f, out var p0, out var r0);
+            EquipmentVisuals.BlendPose(from, to, Vector3.zero, 1f, out var p1, out var r1);
+            EquipmentVisuals.BlendPose(from, to, Vector3.zero, 0.5f, out var pm, out var rm);
+            EquipmentVisuals.BlendPose(from, to, Vector3.zero, 2f, out var pc, out _);
+            Assert.That(Vector3.Distance(p0, from.localPosition), Is.LessThan(POS_TOLERANCE));
+            Assert.That(Quaternion.Angle(r0, Quaternion.identity), Is.LessThan(ANGLE_TOLERANCE));
+            Assert.That(Vector3.Distance(p1, to.localPosition), Is.LessThan(POS_TOLERANCE));
+            Assert.That(Quaternion.Angle(r1, Quaternion.Euler(0f, 90f, 0f)), Is.LessThan(ANGLE_TOLERANCE));
+            Assert.That(Vector3.Distance(pm, new Vector3(0.2f, 0.1f, 0f)), Is.LessThan(POS_TOLERANCE));
+            Assert.That(Quaternion.Angle(rm, Quaternion.Euler(0f, 45f, 0f)), Is.LessThan(ANGLE_TOLERANCE));
+            Assert.That(Vector3.Distance(pc, to.localPosition), Is.LessThan(POS_TOLERANCE), "weight is clamped");
+        }
+
+        [TestCase(WeaponHand.Left, false, true, ExpectedResult = true)]
+        [TestCase(WeaponHand.Left, false, false, ExpectedResult = false)]
+        [TestCase(WeaponHand.Right, false, true, ExpectedResult = false)]
+        [TestCase(WeaponHand.Left, true, true, ExpectedResult = false)]
+        public bool UsesCarrySeat_OnlyRigidLeftHandWeapons(WeaponHand hand, bool twoHanded, bool hasCarryPose)
+        {
+            var archetype = Track(ScriptableObject.CreateInstance<WeaponArchetypeSO>());
+            archetype.drawnHand = hand;
+            archetype.twoHandedGrip = twoHanded;
+            archetype.hasCarryPose = hasCarryPose;
+            return EquipmentVisuals.UsesCarrySeat(archetype);
+        }
+
+        [Test]
+        public void BowArchetype_HasACarrySeat()
+        {
+            var bow = UnityEditor.AssetDatabase.LoadAssetAtPath<WeaponArchetypeSO>("Assets/_Game/Data/Items/Weapons/Archetypes/Archetype_Bow.asset");
+            Assert.That(bow, Is.Not.Null);
+            Assert.That(bow.hasCarryPose, Is.True);
+        }
+
+        // The bow's two seats share the handle centre (carryPivot), and the blend turns the bow about it: the handle
+        // stays in the palm all the way (a lerp of the Drawn origin would move it 28 mm at the middle).
+        [Test]
+        public void BowArchetype_SeatBlendKeepsTheHandleInPlace()
+        {
+            var bow = UnityEditor.AssetDatabase.LoadAssetAtPath<WeaponArchetypeSO>("Assets/_Game/Data/Items/Weapons/Archetypes/Archetype_Bow.asset");
+            Vector3 handleAtAim = bow.drawnPose.localPosition + Quaternion.Euler(bow.drawnPose.localEulerAngles) * bow.carryPivot;
+            foreach (float t in new[] { 0f, 0.25f, 0.5f, 0.75f, 1f })
+            {
+                EquipmentVisuals.BlendPose(bow.drawnPose, bow.carryPose, bow.carryPivot, t, out var position, out var rotation);
+                Assert.That(Vector3.Distance(position + rotation * bow.carryPivot, handleAtAim), Is.LessThan(0.002f), $"t = {t}");
+            }
+        }
+
+        // The carry seat is the aiming seat rolled about the handle: the bow's long axis (Drawn +Y) keeps its direction
+        // in the hand, so the handle still crosses the palm (spec-bow-idle-compensated-bake: at most 15°).
+        [Test]
+        public void BowArchetype_CarrySeatKeepsTheHandleAcrossThePalm()
+        {
+            var bow = UnityEditor.AssetDatabase.LoadAssetAtPath<WeaponArchetypeSO>("Assets/_Game/Data/Items/Weapons/Archetypes/Archetype_Bow.asset");
+            Vector3 aimAxis = Quaternion.Euler(bow.drawnPose.localEulerAngles) * Vector3.up;
+            Vector3 carryAxis = Quaternion.Euler(bow.carryPose.localEulerAngles) * Vector3.up;
+            Assert.That(Vector3.Angle(aimAxis, carryAxis), Is.LessThanOrEqualTo(15f));
+        }
     }
 }

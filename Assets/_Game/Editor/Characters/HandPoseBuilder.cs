@@ -86,6 +86,18 @@ namespace Game.Editor.Characters
                 new Finger(-0.45f, -0.15f, -0.1f, -0.6f),
                 new Finger(-0.2f, -0.9f, -0.59f, -0.6f),
             },
+            // Bow carry seat (spec-bow-idle-compensated-bake, archetype carryPose): the aiming seat rolled −95° about the
+            // handle, so the handle still crosses the palm. BowGrip with the middle / ring knuckles a little more open: the
+            // riser's wider face is under them (with BowGrip's values the ring tip sinks 4 mm).
+            // Gaps (HandPoseCapture bowidle): tips Th 7 / In 4 / Mi 5 / Ri 2 / Li 2 mm (no finger skin inside the palm).
+            [HandPose.BowCarry] = new[]
+            {
+                new Finger(-0.5f, -0.6f, -0.3f, 0.3f),
+                new Finger(-0.05f, -0.25f, -0.16f, -0.6f),
+                new Finger(-0.4f, -0.35f, -0.23f, -0.3f),
+                new Finger(-0.3f, -0.15f, -0.1f, -0.6f),
+                new Finger(-0.2f, -0.9f, -0.59f, -0.6f),
+            },
             // The shield's handle bar behind the boss: same closure as the weapon grip (bar ~2 cm thick).
             [HandPose.ShieldHold] = new[]
             {

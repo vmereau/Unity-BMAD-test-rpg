@@ -16,6 +16,14 @@ namespace Game.Inventory
         public WeaponPose drawnPose;
         [Tooltip("Pose of the Sheathed child in sheath-socket space. Assumes a normalized mesh: grip at origin, blade +Y, edge +Z.")]
         public WeaponPose sheathedPose;
+        [Tooltip("Bows: the Drawn child sits at carryPose while idling (combat idle) and blends to drawnPose while aiming, " +
+                 "drawing or sheathing (HandPoseDriver → EquipmentVisuals.SetCarryWeight).")]
+        public bool hasCarryPose;
+        [Tooltip("Pose of the Drawn child in the drawn-hand socket space while idling. Used only with hasCarryPose.")]
+        public WeaponPose carryPose;
+        [Tooltip("Point of the Drawn child (its local space) that stays in the hand while the seat changes: the handle centre. " +
+                 "The blend turns the weapon about it, so the handle doesn't slide through the palm.")]
+        public Vector3 carryPivot;
 
         [Header("Two-hand grip")]
         [Tooltip("Drawn weapon re-aimed every frame along the left-hand → right-hand line (TwoHandGripConstraint). " +

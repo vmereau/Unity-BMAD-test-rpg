@@ -35,9 +35,13 @@ namespace Game.Editor.Characters
             public readonly string Tag, Clip, Weapon, Shield;
             public readonly float NormalizedTime;
             public readonly HandPose? Left, Right;
-            public Case(string tag, string clip, float normalizedTime, HandPose? left, HandPose? right, string weapon = null, string shield = null)
+            public readonly bool Carry; // weapon at its archetype carryPose (bow idle seat)
+            public readonly string Legs; // set: Clip plays on the masked upper body over this clip (as on the UpperBody layer), plus body renders
+            public Case(string tag, string clip, float normalizedTime, HandPose? left, HandPose? right, string weapon = null, string shield = null,
+                bool carry = false, string legs = null)
             {
                 Tag = tag; Clip = clip; NormalizedTime = normalizedTime; Left = left; Right = right; Weapon = weapon; Shield = shield;
+                Carry = carry; Legs = legs;
             }
         }
 
@@ -52,6 +56,7 @@ namespace Game.Editor.Characters
             new Case("braced", ANIM + "Combat/one handed/Sword Braced Guard.anim", 0.2f, HandPose.Relaxed, HandPose.OneHandGrip, SWORD),
             new Case("shield", ANIM + "Combat/Block Idle.fbx", 0.2f, HandPose.ShieldHold, HandPose.OneHandGrip, SWORD, SHIELD),
             new Case("bow", ANIM + "Combat/Bow/Bow Aim Overdraw.anim", 0.3f, HandPose.BowGrip, HandPose.Relaxed, BOW),
+            new Case("bowidle", BowIdleBaker.BAKED, 0.5f, HandPose.BowCarry, HandPose.Relaxed, BOW, carry: true, legs: BowIdleBaker.LEGS),
         };
 
         /// <summary>
@@ -77,12 +82,13 @@ namespace Game.Editor.Characters
                     throw new InvalidOperationException("HandPoseCapture: the base hero has no humanoid Animator");
                 animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 SkinnedMeshRenderer body = null;
+                var heads = new List<SkinnedMeshRenderer>();
                 foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     smr.forceMatrixRecalculationPerRender = true;
                     smr.updateWhenOffscreen = true;
                     if (smr.name == "base_hero") body = smr;
-                    else smr.enabled = false; // head: it hides the guard hands from the side views
+                    else { smr.enabled = false; heads.Add(smr); } // head: it hides the guard hands from the side views
                 }
                 if (body == null) throw new InvalidOperationException("HandPoseCapture: no base_hero body renderer");
                 Transform rightSocket = null, leftSocket = null;
@@ -122,7 +128,10 @@ namespace Game.Editor.Characters
                     if (tags != null && Array.IndexOf(tags, c.Tag) < 0) continue;
                     if (c.Clip != null)
                     {
-                        Sample(animator, c.Clip, c.NormalizedTime);
+                        if (c.Legs != null)
+                            BowIdleBaker.SampleLayered(animator, LoadClip(c.Legs), LoadClip(c.Clip), BowIdleBaker.LoadMask(), c.NormalizedTime);
+                        else
+                            Sample(animator, c.Clip, c.NormalizedTime);
                         poseHandler.GetHumanPose(ref pose);
                         if (c.Left.HasValue) HandPoseBuilder.ApplyToMuscles(c.Left.Value, true, pose.muscles);
                         if (c.Right.HasValue) HandPoseBuilder.ApplyToMuscles(c.Right.Value, false, pose.muscles);
@@ -135,7 +144,7 @@ namespace Game.Editor.Characters
                     Transform handle = null;
                     if (c.Weapon != null)
                     {
-                        var weaponVisual = AttachWeapon(c.Weapon, rightSocket, leftSocket);
+                        var weaponVisual = AttachWeapon(c.Weapon, rightSocket, leftSocket, c.Carry);
                         spawned.Add(weaponVisual);
                         handle = RequireChild(weaponVisual, "Drawn");
                     }
@@ -148,16 +157,23 @@ namespace Game.Editor.Characters
                     }
 
                     report.AppendLine($"{c.Tag} [{c.Left?.ToString() ?? "-"} / {c.Right?.ToString() ?? "-"}]");
+                    if (c.Legs != null)
+                    {
+                        report.AppendLine($"   body {BowIdleBaker.ReadYaws(animator)}");
+                        if (cam != null) ShootBody(cam, rt, animator, heads, Path.Combine(outDir, c.Tag));
+                    }
                     foreach (bool left in new[] { true, false })
                     {
                         report.AppendLine($"   {(left ? "L" : "R")} {Penetration(body, baked, left)} | {Curls(animator, left)}");
                         HandPose? handPose = left ? c.Left : c.Right;
-                        if (handle != null && handPose is HandPose.OneHandGrip or HandPose.TwoHandGrip or HandPose.BowGrip)
+                        if (handle != null && handPose is HandPose.OneHandGrip or HandPose.TwoHandGrip or HandPose.BowGrip or HandPose.BowCarry)
                             report.AppendLine($"     grip {Wrap(animator, left, handle)}");
                         if (shield != null && handPose == HandPose.ShieldHold)
                             report.AppendLine($"     shield {Wrap(animator, left, shield)}");
                         if (cam != null) Shoot(cam, rt, animator, left, left ? leftSign : rightSign, Path.Combine(outDir, c.Tag));
                     }
+                    if (c.Legs != null && handle != null) // last: the sweep re-poses the body
+                        report.AppendLine($"   seat {SeatClearance(animator, body, baked, handle, LoadClip(c.Clip))}");
                     foreach (var s in spawned) UnityEngine.Object.DestroyImmediate(s);
                     spawned.Clear();
                 }
@@ -184,12 +200,158 @@ namespace Game.Editor.Characters
             go.transform.rotation = rotation;
         }
 
+        /// <summary>Legs the idle seat is checked over, at each of <see cref="SweepTimes"/>.</summary>
+        public static readonly string[] SweepLegs = { ANIM + "Idle.fbx", ANIM + "Walking.fbx", ANIM + "Running.fbx" };
+        public static readonly float[] SweepTimes = { 0.1f, 0.5f, 0.9f };
+
+        // Carry seat of a left-hand weapon over the legs sweep (upper body = the case's clip through the mask):
+        // - string: closest approach between the string (the weapon's -Z extreme, along its long axis) and the left forearm,
+        //   and which side of the forearm it is on (+1 = toward the body, -1 = outboard), worst sample;
+        // - body: deepest weapon vertex inside the body skin (left hand / forearm skin excluded: they hold it).
+        private static string SeatClearance(Animator animator, SkinnedMeshRenderer body, Mesh baked, Transform weapon, AnimationClip upper)
+        {
+            var local = new List<Vector3>();
+            foreach (var filter in weapon.GetComponentsInChildren<MeshFilter>())
+            {
+                if (filter.sharedMesh == null) continue;
+                var vertices = filter.sharedMesh.vertices;
+                for (int i = 0; i < vertices.Length; i += 4) // every 4th vertex is plenty for a clearance check
+                    local.Add(weapon.InverseTransformPoint(filter.transform.TransformPoint(vertices[i])));
+            }
+            if (local.Count == 0) return "no weapon mesh";
+            float stringZ = float.MaxValue, halfLength = 0f;
+            foreach (var p in local)
+            {
+                halfLength = Mathf.Max(halfLength, Mathf.Abs(p.y));
+                if (Mathf.Abs(p.y) < 0.05f) stringZ = Mathf.Min(stringZ, p.z);
+            }
+
+            var weights = body.sharedMesh.boneWeights;
+            var bones = body.bones;
+            var held = new bool[weights.Length];
+            for (int i = 0; i < weights.Length; i++)
+            {
+                string bone = bones[weights[i].boneIndex0].name;
+                held[i] = bone.Contains("LeftHand") || bone.Contains("LeftForeArm");
+            }
+
+            var mask = BowIdleBaker.LoadMask();
+            var hand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            var elbow = animator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+            var hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+            var chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+            float worstDepth = 0f, minGap = float.MaxValue, minSide = 1f;
+            foreach (string legsPath in SweepLegs)
+            {
+                var legs = LoadClip(legsPath);
+                foreach (float time in SweepTimes)
+                {
+                    BowIdleBaker.SampleLayered(animator, legs, upper, mask, time);
+
+                    // String vs forearm.
+                    Vector3 stringMid = weapon.TransformPoint(new Vector3(0f, 0f, stringZ)), axis = weapon.up;
+                    float gap = float.MaxValue;
+                    Vector3 onString = stringMid, onArm = hand.position;
+                    for (int i = 0; i <= 40; i++)
+                    {
+                        Vector3 s = stringMid + axis * Mathf.Lerp(-halfLength, halfLength, i / 40f);
+                        for (int j = 0; j <= 20; j++)
+                        {
+                            Vector3 a = Vector3.Lerp(hand.position, elbow.position, j / 20f);
+                            float d = (s - a).magnitude;
+                            if (d < gap) { gap = d; onString = s; onArm = a; }
+                        }
+                    }
+                    Vector3 forearm = (elbow.position - hand.position).normalized;
+                    Vector3 toBody = Vector3.ProjectOnPlane((hips.position + chest.position) * 0.5f - onArm, forearm).normalized;
+                    minGap = Mathf.Min(minGap, gap);
+                    minSide = Mathf.Min(minSide, Vector3.Dot((onString - onArm).normalized, toBody));
+
+                    // Weapon vs body skin.
+                    body.BakeMesh(baked);
+                    var toWorld = body.transform.localToWorldMatrix;
+                    var skin = baked.vertices;
+                    var normals = baked.normals;
+                    for (int i = 0; i < skin.Length; i++) skin[i] = toWorld.MultiplyPoint3x4(skin[i]);
+                    foreach (var p in local)
+                    {
+                        Vector3 world = weapon.TransformPoint(p);
+                        int nearest = -1;
+                        float best = 0.08f * 0.08f;
+                        for (int i = 0; i < skin.Length; i++)
+                        {
+                            if (held[i]) continue;
+                            float d = (skin[i] - world).sqrMagnitude;
+                            if (d < best) { best = d; nearest = i; }
+                        }
+                        if (nearest < 0) continue;
+                        float depth = -Vector3.Dot(world - skin[nearest], toWorld.MultiplyVector(normals[nearest]).normalized);
+                        worstDepth = Mathf.Max(worstDepth, depth);
+                    }
+                }
+            }
+            return $"string {minGap * 100f:F1} cm from the forearm, side {minSide:F2} | inside body max {worstDepth * 100f:F1} cm " +
+                   $"({SweepLegs.Length} legs clips x {SweepTimes.Length} times)";
+        }
+
+        private static AnimationClip LoadClip(string clipPath)
+        {
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(clipPath))
+                if (asset is AnimationClip ac && !ac.name.StartsWith("__preview")) return ac;
+            throw new InvalidOperationException($"HandPoseCapture: no clip in {clipPath}");
+        }
+
+        // Whole-body views (head shown) of a layered case: {prefix}_body_{front|left|right|threequarter}.png.
+        private static void ShootBody(Camera cam, RenderTexture rt, Animator animator, List<SkinnedMeshRenderer> heads, string prefix)
+        {
+            float fov = cam.fieldOfView, near = cam.nearClipPlane;
+            foreach (var head in heads) head.enabled = true;
+            try
+            {
+                var root = animator.transform;
+                Vector3 center = root.position + Vector3.up * 0.95f;
+                cam.fieldOfView = 30f;
+                cam.nearClipPlane = 0.3f;
+                var views = new (string name, Vector3 dir)[]
+                {
+                    ("front", root.forward), ("left", -root.right), ("right", root.right),
+                    ("threequarter", (root.forward - root.right).normalized),
+                };
+                foreach (var view in views)
+                {
+                    cam.transform.position = center + view.dir * 4.2f;
+                    cam.transform.LookAt(center, Vector3.up);
+                    WritePng(cam, rt, $"{prefix}_body_{view.name}.png");
+                }
+            }
+            finally
+            {
+                foreach (var head in heads) head.enabled = false;
+                cam.fieldOfView = fov;
+                cam.nearClipPlane = near;
+            }
+        }
+
+        private static void WritePng(Camera cam, RenderTexture rt, string path)
+        {
+            cam.Render();
+            RenderTexture.active = rt;
+            var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+            try
+            {
+                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+                tex.Apply();
+                File.WriteAllBytes(path, tex.EncodeToPNG());
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(tex);
+            }
+        }
+
         private static void Sample(Animator animator, string clipPath, float normalizedTime)
         {
-            AnimationClip clip = null;
-            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(clipPath))
-                if (asset is AnimationClip ac && !ac.name.StartsWith("__preview")) { clip = ac; break; }
-            if (clip == null) throw new InvalidOperationException($"HandPoseCapture: no clip in {clipPath}");
+            AnimationClip clip = LoadClip(clipPath);
 
             animator.enabled = true;
             var graph = PlayableGraph.Create("HandPoseCapture");
@@ -221,7 +383,7 @@ namespace Game.Editor.Characters
             animator.enabled = false;
         }
 
-        private static GameObject AttachWeapon(string weaponPath, Transform rightSocket, Transform leftSocket)
+        private static GameObject AttachWeapon(string weaponPath, Transform rightSocket, Transform leftSocket, bool carry = false)
         {
             var weapon = AssetDatabase.LoadAssetAtPath<WeaponSO>(weaponPath);
             if (weapon == null || weapon.equipVisualPrefab == null)
@@ -234,6 +396,12 @@ namespace Game.Editor.Characters
             var sheathed = visual.transform.Find("Sheathed");
             drawn.gameObject.SetActive(true);
             if (sheathed != null) sheathed.gameObject.SetActive(false);
+            if (carry)
+            {
+                if (weapon.archetype == null || !weapon.archetype.hasCarryPose)
+                    throw new InvalidOperationException($"HandPoseCapture: {weaponPath} has no carry seat");
+                weapon.archetype.carryPose.ApplyTo(drawn);
+            }
             if (weapon.archetype != null && weapon.archetype.twoHandedGrip)
                 TwoHandGripConstraint.Apply(drawn, rightSocket, leftSocket, weapon.archetype);
             return visual;
@@ -298,13 +466,7 @@ namespace Game.Editor.Characters
             {
                 cam.transform.position = center + view.dir * 0.32f;
                 cam.transform.LookAt(center, view.up);
-                cam.Render();
-                RenderTexture.active = rt;
-                var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
-                tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-                tex.Apply();
-                File.WriteAllBytes($"{prefix}_{(left ? "L" : "R")}_{view.name}.png", tex.EncodeToPNG());
-                UnityEngine.Object.DestroyImmediate(tex);
+                WritePng(cam, rt, $"{prefix}_{(left ? "L" : "R")}_{view.name}.png");
             }
         }
 

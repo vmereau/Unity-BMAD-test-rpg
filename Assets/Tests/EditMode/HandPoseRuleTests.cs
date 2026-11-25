@@ -7,10 +7,10 @@ namespace Tests.EditMode
     public class HandPoseRuleTests
     {
         private static (HandPose left, HandPose right) Resolve(bool inCombat, bool weaponInHand, bool leftHandWeapon = false,
-            bool twoHanded = false, bool shieldInHand = false, bool switchingWeapon = false, bool down = false)
+            bool twoHanded = false, bool shieldInHand = false, bool switchingWeapon = false, bool down = false, bool carrySeat = false)
         {
             HandPoseRule.Resolve(inCombat, weaponInHand, leftHandWeapon, twoHanded, shieldInHand, switchingWeapon, down,
-                out var left, out var right);
+                out var left, out var right, carrySeat);
             return (left, right);
         }
 
@@ -88,7 +88,32 @@ namespace Tests.EditMode
         {
             // The controller's AnyState conditions hold these ints (HandPoseBuilder): never renumber.
             Assert.That(new[] { (int)HandPose.Relaxed, (int)HandPose.Fist, (int)HandPose.OneHandGrip, (int)HandPose.TwoHandGrip,
-                (int)HandPose.BowGrip, (int)HandPose.ShieldHold }, Is.EqualTo(new[] { 0, 1, 2, 3, 4, 5 }));
+                (int)HandPose.BowGrip, (int)HandPose.ShieldHold, (int)HandPose.BowCarry }, Is.EqualTo(new[] { 0, 1, 2, 3, 4, 5, 6 }));
+        }
+
+        // spec-bow-idle-compensated-bake: the idling bow sits in its carry seat with its own finger pose.
+        [Test]
+        public void BowInCarrySeat_LeftBowCarryRightRelaxed()
+        {
+            Assert.That(Resolve(true, true, leftHandWeapon: true, carrySeat: true), Is.EqualTo((HandPose.BowCarry, HandPose.Relaxed)));
+        }
+
+        [Test]
+        public void CarrySeatFlag_IgnoredForRightHandWeapons()
+        {
+            Assert.That(Resolve(true, true, carrySeat: true), Is.EqualTo((HandPose.Relaxed, HandPose.OneHandGrip)));
+        }
+
+        [TestCase(true, true, true, true, false, ExpectedResult = true)]    // combat idle with the bow
+        [TestCase(true, true, true, false, false, ExpectedResult = false)]   // aim / draw / sheathe / drink: UpperBody elsewhere
+        [TestCase(true, true, true, true, true, ExpectedResult = false)]     // dodge / stagger / knockdown / death: full body
+        [TestCase(true, false, true, true, false, ExpectedResult = false)]   // no carry seat (other weapons)
+        [TestCase(true, true, false, true, false, ExpectedResult = false)]   // right-hand weapon: its fingers never follow
+        [TestCase(false, true, true, true, false, ExpectedResult = false)]   // nothing in hand
+        public bool CarrySeat_OnlyInTheCombatIdle(bool weaponInHand, bool hasCarryPose, bool leftHand, bool upperBodyIdle,
+            bool baseFullBody)
+        {
+            return HandPoseRule.CarrySeat(weaponInHand, hasCarryPose, leftHand, upperBodyIdle, baseFullBody);
         }
     }
 }

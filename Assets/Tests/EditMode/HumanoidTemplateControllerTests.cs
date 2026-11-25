@@ -190,6 +190,75 @@ namespace Tests.EditMode
             Assert.That(twoHanded["Block Idle"], Is.EqualTo("2hand blocking"));
         }
 
+        // spec-bow-idle-compensated-bake: the bow's CombatIdle is the baked Bow Idle (looping, event-free, humanoid).
+        [Test]
+        public void BowOverride_CombatIdleIsTheBakedBowIdle()
+        {
+            var overrides = Overrides(COMBAT + "Bow/Bow_AnimatorOverride.overrideController");
+            Assert.That(overrides["Unarmed Idle Guard"], Is.EqualTo("Bow Idle"));
+            var clips = new SerializedObject(AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(
+                COMBAT + "Bow/Bow_AnimatorOverride.overrideController")).FindProperty("m_Clips");
+            for (int i = 0; i < clips.arraySize; i++)
+                Assert.That(clips.GetArrayElementAtIndex(i).FindPropertyRelative("m_OverrideClip").objectReferenceValue,
+                    Is.Not.Null, "no empty override entries (ApplyOverrides leaves one per unmapped clip)");
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Game.Editor.Characters.BowIdleBaker.BAKED);
+            Assert.That(clip, Is.Not.Null, Game.Editor.Characters.BowIdleBaker.BAKED);
+            Assert.That(clip.isHumanMotion, Is.True, "humanoid muscle curves");
+            Assert.That(AnimationUtility.GetAnimationClipSettings(clip).loopTime, Is.True);
+            Assert.That(AnimationUtility.GetAnimationEvents(clip), Is.Empty);
+        }
+
+        // Stale-bake guard: Bow Idle.anim is the FBX source plus the offsets (re-run Bake Bow Idle Clip if this fails after
+        // a reimport or an offset change).
+        [Test]
+        public void BowIdleBake_MatchesSourcePlusOffsets()
+        {
+            var src = AssetDatabase.LoadAllAssetsAtPath(Game.Editor.Characters.BowIdleBaker.SOURCE).OfType<AnimationClip>()
+                .Single(c => !c.name.StartsWith("__preview"));
+            var bake = AssetDatabase.LoadAssetAtPath<AnimationClip>(Game.Editor.Characters.BowIdleBaker.BAKED);
+            Assert.That(bake.length, Is.EqualTo(src.length).Within(1e-4f));
+            Assert.That(AnimationUtility.GetCurveBindings(bake).Length, Is.EqualTo(AnimationUtility.GetCurveBindings(src).Length));
+            foreach (var (muscle, offset) in Game.Editor.Characters.BowIdleBaker.Offsets)
+            {
+                var binding = EditorCurveBinding.FloatCurve(string.Empty, typeof(Animator), muscle);
+                var s = AnimationUtility.GetEditorCurve(src, binding).keys;
+                var b = AnimationUtility.GetEditorCurve(bake, binding).keys;
+                Assert.That(b.Length, Is.EqualTo(s.Length), muscle);
+                for (int k = 0; k < s.Length; k++)
+                {
+                    Assert.That(b[k].value, Is.EqualTo(Game.Editor.Characters.BowClipWristBaker.OffsetValue(s[k].value, offset))
+                        .Within(1e-4f), $"{muscle} key {k}");
+                    Assert.That(Mathf.Abs(b[k].value), Is.LessThanOrEqualTo(1f), $"{muscle} key {k} within the muscle range");
+                    Assert.That(b[k].value, Is.EqualTo(s[k].value + offset).Within(1e-4f), $"{muscle} key {k} is not clamped (a clamped key = a wrong fit)");
+                }
+            }
+        }
+
+        // The source FBX has no skin: its avatar must be copied from the hero (Idle.fbx), or Unity builds one from the idle
+        // pose itself and every muscle reads ~0 (the head turn, -1.3 in the real clip, came out at 0.03).
+        [Test]
+        public void BowIdleSource_IsRetargetedThroughTheHeroAvatar()
+        {
+            var importer = (ModelImporter)AssetImporter.GetAtPath(Game.Editor.Characters.BowIdleBaker.SOURCE);
+            Assert.That(importer.avatarSetup, Is.EqualTo(ModelImporterAvatarSetup.CopyFromOther));
+            Assert.That(importer.sourceAvatar, Is.Not.Null);
+            var src = AssetDatabase.LoadAllAssetsAtPath(Game.Editor.Characters.BowIdleBaker.SOURCE).OfType<AnimationClip>()
+                .Single(c => !c.name.StartsWith("__preview"));
+            var headTurn = AnimationUtility.GetEditorCurve(src, EditorCurveBinding.FloatCurve(string.Empty, typeof(Animator), "Head Turn Left-Right"));
+            Assert.That(headTurn.Evaluate(src.length * 0.5f), Is.LessThan(-1f), "the side-on stance looks over the left shoulder");
+        }
+
+        // Through the real UpperBody mask over the Idle legs: chest bladed 25° to the right, head forward.
+        [Test]
+        public void BowIdle_OverIdleLegs_ChestIsBladedAndHeadFacesForward()
+        {
+            foreach (var yaws in Game.Editor.Characters.BowIdleBaker.Measure(null, 0.1f, 0.5f, 0.9f))
+            {
+                Assert.That(yaws.Shoulders, Is.EqualTo(25f).Within(5f), yaws.ToString());
+                Assert.That(yaws.Head, Is.EqualTo(0f).Within(5f), yaws.ToString());
+            }
+        }
+
         // spec-bow-hand-grip: the aim states play the wrist-corrected bakes (Tools/Characters/Bake Bow Wrist Clips).
         [TestCase("BowDrawArrow_State", "Bow Draw Arrow.anim", false)]
         [TestCase("BowAim_State", "Bow Aim Overdraw.anim", true)]

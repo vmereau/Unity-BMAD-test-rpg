@@ -30,7 +30,7 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
   full-body Base state must get the `FullBody` tag** or the carry pose plays over it in combat.
 - **Hand layers** (spec-hand-pose-layer): **`LeftHand`** (index 2) / **`RightHand`** (index 3), Override, weight **1**,
   finger-only masks (`Animations/HandPoses/HandMask_Left/Right`). They always replace the clips' fingers: one state per
-  `HandPose` (`Relaxed` default, `Fist`, `OneHandGrip`, `TwoHandGrip`, `BowGrip`, `ShieldHold`), AnyState → state on the int
+  `HandPose` (`Relaxed` default, `Fist`, `OneHandGrip`, `TwoHandGrip`, `BowGrip`, `ShieldHold`, `BowCarry`), AnyState → state on the int
   `LeftHandPose` / `RightHandPose` == pose (0.12 s, no self-transition). **Built by `Tools/Characters/Build Hand Poses`**
   (`Editor/Characters/HandPoseBuilder`, values in code): never hand-edit these layers or the clips. Driven by `HandPoseDriver`
   (`Scripts/Core/Animations/CLAUDE.md`). Pose clips carry no events. A rebuild keeps each hand layer at its index; a new layer goes after them
@@ -124,7 +124,8 @@ unarmed punch with a weapon in hand: sword `lead jab step` → `SwordAttackLeft`
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced (or re-key in place: set
 each entry's `m_OriginalClip` to the new base clip, which leaves no stale entry). Same for `CombatIdle`
-(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`) and `Block_State` (= `Unarmed Block
+(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`, bow → `Bow Idle.anim`, the
+yaw-compensated bake of the Mixamo idle, played with the bow's carry seat — spec-bow-idle-compensated-bake) and `Block_State` (= `Unarmed Block
 Guard.anim`, the unarmed high guard; sword → `Sword Braced Guard`, two-handed → `2hand blocking`). The player and styled
 NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.
 

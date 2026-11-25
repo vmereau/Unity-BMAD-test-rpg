@@ -730,9 +730,8 @@ During mafia-zone traversal checks, the direct baked-corner route to the existin
 
 ## From spec-unarmed-idle-posture-fix (2026-11-16)
 
-- **A drawn bow plays the unarmed fist guard** (pre-existing): `Bow_AnimatorOverride` has no `CombatIdle` entry, so the
-  bow's carry pose is the unarmed guard (now `Unarmed Idle Guard.anim`, with a stronger lean and fists further out).
-  Map a bow idle onto `Unarmed Idle Guard` in the override when one exists.
+- ~~**A drawn bow plays the unarmed fist guard**~~ — done 2026-11-25 (spec-bow-idle-compensated-bake): `Bow Idle.anim`
+  with an idle-only carry seat.
 
 ## From spec-unarmed-high-guard-block (2026-11-16)
 
@@ -1294,5 +1293,13 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   Bow` around 0.30–0.35 would make it seamless.
 - **Bow on the back at rest:** the seamless sheathed pose hangs the bow nearly vertical along the spine, the upper tip
   above the head. A diagonal carry would need a Draw Bow arm edit.
-- **Combat idle with the bow:** `CombatIdle` plays the unarmed boxing guard (`Unarmed Idle Guard`) with the bow in the
-  left fist. A bow-specific idle (override on the guard) would read better.
+- ~~**Combat idle with the bow**~~ — done 2026-11-25 (spec-bow-idle-compensated-bake).
+
+## From spec-bow-idle-compensated-bake (2026-11-25)
+
+- **Bow idle legs:** the bow idle is upper-body only; at standstill the legs play the normal `Idle`, not the Mixamo
+  archer stance. A bow locomotion set (stance idle + walks) on the Base layer would complete it.
+- **Forward lean / right arm:** the baked idle keeps the Mixamo clip's forward lean and its right arm held away from the
+  body. Both can be reduced with more offsets in `BowIdleBaker` if they read wrong in play.
+- **Seat change is a 95° roll in the hand** (carry ↔ aiming seat, 0.15 s). A weapon bone keyed in the clips, or a
+  curve-driven weight, would follow the arm blend exactly instead of a timer.

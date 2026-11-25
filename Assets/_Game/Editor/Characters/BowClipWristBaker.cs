@@ -86,7 +86,11 @@ namespace Game.Editor.Characters
             return Mathf.Clamp(source + offset, -limit, limit);
         }
 
-        private static AnimationClip Bake(AnimationClip source, string path, out int clamped)
+        private static AnimationClip Bake(AnimationClip source, string path, out int clamped) =>
+            BakeAsset(source, path, WristOffsets, out clamped);
+
+        /// <summary>Creates or rewrites (GUID kept) the clip at <paramref name="path"/> as <paramref name="source"/> plus the offsets.</summary>
+        internal static AnimationClip BakeAsset(AnimationClip source, string path, (string muscle, float offset)[] muscleOffsets, out int clamped)
         {
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
             if (clip == null)
@@ -94,13 +98,24 @@ namespace Game.Editor.Characters
                 clip = new AnimationClip();
                 AssetDatabase.CreateAsset(clip, path);
             }
+            clamped = CopyWithOffsets(source, clip, muscleOffsets);
+            EditorUtility.SetDirty(clip);
+            return clip;
+        }
+
+        /// <summary>
+        /// Rewrites <paramref name="clip"/> as a copy of <paramref name="source"/> (every curve, the clip settings, no events)
+        /// with a constant offset added to the named muscle curves (<see cref="OffsetValue"/>). Returns the clamped key count.
+        /// </summary>
+        internal static int CopyWithOffsets(AnimationClip source, AnimationClip clip, (string muscle, float offset)[] muscleOffsets)
+        {
             clip.ClearCurves();
             clip.frameRate = source.frameRate;
             AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
 
             var offsets = new Dictionary<string, float>();
-            foreach (var (muscle, offset) in WristOffsets) offsets[muscle] = offset;
-            clamped = 0;
+            foreach (var (muscle, offset) in muscleOffsets) offsets[muscle] = offset;
+            int clamped = 0;
             foreach (var binding in AnimationUtility.GetCurveBindings(source))
             {
                 var curve = AnimationUtility.GetEditorCurve(source, binding);
@@ -123,14 +138,13 @@ namespace Game.Editor.Characters
                 AnimationUtility.SetEditorCurve(clip, binding, curve);
             }
             AnimationUtility.SetAnimationClipSettings(clip, AnimationUtility.GetAnimationClipSettings(source));
-            EditorUtility.SetDirty(clip);
-            return clip;
+            return clamped;
         }
 
-        private static EditorCurveBinding MuscleBinding(string muscle) =>
+        internal static EditorCurveBinding MuscleBinding(string muscle) =>
             EditorCurveBinding.FloatCurve(string.Empty, typeof(Animator), muscle);
 
-        private static AnimationClip LoadSource(string path)
+        internal static AnimationClip LoadSource(string path)
         {
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
                 if (asset is AnimationClip clip && !clip.name.StartsWith("__preview")) return clip;

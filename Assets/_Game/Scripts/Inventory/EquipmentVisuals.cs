@@ -25,6 +25,8 @@ namespace Game.Inventory
         [SerializeField] private GameEventSO_Void _onVisualsRefreshed;
 
         private GameObject _weaponVisual;
+        private Transform _weaponDrawn; // the weapon visual's Drawn child (null without one)
+        private float _carryWeight; // drawnPose (0) → carryPose (1) on _weaponDrawn
         private WeaponArchetypeSO _currentArchetype;
         private AnimatorOverrideController _currentWeaponOverride; // equipped weapon's override, applied unless forced default
         private bool _forceDefaultController; // NPC fists with a weapon equipped (ForceDefaultController)
@@ -153,9 +155,13 @@ namespace Game.Inventory
 
         private void RefreshWeapon(bool applyAnimatorController)
         {
+            var previousArchetype = _currentArchetype;
+            float previousCarryWeight = _carryWeight;
             if (_weaponVisual != null)
                 Destroy(_weaponVisual);
             _weaponVisual = null;
+            _weaponDrawn = null;
+            _carryWeight = 0f; // every path below starts from the aiming seat (placeholder, no weapon, new visual)
             _currentArchetype = null;
             _currentWeaponOverride = null;
             _backSocketWarned = false;
@@ -174,6 +180,8 @@ namespace Game.Inventory
                 _weaponVisual.transform.localPosition = Vector3.zero;
                 _weaponVisual.transform.localRotation = Quaternion.identity;
                 ApplyArchetypePoses(_weaponVisual, _currentArchetype);
+                _weaponDrawn = _weaponVisual.transform.Find("Drawn");
+                if (_currentArchetype == previousArchetype) SetCarryWeight(previousCarryWeight); // rebuilt mid-idle: keep the seat
                 ApplyCombatVisibility(_weaponVisual, _isInCombat);
                 GameLog.Info(TAG, $"Weapon visual attached (prefab: {weapon.equipVisualPrefab.name})");
             }
@@ -409,6 +417,44 @@ namespace Game.Inventory
             if (archetype != null && archetype.sheathSocket == WeaponSheathSocket.Back && backSocket != null)
                 return backSocket;
             return hipSocket;
+        }
+
+        /// <summary>
+        /// Bow seat in the hand (spec-bow-idle-compensated-bake): places the weapon's Drawn child between the archetype's
+        /// <c>drawnPose</c> (0, aiming) and <c>carryPose</c> (1, idle). Driven every frame by <c>HandPoseDriver</c>; no-op
+        /// for an archetype without a carry seat or a visual without a Drawn child.
+        /// </summary>
+        public void SetCarryWeight(float weight)
+        {
+            if (_weaponDrawn == null || !UsesCarrySeat(_currentArchetype)) return;
+            weight = Mathf.Clamp01(weight);
+            if (weight == _carryWeight) return;
+            _carryWeight = weight;
+            BlendPose(_currentArchetype.drawnPose, _currentArchetype.carryPose, _currentArchetype.carryPivot, weight,
+                out var position, out var rotation);
+            _weaponDrawn.SetLocalPositionAndRotation(position, rotation);
+        }
+
+        /// <summary>
+        /// A carry seat applies to a rigid left-hand weapon (bow) only: a right-hand weapon's fingers never follow it and a
+        /// two-hand grip re-aims the Drawn child itself (TwoHandGripConstraint).
+        /// </summary>
+        public static bool UsesCarrySeat(WeaponArchetypeSO archetype) =>
+            archetype != null && archetype.hasCarryPose && archetype.drawnHand == WeaponHand.Left && !archetype.twoHandedGrip;
+
+        /// <summary>
+        /// Pure blend of two Drawn poses (tested): slerp on the rotation; the position keeps <paramref name="pivot"/> (a
+        /// point in the Drawn child's space, e.g. the handle centre) on the straight line between where the two poses put
+        /// it. Two poses that share the pivot point therefore turn about it: lerping the origin instead would swing the
+        /// handle off the palm mid-blend (28 mm for the bow's 95° roll).
+        /// </summary>
+        public static void BlendPose(WeaponPose from, WeaponPose to, Vector3 pivot, float t, out Vector3 position, out Quaternion rotation)
+        {
+            t = Mathf.Clamp01(t);
+            Quaternion fromRotation = Quaternion.Euler(from.localEulerAngles), toRotation = Quaternion.Euler(to.localEulerAngles);
+            rotation = Quaternion.Slerp(fromRotation, toRotation, t);
+            Vector3 pivotPoint = Vector3.Lerp(from.localPosition + fromRotation * pivot, to.localPosition + toRotation * pivot, t);
+            position = pivotPoint - rotation * pivot;
         }
 
         /// <summary>

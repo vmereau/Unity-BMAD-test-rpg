@@ -18,7 +18,9 @@ Combat/
 │                 `meshy test/` = rejected Meshy text-to-motion tries (`MESHY_PROMPTS.md`)
 ├── Bow/        — Standing Equip Bow (clip `Draw Bow`), Standing Disarm Bow (clip `Sheathe Bow`) + Bow_AnimatorOverride;
 │                 aim: Standing Draw Arrow (`Draw arrow`), Standing Aim Overdraw (`Aim Overdraw`, loopTime on),
-│                 Standing Fire Arrow (`Fire arrow`) — no events, used directly by the bow aim states
+│                 Standing Fire Arrow (`Fire arrow`) — no events, sources of the wrist bakes the bow aim states play;
+│                 Standing Bow Idle (no skin: avatar copied from `Idle.fbx`) → baked `Bow Idle.anim` (the bow's CombatIdle,
+│                 `BAKE_RECIPES.md` → Bow idle)
 ├── Unarmed/    — lead jab step / hook step / uppercut step (Attack_1 / 2 / 3: Meshy + Blender fit, each carries its own
 │                 travel; `meshy smplh rig` = their avatar source), lead jab, Hook, Uppercut (previous Mixamo clips with
 │                 Blender leg edits, unreferenced, kept for a revert; untouched sources in `old/`), draw unarmed, sheath unarmed, stagger 1/2,
