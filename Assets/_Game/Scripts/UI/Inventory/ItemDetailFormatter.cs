@@ -18,6 +18,7 @@ namespace Game.UI
         private const string CATEGORY_WEAPON = "Weapon";
         private const string CATEGORY_ARMOR_PREFIX = "Armor · ";
         private const string CATEGORY_SHIELD = "Shield";
+        private const string CATEGORY_TORCH = "Torch";
         private const string CATEGORY_POTION = "Potion";
         private const string CATEGORY_MEAL = "Meal";
         private const string CATEGORY_INGREDIENT = "Ingredient";
@@ -70,6 +71,7 @@ namespace Game.UI
             WeaponSO { IsForged: true } => CATEGORY_FORGED_WEAPON,
             WeaponSO => CATEGORY_WEAPON,
             ShieldSO => CATEGORY_SHIELD,
+            TorchSO => CATEGORY_TORCH,
             ArmorSO armor => CATEGORY_ARMOR_PREFIX + ArmorSlotName(armor.slot),
             PotionItemSO { Kind: ConsumableKind.Meal } => CATEGORY_MEAL,
             PotionItemSO => CATEGORY_POTION,

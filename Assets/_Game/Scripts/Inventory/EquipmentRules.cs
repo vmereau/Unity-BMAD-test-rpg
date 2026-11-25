@@ -9,7 +9,7 @@ namespace Game.Inventory
     public static class EquipmentRules
     {
         /// <summary>
-        /// Slot <paramref name="item"/> is equipped to, given what is already worn: weapons → Weapon, shields → Offhand,
+        /// Slot <paramref name="item"/> is equipped to, given what is already worn: weapons → Weapon, shields and torches → Offhand,
         /// rings → the free ring slot (Ring1 when both are taken), other armor → its slot. False for anything else.
         /// </summary>
         public static bool TryGetTargetSlot(ItemSO item, IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped, out EquipmentSlot slot)
@@ -21,6 +21,7 @@ namespace Game.Inventory
                     slot = EquipmentSlot.Weapon;
                     return true;
                 case ShieldSO:
+                case TorchSO:
                     slot = EquipmentSlot.Offhand;
                     return true;
                 case ArmorSO armor when armor.slot is EquipmentSlot.Weapon or EquipmentSlot.Offhand:
@@ -40,12 +41,14 @@ namespace Game.Inventory
 
         /// <summary>
         /// The other slot equipping <paramref name="item"/> frees up: a two-handed weapon / bow pushes out the offhand item,
-        /// a shield pushes out a two-handed weapon / bow. False when nothing conflicts.
+        /// a shield pushes out a two-handed weapon / bow. A torch conflicts with neither: it is stowed (hidden) while one is drawn
+        /// (spec-torch-offhand-item). False when nothing conflicts.
         /// </summary>
         public static bool TryGetConflictingSlot(ItemSO item, IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped, out EquipmentSlot slot)
         {
             slot = default;
-            if (item is WeaponSO { OccupiesOffhand: true } && IsOccupied(equipped, EquipmentSlot.Offhand))
+            if (item is WeaponSO { OccupiesOffhand: true } && IsOccupied(equipped, EquipmentSlot.Offhand)
+                && !CoexistsWithTwoHands(Get(equipped, EquipmentSlot.Offhand)))
             {
                 slot = EquipmentSlot.Offhand;
                 return true;
@@ -63,6 +66,7 @@ namespace Game.Inventory
         {
             WeaponSO => slot == EquipmentSlot.Weapon,
             ShieldSO => slot == EquipmentSlot.Offhand,
+            TorchSO => slot == EquipmentSlot.Offhand,
             ArmorSO armor when armor.slot is EquipmentSlot.Weapon or EquipmentSlot.Offhand => false,
             ArmorSO armor when armor.slot == EquipmentSlot.Ring1 => slot is EquipmentSlot.Ring1 or EquipmentSlot.Ring2,
             ArmorSO armor => slot == armor.slot,
@@ -71,7 +75,11 @@ namespace Game.Inventory
 
         /// <summary>An offhand item next to a weapon that needs both hands (a bad save): the offhand item must go.</summary>
         public static bool HasOffhandConflict(IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped) =>
-            IsOccupied(equipped, EquipmentSlot.Offhand) && Get(equipped, EquipmentSlot.Weapon) is WeaponSO { OccupiesOffhand: true };
+            IsOccupied(equipped, EquipmentSlot.Offhand) && !CoexistsWithTwoHands(Get(equipped, EquipmentSlot.Offhand))
+            && Get(equipped, EquipmentSlot.Weapon) is WeaponSO { OccupiesOffhand: true };
+
+        /// <summary>An offhand item that stays equipped next to a weapon needing both hands (stowed while it is drawn): torches.</summary>
+        public static bool CoexistsWithTwoHands(ItemSO offhand) => offhand is TorchSO;
 
         private static bool IsOccupied(IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped, EquipmentSlot slot) => Get(equipped, slot) != null;
 

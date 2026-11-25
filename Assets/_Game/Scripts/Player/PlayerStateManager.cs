@@ -142,6 +142,7 @@ namespace Game.Player
         }
 
         private Game.AI.FactionMember _factionMember;
+        private Game.Inventory.EquipmentVisuals _equipmentVisuals; // resolved lazily: swimming douses a held torch
         private int _aggroFrame = -1;
         private bool _isAggroed;
 
@@ -346,7 +347,16 @@ namespace Game.Player
             if (IsSwimming == value) return;
             IsSwimming = value;
             if (value) SetSneaking(false);
+            SyncTorchDoused();
             GameLog.Info(TAG, $"Swimming: {value}");
+        }
+
+        // Swimming or death douses a held torch (spec-torch-offhand-item): it stays in hand, flame and light off, relit on
+        // leaving the water / reviving. Called on every IsSwimming / IsDead change, so it is never left doused.
+        private void SyncTorchDoused()
+        {
+            if (_equipmentVisuals == null) _equipmentVisuals = GetComponentInChildren<Game.Inventory.EquipmentVisuals>(true);
+            if (_equipmentVisuals != null) _equipmentVisuals.SetTorchDoused(IsSwimming || IsDead);
         }
 
         /// <summary>Leaves sneak because the player started running — plays the sneak-to-sprint clip.</summary>
@@ -462,6 +472,7 @@ namespace Game.Player
         {
             if (IsDead == value) return;
             IsDead = value;
+            SyncTorchDoused(); // a dead body's torch is out (even if it died swimming); a revive / load relights it
             GameLog.Info(TAG, $"IsDead: {value}");
             if (value)
             {

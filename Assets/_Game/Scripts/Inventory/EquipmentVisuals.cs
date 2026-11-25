@@ -36,6 +36,12 @@ namespace Game.Inventory
         private ShieldSO _shieldVisualItem; // shield the current _shieldVisual was built for — skip rebuilds on unrelated refreshes
         private bool _shieldHeld; // set by PlaceShield only once the shield is parented to the offhand socket
         private bool _shieldSocketWarned; // warn once per equipped shield when a shield socket is missing
+        private GameObject _torchVisual;
+        private TorchSO _torchVisualItem; // torch the current _torchVisual was built for — skip rebuilds on unrelated refreshes
+        private TorchLight _torchLight; // flame + light under the torch visual's Drawn child (null on a placeholder)
+        private bool _torchHeld; // set by PlaceTorch once the torch is parented to the left hand
+        private bool _torchDoused; // swimming: the held torch stays in hand, unlit (SetTorchDoused)
+        private bool _torchSocketWarned; // warn once per equipped torch when a socket is missing
         private GameObject _helmetVisual;
         private GameObject _armorVisual;
         private ItemSO _armorVisualItem; // armor the current _armorVisual was built for — skip rebuilds on unrelated refreshes
@@ -80,12 +86,38 @@ namespace Game.Inventory
 
         /// <summary>
         /// Left-arm pose the Offhand item asks for (<see cref="EquipableItemSO.offhandArmPose"/>), None without one. Read
-        /// every frame by <c>HandPoseDriver</c> for the <c>LeftArm</c> layer (spec-sword-shield-take-combo).
+        /// every frame by <c>HandPoseDriver</c> for the <c>LeftArm</c> layer (spec-sword-shield-take-combo). A torch asks
+        /// only while it is in the hand: stowed (two-hander / bow drawn, hidden) it leaves the clips' arm.
         /// </summary>
         public OffhandArmPose OffhandArmPose =>
             _equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Offhand) is EquipableItemSO item
-                ? item.offhandArmPose
+                ? ResolveOffhandArmPose(item.offhandArmPose, item is TorchSO, TorchInHand)
                 : OffhandArmPose.None;
+
+        /// <summary>Pure rule behind <see cref="OffhandArmPose"/> (tested): a torch's pose counts only while it is held.</summary>
+        public static OffhandArmPose ResolveOffhandArmPose(OffhandArmPose itemPose, bool isTorch, bool torchHeld) =>
+            isTorch && !torchHeld ? OffhandArmPose.None : itemPose;
+
+        /// <summary>A torch is in the left hand (spec-torch-offhand-item) — lit unless doused (swimming).</summary>
+        public bool TorchInHand => _torchHeld && _torchVisual != null;
+
+        /// <summary>The held torch is burning: in hand and not doused.</summary>
+        public bool TorchLit => IsTorchLit(TorchInHand, _torchDoused);
+
+        /// <summary>
+        /// Pure rule (tested): an equipped torch is held in the left hand except while a weapon that needs both hands (two-hander,
+        /// bow) or the left hand itself is drawn — then it is stowed (hidden). Fists, a drawn right-hand one-hander and any
+        /// sheathed weapon keep it in hand.
+        /// </summary>
+        public static bool ShouldHoldTorch(bool hasTorch, bool isDrawn, WeaponSO weapon) =>
+            hasTorch && !(isDrawn && (weapon is { OccupiesOffhand: true }
+                                      || weapon?.archetype != null && weapon.archetype.drawnHand == WeaponHand.Left));
+
+        /// <summary>Pure rule (tested): the torch burns while held and not doused.</summary>
+        public static bool IsTorchLit(bool held, bool doused) => held && !doused;
+
+        /// <summary>The instantiated torch visual (null without a torch).</summary>
+        public GameObject TorchVisual => _torchVisual;
 
         private void Awake()
         {
@@ -125,6 +157,7 @@ namespace Game.Inventory
         {
             _isInCombat = isInCombat;
             PlaceShield(); // follows the weapon: in hand once drawn, on the back otherwise
+            PlaceTorch(); // in hand unless a two-hander / bow is now drawn
             if (_weaponVisual == null) return;
             var targetSocket = isInCombat ? CurrentDrawnSocket() : CurrentSheathSocket();
             if (targetSocket == null)
@@ -149,6 +182,7 @@ namespace Game.Inventory
             if (_equipmentSystem == null) return;
             RefreshWeapon(applyAnimatorController);
             RefreshShield(); // after the weapon: its hand and drawn state decide where the shield goes
+            RefreshTorch(); // after the weapon too: a drawn two-hander / bow stows it
             RefreshHelmet();
             RefreshBody();
             _onVisualsRefreshed?.Raise(false);
@@ -278,6 +312,96 @@ namespace Game.Inventory
         {
             if (_shieldSocketWarned) return;
             _shieldSocketWarned = true;
+            GameLog.Warn(TAG, $"EquipmentVisuals ({gameObject.name}): {message}");
+        }
+
+        /// <summary>
+        /// Swimming (or death) douses the torch (spec-torch-offhand-item): it stays in the hand, flame and light off, and burns
+        /// again once the player leaves the water / revives. Called by <c>PlayerStateManager</c>.
+        /// </summary>
+        public void SetTorchDoused(bool doused)
+        {
+            if (_torchDoused == doused) return;
+            _torchDoused = doused;
+            ApplyTorchLit();
+        }
+
+        private void RefreshTorch()
+        {
+            var torch = _equipmentSystem.GetEquipped(EquipmentSlot.Offhand) as TorchSO;
+            if (_torchVisual != null && torch != null && torch == _torchVisualItem)
+            {
+                PlaceTorch(); // same torch: only the weapon (drawn state, two hands) may have changed
+                return;
+            }
+
+            if (_torchVisual != null)
+                Destroy(_torchVisual);
+            _torchVisual = null;
+            _torchVisualItem = null;
+            _torchLight = null;
+            _torchHeld = false;
+            _torchSocketWarned = false;
+
+            if (torch == null) return;
+            _torchVisualItem = torch;
+
+            if (torch.equipVisualPrefab != null)
+            {
+                _torchVisual = Instantiate(torch.equipVisualPrefab, transform);
+                var drawn = _torchVisual.transform.Find("Drawn");
+                var sheathed = _torchVisual.transform.Find("Sheathed");
+                if (drawn != null) torch.heldPose.ApplyTo(drawn);
+                if (sheathed != null) torch.stowPose.ApplyTo(sheathed);
+                if (drawn == null || sheathed == null)
+                    GameLog.Warn(TAG, $"Torch '{torch.itemName}': visual lacks a Drawn / Sheathed child — poses partly skipped");
+                _torchLight = _torchVisual.GetComponentInChildren<TorchLight>(true);
+                if (_torchLight == null)
+                    GameLog.Warn(TAG, $"Torch '{torch.itemName}': visual has no TorchLight — it gives no light");
+                GameLog.Info(TAG, $"Torch visual attached (prefab: {torch.equipVisualPrefab.name})");
+            }
+            else
+            {
+                _torchVisual = CreatePlaceholder(PrimitiveType.Cylinder, transform, new Vector3(0.04f, 0.25f, 0.04f), new Color(0.35f, 0.22f, 0.1f));
+                GameLog.Info(TAG, "Torch visual attached (placeholder)");
+            }
+            PlaceTorch();
+        }
+
+        // Torch in the left hand while ShouldHoldTorch. Stowed (two-hander / bow drawn) it is hidden for now (user decision
+        // 2026-11-25); it still follows the hip socket so the Sheathed child + TorchSO.stowPose can be shown again later.
+        private void PlaceTorch()
+        {
+            _torchHeld = false;
+            if (_torchVisual == null) return;
+            bool held = ShouldHoldTorch(true, _isInCombat, _equipmentSystem.GetEquipped(EquipmentSlot.Weapon) as WeaponSO);
+            if (held && _leftWeaponSocket == null)
+            {
+                WarnTorchSocketOnce("_leftWeaponSocket is not assigned — the torch stays hidden");
+                held = false;
+            }
+            Transform socket = held ? _leftWeaponSocket : _undrawnWeaponSocket;
+            _torchHeld = held;
+            _torchVisual.SetActive(held); // before the lit switch: particles only play on an active hierarchy
+            if (socket != null)
+            {
+                _torchVisual.transform.SetParent(socket, worldPositionStays: false);
+                _torchVisual.transform.localPosition = Vector3.zero;
+                _torchVisual.transform.localRotation = Quaternion.identity;
+            }
+            ApplyCombatVisibility(_torchVisual, held);
+            ApplyTorchLit();
+        }
+
+        private void ApplyTorchLit()
+        {
+            if (_torchLight != null) _torchLight.SetLit(TorchLit);
+        }
+
+        private void WarnTorchSocketOnce(string message)
+        {
+            if (_torchSocketWarned) return;
+            _torchSocketWarned = true;
             GameLog.Warn(TAG, $"EquipmentVisuals ({gameObject.name}): {message}");
         }
 

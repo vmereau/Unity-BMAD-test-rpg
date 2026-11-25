@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1f2301d6019001458146b1391c6cba0, type: 3}
+  m_Name: Item_Torch
+  m_EditorClassIdentifier: Game::Game.Inventory.TorchSO
+  itemId: ae4481468a074e509f7676d683bf3911
+  itemName: Torch
+  description: "A stick of oak wrapped in rags soaked with pitch. It burns through the night and keeps what lurks in it at a distance \u2014 mostly."
+  icon: {fileID: 21300000, guid: b99d11412608fb241b681f364e87732a, type: 3}
+  maxStacks: 1
+  worldItemPrefab: {fileID: 2019823755166656730, guid: eb6354e1faa67fb41822020155a6f38c, type: 3}
+  buyValue: 5
+  sellValue: 1
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0
+  equipVisualPrefab: {fileID: 1946598487569675504, guid: 184d1e37ace6014479a9cb16306776e2, type: 3}
+  strengthBonus: 0
+  dexterityBonus: 0
+  enduranceBonus: 0
+  intelligenceBonus: 0
+  defenseBonus: 0
+  offhandArmPose: 1
+  heldPose:
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 300.3, y: 254.8, z: 6.3}
+  stowPose:
+    localPosition: {x: -0.325, y: 0.032, z: -0.115}
+    localEulerAngles: {x: 2.6, y: 274, z: 35.9}
