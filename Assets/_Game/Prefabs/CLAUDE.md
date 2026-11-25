@@ -20,7 +20,7 @@
 | `World/CookingStations/` | Cooking stations (multi-look) — contract below |
 | `World/SmithingStations/` | Smithing stations — variants of `CookingStation_Base` (contract below) |
 | `World/Beds/` | Beds (multi-look) — contract below |
-| `World/Huts/` | Art-pass worker hut shells built from kit pieces (generated; own `CLAUDE.md`) |
+| `World/Huts/` | Art-pass worker hut prefabs built round the board-built Blender shell (generated; own `CLAUDE.md`) |
 | `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
 | `World/Containers/` | `Base_Container` |
 | `World/Doors/` | `Door Base`, `Simple door`, `Poor small door` |

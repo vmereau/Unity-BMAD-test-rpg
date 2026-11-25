@@ -19,7 +19,7 @@
 | `Grade Area 1 Fort Ramp` / `Grade Area 1 Goat Track` | `Area1FortRamp` | Live terrain heights along one path |
 | `Rebuild Mafia Quarters`, `Author Mafia Buildings And Overlooks` | `Area1MafiaBlockout` | One-shot authoring (see below) |
 | `Dress Home Yard` | `HomeYardDresser` | `PlayersZone/HomeYardDressing` |
-| `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` (see that folder's `CLAUDE.md`) |
+| `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` from the shell models in `Art/Environment/Camp/models/worker hut/` (see the Huts folder's `CLAUDE.md`); rebake afterwards |
 
 Sites, river, lake, ford, roads and site features are read from `docs/World/Areas/area-001/layout.json`
 (`Area1BlockoutBuilder.TryReadLayout`).

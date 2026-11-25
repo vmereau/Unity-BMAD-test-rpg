@@ -144,7 +144,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | UI prefabs | `Prefabs/UI/CLAUDE.md` | `UICanvas` hierarchy, EventSystem placement, nested-panel wiring |
 | Entity prefabs | `Prefabs/Entities/CLAUDE.md` | `Entity_base`, `NPC_base Variant`, variant-editing gotchas |
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
-| Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut shells (kit pieces), shell contract, home yard dressing tool |
+| Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut prefabs (board-built Blender shell), shell contract, home yard dressing tool |
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` (+ `WEAPON_TOOLS.md`) | `_World` / `_Visual` convention, sockets, grip; topic file: Weapon Creator / Pose Tuner |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |

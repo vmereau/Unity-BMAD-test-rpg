@@ -180,15 +180,15 @@ namespace Game.Editor.World
             Prop("SM_Hay_02a", hut, new Vector3(0.6f, 0.09f, 0.45f), 80f, 0.36f, "FloorStraw");
             // In the corner away from the bed, so the strip beside the bed stays clear to the back wall. The crate's
             // pivot is at one bottom corner, hence the offset from the table top below.
-            Prop("SM_Crate_01", hut, new Vector3(1.31f, 0f, -1.22f), 4f, 0.45f, "CrateTable", solid: true);
-            Vector3 top = new Vector3(1.07f, 0.47f, -1f);
+            Prop("SM_Crate_01", hut, new Vector3(1.26f, 0f, -1.22f), 4f, 0.45f, "CrateTable", solid: true);
+            Vector3 top = new Vector3(1.02f, 0.47f, -1f);
             Prop("SM_Candle_01c", hut, top + new Vector3(0.1f, 0f, -0.08f), 0f, 1f, "Candle");
             Prop("SM_Bowl_01", hut, top + new Vector3(-0.1f, 0f, 0.06f), 30f, 1f, "Bowl");
             Prop("SM_Sack_01", hut, new Vector3(0.45f, 0f, -1.08f), 70f, 1f, "Sack");
             Prop("SM_burlapSackA_a1", hut, new Vector3(1.05f, 0.2f, -0.35f), 80f, 0.8f, "Sack");
-            Transform rope = Prop("SM_Rope_Bundle_01", hut, new Vector3(1.36f, 1.45f, 0.35f), 0f, 0.6f, "HangingRope");
+            Transform rope = Prop("SM_Rope_Bundle_01", hut, new Vector3(1.25f, 1.45f, 0.35f), 0f, 0.6f, "HangingRope");
             rope.localRotation = Quaternion.Euler(0f, 90f, 90f);
-            Transform peg = Prop("SM_Damaged_Plank_A_01", hut, new Vector3(1.36f, 1.72f, 0.55f), 90f, 1f, "PegRail");
+            Transform peg = Prop("SM_Damaged_Plank_A_01", hut, new Vector3(1.26f, 1.72f, 0.55f), 90f, 1f, "PegRail");
             peg.localRotation = Quaternion.Euler(90f, 90f, 0f);
             Flap(hut);
 
@@ -214,7 +214,7 @@ namespace Game.Editor.World
             Prop("SM_burlapSackSetA_a1", hut, new Vector3(0.95f, 0f, 0.55f), 15f, 0.75f, "Sacks", solid: true);
             Prop("SM_bucketA_a1", hut, new Vector3(1.05f, 0f, -0.45f), 0f, 0.55f, "Bucket");
             Prop("SM_firewoodA_a1", hut, new Vector3(-0.8f, 0f, 1.05f), 90f, 0.6f, "Kindling");
-            Transform rope = Prop("SM_Rope_Bundle_01", hut, new Vector3(1.36f, 1.5f, 0.1f), 0f, 0.6f, "HangingRope");
+            Transform rope = Prop("SM_Rope_Bundle_01", hut, new Vector3(1.25f, 1.5f, 0.1f), 0f, 0.6f, "HangingRope");
             rope.localRotation = Quaternion.Euler(0f, 90f, 90f);
             Flap(hut);
         }
@@ -357,10 +357,10 @@ namespace Game.Editor.World
                 new Vector3(3.24f, 1.75f, 1.0f), new Vector3(2.19f, 1.75f, -1.1f), 0.28f, 23, 2), true);
             foreach (float z in new[] { -1.1f, 1.0f })
                 Cloth(hut, "EaveRope", CampClothMesh.Rope($"LeanTo_Eave{(z < 0 ? "Back" : "Front")}",
-                    new Vector3(1.72f, 2.3f, z), new Vector3(1.66f, 2.47f, z), 0.005f), false);
+                    new Vector3(1.72f, 2.3f, z), new Vector3(1.74f, 2.43f, z), 0.005f), false);
             Model(FLOOR_BED, hut, new Vector3(2.27f, 0f, 0.3f), 104f, "FloorBed");
             // Leaning on Hobb's front wall, left of his door, blade on the ground.
-            Transform spade = Model(SPADE, hut, new Vector3(-0.75f, 0f, 1.96f), 8f, "Spade");
+            Transform spade = Model(SPADE, hut, new Vector3(-0.75f, 0f, 1.68f), 8f, "Spade");
             if (spade != null)
             {
                 spade.localRotation = Quaternion.Euler(-15f, 8f, 0f);
@@ -374,8 +374,8 @@ namespace Game.Editor.World
         // dead-end nook between the hut and the bay, away from the walk to the bay's open side.
         private static void DressDryingLine(Transform bay, Transform playerHut)
         {
-            // The hut's front corner on the bay's side is its local (−1.5, 1.5): the doorway is at x 0..1.05.
-            Vector3 from = bay.InverseTransformPoint(playerHut.TransformPoint(new Vector3(-1.62f, 2.38f, 1.62f)));
+            // Tied round the end of the hut's top plate, which sticks out past the front corner on the bay's side.
+            Vector3 from = bay.InverseTransformPoint(playerHut.TransformPoint(new Vector3(-1.4f, 2.46f, 1.6f)));
             Vector3 to = OnGround(bay, BayPoleRight) + Vector3.up * (BAY_POLE - 0.3f);
             const float SAG = 0.14f;
             Cloth(bay, "DryingLine", CampClothMesh.Rope("TarpBayEast_DryingLine", from, to, SAG), false);
@@ -505,11 +505,14 @@ namespace Game.Editor.World
             return best;
         }
 
+        // The lintel's outer face is 3 cm inside the wall centre line: the flap hangs against it.
+        private const float FLAP_INSET = 0.025f;
+
         /// <summary>The linen door flap, tied back to the side of the doorway.</summary>
         private static void Flap(Transform hut)
         {
             float doorCentre = (WorkerHutKitBuilder.DOOR_MIN_X + WorkerHutKitBuilder.DOOR_MAX_X) * 0.5f;
-            Transform flap = Model(DOOR_FLAP, hut, new Vector3(doorCentre, 0f, WorkerHutKitBuilder.HOME_HALF_LENGTH), 0f, "DoorFlap");
+            Transform flap = Model(DOOR_FLAP, hut, new Vector3(doorCentre, 0f, WorkerHutKitBuilder.HOME_HALF_LENGTH - FLAP_INSET), 0f, "DoorFlap");
             if (flap == null)
             {
                 GameLog.Warn(TAG, $"Missing {DOOR_FLAP}; the doorway stays bare.");

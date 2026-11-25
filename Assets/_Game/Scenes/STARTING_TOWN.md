@@ -419,6 +419,11 @@ The first spot of Area 1 at final quality, and the visual reference for the rest
 - `FireLight` and `CandleLight` are point lights driven by `ClockNightLight`, so they are off by day and in edit mode.
 - The other huts of the zone are still graybox.
 
+**Hut shell (`spec-area-1-worker-hut-board-shell`):** both huts are now the board-built Blender shell on one wood
+(same footprint, doorway and rear opening; the walls end 1.455 m from the middle and their colliders at 1.55 m, 10 cm
+inside the old ones). The dressing followed: wall-hung rope
+and peg rail at 1.25 m, the spade against Hobb's front boards, the drying line tied to the player hut's top plate end.
+
 **Pass 2 (`spec-area-1-home-yard-pass-2`, concepts `H5`–`H7`):** one wood tone on both huts and weight poles instead
 of roof stones (hut builder); the rest is built by `Dress Home Yard`:
 
@@ -433,7 +438,7 @@ of roof stones (hut builder); the rest is built by `Dress Home Yard`:
   `HutLane_L_6` (0.11, 43.10) is at the wedge's mouth, about 0.3 m past the bed's foot (the bed has no solid collider).
   The tarp's outer edge is tied to the line where hut-02's wall stands today (`x = 2.81 + 0.5 z` in Hobb's frame):
   move those tie points if hut-02 is rebuilt.
-- A drying line with two shirts from the player's hut's east front corner to the bay's west pole (shirts hang above
+- A drying line with two shirts from the end of the player's hut's top plate (its front corner on the bay's side) to the bay's west pole (shirts hang above
   1.8 m), a wooden spade against Hobb's front wall left of his door, a plank bench north of the fire between the two
   lanes and a log seat east of the east lane, and boards over the mud east of the doors' pocket.
 - After the rebake the escort's lane paths are as before (only the pre-existing L3→4 detour round hut-03 and the

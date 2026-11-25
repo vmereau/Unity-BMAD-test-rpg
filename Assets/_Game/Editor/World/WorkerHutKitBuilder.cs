@@ -9,7 +9,8 @@ using UnityEngine;
 namespace Game.Editor.World
 {
     /// <summary>
-    /// Assembles the art-pass worker hut shells from Hivemind kit pieces and saves them as prefabs.
+    /// Builds the art-pass worker hut prefabs round the board-built shell models (Blender,
+    /// <c>Art/Environment/Camp/models/worker hut</c>): model, weight poles, colliders and restricted area.
     /// Local +Z is the front doorway, −Z the rear opening. The origin is the floor centre.
     /// Rerunning replaces the prefabs' content, so scene instances follow.
     /// </summary>
@@ -23,18 +24,19 @@ namespace Game.Editor.World
         /// <summary>Child holding the hut's (inactive by default) restricted-area volume.</summary>
         internal const string RESTRICTED_AREA = "RestrictedArea";
 
-        // Wall centre lines: the kit's wall modules are 4 m and 3 m long and 2.5 m high.
+        // Wall centre lines. The shell model is built to the same numbers (Source~/build_worker_hut.py).
         internal const float HALF_WIDTH = 1.5f;
         // Half the length along the door axis: 1.5 m for the home hut, 2 m for the long one. Set per build.
         private static float _halfLength = 1.5f;
         internal const float EAVE = 2.5f;
-        // The door module's opening, as placed: off-centre, so one front corner stays a full wall.
+        // The doorway: off-centre, so one front corner stays a full wall.
         internal const float DOOR_MIN_X = 0f;
         internal const float DOOR_MAX_X = 1.05f;
         internal const float DOOR_HEIGHT = 2.14f;
-        private const float DOOR_MODULE_STRETCH = 1.1f; // lifts the 1.95 m opening clear of the player's head
-        private const float WALL = 0.3f;
-        // Wall centre line to the kit modules' inner (visual) face: the room is 2.56 m across in the 3 m hut.
+        // Wall colliders: 1.35 to 1.55 m from the middle (the boards' inner face is at 1.28, the posts end at 1.455).
+        private const float WALL = 0.2f;
+        private const float WALL_CENTRE = -0.05f; // collider centre, inside the wall centre line by this much
+        // Wall centre line to the boards' inner face: the room is 2.56 m across in the 3 m hut.
         private const float AREA_INSET = 0.22f;
         private const float PITCH = 28f;
         private const float OVERHANG = 0.3f;
@@ -43,29 +45,23 @@ namespace Game.Editor.World
         private const float WINDOW_SILL = 1.05f;
         private const float WINDOW_TOP = 1.95f;
 
-        // Weight poles: two per slope, parallel to the ridge, lashed over the gable boards at both ends.
+        // Weight poles: two per slope, parallel to the ridge, lashed round the barge boards at both ends.
         private const string MODELS = "Assets/_Game/Art/Environment/Camp/models/";
         internal const string ROOF_POLE = MODELS + "roof pole/RoofPole.fbx";
         internal const string ROOF_LASHING = MODELS + "roof pole/RoofLashing.fbx";
         private const float POLE_MODEL_LENGTH = 3.7f;
-        private const float BOARD_TOP = 0.083f; // SM_AssembledPlanksA's top face at the roof's 0.6 height scale
+        private const float BOARD_TOP = -0.05f; // the shell's roof boards, below the slope group's plane
         private const float POLE_RADIUS = 0.035f;
         private static readonly float[] PoleRows = { 0.3f, 0.78f }; // fraction of the slope from the ridge
 
-        // Every wood part of the shell shares one camp look: the kit's own textures (their UV layouts differ),
-        // tuned in these copies to one weathered grey-brown. The white-painted door and window modules use the
-        // plain modular wood instead. Trims keep their atlas.
-        private const string CAMP_MATERIALS = "Assets/_Game/Art/Environment/Camp/Materials/";
-        private static readonly (string kit, string camp)[] WoodRemap =
-        {
-            ("M_Wood_Main_a1", "M_Camp_HutWood"),
-            ("M_WoodPaintedWhite_a1", "M_Camp_HutWood"),
-            ("M_PlanksA_a3", "M_Camp_HutBoards"),
-            ("M_WoodPlanks_02", "M_Camp_HutGable"),
-            ("M_WoodTrim", "M_Camp_HutRidge"),
-            ("M_TrimsheetA_a1", "M_Camp_HutTrim"),
-            ("M_TrimsheetA_a2", "M_Camp_HutTrim"),
-        };
+        // The shell: one model per size, objects `Walls` and `Roof`, on M_Camp_HutShell / M_Camp_HutShellDark
+        // (assigned by the importer's material remap).
+        internal const string HOME_MODEL = MODELS + "worker hut/WorkerHut_Home.fbx";
+        internal const string LONG_MODEL = MODELS + "worker hut/WorkerHut_Long.fbx";
+        private const string MODEL_WALLS = "Walls";
+        private const string MODEL_ROOF = "Roof";
+        private const string SHELL_MATERIAL = "M_Camp_HutShell";
+        private const string SHELL_DARK_MATERIAL = "M_Camp_HutShellDark";
 
         /// <summary>Half the home hut's length: the dressing tool places its props in this frame.</summary>
         internal const float HOME_HALF_LENGTH = 1.5f;
@@ -73,7 +69,7 @@ namespace Game.Editor.World
         private static Dictionary<string, string> _kit;
         private static int _missing;
 
-        /// <summary>Kit pieces not found since the last <see cref="ResetKit"/>.</summary>
+        /// <summary>Kit pieces, camp models and shell checks that failed since the last <see cref="ResetKit"/>.</summary>
         internal static int MissingCount => _missing;
 
         /// <summary>Drops the name cache and the missing count; call at the start of a command.</summary>
@@ -94,11 +90,11 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, "Leave Play mode and close Prefab Mode first; nothing changed.");
                 return;
             }
-            Build(HOME_PATH, HOME_HALF_LENGTH, "SM_wall3mB_a1");
-            Build(LONG_PATH, 2f, "SM_wall4mB_a1");
+            Build(HOME_PATH, HOME_HALF_LENGTH, HOME_MODEL);
+            Build(LONG_PATH, 2f, LONG_MODEL);
         }
 
-        internal static GameObject Build(string prefabPath, float halfLength, string sideWall)
+        internal static GameObject Build(string prefabPath, float halfLength, string modelPath)
         {
             ResetKit();
             _halfLength = halfLength;
@@ -106,15 +102,13 @@ namespace Game.Editor.World
             try
             {
                 var rng = new System.Random(7);
-                BuildWalls(root.transform, rng, sideWall);
-                BuildRoof(root.transform, rng);
+                BuildShell(root.transform, modelPath, rng);
                 BuildColliders(root.transform);
                 BuildRestrictedArea(root.transform);
-                ApplyCampWood(root.transform);
                 if (_missing > 0)
                 {
                     // Saving would replace a good hut with one that has a hole in it, and scene instances follow.
-                    GameLog.Error(TAG, $"{_missing} kit piece(s) or camp asset(s) missing; {prefabPath} left as it was.");
+                    GameLog.Error(TAG, $"{_missing} camp asset(s) missing or incomplete; {prefabPath} left as it was.");
                     return null;
                 }
                 string folder = prefabPath.Substring(0, prefabPath.LastIndexOf('/'));
@@ -134,62 +128,43 @@ namespace Game.Editor.World
             }
         }
 
-        private static void BuildWalls(Transform root, System.Random rng, string sideWall)
-        {
-            Transform walls = Group("Walls", root);
-
-            // Wall modules start at their pivot and run along local +X.
-            Module(sideWall, walls, new Vector3(HALF_WIDTH, 0, _halfLength), 90f, "SideWall");
-            Module(sideWall, walls, new Vector3(-HALF_WIDTH, 0, -_halfLength), -90f, "SideWall");
-
-            // Rear: a square opening with a plank shutter swung open outside.
-            Module("SM_wallWindow3m_a1", walls, new Vector3(-HALF_WIDTH, 0, -_halfLength), 0f, "RearWall");
-            Transform shutter = Piece("SM_AssembledPlanksC_a1", walls,
-                new Vector3(WINDOW_MAX_X + 0.06f, (WINDOW_SILL + WINDOW_TOP) * 0.5f, -_halfLength - 0.55f));
-            shutter.localRotation = Quaternion.Euler(0, 14f, 90f);
-            shutter.localScale = new Vector3(0.45f, 0.3f, 0.4f);
-            Name(shutter, "Shutter");
-
-            // Front: the door module, then a narrow barn panel to close the last metre.
-            Transform door = Module("SM_wallDoor2m_a1", walls, new Vector3(HALF_WIDTH, 0, _halfLength), 180f, "DoorWall");
-            door.localScale = new Vector3(1f, DOOR_MODULE_STRETCH, 1f);
-            Transform filler = Module("SM_barnWallB_1m_a1", walls, new Vector3(HALF_WIDTH - 2f, 0, _halfLength), 180f, "FrontFiller");
-            filler.localScale = new Vector3(1f / 1.19f, EAVE / 2f, 1f);
-
-            // Gables: rows of horizontal boards, shorter toward the ridge.
-            float tan = Mathf.Tan(PITCH * Mathf.Deg2Rad);
-            float ridge = EAVE + HALF_WIDTH * tan;
-            foreach (float end in new[] { -1f, 1f })
-                for (int row = 0; row < 3; row++)
-                {
-                    float y = EAVE + row * 0.27f;
-                    float half = (ridge - (y + 0.05f)) / tan; // near the lower edge of the board, so the eave corners close
-                    if (half < 0.2f) break;
-                    Transform board = Piece("SM_Damaged_Plank_B_0" + (row % 2 == 0 ? 3 : 2), walls, Vector3.zero);
-                    float length = MeshLength(board);
-                    board.localScale = new Vector3(half * 2f / length, 1f, 1f);
-                    // The board's mesh runs from −length to 0 on X and lies flat; stand it on edge.
-                    board.localRotation = Quaternion.Euler(end > 0 ? -90f : 90f, 0, (float)(rng.NextDouble() - 0.5) * 3f);
-                    board.localPosition = new Vector3(half, end > 0 ? y : y + 0.29f, end * (_halfLength + 0.12f + (row % 2) * 0.02f));
-                    Name(board, "GableBoard");
-                }
-        }
-
-        private static Transform Module(string kitName, Transform parent, Vector3 at, float yaw, string name)
-        {
-            Transform module = Piece(kitName, parent, at);
-            module.localRotation = Quaternion.Euler(0, yaw, 0);
-            Name(module, name);
-            return module;
-        }
-
-        private static void BuildRoof(Transform root, System.Random rng)
+        /// <summary>
+        /// Takes the model apart into the prefab's own <c>Walls</c> and <c>Roof</c> objects (the meshes stay the
+        /// model's), then lays the weight poles on the roof. A model without both objects, or with a material
+        /// other than the two shell materials, counts as missing.
+        /// </summary>
+        private static void BuildShell(Transform root, string modelPath, System.Random rng)
         {
             Transform roof = Group("Roof", root);
             // Nobody walks on the roof: keep it out of the NavMesh, like the graybox huts.
             var modifier = roof.gameObject.AddComponent<NavMeshModifier>();
             modifier.overrideArea = true;
             modifier.area = 1;
+
+            Transform model = Model(modelPath, root, Vector3.zero);
+            if (model != null)
+            {
+                PrefabUtility.UnpackPrefabInstance(model.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                Transform walls = model.Find(MODEL_WALLS), boards = model.Find(MODEL_ROOF);
+                if (walls == null || boards == null)
+                {
+                    _missing++;
+                    GameLog.Error(TAG, $"'{modelPath}' needs the objects '{MODEL_WALLS}' and '{MODEL_ROOF}'");
+                }
+                else
+                {
+                    walls.SetParent(root, true);
+                    walls.SetAsFirstSibling();
+                    boards.SetParent(roof, true);
+                    boards.name = "RoofBoards";
+                    if (!OnCampMaterials(walls) || !OnCampMaterials(boards))
+                    {
+                        _missing++;
+                        GameLog.Error(TAG, $"'{modelPath}': remap its materials to {SHELL_MATERIAL} and {SHELL_DARK_MATERIAL} (model importer, Materials tab)");
+                    }
+                }
+                Object.DestroyImmediate(model.gameObject);
+            }
 
             float rad = PITCH * Mathf.Deg2Rad, tan = Mathf.Tan(rad);
             float ridge = EAVE + HALF_WIDTH * tan + 0.12f;
@@ -200,32 +175,22 @@ namespace Game.Editor.World
                 Transform plane = Group("Slope", roof);
                 plane.localPosition = new Vector3(0, ridge, 0);
                 plane.localRotation = Quaternion.Euler(0, 0, -side * PITCH);
-                for (int n = 0; n < 2; n++)
-                {
-                    Transform panel = Piece("SM_AssembledPlanksA_a1", plane,
-                        new Vector3(side * slope * 0.5f, 0, (n - 0.5f) * length * 0.5f));
-                    panel.localRotation = Quaternion.Euler(0, (n == 0) == (side > 0) ? 0f : 180f, 0);
-                    panel.localScale = new Vector3(slope / 2.14f, 0.6f, length * 0.5f / 2.4f * 1.02f);
-                    Name(panel, "RoofBoards");
-                }
                 BuildWeightPoles(plane, side, slope, length, rng);
             }
-            // Two caps, one from each end, stretched so they meet in the middle whatever the hut's length.
-            const float CAP_MESH_FRONT = 0.5f, CAP_MESH_LENGTH = 3.48f;
-            float capScale = (length * 0.5f + 0.15f) / CAP_MESH_LENGTH;
-            foreach (float end in new[] { -1f, 1f })
-            {
-                Transform cap = Piece("SM_Plank_Rope_300_A", roof,
-                    new Vector3(0, ridge + 0.02f, -end * (length * 0.5f - CAP_MESH_FRONT * capScale)));
-                cap.localRotation = Quaternion.Euler(0, end > 0 ? 0f : 180f, 0);
-                cap.localScale = new Vector3(1.6f, 1f, capScale);
-                Name(cap, "RidgeCap");
-            }
+        }
+
+        /// <summary>True when the object has a renderer and every material on it is one of the two shell materials.</summary>
+        private static bool OnCampMaterials(Transform part)
+        {
+            if (!part.TryGetComponent(out Renderer renderer) || renderer.sharedMaterials.Length == 0) return false;
+            foreach (Material material in renderer.sharedMaterials)
+                if (material == null || (material.name != SHELL_MATERIAL && material.name != SHELL_DARK_MATERIAL)) return false;
+            return true;
         }
 
         /// <summary>
         /// Two bark poles lying on one slope (plane frame: X down the slope, Y off the boards, Z along the ridge), each
-        /// tied over the gable boards at both ends. The lashing's rope end hangs straight down the gable.
+        /// tied round the barge boards at both ends. The lashing's rope end hangs straight down outside them.
         /// </summary>
         private static void BuildWeightPoles(Transform plane, float side, float slope, float length, System.Random rng)
         {
@@ -242,7 +207,7 @@ namespace Game.Editor.World
                 foreach (float end in new[] { -1f, 1f })
                 {
                     Transform lashing = Model(ROOF_LASHING, plane,
-                        new Vector3(across, BOARD_TOP + POLE_RADIUS, end * (_halfLength + 0.12f)));
+                        new Vector3(across, BOARD_TOP + POLE_RADIUS, end * (_halfLength + OVERHANG + 0.012f)));
                     if (lashing == null) continue;
                     // Its coil wraps the mesh's X axis and the tail hangs down −Y: lay X along the ridge, then undo
                     // the slope's tilt so the tail hangs plumb.
@@ -259,7 +224,7 @@ namespace Game.Editor.World
             if (asset == null)
             {
                 _missing++;
-                GameLog.Warn(TAG, $"Camp model '{path}' not found");
+                GameLog.Error(TAG, $"Camp model '{path}' not found");
                 Group(MISSING_PREFIX + Path.GetFileNameWithoutExtension(path), parent);
                 return null;
             }
@@ -268,48 +233,21 @@ namespace Game.Editor.World
             return go.transform;
         }
 
-        /// <summary>Swaps every kit wood material on the shell for its camp copy; a missing copy blocks the save.</summary>
-        private static void ApplyCampWood(Transform root)
-        {
-            var swap = new Dictionary<string, Material>();
-            foreach ((string kit, string camp) in WoodRemap)
-            {
-                var material = AssetDatabase.LoadAssetAtPath<Material>(CAMP_MATERIALS + camp + ".mat");
-                if (material == null)
-                {
-                    _missing++;
-                    GameLog.Warn(TAG, $"Camp material '{camp}' not found in {CAMP_MATERIALS}");
-                    continue;
-                }
-                swap[kit] = material;
-            }
-            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
-            {
-                Material[] materials = renderer.sharedMaterials;
-                bool changed = false;
-                for (int i = 0; i < materials.Length; i++)
-                    if (materials[i] != null && swap.TryGetValue(materials[i].name, out Material camp))
-                    {
-                        materials[i] = camp;
-                        changed = true;
-                    }
-                if (changed) renderer.sharedMaterials = materials;
-            }
-        }
-
         private static void BuildColliders(Transform root)
         {
             Transform colliders = Group("Colliders", root);
             float mid = EAVE * 0.5f;
             foreach (float side in new[] { -1f, 1f })
-                Box(colliders, "Side", new Vector3(side * HALF_WIDTH, mid, 0), new Vector3(WALL, EAVE, _halfLength * 2f + WALL));
-            Span(colliders, "Front", _halfLength, -HALF_WIDTH, DOOR_MIN_X, 0, EAVE);
-            Span(colliders, "Front", _halfLength, DOOR_MAX_X, HALF_WIDTH, 0, EAVE);
-            Span(colliders, "Lintel", _halfLength, DOOR_MIN_X, DOOR_MAX_X, DOOR_HEIGHT, EAVE);
-            Span(colliders, "Rear", -_halfLength, -HALF_WIDTH, WINDOW_MIN_X, 0, EAVE);
-            Span(colliders, "Rear", -_halfLength, WINDOW_MAX_X, HALF_WIDTH, 0, EAVE);
-            Span(colliders, "WindowSill", -_halfLength, WINDOW_MIN_X, WINDOW_MAX_X, 0, WINDOW_SILL);
-            Span(colliders, "WindowHead", -_halfLength, WINDOW_MIN_X, WINDOW_MAX_X, WINDOW_TOP, EAVE);
+                Box(colliders, "Side", new Vector3(side * (HALF_WIDTH + WALL_CENTRE), mid, 0),
+                    new Vector3(WALL, EAVE, (_halfLength + WALL_CENTRE) * 2f + WALL));
+            float front = _halfLength + WALL_CENTRE, rear = -front;
+            Span(colliders, "Front", front, -HALF_WIDTH, DOOR_MIN_X, 0, EAVE);
+            Span(colliders, "Front", front, DOOR_MAX_X, HALF_WIDTH, 0, EAVE);
+            Span(colliders, "Lintel", front, DOOR_MIN_X, DOOR_MAX_X, DOOR_HEIGHT, EAVE);
+            Span(colliders, "Rear", rear, -HALF_WIDTH, WINDOW_MIN_X, 0, EAVE);
+            Span(colliders, "Rear", rear, WINDOW_MAX_X, HALF_WIDTH, 0, EAVE);
+            Span(colliders, "WindowSill", rear, WINDOW_MIN_X, WINDOW_MAX_X, 0, WINDOW_SILL);
+            Span(colliders, "WindowHead", rear, WINDOW_MIN_X, WINDOW_MAX_X, WINDOW_TOP, EAVE);
 
             float rad = PITCH * Mathf.Deg2Rad;
             float slope = (HALF_WIDTH + OVERHANG) / Mathf.Cos(rad);
@@ -400,14 +338,6 @@ namespace Game.Editor.World
                 }
             }
             return _kit.TryGetValue(kitName, out string found) ? found : null;
-        }
-
-        /// <summary>Unscaled length of a piece's first mesh (LOD0) along its local X.</summary>
-        private static float MeshLength(Transform piece)
-        {
-            var filter = piece.GetComponentInChildren<MeshFilter>();
-            if (filter == null || filter.sharedMesh == null) return 1f;
-            return Mathf.Max(0.01f, Mathf.Abs(filter.sharedMesh.bounds.size.x * filter.transform.lossyScale.x));
         }
     }
 }
