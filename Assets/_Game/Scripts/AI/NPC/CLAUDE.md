@@ -17,6 +17,7 @@
 | `TollGate`, `TollGateRules` | Exit toll — see **Toll gates** below. `TollGateRules` is pure (`TollGateRulesTests`). Racket data: `Game.NPC.TollRacketSO` (`ScriptableObjects/Entities/NPC/`). |
 | `NpcRoutine`, `NpcRoutineBlock` | Daily routine (Stand / Patrol / Sleep blocks — owns all patrol routes). `NpcRoutineSchedule` (`FindBlock`, `FindAllDayBlock`, `NearestIndex`) is pure (`NpcRoutineScheduleTests`). |
 | `NpcSleepRules` | Pure sleep rules (`ShouldLieDown`, `IsQuiet`) — see **NPC sleep**. `NpcSleepRulesTests`. |
+| `NpcTorchRules` | Pure night-torch rule `WantsTorch(flag, hour, sunrise, sunset, asleep)` — see **NPC routines**. `NpcNightTorchTests`. |
 
 ---
 
@@ -54,6 +55,10 @@
   `IsSuspended` no block is sent, so the sequence's own `SetRoutineTarget` calls stick; `Resume` re-sends the current
   block at once (snap = warp). Always resume what you suspend (also from `OnDisable`).
 - A stored routine request is re-applied in `EntityBrain.OnEnable` (respawn).
+- **Night torch** (spec-npc-night-torch): `_torchAtNight` + `_dayNight` (`DayNightConfig`; null = 6 / 22). Every poll (and on
+  time skip) → `NpcArmament.SetTorchWanted(NpcTorchRules.WantsTorch(...))`: night = outside sunrise → sunset, not asleep
+  (`EntityBrain.IsAsleep`), a clock loaded. Independent of the blocks and of `Suspend`. The offhand swap itself (shield back
+  for fights, loot, grant) is `NpcArmament`'s: `Scripts/AI/RANGED_EQUIPMENT.md` → Night torch.
 
 ---
 
@@ -150,6 +155,8 @@
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
   The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`. TitheBarnShortfall cast (scene root `TitheBarnShortfall`): `BarnGuard` (Venn) 06–21 `Spot_BarnGuard_Gate`, 00–03 `Spot_BarnGuard_BarnDoor` (block label `Barn`), otherwise Sleep in `BarnGuardBed` (barracks `Bunk_0`); `FieldHand_Pim` / `BarnWorker_Gerrit` 06–21 `Spot_FieldHand_Strips` / `Spot_BarnWorker_Threshing`, 21–06 Sleep in `FieldHandBed` / `BarnWorkerBed` (tent camp, west of Hobb's hut).
+- **Night torch on** (`_torchAtNight`): DockGuard, WarehouseGuard, CompanyGuard_ArrivalLeft / Right, RacketGuard (Harl),
+  BarnGuard (Venn — asleep 21–00 / 03–06, so only at the barn door).
 
 ---
 

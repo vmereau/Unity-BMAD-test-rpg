@@ -82,6 +82,21 @@
   as `_stowedShield`, spec-npc-shield-loot-on-down), visuals removed with `Refresh(false)` (controller kept), armor stays
   equipped (not lootable). `RegainedConsciousness` → `OnWokeUp`: the weapon still in the inventory is re-equipped, a looted
   one → another carried weapon, else fists; then `EquipCarriedShield` (shield back if not looted and the offhand is free); full refresh.
+  A held night torch is unequipped into the inventory too (lootable, light gone); the wake-up rebuild takes it back at night.
+- **Night torch** (spec-npc-night-torch): `NpcRoutine._torchAtNight` → `SetTorchWanted` every poll. `SyncOffhand` is the one
+  place that decides the offhand: `ShouldHoldTorch(wanted, _fightOffhand, HasOwnShield)` (pure, tested). Torch held → the
+  own shield is pushed into the inventory and remembered as `_stowedShield`; the torch item is `_nightTorch` (`Item_Torch` on
+  `NPC_base Variant`), **granted when the inventory holds none** (a looted one is re-granted — accepted). `_fightOffhand` is
+  a latch: set when a weapon is drawn in combat (draw `WeaponSwap`, `CompleteWeaponSwitch`) → the shield replaces the torch;
+  kept through mid-fight weapon changes (no torch flash between melee ↔ bow clips); cleared out of combat once sheathed
+  (sheathe `WeaponSwap`) or when the fight turns to fists. **Fists, no weapon or no own shield → the torch stays** (a shield
+  is only held next to a drawn weapon). Runs from `SetTorchWanted`, `OnCombatStateChanged`, `CompleteWeaponSwitch` and the
+  end of `ApplyMode` (every rebuild); never while down (stored, applied on wake) nor inactive (`OnEnable`'s rebuild
+  re-syncs). Only the night torch is ever taken off (an authored torch stays). Only `EquipmentVisuals.RefreshOffhand()` is
+  rebuilt (no weapon visual / hitbox / controller change), so a swap mid-draw is safe. By night the shield's armor bonus
+  is gone until the draw (it sits in the inventory). **Every shield re-equip path must leave a held torch alone**: `EquipCarriedShield` needs an empty
+  offhand, `ReEquipCarriedStartingShield` stows the starting shield next to a saved torch. NPC torch lights cast no shadows
+  (`EquipmentVisuals._torchShadows` off on the variant). Swaps are instant (no clip yet).
 - **Saved:** `SaveableObject` captures `NpcArmament.Equipped` + `DroppedWeapon` (`ObjectSaveData.equipped` / `droppedWeaponId`, via the shared `EquipmentSaveConverter`) once `HasLoadout` (null before
   `Start`, so a corpse hidden at load keeps its authored armor). No catalog → restore skipped, authored loadout kept. Restore runs after `Start`, so
   `RestoreLoadout` replaces the granted loadout (`RestoreEquipped` never touches the already-restored inventory) and sets

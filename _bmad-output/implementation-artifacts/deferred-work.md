@@ -1383,7 +1383,7 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 
 ## From spec-torch-offhand-item (2026-11-25)
 
-- **NPC torches** — NPCs never carry one (`NpcArmament` handles shields only; `HandPoseDriver` would already apply
+- ~~**NPC torches**~~ Done (spec-npc-night-torch). NPCs never carried one (`NpcArmament` handles shields only; `HandPoseDriver` would already apply
   `TorchHold` from `EquipmentVisuals`). Night patrols / guards with torches need the armament grant + a douse rule.
 - **Stowed torch shown on the hip** — hidden today (user decision). `TorchSO.stowPose` is solved (back-left of the belt,
   head up and back) and `Torch_Visual/Sheathed` exists: drop the `SetActive(held)` in `EquipmentVisuals.PlaceTorch`.
@@ -1394,7 +1394,8 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   when an offhand item is held (`ActionBarSystem.cs` ~261) if it looks wrong.
 - **Stow timing** — the torch hides / reappears at the two-hander / bow draw clip's WeaponSwap event (`_isInCombat`), so it
   stays in the left hand for the first part of the draw. Hide it at `BeginWeaponSwitch` if that reads badly.
-- **NPC torch handling** (with NPC torches above): `NpcArmament.GrantItem` would equip a corpse's torch, `OnDowned` leaves it
+- ~~**NPC torch handling**~~ Done (spec-npc-night-torch: grant at night only, unequipped on down; no douse needed — NPCs
+  never swim). Was: `NpcArmament.GrantItem` would equip a corpse's torch, `OnDowned` leaves it
   equipped and lit (not lootable), and NPCs never get `SetTorchDoused`.
 - **Grip seat** — `heldPose` was solved on the idle Torch Hold frame; walking / running keep the same arm pose, but no
   per-clip check was done. Re-solve if `Torch Hold.anim` is re-fitted.
