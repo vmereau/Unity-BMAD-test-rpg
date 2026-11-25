@@ -1325,3 +1325,19 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   The old run's started / completed snapshot would then swallow the next run's Started.
 - **Failed then completed pays both (pre-existing).** `QuestSO.IsFailed` turns false once `IsCompleted` is true, so a
   quest can raise Failed, later Completed, and `PlayerRewards` pays both.
+
+## From spec-sword-three-hit-combo (2026-11-25, abandoned)
+
+The Meshy three-hit sword combo was rejected on look and reverted; sword and axe are unchanged. Kept for another attempt:
+`meshy_motion_fit.py` options (`blade_aim`, `time_map`, `upper_body`, `hand_shift`, `pelvis_drop_m`),
+`Tools/Blender/configs/sword/`, the three sources, `sword_blade_measure.cs`, `sword_combo_play_measure.cs`.
+
+- **Facts found on the way that still hold:** NPCs roll 1–3 hits from their Entity SO whatever the weapon's `comboSteps`
+  (an axe NPC plays a third hit); a held shield only stays upright on a forearm bent forward as in `SwordIdle` and tips
+  flat on a lowered arm, in the Mixamo sword clips too; `SwordIdle` holds the kite shield 5 cm from the blade;
+  `rootMotionScale` is on the archetype while the clips come from an override a weapon can replace.
+- **A clip re-imported during play mode is not picked up by the running Animator**: leave play mode after a re-fit.
+- **"Every player attack clip carries all four events"** (`Combat/CLAUDE.md` and its checklist) is wrong for finishers:
+  `uppercut step` and `2hand attack 2 refined` carry three (no `ComboWindowOpen`).
+- **Play harness:** `sword_combo_play_measure.cs` duplicates most of `action_root_motion_play_measure.cs`; fold the
+  unarmed runs into it (no weapon) and drop the older file.

@@ -1,0 +1,52 @@
+{
+  "source_fbx": "Tools/Blender/sources/meshy_sword_backhand_v2_armature.fbx",
+  "output_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/one handed/sword backhand step.fbx",
+  "meshy_task_id": "01a2121d-5e64-7685-872b-5ed6a68af1d7",
+  "fps": 30,
+  "time_map": [[1, 3], [20, 20], [36, 25]],
+  "upper_body": {
+    "first_frame": 25,
+    "speed": 1.0,
+    "keep_prefixes": ["L_"]
+  },
+  "travel_m": 0.55,
+  "forward": [0.0, -1.0, 0.0],
+  "travel_yaw_deg": -9.0,
+  "facing_offset_deg": 15.0,
+  "lateral_scale": 0.3,
+  "pelvis_height_scale": 0.5,
+  "pelvis_drop_m": 0.07,
+  "foot_lift_scale": 0.5,
+  "start_match": {
+    "L": {
+      "offset": [-0.1, 0.01, -0.03],
+      "fade": [5, 13]
+    }
+  },
+  "end_match": {
+    "R": {
+      "offset": [0.06, -0.25, -0.07],
+      "fade": [19, 31],
+      "lift_m": 0.04
+    }
+  },
+  "hand_shift": {
+    "L": {
+      "offset": [0.15, 0.25, -0.05],
+      "frames": [1, 1, 6, 12]
+    }
+  },
+  "blade_aim": {
+    "keys": [
+      {"frame": 1, "dir": [0.45, -0.85, -0.1]},
+      {"frame": 8, "dir": [0.45, -0.85, -0.1]},
+      {"frame": 11, "dir": [0.1, -0.9, -0.4]},
+      {"frame": 13, "dir": [-0.1, -0.97, 0.2]},
+      {"frame": 15, "dir": [-0.5, -0.75, 0.45]},
+      {"frame": 17, "dir": [-0.9, -0.1, 0.3]},
+      {"frame": 22, "dir": [-0.3, 0.4, 0.85]},
+      {"frame": 34, "dir": [0.0, 0.2, 0.98]}
+    ]
+  },
+  "action_name": "sword backhand step"
+}

@@ -20,6 +20,9 @@ through the Blender MCP (`mcp__blender__execute_blender_code`) or from the Blend
 | `unarmed_foot_step.py` + `configs/unarmed/` | Leg IK edit of the unarmed combo clips so the feet follow the scripted `AttackStep` (see *Unarmed foot step*) — the previous Mixamo clips, unreferenced since spec-action-root-motion-unarmed-combo, kept for a revert |
 | `unarmed_foot_step_measure.cs` | Unity MCP `execute_code` body: per-frame toe / ankle positions of a clip on the Player rig (player-local JSON) |
 | `meshy_motion_fit.py` + `configs/unarmed/meshy_jab.json` / `meshy_hook.json` / `meshy_uppercut.json` + `sources/meshy_*_armature.fbx` | Fits a Meshy text-to-motion clip that travels (SMPL-H skeleton) to a wanted forward distance and to the stance of the clip it chains from, for clip root motion (see *Meshy motion fit*) |
+| `configs/sword/meshy_sword_cut.json` / `meshy_sword_backhand.json` / `meshy_sword_thrust.json` + `sources/meshy_sword_*_armature.fbx` | Inputs of the one-handed sword combo attempt (spec-sword-three-hit-combo, **abandoned: rejected on look, the clips are not in the project**; running a config writes `one handed/sword * step.fbx` again): same fit script, plus the blade aim and retime options below |
+| `sword_blade_measure.cs` | Unity MCP `execute_code` body (edit mode): per-frame blade direction, edge, tip and off-hand distances of one-handed clips on the Player rig, rebuilt from the right-hand socket and the archetype's `drawnPose`; optional shield held as `EquipmentVisuals` holds it, with its distance to the blade |
+| `sword_combo_play_measure.cs` | Unity MCP `execute_code` body (play mode): equips a weapon and an optional off-hand item and runs a list of chains (press times, Animator speed, a cancel on a given step), one CSV per run with the `action_root_motion_play_measure.cs` columns plus blade tip, hand and off-hand item distances; read by `action_root_motion_analyse.py` |
 | `meshy_motion_measure.cs` | Unity MCP `execute_code` body (edit mode): per-frame root travel and root-relative hips / feet / hands of the three clips on the Player rig — the input of the `start_match` / `end_match` offsets |
 | `action_root_motion_play_measure.cs` + `action_root_motion_analyse.py` | Unity MCP `execute_code` body (play mode) that runs an unarmed chain through `PlayerCombat.TryAttack` with chosen press times and logs one CSV row per frame; the Python script turns the CSVs into travel per attack, sideways drift, root speed inside the crossfades, planted-foot slide and velocity jumps |
 
@@ -45,6 +48,30 @@ Options added for clips that chain (all off by default; `meshy_jab.json` uses no
 | `facing_offset_deg` | Turns the body without turning the travel (unused so far) |
 | `foot_shift` | `{"R": [x, y, z]}` constant offset of a foot's whole path (hook: rear foot 0.27 m inward) |
 | `start_match` / `end_match` | Per foot, one spec or a list of `{"offset": [x, y, z], "fade": [f0, f1], "lift_m": 0}`: the foot is moved by `offset` at the first / last frame and the offset fades out / in over the output frames `fade` |
+
+Options added for the abandoned sword combo attempt, kept for the next one (all off by default; the three unarmed configs still reproduce their FBX with 0
+difference):
+
+| Key | What |
+|-----|------|
+| `blade_aim` | `{"keys": [{"frame", "dir"}], "forearm_angle_deg": [60, 120]}`: replaces the right wrist so a one-handed weapon points along `dir` (slerped between keys), kept within the given angles of the forearm, the hand rolled about the blade to stay on the forearm's line. `SWORD_BLADE_LOCAL` in the script is the blade direction in the SMPL-H `R_Wrist` bone's space, fitted against Unity (below) |
+| `time_map` | `[[1, 1], [18, 18], [36, 27]]` (output frame, source frame): piecewise-linear retime instead of `first_frame` / `last_frame` / `speed` (an error when both are given) — the strike at or near real time, the follow-through slowed (cut × 0.5, backhand × 0.31); the speed changes in one frame at each knee |
+| `upper_body` | `{"first_frame", "speed", "keep_prefixes"}`: spine, head, arms and pelvis orientation from another stretch of the same source; bones matching `keep_prefixes` (e.g. `"L_"`) stay on the legs' stretch, and so do the toes (`L_Foot` / `R_Foot`) |
+| `hand_shift` | `{"L": {"offset", "frames": [f0, f1, f2, f3]}}`: moves a wrist by a faded offset with a 2-bone arm solve, hand orientation kept |
+| `pelvis_drop_m` | Lowers the pelvis by a constant. The report's `reach_clamp_max_m` says how far a foot falls short of its target (a stance widened to the 0.9 m sword idle is out of reach at the source's standing height: 5.6 cm short until the pelvis was dropped 7 cm) |
+
+The report also gives, per frame, `r_arm`, `forearm`, `wrist_height`, the predicted `blade` / `edge` and
+`wrist_bend_deg`, with or without `blade_aim`: run once without keys to read the arm, then key the blade.
+
+**Blade calibration.** Unity's blade (socket × `drawnPose`, `sword_blade_measure.cs`) against the wrist's world rotation
+in Blender over `hook step` and `uppercut step`: one constant direction in `R_Wrist` space reproduces it within 8° on
+average, 16° at worst; on the sword clips Unity's blade landed within about 15° of the keyed direction. Sample the same
+frame on both sides: a re-imported FBX's action starts at frame 2 in Blender, one frame later than Unity's time 0 (a
+one-frame offset doubled the error). Re-derive the constant when the `drawnPose`, the socket or the avatar changes.
+
+**Keying a blade.** A hammer grip holds the blade across the forearm, so a direction along the arm cannot be reached
+(it asked for a 75–115° wrist bend): key the blade trailing the swing (pointing back where the hand comes from) and
+tilting forward at the hit. The cutting edge is not a free choice, it faces along the forearm.
 
 Offsets are metres in fitted space: **−Y forward, +X the character's left, Z up** (Unity x right, z forward → Blender
 x = −x, y = −z). A new chained clip, in order:

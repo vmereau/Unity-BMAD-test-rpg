@@ -1,4 +1,5 @@
-"""Summarise CSV logs written by action_root_motion_play_measure.cs (spec-action-root-motion-unarmed-combo).
+"""Summarise CSV logs written by action_root_motion_play_measure.cs (spec-action-root-motion-unarmed-combo) and
+sword_combo_play_measure.cs (spec-sword-three-hit-combo: same columns plus the blade tip and the off-hand distances).
 
     python Tools/Blender/action_root_motion_analyse.py <run.csv> [more.csv ...]
 
@@ -6,7 +7,9 @@ Per run: travel of each attack state (root forward between its enter and the nex
 sideways drift, root speed inside each attack -> attack crossfade (a dropped or doubled travel shows as a speed of 0 or a
 jump), planted-foot slide (a foot within 2 cm of its lowest height and slower than 0.3 m/s for at least 0.1 s: how far
 it moves horizontally meanwhile) and the largest frame-to-frame velocity jump of hips, hands and feet, inside and outside
-attack -> attack crossfades (a pose pop shows as a jump far above the clip's own).
+attack -> attack crossfades (a pose pop shows as a jump far above the clip's own). With blade columns: per attack, the
+blade tip when it is furthest ahead of the root, and the smallest left hand -> right hand, left hand -> blade and
+off-hand item -> blade distances of the run.
 """
 import csv
 import math
@@ -119,6 +122,24 @@ def analyse(path):
             prev = v
         print("   %-4s largest velocity jump between frames: %.2f m/s in a crossfade (t=%.2f), %.2f m/s outside (t=%.2f)" %
               (bone, worst[True][0], worst[True][1], worst[False][0], worst[False][1]))
+    if "tipF" in rows[0]:
+        armed = [r for r in rows[entries[0]:end + 1] if r["lhRh"] >= 0]
+        for n in range(len(entries)):
+            seg = [r for r in rows[bounds[n]:bounds[n + 1] + 1] if r["lhRh"] >= 0]
+            if not seg:
+                continue
+            far = max(seg, key=lambda r: r["tipF"] - r["rootF"])
+            print("   attack %d blade tip furthest ahead at stateTime %.2f s: %.2f m ahead of the root, %+.2f m sideways, %.2f m high" %
+                  (n + 1, far["stateTime"], far["tipF"] - far["rootF"], far["tipS"] - far["rootS"], far["tipY"]))
+        if armed:
+            a, b = min(armed, key=lambda r: r["lhRh"]), min(armed, key=lambda r: r["lhBlade"])
+            print("   off-hand: left hand -> right hand min %.2f m (t=%.2f), left hand -> blade min %.2f m (t=%.2f)" %
+                  (a["lhRh"], a["t"], b["lhBlade"], b["t"]))
+            held = [r for r in armed if r["offBlade"] >= 0]
+            if held:
+                c = min(held, key=lambda r: r["offBlade"])
+                print("   off-hand item -> blade min %.2f m (t=%.2f, state %d at %.2f s)" %
+                      (c["offBlade"], c["t"], int(c["state"]), c["stateTime"]))
 
 
 if __name__ == "__main__":

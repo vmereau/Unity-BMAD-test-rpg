@@ -45,6 +45,17 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   the blade" ended 21 cm from it. Meshy animates no weapon, so the wrist orientation is arbitrary. The
   body (bladed torso, breathing loop) was usable: fit the arms in Unity (`Combat/BAKE_RECIPES.md` → One-hand braced guard).
 
+- **Passing the measurements is not looking good.** A fitted three-hit sword combo met its travel, blade and clearance
+  targets and was rejected by the user on sight (spec-sword-three-hit-combo, abandoned). Put a first clip in front of the
+  user in game before spending on the rest of a set or on tuning.
+- **One-handed weapon strikes come out when the weapon and the hand are named** ("swings the sword down diagonally from his
+  right shoulder to his left hip, one-handed"): the arm path is usable, the wrist is not (re-aimed in Blender,
+  `meshy_motion_fit.py` → `blade_aim`). "backhand" gave a two-handed swing; "at chest height" gave an arc over the head.
+- **One clip can hold two strikes in a row**, the step under the first and none under the second: measure the whole
+  clip before rejecting it (`upper_body` in the fit splices the two stretches).
+- A weapon clip came out with the strike over 0.5–0.9 s after the start and the character walking on afterwards: trim it,
+  and slow the follow-through in the fit when the clip needs a combo window (`time_map`).
+
 ## Multi-image to 3D (`meshy_multi_image_to_3d`) — NPC heads
 
 - Used for NPC heads from the existing portrait pair (`refs/<name>_front.png` + `_side.png`, local `file_paths`):
