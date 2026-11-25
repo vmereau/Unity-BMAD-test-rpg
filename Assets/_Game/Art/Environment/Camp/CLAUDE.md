@@ -35,8 +35,9 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   The kit gives the camp its **props**. It no longer gives the huts: pieces from different packs keep their own
   texture, grain, board width and texel density, and tinting them to one tone (pass 2) still did not read as one
   building. Never edit the kit materials: other kit pieces use them.
-- **Hut shell (custom, board by board).** `models/worker hut/Source~/build_worker_hut.py` builds both sizes
-  (`WorkerHut_Home.fbx`, `WorkerHut_Long.fbx`, about 2,300 triangles each, objects `Walls` and `Roof`) from separate
+- **Hut shell (custom, board by board).** `models/worker hut/Source~/build_worker_hut.py` builds every shell of its
+  `VARIANTS` list (`WorkerHut_Home.fbx`, `_Home_B`, `_Home_C`, `WorkerHut_Tight` to `_Tight_D`, `WorkerHut_Long.fbx`:
+  a name, a half length, a seed, the doorway's side and the eave overhang; about 2,300 triangles each, objects `Walls` and `Roof`) from separate
   boards: boards inside, posts and plates outside, vertical gable boards, roof boards down the slope with ragged ends
   and up to three wide gaps per slope (sun stripes), a bark ridge log, barge boards. The roof boards' underside is
   2 cm above the eave line (`ROOF_LIFT`). Run it in Blender (`blender -b -P`, or in a session
@@ -66,6 +67,13 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   materials through the importer's material remap. Export with −Z forward, Y up and **Apply Transform** (`bake_space_transform=True`): without it the FBX root
   arrives rotated 270° on X, and any tool that sets the model's rotation (`HomeYardDresser.Model`) lays it on its side.
   Blender +X arrives as Unity −X. Render the flat-lit sheet to `Camp/Concepts/` for a later Meshy pass.
+- **Tight eaves.** In a packed row use the tight shells (overhang 0.09 m instead of 0.3): the roof then ends 1.69 m
+  from the middle, inside the graybox roof's 1.70 m, and no board is drawn broken off short (it would bare the top
+  plate). A tight roof still crosses a neighbour standing closer than 3.4 m.
+- **Tarps hang from eaves, not poles, where a hut stands near.** `HomeYardDresser.EaveTie` gives the point under a
+  shell's eave (just inside the roof's edge, 0.1 m below the boards) and `EaveKnot` the rope's end round the roof's
+  edge; a gable end has no eave, so tie to the top plates' ends there. A sheet's edges stay straight between their
+  corners (only the middle sags), so an edge tied at eave height stays above the 2.1 m rule.
 - **Cloth.** Tarps and ropes are tied to different points each time (eaves, poles, stakes), so they are generated, not
   modelled: `CampClothMesh.Sheet(a, b, c, d, sag, seed, patches)` (two-sided, sag, wrinkles, frayed edge, patch
   submesh, 1 m UVs) and `CampClothMesh.Rope(from, to, sag)`, saved under `Generated/` (an existing asset is reused,

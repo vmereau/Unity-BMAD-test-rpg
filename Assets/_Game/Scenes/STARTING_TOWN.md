@@ -361,6 +361,8 @@ wanted again, restore vertical boxes (lip across the ring gap, walls on the pit'
 `Editor/World/CLAUDE.md` → Settlement hand-owned flag).
 
 - The saved scene contains 75 huts and 26 tarp bays. Historical worker plots do not reproduce the current scene.
+- 43 of the huts are board-built shells (**Hut rollout**, below); the Wretches' 28 hovels, four huts and the tarp bays
+  outside the home yard are still graybox.
 - `CampCentre` and `Walkways` remain tool-owned.
 - The player's hut, bed and `DevPlayerSpot` moved with the home yard art pass (below), and `PlayerSpawnPoint` is outside
   the arrival gate; do not assume they share an anchor. `Bed`, `PlayerSpawnPoint`, TentMate's spots and BeatenWorker
@@ -417,7 +419,7 @@ The first spot of Area 1 at final quality, and the visual reference for the rest
 - `ArrivalSequence/DevPlayerSpot` is 1.4 m outside the player's door at (0.51, 44.69), `TentMateSpot` beside the door at
   (1.41, 45.30), and `Spot_TentMate_Night` inside Hobb's hut (below).
 - `FireLight` and `CandleLight` are point lights driven by `ClockNightLight`, so they are off by day and in edit mode.
-- The other huts of the zone are still graybox.
+- The other huts of the zone were swapped by the hut rollout (below).
 
 **Hut shell (`spec-area-1-worker-hut-board-shell`):** both huts are now the board-built Blender shell on one wood
 (same footprint, doorway and rear opening; the walls end 1.455 m from the middle and their colliders at 1.55 m, 10 cm
@@ -431,18 +433,54 @@ of roof stones (hut builder); the rest is built by `Dress Home Yard`:
   2.4 m poles at its front to stakes at its back, two sleepable `Bed_FloorPallet`s, bowl, cup, a `ClothBundle` and
   boards in front. Poles and stakes are solid thin capsules with Not Walkable volumes; with the guy stakes the bay
   spans about 2.9 × 3.2 m. It replaces the graybox
-  `worker-tarp-north (3)` (inactive) and stands 1.26 m west of it: graybox hut-07's north-west wall, from (5.62, 45.63)
+  `worker-tarp-north (3)` (inactive) and stands 1.26 m west of it: the north-west wall of the hut then called hut-07 (now the shell `worker-hut`), from (5.62, 45.63)
   to (7.45, 47.88), cut through the old spot. Its east side clears that wall by about 0.5 m.
 - `LeanTo`, in Hobb's hut frame: a tarp from Hobb's south-east eave to hut-02's north wall over one `Bed_FloorPallet`,
   in the wedge where the graybox `worker-tarp-north (1)` (inactive) overlapped the kit hut. No posts: the escort's
   `HutLane_L_6` (0.11, 43.10) is at the wedge's mouth, about 0.3 m past the bed's foot (the bed has no solid collider).
-  The tarp's outer edge is tied to the line where hut-02's wall stands today (`x = 2.81 + 0.5 z` in Hobb's frame):
-  move those tie points if hut-02 is rebuilt.
+  The tarp's outer edge is tied under the eave of hut-02's shell (`EaveTie`, two ropes round the roof's edge), at the
+  two spots along the wedge where it met the graybox wall; it follows hut-02 on the next dresser run.
 - A drying line with two shirts from the end of the player's hut's top plate (its front corner on the bay's side) to the bay's west pole (shirts hang above
   1.8 m), a wooden spade against Hobb's front wall left of his door, a plank bench north of the fire between the two
   lanes and a log seat east of the east lane, and boards over the mud east of the doors' pocket.
 - After the rebake the escort's lane paths are as before (only the pre-existing L3→4 detour round hut-03 and the
   missing NavMesh at R_1), and the beds, both doors and Hobb's night spot are reachable.
+
+### Hut rollout and east yard (`spec-area-1-worker-hut-rollout`)
+
+`Tools/World/Replace Graybox Worker Huts` swapped 40 graybox huts for shells in place (35 in `PlayersZone`, 5 in
+`MafiaZone`): same names, positions and yaw, no hut moved. Rules and variants: `Prefabs/World/Huts/CLAUDE.md` → Rollout.
+
+- Every swapped hut has the **tight roof** (`WorkerHut_Tight` to `_Tight_D`): neighbours stand 2.9–3.8 m apart, and
+  the few huts with no hut in reach (06, 09, 11, 25, 26) meet a rock, `MafiaQuarters` or a graybox tarp bay, so no
+  plot clears the normal 1.9 m roof. 33 pairs of shell roofs still cross, as the graybox roofs did, about half of
+  them into the neighbour's wall line (closest: `worker-hut-14` / `14 (3)` at 2.94 m, `03` / `03 (1)` at 3.08 m);
+  closing those needs huts moved, which nothing has done yet.
+- `MafiaZone/worker-hut-30` (the market hut) keeps its `TradingCounter` box, now a child of the shell, standing on
+  the ground inside (the plank floor it stood on is gone). The counter fills the west half behind the front wall, so
+  this hut has the default doorway (`WorkerHut_Tight`), not a mirrored one.
+- The shells' wall colliders end 1.55 m from the middle, 4 cm further out than the graybox walls: `worker-hut-03`,
+  `02 (2)` and `03 (1)` stand that much closer to the escort's lanes (0.34–0.55 m, already under 0.7 m before).
+- Left graybox: `PlayersZone/worker-hut-02 (9)` (the ground drops 0.34 m under its walls) and
+  `MafiaZone/worker-hut-28`, `28 (1)`, `28 (2)` (narrower boxes, walls on ±1.29 m, two of them on a bank).
+- The Mafia huts lost their graybox plank floor: the shell has none.
+- After the rebake every shell's room is reachable through its doorway (43 of 43), and the escort's lane paths are
+  as before.
+
+East side of the home yard, built by `Dress Home Yard` in `HomeYardDressing/EastYard` (world space, no poles):
+
+- **Eaves tarp** between the facing side walls of `worker-hut` and `worker-hut-06` (a wedge 2.6 m wide at its mouth,
+  1.25 m at the back), one sleepable `Bed_FloorPallet` along hut-06's wall and a `ClothBundle`. Replaces the graybox
+  `worker-tarp-north` (inactive).
+- **Ramp shelter**, replacing `worker-tarp-north (4)` and `(5)` (inactive), in two sheets that meet at hut-06's
+  south-east corner. The *porch* runs from the ends of hut-06's top plates (its front gable) to hut-05's north eave,
+  over the lane between the two huts: hut-06's doorway opens under it, 2.4 m clear, with boards over the mud. The
+  *ramp bay* runs from hut-06's east eave up to the west edge of `Warehouse/Ramp_Camp` (ropes round the deck), over
+  the pocket between the hut, the ramp and the rocks: one floor bed under the tarp, one under the ramp's deck (about
+  2.9 m up there), a bowl, a cup and a bundle.
+- The pocket is a dead end (rocks to the north, hut-05's corner 0.4 m from the ramp), reached through the porch lane.
+- Moving hut-05, hut-06, `worker-hut` or the ramp moves the tarps on the next dresser run; a hut swapped back to
+  graybox makes the dresser skip its tarp.
 
 ### Hobb's hut and bed
 
