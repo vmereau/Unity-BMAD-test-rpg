@@ -1158,6 +1158,16 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   inventory (`RecoverRefusedGoods` does the same after a knockout). `WorldFact_GangStash_TallyTaken` stays set, so the
   Tam / Aldric leads close and the journal says the player has the proof. Fix in code: exclude quest items from
   theft-return (or return them to the source container). Recovery today: loot the catcher.
+  - **Returnable quest items: split the tally fact in two (user decision, 2026-11-25).** Replace the one-way
+    `WorldFact_GangStash_TallyTaken` with (1) a new **computed** fact type (e.g. `HasItemFact { ItemSO item; int count }`,
+    evaluated live in `WorldStateManager.GetFact` against the player's inventory, never stored or saved) for "the player
+    carries the tally", and (2) a **permanent stored** fact set when the tally is handed to Pell (the `requiredItem`
+    choice). Readers then use "carries it OR handed it over": Tam / Aldric leads (`Mem_BeatenWorker_BarnTally`,
+    `Mem_Cook_Tally` invalidations), `Mem_FarmReeve_GateCaught` and the quest step "Something with his name on it".
+    Needed with it: `WorldStateManager` raises a fact change when the player's inventory changes (quests / talk openers
+    are event-driven); a stolen quest item goes back to its **source container** (the ledger must record it,
+    `StolenGoodsTracker` knows it at the take), not into the catcher's bag, so the reopened leads point to the right
+    place. Then quest items no longer need to be kept out of theft-return.
 - **Saves predating a container's new starting item lose it.** `SaveableObject.Restore` replaces the inventory with the
   saved slots, so a save made before `BrannsStash` got the tally never has it. Dev-only today; matters once saves ship.
 - **Tally taken before the quest starts** (HiddenStash Take All) is a quest item the player can't part with, and stays in
@@ -1303,3 +1313,15 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   body. Both can be reduced with more offsets in `BowIdleBaker` if they read wrong in play.
 - **Seat change is a 95° roll in the hand** (carry ↔ aiming seat, 0.15 s). A weapon bone keyed in the clips, or a
   curve-driven weight, would follow the arm blend exactly instead of a timer.
+
+## From spec-quest-events-start-guard (2026-11-25, review)
+
+- **First fact change before `Start` is lost (pre-existing).** `QuestEventsManager` subscribes in `OnEnable` but seeds in
+  `Start`; a fact set by another component's `Awake` / `Start` in between finds no snapshot and is seeded silently, then
+  `Start` reseeds over it (e.g. a story sequence starting a quest on scene start raises no Started). Seed in
+  `OnEnable` / `Awake` instead.
+- **Reset / failed-load branch may skip the quest reseed (pre-existing, verify).** `SaveSystem`'s branch that calls
+  `RestoreFacts(null)` + `LoadStartupRegion()` was not seen calling `_questEvents.ReseedState()` (`FinishLoad` does).
+  The old run's started / completed snapshot would then swallow the next run's Started.
+- **Failed then completed pays both (pre-existing).** `QuestSO.IsFailed` turns false once `IsCompleted` is true, so a
+  quest can raise Failed, later Completed, and `PlayerRewards` pays both.

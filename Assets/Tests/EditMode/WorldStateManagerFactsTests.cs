@@ -397,6 +397,8 @@ namespace Tests.EditMode
         {
             var quest = ScriptableObject.CreateInstance<QuestSO>();
             quest.title = "Test quest";
+            // Started, so completion is reported (spec-quest-events-start-guard).
+            quest.startPart = new QuestPart { fact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_started")) };
             quest.completedParts = new List<QuestPart> { new QuestPart { fact = completeFact } };
             _cleanup.Add(quest);
 
@@ -426,7 +428,7 @@ namespace Tests.EditMode
             var completeFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_done"));
             var (qem, completedCount) = MakeQuestEventsManager(completeFact);
 
-            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_done", true } });
+            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_started", true }, { "World.quest_done", true } });
             qem.ReseedState();
             RaiseFactChanged(qem); // an unrelated fact change after the load
 
@@ -439,10 +441,55 @@ namespace Tests.EditMode
             var completeFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("quest_done"));
             var (qem, completedCount) = MakeQuestEventsManager(completeFact);
 
-            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_done", true } });
+            _wsm.RestoreFacts(new Dictionary<string, bool> { { "World.quest_started", true }, { "World.quest_done", true } });
             RaiseFactChanged(qem);
 
             Assert.That(completedCount(), Is.EqualTo(1), "control: proves the reseed is what prevents the event");
+        }
+
+        [Test]
+        public void ListenerSettingFactDuringRaise_EventsKeepTheirOrder()
+        {
+            var startFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("q_start"));
+            var stepFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("q_step"));
+            var doneFact = MakeFact(() => ScriptableObject.CreateInstance<WorldFact>().Init("q_done"));
+            var quest = ScriptableObject.CreateInstance<QuestSO>();
+            quest.title = "Order quest";
+            quest.startPart = new QuestPart { fact = startFact };
+            quest.steps = new List<QuestStep> { new QuestStep { title = "step", parts = new List<QuestPart> { new QuestPart { fact = stepFact } } } };
+            quest.completedParts = new List<QuestPart> { new QuestPart { fact = doneFact } };
+            _cleanup.Add(quest);
+
+            var started = ScriptableObject.CreateInstance<GameEventSO_Quest>();
+            var completed = ScriptableObject.CreateInstance<GameEventSO_Quest>();
+            var step = ScriptableObject.CreateInstance<GameEventSO_QuestStep>();
+            _cleanup.Add(started); _cleanup.Add(completed); _cleanup.Add(step);
+
+            var go = new GameObject("QuestEventsManager_Order");
+            _cleanup.Add(go);
+            var qem = go.AddComponent<QuestEventsManager>();
+            var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            typeof(QuestEventsManager).GetField("_quests", flags).SetValue(qem, new List<QuestSO> { quest });
+            typeof(QuestEventsManager).GetField("_onQuestStarted", flags).SetValue(qem, started);
+            typeof(QuestEventsManager).GetField("_onQuestCompleted", flags).SetValue(qem, completed);
+            typeof(QuestEventsManager).GetField("_onQuestStepCompleted", flags).SetValue(qem, step);
+
+            var order = new List<string>();
+            started.AddListener(_ =>
+            {
+                order.Add("started");
+                _wsm.SetFact(doneFact, true); // a listener completing the quest mid-raise
+                RaiseFactChanged(qem);
+            });
+            step.AddListener(d => order.Add($"step{d.stepIndex}"));
+            completed.AddListener(_ => order.Add("completed"));
+
+            _wsm.SetFact(stepFact, true); // done before the quest starts: reported on start
+            qem.ReseedState();
+            _wsm.SetFact(startFact, true);
+            RaiseFactChanged(qem);
+
+            Assert.That(order, Is.EqualTo(new[] { "started", "step0", "completed" }));
         }
     }
 }
