@@ -26,6 +26,7 @@ namespace Game.Player
         private CharacterController _characterController;
         private PlayerStateManager _stateManager;
         private float _upperBodyWeight;
+        private float _combatLocomotion;
 
         private void Awake()
         {
@@ -81,9 +82,13 @@ namespace Game.Player
             // UpperBody layer: combat carry pose / block / aim / draw-sheathe over the legs; 0 while the Base Layer plays an
             // attack, dodge, jump, reaction or death full-body. Read from the Animator's state tags (same rule as NPCs).
             float target = UpperBodyWeight.Target(Bridge.IsBaseFullBody, Bridge.IsUpperBodyAction,
-                _stateManager.IsInCombat);
+                _stateManager.IsInCombat, Bridge.IsFullBodyCombatLocomotion);
             _upperBodyWeight = UpperBodyWeight.Step(_upperBodyWeight, target, Time.deltaTime, _config.upperBodyBlendTime);
             Bridge.SetUpperBodyWeight(_upperBodyWeight);
+            // Base locomotion: free tree ⇄ combat tree (the weapon override's combat stance), same blend time.
+            _combatLocomotion = UpperBodyWeight.Step(_combatLocomotion, _stateManager.IsInCombat ? 1f : 0f, Time.deltaTime,
+                _config.upperBodyBlendTime);
+            Bridge.SetCombatLocomotion(_combatLocomotion);
         }
 
         public void SetBlocking(bool value, bool shieldInHand) => Bridge.SetBlocking(value, shieldInHand);
@@ -120,6 +125,7 @@ namespace Game.Player
         {
             Bridge.ResetToDefaultState(); // Rebind restores the controller's default weights (UpperBody 0)
             _upperBodyWeight = 0f;
+            _combatLocomotion = 0f; // Rebind reset the float: ramp from the free tree, never burst back to the combat one
         }
     }
 }

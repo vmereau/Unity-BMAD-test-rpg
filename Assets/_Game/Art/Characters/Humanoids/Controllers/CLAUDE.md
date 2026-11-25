@@ -11,11 +11,12 @@ Used by **the Player** (`Player.prefab` → Animator) **and humanoid NPCs**. Wea
 `AnimatorOverrideController`s (`../Overrides/Humanoid_Base`, `Combat/one handed/Sword_AnimatorOverride`,
 `Combat/two handed/TwoHanded_AnimatorOverride`, chosen by `WeaponSO.ResolvedAnimatorOverride`). Both melee overrides
 replace the weapon block (`Unarmed Block Guard` → `Sword Braced Guard` / `2hand blocking`; the shield guard `Block Idle`
-plays from the base, the two-handed override maps it to `2hand blocking` too); the two-handed one also replaces
+plays from the base except with the sword (→ the pack's `sword shield block idle`, the same Mixamo animation in the idle's
+retarget), the two-handed override maps it to `2hand blocking` too); the two-handed one also replaces
 `unarmed stagger 1/2`. The bow has no block entry (right click aims).
 
-- **Layers** (spec-full-body-attacks-root-motion): **`Base Layer`** holds locomotion (`LockOn Locomotion` 2D blend
-  tree, sneak states) **and every full-body action** — `Attack_1/2/3_State` (AnyState → `Attack_1`), jump/fall/land,
+- **Layers** (spec-full-body-attacks-root-motion): **`Base Layer`** holds locomotion (`LockOn Locomotion` free / combat
+  blend, below; sneak states) **and every full-body action** — `Attack_1/2/3_State` (AnyState → `Attack_1`), jump/fall/land,
   dodge, `Stagger_1/2`, `KnockedDown → GettingUp`, `Death`, `GetHit`. **`UpperBody`** (index 1, `UpperBodyMask`, Override,
   default weight **0**) holds only `LockOn Locomotion` (default), `CombatIdle` (the weapon carry pose, IsInCombat),
   AnyState → `Block_State` / `Draw_State` / `Sheathe_State`, and the bow aim states. No twins: **a new Base state needs
@@ -23,7 +24,8 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
 - **UpperBody weight** is not authored: `PlayerAnimationDriver` / `HumanoidAIAnimationDriver` step it every frame with
   `UpperBodyWeight` (`Scripts/Core/Animations/`) from the Animator's **state tags**, read on each layer's destination
   state (next state during a transition): Base tag `Attack` or `FullBody` → 0; else UpperBody tag `UpperBodyAction` **or** the
-  driver's in-combat flag (the `IsInCombat` bool param; `CombatIdle` itself has no tag) → 1; else 0 (blend `PlayerConfigSO.upperBodyBlendTime` / the NPC driver's `_upperBodyBlendTime`, 0.15 s).
+  driver's in-combat flag (the `IsInCombat` bool param; `CombatIdle` itself has no tag) → 1, except in combat with a
+  full-body combat locomotion archetype while Base heads into `LockOn Locomotion` (below) → 0; else 0 (blend `PlayerConfigSO.upperBodyBlendTime` / the NPC driver's `_upperBodyBlendTime`, 0.15 s).
   Tags: `Attack` = the three attack states; `FullBody` = JumpRise, Falling, Dodging, Dodge back, Stagger_1/2,
   KnockedDown, GettingUp, Death, Dead, Unconscious, Sleeping, Swim Locomotion, PickUp, Execute (not Landing: a block / draw
   pressed on landing must show); `UpperBodyAction` = Block, Draw, Sheathe, Drink, BowDrawArrow/Aim/Fire. **A new
@@ -57,10 +59,29 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
   `DrawWeapon`, `SheatheWeapon` (triggers), `WeaponSwitchSpeed` (float, default 1.5 — written from `CombatConfigSO`),
   `IsAiming` (bool), `BowFire` (trigger), `Stagger` / `KnockDown` (triggers), `StaggerIndex` (int 0/1), `IsSwimming` (bool),
   `IsUnconscious` (bool), `PickUp` (trigger), `IsExecuting` (bool, player only), `AttackCancel` (bool, player only),
-  `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep), `ShieldInHand` (float 0 / 1, the
+  `IsDrinking` (bool, player + NPCs), `IsSleeping` (bool, NPCs only — routine Sleep), `CombatLocomotion` (float 0..1, the
+  `LockOn Locomotion` free / combat blend — stepped by the drivers), `ShieldInHand` (float 0 / 1, the
   `Block_State` blend — written only on a raise, see below), `LeftHandPose` / `RightHandPose` (int `HandPose`, hand layers).
   There is **no** `Speed` or `IsLockedOn` — don't add them. NPCs never set `IsSneaking` / `SneakToSprint`,
   so every sneak path is player-only.
+
+### Combat locomotion (Base Layer — player and NPCs, spec-sword-shield-pack-locomotion)
+
+Base `LockOn Locomotion` plays a 1D tree `Locomotion (free / combat)` on `CombatLocomotion`: **0 = the free 2D tree**
+(`Idle`, `Walking`, … — unchanged, also plays with a sheathed weapon), **1 = `Combat Locomotion`**, the same 9 positions and
+time scales over `.anim` **copies** of those clips (`Animations/CombatLocomotion/Combat <name>.anim`). The copies exist only
+to be distinct override keys: an override applies whether the weapon is drawn or sheathed, so a weapon's combat stance can
+never override `Walking` itself. Sword → the pack (`Combat Idle` → `sword shield idle`, walk / walk back / run / run back /
+strafe walk L R / strafe run L R → `walk`, `walk (2)`, `run`, `run (2)`, `strafe (2)`, `strafe`, `strafe (3)`, `strafe (4)`);
+every other override leaves them (= today's legs). Both drivers step the float toward `IsInCombat` over the UpperBody
+blend time and re-push it every frame (a controller swap resets it). **Built by `Tools/Characters/Build Combat Locomotion`**
+(`Editor/Characters/CombatLocomotionBuilder`, idempotent, keeps the free tree and the copies' GUIDs): never hand-edit the
+wrapper. The copies are snapshots: rebuild after a free clip is added, renamed or re-imported (a removed clip's copy and
+its override entries stay — delete them by hand). `WeaponArchetypeSO.fullBodyCombatLocomotion` (sword
+only): while the weapon is in hand with its own override (not an NPC's forced fists) and Base heads into `LockOn Locomotion`,
+the UpperBody carry pose stays off so the pack's arms play; draw / block /
+drink still show (`UpperBodyWeight.Target`, `HumanoidAnimationBridge.IsFullBodyCombatLocomotion`). Sneak, swim and the
+other Base states keep the carry pose. Tests: `SwordShieldLocomotionTests`.
 
 ### Draw / sheathe states (UpperBody layer, player only)
 
@@ -136,7 +157,8 @@ Guard.anim`, the unarmed high guard; sword → `Sword Braced Guard`, two-handed 
 NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.
 
 **`Block_State` is a 1D blend tree on `ShieldInHand`** (spec-one-hand-braced-block): `Unarmed Block Guard` @0 = the
-weapon's own guard (each override maps it), `Block Idle` @1 = the shield guard (sword + shield in hand). The shield is an
+weapon's own guard (each override maps it), `Block Idle` @1 = the shield guard (shield in hand; the sword maps it to the
+pack's `sword shield block idle`). The shield is an
 offhand that changes the block clip, not a separate override controller (a controller swap resets every parameter). Written
 only through `HumanoidAnimationBridge.SetBlocking(value, shieldInHand)`, which sets the float **only when raising**: the exit
 blend must keep the clip it raised with. Player: `PlayerCombat` passes `_blockShield != null` (raise + re-push after a

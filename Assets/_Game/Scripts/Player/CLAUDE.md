@@ -67,7 +67,9 @@ can call the driver before its `Awake` — never read `_humanoidBridge` directly
 
 ### Locomotion — Unified 2D Blend Tree
 
-The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see `Art/Characters/Humanoids/Controllers/CLAUDE.md`) uses a **single `LockOn Locomotion` state** (2D Freeform Cartesian blend tree) for all movement — there is no separate 1D free-locomotion state. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` = the Y-stripped velocity in local space ÷ `PlayerConfigSO.runSpeed`, clamped to ±1, and forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`.
+The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see `Art/Characters/Humanoids/Controllers/CLAUDE.md`) uses a **single `LockOn Locomotion` state** for all movement — there is no separate 1D free-locomotion state. Its motion
+blends a free 2D Freeform Cartesian tree into a combat one on `CombatLocomotion` (the weapon override's combat stance —
+`Controllers/CLAUDE.md` → Combat locomotion); both trees share the positions below. `PlayerAnimationDriver.Update()` always computes `VelocityX` / `VelocityZ` = the Y-stripped velocity in local space ÷ `PlayerConfigSO.runSpeed`, clamped to ±1, and forwards them through `HumanoidAnimationBridge.SetMovement(x, z)`.
 
 - **Free movement:** character faces movement direction → `localVelocity.z ≈ speed`, `x ≈ 0` → forward clips play
 - **Lock-on:** character faces target → strafing produces non-zero `x` → strafe clips play
@@ -85,7 +87,7 @@ The Player's controller (`Humanoid_Template`, shared with humanoid NPCs — see 
 | `PlayAttack(int triggerHash)` | `HumanoidAnimationBridge.PlayAttack` | Fires the given attack trigger |
 | `ResetAttackTriggers()` | `HumanoidAnimationBridge.ResetAttackTriggers` | Clears `Attack_1/2/3` — called by `PlayerStateManager.SetAttacking(false)` so an untaken trigger can't stay latched |
 | `PlayDodge(bool isBackward)` | `HumanoidAnimationBridge.PlayDodge` | Fires `IsDodging` or `IsDodgingBackwards` trigger |
-| `Update` (UpperBody weight) | `HumanoidAnimationBridge.SetUpperBodyWeight` | `UpperBodyWeight.Target(IsBaseFullBody, IsUpperBodyAction, IsInCombat)` stepped over `PlayerConfigSO.upperBodyBlendTime` — same rule as NPCs (`Scripts/Core/Animations/CLAUDE.md`) |
+| `Update` (UpperBody weight) | `HumanoidAnimationBridge.SetUpperBodyWeight` | `UpperBodyWeight.Target(IsBaseFullBody, IsUpperBodyAction, IsInCombat, IsFullBodyCombatLocomotion)` stepped over `PlayerConfigSO.upperBodyBlendTime`, and `SetCombatLocomotion` stepped toward `IsInCombat` over the same time — same rule as NPCs (`Scripts/Core/Animations/CLAUDE.md`) |
 | `SetInCombat(bool)` | `HumanoidAnimationBridge.SetInCombat` | Sets `IsInCombat` bool (UpperBody layer: `LockOn Locomotion` ⇄ `CombatIdle`; in combat the drivers fade the layer to 1 — the weapon carry pose) |
 | `PlayWeaponSwitch(bool draw, float speed)` | `HumanoidAnimationBridge.PlayWeaponSwitch` | Sets `WeaponSwitchSpeed`, fires `DrawWeapon` / `SheatheWeapon` (clears the opposite one) |
 | `ResetWeaponSwitchTriggers()` | `HumanoidAnimationBridge.ResetWeaponSwitchTriggers` | Clears both — called by `PlayerStateManager.EndWeaponSwitch()` |

@@ -24,6 +24,16 @@ namespace Tests.EditMode
             => Assert.That(UpperBodyWeight.Target(baseIsFullBody: false, upperIsAction: false, isInCombat: false), Is.EqualTo(0f));
 
         [Test]
+        public void Target_FullBodyCombatLocomotion_IsZero() // sword drawn in LockOn Locomotion: the pack plays the arms
+            => Assert.That(UpperBodyWeight.Target(baseIsFullBody: false, upperIsAction: false, isInCombat: true,
+                fullBodyLocomotion: true), Is.EqualTo(0f));
+
+        [Test]
+        public void Target_FullBodyCombatLocomotion_UpperActionStillShows() // block / draw / drink over the pack locomotion
+            => Assert.That(UpperBodyWeight.Target(baseIsFullBody: false, upperIsAction: true, isInCombat: true,
+                fullBodyLocomotion: true), Is.EqualTo(1f));
+
+        [Test]
         public void Step_MovesTowardTarget_ByDeltaOverBlendTime()
             => Assert.That(UpperBodyWeight.Step(0f, 1f, 0.05f, 0.15f), Is.EqualTo(1f / 3f).Within(TOLERANCE));
 

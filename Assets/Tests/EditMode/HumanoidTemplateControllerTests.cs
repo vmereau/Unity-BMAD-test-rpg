@@ -205,7 +205,8 @@ namespace Tests.EditMode
         {
             var overrides = Overrides(COMBAT + "one handed/Sword_AnimatorOverride.overrideController");
             Assert.That(overrides["Unarmed Block Guard"], Is.EqualTo("Sword Braced Guard"));
-            Assert.That(overrides["Block Idle"], Is.Null, "a shield in hand plays the base Block Idle");
+            // spec-sword-shield-pack-locomotion: the pack's own block idle (same animation, the idle's retarget)
+            Assert.That(overrides["Block Idle"], Is.EqualTo("sword shield block idle"), "a shield in hand plays the pack's block hold");
             var twoHanded = Overrides(COMBAT + "two handed/TwoHanded_AnimatorOverride.overrideController");
             Assert.That(twoHanded["Unarmed Block Guard"], Is.EqualTo("2hand blocking"));
             Assert.That(twoHanded["Block Idle"], Is.EqualTo("2hand blocking"));

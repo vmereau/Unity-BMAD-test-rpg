@@ -38,6 +38,7 @@ namespace Game.Animations
         private bool _warnedWarningNotImplemented;
         private bool _isInCombat;
         private float _upperBodyWeight;
+        private float _combatLocomotion;
 
         private void Awake()
         {
@@ -78,9 +79,13 @@ namespace Game.Animations
         private void Update()
         {
             if (_bridge == null || _ragdollActive) return;
-            float target = UpperBodyWeight.Target(_bridge.IsBaseFullBody, _bridge.IsUpperBodyAction, _isInCombat);
+            float target = UpperBodyWeight.Target(_bridge.IsBaseFullBody, _bridge.IsUpperBodyAction, _isInCombat,
+                _bridge.IsFullBodyCombatLocomotion);
             _upperBodyWeight = UpperBodyWeight.Step(_upperBodyWeight, target, Time.deltaTime, _upperBodyBlendTime);
             _bridge.SetUpperBodyWeight(_upperBodyWeight);
+            // Base locomotion: free tree ⇄ combat tree (spec-sword-shield-pack-locomotion), same blend time.
+            _combatLocomotion = UpperBodyWeight.Step(_combatLocomotion, _isInCombat ? 1f : 0f, Time.deltaTime, _upperBodyBlendTime);
+            _bridge.SetCombatLocomotion(_combatLocomotion);
         }
 
         public override void DriveLocomotion(NavMeshAgent agent)

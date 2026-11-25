@@ -16,7 +16,9 @@ Combat/
 │   └── sword and shield/ — the sword combo, from the Mixamo Sword and Shield Pack (rest of the pack untracked in
 │                 `Assets/mixamo packs/`): `sword and shield slash` / `slash (3)` (Attack_1 / 2), `sword shield overhead.fbx`
 │                 (Attack_3: `slash (4)` with its ending slowed in Blender, `BAKE_RECIPES.md` → Sword finisher ending; `slash (4)`
-│                 itself is the unreferenced source), `sword and shield idle` (the sword's CombatIdle)
+│                 itself is the unreferenced source), `sword and shield idle` (the sword's CombatIdle and combat locomotion
+│                 idle), `walk` / `walk (2)` / `run` / `run (2)` / `strafe` … `strafe (4)` (the sword's combat locomotion,
+│                 `../../Controllers/CLAUDE.md` → Combat locomotion), `block idle` (the sword's shield guard)
 ├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 (+ attack 2 refined, Blender) / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`);
 │                 `meshy test/` = rejected Meshy text-to-motion tries (`MESHY_PROMPTS.md`)
@@ -86,6 +88,15 @@ Times in **seconds** (the `.meta` stores them normalized), timed on the sword ha
 - Every window closes before its state's exit-time transition (0.8065 / 0.8897 / 0.8958 normalized) — `SwordShieldComboTests`.
 - Held shields touch the blade (0 m, box-to-line) for ~0.1 s at the start of the rising cut (round) and the end of the cut
   (kite): the pack was recorded with its own shield.
+
+**Sword combat locomotion** (spec-sword-shield-pack-locomotion): the pack's walk / run / strafe loops, imported Humanoid,
+Loop Time + Loop Pose, root rotation and Y baked on Original, **root XZ not baked** (they travel; `applyRootMotion` is off,
+so they play in place). Clip names `sword shield walk`, `walk back`, `run`, `run back`, `strafe walk left / right`,
+`strafe run left / right`. Native speeds: walk 1.5, walk back 1.1, run 4.2 (shield lowered), run back 4.4, strafe walk
+1.1–1.3, strafe run 3.4–3.5 m/s, played at the free tree's positions (0.5 = walkSpeed 3 m/s, 1.0 = runSpeed 6 m/s, time
+scale 1; approved on look 2026-11-25). Strafes keep the idle's bladed hips (~−60°), walk and run face square. `block idle`
+= the same 43-frame animation as `Combat/Block Idle.fbx`. Still untracked in the pack: turns, 180 turns, block raise /
+lower, crouch block, impacts, death, kick, jump, casting, power up, sheath (deferred-work).
 
 ### One handed — axe (`one handed/`, `Axe_AnimatorOverride`)
 

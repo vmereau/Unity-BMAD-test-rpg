@@ -39,6 +39,9 @@ namespace Game.Inventory
 
         [Header("Animation")]
         public AnimatorOverrideController animatorOverrideController;
+        [Tooltip("Drawn: the override's combat locomotion (Base LockOn Locomotion, CombatLocomotion 1) plays on the whole " +
+                 "body and the UpperBody carry pose stays off outside actions (spec-sword-shield-pack-locomotion).")]
+        public bool fullBodyCombatLocomotion;
         [Tooltip("Player forward step per attack state (element 0 = Attack_1). Missing entries use " +
                  "CombatConfigSO.defaultAttackStep; distance 0 = that swing stays in place.")]
         public AttackStep[] attackSteps;

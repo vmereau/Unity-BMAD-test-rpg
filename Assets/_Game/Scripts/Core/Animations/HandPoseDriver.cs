@@ -34,11 +34,18 @@ namespace Game.Animations
             }
         }
 
+        // A disabled driver (death list) must not leave the flag latched for the drivers' UpperBody weight.
+        private void OnDisable()
+        {
+            if (_bridge != null) _bridge.FullBodyCombatLocomotion = false;
+        }
+
         private void Update()
         {
             if (_bridge == null) return;
 
-            bool weaponInHand = false, leftHandWeapon = false, twoHanded = false, shieldInHand = false, hasCarryPose = false;
+            bool weaponInHand = false, leftHandWeapon = false, twoHanded = false, shieldInHand = false, hasCarryPose = false,
+                fullBodyLocomotion = false;
             OffhandArmPose armPose = OffhandArmPose.None;
             if (_equipmentVisuals != null)
             {
@@ -50,10 +57,15 @@ namespace Game.Animations
                     leftHandWeapon = archetype.drawnHand == WeaponHand.Left;
                     twoHanded = archetype.twoHandedGrip;
                     hasCarryPose = archetype.hasCarryPose;
+                    // Only while the weapon's own override plays: a forced default controller (NPC fists) or a sheathed
+                    // weapon keeps the carry pose over the base combat legs.
+                    fullBodyLocomotion = archetype.fullBodyCombatLocomotion && weaponInHand
+                                         && !_equipmentVisuals.IsForcingDefaultController;
                 }
                 shieldInHand = _equipmentVisuals.ShieldInHand;
             }
 
+            _bridge.FullBodyCombatLocomotion = fullBodyLocomotion; // read by the drivers' UpperBody weight
             bool switching = _bridge.IsSwitchingWeapon;
             bool carrySeat = HandPoseRule.CarrySeat(weaponInHand, hasCarryPose, leftHandWeapon && !twoHanded,
                 _bridge.IsUpperBodyCombatIdle, _bridge.IsBaseFullBody);

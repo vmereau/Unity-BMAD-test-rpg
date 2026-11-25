@@ -19,6 +19,9 @@ namespace Game.Animations
         private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
         private static readonly int IsDodgingBackwardsHash = Animator.StringToHash("IsDodgingBackwards");
         private static readonly int IsInCombatHash = Animator.StringToHash("IsInCombat");
+        /// <summary>Float 0..1: Base <c>LockOn Locomotion</c> blend from the free tree (0) to the combat tree (1).</summary>
+        public const string COMBAT_LOCOMOTION_PARAM = "CombatLocomotion";
+        private static readonly int CombatLocomotionHash = Animator.StringToHash(COMBAT_LOCOMOTION_PARAM);
         private static readonly int GetHitHash = Animator.StringToHash("GetHit");
         private static readonly int DeathHash = Animator.StringToHash("Death");
         private static readonly int StaggerHash = Animator.StringToHash("Stagger");
@@ -149,6 +152,28 @@ namespace Game.Animations
             _animator.SetBool(IsBlockingHash, value);
         }
         public void SetInCombat(bool value) => _animator?.SetBool(IsInCombatHash, value);
+
+        /// <summary>
+        /// Base <c>LockOn Locomotion</c> blend toward the combat tree (spec-sword-shield-pack-locomotion). Drivers step it
+        /// every frame from their combat flag (<see cref="UpperBodyWeight.Step"/>), so a controller reset is re-pushed.
+        /// </summary>
+        public void SetCombatLocomotion(float value)
+        {
+            if (!IsAnimatorLive) return;
+            _animator.SetFloat(CombatLocomotionHash, value);
+        }
+
+        /// <summary>
+        /// The equipped weapon's combat locomotion plays on the whole body (<c>WeaponArchetypeSO.fullBodyCombatLocomotion</c>).
+        /// Written every frame by <c>HandPoseDriver</c> (the component that reads the equipment), read by the drivers.
+        /// </summary>
+        public bool FullBodyCombatLocomotion { get; set; }
+
+        /// <summary>True while the Base Layer is in (or heading into) <c>LockOn Locomotion</c>.</summary>
+        public bool IsBaseLocomotion => IsAnimatorLive && DestinationIs(0, LockOnLocomotionHash, LockOnLocomotionHash);
+
+        /// <summary>UpperBody target input: full-body combat locomotion applies only while Base is in locomotion.</summary>
+        public bool IsFullBodyCombatLocomotion => FullBodyCombatLocomotion && IsBaseLocomotion;
 
         /// <summary>The Animator's <c>IsInCombat</c> (false without a live Animator).</summary>
         public bool IsInCombat => IsAnimatorLive && _animator.GetBool(IsInCombatHash);

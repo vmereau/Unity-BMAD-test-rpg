@@ -75,6 +75,10 @@ Symmetric on both sides: bridge + driver.
   `IsBaseFullBody` / `IsUpperBodyAction` (destination-state tags, `Controllers/CLAUDE.md`) and `SetUpperBodyWeight`;
   `PlayerAnimationDriver` and `HumanoidAIAnimationDriver` each call `UpperBodyWeight.Target` + `Step` in `Update` with
   their own `IsInCombat` (NPC: cached in `SetInCombat`). Same rule for Player and NPCs — never write the weight elsewhere.
+  Same `Update` steps the `CombatLocomotion` float (`SetCombatLocomotion`, Base free / combat locomotion). The archetype's
+  `fullBodyCombatLocomotion` reaches the drivers through `HumanoidAnimationBridge.FullBodyCombatLocomotion`, written every
+  frame by `HandPoseDriver` (the one component that reads `EquipmentVisuals`); `IsFullBodyCombatLocomotion` adds "Base heads
+  into `LockOn Locomotion`" (state name, not a tag). Without a `HandPoseDriver` the flag stays false (carry pose as before).
   `HumanoidAnimationBridge.TriggerGetHit` is skipped while `IsBaseFullBody` (GetHit has no clip and must not latch).
 - **Hand poses: one driver for the Player and NPCs** (spec-hand-pose-layer). `HandPoseDriver` (on `Player` and `NPC_base
   Variant`, beside the bridge and `EquipmentVisuals`) runs the pure `HandPoseRule` every frame and writes the result with

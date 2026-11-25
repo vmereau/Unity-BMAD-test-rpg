@@ -29,6 +29,7 @@ MonoBehaviour:
   gripSlide: 0
   sheathSocket: 0
   animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  fullBodyCombatLocomotion: 1
   attackSteps:
   - distance: 0.52
     startTime: 0.2

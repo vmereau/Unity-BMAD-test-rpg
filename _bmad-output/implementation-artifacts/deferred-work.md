@@ -1348,8 +1348,8 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   `sword and shield idle` (UpperBody mask only), so every sword attack's exit blends the pack's bladed stance into the
   parallel-feet idle legs in 0.25–0.37 s. A sword combat-idle leg pose (override `Idle` only while drawn, or a Base-layer
   combat idle) would end the swings in their own stance.
-- **The rest of the Mixamo Sword and Shield Pack** (untracked in `Assets/mixamo packs/`): block / block idle (a shield
-  block matching the new idle), walk / strafe / run (sword-and-shield locomotion), impacts, death, kick.
+- ~~**The rest of the Mixamo Sword and Shield Pack**~~ — block idle and locomotion done (spec-sword-shield-pack-locomotion);
+  the attack exit leg snap above is gone for the sword (the combat locomotion idle is `sword shield idle`). Leftovers below.
 - **Torch item.** `OffhandArmPose.TorchHold` and the `LeftArm` layer are ready; no torch `EquipableItemSO`, prefab, light
   or Offhand slot rule exists (`EquipmentRules` only sends `ShieldSO` to Offhand). The stand-in stick touched the blade in
   the finisher's landing crouch: re-measure with the real prefab's grip.
@@ -1366,3 +1366,20 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **Review (deferred, spec-action-bar-equip-swap):** the bar's swap request is fire-and-forget — if `PlayerCombat` is
   disabled or refuses (re-check), nothing equips yet `OnActionBarUsed` was raised (harmless: refresh only). Use an
   acknowledged request (`GoldLootRequest` pattern) with a direct-equip fallback if a silent no-op is ever seen in play.
+
+## From spec-sword-shield-pack-locomotion (2026-11-25)
+
+- **Pack clips still untracked** in `Assets/mixamo packs/Sword and Shield Pack/`: `turn` / `turn (2)` (turn in place ~100°
+  R / L from the idle) and `180 turn` / `(2)` (walk / run pivots) need a turn-in-place or pivot state (the player rotates
+  in code today); `block` (raise 0.57 s, steps 0.26 m) / `block (2)` (lower 0.67 s) were declined (the visual guard would lag
+  the gameplay block); crouch block / crouch idle / crouching, impacts, death, kick, jump, casting, power up, sheath sword 1 / 2.
+- **Speed match.** The pack walk is 1.5 m/s native, played at walkSpeed 3 m/s (blend 0.5); run 4.2 → 6. Approved on look
+  with time scale 1; raise the combat tree's time scales (builder copies the free tree's) if foot slide shows up later.
+- **Sword NPC combat locomotion** checked only in EditMode (tests) and by the player path: watch one guard with a sword
+  walk / strafe in combat. An NPC without a `HandPoseDriver` keeps the carry pose over the pack legs.
+- **Axe / two-handed / bow / unarmed combat stance**: the combat tree is ready; mapping their `Combat *` keys to a stance
+  loop of their own would end their attacks in their own legs too.
+- **Review (deferred):** no test covers the runtime composition (`HandPoseDriver` writing the flag, the drivers stepping
+  `CombatLocomotion`); checked in play only. `SetCombatLocomotion` does not check the parameter exists (fine while every
+  humanoid uses Humanoid_Template). The flag reaches the drivers through two components' `Update`s with no execution
+  order: one frame late on an equip change.

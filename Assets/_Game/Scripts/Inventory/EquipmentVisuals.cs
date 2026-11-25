@@ -53,6 +53,8 @@ namespace Game.Inventory
         public WeaponArchetypeSO CurrentArchetype => _currentArchetype;
         /// <summary>True once the weapon visual sits in the hand (set by SetCombatState, i.e. at the draw's WeaponSwap).</summary>
         public bool IsDrawn => _isInCombat;
+        /// <summary>True while the default controller is forced over the weapon's override (NPC fists with a weapon equipped).</summary>
+        public bool IsForcingDefaultController => _forceDefaultController;
         /// <summary>Hand socket the drawn weapon uses for the current archetype (no warning side effect).</summary>
         public Transform DrawnSocket => ResolveDrawnSocket(_currentArchetype, _weaponSocket, _leftWeaponSocket);
         /// <summary>Controller currently on the animator (null without one) — lets NPC callers detect a swap.</summary>

@@ -15,10 +15,14 @@ namespace Game.Animations
         /// <summary>UpperBody layer state tag for actions shown over locomotion even out of combat (sheathe tail).</summary>
         public const string UPPER_BODY_ACTION_TAG = "UpperBodyAction";
 
-        public static float Target(bool baseIsFullBody, bool upperIsAction, bool isInCombat)
+        /// <param name="fullBodyLocomotion">The drawn weapon's combat locomotion plays on the whole body
+        /// (<c>WeaponArchetypeSO.fullBodyCombatLocomotion</c>) and Base is in <c>LockOn Locomotion</c>: the carry pose
+        /// stays off, upper-body actions still show (spec-sword-shield-pack-locomotion).</param>
+        public static float Target(bool baseIsFullBody, bool upperIsAction, bool isInCombat, bool fullBodyLocomotion = false)
         {
             if (baseIsFullBody) return 0f;
-            return upperIsAction || isInCombat ? 1f : 0f;
+            if (upperIsAction) return 1f;
+            return isInCombat && !fullBodyLocomotion ? 1f : 0f;
         }
 
         /// <summary>Moves <paramref name="current"/> toward <paramref name="target"/>; a full 0↔1 fade takes <paramref name="blendTime"/> s.</summary>
