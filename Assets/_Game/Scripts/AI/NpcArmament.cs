@@ -22,8 +22,12 @@ namespace Game.AI
     /// with an empty id open every hitbox.</item>
     /// <item>Draw / sheathe: armed NPCs play the clips on combat entry / exit; the visual moves on the <c>WeaponSwap</c>
     /// event (<see cref="CompleteWeaponSwitch"/>), or on a timeout.</item>
-    /// <item>Down (knocked out / dead): the weapon and the shield are unequipped into the inventory (lootable), the armor
-    /// stays. Waking with them still there re-equips them; a looted weapon → fists for good, a looted shield → none.</item>
+    /// <item>Down (knocked out / dead): the weapon, the shield and a held torch are unequipped into the inventory (lootable),
+    /// the armor stays. Waking with them still there re-equips them; a looted weapon → fists for good, a looted shield → none.</item>
+    /// <item>Night torch (spec-npc-night-torch): <see cref="SetTorchWanted"/> (from <see cref="NpcRoutine"/>) puts a torch in the
+    /// offhand, granted when none is carried; the own shield waits in the inventory as <c>_stowedShield</c>. Once a weapon is
+    /// drawn in a fight the shield replaces it until the fight is over and the weapon sheathed. Fists, no weapon or no own
+    /// shield → the torch stays in the fight (a shield is only held next to a drawn weapon).</item>
     /// <item>Ranged (spec-ai-ranged-combat-style): a <see cref="BowSO"/> in the loadout next to a melee weapon stays in the
     /// inventory. <see cref="SetRanged"/> swaps weapons as one locked chain (sheathe → swap the equipped weapon → draw);
     /// with the bow in hand no melee hitbox is registered.</item>
@@ -50,6 +54,8 @@ namespace Game.AI
         [Tooltip("Draw / sheathe clip speed (weaponSwitchAnimSpeed) and the WeaponSwap watchdog (weaponSwitchTimeout). " +
                  "Null = 1.5 / 2.5 s.")]
         [SerializeField] private CombatConfigSO _combatConfig;
+        [Tooltip("Torch granted and held at night when the routine asks for one (NpcRoutine torchAtNight). Null = no night torch.")]
+        [SerializeField] private TorchSO _nightTorch;
 
         private EntityMeleeAttacker _attacker;
         private AIAnimationDriver _driver;
@@ -73,7 +79,10 @@ namespace Game.AI
         private bool _rangedRequested;      // the tactics want the bow (SetRanged)
         private bool _weaponChangePending;  // the equipped weapon doesn't match the request yet (Update advances it)
         private EntityArcher _archer;       // optional: never swap mid-shot
-        private ShieldSO _stowedShield;     // shield a bow / two-hander swap pushed into the inventory, re-equipped on the way back
+        private ShieldSO _stowedShield;     // own shield in the inventory (bow / two-hander swap, night torch), re-equipped on the way back
+        private bool _torchWanted;          // the routine wants the night torch (night, awake, flag on)
+        private bool _fightOffhand;         // a weapon was drawn in this fight: the own shield holds the offhand until it ends
+        private bool _warnedNoTorch;
 
         /// <summary>True while a draw / sheathe clip runs — the brain doesn't attack until the weapon is in hand.</summary>
         public bool IsSwitchingWeapon => _isSwitching;
@@ -141,6 +150,16 @@ namespace Game.AI
                 return shield != null ? shield.defenseBonus : 0f;
             }
         }
+
+        /// <summary>The routine asked for the night torch (<see cref="SetTorchWanted"/>).</summary>
+        public bool TorchWanted => _torchWanted;
+
+        /// <summary>
+        /// Pure rule (tested): the torch is held when wanted, unless the NPC fights with a drawn weapon and an own shield to
+        /// take up instead.
+        /// </summary>
+        public static bool ShouldHoldTorch(bool wanted, bool combatOffhand, bool hasOwnShield) =>
+            wanted && !(combatOffhand && hasOwnShield);
 
         /// <summary>Health damage added to <c>Entity.AttackDamage</c> (wielded weapon's <c>damageBonus</c>, fists 0).</summary>
         public float DamageBonus => _wielded != null ? _wielded.damageBonus : 0f;
@@ -351,6 +370,18 @@ namespace Game.AI
         }
 
         /// <summary>
+        /// Night torch wanted (true) or not (spec-npc-night-torch), from <see cref="NpcRoutine"/>. Applied at once (instant swap,
+        /// no clip); while down it is only stored and applied on wake-up.
+        /// </summary>
+        public void SetTorchWanted(bool wanted)
+        {
+            if (!_ready || _torchWanted == wanted) return;
+            _torchWanted = wanted;
+            if (!_started && !_loadoutRestored) return; // Start's rebuild applies it once the loadout is in place
+            SyncOffhand();
+        }
+
+        /// <summary>
         /// Fists for the fight being started (true) or the weapon (false). Applied at once (a drawn weapon snaps back to its
         /// sheath for fists); cleared when the fight ends.
         /// </summary>
@@ -376,6 +407,7 @@ namespace Game.AI
                 return; // fists drew nothing: nothing to sheathe
             }
             SyncDrawState();
+            SyncOffhand(); // re-checks the fight latch (the shield / torch swap itself happens at the draw / sheathe WeaponSwap)
         }
 
         /// <summary>
@@ -390,10 +422,12 @@ namespace Game.AI
             _rangedRequested = false; // wakes up with what it held; the tactics request again
             _weaponChangePending = false;
             _fistsRequested = false; // the fight is over (don't rely on SetCombatState(false) having run first)
+            _fightOffhand = false;
             if (_driver != null) _driver.ClearWeaponSwitch();
             WeaponSO weapon = EquippedWeapon;
             ShieldSO shield = _equipment.EquippedShield;
-            if (weapon == null && shield == null) return;
+            TorchSO torch = _equipment.GetEquipped(EquipmentSlot.Offhand) as TorchSO;
+            if (weapon == null && shield == null && torch == null) return;
             if (weapon != null)
             {
                 _equipment.Unequip(EquipmentSlot.Weapon);
@@ -407,6 +441,12 @@ namespace Game.AI
                 _stowedShield = shield;
                 GameLog.Info(TAG, $"{gameObject.name} is down — {shield.itemName} dropped into its inventory");
             }
+            if (torch != null)
+            {
+                // The light goes out with the visual; a wake-up at night takes it back (or a new one if looted).
+                _equipment.Unequip(EquipmentSlot.Offhand);
+                GameLog.Info(TAG, $"{gameObject.name} is down — {torch.itemName} dropped into its inventory");
+            }
             _visuals.SetCombatState(false);
             _visuals.Refresh(false); // keep the controller: a swap would stand the body up
             ApplyHitboxes(null);
@@ -415,7 +455,7 @@ namespace Game.AI
 
         /// <summary>
         /// Back up: re-equips the dropped weapon if it is still in the inventory (else fists), then the dropped shield if still
-        /// there and the weapon leaves the offhand free, and rebuilds the mode.
+        /// there and the weapon leaves the offhand free, and rebuilds the mode (which takes the night torch back if wanted).
         /// </summary>
         public void OnWokeUp()
         {
@@ -443,11 +483,13 @@ namespace Game.AI
             Rebuild();
         }
 
-        // Offhand empty and the weapon leaves it free: re-equip the shield a bow / two-hander swap (or going down) stowed —
+        // Offhand empty (no shield, no night torch) and the weapon leaves it free: re-equip the shield a bow / two-hander swap,
+        // the night torch or going down stowed —
         // only that one, never trade stock or another shield the inventory happens to hold. Gone (looted / sold) → forgotten.
         private void EquipCarriedShield()
         {
-            if (_stowedShield == null || _equipment.EquippedShield != null || EquippedWeapon is { OccupiesOffhand: true }) return;
+            if (_stowedShield == null || _equipment.GetEquipped(EquipmentSlot.Offhand) != null // a shield, or the night torch
+                || EquippedWeapon is { OccupiesOffhand: true }) return;
             ShieldSO shield = _stowedShield;
             _stowedShield = null;
             if (_inventory.CountOf(shield) <= 0)
@@ -464,14 +506,16 @@ namespace Game.AI
         // Never granted anew — a shield looted from it stays gone (spec-npc-shield-loot-on-down).
         private void ReEquipCarriedStartingShield()
         {
-            if (_equipment.EquippedShield != null) return;
+            ItemSO offhand = _equipment.GetEquipped(EquipmentSlot.Offhand);
+            if (offhand is ShieldSO) return;
             if (_persistentID == null || _persistentID.Entity is not NPCEntity npc || npc.StartingEquipment == null) return;
             ShieldSO starting = null;
             foreach (EquipableItemSO item in npc.StartingEquipment)
                 if (item is ShieldSO shield) { starting = shield; break; }
             if (starting == null) return;
             if (_inventory.CountOf(starting) <= 0) return;
-            if (EquippedWeapon is { OccupiesOffhand: true }) _stowedShield = starting;
+            // A saved night torch keeps the offhand: the shield waits in the inventory (SyncOffhand swaps them by day).
+            if (offhand is TorchSO || EquippedWeapon is { OccupiesOffhand: true }) _stowedShield = starting;
             else _equipment.Equip(starting);
         }
 
@@ -490,6 +534,7 @@ namespace Game.AI
             _modePending = false;
             _rangedRequested = false;
             _weaponChangePending = false;
+            _fightOffhand = false;
             if (droppedWeapon != null && EquippedWeapon == null)
             {
                 if (killed) _droppedWeapon = droppedWeapon; // stays lootable; kept so the next capture still has it
@@ -518,6 +563,7 @@ namespace Game.AI
             if (fromDraw.HasValue && fromDraw.Value != _pendingDraw) return;
             _isSwitching = false;
             if (_wielded != null) _visuals.SetCombatState(_pendingDraw);
+            SyncOffhand(); // drawn → own shield replaces the night torch; sheathed → torch back
         }
 
         // Hitboxes + controller for the current mode. Only while up: a controller swap resets the animator.
@@ -551,6 +597,58 @@ namespace Game.AI
             RuntimeAnimatorController before = _visuals.AppliedController;
             _visuals.ForceDefaultController(!armed);
             if (_visuals.AppliedController != before) AfterControllerSwap();
+            SyncOffhand();
+        }
+
+        // Fight offhand latch: set once a weapon is drawn in combat (the draw WeaponSwap), kept through mid-fight weapon changes
+        // (melee ↔ bow: no torch flash between the clips), cleared once out of combat with the weapon sheathed (the sheathe
+        // WeaponSwap) or when the fight turns to fists (the shield would sit on the back, useless).
+        private void UpdateFightOffhand()
+        {
+            bool drawn = _wielded != null && _visuals.IsDrawn;
+            if (_fistsRequested || (!_inCombat && !drawn)) _fightOffhand = false;
+            else if (_inCombat && drawn) _fightOffhand = true;
+        }
+
+        // Own shield: the one in the offhand, else the stowed one still in the inventory.
+        private bool HasOwnShield => _equipment.EquippedShield != null
+                                     || (_stowedShield != null && _inventory.CountOf(_stowedShield) > 0);
+
+        // Night torch vs own shield in the offhand (spec-npc-night-torch). Only while up and active (a deactivating NPC is
+        // re-synced by OnEnable's rebuild); only the offhand visuals are rebuilt (no weapon visual / hitbox / controller
+        // change), so it is safe mid-clip. Only the night torch is ever taken off — an authored torch stays.
+        private void SyncOffhand()
+        {
+            if (!_ready || IsDown || !enabled || !gameObject.activeInHierarchy) return;
+            UpdateFightOffhand();
+            bool holdTorch = ShouldHoldTorch(_torchWanted, _fightOffhand, HasOwnShield);
+            ItemSO offhand = _equipment.GetEquipped(EquipmentSlot.Offhand);
+            if (holdTorch && offhand is not TorchSO)
+            {
+                if (_nightTorch == null)
+                {
+                    if (!_warnedNoTorch)
+                        GameLog.Warn(TAG, $"{gameObject.name}: night torch wanted but NpcArmament._nightTorch is not set — no torch");
+                    _warnedNoTorch = true;
+                    return;
+                }
+                if (_inventory.CountOf(_nightTorch) <= 0)
+                {
+                    if (!_inventory.AddItem(_nightTorch)) return;
+                    GameLog.Info(TAG, $"{gameObject.name} gets a {_nightTorch.itemName}");
+                }
+                if (offhand is ShieldSO shield) _stowedShield = shield; // the Equip below pushes it into the inventory
+                _equipment.Equip(_nightTorch);
+                GameLog.Info(TAG, $"{gameObject.name} lights its {_nightTorch.itemName}");
+            }
+            else if (!holdTorch && offhand is TorchSO torch && torch == _nightTorch)
+            {
+                _equipment.Unequip(EquipmentSlot.Offhand);
+                EquipCarriedShield();
+                GameLog.Info(TAG, $"{gameObject.name} puts its {torch.itemName} away");
+            }
+            else return;
+            _visuals.RefreshOffhand();
         }
 
         // Bow in hand: neither the weapon nor the fists can hit.

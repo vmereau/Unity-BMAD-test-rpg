@@ -598,6 +598,7 @@ MonoBehaviour:
   _animator: {fileID: 2074702169421064367}
   _defaultAnimatorController: {fileID: 22100000, guid: a1e21731965ee4d449b674675d66155c, type: 2}
   _onVisualsRefreshed: {fileID: 0}
+  _torchShadows: 0
 --- !u!114 &8772967254062050560
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -614,6 +615,7 @@ MonoBehaviour:
   _visuals: {fileID: 8531843112707779696}
   _inventory: {fileID: 76150843049530146}
   _combatConfig: {fileID: 11400000, guid: 86463aac9796a76438a3015ed78aacb8, type: 2}
+  _nightTorch: {fileID: 11400000, guid: 3872b94b3c7f0e747bda106a2ec45752, type: 2}
 --- !u!114 &6050203362294857150
 MonoBehaviour:
   m_ObjectHideFlags: 0

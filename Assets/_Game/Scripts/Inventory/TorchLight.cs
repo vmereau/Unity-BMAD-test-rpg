@@ -64,6 +64,13 @@ namespace Game.Inventory
             _light.lightShadowCasterMode = LightShadowCasterMode.Default;
         }
 
+        /// <summary>Shadows on or off (NPC torches: off). Applied now if the light is already set up, else at its setup.</summary>
+        public void SetCastShadows(bool cast)
+        {
+            _castShadows = cast;
+            if (_initialized && _light != null) _light.shadows = cast ? LightShadows.Soft : LightShadows.None;
+        }
+
         /// <summary>Lights or douses the torch. Idempotent.</summary>
         public void SetLit(bool lit)
         {

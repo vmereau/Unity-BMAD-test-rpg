@@ -42,6 +42,8 @@ namespace Game.Inventory
         private bool _torchHeld; // set by PlaceTorch once the torch is parented to the left hand
         private bool _torchDoused; // swimming: the held torch stays in hand, unlit (SetTorchDoused)
         private bool _torchSocketWarned; // warn once per equipped torch when a socket is missing
+        [Tooltip("Soft shadows from the held torch's light. Off on NPCs (spec-npc-night-torch: several guards carry one at night).")]
+        [SerializeField] private bool _torchShadows = true;
         private GameObject _helmetVisual;
         private GameObject _armorVisual;
         private ItemSO _armorVisualItem; // armor the current _armorVisual was built for — skip rebuilds on unrelated refreshes
@@ -185,6 +187,18 @@ namespace Game.Inventory
             RefreshTorch(); // after the weapon too: a drawn two-hander / bow stows it
             RefreshHelmet();
             RefreshBody();
+            _onVisualsRefreshed?.Raise(false);
+        }
+
+        /// <summary>
+        /// Rebuilds only the offhand visuals (shield, torch) from the equipped items — no weapon visual, hitbox or controller
+        /// change, so it is safe mid-clip (NPC night torch swap, spec-npc-night-torch).
+        /// </summary>
+        public void RefreshOffhand()
+        {
+            if (_equipmentSystem == null) return;
+            RefreshShield();
+            RefreshTorch();
             _onVisualsRefreshed?.Raise(false);
         }
 
@@ -358,6 +372,7 @@ namespace Game.Inventory
                 _torchLight = _torchVisual.GetComponentInChildren<TorchLight>(true);
                 if (_torchLight == null)
                     GameLog.Warn(TAG, $"Torch '{torch.itemName}': visual has no TorchLight — it gives no light");
+                else if (!_torchShadows) _torchLight.SetCastShadows(false);
                 GameLog.Info(TAG, $"Torch visual attached (prefab: {torch.equipVisualPrefab.name})");
             }
             else

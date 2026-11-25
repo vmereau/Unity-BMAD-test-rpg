@@ -9,6 +9,8 @@ namespace Game.AI
     /// statelessly from the time of day (<see cref="GameClock.Active"/>, polled). A block change sends the block's spot or
     /// patrol route to the <see cref="EntityBrain"/>, the only mover: walk on a natural hour change, warp on the first
     /// evaluation (region load) and after <c>OnTimeSkipped</c> (sleep). Nothing is saved. Runs after <c>EntityBrain.Start</c>.
+    /// <c>_torchAtNight</c> (spec-npc-night-torch): at every poll, asks <see cref="NpcArmament.SetTorchWanted"/> for a torch
+    /// while it is night and the NPC is not asleep (<see cref="NpcTorchRules.WantsTorch"/>).
     /// </summary>
     [DefaultExecutionOrder(100)]
     public class NpcRoutine : MonoBehaviour
@@ -23,12 +25,20 @@ namespace Game.AI
         [Tooltip("First matching block wins. No block for the hour = stand at the spawn spot. Without a clock, the first all-day block (start == end) applies.")]
         [SerializeField] private List<NpcRoutineBlock> _blocks = new List<NpcRoutineBlock>();
 
+        [Header("Night torch")]
+        [Tooltip("Holds a torch in the offhand from sunset to sunrise while awake (granted if none is carried); the daytime " +
+                 "offhand item (shield) returns by day and for fights. Needs NpcArmament with a night torch item.")]
+        [SerializeField] private bool _torchAtNight;
+        [Tooltip("Sunrise / sunset hours deciding the night. Null = 6 / 22.")]
+        [SerializeField] private DayNightConfigSO _dayNight;
+
         private int _currentIndex = -1;
         private bool _evaluated;
         private bool _snapNext = true;
         private float _pollTimer;
         private bool _warnedNoClock;
         private readonly HashSet<int> _warnedBlocks = new HashSet<int>();
+        private NpcArmament _armament;
 
         /// <summary>Current block, or null (no block for the hour → stands at its spawn spot). Hook for future activity / dialogue gating.</summary>
         public NpcRoutineBlock CurrentBlock => _currentIndex >= 0 && _currentIndex < _blocks.Count ? _blocks[_currentIndex] : null;
@@ -37,6 +47,9 @@ namespace Game.AI
         private void Awake()
         {
             if (_brain == null) _brain = GetComponent<EntityBrain>();
+            _armament = GetComponent<NpcArmament>();
+            if (_torchAtNight && _armament == null)
+                GameLog.Warn(TAG, $"{gameObject.name}: torchAtNight set but no NpcArmament — no night torch");
             if (_brain == null)
             {
                 GameLog.Error(TAG, $"{gameObject.name}: no EntityBrain — routine disabled");
@@ -58,6 +71,7 @@ namespace Game.AI
         {
             _pollTimer = PollInterval;
             Evaluate();
+            UpdateTorch();
         }
 
         private float PollInterval => Mathf.Max(0.1f, _pollInterval);
@@ -95,12 +109,26 @@ namespace Game.AI
             if (_pollTimer > 0f) return;
             _pollTimer = PollInterval;
             Evaluate();
+            UpdateTorch();
         }
 
         private void HandleTimeSkipped(float seconds)
         {
             _snapNext = true;
             Evaluate();
+            UpdateTorch();
+        }
+
+        // Night torch: not tied to the blocks (a story suspend keeps it too); no clock = day.
+        private void UpdateTorch()
+        {
+            if (!_torchAtNight || _armament == null) return;
+            GameClock clock = GameClock.Active;
+            float sunrise = _dayNight != null ? _dayNight.sunriseHour : NpcTorchRules.DEFAULT_SUNRISE;
+            float sunset = _dayNight != null ? _dayNight.sunsetHour : NpcTorchRules.DEFAULT_SUNSET;
+            bool wants = clock != null
+                         && NpcTorchRules.WantsTorch(true, DayNightMath.HourOfDay(clock.Now), sunrise, sunset, _brain.IsAsleep);
+            _armament.SetTorchWanted(wants);
         }
 
         private void Evaluate()

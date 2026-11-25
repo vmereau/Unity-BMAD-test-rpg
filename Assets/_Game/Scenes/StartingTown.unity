@@ -14608,6 +14608,8 @@ MonoBehaviour:
     spot: {fileID: 731482468}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &40980038
 GameObject:
   m_ObjectHideFlags: 0
@@ -32525,6 +32527,8 @@ MonoBehaviour:
     spot: {fileID: 44382771}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &92426695
 GameObject:
   m_ObjectHideFlags: 0
@@ -82919,6 +82923,8 @@ MonoBehaviour:
     spot: {fileID: 0}
     waypoints: []
     bed: {fileID: 585036248}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &248301564
 GameObject:
   m_ObjectHideFlags: 0
@@ -109476,6 +109482,8 @@ MonoBehaviour:
     spot: {fileID: 0}
     waypoints: []
     bed: {fileID: 321684616}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &328633798
 GameObject:
   m_ObjectHideFlags: 0
@@ -208350,6 +208358,8 @@ MonoBehaviour:
     spot: {fileID: 0}
     waypoints: []
     bed: {fileID: 533083867}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &619158435
 GameObject:
   m_ObjectHideFlags: 0
@@ -304188,6 +304198,8 @@ MonoBehaviour:
     - {fileID: 977972228}
     - {fileID: 278343162}
     bed: {fileID: 0}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &898625698
 GameObject:
   m_ObjectHideFlags: 0
@@ -318616,6 +318628,8 @@ MonoBehaviour:
     spot: {fileID: 150123328}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &944148473
 GameObject:
   m_ObjectHideFlags: 0
@@ -323968,6 +323982,8 @@ MonoBehaviour:
     spot: {fileID: 219264830}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1001 &956192914
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -356785,6 +356801,8 @@ MonoBehaviour:
     spot: {fileID: 774751743}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &1061111339
 GameObject:
   m_ObjectHideFlags: 0
@@ -393151,6 +393169,8 @@ MonoBehaviour:
     - {fileID: 374487273}
     - {fileID: 86551670}
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1166394198
 GameObject:
   m_ObjectHideFlags: 0
@@ -397527,6 +397547,8 @@ MonoBehaviour:
     spot: {fileID: 0}
     waypoints: []
     bed: {fileID: 1492988000}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &1179886029
 GameObject:
   m_ObjectHideFlags: 0
@@ -425738,6 +425760,8 @@ MonoBehaviour:
     spot: {fileID: 2014509155}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1265428396
 GameObject:
   m_ObjectHideFlags: 0
@@ -442023,6 +442047,8 @@ MonoBehaviour:
     - {fileID: 912598659}
     - {fileID: 1722408603}
     bed: {fileID: 0}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &1311895075
 GameObject:
   m_ObjectHideFlags: 0
@@ -494592,6 +494618,8 @@ MonoBehaviour:
     spot: {fileID: 1919335504}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1455994689
 GameObject:
   m_ObjectHideFlags: 0
@@ -576894,6 +576922,8 @@ MonoBehaviour:
     spot: {fileID: 1136734187}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1699777454
 GameObject:
   m_ObjectHideFlags: 0
@@ -578043,6 +578073,8 @@ MonoBehaviour:
     spot: {fileID: 513225476}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1703185079
 GameObject:
   m_ObjectHideFlags: 0
@@ -591322,6 +591354,8 @@ MonoBehaviour:
     spot: {fileID: 1219811385}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1741063384
 GameObject:
   m_ObjectHideFlags: 0
@@ -595242,6 +595276,8 @@ MonoBehaviour:
     spot: {fileID: 1397723983}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 1
+  _dayNight: {fileID: 11400000, guid: b8b21587c54b20041868ddbfdae96985, type: 2}
 --- !u!1 &1753393025
 GameObject:
   m_ObjectHideFlags: 0
@@ -603267,6 +603303,8 @@ MonoBehaviour:
     spot: {fileID: 641757296}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1777411966
 GameObject:
   m_ObjectHideFlags: 0
@@ -617429,6 +617467,8 @@ MonoBehaviour:
     spot: {fileID: 1498708131}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1822382026
 GameObject:
   m_ObjectHideFlags: 0
@@ -622783,6 +622823,8 @@ MonoBehaviour:
     spot: {fileID: 553681785}
     waypoints: []
     bed: {fileID: 0}
+  _torchAtNight: 0
+  _dayNight: {fileID: 0}
 --- !u!1 &1839669962
 GameObject:
   m_ObjectHideFlags: 0
