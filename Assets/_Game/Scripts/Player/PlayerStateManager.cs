@@ -537,6 +537,22 @@ namespace Game.Player
             bool isAirborne, bool isSwitchingWeapon, bool isAiming) =>
             !isBusy && !isAttacking && !isBlocking && !isDodging && !isAirborne && !isSwitchingWeapon && !isAiming;
 
+        /// <summary>
+        /// True when an action-bar equip (swap) may start. Deliberately not gated by <see cref="IsBusy"/>: that is true
+        /// while the cursor is unlocked, and clicking a bar slot with the inventory open must still equip. Dialogue /
+        /// incapacitated / executing are gated by ActionBarSystem.TryUseSlot.
+        /// </summary>
+        public bool CanChangeEquipment() => !IsScriptedHold &&
+            EvaluateCanChangeEquipment(IsDead, IsAttacking, IsBlocking, IsAiming, IsDodging, IsAirborne, IsSwitchingWeapon, IsDrinking);
+
+        /// <summary>
+        /// Pure equipment-change gate (tested in WeaponSwitchGateTests): no swap during an action (attack, block, aim,
+        /// dodge, jump / fall, drink, draw / sheathe). Idle, walking, running, sneaking and swimming are allowed.
+        /// </summary>
+        public static bool EvaluateCanChangeEquipment(bool isDead, bool isAttacking, bool isBlocking, bool isAiming,
+            bool isDodging, bool isAirborne, bool isSwitchingWeapon, bool isDrinking) =>
+            !isDead && !isAttacking && !isBlocking && !isAiming && !isDodging && !isAirborne && !isSwitchingWeapon && !isDrinking;
+
         /// <summary>True when the player may start (or keep) a bow aim. Bow equipped is checked by PlayerCombat.</summary>
         public bool CanAim() =>
             !IsSwimming && !IsDrinking && EvaluateCanAim(IsBusy, IsAirborne, IsDodging, IsAttacking, IsBlocking, IsSwitchingWeapon, IsInCombat);

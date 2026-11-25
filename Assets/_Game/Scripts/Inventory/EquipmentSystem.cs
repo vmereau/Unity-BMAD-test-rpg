@@ -92,9 +92,10 @@ namespace Game.Inventory
                 GameLog.Info(TAG, $"Unequipped {oldItem.itemName} from {targetSlot}");
             }
 
-            _inventorySystem.RemoveItem(inventoryIndex);
-
+            // Equipped before it leaves the inventory: the inventory-changed listeners (action bar ValidateSlots) must see it
+            // in one of the two places, or the bar drops its slot (spec-action-bar-equip-swap).
             _equipped[targetSlot] = item;
+            _inventorySystem.RemoveItem(inventoryIndex);
             GameLog.Info(TAG, $"Equipped {item.itemName} to {targetSlot}");
             _onEquipmentChanged?.Raise(true);
             RecomputeAndApplyBonuses();

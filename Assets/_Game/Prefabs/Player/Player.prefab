@@ -706,6 +706,7 @@ MonoBehaviour:
   _unarmedHitboxLeft: {fileID: 871430441418265580}
   _inventory: {fileID: 1994668802294238475}
   _onCombatNotification: {fileID: 11400000, guid: 9378fcbf7485c534dabd2a7076b500fc, type: 2}
+  _onEquipSwapRequested: {fileID: 11400000, guid: c95dd7368e0190643bec813c66e54953, type: 2}
   _combatAudio: {fileID: 11400000, guid: 4935f24c3b5283c43b321a63518e3e3f, type: 2}
   _onSfxRequested: {fileID: 11400000, guid: b7b813ab25833634dba988ae2c4d8bb7, type: 2}
 --- !u!114 &4959302933258015613
@@ -947,6 +948,8 @@ MonoBehaviour:
   _playerStateManager: {fileID: 212298241250081144}
   _inventorySystem: {fileID: 1994668802294238475}
   _playerTransform: {fileID: 5905369542039962551}
+  _equipmentSystem: {fileID: 1345817325320934682}
+  _onEquipSwapRequested: {fileID: 11400000, guid: c95dd7368e0190643bec813c66e54953, type: 2}
 --- !u!114 &3660959576836429512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2860,6 +2863,10 @@ PrefabInstance:
       propertyPath: _inventorySystem
       value: 
       objectReference: {fileID: 1994668802294238475}
+    - target: {fileID: 5567084254982027825, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
+      propertyPath: _onEquipmentChanged
+      value: 
+      objectReference: {fileID: 11400000, guid: 410fc705fdbc7954b94bc1acbf6282b2, type: 2}
     - target: {fileID: 5906198643158806154, guid: fecf1b9961f90f4438b2243f61aa9d18, type: 3}
       propertyPath: _playerInventory
       value: 

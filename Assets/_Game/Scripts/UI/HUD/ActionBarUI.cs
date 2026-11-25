@@ -13,6 +13,8 @@ namespace Game.UI
         [SerializeField] private InventorySystem _inventorySystem;
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
         [SerializeField] private GameEventSO_Void _onInventoryChanged;
+        [Tooltip("OnEquipmentChanged: re-highlights the equipped slots after any equip / unequip.")]
+        [SerializeField] private GameEventSO_Void _onEquipmentChanged;
 
         private void Awake()
         {
@@ -40,12 +42,14 @@ namespace Game.UI
         {
             _onActionBarUsed?.AddListener(HandleActionBarUsed);
             _onInventoryChanged?.AddListener(HandleInventoryChanged);
+            _onEquipmentChanged?.AddListener(HandleInventoryChanged);
         }
 
         private void OnDisable()
         {
             _onActionBarUsed?.RemoveListener(HandleActionBarUsed);
             _onInventoryChanged?.RemoveListener(HandleInventoryChanged);
+            _onEquipmentChanged?.RemoveListener(HandleInventoryChanged);
         }
 
         private void HandleActionBarUsed(int _)
@@ -72,7 +76,8 @@ namespace Game.UI
                 else
                 {
                     int stackCount = GetStackCount(data.Value.InventoryIndex, data.Value.Item);
-                    _slotUIs[i].Bind(i, data.Value.Item, data.Value.InventoryIndex, stackCount);
+                    _slotUIs[i].Bind(i, data.Value.Item, data.Value.InventoryIndex, stackCount,
+                        _actionBarSystem.IsSlotEquipped(i));
                 }
             }
         }

@@ -33,4 +33,25 @@ public class WeaponSwitchGateTests
 
     [Test]
     public void CanSwitch_ReturnsFalse_WhileAiming() => Assert.That(Can(aiming: true), Is.False);
+
+    // Action-bar equip swap gate (spec-action-bar-equip-swap) -------------------------------------------
+
+    private static bool CanEquip(bool dead = false, bool attacking = false, bool blocking = false, bool aiming = false,
+                                 bool dodging = false, bool airborne = false, bool switching = false, bool drinking = false)
+        => PlayerStateManager.EvaluateCanChangeEquipment(dead, attacking, blocking, aiming, dodging, airborne, switching, drinking);
+
+    [Test]
+    public void CanChangeEquipment_ReturnsTrue_WhenIdleOrMoving() => Assert.That(CanEquip(), Is.True);
+
+    [TestCase(true, false, false, false, false, false, false, false)]
+    [TestCase(false, true, false, false, false, false, false, false)]
+    [TestCase(false, false, true, false, false, false, false, false)]
+    [TestCase(false, false, false, true, false, false, false, false)]
+    [TestCase(false, false, false, false, true, false, false, false)]
+    [TestCase(false, false, false, false, false, true, false, false)]
+    [TestCase(false, false, false, false, false, false, true, false)]
+    [TestCase(false, false, false, false, false, false, false, true)]
+    public void CanChangeEquipment_ReturnsFalse_DuringAnAction(bool dead, bool attacking, bool blocking, bool aiming,
+                                                               bool dodging, bool airborne, bool switching, bool drinking)
+        => Assert.That(CanEquip(dead, attacking, blocking, aiming, dodging, airborne, switching, drinking), Is.False);
 }

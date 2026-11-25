@@ -1363,3 +1363,6 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   cancel only arms after `ComboWindowClose`); drop the buffer on move input if that feels wrong. `SetDead` /
   `SetUnconscious` end the attack without `ResetAttackCombo` (buffer kept, harmless: cleared on the next state enter).
   `OffhandArmLayerBuilder` run before `HandPoseBuilder` on a fresh controller would put `LeftArm` before the hand layers.
+- **Review (deferred, spec-action-bar-equip-swap):** the bar's swap request is fire-and-forget — if `PlayerCombat` is
+  disabled or refuses (re-check), nothing equips yet `OnActionBarUsed` was raised (harmless: refresh only). Use an
+  acknowledged request (`GoldLootRequest` pattern) with a direct-equip fallback if a silent no-op is ever seen in play.

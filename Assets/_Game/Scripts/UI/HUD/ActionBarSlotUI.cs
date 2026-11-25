@@ -19,15 +19,19 @@ namespace Game.UI
         [SerializeField] private TMP_Text _keyLabelText;
         [SerializeField] private Color _normalColor = new Color(0.15f, 0.15f, 0.15f, 0.85f);
         [SerializeField] private Color _hoverColor = new Color(0.3f, 0.3f, 0.3f, 0.9f);
+        [Tooltip("Background while the slot's item is equipped (action-bar equip swap).")]
+        [SerializeField] private Color _equippedColor = new Color(0.55f, 0.42f, 0.18f, 0.9f);
 
         public int SlotIndex { get; private set; }
         public ItemSO Item { get; private set; }
         public int InventoryIndex { get; private set; } = -1;
+        public bool IsEquipped { get; private set; }
 
         private ActionBarUI _actionBarUI;
         private Canvas _canvas;
         private GameObject _ghostImage;
         private bool _dropHandled;
+        private bool _hovered;
 
         private void Awake()
         {
@@ -42,11 +46,13 @@ namespace Game.UI
                 _keyLabelText.text = (slotIndex + 1).ToString();
         }
 
-        public void Bind(int slotIndex, ItemSO item, int inventoryIndex, int stackCount)
+        public void Bind(int slotIndex, ItemSO item, int inventoryIndex, int stackCount, bool equipped = false)
         {
             SlotIndex = slotIndex;
             Item = item;
             InventoryIndex = inventoryIndex;
+            IsEquipped = equipped;
+            ApplyBackground();
 
             if (_iconImage != null)
             {
@@ -66,7 +72,9 @@ namespace Game.UI
             SlotIndex = slotIndex;
             Item = null;
             InventoryIndex = -1;
+            IsEquipped = false;
             _dropHandled = false;
+            ApplyBackground();
 
             if (_iconImage != null)
             {
@@ -80,14 +88,21 @@ namespace Game.UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_backgroundImage != null)
-                _backgroundImage.color = _hoverColor;
+            _hovered = true;
+            ApplyBackground();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            if (_backgroundImage != null)
-                _backgroundImage.color = _normalColor;
+            _hovered = false;
+            ApplyBackground();
+        }
+
+        // Hover wins; otherwise an equipped item's slot keeps the highlight colour.
+        private void ApplyBackground()
+        {
+            if (_backgroundImage == null) return;
+            _backgroundImage.color = _hovered ? _hoverColor : IsEquipped ? _equippedColor : _normalColor;
         }
 
         public void NotifyDropHandled()
@@ -163,6 +178,8 @@ namespace Game.UI
         private void OnDisable()
         {
             RemoveGhostImage();
+            _hovered = false; // no OnPointerExit once hidden — the hover colour would hide the equipped highlight
+            ApplyBackground();
         }
 
         public void RemoveGhostImage()

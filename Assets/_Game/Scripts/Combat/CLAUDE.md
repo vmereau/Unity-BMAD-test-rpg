@@ -144,6 +144,16 @@ sheathed stance when `IsInCombat || IsSwitchingWeapon`.
   `OnDisable`, like Attack/Block.
 - Socket and `Drawn`/`Sheathed` conventions: `Prefabs/Items/Weapons/CLAUDE.md`.
 
+**Action-bar equip swap** (spec-action-bar-equip-swap): `OnEquipSwapRequested` → `HandleEquipSwapRequested` stores
+`_pendingEquip` and starts a sheathe. `CompleteWeaponSwitch` (any path) only marks `_swapSheathed`; `UpdatePendingEquipSwap`
+finishes it from `Update` once the player is free (`CanChangeEquipment`, not incapacitated / executing / in dialogue):
+`FinishEquipSwap` → `Equip` → `BeginDraw` (skipped when no weapon is left, e.g. a shield that pushed the bow back). Never from
+the `WeaponSwap` event or the SMB exit: `Equip` swaps the animator controller. A dodge / stagger mid-sheathe makes the swap
+wait and then draw with the clip. Fists drawn: a weapon is equipped and drawn without a sheathe, a shield just equipped.
+`ClearPendingEquip` runs in `HandleVisualsRefreshed` (any other equip / load), R, `SheatheForSwimming`, `OnDisable` and on
+death; an item gone from the inventory at the finish leaves the player sheathed (Warn). `EquipmentSystem.Equip` records the
+item as equipped **before** `RemoveItem`, so the bar's inventory-changed `ValidateSlots` keeps its slot.
+
 ---
 
 ## Blocking (spec-shield-offhand-blocking, spec-unshielded-blocking)

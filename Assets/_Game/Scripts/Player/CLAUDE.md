@@ -27,6 +27,7 @@
 | InCombat | `IsInCombat` | `PlayerCombat.SetInCombat()` via `PlayerStateManager.SetInCombat()` |
 | Aggroed | `IsAggroed` (read-only, cached per frame) | — computed: `EntityBrain.IsAnyFighting(player FactionMember)` = any active brain in Warning / Engaging / Attacking / Searching on the player, any faction. **Not** `IsInCombat` (drawn weapon) |
 | Draw / sheathe (R) | `CanSwitchWeapon()` / `IsSwitchingWeapon` | `PlayerCombat` → `BeginWeaponSwitch(draw, speed)` / `EndWeaponSwitch()` (flow: `Scripts/Combat/CLAUDE.md`) |
+| Equip from the action bar | `CanChangeEquipment()` — not dead, attacking, blocking, aiming, dodging, airborne, switching or drinking; **not** `IsBusy` (the cursor is unlocked when clicking a bar slot) | — (read-only gate; `ActionBarSystem`, `PlayerCombat` swap) |
 | Bow aim | `CanAim()` / `IsAiming` | `PlayerCombat` → `SetAiming(bool)` / `PlayBowFire()`. R is blocked while aiming (`PLAYER_STATES.md` → Bow aim) |
 | Sneak  | `CanSneak()` / `IsSneaking` | `PlayerSneak` → `SetSneaking(bool)` / `ExitSneakToSprint()` |
 | Swim   | `IsSwimming` (blocks attack, block, aim, R, dodge, jump, sneak) | `PlayerSwimming` → `SetSwimming(bool)` |

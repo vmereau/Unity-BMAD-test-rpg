@@ -117,5 +117,103 @@ namespace Tests.EditMode
             Assert.DoesNotThrow(() => _system.Assign(6, 0, item), "Assign(6,...) should not throw.");
             Object.DestroyImmediate(item);
         }
+
+        // spec-action-bar-equip-swap ------------------------------------------------------------------
+
+        private EquipmentSystem AddEquipment()
+        {
+            var eq = _inventoryGO.AddComponent<EquipmentSystem>();
+            typeof(EquipmentSystem).GetField("_inventorySystem",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(eq, _inventory);
+            typeof(ActionBarSystem).GetField("_equipmentSystem",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(_system, eq);
+            return eq;
+        }
+
+        [Test]
+        public void ValidateSlots_KeepsSlot_WhenItemIsEquipped()
+        {
+            var eq = AddEquipment();
+            var sword = ScriptableObject.CreateInstance<SwordSO>();
+            _inventory.AddItem(sword);
+            _system.Assign(0, 0, sword);
+
+            eq.Equip(sword);
+            _system.ValidateSlots();
+
+            var slot = _system.GetSlot(0);
+            Assert.IsNotNull(slot, "An equipped item's bar slot must survive validation.");
+            Assert.AreEqual(ActionBarSystem.EQUIPPED_INDEX, slot.Value.InventoryIndex);
+            Assert.IsTrue(_system.IsSlotEquipped(0));
+            Object.DestroyImmediate(sword);
+        }
+
+        [Test]
+        public void TryUseSlot_EquipsInPlaceOfCurrentWeapon_AndKeepsBothSlots()
+        {
+            var eq = AddEquipment();
+            var sword = ScriptableObject.CreateInstance<SwordSO>();
+            var bow = ScriptableObject.CreateInstance<BowSO>();
+            _inventory.AddItem(sword);
+            _inventory.AddItem(bow);
+            _system.Assign(0, 0, sword);
+            _system.Assign(1, 1, bow);
+
+            _system.TryUseSlot(0);
+            Assert.AreEqual(sword, eq.GetEquipped(EquipmentSlot.Weapon), "Empty weapon slot: the sword is equipped.");
+
+            _system.TryUseSlot(1);
+            Assert.AreEqual(bow, eq.GetEquipped(EquipmentSlot.Weapon), "The bow replaces the sword.");
+            Assert.IsTrue(_inventory.Items.Count == 1 && _inventory.Items[0].Item == sword, "The sword goes back to the inventory.");
+
+            _system.ValidateSlots();
+            Assert.IsNotNull(_system.GetSlot(0));
+            Assert.IsNotNull(_system.GetSlot(1));
+            Assert.IsFalse(_system.IsSlotEquipped(0));
+            Assert.IsTrue(_system.IsSlotEquipped(1));
+            Object.DestroyImmediate(sword);
+            Object.DestroyImmediate(bow);
+        }
+
+        [Test]
+        public void Equip_KeepsBarSlot_WhenInventoryListenerValidatesDuringEquip()
+        {
+            // In game ActionBarUI re-validates on OnPlayerInventoryChanged, raised inside Equip's RemoveItem.
+            var eq = AddEquipment();
+            var channel = ScriptableObject.CreateInstance<Game.Core.GameEventSO_Void>();
+            typeof(InventorySystem).GetField("_onInventoryChanged",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .SetValue(_inventory, channel);
+            System.Action<bool> validate = _ => _system.ValidateSlots();
+            channel.AddListener(validate);
+
+            var sword = ScriptableObject.CreateInstance<SwordSO>();
+            _inventory.AddItem(sword);
+            _system.Assign(0, 0, sword);
+            _system.TryUseSlot(0);
+
+            Assert.IsNotNull(_system.GetSlot(0), "The bar slot must survive the inventory event raised during Equip.");
+            Assert.IsTrue(_system.IsSlotEquipped(0));
+            channel.RemoveListener(validate);
+            Object.DestroyImmediate(channel);
+            Object.DestroyImmediate(sword);
+        }
+
+        [Test]
+        public void TryUseSlot_AlreadyEquipped_DoesNothing()
+        {
+            var eq = AddEquipment();
+            var sword = ScriptableObject.CreateInstance<SwordSO>();
+            _inventory.AddItem(sword);
+            _system.Assign(0, 0, sword);
+            _system.TryUseSlot(0);
+
+            Assert.DoesNotThrow(() => _system.TryUseSlot(0));
+            Assert.AreEqual(sword, eq.GetEquipped(EquipmentSlot.Weapon));
+            Assert.AreEqual(0, _inventory.Count, "Using an equipped item's slot must not unequip it.");
+            Object.DestroyImmediate(sword);
+        }
     }
 }

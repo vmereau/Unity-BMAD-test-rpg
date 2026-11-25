@@ -55,7 +55,8 @@ namespace Game.UI
             {
                 abSource.NotifyDropHandled();
                 abSource.RemoveGhostImage();
-                if (abSource.Item != null) _owner?.SetIngredient(_slotIndex, abSource.Item);
+                // An equipped item's slot (InventoryIndex -1) is not in the inventory: never an ingredient.
+                if (abSource.Item != null && abSource.InventoryIndex >= 0) _owner?.SetIngredient(_slotIndex, abSource.Item);
                 return;
             }
 

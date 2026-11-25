@@ -60,6 +60,10 @@ namespace Game.Combat
         [Tooltip("Toast channel for combat feedback (e.g. \"Out of arrows\").")]
         [SerializeField] private GameEventSO_String _onCombatNotification;
 
+        [Tooltip("Action bar → equip a weapon / shield while drawn: sheathe, equip at the sheathe's end, then draw " +
+                 "(spec-action-bar-equip-swap).")]
+        [SerializeField] private GameEventSO_Item _onEquipSwapRequested;
+
         [Header("Audio")]
         [SerializeField] private CombatAudioSO _combatAudio;
         [SerializeField] private GameEventSO_SfxRequest _onSfxRequested;
@@ -124,6 +128,11 @@ namespace Game.Combat
         // Draw / sheathe in flight (PlayerStateManager.IsSwitchingWeapon): direction and start time for the watchdog
         private bool _pendingDraw;
         private float _weaponSwitchStartTime;
+
+        // Action-bar swap in flight: equipped once the sheathe completed (_swapSheathed) and the player is free, then drawn.
+        // Any other equipment change clears it.
+        private ItemSO _pendingEquip;
+        private bool _swapSheathed;
 
         private void Awake()
         {
@@ -201,6 +210,7 @@ namespace Game.Combat
             // Story 7.9: subscribe to OnVisualsRefreshed SO — raised at the END of
             // EquipmentVisuals.Refresh(), so ActiveWeaponGO is valid when HandleVisualsRefreshed runs.
             _onVisualsRefreshed?.AddListener(HandleVisualsRefreshed);
+            _onEquipSwapRequested?.AddListener(HandleEquipSwapRequested);
             BindUnarmedHitbox();
         }
 
@@ -208,6 +218,8 @@ namespace Game.Combat
         {
             // Story 7.9: clean up hitbox binding before input
             _onVisualsRefreshed?.RemoveListener(HandleVisualsRefreshed);
+            _onEquipSwapRequested?.RemoveListener(HandleEquipSwapRequested);
+            ClearPendingEquip(); // before CompleteWeaponSwitch: a disabled player must not equip and start a draw
             CompleteWeaponSwitch(); // no Update watchdog while disabled
             StopAim();
             UnbindWeaponHitbox();
@@ -262,6 +274,7 @@ namespace Game.Combat
             if (_stateManager.IsSwimming) SheatheForSwimming();
 
             UpdateBowAim();
+            UpdatePendingEquipSwap();
 
             if (_stateManager.IsSwitchingWeapon)
             {
@@ -309,6 +322,7 @@ namespace Game.Combat
             // R ends a bow aim, then draws / sheathes (the switch gate itself refuses while aiming).
             StopAim();
             if (!_stateManager.CanSwitchWeapon()) return;
+            ClearPendingEquip(); // R while a swap waits to finish: the player's own draw / sheathe wins
             bool entering = !_stateManager.IsInCombat;
             _pendingDraw = entering;
             _weaponSwitchStartTime = Time.time;
@@ -589,6 +603,7 @@ namespace Game.Combat
         {
             InterruptForStance();
             if (!_stateManager.IsInCombat && !_stateManager.IsSwitchingWeapon) return;
+            ClearPendingEquip(); // the swap's sheathe is cut short without CompleteWeaponSwitch
             _stateManager.EndWeaponSwitch();
             _stateManager.SetInCombat(false);
             if (_equipmentVisuals != null) _equipmentVisuals.SetCombatState(false);
@@ -600,6 +615,8 @@ namespace Game.Combat
         // guaranteeing ActiveWeaponGO is already set before we try to bind.
         private void HandleVisualsRefreshed(bool _)
         {
+            // Any equipment change (inventory equip, load, the swap's own Equip — cleared before it) drops a pending swap.
+            ClearPendingEquip();
             // Refresh() reassigns runtimeAnimatorController, which resets the Animator without any SMB exit: a swing in
             // flight (equip mid-swing, load) would stay IsAttacking — rooted, no move input — until the watchdog.
             CancelAttack();
@@ -1182,6 +1199,97 @@ namespace Game.Combat
             if (_stateManager == null || !_stateManager.IsSwitchingWeapon) return;
             _stateManager.EndWeaponSwitch(); // lock released first — a throwing visual must not leave R locked
             if (_equipmentVisuals != null) _equipmentVisuals.SetCombatState(_stateManager.IsInCombat); // Unity null: may be destroyed on unload
+            if (_pendingEquip == null) return;
+            if (_stateManager.IsInCombat) { _pendingEquip = null; return; } // a draw completed: not the swap's sheathe
+            _swapSheathed = true; // finished from Update: never inside an animation callback, never mid-dodge / knockdown
+        }
+
+        private void UpdatePendingEquipSwap()
+        {
+            if (_pendingEquip == null || !_swapSheathed) return;
+            if (_stateManager.IsDead) { ClearPendingEquip(); return; }
+            // Interrupted (dodge, jump, stagger, knockdown...): wait until the player is free, then equip and draw with the clip.
+            if (!_stateManager.CanChangeEquipment() || _stateManager.IsIncapacitated || _stateManager.IsExecuting
+                || _stateManager.IsInDialogue) return;
+            FinishEquipSwap();
+        }
+
+        private void ClearPendingEquip()
+        {
+            _pendingEquip = null;
+            _swapSheathed = false;
+        }
+
+        // Action bar, weapon drawn (spec-action-bar-equip-swap): sheathe → equip at the sheathe's end → draw. With fists
+        // drawn (no weapon) there is nothing to sheathe: a weapon is equipped and drawn at once, a shield just equipped.
+        private void HandleEquipSwapRequested(ItemSO item)
+        {
+            if (item == null || _equipmentSystem == null || _stateManager == null) return;
+            if (!_stateManager.CanChangeEquipment() || _stateManager.IsIncapacitated || _stateManager.IsExecuting)
+            {
+                GameLog.Info(TAG, $"Equip swap refused — player busy ({item.itemName})");
+                return;
+            }
+            StopAim();
+            if (!_stateManager.IsInCombat)
+            {
+                _equipmentSystem.Equip(item); // sheathed meanwhile: no clip needed
+                return;
+            }
+            if (_equipmentSystem.GetEquipped(EquipmentSlot.Weapon) == null)
+            {
+                if (item is not WeaponSO)
+                {
+                    _equipmentSystem.Equip(item); // fists never hold the shield: it goes on the back
+                    return;
+                }
+                // Drop the fists stance silently (no visual to move), equip, then play only the draw.
+                _stateManager.SetInCombat(false);
+                if (_equipmentVisuals != null) _equipmentVisuals.SetCombatState(false);
+                _equipmentSystem.Equip(item);
+                BeginDraw();
+                return;
+            }
+            _pendingEquip = item;
+            _swapSheathed = false;
+            _pendingDraw = false;
+            _weaponSwitchStartTime = Time.time;
+            _stateManager.SetInCombat(false);
+            _stateManager.BeginWeaponSwitch(false, _config.weaponSwitchAnimSpeed);
+            GameLog.Info(TAG, $"Equip swap: sheathing before equipping {item.itemName}");
+        }
+
+        // The swap's sheathe is done (clip event or a net): equip, then draw — after Equip returns, since its visuals refresh
+        // swaps the animator controller and resets every trigger.
+        private void FinishEquipSwap()
+        {
+            ItemSO item = _pendingEquip;
+            ClearPendingEquip();
+            if (!InventoryContains(item))
+            {
+                GameLog.Warn(TAG, $"Equip swap: {item.itemName} is no longer in the inventory — staying sheathed");
+                return;
+            }
+            _equipmentSystem.Equip(item);
+            // A shield that pushed a bow / two-hander back leaves no weapon: fists never draw it — stay sheathed.
+            if (_equipmentSystem.GetEquipped(EquipmentSlot.Weapon) != null) BeginDraw();
+        }
+
+        private void BeginDraw()
+        {
+            _pendingDraw = true;
+            _weaponSwitchStartTime = Time.time;
+            _stateManager.SetInCombat(true);
+            _stateManager.BeginWeaponSwitch(true, _config.weaponSwitchAnimSpeed);
+        }
+
+        private bool InventoryContains(ItemSO item)
+        {
+            if (_inventory == null) return true; // let Equip report it
+            var items = _inventory.Items;
+            for (int i = 0; i < items.Count; i++)
+                if (items[i].Item == item) return true;
+            return false;
         }
 
         // ----------------------------------------------------------------------------

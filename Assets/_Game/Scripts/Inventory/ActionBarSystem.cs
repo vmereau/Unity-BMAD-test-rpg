@@ -16,6 +16,9 @@ namespace Game.Inventory
         /// </summary>
         public const int REFRESH_ONLY_SLOT = -1;
 
+        /// <summary><see cref="ActionBarSlotData.InventoryIndex"/> of a slot whose item is equipped (not in the inventory).</summary>
+        public const int EQUIPPED_INDEX = -1;
+
         [SerializeField] private GameEventSO_Int _onActionBarUsed;
         [SerializeField] private PlayerStateManager _playerStateManager;
 
@@ -27,6 +30,12 @@ namespace Game.Inventory
 
         [SerializeField] private InventorySystem _inventorySystem;
         [SerializeField] private Transform _playerTransform;
+
+        [Tooltip("Equips equippable items used from the bar; also keeps the slot of an equipped item (it left the inventory).")]
+        [SerializeField] private EquipmentSystem _equipmentSystem;
+        [Tooltip("Raised with the item when a weapon / shield is used from the bar while drawn: PlayerCombat sheathes, equips, " +
+                 "then draws. Unassigned → the item is equipped at once.")]
+        [SerializeField] private GameEventSO_Item _onEquipSwapRequested;
 
         private readonly ActionBarSlotData?[] _slots = new ActionBarSlotData?[6];
         private InputSystem_Actions _input;
@@ -156,7 +165,13 @@ namespace Game.Inventory
                     }
                 }
 
-                if (foundIndex == -1)
+                if (foundIndex == -1 && _equipmentSystem != null && _equipmentSystem.IsEquipped(slot.Item))
+                {
+                    // Equipped items leave the inventory: keep the slot so the bar can swap back to it.
+                    if (slot.InventoryIndex != EQUIPPED_INDEX)
+                        _slots[i] = new ActionBarSlotData { InventoryIndex = EQUIPPED_INDEX, Item = slot.Item };
+                }
+                else if (foundIndex == -1)
                 {
                     GameLog.Warn(TAG, $"ValidateSlots: Slot {i + 1} stale (item removed). Clearing.");
                     _slots[i] = null;
@@ -166,6 +181,17 @@ namespace Game.Inventory
                     _slots[i] = new ActionBarSlotData { InventoryIndex = foundIndex, Item = slot.Item };
                 }
             }
+        }
+
+        /// <summary>
+        /// True when the slot's item is equipped and no copy of it is left in the inventory (the bar highlights it). A second
+        /// copy (ring, duplicate weapon) still in the inventory keeps the slot usable.
+        /// </summary>
+        public bool IsSlotEquipped(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _slots.Length || _slots[slotIndex] == null || _equipmentSystem == null) return false;
+            var slot = _slots[slotIndex].Value;
+            return slot.InventoryIndex == EQUIPPED_INDEX && _equipmentSystem.IsEquipped(slot.Item);
         }
 
         /// <summary>
@@ -195,6 +221,11 @@ namespace Game.Inventory
             }
 
             ItemSO item = _slots[slotIndex].Value.Item;
+            if (item is EquipableItemSO)
+            {
+                if (TryEquipFromBar(slotIndex, item)) _onActionBarUsed?.Raise(slotIndex);
+                return;
+            }
             if (item is not UsableItemSO usable)
             {
                 GameLog.Warn(TAG, $"Slot {slotIndex + 1} item is not usable.");
@@ -208,6 +239,33 @@ namespace Game.Inventory
             }
 
             _onActionBarUsed?.Raise(slotIndex);
+        }
+
+        // Equips in place of the current item (or into the empty slot). Already equipped → nothing. While drawn, a weapon /
+        // shield goes through PlayerCombat (sheathe → equip → draw); everything else equips at once.
+        private bool TryEquipFromBar(int slotIndex, ItemSO item)
+        {
+            if (_equipmentSystem == null)
+            {
+                GameLog.Warn(TAG, $"ActionBarSystem: _equipmentSystem is not assigned — can't equip {item.itemName} from the bar.");
+                return false;
+            }
+            if (IsSlotEquipped(slotIndex)) return false;
+            if (_playerStateManager != null && !_playerStateManager.CanChangeEquipment())
+            {
+                GameLog.Info(TAG, $"Can't change equipment now (attacking, blocking, aiming, dodging, airborne, drinking or drawing) — {item.itemName} not equipped.");
+                return false;
+            }
+
+            bool drawn = _playerStateManager != null && _playerStateManager.IsInCombat;
+            if (drawn && (item is WeaponSO || item is ShieldSO) && _onEquipSwapRequested != null)
+            {
+                _onEquipSwapRequested.Raise(item);
+                return true;
+            }
+
+            _equipmentSystem.Equip(item);
+            return true;
         }
     }
 }
