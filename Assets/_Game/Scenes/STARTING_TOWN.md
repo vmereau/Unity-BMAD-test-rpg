@@ -419,6 +419,26 @@ The first spot of Area 1 at final quality, and the visual reference for the rest
 - `FireLight` and `CandleLight` are point lights driven by `ClockNightLight`, so they are off by day and in edit mode.
 - The other huts of the zone are still graybox.
 
+**Pass 2 (`spec-area-1-home-yard-pass-2`, concepts `H5`–`H7`):** one wood tone on both huts and weight poles instead
+of roof stones (hut builder); the rest is built by `Dress Home Yard`:
+
+- `TarpBayEast` at (4.3, 47.11), open side south toward the fire (2.16 m clear under the front flap): tarp from two
+  2.4 m poles at its front to stakes at its back, two sleepable `Bed_FloorPallet`s, bowl, cup, a `ClothBundle` and
+  boards in front. Poles and stakes are solid thin capsules with Not Walkable volumes; with the guy stakes the bay
+  spans about 2.9 × 3.2 m. It replaces the graybox
+  `worker-tarp-north (3)` (inactive) and stands 1.26 m west of it: graybox hut-07's north-west wall, from (5.62, 45.63)
+  to (7.45, 47.88), cut through the old spot. Its east side clears that wall by about 0.5 m.
+- `LeanTo`, in Hobb's hut frame: a tarp from Hobb's south-east eave to hut-02's north wall over one `Bed_FloorPallet`,
+  in the wedge where the graybox `worker-tarp-north (1)` (inactive) overlapped the kit hut. No posts: the escort's
+  `HutLane_L_6` (0.11, 43.10) is at the wedge's mouth, about 0.3 m past the bed's foot (the bed has no solid collider).
+  The tarp's outer edge is tied to the line where hut-02's wall stands today (`x = 2.81 + 0.5 z` in Hobb's frame):
+  move those tie points if hut-02 is rebuilt.
+- A drying line with two shirts from the player's hut's east front corner to the bay's west pole (shirts hang above
+  1.8 m), a wooden spade against Hobb's front wall left of his door, a plank bench north of the fire between the two
+  lanes and a log seat east of the east lane, and boards over the mud east of the doors' pocket.
+- After the rebake the escort's lane paths are as before (only the pre-existing L3→4 detour round hut-03 and the
+  missing NavMesh at R_1), and the beds, both doors and Hobb's night spot are reachable.
+
 ### Hobb's hut and bed
 
 **Hobb owns his hut (`spec-hobb-hut-ownership`):**

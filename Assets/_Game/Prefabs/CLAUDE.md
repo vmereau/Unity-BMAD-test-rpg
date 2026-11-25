@@ -101,3 +101,7 @@ New lake recipe:
   `WorkerBed_Model.prefab` = FBX + one solid box). 2.0 × 0.9 m, long axis = local X, **pillow at +X**, the straw tear
   on +Z. Instance `Bed` in the player's hut in StartingTown. Hobb's hut uses the bare model, so it is not a second
   place to sleep.
+- `Bed_FloorPallet` = an improvised bed on the ground (`Art/Environment/Camp/models/floor bed/`, `FloorBed_Model.prefab`:
+  straw, sackcloth mattress, blanket, rolled-sack pillow). About 1.9 × 0.8 m (2.1 × 1.1 m with the straw), pillow at
+  **+X**, like the pallet. **No solid collider**: only the root trigger (1.95 × 0.4 × 0.9 m); the model is kept out of
+  the NavMesh bake. Three in StartingTown's home yard, built by `Tools/World/Dress Home Yard`.

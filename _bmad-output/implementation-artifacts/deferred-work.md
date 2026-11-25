@@ -1071,8 +1071,9 @@ Built on the `CombatStyleSO` + `EntityCombatTactics` utility layer of that spec;
   wall. A longer hut needs the bank behind it flattened in `Area1TerrainBuilder` / the layout, or the hut moved.
 - **Rear opening looks at the bank.** The window of the player's hut faces the rising ground, not the hunter fire
   through `BrokenStretch`. Same as the graybox; revisit with the terrain change above.
-- **Tarp bays are untouched.** `worker-tarp-north (1)` next to the two huts keeps its graybox canvas and bedrolls; the
-  kit's `SK_Roof_Tarp_AsStaticMesh` is a candidate.
+- ~~**Tarp bays are untouched.** `worker-tarp-north (1)` next to the two huts keeps its graybox canvas and bedrolls; the
+  kit's `SK_Roof_Tarp_AsStaticMesh` is a candidate.~~ Resolved by `spec-area-1-home-yard-pass-2` (lean-to and
+  `TarpBayEast`, generated tarps; the other 24 graybox bays are still part of the kit rollout).
 - **Hut interiors look near black in edit mode only.** The editor shows skybox ambient; in Play the trilight ambient
   from `DayNightConfig` makes the room readable. Judge interiors in Play. An edit-mode ambient preview would help.
 - **Kit fire particles read as thin smoke.** `SM_FireCamp_01b` nests the kit's fire and smoke particles, which show as
@@ -1400,3 +1401,17 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **Grip seat** — `heldPose` was solved on the idle Torch Hold frame; walking / running keep the same arm pose, but no
   per-clip check was done. Re-solve if `Torch Hold.anim` is re-fitted.
 - **Light budget** — one soft-shadowed point light (6 cube faces) follows the player; drop `_castShadows` if frame time suffers.
+
+## From spec-area-1-home-yard-pass-2 (2026-11-25)
+
+- **Home yard leans on graybox neighbours.** The lean-to's tarp is tied to graybox hut-02's north wall (Hobb-frame line
+  `x = 2.81 + 0.5 z`), and `TarpBayEast` was moved 1.26 m west to clear graybox hut-07. When the kit rollout rebuilds or
+  moves hut-02 / hut-07, update the tie points in `HomeYardDresser.DressLeanTo` and recheck the bay's east side.
+- **Older yard props sit on the escort lanes.** The dresser's lane check lists the first pass's card crate and log seats
+  (0–0.12 m from the left lane, segments 3–4), the trunk (0.6 m) and the doorstep sacks and bucket (0.36–0.53 m).
+  The escort walks round them (paths as before), but the card game is the cause of the L3→4 detour together with
+  hut-03; move it when that lane is fixed.
+- **Floor beds read flat at a distance.** The Blender bed is low-contrast under the kit textures (mattress, blanket).
+  The Meshy pass on `Camp/Concepts/floor bed.png` (or a hand-painted texture) is the next step, as for the worker bed.
+- **Tarp underside is dark by day.** Two-sided canvas with the URP Lit material: the inside of the bay sits in its own
+  shadow. A light transmission / double-sided GI tweak would lift it; judge in Play first.

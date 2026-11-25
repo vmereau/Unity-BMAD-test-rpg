@@ -30,6 +30,11 @@ kit piece stops before saving and leaves the prefab as it was.
 - The kit pieces' own colliders are **disabled**; `Colliders` holds one box per wall span and per roof slope.
 - `Roof` carries a `NavMeshModifier` (Not Walkable), like the graybox huts. Scene bakes collect render meshes, so
   rebake after placing or moving a hut.
+- Each roof slope holds two `WeightPole`s (Camp `roof pole` model, scaled to the roof length) with a `PoleLashing` at
+  each end over the gable boards; no stones. Visual only (no colliders).
+- Every wood renderer uses an `M_Camp_Hut*` material (`WorkerHutKitBuilder.WoodRemap`); a missing one blocks the save,
+  like a missing kit piece. Tune the tone in those materials, not in the kit's (`Art/Environment/Camp/CLAUDE.md` →
+  One wood tone).
 - Inside room: about 2.56 × 2.56 m between wall faces (Home). A `Bed_WorkerPallet` along the −X wall leaves a walking
   strip of about 1.7 m; keep solid props out of it.
 
