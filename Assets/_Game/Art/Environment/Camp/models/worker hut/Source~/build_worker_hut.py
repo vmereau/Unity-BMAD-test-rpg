@@ -4,7 +4,7 @@ Run in Blender (5.x):  blender -b -P build_worker_hut.py
 or from a session:      runpy.run_path(r"...\\build_worker_hut.py", run_name="__main__")
 (with any other run_name nothing is built: call the returned dict's ["main"]() yourself)
 
-Writes WorkerHut_Home.fbx and WorkerHut_Long.fbx beside the Source~ folder, and WorkerHut.blend in it.
+Writes one FBX per entry of VARIANTS beside the Source~ folder, and WorkerHut.blend in it.
 
 Everything below is written in the Unity frame of the prefab (see Prefabs/World/Huts/CLAUDE.md):
 x right, y up, +z the front doorway, origin at the floor centre. `to_blender` converts each vertex, so the
@@ -27,6 +27,8 @@ PITCH = math.radians(28.0)
 OVERHANG = 0.3
 INSET = 0.22              # centre line to the inner wall face: the room is 2.56 m across
 DOOR = (0.0, 1.05, 2.14)  # min x, max x, height (front wall)
+DOOR_MIRRORED = (-DOOR[1], -DOOR[0], DOOR[2])  # the same doorway on the other half of the front wall
+TIGHT_OVERHANG = 0.09     # packed rows: the roof ends no further out than the graybox roof did (1.70 m)
 WINDOW = (-0.45, 0.4, 1.05, 1.95)  # min x, max x, sill, top (rear wall)
 ROOF_LIFT = 0.02          # roof underside above the eave line at the wall centre line
 
@@ -59,8 +61,10 @@ def roof_under(x):
 
 
 class Shell:
-    def __init__(self, seed):
+    def __init__(self, seed, door=DOOR, overhang=OVERHANG):
         self.rng = random.Random(seed)
+        self.door = door
+        self.overhang = overhang
         self.verts, self.faces, self.uvs, self.mats, self.smooth = [], [], [], [], []
 
     # -- primitives --------------------------------------------------------------------------------
@@ -203,7 +207,7 @@ class Shell:
             self.box(lo, hi, 1, WOOD, skew)
 
     def front(self, hl):
-        x0, x1, top = DOOR
+        x0, x1, top = self.door
         self.end_wall(1, hl, [(x0, x1, GROUND - 1.0, top)])
         zi = hl - INSET
         zp = zi + BOARD + POST * 0.5
@@ -242,8 +246,10 @@ class Shell:
     # -- roof --------------------------------------------------------------------------------------
     def roof(self, hl):
         rng = self.rng
-        length = (hl + OVERHANG) * 2.0
-        slope = (HALF_WIDTH + OVERHANG) / COS
+        length = (hl + self.overhang) * 2.0
+        slope = (HALF_WIDTH + self.overhang) / COS
+        # a short eave has no board to lose: one broken off would bare the top plate
+        can_break = self.overhang >= 0.2
         peak = (0.0, roof_under(0.0), 0.0)
         for side in (-1, 1):
             down = (side * COS, -SIN, 0.0)
@@ -260,7 +266,9 @@ class Shell:
                 w = z_end - z - (gap if n < len(spans) - 1 else 0.0)
                 reach = slope + rng.uniform(-0.09, 0.1)
                 if rng.random() < 0.1:
-                    reach -= rng.uniform(0.14, 0.26)  # a board that broke off short
+                    short = rng.uniform(0.14, 0.26)  # a board that broke off short
+                    if can_break:
+                        reach -= short
                 lift = rng.uniform(0.0, 0.007)
                 mid = reach * 0.5 - 0.01
                 o = [peak[k] + down[k] * mid + normal[k] * (ROOF_BOARD * 0.5 + lift) + ridge[k] * (z + w * 0.5)
@@ -404,7 +412,7 @@ def _find_up(start, name):
         path = parent
 
 
-def build(name, half_length, seed, mats):
+def build(name, half_length, seed, mats, door=DOOR, overhang=OVERHANG):
     """Builds one hut as the objects Walls and Roof in a collection called <name> (main() renames them)."""
     old = bpy.data.collections.get(name)
     if old:
@@ -414,12 +422,12 @@ def build(name, half_length, seed, mats):
     col = bpy.data.collections.new(name)
     bpy.context.scene.collection.children.link(col)
 
-    walls = Shell(seed)
+    walls = Shell(seed, door, overhang)
     walls.side_wall(-1, half_length)
     walls.side_wall(1, half_length)
     walls.front(half_length)
     walls.rear(half_length)
-    roof = Shell(seed + 100)
+    roof = Shell(seed + 100, door, overhang)
     roof.roof(half_length)
     return [walls.to_object("Walls", mats, col), roof.to_object("Roof", mats, col)]
 
@@ -434,14 +442,27 @@ def export(objects, path):
                              use_mesh_modifiers=False, add_leaf_bones=False, bake_anim=False, use_tspace=False)
 
 
+# name, half length, seed, doorway, eave overhang. WorkerHutKitBuilder.Variants lists the same shells.
+VARIANTS = (
+    ("WorkerHut_Home", 1.5, 7, DOOR, OVERHANG),
+    ("WorkerHut_Home_B", 1.5, 23, DOOR, OVERHANG),
+    ("WorkerHut_Home_C", 1.5, 41, DOOR_MIRRORED, OVERHANG),
+    ("WorkerHut_Tight", 1.5, 57, DOOR, TIGHT_OVERHANG),
+    ("WorkerHut_Tight_B", 1.5, 73, DOOR_MIRRORED, TIGHT_OVERHANG),
+    ("WorkerHut_Tight_C", 1.5, 89, DOOR, TIGHT_OVERHANG),
+    ("WorkerHut_Tight_D", 1.5, 105, DOOR_MIRRORED, TIGHT_OVERHANG),
+    ("WorkerHut_Long", 2.0, 11, DOOR, OVERHANG),
+)
+
+
 def main():
     source = os.path.dirname(os.path.abspath(__file__))
     out = os.path.dirname(source)
     mats = materials()
     report = {}
     kept = set()
-    for name, half_length, seed in (("WorkerHut_Home", 1.5, 7), ("WorkerHut_Long", 2.0, 11)):
-        objects = build(name, half_length, seed, mats)
+    for name, half_length, seed, door, overhang in VARIANTS:
+        objects = build(name, half_length, seed, mats, door, overhang)
         # the exporter writes object names: both files hold "Walls" and "Roof"
         for o, plain in zip(objects, ("Walls", "Roof")):
             o.name = plain
@@ -452,6 +473,9 @@ def main():
             o.name = name + "_" + plain
             kept.add(o)
         report[name] = sum(len(p.vertices) - 2 for o in objects for p in o.data.polygons)
+        # widest reach of the roof from the middle, in x and along the ridge
+        report[name + " roof half x/z"] = (round(max(abs(v.co.x) for v in objects[1].data.vertices), 3),
+                                           round(max(abs(v.co.y) for v in objects[1].data.vertices), 3))
     bpy.data.libraries.write(os.path.join(source, "WorkerHut.blend"), kept | set(mats), fake_user=True)
     return report
 

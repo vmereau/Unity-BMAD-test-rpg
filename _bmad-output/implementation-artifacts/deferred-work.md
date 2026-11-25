@@ -1415,3 +1415,20 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   The Meshy pass on `Camp/Concepts/floor bed.png` (or a hand-painted texture) is the next step, as for the worker bed.
 - **Tarp underside is dark by day.** Two-sided canvas with the URP Lit material: the inside of the bay sits in its own
   shadow. A light transmission / double-sided GI tweak would lift it; judge in Play first.
+
+## From spec-area-1-worker-hut-rollout (2026-11-26)
+
+- **Roofs still cross in the packed rows.** All 40 swapped huts needed the tight roof and 33 pairs of roofs still
+  intersect (the graybox roofs did too). A spacing pass (moving or turning huts, with the lanes and doors rechecked)
+  is the only fix; `Tools/World/Replace Graybox Worker Huts` lists the pairs on every run.
+- **Four huts left graybox.** `PlayersZone/worker-hut-02 (9)` stands on a 0.34 m drop (level the ground, then rerun
+  the rollout); `MafiaZone/worker-hut-28`, `28 (1)` and `28 (2)` are narrower boxes (walls on ±1.29 m), two of them on
+  a bank: they need a narrower shell or a wider plot.
+- **Wretches' hovels.** The 28 huts of `WretchesCorner` are 1.8 x 1.7 m with 1.25 m walls, open at both ends: a new
+  small model in `build_worker_hut.py`, with its own collider and door rules.
+- **Mafia huts have no floor now.** Their graybox had a 0.15 m plank floor; the shell stands on the ground. A richer
+  Mafia variant (floor, better boards) would set the zone apart again.
+- **Normal-eave variants are unused.** `WorkerHut_Home_B`, `_Home_C` and `WorkerHut_Long` fit no plot of the camp as
+  it stands; they wait for the spacing pass.
+- **Other graybox tarps.** `worker-tarp-south`, `worker-tarp-north (2)` and `(6)`, the Mafia and Wretches bays.
+- **Hut interiors.** The swapped huts are empty shells.

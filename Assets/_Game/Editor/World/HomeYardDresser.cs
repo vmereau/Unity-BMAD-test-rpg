@@ -37,7 +37,8 @@ namespace Game.Editor.World
         private static readonly Vector2 TrunkPoint = new Vector2(4.19f, 41.96f);
         private static readonly Vector2 CardsPoint = new Vector2(3.30f, 39.15f);
         // Near worker-tarp-north (3) (5.56, 47.11), on flat open ground east of the player's door, open side to the south
-        // (the fire). Moved 1.26 m west of the graybox: there, graybox hut-07's north-west wall (from (5.62, 45.63) to
+        // (the fire). Moved 1.26 m west of the graybox: there, the north-west wall of the hut then called hut-07 (now
+        // the shell worker-hut; from (5.62, 45.63) to
         // (7.45, 47.88)) cut through the bay's east half.
         private static readonly Vector2 EastBayPoint = new Vector2(4.3f, 47.11f);
         // The path of boards from the two doors toward the fire, east of the doors' shared pocket.
@@ -45,7 +46,18 @@ namespace Game.Editor.World
         // worker-tarp-north (1) sat in the wedge between Hobb's hut and hut-02 and overlapped the kit hut: the
         // lean-to replaces it; (3) becomes the two-bed bay.
         private static readonly string[] GrayboxGroups =
-            { "Campfire", "RepairTrunk", "CardGame", "worker-tarp-north (1)", "worker-tarp-north (3)" };
+        {
+            "Campfire", "RepairTrunk", "CardGame", "worker-tarp-north (1)", "worker-tarp-north (3)",
+        };
+        // East yard graybox tarps (WorkerHutRollout.ReplacedTarps): each is switched off only once its replacement
+        // is built. The eaves tarp replaces the first, the ramp shelter the other two.
+        // East yard anchors: the tarps hang from these huts' eaves and from the warehouse's camp ramp.
+        private const string EAST_HUT = "worker-hut";
+        private const string PORCH_HUT = "worker-hut-06";
+        private const string SOUTH_HUT = "worker-hut-05";
+        private const string LEAN_TO_HUT = "worker-hut-02";
+        private const string RAMP = "Area1_Blockout/Warehouse/Ramp_Camp";
+        private const float ROOF_PITCH = 28f; // the shells' roof (WorkerHutKitBuilder / build_worker_hut.py)
 
         private const string GLOW = "Assets/_Game/Art/Materials/Blockout_FireGlow.mat";
 
@@ -133,7 +145,8 @@ namespace Game.Editor.World
             // ropes follow the poles and stakes they hang from.
             Transform eastBay = DressEastBay(WorldChild("TarpBayEast", group, EastBayPoint, 180f));
             DressDryingLine(eastBay, playerHut);
-            SettleOnTerrain(DressLeanTo(Child("LeanTo", group, mateHut)));
+            SettleOnTerrain(DressLeanTo(Child("LeanTo", group, mateHut), zone.Find(LEAN_TO_HUT)));
+            DressEastYard(group, zone);
             SettleOnTerrain(DressBoards(WorldChild("MudBoards", group, BoardsPoint, 62f)));
             CheckLanes(group);
 
@@ -348,13 +361,38 @@ namespace Game.Editor.World
 
         // Hobb's hut frame: its +X side wall faces hut-02 across a wedge 0.8–1.9 m wide that opens toward the escort's
         // last lane point. The tarp hangs from Hobb's eave to hut-02's wall (H1), so no post stands in the wedge, and
-        // the one bed lies along the wall, turned to follow the wedge, head at the narrow end. hut-02 is still
-        // graybox: its outer wall face is the line x = 2.81 + 0.5 z here, so a rebuilt hut-02 needs the tie points moved.
-        private static Transform DressLeanTo(Transform hut)
+        // the one bed lies along the wall, turned to follow the wedge, head at the narrow end. The outer edge hangs
+        // from hut-02's eave; the old line of its graybox wall (x = 2.81 + 0.5 z here) is only the fallback.
+        private static Transform DressLeanTo(Transform hut, Transform neighbour)
         {
+            // The outer edge: on the neighbour's eave when it is a shell, else on the line of the graybox wall.
+            Vector3 outerFront = new Vector3(3.24f, 1.75f, 1.0f), outerBack = new Vector3(2.19f, 1.75f, -1.1f);
+            bool tied = false;
+            if (neighbour != null && neighbour.gameObject.activeInHierarchy && neighbour.lossyScale == Vector3.one
+                && WorkerHutKitBuilder.TryGetVariant(neighbour.gameObject, out WorkerHutKitBuilder.Variant shell)
+                && EaveFacing(neighbour, hut.position, out float side))
+            {
+                // The same two spots along the wedge, moved onto the neighbour's eave.
+                var alongs = new float[2];
+                for (int i = 0; i < 2; i++)
+                    alongs[i] = Mathf.Clamp(neighbour.InverseTransformPoint(hut.TransformPoint(i == 0 ? outerFront : outerBack)).z,
+                        -shell.HalfLength + 0.1f, shell.HalfLength - 0.1f);
+                if (Mathf.Abs(alongs[0] - alongs[1]) >= 0.5f) // closer, the edge would collapse to a point
+                {
+                    for (int i = 0; i < 2; i++)
+                        Cloth(hut, "EaveRope", CampClothMesh.Rope($"LeanTo_Outer{(i == 0 ? "Front" : "Back")}",
+                            hut.InverseTransformPoint(EaveTie(neighbour, shell, side, alongs[i])),
+                            hut.InverseTransformPoint(EaveKnot(neighbour, shell, side, alongs[i])), 0.005f), false);
+                    outerFront = hut.InverseTransformPoint(EaveTie(neighbour, shell, side, alongs[0]));
+                    outerBack = hut.InverseTransformPoint(EaveTie(neighbour, shell, side, alongs[1]));
+                    tied = true;
+                }
+            }
+            if (!tied)
+                GameLog.Warn(TAG, $"{LEAN_TO_HUT} is not a shell hut with a side wall along the wedge: the lean-to keeps its graybox tie line.");
             Cloth(hut, "Tarp", CampClothMesh.Sheet("LeanTo_Tarp",
                 new Vector3(1.72f, 2.3f, -1.1f), new Vector3(1.72f, 2.3f, 1.0f),
-                new Vector3(3.24f, 1.75f, 1.0f), new Vector3(2.19f, 1.75f, -1.1f), 0.28f, 23, 2), true);
+                outerFront, outerBack, 0.28f, 23, 2), true);
             foreach (float z in new[] { -1.1f, 1.0f })
                 Cloth(hut, "EaveRope", CampClothMesh.Rope($"LeanTo_Eave{(z < 0 ? "Back" : "Front")}",
                     new Vector3(1.72f, 2.3f, z), new Vector3(1.74f, 2.43f, z), 0.005f), false);
@@ -367,6 +405,226 @@ namespace Game.Editor.World
                 spade.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
             }
             return hut;
+        }
+
+        /// <summary>
+        /// World point under a shell's eave where a tarp edge can hang: just inside the roof's edge and below its
+        /// boards, on the <paramref name="side"/> (±1, local x) wall, <paramref name="along"/> metres along local z.
+        /// </summary>
+        private static Vector3 EaveTie(Transform hut, WorkerHutKitBuilder.Variant shell, float side, float along)
+        {
+            float reach = Mathf.Max(shell.Overhang - 0.08f, 0f);
+            float boards = WorkerHutKitBuilder.EAVE - reach * Mathf.Tan(ROOF_PITCH * Mathf.Deg2Rad) + 0.02f;
+            return hut.TransformPoint(new Vector3(side * (WorkerHutKitBuilder.HALF_WIDTH + reach), boards - 0.1f, along));
+        }
+
+        /// <summary>
+        /// Which side wall (±1, local x) of <paramref name="hut"/> faces <paramref name="target"/>. False when the
+        /// target lies off a gable instead: there is no eave on that side to hang a tarp from.
+        /// </summary>
+        private static bool EaveFacing(Transform hut, Vector3 target, out float side)
+        {
+            Vector3 local = hut.InverseTransformPoint(target);
+            side = Mathf.Sign(local.x);
+            return Mathf.Abs(local.x) > Mathf.Abs(local.z);
+        }
+
+        /// <summary>Where the rope from <see cref="EaveTie"/> goes: up round the roof's edge.</summary>
+        private static Vector3 EaveKnot(Transform hut, WorkerHutKitBuilder.Variant shell, float side, float along) =>
+            EaveTie(hut, shell, side, along) + hut.TransformDirection(new Vector3(side * 0.02f, 0.13f, 0f));
+
+        /// <summary>
+        /// The east side of the yard, in world space: a tarp strung between the eaves of <c>worker-hut</c> and
+        /// hut-06 over one floor bed, and the ramp shelter, which covers the lane between huts 05 and 06 (hut-06's
+        /// doorway opens under it: a porch) and the pocket between hut-06 and the warehouse ramp (two floor beds,
+        /// one under the tarp, one under the ramp itself). No poles: every corner is tied to a hut or to the ramp.
+        /// A missing anchor skips its tarp with an error and leaves the rest.
+        /// </summary>
+        private static void DressEastYard(Transform group, Transform zone)
+        {
+            Transform yard = new GameObject("EastYard").transform;
+            yard.SetParent(group, false);
+            yard.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+            bool hasPorchHut = Shell(zone, PORCH_HUT, out Transform porchHut, out WorkerHutKitBuilder.Variant porchShell);
+            if (hasPorchHut && Shell(zone, EAST_HUT, out Transform eastHut, out WorkerHutKitBuilder.Variant eastShell))
+            {
+                if (DressEavesTarp(yard, eastHut, eastShell, porchHut, porchShell)) SwitchOff(zone, WorkerHutRollout.ReplacedTarps[0]);
+            }
+            if (hasPorchHut && Shell(zone, SOUTH_HUT, out Transform southHut, out WorkerHutKitBuilder.Variant southShell))
+            {
+                if (DressRampShelter(yard, porchHut, porchShell, southHut, southShell))
+                {
+                    SwitchOff(zone, WorkerHutRollout.ReplacedTarps[1]);
+                    SwitchOff(zone, WorkerHutRollout.ReplacedTarps[2]);
+                }
+            }
+        }
+
+        private static void SwitchOff(Transform zone, string name)
+        {
+            Transform graybox = zone.Find(name);
+            if (graybox != null) graybox.gameObject.SetActive(false);
+        }
+
+        private static bool Shell(Transform zone, string name, out Transform hut, out WorkerHutKitBuilder.Variant shell)
+        {
+            hut = zone.Find(name);
+            shell = default;
+            if (hut != null && hut.gameObject.activeInHierarchy && hut.lossyScale == Vector3.one
+                && WorkerHutKitBuilder.TryGetVariant(hut.gameObject, out shell)) return true;
+            GameLog.Error(TAG, $"{name} is not an active, unscaled shell hut (run Tools/World/Replace Graybox Worker Huts): the tarp tied to it is skipped.");
+            return false;
+        }
+
+        /// <summary>Eave to eave between two side walls that face each other, one floor bed along the second hut.</summary>
+        private static bool DressEavesTarp(Transform yard, Transform first, WorkerHutKitBuilder.Variant firstShell,
+            Transform second, WorkerHutKitBuilder.Variant secondShell)
+        {
+            if (!EaveFacing(first, second.position, out float firstSide) || !EaveFacing(second, first.position, out float secondSide))
+            {
+                GameLog.Error(TAG, $"{first.name} and {second.name} do not face each other with a side wall: the eaves tarp is skipped.");
+                return false;
+            }
+            const float SPAN = 1.2f;
+            Vector3 a = EaveTie(first, firstShell, firstSide, -SPAN), b = EaveTie(first, firstShell, firstSide, SPAN);
+            Vector3 c = EaveTie(second, secondShell, secondSide, SPAN), d = EaveTie(second, secondShell, secondSide, -SPAN);
+            bool swap = Vector3.Distance(a, d) > Vector3.Distance(a, c); // pair each corner with the nearer one
+            if (swap) (c, d) = (d, c);
+            Cloth(yard, "EavesTarp", CampClothMesh.Sheet("EastYard_EavesTarp", a, b, c, d, 0.2f, 31, 2), true);
+            foreach (float along in new[] { -SPAN, SPAN })
+            {
+                string end = along < 0 ? "Back" : "Front";
+                Cloth(yard, "EaveRope", CampClothMesh.Rope($"EastYard_EavesFirst{end}",
+                    EaveTie(first, firstShell, firstSide, along), EaveKnot(first, firstShell, firstSide, along), 0.005f), false);
+                Cloth(yard, "EaveRope", CampClothMesh.Rope($"EastYard_EavesSecond{end}",
+                    EaveTie(second, secondShell, secondSide, along), EaveKnot(second, secondShell, secondSide, along), 0.005f), false);
+            }
+            // Along the second hut's wall, head to the back of the wedge.
+            float wall = WorkerHutKitBuilder.HALF_WIDTH + 0.6f;
+            HutBed(yard, second, new Vector3(secondSide * wall, 0f, 0.1f), 90f + secondSide * 3f);
+            Transform bundle = Model(CLOTH_BUNDLE, yard, Grounded(second.TransformPoint(new Vector3(secondSide * (wall + 0.35f), 0f, 1.35f))),
+                second.eulerAngles.y + 40f, "ClothBundle");
+            if (bundle == null) GameLog.Warn(TAG, $"Missing {CLOTH_BUNDLE}");
+            return true;
+        }
+
+        /// <summary>
+        /// Porch: from the ends of <paramref name="porchHut"/>'s top plates (its front gable) to the eave of
+        /// <paramref name="southHut"/>. Ramp bay: from the porch hut's side eave up to the edge of the warehouse ramp.
+        /// </summary>
+        private static bool DressRampShelter(Transform yard, Transform porchHut, WorkerHutKitBuilder.Variant porchShell,
+            Transform southHut, WorkerHutKitBuilder.Variant southShell)
+        {
+            // The south hut's eave must face the porch hut's front gable.
+            Vector3 gable = porchHut.TransformPoint(new Vector3(0f, 0f, porchShell.HalfLength));
+            if (!EaveFacing(southHut, gable, out float southSide) || porchHut.InverseTransformPoint(southHut.position).z < porchShell.HalfLength)
+            {
+                GameLog.Error(TAG, $"{southHut.name}'s side wall does not face {porchHut.name}'s front: the ramp shelter is skipped.");
+                return false;
+            }
+            // Porch. The tarp's edge hangs a hand outside the gable, a rope at each end round the top plate's end.
+            float front = porchShell.HalfLength + 0.14f;
+            Vector3 a = porchHut.TransformPoint(new Vector3(1.385f, 2.4f, front)), b = porchHut.TransformPoint(new Vector3(-1.385f, 2.4f, front));
+            const float SPAN = 1.3f;
+            Vector3 c = EaveTie(southHut, southShell, southSide, -SPAN), d = EaveTie(southHut, southShell, southSide, SPAN);
+            bool swap = Vector3.Distance(a, d) > Vector3.Distance(a, c);
+            if (swap) (c, d) = (d, c);
+            Cloth(yard, "PorchTarp", CampClothMesh.Sheet("EastYard_PorchTarp", a, b, c, d, 0.2f, 37, 3), true);
+            foreach (float side in new[] { -1f, 1f })
+                Cloth(yard, "EaveRope", CampClothMesh.Rope($"EastYard_PorchPlate{(side < 0 ? "A" : "B")}",
+                    porchHut.TransformPoint(new Vector3(side * 1.385f, 2.4f, front)),
+                    porchHut.TransformPoint(new Vector3(side * 1.385f, 2.47f, porchShell.HalfLength + 0.07f)), 0.005f), false);
+            foreach (float along in new[] { -SPAN, SPAN })
+                Cloth(yard, "EaveRope", CampClothMesh.Rope($"EastYard_PorchSouth{(along < 0 ? "A" : "B")}",
+                    EaveTie(southHut, southShell, southSide, along), EaveKnot(southHut, southShell, southSide, along), 0.005f), false);
+            // Boards over the mud in the lane, in front of the porch hut's doorway. Walk-through.
+            Vector3 doorstep = Grounded(porchHut.TransformPoint(new Vector3((porchShell.DoorMinX + porchShell.DoorMaxX) * 0.5f, 0f, porchShell.HalfLength + 1.0f)));
+            Transform boards = Prop("SM_AssembledPlanksB_a1", yard, doorstep + Vector3.up * 0.03f, porchHut.eulerAngles.y + 86f, 1f, "Boards");
+            boards.localScale = new Vector3(0.62f, 0.35f, 0.55f);
+
+            // Ramp bay.
+            GameObject ramp = GameObject.Find(RAMP);
+            if (ramp == null)
+            {
+                GameLog.Error(TAG, $"{RAMP} not found: the ramp bay is skipped (the porch is built).");
+                return true;
+            }
+            // Toward the nearest point of the ramp's collider, not its pivot: the ramp is 14 m long.
+            Collider deck = ramp.GetComponent<Collider>();
+            Vector3 nearest = deck != null ? deck.ClosestPoint(porchHut.position + Vector3.up * 2f) : ramp.transform.position;
+            if (!EaveFacing(porchHut, nearest, out float rampSide))
+            {
+                GameLog.Error(TAG, $"{RAMP} is not beside {porchHut.name}: the ramp bay is skipped (the porch is built).");
+                return true;
+            }
+            float[] alongs = { porchShell.HalfLength - 0.05f, 0.1f };
+            var eave = new Vector3[2];
+            var edge = new Vector3[2];
+            var knot = new Vector3[2];
+            for (int i = 0; i < 2; i++)
+            {
+                eave[i] = EaveTie(porchHut, porchShell, rampSide, alongs[i]);
+                if (!RampEdge(ramp.transform, eave[i], out edge[i], out knot[i]))
+                {
+                    GameLog.Error(TAG, $"{RAMP} does not pass {porchHut.name}'s eave above it and within 4 m: the ramp bay is skipped (the porch is built).");
+                    return true;
+                }
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                Cloth(yard, "RampRope", CampClothMesh.Rope($"EastYard_Ramp{(i == 0 ? "Front" : "Back")}", edge[i], knot[i], 0.005f), false);
+                Cloth(yard, "EaveRope", CampClothMesh.Rope($"EastYard_RampEave{(i == 0 ? "Front" : "Back")}",
+                    eave[i], EaveKnot(porchHut, porchShell, rampSide, alongs[i]), 0.005f), false);
+            }
+            Cloth(yard, "RampTarp", CampClothMesh.Sheet("EastYard_RampTarp", edge[0], edge[1], eave[1], eave[0], 0.22f, 41, 3), true);
+
+            // Heads to the back (the rocks), feet toward the lane: one bed under the tarp, one under the ramp.
+            float wall = WorkerHutKitBuilder.HALF_WIDTH + 0.6f;
+            HutBed(yard, porchHut, new Vector3(rampSide * wall, 0f, 0.9f), 90f + rampSide * 4f);
+            HutBed(yard, porchHut, new Vector3(rampSide * (wall + 1.05f), 0f, 1.05f), 90f - rampSide * 5f);
+            Vector3 feet = porchHut.TransformPoint(new Vector3(rampSide * (wall + 0.5f), 0f, 2.15f));
+            Prop("SM_Bowl_01", yard, Grounded(feet), 20f, 1f, "Bowl");
+            Prop("SM_Cup_01", yard, Grounded(feet + new Vector3(0.14f, 0f, -0.15f)), 0f, 0.7f, "Cup");
+            Model(CLOTH_BUNDLE, yard, Grounded(porchHut.TransformPoint(new Vector3(rampSide * (wall + 1.75f), 0f, 0.3f))),
+                porchHut.eulerAngles.y - 25f, "ClothBundle");
+            return true;
+        }
+
+        /// <summary>
+        /// The ramp's lower edge on the side of <paramref name="from"/>, level with it along the ramp:
+        /// <paramref name="under"/> just below the deck (the tarp's corner), <paramref name="over"/> on top of it
+        /// (where the rope goes round). False when the ramp does not run past that point.
+        /// </summary>
+        private static bool RampEdge(Transform ramp, Vector3 from, out Vector3 under, out Vector3 over)
+        {
+            Vector3 local = ramp.InverseTransformPoint(from);
+            float side = Mathf.Sign(local.x);
+            under = over = Vector3.zero;
+            // Unit cube: past the ramp's ends, or under the deck itself.
+            if (Mathf.Abs(local.z) > 0.48f || Mathf.Abs(local.x) < 0.5f) return false;
+            Vector3 lower = ramp.TransformPoint(new Vector3(side * 0.5f, -0.5f, local.z));
+            Vector3 upper = ramp.TransformPoint(new Vector3(side * 0.5f, 0.5f, local.z));
+            Vector3 outward = ramp.TransformDirection(new Vector3(side, 0f, 0f)).normalized;
+            under = lower + outward * 0.04f + Vector3.down * 0.05f;
+            over = upper - outward * 0.05f + Vector3.up * 0.02f;
+            // The tarp rises from the eave to the ramp, over a short span.
+            Vector3 span = under - from;
+            return under.y >= from.y && new Vector2(span.x, span.z).magnitude <= 4f;
+        }
+
+        /// <summary>A floor bed at a point of a hut's frame (outside it), on the ground there.</summary>
+        private static void HutBed(Transform yard, Transform hut, Vector3 local, float yaw)
+        {
+            Transform bed = Model(FLOOR_BED, yard, Grounded(hut.TransformPoint(local)), hut.eulerAngles.y + yaw, "FloorBed");
+            if (bed == null) GameLog.Warn(TAG, $"Missing {FLOOR_BED}");
+        }
+
+        /// <summary>A world point dropped (or raised) onto the terrain.</summary>
+        private static Vector3 Grounded(Vector3 world)
+        {
+            world.y = _terrain.SampleHeight(world) + _terrain.transform.position.y;
+            return world;
         }
 
         // A rope from the player's hut eave corner to the bay's west pole (bay-local +X: the bay faces south), with two

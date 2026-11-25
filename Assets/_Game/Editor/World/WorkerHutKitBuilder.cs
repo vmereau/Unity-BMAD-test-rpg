@@ -19,6 +19,7 @@ namespace Game.Editor.World
         private const string TAG = "[WorkerHutKit]";
         internal const string HOME_PATH = "Assets/_Game/Prefabs/World/Huts/WorkerHut_Home.prefab";
         internal const string LONG_PATH = "Assets/_Game/Prefabs/World/Huts/WorkerHut_Long.prefab";
+        private const string PREFABS = "Assets/_Game/Prefabs/World/Huts/";
         private const string KIT_ROOT = "Assets/Hivemind";
         private const string MISSING_PREFIX = "Missing_";
         /// <summary>Child holding the hut's (inactive by default) restricted-area volume.</summary>
@@ -29,9 +30,11 @@ namespace Game.Editor.World
         // Half the length along the door axis: 1.5 m for the home hut, 2 m for the long one. Set per build.
         private static float _halfLength = 1.5f;
         internal const float EAVE = 2.5f;
-        // The doorway: off-centre, so one front corner stays a full wall.
+        // The doorway: off-centre, so one front corner stays a full wall. These are the default shell's; a mirrored
+        // variant has the same doorway on the other half of the front wall (Variant.DoorMinX / DoorMaxX).
         internal const float DOOR_MIN_X = 0f;
         internal const float DOOR_MAX_X = 1.05f;
+        private static float _doorMinX = DOOR_MIN_X, _doorMaxX = DOOR_MAX_X;
         internal const float DOOR_HEIGHT = 2.14f;
         // Wall colliders: 1.35 to 1.55 m from the middle (the boards' inner face is at 1.28, the posts end at 1.455).
         private const float WALL = 0.2f;
@@ -39,7 +42,10 @@ namespace Game.Editor.World
         // Wall centre line to the boards' inner face: the room is 2.56 m across in the 3 m hut.
         private const float AREA_INSET = 0.22f;
         private const float PITCH = 28f;
-        private const float OVERHANG = 0.3f;
+        internal const float OVERHANG = 0.3f;
+        // Packed rows: with this eave the roof ends no further out than the graybox roof did (1.70 m from the middle).
+        internal const float TIGHT_OVERHANG = 0.09f;
+        private static float _overhang = OVERHANG;
         private const float WINDOW_MIN_X = -0.45f;
         private const float WINDOW_MAX_X = 0.4f;
         private const float WINDOW_SILL = 1.05f;
@@ -56,8 +62,59 @@ namespace Game.Editor.World
 
         // The shell: one model per size, objects `Walls` and `Roof`, on M_Camp_HutShell / M_Camp_HutShellDark
         // (assigned by the importer's material remap).
-        internal const string HOME_MODEL = MODELS + "worker hut/WorkerHut_Home.fbx";
-        internal const string LONG_MODEL = MODELS + "worker hut/WorkerHut_Long.fbx";
+        /// <summary>One shell of the family: a model exported by <c>build_worker_hut.py</c> and the prefab built round it.</summary>
+        internal readonly struct Variant
+        {
+            internal readonly string Name;
+            internal readonly float HalfLength, DoorMinX, DoorMaxX, Overhang;
+
+            internal Variant(string name, float halfLength, bool mirrored, float overhang)
+            {
+                Name = name;
+                HalfLength = halfLength;
+                DoorMinX = mirrored ? -DOOR_MAX_X : DOOR_MIN_X;
+                DoorMaxX = mirrored ? -DOOR_MIN_X : DOOR_MAX_X;
+                Overhang = overhang;
+            }
+
+            internal string PrefabPath => PREFABS + Name + ".prefab";
+            internal string ModelPath => MODELS + "worker hut/" + Name + ".fbx";
+            internal bool Mirrored => DoorMinX < 0f;
+            internal bool Tight => Overhang < OVERHANG;
+            internal bool Long => HalfLength > HOME_HALF_LENGTH;
+            /// <summary>Furthest reach of the roof from the middle, across the ridge (boards run up to 0.11 m long).</summary>
+            internal float RoofHalfWidth => HALF_WIDTH + Overhang + 0.11f;
+            /// <summary>Furthest reach of the roof from the middle, along the ridge (the ridge log sticks out 0.08 m).</summary>
+            internal float RoofHalfLength => HalfLength + Overhang + 0.08f;
+        }
+
+        /// <summary>Every shell, in the order of the script's <c>VARIANTS</c>: change both together.</summary>
+        internal static readonly Variant[] Variants =
+        {
+            new Variant("WorkerHut_Home", HOME_HALF_LENGTH, false, OVERHANG),
+            new Variant("WorkerHut_Home_B", HOME_HALF_LENGTH, false, OVERHANG),
+            new Variant("WorkerHut_Home_C", HOME_HALF_LENGTH, true, OVERHANG),
+            new Variant("WorkerHut_Tight", HOME_HALF_LENGTH, false, TIGHT_OVERHANG),
+            new Variant("WorkerHut_Tight_B", HOME_HALF_LENGTH, true, TIGHT_OVERHANG),
+            new Variant("WorkerHut_Tight_C", HOME_HALF_LENGTH, false, TIGHT_OVERHANG),
+            new Variant("WorkerHut_Tight_D", HOME_HALF_LENGTH, true, TIGHT_OVERHANG),
+            new Variant("WorkerHut_Long", 2f, false, OVERHANG),
+        };
+
+        /// <summary>The shell a scene object is an instance of; false for anything else (a graybox hut).</summary>
+        internal static bool TryGetVariant(GameObject instance, out Variant variant)
+        {
+            variant = default;
+            if (instance == null || !PrefabUtility.IsAnyPrefabInstanceRoot(instance)) return false;
+            string path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(instance);
+            foreach (Variant candidate in Variants)
+                if (candidate.PrefabPath == path)
+                {
+                    variant = candidate;
+                    return true;
+                }
+            return false;
+        }
         private const string MODEL_WALLS = "Walls";
         private const string MODEL_ROOF = "Roof";
         private const string SHELL_MATERIAL = "M_Camp_HutShell";
@@ -82,7 +139,7 @@ namespace Game.Editor.World
         [MenuItem("Tools/World/Build Worker Hut Kit Prefabs")]
         private static void BuildMenu() => BuildAll();
 
-        /// <summary>Builds both sizes: the 3 × 3 m home hut (the blockout footprint) and a 3 × 4 m long hut.</summary>
+        /// <summary>Builds every shell of <see cref="Variants"/>: the 3 × 3 m huts (the blockout footprint) and a 3 × 4 m long hut.</summary>
         internal static void BuildAll()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode || PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -90,14 +147,17 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, "Leave Play mode and close Prefab Mode first; nothing changed.");
                 return;
             }
-            Build(HOME_PATH, HOME_HALF_LENGTH, HOME_MODEL);
-            Build(LONG_PATH, 2f, LONG_MODEL);
+            foreach (Variant variant in Variants) Build(variant);
         }
 
-        internal static GameObject Build(string prefabPath, float halfLength, string modelPath)
+        internal static GameObject Build(Variant variant)
         {
+            string prefabPath = variant.PrefabPath, modelPath = variant.ModelPath;
             ResetKit();
-            _halfLength = halfLength;
+            _halfLength = variant.HalfLength;
+            _doorMinX = variant.DoorMinX;
+            _doorMaxX = variant.DoorMaxX;
+            _overhang = variant.Overhang;
             var root = new GameObject(Path.GetFileNameWithoutExtension(prefabPath));
             try
             {
@@ -168,8 +228,8 @@ namespace Game.Editor.World
 
             float rad = PITCH * Mathf.Deg2Rad, tan = Mathf.Tan(rad);
             float ridge = EAVE + HALF_WIDTH * tan + 0.12f;
-            float slope = (HALF_WIDTH + OVERHANG) / Mathf.Cos(rad);
-            float length = (_halfLength + OVERHANG) * 2f;
+            float slope = (HALF_WIDTH + _overhang) / Mathf.Cos(rad);
+            float length = (_halfLength + _overhang) * 2f;
             foreach (float side in new[] { -1f, 1f })
             {
                 Transform plane = Group("Slope", roof);
@@ -207,7 +267,7 @@ namespace Game.Editor.World
                 foreach (float end in new[] { -1f, 1f })
                 {
                     Transform lashing = Model(ROOF_LASHING, plane,
-                        new Vector3(across, BOARD_TOP + POLE_RADIUS, end * (_halfLength + OVERHANG + 0.012f)));
+                        new Vector3(across, BOARD_TOP + POLE_RADIUS, end * (_halfLength + _overhang + 0.012f)));
                     if (lashing == null) continue;
                     // Its coil wraps the mesh's X axis and the tail hangs down −Y: lay X along the ridge, then undo
                     // the slope's tilt so the tail hangs plumb.
@@ -241,22 +301,22 @@ namespace Game.Editor.World
                 Box(colliders, "Side", new Vector3(side * (HALF_WIDTH + WALL_CENTRE), mid, 0),
                     new Vector3(WALL, EAVE, (_halfLength + WALL_CENTRE) * 2f + WALL));
             float front = _halfLength + WALL_CENTRE, rear = -front;
-            Span(colliders, "Front", front, -HALF_WIDTH, DOOR_MIN_X, 0, EAVE);
-            Span(colliders, "Front", front, DOOR_MAX_X, HALF_WIDTH, 0, EAVE);
-            Span(colliders, "Lintel", front, DOOR_MIN_X, DOOR_MAX_X, DOOR_HEIGHT, EAVE);
+            Span(colliders, "Front", front, -HALF_WIDTH, _doorMinX, 0, EAVE);
+            Span(colliders, "Front", front, _doorMaxX, HALF_WIDTH, 0, EAVE);
+            Span(colliders, "Lintel", front, _doorMinX, _doorMaxX, DOOR_HEIGHT, EAVE);
             Span(colliders, "Rear", rear, -HALF_WIDTH, WINDOW_MIN_X, 0, EAVE);
             Span(colliders, "Rear", rear, WINDOW_MAX_X, HALF_WIDTH, 0, EAVE);
             Span(colliders, "WindowSill", rear, WINDOW_MIN_X, WINDOW_MAX_X, 0, WINDOW_SILL);
             Span(colliders, "WindowHead", rear, WINDOW_MIN_X, WINDOW_MAX_X, WINDOW_TOP, EAVE);
 
             float rad = PITCH * Mathf.Deg2Rad;
-            float slope = (HALF_WIDTH + OVERHANG) / Mathf.Cos(rad);
+            float slope = (HALF_WIDTH + _overhang) / Mathf.Cos(rad);
             foreach (float side in new[] { -1f, 1f })
             {
                 Transform plane = Group("RoofPlane", colliders);
                 plane.localPosition = new Vector3(0, EAVE + HALF_WIDTH * Mathf.Tan(rad) + 0.12f, 0);
                 plane.localRotation = Quaternion.Euler(0, 0, -side * PITCH);
-                Box(plane, "Roof", new Vector3(side * slope * 0.5f, 0, 0), new Vector3(slope, 0.16f, (_halfLength + OVERHANG) * 2f));
+                Box(plane, "Roof", new Vector3(side * slope * 0.5f, 0, 0), new Vector3(slope, 0.16f, (_halfLength + _overhang) * 2f));
             }
         }
 
