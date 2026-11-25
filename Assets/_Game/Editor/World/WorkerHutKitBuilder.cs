@@ -43,6 +43,30 @@ namespace Game.Editor.World
         private const float WINDOW_SILL = 1.05f;
         private const float WINDOW_TOP = 1.95f;
 
+        // Weight poles: two per slope, parallel to the ridge, lashed over the gable boards at both ends.
+        private const string MODELS = "Assets/_Game/Art/Environment/Camp/models/";
+        internal const string ROOF_POLE = MODELS + "roof pole/RoofPole.fbx";
+        internal const string ROOF_LASHING = MODELS + "roof pole/RoofLashing.fbx";
+        private const float POLE_MODEL_LENGTH = 3.7f;
+        private const float BOARD_TOP = 0.083f; // SM_AssembledPlanksA's top face at the roof's 0.6 height scale
+        private const float POLE_RADIUS = 0.035f;
+        private static readonly float[] PoleRows = { 0.3f, 0.78f }; // fraction of the slope from the ridge
+
+        // Every wood part of the shell shares one camp look: the kit's own textures (their UV layouts differ),
+        // tuned in these copies to one weathered grey-brown. The white-painted door and window modules use the
+        // plain modular wood instead. Trims keep their atlas.
+        private const string CAMP_MATERIALS = "Assets/_Game/Art/Environment/Camp/Materials/";
+        private static readonly (string kit, string camp)[] WoodRemap =
+        {
+            ("M_Wood_Main_a1", "M_Camp_HutWood"),
+            ("M_WoodPaintedWhite_a1", "M_Camp_HutWood"),
+            ("M_PlanksA_a3", "M_Camp_HutBoards"),
+            ("M_WoodPlanks_02", "M_Camp_HutGable"),
+            ("M_WoodTrim", "M_Camp_HutRidge"),
+            ("M_TrimsheetA_a1", "M_Camp_HutTrim"),
+            ("M_TrimsheetA_a2", "M_Camp_HutTrim"),
+        };
+
         /// <summary>Half the home hut's length: the dressing tool places its props in this frame.</summary>
         internal const float HOME_HALF_LENGTH = 1.5f;
 
@@ -86,10 +110,11 @@ namespace Game.Editor.World
                 BuildRoof(root.transform, rng);
                 BuildColliders(root.transform);
                 BuildRestrictedArea(root.transform);
+                ApplyCampWood(root.transform);
                 if (_missing > 0)
                 {
                     // Saving would replace a good hut with one that has a hole in it, and scene instances follow.
-                    GameLog.Error(TAG, $"{_missing} kit piece(s) missing; {prefabPath} left as it was.");
+                    GameLog.Error(TAG, $"{_missing} kit piece(s) or camp asset(s) missing; {prefabPath} left as it was.");
                     return null;
                 }
                 string folder = prefabPath.Substring(0, prefabPath.LastIndexOf('/'));
@@ -183,16 +208,7 @@ namespace Game.Editor.World
                     panel.localScale = new Vector3(slope / 2.14f, 0.6f, length * 0.5f / 2.4f * 1.02f);
                     Name(panel, "RoofBoards");
                 }
-                for (int n = 0; n < 5; n++)
-                {
-                    float along = (0.25f + (float)rng.NextDouble() * 0.6f) * slope;
-                    float z = -length * 0.5f + (n + 0.3f + (float)rng.NextDouble() * 0.4f) * length / 5f;
-                    Transform stone = Piece(n % 2 == 0 ? "SM_RockStone_01a" : "SM_RockStone_01b", plane,
-                        new Vector3(side * along, 0.14f, z));
-                    stone.localRotation = Quaternion.Euler(rng.Next(-10, 10), rng.Next(360), 0);
-                    stone.localScale = Vector3.one * (0.3f + (float)rng.NextDouble() * 0.14f);
-                    Name(stone, "RoofStone");
-                }
+                BuildWeightPoles(plane, side, slope, length, rng);
             }
             // Two caps, one from each end, stretched so they meet in the middle whatever the hut's length.
             const float CAP_MESH_FRONT = 0.5f, CAP_MESH_LENGTH = 3.48f;
@@ -204,6 +220,80 @@ namespace Game.Editor.World
                 cap.localRotation = Quaternion.Euler(0, end > 0 ? 0f : 180f, 0);
                 cap.localScale = new Vector3(1.6f, 1f, capScale);
                 Name(cap, "RidgeCap");
+            }
+        }
+
+        /// <summary>
+        /// Two bark poles lying on one slope (plane frame: X down the slope, Y off the boards, Z along the ridge), each
+        /// tied over the gable boards at both ends. The lashing's rope end hangs straight down the gable.
+        /// </summary>
+        private static void BuildWeightPoles(Transform plane, float side, float slope, float length, System.Random rng)
+        {
+            float poleLength = length + 0.1f;
+            foreach (float row in PoleRows)
+            {
+                float across = side * row * slope;
+                Transform pole = Model(ROOF_POLE, plane, new Vector3(across, BOARD_TOP + POLE_RADIUS, 0f));
+                if (pole == null) continue;
+                // The mesh runs along its X; flip some poles end for end so the bends differ.
+                pole.localRotation = Quaternion.Euler(0f, rng.Next(2) == 0 ? 90f : -90f, 0f);
+                pole.localScale = new Vector3(poleLength / POLE_MODEL_LENGTH, 1f, 1f);
+                Name(pole, "WeightPole");
+                foreach (float end in new[] { -1f, 1f })
+                {
+                    Transform lashing = Model(ROOF_LASHING, plane,
+                        new Vector3(across, BOARD_TOP + POLE_RADIUS, end * (_halfLength + 0.12f)));
+                    if (lashing == null) continue;
+                    // Its coil wraps the mesh's X axis and the tail hangs down −Y: lay X along the ridge, then undo
+                    // the slope's tilt so the tail hangs plumb.
+                    lashing.localRotation = Quaternion.Euler(0f, 0f, side * PITCH) * Quaternion.Euler(0f, 90f, 0f);
+                    Name(lashing, "PoleLashing");
+                }
+            }
+        }
+
+        /// <summary>A camp model (FBX) as a nested prefab; counted as missing when absent, like a kit piece.</summary>
+        private static Transform Model(string path, Transform parent, Vector3 localPosition)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (asset == null)
+            {
+                _missing++;
+                GameLog.Warn(TAG, $"Camp model '{path}' not found");
+                Group(MISSING_PREFIX + Path.GetFileNameWithoutExtension(path), parent);
+                return null;
+            }
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
+            go.transform.localPosition = localPosition;
+            return go.transform;
+        }
+
+        /// <summary>Swaps every kit wood material on the shell for its camp copy; a missing copy blocks the save.</summary>
+        private static void ApplyCampWood(Transform root)
+        {
+            var swap = new Dictionary<string, Material>();
+            foreach ((string kit, string camp) in WoodRemap)
+            {
+                var material = AssetDatabase.LoadAssetAtPath<Material>(CAMP_MATERIALS + camp + ".mat");
+                if (material == null)
+                {
+                    _missing++;
+                    GameLog.Warn(TAG, $"Camp material '{camp}' not found in {CAMP_MATERIALS}");
+                    continue;
+                }
+                swap[kit] = material;
+            }
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < materials.Length; i++)
+                    if (materials[i] != null && swap.TryGetValue(materials[i].name, out Material camp))
+                    {
+                        materials[i] = camp;
+                        changed = true;
+                    }
+                if (changed) renderer.sharedMaterials = materials;
             }
         }
 
