@@ -197,3 +197,27 @@ runs; `SampleAnimation` can't read a masked layer). `BowIdleBaker.Measure` retur
   plays as a flat, wrong pose with no error. Check any Mixamo "without skin" download the same way.
 - The bow's carry seat and `BowCarry` fingers are fitted on this clip (`Prefabs/Items/Weapons/CLAUDE.md`): re-check
   both (`HandPoseCapture bowidle`, which also renders the body) after a re-fit.
+
+---
+
+## Sword finisher ending (`one handed/sword and shield/sword shield overhead.fbx`, spec-sword-shield-take-combo)
+`slash (4)` (Mixamo sword-and-shield pack, 2.43 s) ended abruptly in game: `Attack_3_State` leaves at 0.8958 normalized,
+while the character was still rising from the landing crouch. `Tools/Blender/mixamo_retime.py` +
+`Tools/Blender/configs/sword/sword_shield_overhead.json` resample every bone through a piecewise time map — source frames
+1–51 unchanged (wind-up, leap, strike, landing), 51–74 stretched ×1.52 (the rise), then 6 frames held — and export an
+armature-only FBX (same export settings as the unarmed / 2H edits). Result: 3.03 s, exit at 2.72 s once standing; up to
+the landing it matches the source within 0.2 cm on the Player rig. Unity cannot do this: a `lastFrame` past the take's
+end is clamped (and the importer still rescales the normalized events). Import like the other pack clips (Humanoid,
+avatar from the model); events in seconds are in `CLAUDE.md` → One handed — sword. `slash (4)` stays as the source.
+
+---
+
+## Torch hold (`OffhandPoses/Torch Hold.anim`, spec-sword-shield-take-combo)
+The `LeftArm` layer's clip, written by **`Tools/Characters/Build Offhand Arm Layer`** (`Editor/Characters/OffhandArmLayerBuilder`,
+values in code, idempotent). Nine constant left-arm muscles fitted by coordinate descent on the Player rig over
+`sword and shield idle` frame 0: hand 0.40 m left / 0.26 m above / 0.14 m ahead of the chest bone, elbow out to the side,
+forearm 45° up, fist knuckles near vertical; the shoulder muscles keep the idle's values (fitting them drove Down-Up to
+−1). Pose a temp clip through a `PlayableGraph` (`AnimationClipPlayable`) in a preview scene — `HumanPoseHandler.SetHumanPose`
+on an Animator instance in edit mode moved no bone. A first fit (hand at waist-front) and this one both met the sword
+during attacks (6 cm / 1.7 cm), so attacks release the layer and play the clip's arm (hand ≥ 0.16 m from the blade).
+Re-fit if the body or the idle changes.

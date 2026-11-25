@@ -69,6 +69,11 @@ counterpart), `comboSteps`, `animatorOverrideController`, `stanceDamage` (0 = ar
   see `Scripts/Combat/PLAYER_COMBO.md`.
 - Always read the `Resolved*` properties in runtime code — never the raw fields.
 
+`EquipableItemSO.offhandArmPose` (`OffhandArmPose`: `None` / `TorchHold`, append-only ints, spec-sword-shield-take-combo):
+the left-arm pose held while the item is in the Offhand slot (`LeftArm` Animator layer, idle and locomotion only, actions play the clips' arm —
+`Scripts/Core/Animations/CLAUDE.md`). `None` on shields: the sword-and-shield clips already hold one. No torch item exists
+yet; a torch sets `TorchHold`.
+
 `EquipableItemSO` defines `public abstract bool CanEquip()` — always `true` in current stories; future stories override for conditional equipping (stat gates, quest requirements). All equippability type-checks use `item is EquipableItemSO` — never `item is WeaponSO || item is ArmorSO`.
 
 ---

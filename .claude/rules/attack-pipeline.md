@@ -54,7 +54,8 @@ facing until `EntityMeleeAttacker.IsAttackCommitted`. AI SMB carries `attackInde
 
 **Player exception:** a step with `AttackStep.rootMotionScale` > 0 moves the player by the clip's own root displacement
 through `ActionRootMotion` (`OnAnimatorMove`) instead of the scripted step — the whole unarmed combo (`lead jab step`,
-`hook step`, `uppercut step`), whose travel carries on through the attack → attack crossfades
+`hook step`, `uppercut step`) and the one-handed sword combo (Mixamo sword-and-shield clips), whose travel carries on
+through the attack → attack crossfades
 (`Scripts/Combat/PLAYER_COMBO.md` → Action root motion). AI entities ignore the scale and keep the scripted step, tuned to
 the travel the player gets in a chain; `applyRootMotion` stays off on every Animator.
 

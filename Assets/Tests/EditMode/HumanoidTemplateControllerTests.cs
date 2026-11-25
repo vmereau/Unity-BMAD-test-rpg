@@ -39,11 +39,32 @@ namespace Tests.EditMode
             sm.states.Select(c => c.state).FirstOrDefault(s => s.name == name);
 
         [Test]
-        public void Layers_AreBaseUpperBodyThenHands_NoFullBodyLayer()
+        public void Layers_AreBaseUpperBodyHandsThenLeftArm_NoFullBodyLayer()
         {
             AnimatorController controller = LoadController();
             Assert.That(controller.layers.Select(l => l.name),
-                Is.EqualTo(new[] { "Base Layer", "UpperBody", "LeftHand", "RightHand" }));
+                Is.EqualTo(new[] { "Base Layer", "UpperBody", "LeftHand", "RightHand", OffhandArmRule.LAYER }));
+        }
+
+        // spec-sword-shield-take-combo: off-hand arm pose layer built by Tools/Characters/Build Offhand Arm Layer.
+        [Test]
+        public void LeftArmLayer_ArmOnlyMaskWeightZeroTorchState()
+        {
+            AnimatorControllerLayer layer = LoadController().layers[4];
+            Assert.That(layer.name, Is.EqualTo(OffhandArmRule.LAYER));
+            Assert.That(layer.defaultWeight, Is.EqualTo(0f), "HandPoseDriver steps the weight");
+            Assert.That(layer.blendingMode, Is.EqualTo(AnimatorLayerBlendingMode.Override));
+            Assert.That(layer.avatarMask, Is.Not.Null);
+            for (var part = AvatarMaskBodyPart.Root; part < AvatarMaskBodyPart.LastBodyPart; part++)
+                Assert.That(layer.avatarMask.GetHumanoidBodyPartActive(part), Is.EqualTo(part == AvatarMaskBodyPart.LeftArm),
+                    $"LeftArm mask: {part} (fingers belong to the LeftHand layer)");
+            AnimatorState torch = FindState(layer.stateMachine, "TorchHold");
+            Assert.That(torch, Is.Not.Null);
+            var clip = torch.motion as AnimationClip;
+            Assert.That(clip, Is.Not.Null);
+            Assert.That(AnimationUtility.GetAnimationEvents(clip), Is.Empty);
+            foreach (var binding in AnimationUtility.GetCurveBindings(clip))
+                Assert.That(binding.propertyName, Does.StartWith("Left "), $"{clip.name} keys only the left arm: {binding.propertyName}");
         }
 
         // spec-hand-pose-layer: finger-only layers built by Tools/Characters/Build Hand Poses.

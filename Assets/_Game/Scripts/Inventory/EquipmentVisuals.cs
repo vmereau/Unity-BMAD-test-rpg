@@ -76,6 +76,15 @@ namespace Game.Inventory
         /// <summary>Left-hand socket (mirror of the right one), or null when unassigned.</summary>
         public Transform LeftHandSocket => _leftWeaponSocket;
 
+        /// <summary>
+        /// Left-arm pose the Offhand item asks for (<see cref="EquipableItemSO.offhandArmPose"/>), None without one. Read
+        /// every frame by <c>HandPoseDriver</c> for the <c>LeftArm</c> layer (spec-sword-shield-take-combo).
+        /// </summary>
+        public OffhandArmPose OffhandArmPose =>
+            _equipmentSystem != null && _equipmentSystem.GetEquipped(EquipmentSlot.Offhand) is EquipableItemSO item
+                ? item.offhandArmPose
+                : OffhandArmPose.None;
+
         private void Awake()
         {
             if (_equipmentSystem == null)

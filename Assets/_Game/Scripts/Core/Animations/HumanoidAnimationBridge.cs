@@ -61,6 +61,7 @@ namespace Game.Animations
         private bool _hasHandParams;
 
         private int _upperBodyLayer = -1; // cached once found; looked up again while missing (controller assigned late)
+        private int _offhandArmLayer = -1; // same caching as _upperBodyLayer
 
         private void Awake()
         {
@@ -99,6 +100,22 @@ namespace Game.Animations
         /// <summary>True while the Base Layer is in (or heading into) an attack or another full-body state (tags in <see cref="UpperBodyWeight"/>).</summary>
         public bool IsBaseFullBody => IsAnimatorLive
             && (DestinationHasTag(0, UpperBodyWeight.ATTACK_TAG) || DestinationHasTag(0, UpperBodyWeight.FULL_BODY_TAG));
+
+        private int OffhandArmLayer
+        {
+            get
+            {
+                if (_offhandArmLayer < 0 && IsAnimatorLive) _offhandArmLayer = _animator.GetLayerIndex(OffhandArmRule.LAYER);
+                return _offhandArmLayer;
+            }
+        }
+
+        /// <summary>Weight of the <c>LeftArm</c> layer (off-hand arm pose, stepped by <c>HandPoseDriver</c>). No-op without the layer.</summary>
+        public void SetOffhandArmWeight(float weight)
+        {
+            if (!IsAnimatorLive || OffhandArmLayer < 0) return;
+            _animator.SetLayerWeight(OffhandArmLayer, weight);
+        }
 
         /// <summary>True while the UpperBody layer is in (or heading into) block, draw / sheathe or a bow aim state.</summary>
         public bool IsUpperBodyAction => IsAnimatorLive && UpperBodyLayer >= 0

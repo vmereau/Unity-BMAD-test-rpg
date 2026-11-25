@@ -84,6 +84,11 @@ Symmetric on both sides: bridge + driver.
   while `bridge.IsSwitchingWeapon` (UpperBody `Draw_State` / `Sheathe_State`: `IsInCombat` flips at the press, the weapon
   arrives at WeaponSwap) and `bridge.IsBaseDown` (KnockedDown / Unconscious / Death / Dead / GettingUp). `HandPose` values are the
   Animator ints — append new poses, never renumber (Relaxed = 0 = the default after a controller swap).
+  **Off-hand arm (spec-sword-shield-take-combo):** the same driver reads `EquipmentVisuals.OffhandArmPose` (the Offhand
+  item's `offhandArmPose`) and steps the `LeftArm` layer weight with the pure `OffhandArmRule` (0.15 s): 1 for a pose in
+  idle / locomotion, 0 while `IsBaseFullBody` (attacks + `FullBody` states), `IsUpperBodyAction` (block, draw / sheathe,
+  drink, bow aim) or down — every action plays the clip's own left arm (a fixed torch pose came within 2–6 cm of the sword). `TorchHold` also forces the left fingers to `Fist`, attacks
+  included. Bridge: `SetOffhandArmWeight` (layer looked up by name, cached). NPC off-hand items have no pose today.
   **Bow carry seat (spec-bow-idle-compensated-bake):** for a left-hand, rigid archetype with `hasCarryPose`
   (`EquipmentVisuals.UsesCarrySeat`), `HandPoseRule.CarrySeat` is true only in the combat idle: bow in hand, UpperBody heading
   into `CombatIdle` (`bridge.IsUpperBodyCombatIdle`) and the Base Layer not full-body (`IsBaseFullBody`). It picks

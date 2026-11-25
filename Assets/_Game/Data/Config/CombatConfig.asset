@@ -86,6 +86,7 @@ MonoBehaviour:
     m_Bits: 257
   unarmedComboSteps: 3
   attackStallTimeout: 1.5
+  comboPressBufferTime: 0.4
   recoveryCancelMoveThreshold: 0.2
   defaultAttackStep:
     distance: 0.5

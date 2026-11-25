@@ -35,6 +35,12 @@ plays from the base, the two-handed override maps it to `2hand blocking` too); t
   (`Editor/Characters/HandPoseBuilder`, values in code): never hand-edit these layers or the clips. Driven by `HandPoseDriver`
   (`Scripts/Core/Animations/CLAUDE.md`). Pose clips carry no events. A rebuild keeps each hand layer at its index; a new layer goes after them
   (update the indices in `HumanoidTemplateControllerTests`).
+- **Off-hand arm layer** (spec-sword-shield-take-combo): **`LeftArm`** (index 4), Override, default weight **0**, mask
+  `Animations/OffhandPoses/LeftArmMask` (left arm only, no fingers). One state, `TorchHold` (`Torch Hold.anim`, constant
+  muscles). `HandPoseDriver` steps the weight to 1 while the off-hand item's `offhandArmPose` isn't None, 0 in `Attack` /
+  `FullBody` states, `UpperBodyAction` states and while down: actions play the clip's own left arm (attacks swing it clear of the blade). **Built by `Tools/Characters/Build Offhand Arm Layer`**
+  (`Editor/Characters/OffhandArmLayerBuilder`, muscle values in code): never hand-edit it. A second pose = a new state +
+  an int parameter.
 - **Attacks are full-body.** Every attack state exits to `LockOn Locomotion` on `IsBlocking` (listed first — block-cancel),
   then the recovery cancels (`AttackCancel` bool, player-only — NPCs never set it, spec-attack-recovery-cancel):
   `→ Attack_1_State` on `AttackCancel` + `Attack_1` (0.15 s, restart; self-transition on Attack_1), `→ LockOn Locomotion`
@@ -118,13 +124,13 @@ references a shared blend tree deletes it for every state (rebuilt once this way
 
 Base motions: `Attack_1_State` = `lead jab step`, `Attack_2_State` = `hook step`, `Attack_3_State` = `uppercut step` (three
 distinct clips). Overrides are keyed on the **base clip**, so every weapon override must map all three, or that state plays the
-unarmed punch with a weapon in hand: sword `lead jab step` → `SwordAttackLeft`, `hook step` → `SwordAttackThrust`,
-`uppercut step` → `SwordAttackLeft`; two-handed `lead jab step` / `uppercut step` → `2hand attack refined`, `hook step` →
+unarmed punch with a weapon in hand: sword `lead jab step` → `sword shield cut`, `hook step` → `sword shield rising cut`,
+`uppercut step` → `sword shield overhead` (axe override: `SwordAttackLeft` / `SwordAttackThrust` / `SwordAttackLeft`); two-handed `lead jab step` / `uppercut step` → `2hand attack refined`, `hook step` →
 `2hand attack 2 refined`.
 **Changing a base state's motion orphans the override entries keyed on the old clip** — re-key them in the same change
 and delete the stale `m_Clips` entries (`SerializedObject`), or the old clip stays referenced (or re-key in place: set
 each entry's `m_OriginalClip` to the new base clip, which leaves no stale entry). Same for `CombatIdle`
-(= `Unarmed Idle Guard.anim`; sword → `SwordIdle`, two-handed → `2hand idle`, bow → `Bow Idle.anim`, the
+(= `Unarmed Idle Guard.anim`; sword → `sword shield idle`, axe → `SwordIdle`, two-handed → `2hand idle`, bow → `Bow Idle.anim`, the
 yaw-compensated bake of the Mixamo idle, played with the bow's carry seat — spec-bow-idle-compensated-bake) and `Block_State` (= `Unarmed Block
 Guard.anim`, the unarmed high guard; sword → `Sword Braced Guard`, two-handed → `2hand blocking`). The player and styled
 NPCs (`EntityGuard` → `AIAnimationDriver.SetBlocking`, spec-ai-npc-blocking) set `IsBlocking`.

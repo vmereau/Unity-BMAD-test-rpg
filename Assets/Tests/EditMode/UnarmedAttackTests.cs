@@ -150,6 +150,7 @@ public class UnarmedAttackTests
     private const string COMBAT = "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/";
 
     [TestCase("one handed/Sword_AnimatorOverride.overrideController", true)]
+    [TestCase("one handed/Axe_AnimatorOverride.overrideController", true)]
     [TestCase("two handed/TwoHanded_AnimatorOverride.overrideController", true)]
     [TestCase("Bow/Bow_AnimatorOverride.overrideController", false)]
     public void WeaponOverride_MapsTheUnarmedBaseClips(string file, bool melee)

@@ -74,6 +74,8 @@ namespace Game.Combat
 
         // Attack lifecycle as the Animator plays it (active attack states, queued step, stall watchdog)
         private readonly PlayerAttackTracker _attackTracker = new();
+        // A combo press made before the window opened, fired by OnComboWindowOpen (CombatConfigSO.comboPressBufferTime)
+        private readonly ComboPressBuffer _pressBuffer = new();
 
         // Story 7.10: cached weapon SO — set when visuals refresh, cleared on unequip
         private WeaponSO _currentWeaponSO;
@@ -447,7 +449,13 @@ namespace Game.Combat
             }
             if (_stateManager.IsAttacking && !_comboWindowOpen && !isRecoveryRestart)
             {
-                GameLog.Info(TAG, "Attack input ignored — waiting for combo window (animation event)");
+                // A swing is playing and its window is still closed: remember the press, OnComboWindowOpen fires it.
+                if (_config != null && _config.comboPressBufferTime > 0f && _attackTracker.ActiveStates > 0)
+                {
+                    _pressBuffer.Store(Time.time);
+                    GameLog.Info(TAG, "Attack input buffered — fires when the combo window opens");
+                }
+                else GameLog.Info(TAG, "Attack input ignored — waiting for combo window (animation event)");
                 return;
             }
 
@@ -534,6 +542,7 @@ namespace Game.Combat
         {
             _comboStep = 0;
             _comboWindowOpen = false;
+            _pressBuffer.Clear(); // window closed, attack ended or cancelled: a stored press must not fire later
         }
 
         private void ExitAttack()
@@ -1025,6 +1034,8 @@ namespace Game.Combat
             if (!_stateManager.IsAttacking) return;
             _comboWindowOpen = true;
             GameLog.Info(TAG, $"Combo window opened — step {_comboStep} ready");
+            // A press made during the swing fires now, so a buffered chain always starts at the window open.
+            if (_config != null && _pressBuffer.Consume(Time.time, _config.comboPressBufferTime)) TryAttack();
         }
 
         public void OnComboWindowClose()
@@ -1067,6 +1078,7 @@ namespace Game.Combat
             _attackTracker.Enter(Time.time);
             CloseHitWindows();
             _comboWindowOpen = false;
+            _pressBuffer.Clear(); // a press belongs to the swing it was made in
             if (_stateManager == null || _config == null) return; // Awake disabled us; SMBs still call in
             _stateManager.SetAttackCancel(false); // a restart's flag must not cut this step through its AttackCancel exit
             if (!_stateManager.IsAttacking) return; // stale enter after a cancel: no steering, no step

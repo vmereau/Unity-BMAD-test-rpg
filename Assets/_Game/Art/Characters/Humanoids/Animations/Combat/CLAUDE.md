@@ -10,9 +10,13 @@
 
 ```
 Combat/
-├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle, Draw Sword, Sheath Sword + Sword_AnimatorOverride;
-│                 `sword braced guard source.fbx` (Meshy) → baked `Sword Braced Guard.anim` (block without a shield,
-│                 `BAKE_RECIPES.md`)
+├── one handed/ — AttackLeft, AttackOverhead, AttackThrust, SwordIdle (the axe's combo, `Axe_AnimatorOverride`), Draw Sword,
+│                 Sheath Sword + Sword_AnimatorOverride; `sword braced guard source.fbx` (Meshy) → baked `Sword Braced Guard.anim`
+│                 (block without a shield, `BAKE_RECIPES.md`)
+│   └── sword and shield/ — the sword combo, from the Mixamo Sword and Shield Pack (rest of the pack untracked in
+│                 `Assets/mixamo packs/`): `sword and shield slash` / `slash (3)` (Attack_1 / 2), `sword shield overhead.fbx`
+│                 (Attack_3: `slash (4)` with its ending slowed in Blender, `BAKE_RECIPES.md` → Sword finisher ending; `slash (4)`
+│                 itself is the unreferenced source), `sword and shield idle` (the sword's CombatIdle)
 ├── two handed/ — 2hand idle / attack (+ attack refined, Blender) / attack 2 (+ attack 2 refined, Blender) / blocking / stagger, draw 1+2 / sheath 1+2 (sources) → baked `2hand draw.anim` /
 │                 `2hand sheath.anim` + TwoHanded_AnimatorOverride (→ `Archetype_TwoHanded`);
 │                 `meshy test/` = rejected Meshy text-to-motion tries (`MESHY_PROMPTS.md`)
@@ -42,7 +46,7 @@ Combat/
 
 | File | Read when |
 |------|-----------|
-| `BAKE_RECIPES.md` | Re-editing / re-baking a clip: 2H blade-line Blender edit, unarmed foot-step leg edit, unarmed idle / block guard `.anim` bakes, two-part draw / sheathe merge |
+| `BAKE_RECIPES.md` | Re-editing / re-baking a clip: 2H blade-line Blender edit, unarmed foot-step leg edit, unarmed idle / block guard `.anim` bakes, two-part draw / sheathe merge, sword finisher ending (Blender retime), torch hold (`LeftArm` layer) |
 | `MESHY_PROMPTS.md` | Generating a clip with Meshy text-to-motion |
 
 ---
@@ -62,13 +66,36 @@ retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than ove
 `ComboWindowOpen` also moves the combo blend start — re-check the transition rule in
 `../../Controllers/CLAUDE.md`.
 
-### One handed (`one handed/`)
+### One handed — sword (`one handed/sword and shield/`, spec-sword-shield-take-combo)
+
+Three whole Mixamo sword-and-shield attacks, each starting and ending in `sword and shield idle` (the sword's CombatIdle),
+**clip root motion** (root XZ unbaked, rotation and Y baked on Original; `rootMotionScale` 1 on `Archetype_OneHandedSword`).
+Times in **seconds** (the `.meta` stores them normalized), timed on the sword hand's speed on the Player rig:
+
+| Clip (FBX) | State | Length | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
+|------|-------|-------|-------------|--------------|-----------------|-----------------|
+| `sword shield cut` (`sword and shield slash`) | Attack_1 | 1.50 | 0.50 | 0.70 | 0.72 | 1.18 |
+| `sword shield rising cut` (`slash (3)`) | Attack_2 | 1.67 | 0.72 | 0.95 | 0.97 | 1.45 |
+| `sword shield overhead` (`sword shield overhead.fbx`) | Attack_3 (finisher) | 3.03 | 1.22 | 1.43 | — | 1.70 |
+
+- The cut and the rising cut lunge ~0.5 m and step back to the guard. A chained press (buffered: `PLAYER_COMBO.md` →
+  Combo press buffer) fires at the window open, before the step back, so a buffered chain advances 0.52 / 0.39 / 0.78 m
+  (1.7 m); a late press lunges again from where the step back left it (1.0 m). A single cut ends 0.11 m forward.
+- The overhead leaps (hips +0.5 m), lands in a crouch and rises; it ends 1.05 m forward. Its rise is slowed ×1.5 + held
+  0.2 s so the exit (0.8958 × 3.03 = 2.72 s) starts once standing.
+- Every window closes before its state's exit-time transition (0.8065 / 0.8897 / 0.8958 normalized) — `SwordShieldComboTests`.
+- Held shields touch the blade (0 m, box-to-line) for ~0.1 s at the start of the rising cut (round) and the end of the cut
+  (kite): the pack was recorded with its own shield.
+
+### One handed — axe (`one handed/`, `Axe_AnimatorOverride`)
+
+The axe keeps the previous in-place two-hit combo on a scripted step (`Archetype_OneHandedAxe` → its own override copy):
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |
 |------|-------|-------------|--------------|-----------------|-----------------|
 | `AttackLeft.fbx` | Attack_1 / Attack_3 | 0.25 | 0.50 | 0.50 | 0.90 |
 | `AttackThrust.fbx` | Attack_2 | 0.25 | 0.50 | 0.50 | 0.90 |
-| `AttackOverhead.fbx` | — (not mapped by `Sword_AnimatorOverride`) | 0.25 | 0.50 | 0.50 | 0.90 |
+| `AttackOverhead.fbx` | — (not mapped) | 0.25 | 0.50 | 0.50 | 0.90 |
 
 `HitboxDisable` and `ComboWindowOpen` share 0.50 — they are independent, so dispatch order is irrelevant.
 
@@ -77,8 +104,8 @@ retracts (~0.35–0.5). Thrust/jab clips need an earlier `HitboxEnable` than ove
 2-step combo: `lead jab step` → `2hand attack refined` (Attack_1), `hook step` → `2hand attack 2 refined` (Attack_2, finisher).
 They twist the hips up to 112° — fine now that every attack plays full-body on the Base Layer (`Controllers/CLAUDE.md`).
 
-**All weapon attack clips stay in place** (measured: net root XZ travel 0, body offset at most 0.63 m that returns to
-the start; the unarmed boxing clips are handled differently, see Unarmed below), so they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
+**Weapon attack clips stay in place except the sword's** (measured: net root XZ travel 0, body offset at most 0.63 m that
+returns to the start; the sword combo and the unarmed boxing clips carry their travel, see above and Unarmed below), so they stay root-baked and the forward step is scripted per archetype (`AttackStep`, `Scripts/Combat/PLAYER_COMBO.md`). Tune
 `attackSteps` start / duration in **seconds** against the clip lengths and hit windows (hit time = HitboxEnable × length).
 
 | Clip | State | HitboxEnable | HitboxDisable | ComboWindowOpen | ComboWindowClose |

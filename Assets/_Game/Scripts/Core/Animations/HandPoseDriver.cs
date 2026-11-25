@@ -22,6 +22,7 @@ namespace Game.Animations
         private WeaponArchetypeSO _carryArchetype;
         private float _carryWeight;
         private bool _wasWeaponInHand;
+        private float _offhandArmWeight;
 
         private void Awake()
         {
@@ -38,8 +39,10 @@ namespace Game.Animations
             if (_bridge == null) return;
 
             bool weaponInHand = false, leftHandWeapon = false, twoHanded = false, shieldInHand = false, hasCarryPose = false;
+            OffhandArmPose armPose = OffhandArmPose.None;
             if (_equipmentVisuals != null)
             {
+                armPose = _equipmentVisuals.OffhandArmPose;
                 weaponInHand = _equipmentVisuals.IsDrawn && _equipmentVisuals.ActiveWeaponGO != null;
                 var archetype = _equipmentVisuals.CurrentArchetype;
                 if (archetype != null)
@@ -56,10 +59,20 @@ namespace Game.Animations
                 _bridge.IsUpperBodyCombatIdle, _bridge.IsBaseFullBody);
             HandPoseRule.Resolve(_bridge.IsInCombat, weaponInHand, leftHandWeapon, twoHanded, shieldInHand,
                 switching, _bridge.IsBaseDown, out HandPose left, out HandPose right, carrySeat);
+            bool baseDown = _bridge.IsBaseDown;
+            if (!baseDown) left = OffhandArmRule.LeftHand(armPose, left);
             _bridge.SetHandPoses(left, right);
+            StepOffhandArm(OffhandArmRule.Target(armPose, _bridge.IsBaseFullBody, _bridge.IsUpperBodyAction, baseDown));
             if (hasCarryPose) StepCarrySeat(carrySeat, weaponInHand && !_wasWeaponInHand && !switching);
             else _carryArchetype = null;
             _wasWeaponInHand = weaponInHand;
+        }
+
+        // LeftArm layer (spec-sword-shield-take-combo): the off-hand arm pose fades in / out over OffhandArmRule.BLEND_TIME.
+        private void StepOffhandArm(float target)
+        {
+            _offhandArmWeight = UpperBodyWeight.Step(_offhandArmWeight, target, Time.deltaTime, OffhandArmRule.BLEND_TIME);
+            _bridge.SetOffhandArmWeight(_offhandArmWeight);
         }
 
         // Bow seat in the hand (spec-bow-idle-compensated-bake): eased toward the carry seat while idling, toward the aiming seat

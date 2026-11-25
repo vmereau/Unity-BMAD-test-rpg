@@ -1,0 +1,5 @@
+{
+  "input_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/one handed/sword and shield/sword and shield slash (4).fbx",
+  "output_fbx": "Assets/_Game/Art/Characters/Humanoids/Animations/Combat/one handed/sword and shield/sword shield overhead.fbx",
+  "time_map": [[1, 1], [51, 51], [86, 74], [92, 74]]
+}

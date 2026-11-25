@@ -51,8 +51,18 @@ Attack input → TryAttack() → ExecuteAttack() (SetAttacking + animator trigge
 2. `IsMaxCombo()` — max steps = `_currentWeaponSO.ResolvedComboSteps`, or `CombatConfigSO.unarmedComboSteps`
    (3: lead jab → hook → uppercut finisher) when unarmed. Not `WeaponSO.DEFAULT_COMBO_STEPS` (2), which is only the
    fallback for weapons without an archetype.
-3. `IsAttacking && !_comboWindowOpen` → ignore (prevents re-triggering Attack_1 before the window opens).
+3. `IsAttacking && !_comboWindowOpen` → **buffered** while an attack state is playing (below), else ignored (prevents
+   re-triggering Attack_1 before the window opens).
 4. Stamina: not enough → `ResetAttackCombo()`; `Consume()` failing after `HasEnough()` → `ExitAttack()`.
+
+### Combo press buffer (`ComboPressBuffer`, spec-sword-shield-take-combo, every weapon)
+
+A press made while the swing's window is still closed is stored (`_pressBuffer.Store`); `OnComboWindowOpen` consumes
+it and calls `TryAttack()` when it is at most `CombatConfigSO.comboPressBufferTime` (0.4 s) old. So an early press counts,
+and every buffered chain starts the next state at the window open (the same seam each time). Cleared on every
+attack-state enter (a press belongs to the swing it was made in), in `ResetAttackCombo` (window close, end, cancel,
+stamina refusal) and by its own consume. Mashing works: each swing buffers its own press. A press **after** the window
+opened fires at once, as before. `comboPressBufferTime` 0 = the old drop. Pure, `ComboPressBufferTests`.
 
 A press only *requests* a step: the Animator can ignore the trigger (e.g. a press after `Attack_n → CombatIdle`
 started at exit time — that blend is uninterruptible, but `ComboWindowClose` fires later). Such a press is
@@ -91,7 +101,7 @@ The outgoing state's exit would otherwise tear down a chain in flight (crossfade
     `WeaponArchetypeSO.attackSteps[index − 1]`, else `CombatConfigSO.defaultAttackStep`; unarmed:
     `CombatConfigSO.unarmedAttacks[index − 1].step`. `AttackStep` = distance (m, 0 = rooted) + start / duration in **seconds since
     the state entered** (not normalized). The step stops when `IsAttacking` clears (any cancel) or a dodge starts; a combo
-    step's enter replaces the previous step. Weapon clips are in place (Mixamo, net root travel 0); the unarmed clips keep root XZ unbaked: the player reads that travel (next bullet) and NPCs
+    step's enter replaces the previous step. Weapon clips are in place (Mixamo, net root travel 0) except the one-handed sword's; the sword and unarmed clips keep root XZ unbaked: the player reads that travel (next bullet) and NPCs
     drop it (`Art/.../Animations/Combat/CLAUDE.md` → Unarmed).
   - **Clip root motion (spec-action-root-motion-jab-trial, spec-action-root-motion-unarmed-combo)** — an attack whose
     `AttackStep.rootMotionScale` is > 0 moves by its clip instead: `PlayerCombat.BeginAttackMovement` starts
@@ -149,7 +159,12 @@ a 0 multiplier — a struct element just added in the Inspector — into 1.
 
 ---
 
-## Action root motion (`ActionRootMotion`, the unarmed combo)
+## Action root motion (`ActionRootMotion`, the unarmed and sword combos)
+
+Clip-driven chains today: the unarmed combo (below) and the one-handed sword (`Archetype_OneHandedSword`, `rootMotionScale`
+1 on its three steps: Mixamo sword-and-shield clips, `Art/.../Animations/Combat/CLAUDE.md` → One handed — sword). The
+sword's cut / rising cut lunge and step back: a buffered chain fires before the step back (1.7 m over three hits), a
+late press after it (1.0 m); the unarmed notes below hold for both.
 
 Hybrid from `docs/IDEAS.md`: locomotion stays code-driven, an action clip carries its own travel. `ActionRootMotion`
 implements `OnAnimatorMove` on the Player root (the Animator's GameObject), which makes Unity hand root motion to the

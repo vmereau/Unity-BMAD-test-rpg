@@ -19,21 +19,29 @@ MonoBehaviour:
   sheathedPose:
     localPosition: {x: 0.10223936, y: -0.248308, z: -0.07080051}
     localEulerAngles: {x: 346.14786, y: 178.55876, z: 346.3769}
+  hasCarryPose: 0
+  carryPose:
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+  carryPivot: {x: 0, y: 0, z: 0}
   twoHandedGrip: 0
   gripRoll: 0
   gripSlide: 0
   sheathSocket: 0
-  animatorOverrideController: {fileID: 22100000, guid: 5e410d603e59ca64fb0e1f276a797f50, type: 2}
+  animatorOverrideController: {fileID: 22100000, guid: 5797bd63901bb7b47909da96862b891c, type: 2}
   attackSteps:
   - distance: 0.5
     startTime: 0.35
     duration: 0.35
+    rootMotionScale: 0
   - distance: 0.6
     startTime: 0.5
     duration: 0.35
+    rootMotionScale: 0
   - distance: 0.6
     startTime: 0.3
     duration: 0.3
+    rootMotionScale: 0
   defaultComboSteps: 2
   attackStaminaMultiplier: 1
   stanceDamage: 35

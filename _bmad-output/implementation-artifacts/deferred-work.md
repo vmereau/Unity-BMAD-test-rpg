@@ -1341,3 +1341,25 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   `uppercut step` and `2hand attack 2 refined` carry three (no `ComboWindowOpen`).
 - **Play harness:** `sword_combo_play_measure.cs` duplicates most of `action_root_motion_play_measure.cs`; fold the
   unarmed runs into it (no weapon) and drop the older file.
+
+## From spec-sword-shield-take-combo (2026-11-25)
+
+- **Attack exit leg snap.** In combat the legs come from the Base layer's `LockOn Locomotion` (generic `Idle`), not from
+  `sword and shield idle` (UpperBody mask only), so every sword attack's exit blends the pack's bladed stance into the
+  parallel-feet idle legs in 0.25–0.37 s. A sword combat-idle leg pose (override `Idle` only while drawn, or a Base-layer
+  combat idle) would end the swings in their own stance.
+- **The rest of the Mixamo Sword and Shield Pack** (untracked in `Assets/mixamo packs/`): block / block idle (a shield
+  block matching the new idle), walk / strafe / run (sword-and-shield locomotion), impacts, death, kick.
+- **Torch item.** `OffhandArmPose.TorchHold` and the `LeftArm` layer are ready; no torch `EquipableItemSO`, prefab, light
+  or Offhand slot rule exists (`EquipmentRules` only sends `ShieldSO` to Offhand). The stand-in stick touched the blade in
+  the finisher's landing crouch: re-measure with the real prefab's grip.
+- **Sword NPC travel** not measured in play (`attackSteps` 0.52 / 0.39 / 0.78 m copied from the player's buffered chain).
+- **`sword_combo_play_measure.cs` teleport home** left the player unable to attack (or falling through the world when the
+  start was captured before the arrival skip): runs 2+ were refused. This session turned the player 180° between runs
+  instead; fix the harness (or teleport + wait for `isGrounded` and re-lock the cursor).
+- **Review (deferred):** `EquipmentVisuals.OffhandArmPose` reads the slot only — a torch stowed while sheathed (like a
+  shield on the back) would still raise the arm with an empty fist: gate it on an "off-hand visual held" flag when the
+  torch item lands. A buffered combo press still fires if the player starts moving before the window opens (the move
+  cancel only arms after `ComboWindowClose`); drop the buffer on move input if that feels wrong. `SetDead` /
+  `SetUnconscious` end the attack without `ResetAttackCombo` (buffer kept, harmless: cleared on the next state enter).
+  `OffhandArmLayerBuilder` run before `HandPoseBuilder` on a fresh controller would put `LeftArm` before the hand layers.
