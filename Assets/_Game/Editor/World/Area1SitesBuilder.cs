@@ -511,7 +511,10 @@ namespace Game.Editor.World
             Area1RemoteSites.BuildCave(Area1BlockoutBuilder.Position(features[CAVE_FEATURE]), terrain, stone, rockTall, rockLow, NewRoot(root.transform, CAVE));
 
             Area1CampInterior.BuildInnerGate(Area1BlockoutBuilder.Position(features[INNER_GATE_FEATURE]), terrain, timber, stone, NewRoot(root.transform, INNER_GATE));
-            Area1CampInterior.BuildWarehouse(Area1BlockoutBuilder.Position(warehouseZone), (float)warehouseZone["w"], (float)warehouseZone["d"], terrain, timber, NewRoot(root.transform, WAREHOUSE));
+            // The warehouse root is the generated prefab (WarehouseBuilder); without it, the graybox hall.
+            var warehouse = AssetDatabase.LoadAssetAtPath<GameObject>(WarehouseBuilder.PREFAB_PATH);
+            Area1CampInterior.BuildWarehouse(Area1BlockoutBuilder.Position(warehouseZone), (float)warehouseZone["w"], (float)warehouseZone["d"], terrain, timber,
+                NewRoot(root.transform, WAREHOUSE, warehouse), warehouse != null);
             Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(features[DOCK_GATE_FEATURE]), DOCK_GATE_WIDTH, terrain, timber, NewRoot(root.transform, DOCK_GATE));
             Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(compoundGate), (float)compoundGate["width"], terrain, timber, NewRoot(root.transform, COMPOUND_GATE));
             Area1CampInterior.BuildStagingYard(Area1BlockoutBuilder.Position(features[STAGING_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, STAGING_YARD));
@@ -583,12 +586,15 @@ namespace Game.Editor.World
             return true;
         }
 
-        private static Transform NewRoot(Transform parent, string name)
+        /// <summary>A fresh root replacing the old one; an instance of <paramref name="prefab"/> when one is given.</summary>
+        private static Transform NewRoot(Transform parent, string name, GameObject prefab = null)
         {
             Transform old = parent.Find(name);
             if (old != null) Object.DestroyImmediate(old.gameObject);
 
-            var root = new GameObject(name).transform;
+            GameObject instance = prefab == null ? new GameObject(name) : (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            instance.name = name;
+            Transform root = instance.transform;
             root.SetParent(parent, false);
             BuiltRoots.Add(name);
             return root;

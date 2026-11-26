@@ -2,7 +2,8 @@
 
 > Loaded when Claude accesses files in this folder. Worker camp art pass: the board-built hut shell, the Hivemind kit
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
-> `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`.
+> `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
+> model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
 
 ---
 
@@ -19,7 +20,8 @@ Camp/
 Custom pieces so far: `worker bed`, `door flap`, `floor bed` (+ `FloorBed_Model.prefab`), `cloth bundle`
 (+ `ClothBundle.prefab`, a separate prop, not part of the bed), `roof pole` (`RoofPole.fbx` 3.7 m along X,
 `RoofLashing.fbx` coil round X with the rope end down −Y), `wooden spade`, `drying shirt` (hangs from its origin
-down −Y, sleeves along X), `worker hut` (the hut shell, below).
+down −Y, sleeves along X), `worker hut` (the hut shell, below), `warehouse` (the Area 1 hall with its ramps,
+landing, hoist and rubble: one FBX, a parts file and a ground capture; see `Prefabs/World/Warehouse/CLAUDE.md`).
 
 ---
 
@@ -54,6 +56,12 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   base colours above 1 are intended (boards 1.3, poles 1.2, the frame deliberately darker at 0.95). Keep boards and
   poles within about 10% of each other. The Inspector's colour picker clamps to 1: set these values by script or in
   the `.mat` file.
+- **Timbers wider than a plank.** The warehouse's posts and beams (0.26 m) use the same texture: `build_warehouse.py`
+  squeezes the mapping across the grain so the piece stays inside one plank (no seam; the grain reads a little
+  finer across). Its other materials are also kit textures in own URP Lit materials: `M_Camp_Shingle` and
+  `M_Camp_ShinglePale` (the wood texture tinted grey / pale; each shingle is one plank), `M_Camp_TarredWood` (post
+  feet), `M_Camp_Rubble` (`T_RockTile`, box-projected at 1 m per tile), `M_Camp_Iron` (`T_Iron` is an **atlas** of
+  hinge shapes: every iron face is mapped inside its one plain patch, `IRON_UV`).
 - **Kit roofs elsewhere.** Kit stones (`SM_RockStone_01a/b`) on a roof read as round boulders: weight a roof with
   lashed bark poles instead (`roof pole`), two per slope, parallel to the ridge.
 - **Scale.** Several props are oversized for a poor camp: crates are 1.05 m cubes (use 0.45–0.7), buckets 0.55, the

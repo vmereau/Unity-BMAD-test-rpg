@@ -100,12 +100,15 @@ Built by Camp Edge (`Editor/World/CLAUDE.md` → Camp Edge for the procedure).
 
 Sites builds these from `Editor/World/Area1CampInterior`, and Camp Edge builds the fence lines (`inner-fence-*`,
 `dock-fence-*`, `compound-fence-*`). Rerun both if `warehouse` moves: Camp Edge clips the panels at its footprint, so
-its walls are the fence there, and a skirt closes the line under the floor.
+its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble`) close the line under the floor.
 
 - The inner palisade runs ring to ring, so the gate at (0, 9) is the only way between the two halves inside the ring;
   everything else goes out through an opening.
-- The warehouse is a real route: camp ramp, hollow floor at the highest ground in its footprint, river door, ramp to the
-  deck. It is the doc's Storage Hut. The NavMesh still links the low tip of the warehouse's camp ramp, so a walker
+- The warehouse is a real route: camp ramp, floor at the highest ground its 5 × 5 samples find in the footprint,
+  river door, landing, ramp to the deck. It is the doc's Storage Hut, and since 2026-11-26 an instance of the
+  generated `Prefabs/World/Warehouse/Warehouse.prefab` (contract and known limits: that folder's `CLAUDE.md`): both
+  ramps and the landing have handrails, a rubble bank and collider boxes close the space under the floor, and a
+  lantern by each cart door lights at night. The NavMesh still links the low tip of the warehouse's camp ramp, so a walker
   heading east from the player's hut goes round its foot.
 - The dock spur at x 24.5 clears the hand-placed barricades and runs into the river; `DockGate` stands open, and
   restricting it is later gameplay.

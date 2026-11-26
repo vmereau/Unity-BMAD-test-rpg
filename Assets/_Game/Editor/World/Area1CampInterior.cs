@@ -26,6 +26,20 @@ namespace Game.Editor.World
         private const float POST_SPACING = 4f;
         private const float POST_BURY = 0.5f;
         private const int FLOOR_SAMPLES = 5;      // per side: the rim falls away, so one point can sit low
+        private const float FLOOR_FIT_TOLERANCE = 0.05f;
+        private const string MISSING_PREFIX = "Missing_"; // WorkerHutKitBuilder.Piece's placeholder for an absent kit prefab
+        // Kit prop, offset from the point under the hoist's rope (x east, z north), yaw, scale, solid.
+        // The kit's crates are cubes of about 1.1 m with the pivot at a bottom corner (they reach -x and +z from it).
+        // The rope hangs over the foot of the bank; the goods stand east of it on the flat, the solid crates against
+        // the bank: the way from the river ramp to the dock gate passes north of them.
+        private static readonly (string kit, Vector2 local, float yaw, float scale, bool solid)[] HoistGoods =
+        {
+            ("SM_Crate_01", new Vector2(1.67f, -0.45f), 8f, 0.62f, true),
+            ("SM_Crate_02", new Vector2(2.37f, -0.5f), -15f, 0.5f, true),
+            ("SM_Sack_01", new Vector2(0.47f, 0.4f), 40f, 1f, false),
+            ("SM_Sack_01", new Vector2(0.92f, 0.6f), 130f, 1f, false),
+            ("SM_Sack_02", new Vector2(1.37f, 0.5f), 75f, 1f, false),
+        };
 
         private const float POST_WALL_HEIGHT = 3f;
         private const float POST_DOOR_X = -2f;      // towards the compound gate
@@ -80,8 +94,11 @@ namespace Game.Editor.World
         /// <summary>
         /// Built into the north palisade on the rim. The camp door and the river door are both real, so the building is a route
         /// to the docks: Area1BlockoutBuilder drops the palisade panels inside its footprint.
+        /// <paramref name="root"/> is an instance of the warehouse prefab (<see cref="WarehouseBuilder"/>) when
+        /// <paramref name="isPrefab"/> is set: it is seated at the floor height and gets the goods under the hoist.
+        /// Otherwise the graybox hall is built into it.
         /// </summary>
-        internal static void BuildWarehouse(Vector2 center, float width, float depth, Terrain terrain, Material timber, Transform root)
+        internal static void BuildWarehouse(Vector2 center, float width, float depth, Terrain terrain, Material timber, Transform root, bool isPrefab)
         {
             float halfWidth = width * 0.5f, halfDepth = depth * 0.5f;
             float floor = float.NegativeInfinity;
@@ -90,6 +107,19 @@ namespace Game.Editor.World
                     floor = Mathf.Max(floor, Area1BlockoutBuilder.Ground(terrain, center + new Vector2(
                         Mathf.Lerp(-halfWidth, halfWidth, x / (FLOOR_SAMPLES - 1f)), Mathf.Lerp(-halfDepth, halfDepth, z / (FLOOR_SAMPLES - 1f)))));
             root.position = new Vector3(center.x, floor, center.y);
+
+            if (isPrefab)
+            {
+                // Posts, trestles and rubble were modelled against a ground capture: a sculpt or a moved zone leaves them off.
+                if (!WarehouseBuilder.TryGetFit(out Vector3 fitted))
+                    GameLog.Warn(TAG, "The warehouse's parts file does not say where the model was fitted: run build_warehouse.py and Build Warehouse Prefab.");
+                else if ((fitted - root.position).magnitude > FLOOR_FIT_TOLERANCE)
+                    GameLog.Warn(TAG, $"Warehouse stands at {root.position:F2} but the model was fitted at {fitted:F2}: run Tools/World/Capture Warehouse Ground (now that the root is in place), build_warehouse.py and Build Warehouse Prefab.");
+                if (WarehouseBuilder.TryGetHoistDrop(out Vector2 drop)) BuildHoistGoods(center + drop, terrain, root);
+                else GameLog.Warn(TAG, "The warehouse's parts file has no 'hoistDrop': no goods placed under the hoist.");
+                return;
+            }
+            GameLog.Error(TAG, $"{WarehouseBuilder.PREFAB_PATH} not found: built the graybox warehouse instead. Run Tools/World/Build Warehouse Prefab, then Sites again.");
 
             Area1RemoteSites.Local("Floor", root, timber, new Vector3(0f, -0.15f, 0f), new Vector3(width, 0.3f, depth));
             Area1RemoteSites.Local("Wall_West", root, timber, new Vector3(-halfWidth + WALL_THICKNESS * 0.5f, WALL_HEIGHT * 0.5f, 0f), new Vector3(WALL_THICKNESS, WALL_HEIGHT, depth));
@@ -149,6 +179,28 @@ namespace Game.Editor.World
             {
                 Vector2 at = center + new Vector2(crates[i].x, halfDepth + crates[i].y);
                 Area1RemoteSites.Column($"Crate_{i}", root, timber, terrain, at, new Vector2(1f, 1f), 1f, i * 25f);
+            }
+        }
+
+        /// <summary>
+        /// Crates and sacks on the bank round the point under the hoist's rope (<paramref name="hoist"/>), as in the
+        /// Dock checkpoint art. Kit props, seated on the terrain (a rock there would bury them).
+        /// </summary>
+        private static void BuildHoistGoods(Vector2 hoist, Terrain terrain, Transform root)
+        {
+            var goods = new GameObject("HoistGoods").transform;
+            goods.SetParent(root, false);
+            foreach ((string kit, Vector2 local, float yaw, float scale, bool solid) in HoistGoods)
+            {
+                Vector2 at = hoist + local;
+                Transform prop = WorkerHutKitBuilder.Piece(kit, goods, Vector3.zero);
+                prop.SetPositionAndRotation(new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at), at.y), Quaternion.Euler(0f, yaw, 0f));
+                prop.localScale = Vector3.one * scale;
+                if (prop.name.StartsWith(MISSING_PREFIX)) GameLog.Error(TAG, $"Hoist goods: kit piece '{kit}' not found; an empty '{prop.name}' stands in for it.");
+                else if (solid)
+                    foreach (Collider collider in prop.GetComponentsInChildren<Collider>(true)) collider.enabled = true;
+                else
+                    prop.gameObject.AddComponent<Unity.AI.Navigation.NavMeshModifier>().ignoreFromBuild = true;
             }
         }
 

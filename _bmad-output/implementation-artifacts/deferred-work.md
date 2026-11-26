@@ -1432,3 +1432,23 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   it stands; they wait for the spacing pass.
 - **Other graybox tarps.** `worker-tarp-south`, `worker-tarp-north (2)` and `(6)`, the Mafia and Wretches bays.
 - **Hut interiors.** The swapped huts are empty shells.
+
+## From spec-area-1-warehouse-rebuild (2026-11-26)
+
+- **Ground through the warehouse floor.** The terrain rises up to 7 cm above the floor over about 2 x 2 m inside the
+  hall (world x 13.5-15.5, z 52.2-54.5). Lower it about 10 cm there, capture the sculpt, rerun
+  `Tools/World/Capture Warehouse Ground`, the model script and the prefab build.
+- **Tight eaves.** The roof's eaves are 0.08 m because `CampCentre/Flag_Warehouse` stands 0.3 m off the south-west
+  corner. Moving the pole about 0.4 m (`Area1TentCamp`, `WarehouseCorner`, and its three hand-edit entries) frees a
+  0.3 m eave (`EAVE_OVERHANG` in `build_warehouse.py`).
+- **Palisade art pass.** The fence panels on both sides of the hall are graybox and 0.6 m thick: they hide the round
+  junction logs up to their top. The palisade model should butt into those logs (local x +-5.86, z 0).
+- **Warehouse interior.** Empty by scope: the floor is built and walkable, nothing stands on it.
+- **Dock gate and guard post** beside the hall are still graybox (views W2 and W3).
+- **A full Sites run was not done** after the rebuild (it replaces every tool root with no undo). Run a hand-edit scan
+  first; the warehouse root itself is safe to rebuild.
+- **No concept sheet for the warehouse.** The camp's custom-piece rule asks for a flat-lit render in `Camp/Concepts/`
+  for a later Meshy pass; only the two beds have one (the hut shell has none either).
+- **The ground capture reads the scene root as it stands.** After a change that moves the floor, Sites must run before
+  the capture (documented in `Prefabs/World/Warehouse/CLAUDE.md`); computing the floor from the layout in
+  `WarehouseBuilder` would remove that ordering.

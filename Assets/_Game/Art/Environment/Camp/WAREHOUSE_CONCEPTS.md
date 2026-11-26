@@ -3,9 +3,14 @@
 > Read when generating or judging a warehouse artwork (W1–W6), or before rebuilding the warehouse in Blender.
 > Art rules these prompts follow: `Art/ART_DIRECTION.md`; camp rules: `CLAUDE.md` (this folder).
 
-The warehouse is the Company's storage hall over the starting corner of the camp: a graybox today
-(`Area1_Blockout/Warehouse`, built by the Sites tool). This pack fixes its look before the rebuild: six captures of
-the placeholder, one image-to-image prompt per capture, and the facts the rebuild must keep.
+The warehouse is the Company's storage hall over the starting corner of the camp. This pack fixed its look before
+the rebuild: six captures of the graybox placeholder, one image-to-image prompt per capture, and the facts the
+rebuild had to keep.
+
+**Built on 2026-11-26** (`spec-area-1-warehouse-rebuild`): the graybox is replaced by a script-built model in a
+generated prefab, still at `Area1_Blockout/Warehouse` and still placed by the Sites tool. Pipeline and contract:
+`Prefabs/World/Warehouse/CLAUDE.md`. The *Build brief* below describes the placeholder the model was measured
+from; what changed is listed under *As built*.
 
 ---
 
@@ -134,6 +139,21 @@ Measured on the placeholder (`Editor/World/Area1CampInterior.BuildWarehouse`, sc
 | Flag pole | `CampCentre/Flag_Warehouse` at the south-west corner (8.7, 47.7), top about y 11.6 in the scene (the code aims at 13) |
 | Dock gate | `DockGate` posts at x 24.5 (z 57.5 and 60.5) with two leaves, and its `GuardPost` lean-to at (27.7, 57.1): outside the rebuild, but in views W2 and W3 |
 
+### As built
+
+- **Less of the hall stands on posts than the artworks show.** The ground under the footprint is within 0.9 m of
+  the floor except at the south-west corner (up to 4.2 m), the west end and the north-west corner (2.2 m). So the
+  tall posts, braces and the 1–2 m rubble bank show there and under the landing (posts up to 4.8 m); along the east
+  half the sill sits on a low course of rubble.
+- Eaves 0.08 m instead of 0.26 m, to clear the flag pole (a deeper eave needs the pole moved about 0.4 m).
+- The rock clump was not rearranged: measured against the new decks, no rock rises through a deck or the floor
+  (the nearest is 8 cm under the camp ramp's deck at world (17.5, 46), where the stringers run into it).
+- The palisade junction is a round log at the middle of each gable; the graybox fence panels (0.6 m thick) hide it
+  up to their top until the palisade gets its own art pass.
+- `Skirt` is now five collider boxes (`Colliders/Rubble`); crates and sacks are kit props under `HoistGoods`.
+- Hoist: the post stands 0.5 m off the wall at the north-east corner post (clear of the eave), the arm ends 2.6 m
+  out from the wall and the 5 m rope ends level with the landing, beside its east rail.
+
 Gameplay and tool constraints:
 
 - **The floor, both doorways and both ramps are a route** (camp ↔ docks) on the NavMesh, 3.5 m wide for carts. Keep
@@ -151,14 +171,13 @@ Gameplay and tool constraints:
   `Area1_Blockout/Warehouse/Ramp_Camp`, with a `BoxCollider`, scaled (3.5, 0.2, 13.85) so that its local ±0.5 are the
   deck's faces (`RampEdge`). Switch its renderer off rather than deactivating it, or change the dresser. Hut-05's
   corner is 0.4 m from that ramp and a floor bed lies under its deck (about 2.9 m up): keep trestles out of that pocket.
-- The warehouse root is **owned by the Sites tool**: a run replaces it whole (and would already lose the two
-  hand-duplicated posts `Post_Camp_0 (1)` and `Post_Camp_1 (1)`). The rebuild either goes into `Area1CampInterior`
-  (as a prefab the tool places) or the root leaves the tool, keeping its name and parent
-  (`Editor/World/CLAUDE.md` → Ownership).
+- The warehouse root is **owned by the Sites tool**: a run replaces it whole. The rebuild went into
+  `Area1CampInterior` as a prefab the tool places, keeping the root's name and parent
+  (`Editor/World/CLAUDE.md` → Ownership). The graybox's two hand-duplicated posts went with the graybox.
 - Scope the user chose for the rebuild (2026-11-26): the hall, both ramps, the landing, the hoist, the palisade
   junction and the rock clump dressing. Not the interior. Crates and sacks under the hoist are new dressing (the
   code builds `Crate_0..2`, the saved scene has none).
-- Rocks near the building, to check and rearrange in the rebuild: hand-placed scene roots `SM_Rock_06 (20–22)`,
+- Rocks near the building (checked in the rebuild and left as they are): hand-placed scene roots `SM_Rock_06 (20–22)`,
   `SM_Rock_07 (3–4)`, `SM_Rock_08 (5–6)`, `SM_Rock_09 (3–4)`.
 
 ---

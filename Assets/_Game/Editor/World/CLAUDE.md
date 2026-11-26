@@ -20,6 +20,7 @@
 | `Rebuild Mafia Quarters`, `Author Mafia Buildings And Overlooks` | `Area1MafiaBlockout` | One-shot authoring (see below) |
 | `Dress Home Yard` | `HomeYardDresser` | `PlayersZone/HomeYardDressing` |
 | `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` from the shell models in `Art/Environment/Camp/models/worker hut/` (see the Huts folder's `CLAUDE.md`); rebake afterwards |
+| `Capture Warehouse Ground`, `Build Warehouse Prefab` | `WarehouseBuilder` | The ground capture the warehouse model is fitted to, then `Prefabs/World/Warehouse/Warehouse.prefab` from the model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab, rebake afterwards |
 | `Replace Graybox Worker Huts` | `WorkerHutRollout` (+ `WorkerHutRolloutRules`) | Swaps the graybox 3 × 3 m huts of `TentCamp/PlayersZone` and `MafiaZone` for shell prefabs, in place (rules: Huts folder's `CLAUDE.md` → Rollout); rebake afterwards |
 
 Sites, river, lake, ford, roads and site features are read from `docs/World/Areas/area-001/layout.json`
@@ -105,6 +106,9 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
   interior roots, `TimberYard`, `WorkshopYard`, `Garrison`, `Farm`, `CampCentre`, `Walkways`, the remote-site roots
   (`Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave`) and — only when not hand-owned —
   `TentCamp`.
+- `Warehouse` is a Sites root whose content is an **instance of the generated warehouse prefab**
+  (`Area1SitesBuilder.NewRoot(parent, name, prefab)`), plus `HoistGoods`. Change the model script or
+  `WarehouseBuilder`, never the instance; a hand-edit scan compares the prefab's children like any built object.
 - Sites never touches the hand-built `CampBridge`, `CompanyCliff`, `FightPit` or the root `SM_Barricade_*`. In `Docks`
   it replaces only its own parts, by name (`DeckFloor_*`, `Boat`, `MooringPost`, `MooringRope`; never rebuild
   `Walkway_*`).
