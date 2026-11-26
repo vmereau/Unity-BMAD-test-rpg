@@ -53,7 +53,8 @@ Local frame: x east, y up, z north (the river); origin on the floor's top at the
 - **`Rubble` is left out of the NavMesh bake** (`ignoreFromBuild`). Marked Not Walkable instead, the stones packed
   under the boards cut the floor above them out of the NavMesh (it took the guard's west waypoint with it).
 - **Walls** are 0.4 m colliders as in the graybox; posts stand outside, boards on their inner face (0.30 m in), so the
-  two fence panels that end inside the gable walls (`outer-fence-3/Panel_060`, `Panel_061`) stay hidden.
+  two fence panels that end inside the gable walls (`outer-fence-3/Panel_060`, `Panel_061`) keep their boxes hidden
+  (their logs stop outside, at the junction logs).
 - **Eaves are tight (0.08 m)** because `CampCentre/Flag_Warehouse` stands 0.3 m off the south-west corner; the gables
   overhang 0.5 m.
 - **Lanterns:** kit `SM_Lantern_Hanging` (unpacked) on the model's iron bracket, a point light and a glow quad driven
@@ -65,5 +66,8 @@ Local frame: x east, y up, z north (the river); origin on the floor's top at the
 - The terrain rises up to 7 cm above the floor over about 2 × 2 m inside the hall (world x 13.5–15.5, z 52.2–54.5):
   the Sites tool samples the footprint on a 5 × 5 grid and misses that crest. It shows as a patch of ground through
   the boards. Fix: a small terrain dip there (then capture the sculpt), not a higher floor.
-- The fence panels on both sides are still graybox and 0.6 m thick, so they swallow the round junction log at the
-  middle of each gable (0.4 m; the east one runs up to the ridge, the west one stops under the hatch) up to their top.
+- The palisade butts into the round junction log at the middle of each gable (0.4 m; the east one runs up to the
+  ridge, the west one stops under the hatch): the Camp Edge tool ends its logs 0.06 m outside the footprint there.
+  The wall's line passes 0.1–0.3 m north of the logs' axis (z 52.1–52.3 against z 52), so the last log leans on the
+  junction log's side rather than its middle. Moving a junction log means changing `WAREHOUSE_LOG_CLEAR` in
+  `Area1BlockoutBuilder` too.

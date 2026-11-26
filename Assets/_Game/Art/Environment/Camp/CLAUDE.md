@@ -4,6 +4,7 @@
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
 > `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
 > model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
+> Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`.
 
 ---
 
@@ -21,7 +22,9 @@ Custom pieces so far: `worker bed`, `door flap`, `floor bed` (+ `FloorBed_Model.
 (+ `ClothBundle.prefab`, a separate prop, not part of the bed), `roof pole` (`RoofPole.fbx` 3.7 m along X,
 `RoofLashing.fbx` coil round X with the rope end down −Y), `wooden spade`, `drying shirt` (hangs from its origin
 down −Y, sleeves along X), `worker hut` (the hut shell, below), `warehouse` (the Area 1 hall with its ramps,
-landing, hoist and rubble: one FBX, a parts file and a ground capture; see `Prefabs/World/Warehouse/CLAUDE.md`).
+landing, hoist and rubble: one FBX, a parts file and a ground capture; see `Prefabs/World/Warehouse/CLAUDE.md`),
+`palisade` (a kit, not a wall: six log heads, two posts, a rail and a rope lashing, with `Palisade.json`; the Camp
+Edge tool assembles them, see `Editor/World/CLAUDE.md` → Palisade log walls).
 
 ---
 
@@ -62,6 +65,13 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   `M_Camp_ShinglePale` (the wood texture tinted grey / pale; each shingle is one plank), `M_Camp_TarredWood` (post
   feet), `M_Camp_Rubble` (`T_RockTile`, box-projected at 1 m per tile), `M_Camp_Iron` (`T_Iron` is an **atlas** of
   hinge shapes: every iron face is mapped inside its one plain patch, `IRON_UV`).
+- **Round logs.** A trunk is wrapped onto two planks of the same texture (three for a post), going there and back
+  round it, so the wrap closes without a seam and half a 0.3 m trunk's girth covers about its true width of texture.
+  The warehouse's junction logs and the palisade (`M_Camp_PalisadeLog` at 1.2, a slightly darker `M_Camp_PalisadeFoot`
+  for the lowest 30 cm) are mapped this way. It reads as long drying cracks, not knots.
+- **A kit the tool assembles.** Where a piece must follow the ground over hundreds of metres (the palisade), model
+  only what has a shape (the top metre of a log, ending in an open ring) and let the tool carry it down: a whole-wall
+  model would need a ground capture and a Blender run after every sculpt.
 - **Kit roofs elsewhere.** Kit stones (`SM_RockStone_01a/b`) on a roof read as round boulders: weight a roof with
   lashed bark poles instead (`roof pole`), two per slope, parallel to the ridge.
 - **Scale.** Several props are oversized for a poor camp: crates are 1.05 m cubes (use 0.45–0.7), buckets 0.55, the

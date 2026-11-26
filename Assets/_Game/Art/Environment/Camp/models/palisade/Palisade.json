@@ -1,0 +1,75 @@
+{
+ "head": 1.0,
+ "tile": 2.0,
+ "logs": [
+  {
+   "name": "Log_1",
+   "radius": 0.15,
+   "sides": 8,
+   "shoulder": 0.3194
+  },
+  {
+   "name": "Log_2",
+   "radius": 0.138,
+   "sides": 8,
+   "shoulder": 0.3623
+  },
+  {
+   "name": "Log_3",
+   "radius": 0.162,
+   "sides": 8,
+   "shoulder": 0.326
+  },
+  {
+   "name": "Log_4",
+   "radius": 0.145,
+   "sides": 8,
+   "shoulder": 0.3632
+  },
+  {
+   "name": "Log_5",
+   "radius": 0.156,
+   "sides": 8,
+   "shoulder": 0.3971
+  },
+  {
+   "name": "Log_6",
+   "radius": 0.132,
+   "sides": 8,
+   "shoulder": 0.3111
+  }
+ ],
+ "posts": [
+  {
+   "name": "Post_1",
+   "radius": 0.205,
+   "sides": 10
+  },
+  {
+   "name": "Post_2",
+   "radius": 0.195,
+   "sides": 10
+  }
+ ],
+ "rail": {
+  "name": "Rail",
+  "radius": 0.065
+ },
+ "lashing": {
+  "name": "Lashing"
+ },
+ "railOffset": 0.227,
+ "postOffset": -0.04299999999999998,
+ "triangles": {
+  "Log_1": 54,
+  "Log_2": 54,
+  "Log_3": 54,
+  "Log_4": 54,
+  "Log_5": 54,
+  "Log_6": 54,
+  "Post_1": 68,
+  "Post_2": 68,
+  "Rail": 20,
+  "Lashing": 96
+ }
+}

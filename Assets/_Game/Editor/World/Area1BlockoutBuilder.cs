@@ -11,8 +11,10 @@ using UnityEngine;
 namespace Game.Editor.World
 {
     /// <summary>
-    /// Rebuilds the camp's graybox palisade under Area1_Blockout/CampEdge from docs/World/Areas/area-001/layout.json.
-    /// Same layout and terrain, same result. Rebake the NavMesh after a run.
+    /// Rebuilds the camp's palisade under Area1_Blockout/CampEdge from docs/World/Areas/area-001/layout.json. Each
+    /// panel is a box (its collider, and what hand edits pin); once the edits are applied, every panel is given a wall
+    /// of logs from the palisade kit, fitted to the ground (<see cref="PalisadeMesh"/>). Without the kit the boxes stay
+    /// graybox. Same layout, terrain and kit, same result. Rebake the NavMesh after a run.
     /// </summary>
     public static class Area1BlockoutBuilder
     {
@@ -28,6 +30,43 @@ namespace Game.Editor.World
             "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
             "compound-fence-upper", "compound-fence-lower",
         };
+
+        /// <summary>
+        /// A point on the camp side of each line: rails and lashings go on the face turned to it. The outer ring looks
+        /// into the camp, the hill line into the fort, the inner fences into the Company yard, the spurs into the compound.
+        /// </summary>
+        private static readonly Dictionary<string, Vector2> CampSide = new Dictionary<string, Vector2>
+        {
+            { "hill-palisade", new Vector2(25f, -52f) },
+            { "inner-fence-west", new Vector2(0f, -20f) },
+            { "inner-fence-east", new Vector2(0f, -20f) },
+            { "dock-fence-upper", new Vector2(0f, 64f) },
+            { "dock-fence-lower", new Vector2(0f, 64f) },
+            { "compound-fence-upper", new Vector2(-9.5f, 64f) },
+            { "compound-fence-lower", new Vector2(-9.5f, 64f) },
+        };
+        private static readonly Vector2 CampMiddle = new Vector2(0f, 0f);
+
+        private const float POST_CLEAR = 0.8f;            // of a post's radius: the logs beside a post press into it a little
+        // The warehouse's junction logs stand 0.14 m inside its footprint and are 0.2 m in radius (build_warehouse.py),
+        // so their outer face is this far outside the rectangle the panels are clipped to.
+        private const float WAREHOUSE_LOG_CLEAR = 0.06f;
+        private const int SEED_STEP = 7919;
+        private static readonly float[] GroundReach = { -0.4f, -0.2f, 0f, 0.2f, 0.4f }; // across the wall, past a post's faces
+        private const float RAIL_GROUND_REACH = 0.25f;    // where the rail hangs, on the camp side
+        private const float JOINT_TOLERANCE = 0.05f;      // two panels still share a joint when their ends are this close
+        private const float RUN_ON_TOLERANCE = 0.01f;     // consecutive panels cut from one line
+        private const float MIN_FLAT_FORWARD = 1e-6f;     // a panel stood on end has no direction along the ground
+
+        /// <summary>What the log pass needs to know about a panel that its transform does not say.</summary>
+        private sealed class PanelInfo
+        {
+            public Transform Panel;
+            public string Line;
+            public int Seed;
+            public int Previous = -1, Next = -1;   // the panels it runs on from and into, by index; -1 at a gap or an end
+            public bool ClippedStart, ClippedEnd;  // cut short at the warehouse: it ends against a junction log
+        }
 
         private const string WAREHOUSE_FEATURE = "warehouse";
         private const string SHORE_RAIL_FEATURE = "shore-rail";
@@ -82,7 +121,8 @@ namespace Game.Editor.World
         }
 
         /// <summary>Builds into <paramref name="root"/>, which <see cref="Area1HandEditsWindow"/> points at a temporary clone with <paramref name="applyEdits"/> off.</summary>
-        internal static bool Run(GameObject root, bool applyEdits, out string problem)
+        /// <param name="onlyLine">For a look test: give log walls to this line only and leave the others as boxes.</param>
+        internal static bool Run(GameObject root, bool applyEdits, out string problem, string onlyLine = null)
         {
             problem = null;
             Terrain terrain = Terrain.activeTerrain;
@@ -101,6 +141,12 @@ namespace Game.Editor.World
 
             if (!Area1HandEdits.TryLoad(out Area1HandEdits edits, out problem)) return false;
 
+            if (onlyLine != null && !FenceIds.Contains(onlyLine))
+            {
+                problem = $"'{onlyLine}' is not a palisade line; nothing changed.";
+                return false;
+            }
+
             Transform old = root.transform.Find(CAMP_EDGE);
             if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
 
@@ -108,7 +154,7 @@ namespace Game.Editor.World
             edge.SetParent(root.transform, false);
 
             Vector2 breakPoint = Position(features["fence-break"]);
-            int panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
+            List<PanelInfo> panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
             BuildArrivalGate(features, terrain, timber, edge);
             BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint);
             BuildRail("ShoreRail", features[SHORE_RAIL_FEATURE], SHORE_RAIL_GAP_EVERY, SHORE_RAIL_POST_HEIGHT, terrain, timber, edge);
@@ -118,8 +164,11 @@ namespace Game.Editor.World
 
             var hash = PositionHash(edge); // before the edits, which may remove it, and so it still compares two builds
             edits.Apply(root.transform, Area1HandEdits.IsCampEdge);
+            // From here the root is rebuilt, so the scene is dirty whatever the log pass does.
             EditorSceneManager.MarkSceneDirty(root.scene);
-            GameLog.Info(TAG, $"Done. {panels} palisade panels, position hash {hash}. Rebake the NavMesh.");
+            string wall = DressPalisade(panels, terrain, onlyLine); // after the edits: a panel raised or removed by hand decides its logs
+            GameLog.Info(TAG, $"Done. {panels.Count} palisade panels built, position hash {hash}, {wall}. "
+                + "Save the scene (the wall meshes are already on disk) and rebake the NavMesh.");
             return true;
         }
 
@@ -129,8 +178,9 @@ namespace Game.Editor.World
             if (edge != null) yield return edge;
         }
 
-        private static int BuildPalisade(Dictionary<string, JObject> features, Terrain terrain, Material timber, Transform edge, Vector2 breakPoint)
+        private static List<PanelInfo> BuildPalisade(Dictionary<string, JObject> features, Terrain terrain, Material timber, Transform edge, Vector2 breakPoint)
         {
+            var built = new List<PanelInfo>();
             int count = 0;
             JObject warehouse = features[WAREHOUSE_FEATURE];
             Vector2 warehouseAt = Position(warehouse);
@@ -141,11 +191,19 @@ namespace Game.Editor.World
                 group.SetParent(edge, false);
 
                 var random = new System.Random(SEED ^ StableHash(id)); // from the id, so adding or changing a line leaves the others' heights alone
+                int inLine = 0;
+                Vector2 runsOnFrom = Vector2.zero;
+                bool canRunOn = false;
                 foreach ((Vector2 start, Vector2 end) in Area1TerrainMath.CutPanels(Points(features[id]), PANEL_LENGTH, breakPoint, BREAK_HALF_WIDTH))
                 {
                     float jitter = ((float)random.NextDouble() * 2f - 1f) * PANEL_JITTER; // drawn first, so a skipped panel leaves the rest alone
                     Vector2 a = start, b = end;
-                    if (!Area1TerrainMath.ClipOutsideRect(ref a, ref b, warehouseAt, warehouseSize)) continue; // its walls are the fence here
+                    inLine++;
+                    if (!Area1TerrainMath.ClipOutsideRect(ref a, ref b, warehouseAt, warehouseSize)) // its walls are the fence here
+                    {
+                        canRunOn = false;
+                        continue;
+                    }
 
                     GroundUnder(terrain, a, b, out float low, out float mean, out float high);
                     float top = Mathf.Max(mean + PANEL_HEIGHT + jitter, high + PANEL_MIN_CLEARANCE);
@@ -158,10 +216,152 @@ namespace Game.Editor.World
                         new Vector3(PANEL_THICKNESS, top - bottom, along.magnitude + PANEL_OVERLAP * 2f));
                     panel.rotation = Yaw(along);
                     count++;
+
+                    var info = new PanelInfo
+                    {
+                        Panel = panel, Line = id, Seed = SEED ^ StableHash(id) ^ (inLine * SEED_STEP),
+                        ClippedStart = a != start, ClippedEnd = b != end,
+                    };
+                    if (canRunOn && !info.ClippedStart && Vector2.Distance(runsOnFrom, a) < RUN_ON_TOLERANCE)
+                    {
+                        info.Previous = built.Count - 1;
+                        built[info.Previous].Next = built.Count;
+                    }
+                    built.Add(info);
+                    runsOnFrom = b;
+                    canRunOn = !info.ClippedEnd;
                 }
             }
-            return count;
+            return built;
         }
+
+        /// <summary>
+        /// Gives every panel still standing its wall of logs, read from the panel as it is now: its box top is the line
+        /// no log comes under, its length the span to fill. Returns a line for the log.
+        /// </summary>
+        private static string DressPalisade(List<PanelInfo> panels, Terrain terrain, string onlyLine)
+        {
+            if (!PalisadeKit.TryLoad(out PalisadeKitData kit, out Material[] materials, out string problem))
+            {
+                GameLog.Error(TAG, $"{problem}; the palisade stays graybox.");
+                return "no log kit (graybox)";
+            }
+
+            float clear = kit.Posts.Max(p => p.Radius) * POST_CLEAR;
+            var meshes = new Dictionary<string, Mesh>();
+            var owners = new List<(Transform panel, string name)>();
+            int skipped = 0;
+            try
+            {
+                for (int i = 0; i < panels.Count; i++)
+                {
+                    PanelInfo info = panels[i];
+                    if (!Stands(info.Panel) || (onlyLine != null && info.Line != onlyLine)) continue;
+                    if (!TrySpan(info.Panel, out Vector3 start, out Vector3 end))
+                    {
+                        skipped++; // too short for a log, or tipped over by hand: it keeps its box
+                        continue;
+                    }
+
+                    string name = $"{info.Line}_{info.Panel.name}";
+                    meshes[name] = PalisadeMesh.Build(kit, Stretch(panels, info, start, end, terrain, clear));
+                    owners.Add((info.Panel, name));
+                }
+            }
+            catch
+            {
+                foreach (Mesh mesh in meshes.Values) UnityEngine.Object.DestroyImmediate(mesh); // none was saved
+                throw;
+            }
+
+            if (skipped > 0) GameLog.Warn(TAG, $"{skipped} palisade panels have no span to stand logs on; they stay boxes.");
+            if (owners.Count == 0) return "no panel to give logs to (the saved wall meshes were left alone)";
+
+            long triangles = 0;
+            foreach (Mesh mesh in meshes.Values)
+                for (int s = 0; s < mesh.subMeshCount; s++) triangles += mesh.GetIndexCount(s) / 3;
+
+            Dictionary<string, Mesh> saved = PalisadeKit.Save(meshes, onlyLine != null);
+            foreach ((Transform panel, string name) in owners)
+            {
+                panel.GetComponent<MeshFilter>().sharedMesh = saved[name];
+                panel.GetComponent<MeshRenderer>().sharedMaterials = materials;
+            }
+            return $"{owners.Count} log walls, {triangles} triangles";
+        }
+
+        /// <summary>The two ends of the line a panel's logs stand on, read from the panel as it is now (its box overlaps its neighbours).</summary>
+        private static bool TrySpan(Transform panel, out Vector3 start, out Vector3 end)
+        {
+            start = end = panel.position;
+            Vector3 forward = panel.forward;
+            forward.y = 0f;
+            float half = panel.lossyScale.z * 0.5f - PANEL_OVERLAP;
+            if (half <= 0f || forward.sqrMagnitude < MIN_FLAT_FORWARD) return false;
+
+            forward.Normalize();
+            start = panel.position - forward * half;
+            end = panel.position + forward * half;
+            return true;
+        }
+
+        /// <summary>
+        /// The panel a panel runs on from or into, if it still stands where the build joined them: a panel moved or
+        /// turned by hand no longer shares the joint, and each side then closes on its own post.
+        /// </summary>
+        private static Transform Joined(List<PanelInfo> panels, int index, Vector3 joint, bool itsEnd)
+        {
+            if (index < 0 || !Stands(panels[index].Panel) || !TrySpan(panels[index].Panel, out Vector3 start, out Vector3 end)) return null;
+            return Vector2.Distance(Flat(itsEnd ? end : start), Flat(joint)) <= JOINT_TOLERANCE ? panels[index].Panel : null;
+        }
+
+        private static PalisadeStretch Stretch(List<PanelInfo> panels, PanelInfo info, Vector3 start, Vector3 end, Terrain terrain, float clear)
+        {
+            Transform panel = info.Panel;
+            Vector3 forward = (end - start).normalized;
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
+            Vector2 camp = CampSide.TryGetValue(info.Line, out Vector2 inside) ? inside : CampMiddle;
+            float campSide = Vector3.Dot(right, new Vector3(camp.x - panel.position.x, 0f, camp.y - panel.position.z)) >= 0f ? 1f : -1f;
+            float top = Top(panel);
+            Transform previous = Joined(panels, info.Previous, start, true);
+            Transform next = Joined(panels, info.Next, end, false);
+
+            return new PalisadeStretch
+            {
+                Length = Vector3.Distance(start, end),
+                Ground = along => GroundAcross(terrain, start + forward * along, right),
+                RailGround = along => Ground(terrain, Flat(start + forward * along + right * (campSide * RAIL_GROUND_REACH))),
+                Bottom = panel.position.y - panel.lossyScale.y * 0.5f,
+                TopMid = top,
+                // a lower panel climbs to its taller neighbour's top at the joint, so the top line has no cliff in it
+                TopStart = previous != null ? Mathf.Max(top, Top(previous)) : top,
+                TopEnd = next != null ? Mathf.Max(top, Top(next)) : top,
+                JointTopStart = previous != null ? Mathf.Min(top, Top(previous)) : top,
+                JointTopEnd = next != null ? Mathf.Min(top, Top(next)) : top,
+                CampSide = campSide,
+                PostAtStart = !info.ClippedStart,
+                PostAtEnd = !info.ClippedEnd && next == null,
+                ClearStart = info.ClippedStart ? WAREHOUSE_LOG_CLEAR : clear,
+                ClearEnd = info.ClippedEnd ? WAREHOUSE_LOG_CLEAR : clear,
+                RunsOn = next != null,
+                Seed = info.Seed,
+                ToMesh = panel.worldToLocalMatrix * Matrix4x4.TRS(new Vector3(start.x, 0f, start.z), Quaternion.LookRotation(forward), Vector3.one),
+            };
+        }
+
+        /// <summary>The lowest ground across the wall's thickness: on a bank the outer face of a log stands lower than its axis.</summary>
+        private static float GroundAcross(Terrain terrain, Vector3 at, Vector3 right)
+        {
+            float lowest = float.PositiveInfinity;
+            foreach (float across in GroundReach) lowest = Mathf.Min(lowest, Ground(terrain, Flat(at + right * across)));
+            return lowest;
+        }
+
+        private static Vector2 Flat(Vector3 p) => new Vector2(p.x, p.z);
+
+        private static bool Stands(Transform panel) => panel != null && panel.gameObject.activeSelf;
+
+        private static float Top(Transform panel) => panel.position.y + panel.lossyScale.y * 0.5f;
 
         /// <summary>Two towers cap the fence ends either side of the road. No leaves or blocker: the pass blocker is the story lock.</summary>
         private static void BuildArrivalGate(Dictionary<string, JObject> features, Terrain terrain, Material timber, Transform edge)

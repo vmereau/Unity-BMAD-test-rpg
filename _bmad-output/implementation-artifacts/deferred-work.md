@@ -1441,8 +1441,9 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **Tight eaves.** The roof's eaves are 0.08 m because `CampCentre/Flag_Warehouse` stands 0.3 m off the south-west
   corner. Moving the pole about 0.4 m (`Area1TentCamp`, `WarehouseCorner`, and its three hand-edit entries) frees a
   0.3 m eave (`EAVE_OVERHANG` in `build_warehouse.py`).
-- **Palisade art pass.** The fence panels on both sides of the hall are graybox and 0.6 m thick: they hide the round
-  junction logs up to their top. The palisade model should butt into those logs (local x +-5.86, z 0).
+- [Done 2026-11-26, `spec-area-1-palisade-rebuild.md`] **Palisade art pass.** The fence panels on both sides of the
+  hall are graybox and 0.6 m thick: they hide the round junction logs up to their top. The palisade model should butt
+  into those logs (local x +-5.86, z 0).
 - **Warehouse interior.** Empty by scope: the floor is built and walkable, nothing stands on it.
 - **Dock gate and guard post** beside the hall are still graybox (views W2 and W3).
 - **A full Sites run was not done** after the rebuild (it replaces every tool root with no undo). Run a hand-edit scan
@@ -1452,3 +1453,33 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **The ground capture reads the scene root as it stands.** After a change that moves the floor, Sites must run before
   the capture (documented in `Prefabs/World/Warehouse/CLAUDE.md`); computing the floor from the layout in
   `WarehouseBuilder` would remove that ordering.
+
+## Area 1 palisade rebuild (`spec-area-1-palisade-rebuild.md`, 2026-11-26)
+
+- **Collapsed stretch.** `CampEdge/BrokenStretch` (8 m west of the warehouse) is still a graybox rail on two posts.
+  Agreed with Valentin as its own spec: fallen and leaning logs, the same kit.
+- **Gates and arrival towers.** `ArrivalGate/Tower_L`, `Tower_R` and the inner, dock, compound, ramp, fields and fort
+  cart gates are graybox or kit pieces; the log wall ends on a post at each. Artwork P2 shows the towers as lashed
+  clusters of heavier logs.
+- **Colliders are still the 0.6 m boxes.** The logs are 0.3 m thick, so the player stops about 0.15 m short of the
+  wall's face on both sides. Thinning the boxes changes every saved panel edit's scale and needs a NavMesh check.
+- **`Generated/Palisade.asset` is about 20 MB of text**, rewritten whenever the ground under a line changes. Per-line
+  files, or meshes without tangents, would shrink the diffs.
+- **Trunk texture.** The huts' plank texture wrapped round a log shows streaks and repeats on long flat stretches (the
+  south-west wall from the wood). A tiling trunk texture with knots, and moss or pitch at the foot, would close the gap
+  to artwork P6.
+- **Rails cross steep ground in a straight line** between two joints, so on a bank a low rail can run into a bulge of
+  ground between them.
+- **Wall line at the warehouse.** `outer-fence-3` passes 0.1-0.3 m north of the junction logs' axis; moving its layout
+  points onto z 52 would centre the last log on them (it shifts panel names' positions, so check the saved edits).
+- **Two lines sharing a point each stand a post there** (`outer-fence-3` and `compound-fence-upper` at (-35.5, 39),
+  `dock-fence-upper` on the north line): the posts overlap with different heights. Joining lines at shared ends
+  would need links across lines in `BuildPalisade`.
+- **Rails at a corner of a line** (46-50 degrees on `outer-fence`, `outer-fence-stub`, `hill-palisade`) do not meet on
+  the outside of the turn and cross on the inside; a lashing does not tilt with a sloping rail.
+- **Camp side is decided per panel** from one reference point per line. Every line is consistent today; a panel
+  running almost straight at its reference point could flip (the closest is on `outer-fence`).
+- **No automated test for the kit loader and the scene pass** (`PalisadeKit.TryLoad`, `DressPalisade`): a missing
+  kit, a removed panel and the scan path were checked by hand in the scene; only the mesh assembly has tests.
+- **The palisade's review left three task lines reworded rather than built as first written**: one mesh asset instead
+  of a folder of meshes, no material remap on the kit's FBX (materials are assigned by the tool), no leaning logs.

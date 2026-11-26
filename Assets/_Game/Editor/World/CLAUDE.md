@@ -12,7 +12,7 @@
 |--------------------------|-------|--------|
 | `Build Area 1 Terrain` | `Area1TerrainBuilder` (+ `Area1TerrainMath`, `Area1TerrainSculpt`) | `StartingTownTerrain.asset`: sculpt, paint, forest |
 | `Capture Area 1 Terrain Sculpt` | `Area1TerrainSculpt` | `docs/World/Areas/area-001/terrain-sculpt.bin` |
-| `Build Area 1 Camp Edge` | `Area1BlockoutBuilder` | `Area1_Blockout/CampEdge` only |
+| `Build Area 1 Camp Edge` | `Area1BlockoutBuilder` (+ `PalisadeMesh`, `PalisadeKit`) | `Area1_Blockout/CampEdge` only, and the wall meshes in `Art/Environment/Camp/Generated/Palisade.asset` |
 | `Build Area 1 Sites` | `Area1SitesBuilder` (+ `Area1CampInterior`, `Area1TentCamp`, `Area1Stoneworks`, `Area1Timberworks`, `Area1Garrison`, `Area1Farm`, `Area1RemoteSites`, `Area1Worker*`) | The site roots under `Area1_Blockout` (see **Ownership**) |
 | `Build Area 1 Worker Settlement` | `Area1WorkerSettlement` | Scoped settlement build; refuses while the settlement is hand-owned |
 | `Area 1 Hand Edits` | `Area1HandEditsWindow` / `Area1HandEdits` | `docs/World/Areas/area-001/hand-edits.json` |
@@ -126,6 +126,48 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
 - Each line in `FenceIds` has its own seeded jitter, so changing one leaves the others' heights alone.
 - The numbers on `Panel_NNN` count across lines, so adding length to an early line shifts every later name, and saved
   `hand-edits.json` paths must move with them.
+
+### Palisade log walls
+
+Every `Panel_NNN` is still the tool's box: its transform and `BoxCollider` are what the game collides with and what
+hand edits pin. Camp Edge only changes what the panel **draws**: after the hand edits are applied, each standing panel
+gets a wall of logs assembled from the palisade kit (`Art/Environment/Camp/models/palisade/`, built by
+`build_palisade.py`; look and sizes: `Art/Environment/Camp/PALISADE_CONCEPTS.md`).
+
+- **Per panel:** a heavier flat-topped post on its start point, ordinary logs pressed together to the next joint, two
+  pole rails on the camp side, a rope lashing where a rail crosses a post. A panel with nothing running on from it
+  (a line's end, a gap, a removed neighbour) also gets a closing post.
+- **Fitted to the ground:** each log's lowest shoulder (where its point starts; the kit's sizes file gives it per
+  log) stands 2 cm above the panel's box top, so the notches between points clear it too. The top line climbs to a
+  taller neighbour at a joint; the high rail hangs 0.75 m under the *lower* of the two tops there, so rails meet at
+  the joint and never rise above the logs. A log's foot goes 0.7 m under the lowest ground across the wall's thickness
+  and never ends above the box's own bottom. The kit holds only the top metre of a log; the shaft is carried down with its U, so the
+  grain keeps its scale on a 14 m wall.
+- **Read from the panel as it stands**, so a panel raised or removed by hand decides its own logs. Two panels count
+  as joined only while their ends are within 5 cm: one moved or turned by hand closes on its own post, and so does
+  its old neighbour. A panel moved or resized by hand *after* a run keeps its old mesh, stretched with the box, until
+  the next run.
+- **Camp side** (rails and lashings) is decided per line from `Area1BlockoutBuilder.CampSide`: the outer ring faces the
+  camp, `hill-palisade` the fort, the inner fences the Company yard, the dock and compound spurs the compound. A new
+  line that is not in that table faces the camp's middle.
+- **At the warehouse** the two clipped panels end without a post, 0.06 m outside the footprint, against the hall's
+  round junction logs (`WAREHOUSE_LOG_CLEAR` mirrors `build_warehouse.py`).
+- **Meshes** are written in the panel's local space (a panel is a scaled box) and saved as sub-assets of
+  `Generated/Palisade.asset`, named `<line>_Panel_NNN`. A mesh already there is refilled, so a rerun on the same ground
+  leaves the file and the scene's references byte-identical; one no panel asks for is removed. The file is about 20 MB.
+- **The asset is written during the run, the scene is not: save the scene after every Camp Edge run**, and commit or
+  revert the two together. A scene on disk that is older than the asset draws meshes made for other panel poses.
+- **Without the kit** (no model, no sizes file or one with a size missing or not above 0, a missing
+  `M_Camp_PalisadeLog`, `M_Camp_PalisadeFoot` or `M_Camp_Rope`, model and sizes a version apart) the run logs an
+  error and leaves the boxes graybox; the saved meshes stay on disk, unreferenced. A hand-edit scan builds boxes only
+  and writes no asset (`Run` returns before the log pass when `applyEdits` is off).
+- `BrokenStretch`, the `ArrivalGate` towers and both rails are still graybox.
+- Look test on one line: `Area1BlockoutBuilder.Run(root, true, out problem, "outer-fence-3")` (internal; the other
+  lines draw boxes until the next full run, their saved meshes are kept; an unknown line is refused before anything
+  is rebuilt).
+- Sizes (log, post and rail radii, the head's length, offsets across the wall) live in `build_palisade.py` and reach
+  Unity through `Palisade.json`. The assembly's own numbers (bury depth, raggedness, rail heights) are the constants at
+  the top of `PalisadeMesh`. Tests: `Tests/EditMode/PalisadeMeshTests` (a stand-in kit, no model needed).
 
 ### Settlement hand-owned flag
 

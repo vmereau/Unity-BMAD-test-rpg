@@ -75,6 +75,9 @@ Built by Camp Edge (`Editor/World/CLAUDE.md` → Camp Edge for the procedure).
   (10, 40) to (−24, 109) clear. Its blocker uses a collider on `Ignore Raycast`, which the player still hits and sight
   rays and the camera skip (so it needs a Not Walkable volume: `Editor/World/CLAUDE.md` → NavMesh bake).
 - `outer-fence-4` has five panels; on the bank at its east end the panel tops reach y 8.6.
+- All 13 palisade lines draw log walls (the 165 panels left standing by the saved edits, about 190,000 triangles); the colliders are still the 0.6 m boxes,
+  so the player stops about 0.15 m short of the logs' face. `BrokenStretch`, the arrival towers and every gate are
+  still graybox. Rails and lashings are on the camp side of each line (`Editor/World/CLAUDE.md` → Palisade log walls).
 
 ---
 
