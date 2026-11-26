@@ -146,6 +146,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Monster prefabs | `Prefabs/Entities/Monsters/CLAUDE.md` | Monster hierarchy, hit-detection physics |
 | Hut prefabs | `Prefabs/World/Huts/CLAUDE.md` | Generated worker hut prefabs (board-built Blender shell, seed / tight / mirrored variants), shell contract, graybox rollout tool, home yard dressing tool |
 | Warehouse prefab | `Prefabs/World/Warehouse/CLAUDE.md` | Generated Area 1 warehouse (script-built Blender model, ground capture, parts file), its contract (walk boxes, `Ramp_Camp`, rubble colliders, lanterns) and known limits |
+| Cookhouse prefab | `Prefabs/World/Cookhouse/CLAUDE.md` | Generated Area 1 canteen (cookhouse with kitchen and restricted store, porch, mess shelter, tables, alley fence), its contract, and the command that places it with its dressing, the moved NPCs and the store's restricted area |
 | Item prefabs | `Prefabs/Items/CLAUDE.md` | World-item (drop / pickup) requirements |
 | Weapon prefabs | `Prefabs/Items/Weapons/CLAUDE.md` (+ `WEAPON_TOOLS.md`) | `_World` / `_Visual` convention, sockets, grip; topic file: Weapon Creator / Pose Tuner |
 | Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |

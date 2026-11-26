@@ -52,7 +52,8 @@ Hand-owned root outside the builders: Brann, two routine spots, and `BrannsStash
 
 `RestrictedAreas` (scene root, hand-owned) holds `RestrictedArea` volumes: `RA_Warehouse` (warehouse interior, owner
 `NPC_WarehouseGuard`, always) and `RA_Docks` (layout `docks` rect clipped north of the warehouse, owner
-`Faction_Company`, 21–06). Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`.
+`Faction_Company`, 21–06) and `RA_CookhouseStore` (the cookhouse's store room inside its boards, owners `NPC_Cook` and
+`NPC_KitchenHand`, always; rebuilt by `Tools/World/Place Area 1 Canteen`). Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`.
 Keep all three out of `Area1_Blockout` (tool-rebuilt).
 
 ---
@@ -378,10 +379,35 @@ wanted again, restore vertical boxes (lip across the ring gap, walls on the pit'
   the arrival gate; do not assume they share an anchor. `Bed`, `PlayerSpawnPoint`, TentMate's spots and BeatenWorker
   are hand-placed and don't follow the layout's `players-tent` point. `Bed` is in the player's hut (0.38, 48.15),
   TentMate's routine is round his hut `worker-mate` next door, BeatenWorker stands at the campfire (7.4, 40.4).
-- Cook and cooking station remain outside TentCamp as hand-owned gameplay objects. Tob (`KitchenHand`, scene root) stands between the canteen counter and the fireplace; his bed
-  `KitchenHandBed` (`Bed_WorkerPallet` + scene-added `NpcApproach` / `NpcSleepAnchor` / `Ownership`) is under `TentCamp/Canteen`,
-  inside the cookhouse against the south side wall.
+- The canteen (`TentCamp/Canteen`) is built: see **Canteen** below. `Cook`, `KitchenHand` and
+  `CookingStation_Fireplace` are still scene roots, placed by the canteen command.
 - Hut doors stay at least 2.1 m high and steps under 0.3 m (see **Camp centre**).
+
+### Canteen (`spec-area-1-canteen-cookhouse`)
+
+`TentCamp/Canteen` holds `Cookhouse` (an instance of the generated prefab, at (−15.75, 0.15, 20)), `Dressing` (kit
+props) and `KitchenHandBed`. `Tools/World/Place Area 1 Canteen` rebuilds the first two and moves the gameplay objects;
+contract, pipeline and what a rerun discards: `Prefabs/World/Cookhouse/CLAUDE.md`. Look: `Art/Environment/Camp/CANTEEN_CONCEPTS.md`.
+
+- **Cookhouse** x −18.5..−13, z 15.5..24.5, long side to the square. Kitchen in the south (door in the south gable,
+  into the porch; serving hatch in the east wall, z 18.6..20.8), store in the north (inner door in the partition at
+  z 20.8..21, delivery door in the west wall, z 22..23.6). The store is `RestrictedAreas/RA_CookhouseStore`; the
+  kitchen, porch, mess and alley are free to enter.
+- **The north end is fixed by the arrival sight lane** (6 m wide, post → `arrival-gate`): its south edge is at z 26.0
+  over x −13 and z 27.4 over x −18.5. Nothing taller than the alley's fence (z 25) may stand north of the building.
+- **Cook porch** z 12.5..15.5: `CookingStation_Fireplace` (the tripod and cauldron) at (−16.6, 0, 13.9), open to the
+  east and south, a wind wall on the west.
+- **Mess shelter** x −11.5..−5.5, z 10..14.5 against the inner palisade, four tables under it, two in the open near
+  (−9.6, 16.9) and (−6.9, 16.3).
+- **Back alley** x −22..−18.5 between the cookhouse and huts `worker-hut-02 (7)` / `(9)`: fence and open gate on z 25,
+  `Decor/SM_cartB_a1` at (−20.6, 0, 18.3), the fish rack at its south end.
+- **Ground:** the command cut the plot down to y 0 (x −21..−12, z 12.4..25.2 and x −12.5..−5, z 9.9..15.2); it is in the
+  captured sculpt. The strip against the palisade south of the porch stays about 0.4 m higher (the wood corner).
+- **People:** Tob (`KitchenHand`) stands behind the counter at (−13.95, 0.15, 19.7) and sleeps on `KitchenHandBed` in
+  the kitchen's south-west corner (−17.3, 0.15, 16.3); Aldric (`Cook`) stands outside north of the hatch at
+  (−11.3, 0, 21.7) and spends the night at `Spot_Cook_Night`, by the hearth (−14.8, 0.15, 19.4).
+- `CampCentre/Flag_0` (−12, 17.6) stands 1 m in front of the east wall, 1 m south of the hatch (Sites owns it).
+  `SM_Trough` (−20, 16) was left in the alley.
 
 ### Mafia buildings and arena overlooks
 

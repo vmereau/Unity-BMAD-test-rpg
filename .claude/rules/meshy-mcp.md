@@ -98,6 +98,11 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   30–70 s, output 1376 × 768): composition and placeholder shapes are kept. Give two `reference_file_paths`, the capture
   first and an accepted artwork second, and say in the prompt which is which ("repaint the first input image", "the
   second image is a material reference only").
+- **Every object the prompt names gets painted.** A shared template listing the whole site's props (sacks, crates,
+  firewood, a fish rack) put all of them against the nearest wall in a view that showed none (canteen K1). Cut each
+  view's description down to what that view shows, and add "add no object where the first image shows none".
+- Interiors from grey-box massing work as well as exteriors (canteen K4, K5), but a fixture can slide along its wall
+  (a hearth moved into the corner), and "no smoke" / "no text" are not reliably obeyed (chimney smoke, writing on a board).
 - Small props drift toward the foreground (a stool and a fire basket moved in two views of four), and a steep
   top-down view lost what was outside the subject (a river and a dock became a stream between rocks): name such
   things in the view paragraph as "stays exactly as it is".

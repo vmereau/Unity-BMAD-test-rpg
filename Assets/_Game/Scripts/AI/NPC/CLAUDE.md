@@ -151,12 +151,12 @@
 ## StartingTown routine cast
 
 - StartingTown (spots under `NpcRoutineSpots`), 06–21 stand at spawn / 21–06 spot: Storekeeper on the commute north of the Company store and
-  Cook by the canteen (both spots date from the removed houses; move them when those NPCs move indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
+  Cook in the cookhouse kitchen by the hearth (the Storekeeper's spot dates from a removed house; move it when he moves indoors), Blacksmith in his room at the Timberworks forge, Warden outside the Company
   office door on the outcrop (NPCs can't open doors). Old Hobb (`TentMate`): 06–21 Patrol between his hut door (`worker-mate`) and the Player's Zone campfire, 21–06
   **Sleep** in `PlayersZone/HobbsBed` inside his hut (his restricted area: see `Scenes/STARTING_TOWN.md` → Hobb's hut and bed; `Spot_TentMate_Night` is unused since). `DockGuard`: 06–21 spot `DockGuard_GuardPost` (in front of the dock guard post), 21–06 Patrol on
   its deck (`NpcPatrolRoutes/DockGuard`). `WarehouseGuard` and `bandit`: all-day Patrol. `CompanyGuard_ArrivalLeft` / `Right`: all-day stand at `Spot_ArrivalGuard_Left` / `Right` (arrival gate). `RacketGuard` (Harl): 06–14
   `Spot_RacketGuard_QuarryGate`, 14–21 `Spot_RacketGuard_WildernessGate` (his toll posts), 21–06 `Spot_RacketGuard_Night` outside
-  The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`. `KitchenHand` (Tob): 05–07 `Spot_KitchenHand_Garden` (farm kitchen garden, block label `Garden`), 07–21 stand at spawn by the cookhouse fire (`Cookhouse`), 21–05 Sleep in `TentCamp/Canteen/KitchenHandBed`. TitheBarnShortfall cast (scene root `TitheBarnShortfall`): `BarnGuard` (Venn) 06–21 `Spot_BarnGuard_Gate`, 00–03 `Spot_BarnGuard_BarnDoor` (block label `Barn`), otherwise Sleep in `BarnGuardBed` (barracks `Bunk_0`); `FieldHand_Pim` / `BarnWorker_Gerrit` 06–21 `Spot_FieldHand_Strips` / `Spot_BarnWorker_Threshing`, 21–06 Sleep in `FieldHandBed` / `BarnWorkerBed` (tent camp, west of Hobb's hut).
+  The Short Measure. `BeatenWorker` (Tam): all-day stand at `Spot_BeatenWorker_Campfire`. `KitchenHand` (Tob): 05–07 `Spot_KitchenHand_Garden` (farm kitchen garden, block label `Garden`), 07–21 stand at spawn behind the cookhouse's serving counter (`Cookhouse`), 21–05 Sleep in `TentCamp/Canteen/KitchenHandBed`. TitheBarnShortfall cast (scene root `TitheBarnShortfall`): `BarnGuard` (Venn) 06–21 `Spot_BarnGuard_Gate`, 00–03 `Spot_BarnGuard_BarnDoor` (block label `Barn`), otherwise Sleep in `BarnGuardBed` (barracks `Bunk_0`); `FieldHand_Pim` / `BarnWorker_Gerrit` 06–21 `Spot_FieldHand_Strips` / `Spot_BarnWorker_Threshing`, 21–06 Sleep in `FieldHandBed` / `BarnWorkerBed` (tent camp, west of Hobb's hut).
 - **Night torch on** (`_torchAtNight`): DockGuard, WarehouseGuard, CompanyGuard_ArrivalLeft / Right, RacketGuard (Harl),
   BarnGuard (Venn — asleep 21–00 / 03–06, so only at the barn door).
 

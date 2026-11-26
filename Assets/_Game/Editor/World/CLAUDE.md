@@ -22,6 +22,7 @@
 | `Dress Home Yard` | `HomeYardDresser` | `PlayersZone/HomeYardDressing` |
 | `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` from the shell models in `Art/Environment/Camp/models/worker hut/` (see the Huts folder's `CLAUDE.md`); rebake afterwards |
 | `Capture Warehouse Ground`, `Build Warehouse Prefab` | `WarehouseBuilder` | The ground capture the warehouse model is fitted to, then `Prefabs/World/Warehouse/Warehouse.prefab` from the model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab, rebake afterwards |
+| `Build Cookhouse Prefab`, `Place Area 1 Canteen` | `CookhouseBuilder` | `Prefabs/World/Cookhouse/Cookhouse.prefab` from the cookhouse model and its parts file, then the canteen in the scene: levelled ground, the instance, `Canteen/Dressing`, moved gameplay objects, `RestrictedAreas/RA_CookhouseStore` (pipeline: that folder's `CLAUDE.md`); capture the sculpt and rebake afterwards |
 | `Replace Graybox Worker Huts` | `WorkerHutRollout` (+ `WorkerHutRolloutRules`) | Swaps the graybox 3 × 3 m huts of `TentCamp/PlayersZone` and `MafiaZone` for shell prefabs, in place (rules: Huts folder's `CLAUDE.md` → Rollout); rebake afterwards |
 
 Sites, river, lake, ford, roads and site features are read from `docs/World/Areas/area-001/layout.json`
@@ -81,6 +82,9 @@ asset's internal name stale). The `.meta` GUID then changes in git, which is exp
 - Scene bakes collect render meshes, so an invisible collider never blocks the NavMesh: add a Not Walkable
   `NavMeshModifierVolume` where agents could reach it. Rails, bars and posts too thin for a bake need one too.
 - A `MeshRenderer` on `ShadowsOnly` draws only into the shadow map but is collected; a disabled renderer isn't.
+- **A script compile during a bake drops it silently**: the domain reload ends the async bake, the asset keeps its old
+  time stamp and paths run through whatever was built since. Check `NavMeshAssetManager.IsSurfaceBaking` (or the
+  asset's write time) before testing paths.
 - Sparse meshes with box colliders (e.g. barricades) leave NavMesh inside them; close it with a Not Walkable volume.
 
 ### Hand-painted camp ground
@@ -304,6 +308,12 @@ These author hand-owned geometry once; they are not part of the run order.
   `CampClothMesh` and saved under `Art/Environment/Camp/Generated/` (same assets reused on every run). At the end it
   warns for every solid collider in the dressing within 0.7 m of an escort lane (`ArrivalSequence/HutLanes`); the
   card game, trunk and doorstep props from the first pass are listed every run (known, the escort walks round them).
+
+- **`Tools/World/Place Area 1 Canteen`** (`CookhouseBuilder.Place`) edits the hand-owned `TentCamp/Canteen` and other
+  hand-owned objects by design (`RestrictedAreas/RA_CookhouseStore`, `NpcRoutineSpots/Spot_Cook_Night`, `Cook`,
+  `KitchenHand`, `CookingStation_Fireplace`, `Decor/SM_cartB_a1`, the children of `Camp/Canteen`): it is
+  an authoring command, not a builder, so it uses `GameObject.Find`. Rerunnable; it cuts the live terrain on its first
+  run (capture the sculpt), never saves and never bakes. What it replaces: `Prefabs/World/Cookhouse/CLAUDE.md`.
 
 - **`Tools/World/Replace Graybox Worker Huts`** (`WorkerHutRollout`) edits the hand-owned `TentCamp` by design: it
   deletes each graybox hut it swaps (one undo step, no save, no bake) and never moves one. It measures plots with

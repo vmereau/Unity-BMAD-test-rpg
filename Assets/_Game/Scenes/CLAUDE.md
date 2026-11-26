@@ -90,7 +90,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `CompanyHouse` | Outcrop y≈10, (0..30, −33..−45) | Hall + flags; `House` (lockable, door faces the camp) is the Warden's office; ramp on the north side |
 | Company yard | South of the inner fence | Chests, Storekeeper's table; the store building and Edric's forge are in the Timberworks |
 | `InnerFence` | z≈9, gate at x≈0 | Only the two `SM_Gate_Side_C` posts remain. The tall inner palisade is in `CampEdge`, and `InnerGate` holds the leaves and guard hut. Guard Harl stands in the gap |
-| `Canteen` | (−14, 22) | Cook, `CookingStation_Fireplace` outside. No building: the old house was removed and a new one is for a later spec |
+| `Area1_Blockout/TentCamp/Canteen` | (−15.75, 20) | The cookhouse (kitchen + restricted store), cook porch with `CookingStation_Fireplace`, mess shelter and back alley: an instance of the generated `Prefabs/World/Cookhouse/Cookhouse.prefab` plus `Dressing`, placed by `Tools/World/Place Area 1 Canteen` (that folder's `CLAUDE.md`); see `STARTING_TOWN.md` → Canteen. `Camp/Canteen` is now empty |
 | `Area1_Blockout/TentCamp`, `CampCentre` | Worker half, (−25..40, 10..48) | Hand-owned timber housing and tool-built square; see `STARTING_TOWN.md` → Worker settlement and Home yard |
 | `Area1_Blockout/CampEdge` | Ring at about 50 m | Graybox palisade from `Tools/World/Build Area 1 Camp Edge`; see `STARTING_TOWN.md` → Camp edge |
 | `Area1_Blockout/Quarry` | Cleft at (255, −125) | Site roots from `Tools/World/Build Area 1 Sites`; see `STARTING_TOWN.md` → Quarry and Ruins 2 |
@@ -101,7 +101,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `Area1_Blockout/InnerGate`, `Warehouse`, `DockGate`, `CompoundGate`, `StagingYard`, `GuardPost`, `WorkGangTents`, `Latrine`, `TimberYard`, `WorkshopYard`, `Garrison`, `Walkways` | Camp interior | Same tool; see `STARTING_TOWN.md` → Camp interior, Company compound, Stoneworks, Timberworks, Garrison quarter |
 | `Area1_Blockout/Farm` | Plain south of the fort hill, (−48..44, −50..−148) | Same tool; see `STARTING_TOWN.md` → Farm |
 | `Area1_Blockout/Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave` | Remote | Same tool; see `STARTING_TOWN.md` → Remote sites |
-| `RestrictedAreas` | Scene root (hand-owned) | `RA_Warehouse` / `RA_Docks` volumes; guard waypoints under `NpcPatrolRoutes/<NPC>`, routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout`; see `STARTING_TOWN.md` → Restricted areas |
+| `RestrictedAreas` | Scene root (hand-owned) | `RA_Warehouse` / `RA_Docks` / `RA_CookhouseStore` volumes; guard waypoints under `NpcPatrolRoutes/<NPC>`, routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout`; see `STARTING_TOWN.md` → Restricted areas |
 
 Other hand-owned scene roots (no tool touches them): `WorkSiteManagers`, `SealedPassage`, `HiddenStashQuest`,
 `ArrivalSequence` — see `STARTING_TOWN.md`.

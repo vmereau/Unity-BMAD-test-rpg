@@ -1548,3 +1548,21 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   line "give an apple (base)").
 - **Tob is the only food / recipe seller**: if he is killed, onion and salt pork can't be bought and `WorkersSandwich`
   can't be finished (salt pork has no other source). Consider `CanBeExecuted` false or a second seller.
+
+## spec-area-1-canteen-cookhouse (2026-11-26)
+
+- **Store gameplay (agreed as later specs):** lootable containers with the food stock, a lock and key on the store's
+  inner door (the leaves are fixed open today), Aldric's stash, and workers' eating routines at the mess tables.
+- **Dressing weight:** the canteen's kit props are about 124,000 triangles at LOD0 (30,000 at their lowest LOD), the
+  model 26,800. Above the spec's 60,000 guide at close range; thin the firewood stacks, sacks and barrels or make
+  camp-weight props if it shows in the profiler.
+- **`CampCentre/Flag_0`** stands 1 m in front of the hatch wall and crosses the view of the hatch from the square;
+  moving it means the layout's flag rule (Sites owns it).
+- **`SM_Trough`** (scene root at (-20, 16)) was left in the alley, where the cart now turns.
+- **Tally board** has no chalk marks; **no smoke or flame** on the hearth and porch fire (lights only).
+- The cut ground has no paint of its own: the old grass/mud paint lies on the levelled plot.
+- **No version stamp between the model, its parts file and the prefab** (review): `Build Cookhouse Prefab` does not
+  compare the parts file's triangle counts with the imported FBX, and `Place Area 1 Canteen` does not check that the
+  prefab was rebuilt from the current parts file. The broken stretch has both checks; copy them if the script changes often.
+- **Ground rectangles, table collider boxes and dressing offsets are written in `CookhouseBuilder`**, not read from the
+  parts file: moving `CENTRE`, `MESS` or the porch in the script needs them moved by hand.

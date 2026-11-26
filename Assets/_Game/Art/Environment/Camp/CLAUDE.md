@@ -4,7 +4,9 @@
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
 > `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
 > model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
-> Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`.
+> Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`;
+> the canteen (cookhouse, mess, back alley): `CANTEEN_CONCEPTS.md`; its model and prefab pipeline:
+> `Prefabs/World/Cookhouse/CLAUDE.md`.
 
 ---
 
@@ -27,7 +29,9 @@ landing, hoist and rubble: one FBX, a parts file and a ground capture; see `Pref
 Edge tool assembles them, see `Editor/World/CLAUDE.md` → Palisade log walls), `broken stretch` (38 meshes for the
 collapsed wall and its repair works, each on its own pivot, with `BrokenStretch.json` saying where each goes; see
 `Editor/World/CLAUDE.md` → Broken stretch. New wood is `M_Camp_NewLog`, the same texture at about 2.1; rags are
-`M_Camp_Rag`).
+`M_Camp_Rag`), `cookhouse` (the canteen: cookhouse with its interior, porch, mess shelter, one trestle table
+set and the alley fence in one FBX with a parts file; its script loads the warehouse's as a library; see
+`Prefabs/World/Cookhouse/CLAUDE.md`).
 
 ---
 
@@ -77,6 +81,8 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   model would need a ground capture and a Blender run after every sculpt.
 - **Kit roofs elsewhere.** Kit stones (`SM_RockStone_01a/b`) on a roof read as round boulders: weight a roof with
   lashed bark poles instead (`roof pole`), two per slope, parallel to the ridge.
+- **Weight.** A few kit props have no LOD and a film-size mesh: `SM_Jar_Var1_UV` and `SM_WoodWaterBucket_UV` are about
+  95,000 triangles each (the `_UV` pack). Count a prop's triangles before placing it in numbers.
 - **Scale.** Several props are oversized for a poor camp: crates are 1.05 m cubes (use 0.45–0.7), buckets 0.55, the
   chopping trunk 0.7. Check bounds before placing.
 - **Kit lights.** Some props bring an always-on light with a missing HDRP script (`SM_FireCamp_01b`, `PF_Firecamp01a`),
