@@ -51,29 +51,77 @@ namespace Game.Inventory
             GameLog.Warn(TAG, $"Equip(ItemSO): {item.itemName} not found in inventory");
         }
 
-        /// <summary>Equips the item at the given inventory index.</summary>
+        /// <summary>Equips the item at the given inventory index into the slot <see cref="EquipmentRules.TryGetTargetSlot"/> picks.</summary>
         public void Equip(int inventoryIndex)
         {
-            if (inventoryIndex < 0 || inventoryIndex >= _inventorySystem.Count)
-            {
-                GameLog.Warn(TAG, $"Equip: inventoryIndex {inventoryIndex} is out of range");
-                return;
-            }
-
-            var item = _inventorySystem.Items[inventoryIndex].Item;
-
-            if (item is not EquipableItemSO)
-            {
-                GameLog.Warn(TAG, "Item is not equippable");
-                return;
-            }
+            if (!TryGetEquippable(inventoryIndex, out var item)) return;
 
             if (!EquipmentRules.TryGetTargetSlot(item, _equipped, out EquipmentSlot targetSlot))
             {
                 GameLog.Warn(TAG, $"Unknown equippable slot type for {item.itemName}");
                 return;
             }
+            EquipInto(inventoryIndex, item, targetSlot);
+        }
 
+        /// <summary>
+        /// Equips the item at the given inventory index into <paramref name="slot"/> (inventory drag onto a slot). Refused
+        /// (returns false, nothing changes) when the item doesn't fit that slot. An occupied slot swaps its item back.
+        /// </summary>
+        public bool Equip(int inventoryIndex, EquipmentSlot slot)
+        {
+            if (!TryGetEquippable(inventoryIndex, out var item)) return false;
+            if (!EquipmentRules.FitsSlot(item, slot))
+            {
+                GameLog.Info(TAG, $"Equip refused: {item.itemName} doesn't go in {slot}");
+                return false;
+            }
+            EquipInto(inventoryIndex, item, slot);
+            return true;
+        }
+
+        /// <summary>
+        /// Trades the contents of two equipped slots (Ring1 ↔ Ring2), one <c>_onEquipmentChanged</c>. Refused (false) unless
+        /// <see cref="EquipmentRules.CanSwap"/> allows it. Stats don't change: the same items stay worn.
+        /// </summary>
+        public bool SwapEquipped(EquipmentSlot a, EquipmentSlot b)
+        {
+            if (!EquipmentRules.CanSwap(_equipped, a, b))
+            {
+                GameLog.Info(TAG, $"Swap refused: {a} ↔ {b}");
+                return false;
+            }
+            ItemSO itemA = GetEquipped(a);
+            ItemSO itemB = GetEquipped(b);
+            _equipped.Remove(a);
+            _equipped.Remove(b);
+            if (itemB != null) _equipped[a] = itemB;
+            if (itemA != null) _equipped[b] = itemA;
+            GameLog.Info(TAG, $"Swapped {a} ↔ {b}");
+            _onEquipmentChanged?.Raise(true);
+            return true;
+        }
+
+        private bool TryGetEquippable(int inventoryIndex, out ItemSO item)
+        {
+            item = null;
+            if (inventoryIndex < 0 || inventoryIndex >= _inventorySystem.Count)
+            {
+                GameLog.Warn(TAG, $"Equip: inventoryIndex {inventoryIndex} is out of range");
+                return false;
+            }
+
+            item = _inventorySystem.Items[inventoryIndex].Item;
+            if (item is not EquipableItemSO)
+            {
+                GameLog.Warn(TAG, "Item is not equippable");
+                return false;
+            }
+            return true;
+        }
+
+        private void EquipInto(int inventoryIndex, ItemSO item, EquipmentSlot targetSlot)
+        {
             // Return displaced items to the inventory first (AddItem before RemoveItem: appending never shifts the index).
             // A two-handed weapon / bow and a shield exclude each other (spec-shield-offhand-blocking).
             // Each displaced item leaves _equipped before AddItem, so inventory listeners never see it in both places.

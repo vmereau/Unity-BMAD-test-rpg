@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Equipment section — 3 layout directions</title>
+<style>
+/* Palette (ART_DIRECTION.md reference swatches)
+   bg        #1C1813  near-black brown (no pure black)
+   panel     #2B2118  earth brown       panel edge #4A3828 / #6B5440
+   well      #171310  slot well         well edge  #55534E stone gray
+   text      #D8CCB0  bone              muted      #B8A988 parchment / #807C74 stone
+   brass     #8C7343  selection         fire       #C27A3A hover warmth (small accent only)
+   green     #5A6346  stat up           blood      #7A2A22 stat down
+*/
+:root{--bg:#1C1813;--panel:#2B2118;--edge:#4A3828;--edge2:#6B5440;--well:#171310;--wellEdge:#55534E;
+--bone:#D8CCB0;--parch:#B8A988;--stone:#807C74;--brass:#8C7343;--fire:#C27A3A;--green:#5A6346;--blood:#7A2A22}
+*{box-sizing:border-box}
+body{margin:0;background:#121010;color:var(--bone);font-family:Georgia,"Times New Roman",serif;padding:24px}
+h1{font-weight:normal;margin:0 0 4px;font-size:26px}
+.lead{color:var(--parch);max-width:1000px;margin:0 0 28px;font-size:15px;line-height:1.5}
+section{margin-bottom:48px}
+h2{font-weight:normal;font-size:22px;margin:0 0 6px;color:var(--bone)}
+h2 b{color:var(--brass);font-weight:normal;margin-right:8px}
+.why{color:var(--parch);max-width:960px;font-size:14px;line-height:1.5;margin:0 0 12px}
+.why em{color:var(--bone);font-style:normal}
+.viewport{width:960px;height:540px;overflow:hidden;border:1px solid #3a332b;position:relative}
+.screen{width:1920px;height:1080px;transform:scale(.5);transform-origin:0 0;position:absolute;left:0;top:0;background:var(--bg)}
+.abs{position:absolute}
+.panel{position:absolute;background:var(--panel);border:4px solid var(--edge);box-shadow:inset 0 0 0 2px #1f1812}
+.tab{position:absolute;top:31px;width:243px;height:100px;background:#33281d;border:4px solid var(--edge);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--parch)}
+.tab.on{background:#3d3022;border-color:var(--brass);color:var(--bone)}
+/* the grid + detail are context only: dimmed */
+.ctx{opacity:.38}
+.grid{position:absolute;left:591px;top:216px;width:680px;height:680px;
+ background:
+ repeating-linear-gradient(90deg,transparent 0 80px,var(--panel) 80px 85px),
+ repeating-linear-gradient(0deg,transparent 0 80px,var(--panel) 80px 85px),var(--well)}
+.detail-line{position:absolute;height:2px;background:var(--edge2)}
+.slot{position:absolute;background:var(--well);border:4px solid var(--wellEdge);display:flex;align-items:center;justify-content:center}
+.slot img{width:84%;height:84%;object-fit:contain;background:#55534e;opacity:.95}
+.slot.empty .ghost{font-size:15px;color:#4d4840;text-align:center;line-height:1.15;letter-spacing:.5px;text-transform:uppercase}
+.slot.hover{border-color:#a8835a;box-shadow:0 0 0 2px #3d2e1f}
+.slot.sel{border-color:var(--brass);box-shadow:0 0 0 3px #4a3c22}
+.slot.drop{border-color:#6f7d50;border-style:dashed}
+.lbl{position:absolute;font-size:18px;color:var(--stone);text-transform:uppercase;letter-spacing:2px}
+.cap{position:absolute;font-size:22px;color:var(--parch)}
+.note{position:absolute;font-family:Consolas,monospace;font-size:20px;color:#c9a46a;background:#000a;border:2px dashed #8C7343;padding:6px 10px}
+.stat{font-size:22px;color:var(--parch)}
+.stat b{color:var(--bone);font-weight:normal}
+.up{color:#8a9a6a}.down{color:#a2564a}
+.tag{display:inline-block;font-size:13px;letter-spacing:1px;padding:2px 8px;border:1px solid var(--brass);color:var(--brass);margin-right:6px;font-family:Consolas,monospace}
+</style></head><body>
+
+<h1>Equipment section — three layout directions</h1>
+<p class="lead">Each frame is the real 1920×1080 Inventory screen shown at 50%. The item grid and the detail panel stay where they are and are dimmed here. Only the left area changes: it is <b>576 px wide</b> (x 0–576) and the panels are <b>800 px tall</b> (y 140–940), while today's equipment column uses only 200 px of that width. The seven slots come from <code>EquipmentSlot</code>: Weapon, Offhand, Helmet, Armor, Necklace, Ring ×2. All three frames show the same states: an occupied slot, an <b>empty</b> slot (Necklace, Ring 2), a <b>hovered</b> slot (warm edge) and the <b>selected</b> slot (brass), which feeds the detail panel. The icons are your real item icons.</p>
+
+<!-- ===================================================== A ===================================================== -->
+<section>
+<h2><b>A</b>Paper doll: a painted figure with slots placed on the body</h2>
+<p class="why">This is the classic RPG layout. A flat 2D figure, a painted parchment silhouette of the hero as one illustration, sits in the middle of a 496×800 panel. Each slot sits next to the body part it covers, joined by a thin ink line: helmet at the head, necklace at the throat, armor at the chest, weapon and offhand at the hands, and the rings in a pair under the hands. The figure never changes with your gear, so it costs <em>one illustration and no 3D work</em>. It reads well, but the space is fixed: a new slot (boots, belt) needs a new spot on the body. A summary row at the bottom totals protection and damage. Its content depends on the stats your items actually expose.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="ctx"><div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div></div>
+
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <div class="lbl" style="left:72px;top:166px">Equipment</div>
+  <div class="detail-line" style="left:72px;top:198px;width:432px"></div>
+  <!-- figure: parchment silhouette -->
+  <svg class="abs" style="left:168px;top:214px" width="240" height="560" viewBox="0 0 240 560">
+    <g fill="#3a2f24" stroke="#5e4c38" stroke-width="3">
+      <ellipse cx="120" cy="52" rx="34" ry="42"/>
+      <path d="M100 90 L140 90 L146 112 L94 112 Z"/>
+      <path d="M58 118 Q120 98 182 118 L196 260 L178 300 L62 300 L44 260 Z"/>
+      <path d="M58 122 L26 270 L22 330 L40 332 L50 280 L78 170 Z"/>
+      <path d="M182 122 L214 270 L218 330 L200 332 L190 280 L162 170 Z"/>
+      <path d="M66 298 L174 298 L170 330 L70 330 Z"/>
+      <path d="M72 328 L116 328 L110 540 L80 540 Z"/>
+      <path d="M124 328 L168 328 L160 540 L130 540 Z"/>
+    </g>
+  </svg>
+  <!-- leader lines -->
+  <svg class="abs" style="left:0;top:0" width="576" height="1080"><g stroke="#6B5440" stroke-width="2" fill="none" stroke-dasharray="6 5">
+    <path d="M156 266 L250 266"/><path d="M420 330 L300 316"/><path d="M156 420 L236 420"/>
+    <path d="M156 560 L194 545"/><path d="M420 560 L382 545"/>
+  </g></svg>
+  <div class="slot" style="left:68px;top:222px;width:88px;height:88px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div>
+  <div class="cap" style="left:68px;top:314px;font-size:17px">Helmet</div>
+  <div class="slot empty hover" style="left:420px;top:286px;width:88px;height:88px"><div class="ghost">Neck</div></div>
+  <div class="cap" style="left:420px;top:378px;font-size:17px">Necklace</div>
+  <div class="slot sel" style="left:68px;top:376px;width:88px;height:88px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div>
+  <div class="cap" style="left:68px;top:468px;font-size:17px">Armor</div>
+  <div class="slot" style="left:68px;top:516px;width:88px;height:88px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div>
+  <div class="cap" style="left:68px;top:608px;font-size:17px">Weapon</div>
+  <div class="slot" style="left:420px;top:516px;width:88px;height:88px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_RoundWoodShield_Icon.png"></div>
+  <div class="cap" style="left:420px;top:608px;font-size:17px">Offhand</div>
+  <div class="slot" style="left:190px;top:780px;width:88px;height:88px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div>
+  <div class="slot empty" style="left:298px;top:780px;width:88px;height:88px"><div class="ghost">Ring</div></div>
+  <div class="cap" style="left:252px;top:872px;font-size:17px">Rings</div>
+  <div class="detail-line" style="left:72px;top:902px;width:432px;background:#3d3226"></div>
+  <div class="note" style="left:96px;top:1000px">figure = one 2D illustration · slots 88×88 · leader lines optional</div>
+</div></div>
+</section>
+
+<!-- ===================================================== B ===================================================== -->
+<section>
+<h2><b>B</b>Live character: a 3D preview of the hero between two slot columns</h2>
+<p class="why">The real player model is rendered to a texture between two columns of slots and wears exactly what is equipped. Equip the round shield and it shows on his arm. You can drag to turn him. Armor goes on the left (Helmet, Armor, Necklace) and arms and rings on the right (Weapon, Offhand, Ring, Ring). This is the most rewarding option: gear you find is <em>seen on the hero</em>, which fits a game where armor is physical and worn. It is also the most work: a preview camera, a light rig and a copy of the player that follows equip changes. The model has to look good up close, and an empty slot still needs the column to explain it.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="ctx"><div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div></div>
+
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <!-- viewport -->
+  <div class="abs" style="left:150px;top:160px;width:276px;height:640px;background:radial-gradient(ellipse at 50% 38%,#4a3a28 0%,#2a2118 55%,#1d1813 100%);border:2px solid #3d3226"></div>
+  <svg class="abs" style="left:178px;top:200px" width="220" height="560" viewBox="0 0 240 560">
+    <g fill="#5a4a38" stroke="#7a6248" stroke-width="2">
+      <path d="M86 20 Q120 -4 154 20 L158 70 L82 70 Z" fill="#6f6c66"/>
+      <ellipse cx="120" cy="66" rx="30" ry="30" fill="#8a6f55"/>
+      <path d="M58 118 Q120 98 182 118 L196 260 L178 300 L62 300 L44 260 Z" fill="#5c4630"/>
+      <path d="M58 122 L26 270 L22 330 L40 332 L50 280 L78 170 Z"/>
+      <path d="M182 122 L214 270 L218 330 L200 332 L190 280 L162 170 Z"/>
+      <circle cx="206" cy="250" r="44" fill="#5b4a33" stroke="#3a2e22" stroke-width="6"/>
+      <path d="M66 298 L174 298 L170 330 L70 330 Z"/>
+      <path d="M72 328 L116 328 L110 540 L80 540 Z" fill="#3e352c"/>
+      <path d="M124 328 L168 328 L160 540 L130 540 Z" fill="#3e352c"/>
+      <path d="M28 300 L10 210 L22 206 L40 296 Z" fill="#6f6c66"/>
+    </g>
+  </svg>
+  <div class="abs" style="left:150px;top:770px;width:276px;text-align:center;font-size:18px;color:var(--stone)">⟲ drag to turn</div>
+  <!-- left column -->
+  <div class="lbl" style="left:58px;top:162px">Armour</div>
+  <div class="slot" style="left:56px;top:196px;width:80px;height:80px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div>
+  <div class="slot sel" style="left:56px;top:292px;width:80px;height:80px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div>
+  <div class="slot empty hover" style="left:56px;top:388px;width:80px;height:80px"><div class="ghost">Neck</div></div>
+  <!-- right column -->
+  <div class="lbl" style="left:438px;top:162px">Arms</div>
+  <div class="slot" style="left:440px;top:196px;width:80px;height:80px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div>
+  <div class="slot" style="left:440px;top:292px;width:80px;height:80px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_RoundWoodShield_Icon.png"></div>
+  <div class="lbl" style="left:438px;top:400px">Rings</div>
+  <div class="slot" style="left:440px;top:434px;width:80px;height:80px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div>
+  <div class="slot empty" style="left:440px;top:530px;width:80px;height:80px"><div class="ghost">Ring</div></div>
+  <!-- summary -->
+  <div class="detail-line" style="left:72px;top:826px;width:432px"></div>
+  <div class="abs stat" style="left:72px;top:846px">Protection <b>12</b></div>
+  <div class="abs stat" style="left:300px;top:846px">Damage <b>18</b></div>
+  <div class="abs stat" style="left:72px;top:884px;font-size:18px;color:var(--stone)">(example values: shows what the items actually expose)</div>
+  <div class="note" style="left:96px;top:1000px">preview = RenderTexture of a player copy · slots 80×80 (same as grid)</div>
+</div></div>
+</section>
+
+<!-- ===================================================== C ===================================================== -->
+<section>
+<h2><b>C</b>Armoury ledger: grouped rows with names and stats, no figure</h2>
+<p class="why">There is no body. The panel is a ledger sorted into three engraved groups: <em>Arms</em> (Weapon, Offhand), <em>Armour</em> (Helmet, Armor) and <em>Trinkets</em> (Necklace, Ring, Ring). Each row puts the slot next to the item's name and its key numbers, so you compare gear without hovering. An empty row says so in words. This is the most sober and functional option, closest to Gothic's restraint and the ART_DIRECTION <em>no UI clutter</em> rule. It is cheap to build (it reuses <code>SlotWell</code> and <code>Panel</code>) and grows easily (a new slot is a new row). The trade-off is that it is the least "RPG character sheet" in feel: you read your gear more than you see it.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="ctx"><div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div></div>
+
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <!-- group: Arms -->
+  <div class="lbl" style="left:72px;top:164px">Arms</div><div class="detail-line" style="left:160px;top:176px;width:344px"></div>
+  <div class="slot" style="left:72px;top:200px;width:72px;height:72px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div>
+  <div class="abs" style="left:160px;top:204px;font-size:24px">Woodcutter's Axe</div>
+  <div class="abs stat" style="left:160px;top:238px;font-size:19px">Weapon · <b>14</b> damage · one-handed</div>
+  <div class="slot" style="left:72px;top:288px;width:72px;height:72px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_RoundWoodShield_Icon.png"></div>
+  <div class="abs" style="left:160px;top:292px;font-size:24px">Round Wooden Shield</div>
+  <div class="abs stat" style="left:160px;top:326px;font-size:19px">Offhand · <b>+6</b> block</div>
+  <!-- group: Armour -->
+  <div class="lbl" style="left:72px;top:390px">Armour</div><div class="detail-line" style="left:186px;top:402px;width:318px"></div>
+  <div class="slot hover" style="left:72px;top:426px;width:72px;height:72px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div>
+  <div class="abs" style="left:160px;top:430px;font-size:24px">Iron Helmet</div>
+  <div class="abs stat" style="left:160px;top:464px;font-size:19px">Helmet · <b>4</b> protection</div>
+  <div class="slot sel" style="left:72px;top:514px;width:72px;height:72px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div>
+  <div class="abs" style="left:160px;top:518px;font-size:24px;color:#e2d6b8">Leather Armor</div>
+  <div class="abs stat" style="left:160px;top:552px;font-size:19px">Armor · <b>8</b> protection</div>
+  <!-- group: Trinkets -->
+  <div class="lbl" style="left:72px;top:616px">Trinkets</div><div class="detail-line" style="left:200px;top:628px;width:304px"></div>
+  <div class="slot empty" style="left:72px;top:652px;width:72px;height:72px"><div class="ghost">Neck</div></div>
+  <div class="abs" style="left:160px;top:672px;font-size:22px;color:#6b6358;font-style:italic">no necklace</div>
+  <div class="slot" style="left:72px;top:740px;width:72px;height:72px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div>
+  <div class="abs" style="left:160px;top:744px;font-size:24px">Odo's Ring</div>
+  <div class="abs stat" style="left:160px;top:778px;font-size:19px">Ring · <span class="up">+5 health</span></div>
+  <div class="slot empty" style="left:72px;top:828px;width:72px;height:72px"><div class="ghost">Ring</div></div>
+  <div class="abs" style="left:160px;top:848px;font-size:22px;color:#6b6358;font-style:italic">no second ring</div>
+  <div class="note" style="left:96px;top:1000px">rows 72 tall · names/stats are examples · no new art needed</div>
+</div></div>
+</section>
+
+<p class="why"><span class="tag">MIX</span>You can mix them: C's groups and stat lines under a small B preview, or A's figure in C's panel. Tell me which parts you like and I'll render the mix.</p>
+</body></html>

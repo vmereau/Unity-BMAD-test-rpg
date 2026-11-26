@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Equipment — paper doll, states</title>
+<style>
+/* Palette (ART_DIRECTION.md)
+   bg #1C1813 · panel #2B2118 / edge #4A3828 · well #171310 / well edge #55534E
+   text bone #D8CCB0 · parchment #B8A988 · stone #807C74
+   selected = dull brass #8C7343 · hover = warm #A8835A · valid target = mossy green #6F7D50 (proposal)
+   silhouette #352B21 / outline #5E4C38 · leader ink #6B5440 */
+:root{--bg:#1C1813;--panel:#2B2118;--edge:#4A3828;--edge2:#6B5440;--well:#171310;--wellEdge:#55534E;
+--bone:#D8CCB0;--parch:#B8A988;--stone:#807C74;--brass:#8C7343;--warm:#A8835A;--valid:#6F7D50}
+*{box-sizing:border-box}
+body{margin:0;background:#121010;color:var(--bone);font-family:Georgia,"Times New Roman",serif;padding:24px}
+h1{font-weight:normal;margin:0 0 4px;font-size:26px}
+.lead{color:var(--parch);max-width:980px;margin:0 0 28px;font-size:15px;line-height:1.5}
+section{margin-bottom:44px}
+h2{font-weight:normal;font-size:21px;margin:0 0 6px}
+h2 b{color:var(--brass);font-weight:normal;margin-right:8px}
+.why{color:var(--parch);max-width:960px;font-size:14px;line-height:1.5;margin:0 0 12px}
+.viewport{width:960px;height:540px;overflow:hidden;border:1px solid #3a332b;position:relative}
+.screen{width:1920px;height:1080px;transform:scale(.5);transform-origin:0 0;position:absolute;background:var(--bg)}
+.abs{position:absolute}
+.panel{position:absolute;background:var(--panel);border:4px solid var(--edge);box-shadow:inset 0 0 0 2px #1f1812}
+.tab{position:absolute;top:31px;width:243px;height:100px;background:#33281d;border:4px solid var(--edge);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--parch)}
+.tab.on{background:#3d3022;border-color:var(--brass);color:var(--bone)}
+.grid{position:absolute;left:591px;top:216px;width:680px;height:680px;
+ background:repeating-linear-gradient(90deg,transparent 0 80px,var(--panel) 80px 85px),
+ repeating-linear-gradient(0deg,transparent 0 80px,var(--panel) 80px 85px),var(--well)}
+.cell{position:absolute;width:80px;height:80px;border:3px solid #3a352f;background:var(--well)}
+.cell img,.slot img{width:84%;height:84%;object-fit:contain;background:#55534e;position:absolute;left:8%;top:8%}
+.cell.sel{border-color:var(--brass);box-shadow:0 0 0 3px #4a3c22}
+.slot{position:absolute;width:88px;height:88px;background:var(--well);border:4px solid var(--wellEdge)}
+.slot .ghost{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#4d4840;letter-spacing:.5px;text-transform:uppercase}
+.slot.sel{border-color:var(--brass);box-shadow:0 0 0 3px #4a3c22}
+.slot.hover{border-color:var(--warm)}
+.slot.valid{border-color:var(--valid);box-shadow:0 0 0 3px #3a4230}
+.slot.twoh img{opacity:.28;filter:grayscale(.6)}
+.slot.dim{opacity:.45}
+.cap{position:absolute;width:88px;text-align:center;font-size:17px;color:var(--stone)}
+.cap.on{color:var(--bone)}
+.lbl{position:absolute;font-size:18px;color:var(--stone);text-transform:uppercase;letter-spacing:2px}
+.line{position:absolute;height:2px;background:var(--edge2)}
+.btn{position:absolute;height:72px;background:#3a2d20;border:4px solid #55534E;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--bone)}
+.btn.off{color:#6b6358}
+.row{position:absolute;left:1472px;width:320px;font-size:21px;color:var(--parch);display:flex;justify-content:space-between}
+.row b{font-weight:normal;color:var(--bone)}
+.note{position:absolute;font-family:Consolas,monospace;font-size:19px;color:#c9a46a;background:#000b;border:2px dashed #8C7343;padding:6px 10px}
+.drag{position:absolute;width:80px;height:80px;opacity:.8}
+.drag img{width:100%;height:100%;background:#55534e;object-fit:contain}
+.cursor{position:absolute;width:0;height:0;border-left:14px solid #eee;border-bottom:22px solid transparent;transform:rotate(-20deg)}
+</style></head><body>
+<h1>Equipment: paper doll, the chosen direction in three states</h1>
+<p class="lead">The 1920×1080 Inventory screen at 50%. The doll panel is 496×800 on the left. A plain silhouette stands in the middle, with seven 88×88 slots each joined by a dashed ink line to the body part it covers. Left side, top to bottom: Helmet, Armor, Weapon, Ring 1. Right side: Necklace, Offhand, Ring 2. The rings sit by the hands. There is no stat summary: stats stay on the detail panel. Slot states: <b style="color:#8C7343">brass = selected</b>, <b style="color:#A8835A">warm = hovered</b>, <b style="color:#6F7D50">moss = valid place for the item you hold or have selected</b> (that colour is my proposal, change it if you like), and faded icon = offhand taken by a two-handed weapon.</p>
+
+<!-- reusable doll pieces are repeated per frame (no JS) -->
+
+<!-- ============ STATE 1 ============ -->
+<section>
+<h2><b>1</b>Default: an equipped item selected</h2>
+<p class="why">Clicking the Armor slot selects it with the same brass frame as a grid slot, and the shared detail panel shows the Leather Armor with <b>Unequip</b> and Drop. The Necklace and Ring 2 slots are empty: a dark well labelled with the slot name. The line from the selected slot is drawn in the same brass.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="cell" style="left:591px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Apple_Icon.png"></div>
+  <div class="cell" style="left:676px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Bread_Icon.png"></div>
+  <div class="cell" style="left:761px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Flamberge_Icon.png"></div>
+  <div class="cell" style="left:846px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_KiteWoodShield_Icon.png"></div>
+  <div class="cell" style="left:931px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Torch_Icon.png"></div>
+  <div class="abs" style="left:1290px;top:902px;font-size:24px;color:var(--parch)">48g</div>
+
+  <!-- doll -->
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <div class="lbl" style="left:72px;top:164px">Equipment</div><div class="line" style="left:72px;top:196px;width:432px"></div>
+  <svg class="abs" style="left:158px;top:214px" width="260" height="700" viewBox="0 0 240 600"><g fill="#352B21" stroke="#5E4C38" stroke-width="2.5">
+    <ellipse cx="120" cy="52" rx="32" ry="40"/><path d="M102 88 L138 88 L144 110 L96 110 Z"/>
+    <path d="M58 116 Q120 98 182 116 L194 262 L178 302 L62 302 L46 262 Z"/>
+    <path d="M58 120 L28 270 L24 340 L42 342 L52 282 L78 170 Z"/><path d="M182 120 L212 270 L216 340 L198 342 L188 282 L162 170 Z"/>
+    <path d="M66 300 L174 300 L170 332 L70 332 Z"/><path d="M72 330 L116 330 L110 580 L80 580 Z"/><path d="M124 330 L168 330 L160 580 L130 580 Z"/></g></svg>
+  <svg class="abs" style="left:0;top:0" width="576" height="1080"><g stroke="#6B5440" stroke-width="2" fill="none" stroke-dasharray="6 5">
+    <path d="M160 244 L248 260"/><path d="M416 330 L298 322"/><path d="M160 584 L190 596"/>
+    <path d="M416 584 L386 596"/><path d="M160 754 L186 618"/><path d="M416 754 L390 618"/></g>
+    <path d="M160 414 L250 400" stroke="#8C7343" stroke-width="3" fill="none" stroke-dasharray="6 5"/></svg>
+  <div class="slot" style="left:72px;top:200px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div><div class="cap" style="left:72px;top:292px">Helmet</div>
+  <div class="slot sel" style="left:72px;top:370px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div><div class="cap on" style="left:72px;top:462px">Armor</div>
+  <div class="slot" style="left:72px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div><div class="cap" style="left:72px;top:632px">Weapon</div>
+  <div class="slot" style="left:72px;top:710px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div><div class="cap" style="left:72px;top:802px">Ring</div>
+  <div class="slot" style="left:416px;top:286px"><div class="ghost">Neck</div></div><div class="cap" style="left:416px;top:378px">Necklace</div>
+  <div class="slot" style="left:416px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_RoundWoodShield_Icon.png"></div><div class="cap" style="left:416px;top:632px">Offhand</div>
+  <div class="slot" style="left:416px;top:710px"><div class="ghost">Ring</div></div><div class="cap" style="left:416px;top:802px">Ring</div>
+
+  <!-- detail -->
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div>
+  <div class="slot" style="left:1460px;top:160px;width:96px;height:96px;border-color:#55534E"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div>
+  <div class="abs" style="left:1572px;top:176px;font-size:30px">Leather Armor</div>
+  <div class="abs" style="left:1572px;top:216px;font-size:19px;color:var(--stone)">Armor · equipped</div>
+  <div class="line" style="left:1460px;top:272px;width:344px"></div>
+  <div class="row" style="top:290px"><span>Protection</span><b>8</b></div>
+  <div class="row" style="top:326px"><span>Weight</span><b>6</b></div>
+  <div class="abs" style="left:1472px;top:380px;width:330px;font-size:19px;font-style:italic;color:var(--parch);line-height:1.4">Boiled leather, patched twice at the left shoulder.</div>
+  <div class="line" style="left:1460px;top:806px;width:344px"></div>
+  <div class="row" style="top:820px"><span>Value</span><b style="color:#c9a24f">40</b></div>
+  <div class="btn" style="left:1460px;top:856px;width:166px">Drop</div><div class="btn" style="left:1638px;top:856px;width:166px">Unequip</div>
+  <div class="note" style="left:96px;top:1000px">stats and values in the detail panel are examples</div>
+</div></div>
+</section>
+
+<!-- ============ STATE 2 ============ -->
+<section>
+<h2><b>2</b>A ring selected in the grid: both ring slots light up</h2>
+<p class="why">Selecting (or starting to drag) an equippable item in the grid lights up every slot it can go into in moss green. Both ring slots light up here, and Equip would put the ring in Ring 2 because it is the first empty one. Hovering a slot gives it the warm edge. Lines to slots the item can't go into stay plain ink.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="cell" style="left:591px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Apple_Icon.png"></div>
+  <div class="cell" style="left:676px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Bread_Icon.png"></div>
+  <div class="cell" style="left:761px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Flamberge_Icon.png"></div>
+  <div class="cell" style="left:846px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_KiteWoodShield_Icon.png"></div>
+  <div class="cell sel" style="left:931px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div>
+
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <div class="lbl" style="left:72px;top:164px">Equipment</div><div class="line" style="left:72px;top:196px;width:432px"></div>
+  <svg class="abs" style="left:158px;top:214px" width="260" height="700" viewBox="0 0 240 600"><g fill="#352B21" stroke="#5E4C38" stroke-width="2.5">
+    <ellipse cx="120" cy="52" rx="32" ry="40"/><path d="M102 88 L138 88 L144 110 L96 110 Z"/>
+    <path d="M58 116 Q120 98 182 116 L194 262 L178 302 L62 302 L46 262 Z"/>
+    <path d="M58 120 L28 270 L24 340 L42 342 L52 282 L78 170 Z"/><path d="M182 120 L212 270 L216 340 L198 342 L188 282 L162 170 Z"/>
+    <path d="M66 300 L174 300 L170 332 L70 332 Z"/><path d="M72 330 L116 330 L110 580 L80 580 Z"/><path d="M124 330 L168 330 L160 580 L130 580 Z"/></g></svg>
+  <svg class="abs" style="left:0;top:0" width="576" height="1080"><g stroke="#6B5440" stroke-width="2" fill="none" stroke-dasharray="6 5">
+    <path d="M160 244 L248 260"/><path d="M416 330 L298 322"/><path d="M160 584 L190 596"/><path d="M416 584 L386 596"/><path d="M160 414 L250 400"/></g>
+    <g stroke="#6F7D50" stroke-width="3" fill="none" stroke-dasharray="6 5"><path d="M160 754 L186 618"/><path d="M416 754 L390 618"/></g></svg>
+  <div class="slot" style="left:72px;top:200px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div><div class="cap" style="left:72px;top:292px">Helmet</div>
+  <div class="slot" style="left:72px;top:370px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div><div class="cap" style="left:72px;top:462px">Armor</div>
+  <div class="slot" style="left:72px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div><div class="cap" style="left:72px;top:632px">Weapon</div>
+  <div class="slot valid" style="left:72px;top:710px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div><div class="cap on" style="left:72px;top:802px">Ring</div>
+  <div class="slot" style="left:416px;top:286px"><div class="ghost">Neck</div></div><div class="cap" style="left:416px;top:378px">Necklace</div>
+  <div class="slot" style="left:416px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_RoundWoodShield_Icon.png"></div><div class="cap" style="left:416px;top:632px">Offhand</div>
+  <div class="slot valid hover" style="left:416px;top:710px;border-color:#8a9466"><div class="ghost" style="color:#6f7a58">Ring</div></div><div class="cap on" style="left:416px;top:802px">Ring</div>
+  <div class="cursor" style="left:470px;top:752px"></div>
+
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div>
+  <div class="slot" style="left:1460px;top:160px;width:96px;height:96px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div>
+  <div class="abs" style="left:1572px;top:176px;font-size:30px">Plain Iron Ring</div>
+  <div class="abs" style="left:1572px;top:216px;font-size:19px;color:var(--stone)">Ring</div>
+  <div class="line" style="left:1460px;top:272px;width:344px"></div>
+  <div class="row" style="top:290px"><span>Max health</span><b style="color:#8a9a6a">+5</b></div>
+  <div class="line" style="left:1460px;top:806px;width:344px"></div>
+  <div class="row" style="top:820px"><span>Value</span><b style="color:#c9a24f">25</b></div>
+  <div class="btn" style="left:1460px;top:856px;width:166px">Drop</div><div class="btn" style="left:1638px;top:856px;width:166px">Equip</div>
+</div></div>
+</section>
+
+<!-- ============ STATE 3 ============ -->
+<section>
+<h2><b>3</b>Two-handed weapon equipped, a shield dragged over the Offhand slot</h2>
+<p class="why">The Flamberge takes both hands, so the Offhand slot shows its icon faded and both hand lines point to it. While the kite shield is dragged, the Offhand slot lights up as a valid target. Dropping it there swaps: the shield is equipped and the two-handed weapon goes back to the grid, by the rules the equipment system already applies. Ring 2 is empty, so this frame has no second ring.</p>
+<div class="viewport"><div class="screen">
+  <div class="tab on" style="left:460px">Inventory</div><div class="tab" style="left:712px">Quests</div><div class="tab" style="left:965px">Stats</div><div class="tab" style="left:1217px">Skills</div>
+  <div class="panel" style="left:576px;top:140px;width:768px;height:800px"></div><div class="grid"></div>
+  <div class="cell" style="left:591px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Apple_Icon.png"></div>
+  <div class="cell" style="left:676px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Bread_Icon.png"></div>
+  <div class="cell" style="left:761px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Axe_Icon.png"></div>
+  <div class="cell sel" style="left:846px;top:216px"></div>
+  <div class="cell" style="left:931px;top:216px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_Torch_Icon.png"></div>
+
+  <div class="panel" style="left:40px;top:140px;width:496px;height:800px"></div>
+  <div class="lbl" style="left:72px;top:164px">Equipment</div><div class="line" style="left:72px;top:196px;width:432px"></div>
+  <svg class="abs" style="left:158px;top:214px" width="260" height="700" viewBox="0 0 240 600"><g fill="#352B21" stroke="#5E4C38" stroke-width="2.5">
+    <ellipse cx="120" cy="52" rx="32" ry="40"/><path d="M102 88 L138 88 L144 110 L96 110 Z"/>
+    <path d="M58 116 Q120 98 182 116 L194 262 L178 302 L62 302 L46 262 Z"/>
+    <path d="M58 120 L28 270 L24 340 L42 342 L52 282 L78 170 Z"/><path d="M182 120 L212 270 L216 340 L198 342 L188 282 L162 170 Z"/>
+    <path d="M66 300 L174 300 L170 332 L70 332 Z"/><path d="M72 330 L116 330 L110 580 L80 580 Z"/><path d="M124 330 L168 330 L160 580 L130 580 Z"/></g></svg>
+  <svg class="abs" style="left:0;top:0" width="576" height="1080"><g stroke="#6B5440" stroke-width="2" fill="none" stroke-dasharray="6 5">
+    <path d="M160 244 L248 260"/><path d="M416 330 L298 322"/><path d="M160 584 L190 596"/><path d="M160 414 L250 400"/>
+    <path d="M160 754 L186 618"/><path d="M416 754 L390 618"/></g>
+    <path d="M416 584 L386 596" stroke="#6F7D50" stroke-width="3" fill="none" stroke-dasharray="6 5"/></svg>
+  <div class="slot" style="left:72px;top:200px"><img src="../../../../../Assets/_Game/Art/UI/Items/Armor_TestHelmet_Icon.png"></div><div class="cap" style="left:72px;top:292px">Helmet</div>
+  <div class="slot" style="left:72px;top:370px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_LeatherArmor_Icon.png"></div><div class="cap" style="left:72px;top:462px">Armor</div>
+  <div class="slot" style="left:72px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Flamberge_Icon.png"></div><div class="cap" style="left:72px;top:632px">Weapon</div>
+  <div class="slot" style="left:72px;top:710px"><img src="../../../../../Assets/_Game/Art/UI/Items/Item_OdoRing_Icon.png"></div><div class="cap" style="left:72px;top:802px">Ring</div>
+  <div class="slot" style="left:416px;top:286px"><div class="ghost">Neck</div></div><div class="cap" style="left:416px;top:378px">Necklace</div>
+  <div class="slot twoh valid" style="left:416px;top:540px"><img src="../../../../../Assets/_Game/Art/UI/Items/Weapon_Flamberge_Icon.png"></div><div class="cap on" style="left:416px;top:632px">Offhand</div>
+  <div class="slot" style="left:416px;top:710px"><div class="ghost">Ring</div></div><div class="cap" style="left:416px;top:802px">Ring</div>
+  <div class="drag" style="left:436px;top:520px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_KiteWoodShield_Icon.png"></div>
+  <div class="cursor" style="left:490px;top:574px"></div>
+
+  <div class="panel" style="left:1440px;top:140px;width:384px;height:800px"></div>
+  <div class="slot" style="left:1460px;top:160px;width:96px;height:96px"><img src="../../../../../Assets/_Game/Art/UI/Items/Shield_KiteWoodShield_Icon.png"></div>
+  <div class="abs" style="left:1572px;top:176px;font-size:30px">Kite Shield</div>
+  <div class="abs" style="left:1572px;top:216px;font-size:19px;color:var(--stone)">Shield</div>
+  <div class="line" style="left:1460px;top:272px;width:344px"></div>
+  <div class="row" style="top:290px"><span>Block</span><b>+8</b></div>
+  <div class="line" style="left:1460px;top:806px;width:344px"></div>
+  <div class="row" style="top:820px"><span>Value</span><b style="color:#c9a24f">60</b></div>
+  <div class="btn" style="left:1460px;top:856px;width:166px">Drop</div><div class="btn" style="left:1638px;top:856px;width:166px">Equip</div>
+  <div class="note" style="left:96px;top:1000px">faded icon = offhand taken by the two-handed weapon</div>
+</div></div>
+</section>
+</body></html>

@@ -25,8 +25,10 @@
 | `InventoryDetailActions` / `TradeDetailActions` / `ContainerDetailActions` | Per-host action buttons nested under the detail panel's `ActionsContainer` (Use / Equip / Drop, Buy / Sell, Take / Put) |
 | `BulkTransferRules` | Pure Shift ×10 batch-size + label rules (`BulkTransferRulesTests`) — `CONTAINER_TRADE.md` |
 | `IItemSlotContainer` | Interface `ItemSlotUI` reports to (`SelectSlot`, `ShowContextMenu`, `PrimaryAction`, `SwapSlots`) — decouples slots from their host |
-| `EquipmentUI` | Equipment panel with 7 named slots (weapon, offhand, helmet, armor, ring×2, necklace). Subscribes to `GameEventSO_Void _onEquipmentChanged`. |
-| `EquipmentSlotUI` | Single equipment slot. Detects double-click (threshold = 0.3 s) to unequip; single-click on occupied slot shows detail. Notifies parent `EquipmentUI`. |
+| `EquipmentUI` | Paper-doll equipment section (spec-inventory-equipment-paper-doll; UX `planning-artifacts/ux-designs/ux-…-2026-11-26/`). Owns the equipment-side selection, the valid-target highlight (grid selection via `SetHeldItem`, grid drag via `SetGridDragItem`, equipment drag = `CanSwap` targets) and the Offhand ghost; turns slot events into `EquipmentSystem` calls (`Equip(index, slot)`, `SwapEquipped`, `Unequip`). Reports selection / context-menu requests to its owner `InventoryUI` (`SetOwner` in `InventoryUI.Awake`). Slot dragged and released over `_gridDropArea` (the `InventoryPanel` rect, an `InventoryUI.prefab` override) = unequip. Repaints on `_onEquipmentChanged` and in `OnEnable`. |
+| `EquipmentSlotUI` | One 88×88 `UI_SlotWell` slot: icon, empty-well label, caption, outer ring, leader line (an `Image` under `EquipmentPanel/LeaderLines`). Paints the state `EquipmentUI` gives it (`SetState`) and forwards click / double-click (own 0.3 s timer) / right-click / drag / drop; no equip logic. Drag ghost like `ItemSlotUI` (root canvas, `raycastTarget` off, cleared in `OnDisable`). |
+| `EquipmentPanelRules` | Pure paper-doll rules (`EquipmentPaperDollTests`): `IsValidTarget` (= `EquipmentRules.FitsSlot`), `IsValidSwapTarget`, `ShowsOffhandGhost`, `ActionSlot` (ghost → Weapon), `ResolveFrame` (valid-hover > valid > selected > hover), captions / empty labels. |
+| `IItemDragListener` | Optional host interface `ItemSlotUI` calls on drag begin / end (`InventoryUI` → equipment highlight). Container / trade hosts don't implement it. |
 
 ---
 
@@ -37,7 +39,7 @@ InventoryUI  (IScreenPanel)
   ├── ItemSlotUI × N    (spawned from _itemSlotPrefab into _contentRoot)
   ├── ItemDetailPanelUI (shared between inventory slots and equipment slots)
   ├── ActionBarUI       (cross-panel drop target for action bar assignment)
-  └── EquipmentUI
+  └── EquipmentUI       (paper doll: Surface, Header, Divider, Silhouette, LeaderLines)
         └── EquipmentSlotUI × 7
 ```
 
@@ -59,9 +61,28 @@ InventoryUI  (IScreenPanel)
 - `_contextMenuSlotIndex` tracks which slot opened the menu; reset to -1 on close.
 - The **Equip** button in `InventoryUI.ShowContextMenu()` appears automatically — it checks
   `_equipmentSystem.IsEquippable(item) && !_equipmentSystem.IsEquipped(item)`, which resolves to true for any
-  `EquipableItemSO` not yet equipped. There is **no Unequip path in the context menu** — unequip is only via double-click
-  on the equipment slot or the Unequip detail button.
-- The **Equip/Unequip** detail button is handled by `InventoryDetailActions` for any `EquipableItemSO`.
+  `EquipableItemSO` not yet equipped.
+- **Unequip path:** right-click on an occupied paper-doll slot → `InventoryUI.ShowEquipmentContextMenu(slot)`: the same
+  prefab and blocker (`OpenContextMenu`), Drop / Use hidden, `EquipButton` relabelled "Unequip". The Offhand ghost passes
+  the Weapon slot.
+- The **Equip/Unequip** detail button is handled by `InventoryDetailActions`: `Bind` for grid items, `BindForEquipmentSlot`
+  for a selected equipped item (Drop = `InventoryUI.DropEquipped`: unequip, then drop the copy that came back; Unequip).
+
+---
+
+## Paper Doll (Equipment)
+
+- **One selection** across grid + equipment: `InventoryUI.SelectSlot` clears the equipment selection; an equipment click
+  (`OnEquipmentSelected`) clears the grid one without hiding the detail; an empty-slot click clears both and the detail.
+  `RefreshSlots` re-shows the equipment detail when the grid has no selection, so `HandleEquipmentSlotsChange` refreshes
+  `EquipmentUI` **first** (listener order isn't fixed). An equipment selection drops when its slot's item changes.
+- Frame tints multiply `UI_SlotWell` like `ItemSlotUI` (normal 0.85, hover warm, selected brass) plus valid / valid-hover
+  moss tints; selected and valid also turn on the outer ring, widen the leader line to 3 px and brighten the caption.
+- Layout lives in `EquipmentPanel.prefab` / `EquipmentSlot.prefab`, built by `Editor/UI/InventoryEquipmentLayoutBuilder`
+  (`Tools/UI/Build Equipment Paper Doll`, idempotent). Change positions / line ends there and rebuild; it also reverts the
+  slot-rect overrides the old `VerticalLayoutGroup` left in `InventoryUI.prefab`.
+- The UI adds no equip rules: drops call `EquipmentSystem.Equip(index, slot)` (refused unless `FitsSlot`) and
+  `SwapEquipped` (`EquipmentRules.CanSwap`: only Ring1 ↔ Ring2 passes). Equipment → action bar drag stays unsupported.
 
 ---
 
@@ -91,5 +112,6 @@ InventoryUI  (IScreenPanel)
 ## Gotchas
 
 - `InventoryPanel.prefab` is shared with `ContainerUI` and `NPCTradeUI`. The inventory-only parts (`FilterBar`, `FilterTooltip`, `GoldFooter`, top padding 76, `header` hidden) are **overrides on the instance in `InventoryUI.prefab`** — never add them to `InventoryPanel.prefab`. `InventoryUI._goldText` → `GoldFooter`.
-- `EquipmentSlotUI` does **not** subscribe to events — it is refreshed by `EquipmentUI` calling `Refresh(item)` on each slot after `_onEquipmentChanged` fires.
+- `EquipmentSlotUI` does **not** subscribe to events — `EquipmentUI.Refresh` calls `Bind(item, ghost)` + `SetState` on each slot after `_onEquipmentChanged` fires.
+- `EquipmentPanel` starts inactive: its slots are initialized in `EquipmentUI.Awake` on the first open, so anything painted before activation is lost — `EquipmentUI.OnEnable` repaints.
 - `InventoryUI` adds an `AnyButtonClickListener` component to `_panelRoot` at runtime in `Awake` — do not add it manually in the prefab.

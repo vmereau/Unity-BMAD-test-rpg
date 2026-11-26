@@ -1517,3 +1517,14 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **Review leftovers, low**: the Blender script removes orphan meshes that share a part's name when run inside a live
   session (as `build_palisade.py` does); a box collider's `yaw` is read and placed but no part uses it yet; the
   menu command assumes a square terrain.
+
+## spec-inventory-equipment-paper-doll (2026-11-26)
+
+- **Inventory equip paths skip the combat gate.** `EquipmentSystem.Equip(index, slot)` (paper-doll drop), drag-to-grid
+  unequip and `InventoryUI.DropEquipped` don't check `PlayerStateManager.CanChangeEquipment()` nor go through the
+  sheathe → equip → draw swap (`OnEquipSwapRequested`) the action bar uses; grid double-click already behaved this way.
+  A drawn weapon can be swapped or dropped from the inventory.
+- **`EquipmentSystem.EquipInto` removes the whole inventory stack** (`RemoveItem`), latent while no equippable is
+  stackable; use `DecrementStack` when `Count > 1` if one ever is.
+- **Paper-doll tints are tuned by eye**: the frame tints multiply the iron `UI_SlotWell`, so `valid` / `hover` only
+  approximate the DESIGN.md hexes; the offhand ghost is a gray tint, not a true desaturation (no UI grayscale material).

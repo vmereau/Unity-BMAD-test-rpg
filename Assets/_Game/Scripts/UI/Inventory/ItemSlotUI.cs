@@ -21,6 +21,7 @@ namespace Game.UI
         private GameObject _ghostImage;
         private IItemSlotContainer _container;
         private Canvas _canvas;
+        private bool _dragging; // an IItemDragListener host was told the drag began
 
         private void Awake()
         {
@@ -32,6 +33,14 @@ namespace Game.UI
         private void OnDisable()
         {
             RemoveGhostImage();
+            EndDragNotify();
+        }
+
+        private void EndDragNotify()
+        {
+            if (!_dragging) return;
+            _dragging = false;
+            (_container as IItemDragListener)?.OnItemDragEnd();
         }
 
         public void Bind(ItemSO item, int index, int stackCount = 1)
@@ -101,6 +110,12 @@ namespace Game.UI
             var rt = _ghostImage.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(64f, 64f);
             rt.position = eventData.position;
+
+            if (_container is IItemDragListener listener && Item != null)
+            {
+                _dragging = true;
+                listener.OnItemDragBegin(SlotIndex);
+            }
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -112,6 +127,7 @@ namespace Game.UI
         public void OnEndDrag(PointerEventData eventData)
         {
             RemoveGhostImage();
+            EndDragNotify();
         }
 
         public void OnDrop(PointerEventData eventData)

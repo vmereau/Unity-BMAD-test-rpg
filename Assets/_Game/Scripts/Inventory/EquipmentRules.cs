@@ -78,6 +78,19 @@ namespace Game.Inventory
             IsOccupied(equipped, EquipmentSlot.Offhand) && !CoexistsWithTwoHands(Get(equipped, EquipmentSlot.Offhand))
             && Get(equipped, EquipmentSlot.Weapon) is WeaponSO { OccupiesOffhand: true };
 
+        /// <summary>
+        /// Two equipped slots can trade contents (inventory paper doll, Ring1 ↔ Ring2 drag): different slots, at least one
+        /// occupied, and each item fits the other slot (an empty side always fits).
+        /// </summary>
+        public static bool CanSwap(IReadOnlyDictionary<EquipmentSlot, ItemSO> equipped, EquipmentSlot a, EquipmentSlot b)
+        {
+            if (a == b) return false;
+            ItemSO itemA = Get(equipped, a);
+            ItemSO itemB = Get(equipped, b);
+            if (itemA == null && itemB == null) return false;
+            return (itemA == null || FitsSlot(itemA, b)) && (itemB == null || FitsSlot(itemB, a));
+        }
+
         /// <summary>An offhand item that stays equipped next to a weapon needing both hands (stowed while it is drawn): torches.</summary>
         public static bool CoexistsWithTwoHands(ItemSO offhand) => offhand is TorchSO;
 

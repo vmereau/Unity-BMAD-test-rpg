@@ -54,7 +54,7 @@ the border thickness wanted in game; the import step converts it.
 
 | Sprite | Used by (prefab → `Image`) | In-game sizes | On-screen border | Image type | States |
 |--------|---------------------------|---------------|------------------|------------|--------|
-| `SlotWell` ✅ | `ActionBarSlot` background, `ItemSlot` background (border 128/134 src px); `EquipmentSlot` not yet | 64×64, 80×80, 200×64 | 6 (action bar, icon 52), 4 (item slot, icon 72) | Sliced | Tint — `_normalColor` 0.85 gray, `_hoverColor` warm (1, .95, .85), `_selectedColor` brass (1, .82, .5); optional `SlotWell_Selected` |
+| `SlotWell` ✅ | `ActionBarSlot` background, `ItemSlot` and `EquipmentSlot` backgrounds (border 128/134 src px) | 64×64, 80×80, 88×88 | 6 (action bar, icon 52), 4 (item / equipment slot, multiplier 32) | Sliced | Tint — `_normalColor` 0.85 gray, `_hoverColor` warm (1, .95, .85), `_selectedColor` brass (1, .82, .5); optional `SlotWell_Selected` |
 | `Panel` | Inventory / detail / quest / skills / stats panels, container & trade columns, dialogue band, game-menu window, confirm window | 384×800 … 1100×300 | 16 | Sliced | — |
 | `Card` | Interaction prompt card, notification toast, speech bubble | ~147×61, toast rows | 6 | Sliced | — |
 | `Button` | `Common/ActionButton` (menus, death screen, confirm, detail actions) | 420×72, 220×72, 160×80 | 8 | Sliced | Tint (`ActionButton` uses Color Tint) |
@@ -62,6 +62,14 @@ the border thickness wanted in game; the import step converts it.
 | `KeyBadge` | Interaction prompt `KeyBadge`, action-bar key label backing | 32×32, 20×16 | 4 | Sliced | — |
 | `BarTrack` | Health / stamina / XP bar background | 384×22, 384×6 | 3 (XP: 1) | Sliced | — |
 | `BarFill` | Health / stamina / XP fill — **one neutral sprite tinted per bar** (dull red, ochre, brass) | 384×22 inset 2 | none | Health: **Filled** horizontal (`fillAmount`); stamina / XP: Simple (scaled by `localScale.x`) | — |
+
+Made locally, not AI-generated (spec-inventory-equipment-paper-doll):
+
+| Sprite | What | How |
+|--------|------|-----|
+| `EquipmentSilhouette` | Paper-doll hero figure, 520×1400 (2× its 260×700 `Image`), fill `#352B21` + 2 px `#5E4C38` outline baked in, transparent | `Tools/Blender/make_equipment_silhouette.py` (base hero canonical head + body, ortho front, arms lowered until the hands sit ±100 px from the centre line). Sprite, no mipmaps, Simple `Image`, white tint |
+| `LeaderDash` | 11×4 white dash (columns 0–5 opaque, 6–10 clear) | Written once from a `Texture2D` (`EncodeToPNG`); Wrap **Repeat**, Point, no mipmaps; `Image` **Tiled** = 6 px dash / 5 px gap on screen, colour = line state |
+| `OutlineFrame` | 9×9 white, border 3 | Created by `InventoryEquipmentLayoutBuilder`; Sliced with `fillCenter` off = the 3 px outer ring of a selected / valid equipment slot |
 
 Not 9-slice sprites — **filter glyph icons** `Inventory/UI_Filter_<Name>.png` (inventory filter tabs): own
 prompt and import in `Inventory/CLAUDE.md`.

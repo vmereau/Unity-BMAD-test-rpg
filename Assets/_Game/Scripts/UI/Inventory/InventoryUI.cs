@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public class InventoryUI : MonoBehaviour, IScreenPanel, IItemSlotContainer
+    public class InventoryUI : MonoBehaviour, IScreenPanel, IItemSlotContainer, IItemDragListener
     {
         private const string TAG = "[InventoryUI]";
 
@@ -54,6 +54,8 @@ namespace Game.UI
             var panelClickHandler = _panelRoot.AddComponent<AnyButtonClickListener>();
             panelClickHandler.callback = (_) => HideContextMenu();
 
+            _equipmentUI?.SetOwner(this);
+
             if (_onInventoryChanged == null)
                 GameLog.Warn(TAG, "_onInventoryChanged not assigned — grid won't repaint on inventory changes");
         }
@@ -84,8 +86,8 @@ namespace Game.UI
             _isOpen = true;
             _filterBar?.ResetToAll();
             RefreshSlots();
-            _equipmentUI?.Refresh();
             _equipmentUI?.gameObject.SetActive(true);
+            _equipmentUI?.Refresh();
             UpdateGoldDisplay();
             GameLog.Info(TAG, "Inventory opened");
         }
@@ -95,6 +97,7 @@ namespace Game.UI
             _isOpen = false;
             HideContextMenu();
             ClearSelection();
+            _equipmentUI?.ClearAll();
             _equipmentUI?.gameObject.SetActive(false);
             GameLog.Info(TAG, "Inventory closed");
         }
@@ -106,7 +109,14 @@ namespace Game.UI
         }
 
         private void HandleActionBarUsed(int _) { if (_isOpen) RefreshSlots(false); }
-        private void HandleEquipmentSlotsChange(bool _) { if (_isOpen) RefreshSlots(); }
+        // EquipmentUI also listens; refresh it first so RefreshSlots sees its up-to-date selection (listener order is not fixed).
+        private void HandleEquipmentSlotsChange(bool _)
+        {
+            if (!_isOpen) return;
+            HideContextMenu();
+            _equipmentUI?.Refresh();
+            RefreshSlots();
+        }
         // ActionBarUI listens to the same channel, so the bar isn't refreshed from here. An outside change (hotkey,
         // loot) can shift slots under an open context menu → close it so Drop / Use can't hit the wrong item.
         private void HandleInventoryChanged(bool _)
@@ -236,39 +246,7 @@ namespace Game.UI
 
             HideContextMenu();
             _contextMenuSlotIndex = slotIndex;
-
-            // _canvas is the serialized canvas root; all context menu GOs are parented here
-            var canvas = _canvas;
-
-            // Blocker — full-screen transparent overlay positioned BELOW _panelRoot so that
-            // clicks on inventory slots still reach their IPointerClickHandler.
-            // Any click on the blocker (i.e. outside the inventory panel) dismisses the menu.
-            // INVARIANT: _panelRoot must be a direct child of canvas.transform for the
-            // sibling-index placement to produce the correct z-order.
-            _contextMenuBlocker = new GameObject("ContextMenuBlocker");
-            _contextMenuBlocker.transform.SetParent(canvas.transform, false);
-            var blockerImg = _contextMenuBlocker.AddComponent<Image>();
-            blockerImg.color = Color.clear;
-            blockerImg.raycastTarget = true;
-            var blockerRect = _contextMenuBlocker.GetComponent<RectTransform>();
-            blockerRect.anchorMin = Vector2.zero;
-            blockerRect.anchorMax = Vector2.one;
-            blockerRect.sizeDelta = Vector2.zero;
-            _contextMenuBlocker.transform.SetSiblingIndex(_panelRoot.transform.GetSiblingIndex());
-            var blockerListener = _contextMenuBlocker.AddComponent<AnyButtonClickListener>();
-            blockerListener.callback = (_) => HideContextMenu();
-
-            // Menu panel (topmost)
-            _activeContextMenu = Instantiate(_contextMenuPrefab, canvas.transform);
-            _activeContextMenu.transform.SetAsLastSibling();
-
-            // Position + clamp to screen bounds
-            var rt = _activeContextMenu.GetComponent<RectTransform>();
-            rt.position = screenPos;
-            var pos = rt.position;
-            pos.x = Mathf.Clamp(pos.x, 0, Screen.width - rt.rect.width);
-            pos.y = Mathf.Clamp(pos.y, rt.rect.height, Screen.height);
-            rt.position = pos;
+            OpenContextMenu(screenPos);
 
             var item = _inventorySystem.Items[slotIndex].Item;
 
@@ -309,6 +287,72 @@ namespace Game.UI
             }
         }
 
+        /// <summary>
+        /// Right-click on an occupied paper-doll slot: the same context-menu prefab with only "Unequip" (its EquipButton
+        /// relabelled). <paramref name="slot"/> is already the action slot (the Offhand ghost passes Weapon).
+        /// </summary>
+        public void ShowEquipmentContextMenu(EquipmentSlot slot, Vector2 screenPos)
+        {
+            if (_equipmentSystem == null || _equipmentSystem.GetEquipped(slot) == null) return;
+            HideContextMenu();
+            OpenContextMenu(screenPos);
+
+            var menu = _activeContextMenu.transform;
+            var dropBtn = menu.Find("DropButton");
+            if (dropBtn != null) dropBtn.gameObject.SetActive(false);
+            var useBtn = menu.Find("UseButton");
+            if (useBtn != null) useBtn.gameObject.SetActive(false);
+
+            var equipBtnTransform = menu.Find("EquipButton");
+            var unequipBtn = equipBtnTransform != null ? equipBtnTransform.GetComponent<Button>() : null;
+            if (unequipBtn == null)
+            {
+                GameLog.Warn(TAG, "ShowEquipmentContextMenu: 'EquipButton' with a Button not found in context menu prefab");
+                HideContextMenu();
+                return;
+            }
+            equipBtnTransform.gameObject.SetActive(true);
+            var label = equipBtnTransform.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = "Unequip";
+            unequipBtn.onClick.AddListener(() => { _equipmentSystem.Unequip(slot); HideContextMenu(); });
+        }
+
+        private void OpenContextMenu(Vector2 screenPos)
+        {
+            // _canvas is the serialized canvas root; all context menu GOs are parented here
+            var canvas = _canvas;
+
+            // Blocker — full-screen transparent overlay positioned BELOW _panelRoot so that
+            // clicks on inventory slots still reach their IPointerClickHandler.
+            // Any click on the blocker (i.e. outside the inventory panel) dismisses the menu.
+            // INVARIANT: _panelRoot must be a direct child of canvas.transform for the
+            // sibling-index placement to produce the correct z-order.
+            _contextMenuBlocker = new GameObject("ContextMenuBlocker");
+            _contextMenuBlocker.transform.SetParent(canvas.transform, false);
+            var blockerImg = _contextMenuBlocker.AddComponent<Image>();
+            blockerImg.color = Color.clear;
+            blockerImg.raycastTarget = true;
+            var blockerRect = _contextMenuBlocker.GetComponent<RectTransform>();
+            blockerRect.anchorMin = Vector2.zero;
+            blockerRect.anchorMax = Vector2.one;
+            blockerRect.sizeDelta = Vector2.zero;
+            _contextMenuBlocker.transform.SetSiblingIndex(_panelRoot.transform.GetSiblingIndex());
+            var blockerListener = _contextMenuBlocker.AddComponent<AnyButtonClickListener>();
+            blockerListener.callback = (_) => HideContextMenu();
+
+            // Menu panel (topmost)
+            _activeContextMenu = Instantiate(_contextMenuPrefab, canvas.transform);
+            _activeContextMenu.transform.SetAsLastSibling();
+
+            // Position + clamp to screen bounds
+            var rt = _activeContextMenu.GetComponent<RectTransform>();
+            rt.position = screenPos;
+            var pos = rt.position;
+            pos.x = Mathf.Clamp(pos.x, 0, Screen.width - rt.rect.width);
+            pos.y = Mathf.Clamp(pos.y, rt.rect.height, Screen.height);
+            rt.position = pos;
+        }
+
         public void HideContextMenu()
         {
             if (_activeContextMenu != null) { Destroy(_activeContextMenu); _activeContextMenu = null; }
@@ -330,6 +374,8 @@ namespace Game.UI
             _selectedSlotIndex = slotIndex;
             _selectedSlotUI = newSlot;
             _selectedItem = _inventorySystem.Items[slotIndex].Item;
+            _equipmentUI?.ClearSelection(); // one selection across grid + equipment
+            _equipmentUI?.SetHeldItem(_selectedItem);
             UpdateDetailPanel(_inventorySystem.Items[slotIndex].Item, slotIndex);
         }
 
@@ -341,12 +387,74 @@ namespace Game.UI
 
         private void ClearSelection()
         {
+            ClearGridSelection();
+            _detailPanelUI?.Hide();
+        }
+
+        // Grid side only: the detail panel is left to the caller (an equipment selection repaints it).
+        private void ClearGridSelection()
+        {
             _selectedSlotUI?.SetSelected(false);
             _selectedSlotIndex = -1;
             _selectedSlotUI = null;
             _selectedItem = null;
-            _detailPanelUI?.Hide();
+            _equipmentUI?.SetHeldItem(null);
         }
+
+        // ── Paper doll (EquipmentUI) ─────────────────────────────────────────────
+
+        /// <summary>An occupied equipment slot was clicked: it becomes the one selection; the detail panel shows it.</summary>
+        public void OnEquipmentSelected(EquipmentSlot slot, ItemSO item)
+        {
+            HideContextMenu();
+            ClearGridSelection();
+            ShowEquippedDetail(slot, item);
+        }
+
+        /// <summary>An empty equipment slot was clicked: no selection anywhere, empty detail panel.</summary>
+        public void OnEquipmentSelectionCleared()
+        {
+            HideContextMenu();
+            ClearSelection();
+        }
+
+        private void ShowEquippedDetail(EquipmentSlot slot, ItemSO item)
+        {
+            _detailPanelUI?.Show(item);
+            _invActions?.BindForEquipmentSlot(this, slot, item, _equipmentSystem);
+        }
+
+        /// <summary>Detail-panel Drop on an equipped item: unequip it, then drop it from the inventory.</summary>
+        public void DropEquipped(EquipmentSlot slot)
+        {
+            if (_equipmentSystem == null) return;
+            var item = _equipmentSystem.GetEquipped(slot);
+            if (item == null) return;
+            if (!ItemSO.CanPlayerPart(item) || item.worldItemPrefab == null)
+            {
+                GameLog.Warn(TAG, $"DropEquipped skipped: {item.itemName} can't be dropped");
+                return;
+            }
+            _equipmentSystem.Unequip(slot);
+            if (_equipmentSystem.GetEquipped(slot) == item) return; // not unequipped: never drop a spare copy instead
+            // Unequip appends (or stacks) the item: the last slot holding it is the one that came back.
+            for (int i = _inventorySystem.Count - 1; i >= 0; i--)
+            {
+                if (_inventorySystem.Items[i].Item != item) continue;
+                DropItem(i);
+                return;
+            }
+            GameLog.Warn(TAG, $"DropEquipped: {item.itemName} not found in the inventory after unequip");
+        }
+
+        public void OnItemDragBegin(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _inventorySystem.Count) return;
+            HideContextMenu();
+            _equipmentUI?.SetGridDragItem(_inventorySystem.Items[slotIndex].Item);
+        }
+
+        public void OnItemDragEnd() => _equipmentUI?.SetGridDragItem(null);
 
         private void RefreshSlots(bool refreshActionBar = true)
         {
@@ -400,7 +508,12 @@ namespace Game.UI
             {
                 _selectedSlotIndex = -1;
                 _selectedItem = null;
-                _detailPanelUI?.Hide();
+                _equipmentUI?.SetHeldItem(null);
+                // The one selection may be on the paper doll instead (EquipmentUI was refreshed first on equipment changes).
+                if (_equipmentUI != null && _equipmentUI.SelectedSlot.HasValue && _equipmentUI.SelectedItem != null)
+                    ShowEquippedDetail(_equipmentUI.SelectedSlot.Value, _equipmentUI.SelectedItem);
+                else
+                    _detailPanelUI?.Hide();
             }
 
             // refresh action bar if any item was binded to it.

@@ -18,7 +18,7 @@ Re-measure with `UILayoutCapture.Measure` after any layout change and update thi
 | HUD | Interaction prompt | centre, ~147×61 | Auto-width card above target, key badge 32×32 |
 | HUD | Toast stack | full width, y 236, h 100 | Upper third |
 | Menus | Tab bar | 460, 31, 1000×100 | 4 tabs 243×100, font 40 |
-| Inventory | Equipment column | 92, 140, 200×800 | 7 slots 200×64 stacked — **stale**: measured with 6 slots, before Offhand was added; re-measure with `UILayoutCapture.Measure("Inventory")` |
+| Inventory | Equipment paper doll | 40, 140, 496×800 | Header 72,164 (font 18) + divider 72,196 432×2; silhouette 158,214 260×700; 7 slots 88×88 (frame 4, icon 84 %, caption 17 under, empty label 15): left x 72 Helmet y200 · Armor 370 · Weapon 540 · Ring1 710, right x 416 Necklace 286 · Offhand 540 · Ring2 710; dashed leader lines 2 px (3 px selected / valid). Measured 2026-11-26 (spec-inventory-equipment-paper-doll) |
 | Inventory | Item grid panel | 576, 140, 768×800 | Filter strip 591,154 738×52 (9 tabs 52×52, gap 6); grid 591,216, cells 80×80, gap 5 → 8 columns; Gold footer 591,902 h30 font 24 |
 | Inventory | Item detail | 1440, 140, 384×800 | Header 96 (icon + name + category), price row, action buttons (Drop / Use / Equip) |
 | Container / Trade | 3 columns | x 30 / 660 / 1290, y 30, each 600×1020 | Grid · detail · grid; side headers 40 tall font 30; grids 6 columns |
@@ -43,7 +43,7 @@ re-check the owning file before relying on a count.
 | Screen | Key | Elements (owning doc) | Sprites |
 |--------|-----|-----------------------|---------|
 | **HUD** | — | Health / stamina / XP bars, action bar of **6** slots (key labels 1–6, stack counts), interaction prompt card `[E] <verb> <name>`, toast stack, speech bubbles (`HUD/`) | `BarTrack`, `BarFill`, `SlotWell`, `KeyBadge`, `Card` |
-| **Inventory** | I | Item grid, item detail panel, equipment column (**7** slots: weapon, offhand, helmet, armor, ring ×2, necklace), context menu, tab bar (`Inventory/`) | `Panel`, `SlotWell`, `Button`, `Tab` |
+| **Inventory** | I | Item grid, item detail panel, equipment paper doll (**7** slots around a silhouette: weapon, offhand, helmet, armor, ring ×2, necklace), context menu, tab bar (`Inventory/`) | `Panel`, `SlotWell`, `Button`, `Tab`, `EquipmentSilhouette` |
 | **Container / loot** | E | Two grids + detail with Take / Put (Put hidden for corpse loot) (`Inventory/`) | `Panel`, `SlotWell`, `Button` |
 | **Trade** | dialogue | Merchant + player grids, detail with Price / Sells for, Buy / Sell (`Inventory/`) | `Panel`, `SlotWell`, `Button` |
 | **Quest log** | J | Started / Completed / Failed tabs, quest list, quest info (`Quest/`) | `Panel`, `Tab`, `Button` |

@@ -26,12 +26,29 @@ namespace Game.UI
             ManageEquipButton(item, equipmentSystem);
         }
 
-        public void BindForEquipmentSlot(ItemSO item, EquipmentSystem equipmentSystem)
+        /// <summary>An equipped item selected on the paper doll: Drop (unequip + drop, hidden for quest items) / Unequip.</summary>
+        public void BindForEquipmentSlot(InventoryUI owner, EquipmentSlot slot, ItemSO item, EquipmentSystem equipmentSystem)
         {
-            if (item == null) { GameLog.Warn(TAG, "BindForEquipmentSlot: item is null"); return; }
-            if (_dropButton != null) _dropButton.gameObject.SetActive(false);
-            if (_useButton  != null) _useButton.gameObject.SetActive(false);
-            ManageEquipButton(item, equipmentSystem);
+            if (item == null)  { GameLog.Warn(TAG, "BindForEquipmentSlot: item is null");  return; }
+            if (owner == null) { GameLog.Warn(TAG, "BindForEquipmentSlot: owner is null"); return; }
+            if (_useButton != null) _useButton.gameObject.SetActive(false);
+
+            if (_dropButton != null)
+            {
+                _dropButton.onClick.RemoveAllListeners();
+                bool canDrop = ItemSO.CanPlayerPart(item) && item.worldItemPrefab != null; // DropEquipped refuses otherwise
+                _dropButton.gameObject.SetActive(canDrop);
+                if (canDrop) _dropButton.onClick.AddListener(() => owner.DropEquipped(slot));
+            }
+
+            if (_equipButton != null)
+            {
+                _equipButton.onClick.RemoveAllListeners();
+                _equipButton.gameObject.SetActive(true);
+                var label = _equipButton.GetComponentInChildren<TMP_Text>();
+                if (label != null) label.text = "Unequip";
+                _equipButton.onClick.AddListener(() => { if (equipmentSystem != null) equipmentSystem.Unequip(slot); });
+            }
         }
 
         private void ManageDropButton(InventoryUI owner, int slotIndex, ItemSO item, EquipmentSystem es)
