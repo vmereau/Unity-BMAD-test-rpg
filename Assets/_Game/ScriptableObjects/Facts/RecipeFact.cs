@@ -12,6 +12,8 @@ namespace Game.Core
         [SerializeField] private string _recipeId;
 
         public bool HasRecipeId => !string.IsNullOrWhiteSpace(_recipeId);
+        /// <summary>Save key id (also keys the craft count and <see cref="CraftedFact"/>).</summary>
+        public string RecipeId => _recipeId;
 
         public RecipeFact Init(string recipeId)
         {

@@ -85,6 +85,13 @@ namespace Game.AI
             return false;
         }
 
+        /// <summary>End hour of this routine's Sleep block (the NPC wakes up then). False when it has no timed Sleep block.</summary>
+        public bool TryGetWakeHour(out int hour)
+        {
+            hour = NpcRoutineSchedule.FindSleepEndHour(_blocks);
+            return hour >= 0;
+        }
+
         /// <summary>True while a story sequence owns this NPC (<see cref="Suspend"/>): no block is sent.</summary>
         public bool IsSuspended { get; private set; }
 

@@ -514,7 +514,8 @@ namespace Game.UI
         {
             var captured = node;
             DialogueOptionTag tag = DialogueOptionFormat.Classify(node);
-            AddOptionButton(node.text, slot, () =>
+            string text = _dialogueSystem != null ? _dialogueSystem.TopicLabel(node) : node.text;
+            AddOptionButton(text, slot, () =>
             {
                 if (captured.nextNode == null)
                 {

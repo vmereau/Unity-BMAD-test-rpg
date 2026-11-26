@@ -17,7 +17,7 @@ namespace Game.Editor.QuestExplorer
         public UnityEngine.Object Context;
         /// <summary>Part / step row to scroll to when the issue is clicked. May be null.</summary>
         public QuestPartLocation? Location;
-        /// <summary>Rule id (V1..V18) — for tests and tooling.</summary>
+        /// <summary>Rule id (V1..V19) — for tests and tooling.</summary>
         public string Rule;
 
         public override string ToString() => $"{Severity} {Rule}: {Message}";
@@ -74,6 +74,10 @@ namespace Game.Editor.QuestExplorer
             {
                 var fact = part.fact;
                 if (fact is ElapsedFact elapsed) AddElapsedIssue(elapsed, quest, loc, issues);
+                AddComputedSourceIssue(fact, quest, loc, issues);
+                if (fact is CraftedFact crafted && CraftedFact.Problem(crafted.Recipe) == null && index.GetSetters(fact).Count == 0)
+                    Add(issues, "V19", IssueSeverity.Error,
+                        $"'{fact.name}': no RecipeSO uses recipe fact '{crafted.Recipe.name}' — never crafted, {loc} can't complete", fact, loc);
                 if (!IsStored(fact)) continue;
                 var setters = index.GetSetters(fact);
 
@@ -210,7 +214,10 @@ namespace Game.Editor.QuestExplorer
                             memory, null);
 
             foreach (var condition in (unlock ?? System.Array.Empty<Fact>()).Concat(invalidation ?? System.Array.Empty<Fact>()))
+            {
                 if (condition is ElapsedFact elapsed) AddElapsedIssue(elapsed, memory, null, issues);
+                AddComputedSourceIssue(condition, memory, null, issues);
+            }
 
             var gates = index.GetGates(memory);
             if (memory.effects?.startdialog == null && gates.Count == 0)
@@ -274,6 +281,23 @@ namespace Game.Editor.QuestExplorer
             if (problem != null)
                 Add(issues, "V18", IssueSeverity.Error, $"{owner.name}: ElapsedFact '{fact.name}' {problem}", fact, loc);
         }
+
+        // V19 — a MealEatenFact / CraftedFact that can never become true.
+        private static void AddComputedSourceIssue(Fact fact, UnityEngine.Object owner, QuestPartLocation? loc,
+            List<ValidationIssue> issues)
+        {
+            string problem = ComputedSourceProblem(fact);
+            if (problem != null)
+                Add(issues, "V19", IssueSeverity.Error, $"{owner.name}: '{fact.name}' {problem}", fact, loc);
+        }
+
+        /// <summary>Why a <see cref="MealEatenFact"/> / <see cref="CraftedFact"/> can never be true, or null (other facts: null).</summary>
+        public static string ComputedSourceProblem(Fact fact) => fact switch
+        {
+            MealEatenFact meal => MealEatenFact.Problem(meal.Meal),
+            CraftedFact crafted => CraftedFact.Problem(crafted.Recipe),
+            _ => null
+        };
 
         /// <summary>Why an <see cref="ElapsedFact"/> is misconfigured, or null when it is fine.</summary>
         public static string ElapsedFactProblem(ElapsedFact fact)

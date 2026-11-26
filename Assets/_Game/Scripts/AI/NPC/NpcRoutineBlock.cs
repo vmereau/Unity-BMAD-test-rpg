@@ -61,6 +61,25 @@ namespace Game.AI
             return -1;
         }
 
+        /// <summary>
+        /// Hour the NPC gets up: the end hour of the longest timed <see cref="NpcActivity.Sleep"/> block (the night, not a
+        /// nap; first listed on a tie), or -1 when there is none (all-day Sleep blocks don't count). Starts a daily ration
+        /// day (<c>DailyRationRules</c>).
+        /// </summary>
+        public static int FindSleepEndHour(IReadOnlyList<NpcRoutineBlock> blocks)
+        {
+            if (blocks == null) return -1;
+            int best = -1, bestLength = 0;
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                NpcRoutineBlock b = blocks[i];
+                if (b == null || b.activity != NpcActivity.Sleep || b.startHour == b.endHour) continue;
+                int length = ((b.endHour - b.startHour) % 24 + 24) % 24;
+                if (length > bestLength) { bestLength = length; best = b.endHour; }
+            }
+            return best;
+        }
+
         /// <summary>Index of the point closest to <paramref name="from"/> on the XZ plane, or -1 when empty.</summary>
         public static int NearestIndex(IReadOnlyList<Vector3> points, Vector3 from)
         {

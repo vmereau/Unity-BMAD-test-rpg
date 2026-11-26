@@ -92,5 +92,23 @@ namespace Tests.EditMode
             Assert.AreEqual(-1, NpcRoutineSchedule.NearestIndex(new List<Vector3>(), Vector3.zero));
             Assert.AreEqual(-1, NpcRoutineSchedule.NearestIndex(null, Vector3.zero));
         }
+
+        private static NpcRoutineBlock Sleep(int start, int end) =>
+            new NpcRoutineBlock { startHour = start, endHour = end, activity = NpcActivity.Sleep };
+
+        [Test]
+        public void SleepEndHour_LongestTimedSleepBlock_NotANap()
+        {
+            var blocks = new List<NpcRoutineBlock> { Sleep(13, 14), Block(5, 21), Sleep(21, 5) };
+            Assert.AreEqual(5, NpcRoutineSchedule.FindSleepEndHour(blocks));
+        }
+
+        [Test]
+        public void SleepEndHour_NoneOrAllDay_MinusOne()
+        {
+            Assert.AreEqual(-1, NpcRoutineSchedule.FindSleepEndHour(DayNight));
+            Assert.AreEqual(-1, NpcRoutineSchedule.FindSleepEndHour(new List<NpcRoutineBlock> { Sleep(0, 0) }));
+            Assert.AreEqual(-1, NpcRoutineSchedule.FindSleepEndHour(null));
+        }
     }
 }

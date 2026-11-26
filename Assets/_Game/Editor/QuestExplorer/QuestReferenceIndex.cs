@@ -65,6 +65,10 @@ namespace Game.Editor.QuestExplorer
             index.MapMemoryGates(s.DialogueNodes);
             index.MapKilledSetters(s.KilledBindings, s.ClosedSceneRefs);
             index.MapRecipeSetters(s.Recipes);
+            index.MapComputedFactSetters(s.AllFacts, s.Recipes);
+            if (s.AssetFactSetters != null)
+                foreach (var link in s.AssetFactSetters)
+                    if (link != null && link.Fact != null) AddLink(index._setters, link);
             if (s.SceneFactSetters != null)
                 foreach (var link in s.SceneFactSetters)
                     if (link != null && link.Fact != null) AddLink(index._setters, link);
@@ -457,6 +461,34 @@ namespace Game.Editor.QuestExplorer
                     Fact = recipe.knownFact, Kind = FactLinkKind.Setter, Source = FactLinkSource.Recipe,
                     Owner = recipe, Label = $"Recipe {recipe.name} (discovered by cooking or a recipe item)"
                 });
+            }
+        }
+
+        /// <summary>
+        /// Computed facts with a known source: a <see cref="MealEatenFact"/> is "set" by its meal (first eat), a
+        /// <see cref="CraftedFact"/> by every <see cref="RecipeSO"/> whose <c>knownFact</c> is its recipe (first craft).
+        /// </summary>
+        private void MapComputedFactSetters(Fact[] facts, RecipeSO[] recipes)
+        {
+            if (facts == null) return;
+            foreach (var fact in facts)
+            {
+                if (fact is MealEatenFact meal && meal.Meal != null)
+                    AddLink(_setters, new FactLink
+                    {
+                        Fact = fact, Kind = FactLinkKind.Setter, Source = FactLinkSource.Meal,
+                        Owner = meal.Meal, Label = $"Meal {meal.Meal.name} (first eaten, first-meal bonus claimed)"
+                    });
+                else if (fact is CraftedFact crafted && crafted.Recipe != null && recipes != null)
+                    foreach (var recipe in recipes)
+                    {
+                        if (recipe == null || recipe.knownFact != crafted.Recipe) continue;
+                        AddLink(_setters, new FactLink
+                        {
+                            Fact = fact, Kind = FactLinkKind.Setter, Source = FactLinkSource.Recipe,
+                            Owner = recipe, Label = $"Recipe {recipe.name} (first cooked / forged)"
+                        });
+                    }
             }
         }
 

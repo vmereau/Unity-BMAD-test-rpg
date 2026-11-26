@@ -43,6 +43,24 @@ Drives NPC dialogue flow (start nodes, choices) using the NPC's memory/graph com
 
 ---
 
+## Daily ration topic
+
+- `DailyRationDialogueNode : StartDialogueNode` (Create → Game/Dialogue/Daily Ration Node): `item`, `perDay`, `noneLeftLine`,
+  `notNowLine`. Row label = `DialogueSystem.TopicLabel` → `DailyRationRules.Label` ("My daily ration (2 left)"; `DialogueUI`
+  asks the system for every topic label).
+- `StartTopic` on it: NPC in its routine Sleep block (`NpcRoutine.CurrentActivity`, found from the requester; awake there =
+  woken by the player) → `notNowLine`; none left → `noneLeftLine` (both through the runtime line node, ending on the topic
+  list, nothing given); else one `item` into `_playerInventory` (refused → warning, nothing counted, topic list),
+  `TakeDailyRation`, "Received: …" toast (`_onItemReceived` = `OnRewardItemReceived`) and the node's chain. Inventory
+  full → `inventoryFullLine`, nothing counted. Empty node id / no item / no Core → warning, back to the topic list.
+- Always repeatable: never marked seen (never dimmed / sorted down), its `dialogueFact` is ignored (`OnValidate` warns).
+  As a forced topic its opening line is dropped so the checks still run. A suspended routine (story sequence) never refuses.
+- The ration day starts at the NPC's wake hour (`NpcRoutine.TryGetWakeHour`; none → midnight, warned once), computed from
+  `GameClock.Now` (`DailyRationRules.Period`), so a sleep skip, a load or an unloaded NPC reset it correctly. No clock = one
+  endless day. Count keyed by the node id (one node per NPC), stored by `WorldStateManager` (`Data/Facts/CLAUDE.md`).
+
+---
+
 ## Close requests and the trade window
 
 - **Close request** (`OnDialogueCloseRequested`, `GameEventSO_DialogueCloseRequest` with the requesting

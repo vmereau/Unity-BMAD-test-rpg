@@ -36,7 +36,8 @@
 
 - `WorldStateManager.AddRecipeCraft` / `GetRecipeCraftCount` (keyed by `RecipeFact.ToString()`), a separate int store
   so facts stay bool-only. Saved as the optional `SaveData.recipeCrafts` (`CaptureRecipeCrafts` / `RestoreRecipeCrafts`;
-  null in older saves → all 0, no version bump). No event.
+  null in older saves → all 0, no version bump). The first craft (0 → 1) raises `OnFactChanged` with the `CraftedFact` key
+  (`Crafted.{recipeId}`), the computed fact quests read (`Data/Facts/CLAUDE.md`).
 - Shown on the recipe card: `Scripts/UI/Crafting/CLAUDE.md` → Craft count.
 
 ---

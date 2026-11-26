@@ -55,6 +55,9 @@ namespace Game.UI
         [SerializeField] private Button _cookButton;
         [Tooltip("Given when the experiment matches no station recipe.")]
         [SerializeField] private ItemSO _failedDish;
+        [Tooltip("Set the first time an Experiment cook discovers a recipe whose output is a Meal (WorldFact_Cooking_MealDiscovered). " +
+                 "Null = not tracked.")]
+        [SerializeField] private WorldFact _mealDiscoveredFact;
 
         [Header("Recipes")]
         [SerializeField] private Transform _recipeListRoot;
@@ -93,6 +96,8 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"{_slots.Length} ingredient slots wired, recipes allow up to {RecipeSO.MAX_INGREDIENTS}");
             if (_failedDish == null)
                 GameLog.Warn(TAG, "No failed dish assigned — unmatched experiments can't be cooked");
+            if (_mealDiscoveredFact == null)
+                GameLog.Warn(TAG, "No meal-discovered fact assigned — discovering a meal by experimenting isn't recorded");
             if (_recipeItemPanel == null)
                 GameLog.Warn(TAG, "No recipe item panel assigned — the Recipes tab card stays empty");
             if (_recipeActions == null || _recipeActions.CraftButton == null)
@@ -285,6 +290,9 @@ namespace Game.UI
                 GameLog.Warn(TAG, $"No WorldStateManager (Core not loaded?) — {recipe.name} can't be learned");
             bool learned = recipe != null && recipe.knownFact != null && WorldStateManager.Instance != null && !IsKnown(recipe);
             if (learned) WorldStateManager.Instance.SetRecipeKnown(recipe.knownFact);
+            if (_mealDiscoveredFact != null && CookingRules.IsMealDiscovery(learned, result)
+                && !WorldStateManager.Instance.GetFact(_mealDiscoveredFact))
+                WorldStateManager.Instance.SetWorldEvent(_mealDiscoveredFact, true);
             if (recipe != null) CountCraft(recipe);
             SetResult(learned ? $"New recipe: {result.itemName}" : $"Cooked {result.itemName}");
             GameLog.Info(TAG, $"Experiment → {result.itemName}{(learned ? " (recipe learned)" : string.Empty)}");

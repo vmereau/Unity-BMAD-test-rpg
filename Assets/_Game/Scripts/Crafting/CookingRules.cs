@@ -14,6 +14,13 @@ namespace Game.Crafting
     public static class CookingRules
     {
         /// <summary>
+        /// An Experiment cook that discovered a meal: the recipe was learned by this cook (not already known, not from a
+        /// recipe item) and its output is a cooked <see cref="ConsumableKind.Meal"/> (not a potion, not the failed dish).
+        /// </summary>
+        public static bool IsMealDiscovery(bool learned, ItemSO output) =>
+            learned && output is PotionItemSO potion && potion.Kind == ConsumableKind.Meal;
+
+        /// <summary>
         /// True when <paramref name="item"/> is a material of a <paramref name="kind"/> station: cooking takes
         /// <see cref="ItemSO.isIngredient"/> items, smithing takes <see cref="ItemSO.isCraftingMaterial"/> items.
         /// </summary>

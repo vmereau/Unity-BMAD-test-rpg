@@ -1528,3 +1528,13 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   stackable; use `DecrementStack` when `Count > 1` if one ever is.
 - **Paper-doll tints are tuned by eye**: the frame tints multiply the iron `UI_SlotWell`, so `valid` / `hover` only
   approximate the DESIGN.md hexes; the offhand ghost is a gray tint, not a true desaturation (no UI grayscale material).
+
+## spec-tob-cooking-prerequisites (2026-11-26)
+
+- **`WorldFact_Cooking_MealDiscovered` is only set from now on**: a meal discovered by experimenting in a save made
+  before this change doesn't count (dev saves only; could be derived on load from known Meal recipes with a craft count).
+- **A ration node shared by two NPCs shares one count** (keyed by node id; documented, not validated). A Quest Explorer
+  check "ration node in more than one NPC graph" would catch it.
+- **No integration test of the DialogueSystem ration flow** (refusals, inventory full, label refresh): only the pure rules
+  and the WorldStateManager store are tested. Play-test once `Mem_KitchenHand_Ration` exists.
+- **The ration label keeps the count while the NPC is in its Sleep block**, then picking it plays the "not now" line.

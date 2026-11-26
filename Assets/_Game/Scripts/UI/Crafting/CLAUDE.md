@@ -17,7 +17,9 @@
   show "<name> isn't an ingredient"). Cooked meals (`PotionItemSO` `Meal`) are never ingredients. 3
   `CookingIngredientSlotUI` (`_slotIndex` 0–2) **references** (`ItemSO`, like action bar slots), reset on every open. Set by dropping an inventory / action bar slot or double-clicking a grid slot (first empty slot);
   cleared by right-click, double-click or dragging out. Slots show the icon only — no stack count (a cook uses one unit). Cook consumes one unit per filled slot → the matching station recipe's output
-  (learning it the first time: "New recipe: …") or `_failedDish` (`Item_ReplenishingStew`). The preview never reveals
+  (learning it the first time: "New recipe: …") or `_failedDish` (`Item_ReplenishingStew`). A cook that learns a recipe
+  whose output is a `Meal` (`CookingRules.IsMealDiscovery`; not a known recipe, a recipe item, the failed dish or a potion)
+  sets `_mealDiscoveredFact` once (`WorldFact_Cooking_MealDiscovered`, wired on `CookingUI.prefab`; null = warned in `Awake`). The preview never reveals
   an unknown recipe ("Unknown result"). After a cook, slots whose item ran short clear.
 - **Recipes:** station recipes ∩ known, as `CookingRecipeRowUI` rows (`Prefabs/UI/Cooking/CookingRecipeRow.prefab`).
   The detail is an **item card**: a nested `ItemDetailPanel` (`_recipeItemPanel`, `Show(output, ItemPriceContext.None)` →

@@ -153,7 +153,8 @@ Dexterity / Endurance / Intelligence + `amount`, ≤ 0 ignored) and `_onMealBonu
 `PlayerHealth.AddMaxHealthBonus` (max **and** current), stats → `PlayerStats.UpgradeStat` — then
 `WorldStateManager.ClaimMealBonus(item)`; later eats only heal. No Core → heal only, nothing claimed. Text:
 `MealBonusText.Format` (`MealBonus.cs`), shared by the toast and the detail "First meal" row (grayed "(gained)" once
-claimed). Example: `Item_AppleMushroomSandwich` +5 Max HP.
+claimed). Example: `Item_AppleMushroomSandwich` +5 Max HP. Quests read the first eat through a `MealEatenFact` (only for
+a food with a bonus — `Data/Facts/CLAUDE.md`).
 
 Create via **Assets → Create → Items → Potion Item**.
 

@@ -28,7 +28,7 @@ QuestReferenceIndex.Build()     pure: Fact → setters / readers, dialogue node 
         │                        choices (MemoryGateLink), memory ownership, quest → involved memories
         │                        (reads / sets quest facts), static EvaluateMemory. UI-agnostic
         ▼                        (reuse it for a future graph view)
-QuestValidator.Validate()       pure rules V1–V18 → ValidationIssue (sorted Error → Warning → Info).
+QuestValidator.Validate()       pure rules V1–V19 → ValidationIssue (sorted Error → Warning → Info).
                                 V14–V17 are memory rules, scoped to memories involved in the quest
         ▼
 QuestExplorerWindow / QuestDetailView (UI Toolkit, inline styles) · QuestSceneHighlighter (Scene GUI)
@@ -96,6 +96,12 @@ Claude can't click the window — it reads the same data as text:
   `TryGetComponent` (see `AssignKilledFactFromSelection`).
 - `TopicUnlockEvaluator` **skips null conditions**: a missing unlock reference makes a memory unlock
   early, a missing invalidation reference never closes it. That's why V14 is an Error.
+- **Computed facts with a setter** (spec-tob-cooking-prerequisites): a `MealEatenFact` lists its meal (`[Meal]`), a
+  `CraftedFact` every `RecipeSO` whose `knownFact` is its recipe (`[Recipe]`); `WorldFact_Cooking_MealDiscovered` lists
+  `CookingUI.prefab` (`[Cooking]`, read from `COOKING_UI_PREFAB_PATH` → `_mealDiscoveredFact`, `IndexSources.AssetFactSetters`).
+  **V19** (Error, quest parts and memory conditions): a `MealEatenFact` with no meal / no itemId / no first-meal bonus, or
+  a `CraftedFact` with no recipe fact / id — it can never be true (`QuestValidator.ComputedSourceProblem`); in quest parts
+  also a `CraftedFact` whose recipe fact no `RecipeSO` uses (no setter).
 - `ChoiceOption.requiredMemory` must be in the **owning NPC's** `memories` list (runtime checks only that
   NPC's active memories), or the choice never shows (V17).
 - Memory condition rows capture array indices: after an edit the row is disabled until the debounced

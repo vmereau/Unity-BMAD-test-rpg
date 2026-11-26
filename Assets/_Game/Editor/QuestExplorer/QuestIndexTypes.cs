@@ -32,7 +32,11 @@ namespace Game.Editor.QuestExplorer
         WorldFactTrigger,
         DoorLatch,
         /// <summary>A scene <c>FactRemovedObject</c> hides its target (blocker / NPC) while the fact is true.</summary>
-        FactRemovedObject
+        FactRemovedObject,
+        /// <summary>A <c>MealEatenFact</c> turns true when its meal is first eaten (first-meal bonus claimed).</summary>
+        Meal,
+        /// <summary><c>CookingUI._mealDiscoveredFact</c>: first meal discovered in the Experiment tab.</summary>
+        CookingDiscovery
     }
 
     /// <summary>One edge between a <see cref="Fact"/> and the asset / scene object that sets or reads it.</summary>
@@ -163,6 +167,7 @@ namespace Game.Editor.QuestExplorer
         public List<KilledFactBinding> KilledBindings = new List<KilledFactBinding>();
         public List<FactLink> SceneFactSetters = new List<FactLink>(); // ContainerTakeFact + WorldFactTrigger + DoorLatch
         public List<FactLink> SceneFactReaders = new List<FactLink>(); // FactRemovedObject (loaded and closed scenes)
+        public List<FactLink> AssetFactSetters = new List<FactLink>(); // prefab components (CookingUI meal discovery)
         public List<(KilledFact fact, string scenePath)> ClosedSceneRefs = new List<(KilledFact fact, string scenePath)>();
         public HashSet<QuestSO> EventsManagerQuests = new HashSet<QuestSO>();
         public HashSet<QuestSO> QuestLogQuests = new HashSet<QuestSO>();

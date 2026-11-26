@@ -752,6 +752,8 @@ namespace Game.Editor.QuestExplorer
             FactLinkSource.Recipe => "[Recipe]",
             FactLinkSource.DoorLatch => "[Latch]",
             FactLinkSource.FactRemovedObject => "[Removes]",
+            FactLinkSource.Meal => "[Meal]",
+            FactLinkSource.CookingDiscovery => "[Cooking]",
             _ => source.ToString()
         };
     }
@@ -835,6 +837,8 @@ namespace Game.Editor.QuestExplorer
             StatFact => "Stat",
             ElapsedFact => "Elapsed",
             HourWindowFact => "Hour",
+            MealEatenFact => "Meal Eaten",
+            CraftedFact => "Crafted",
             null => "-",
             _ => fact.GetType().Name
         };

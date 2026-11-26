@@ -49,6 +49,8 @@
   off the spot → walks back; a partial path logs one warning.
 - No clock (region played without Core) → the first all-day block (`FindAllDayBlock`) applies once (snap), else no
   routine (idle wander); one info log.
+- `TryGetWakeHour(out hour)` = end hour of the longest timed Sleep block (a nap doesn't count) (`NpcRoutineSchedule.FindSleepEndHour`): the start of
+  the NPC's day for daily ration topics (`Scripts/World/DIALOGUE_SYSTEM.md`), which also refuse while `CurrentActivity` is Sleep.
 - `CurrentBlock` / `CurrentActivity` are the hook for future activity animations and dialogue / trade gating. A block's optional
   `label` (no effect on the routine) is what gates match by name (`WorldFactTrigger` `InRoutineBlock`).
 - **Story sequences own NPCs through `Suspend()` / `Resume(snap)`** (e.g. `Game.World.ArrivalSequence`): while

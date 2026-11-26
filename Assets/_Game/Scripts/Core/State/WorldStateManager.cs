@@ -32,6 +32,8 @@ namespace Game.Core
         private readonly Dictionary<string, bool> _worldFacts = new Dictionary<string, bool>();
         /// <summary>Times each recipe was cooked, keyed by its <see cref="RecipeFact"/> key. Kept apart so facts stay bool-only.</summary>
         private readonly Dictionary<string, int> _recipeCrafts = new Dictionary<string, int>();
+        /// <summary>Daily ration state, keyed <c>Ration.{rationId}</c> (a <c>DailyRationDialogueNode</c> id). Saved apart from the facts.</summary>
+        private readonly Dictionary<string, DailyRationState> _dailyRations = new Dictionary<string, DailyRationState>();
         /// <summary>
         /// Game time (<see cref="GameClock.Now"/>) at which each stored fact last turned false → true, keyed like
         /// <see cref="_worldFacts"/>. Read by <see cref="ElapsedFact"/>. No entry = set before timing existed or without a clock.
@@ -110,6 +112,8 @@ namespace Game.Core
                 QuestFact qf  => IsQuestFactTrue(qf),
                 ElapsedFact ef => IsElapsed(ef),
                 HourWindowFact hf => hf.IsTrueNow(),
+                MealEatenFact mf => mf.Meal != null && IsMealBonusClaimed(mf.Meal),
+                CraftedFact cf => GetRecipeCraftCount(cf.Recipe) > 0,
                 _             => _worldFacts.TryGetValue(fact.ToString(), out var v) && v
             };
             return result;
@@ -125,6 +129,11 @@ namespace Game.Core
         public void SetFact(Fact fact, bool value)
         {
             if (fact == null) { GameLog.Warn(TAG, "SetFact called with null fact"); return; }
+            if (fact is MealEatenFact || fact is CraftedFact)
+            {
+                GameLog.Warn(TAG, $"SetFact called with computed fact '{fact.name}' — it can't be written (eat the meal / cook the recipe)");
+                return;
+            }
             
             string key = fact.ToString();
             bool wasTrue = _worldFacts.TryGetValue(key, out var previous) && previous;
@@ -174,12 +183,17 @@ namespace Game.Core
             return GetFact(fact);
         }
 
-        /// <summary>Counts one successful cook of the recipe identified by <paramref name="fact"/>. Raises no event.</summary>
+        /// <summary>
+        /// Counts one successful cook of the recipe identified by <paramref name="fact"/>. The first craft (0 → 1) raises
+        /// <c>OnFactChanged</c> with the <see cref="CraftedFact"/> key, so quest parts / memories on it update.
+        /// </summary>
         public void AddRecipeCraft(RecipeFact fact)
         {
             if (fact == null) { GameLog.Warn(TAG, "AddRecipeCraft called with null fact"); return; }
             string key = fact.ToString();
-            _recipeCrafts[key] = GetRecipeCraftCount(fact) + 1;
+            int count = GetRecipeCraftCount(fact) + 1;
+            _recipeCrafts[key] = count;
+            if (count == 1 && fact.HasRecipeId) _onFactChanged?.Raise(new FactData(CraftedFact.KeyFor(fact.RecipeId), true));
         }
 
         public int GetRecipeCraftCount(RecipeFact fact)
@@ -206,18 +220,51 @@ namespace Game.Core
 
         /// <summary>
         /// Records that the first-meal bonus of <paramref name="meal"/> was granted (key <c>Meal.BonusClaimed.{itemId}</c>).
-        /// Stored with the facts so it is saved, but raises no event — not a quest / memory condition.
+        /// Stored with the facts so it is saved. The claim itself is not a fact: the first claim raises <c>OnFactChanged</c>
+        /// with the <see cref="MealEatenFact"/> key, the computed fact that reads it.
         /// </summary>
         public void ClaimMealBonus(ItemSO meal)
         {
             if (meal == null || string.IsNullOrEmpty(meal.itemId)) { GameLog.Warn(TAG, "ClaimMealBonus called with a null meal or an empty itemId"); return; }
+            bool wasClaimed = IsMealBonusClaimed(meal);
             _worldFacts[MealBonusKey(meal.itemId)] = true;
+            if (!wasClaimed) _onFactChanged?.Raise(new FactData(MealEatenFact.KeyFor(meal.itemId), true));
         }
 
         public bool IsMealBonusClaimed(ItemSO meal) =>
             meal != null && !string.IsNullOrEmpty(meal.itemId) && _worldFacts.TryGetValue(MealBonusKey(meal.itemId), out var v) && v;
 
         private static string MealBonusKey(string itemId) => $"{WorldFactPrefix.Meal}.BonusClaimed.{itemId}";
+
+        // ── Daily rations ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Rations of <paramref name="rationId"/> left today: <paramref name="perDay"/> minus those taken since the last
+        /// <paramref name="wakeHour"/> o'clock (<see cref="DailyRationRules"/>). No clock → one endless day (never resets).
+        /// </summary>
+        public int GetDailyRationRemaining(string rationId, int perDay, int wakeHour)
+        {
+            if (string.IsNullOrEmpty(rationId)) return 0;
+            return DailyRationRules.Remaining(perDay, StoredRation(rationId), CurrentRationPeriod(wakeHour));
+        }
+
+        /// <summary>Records one ration of <paramref name="rationId"/> taken now. Raises no event (not a fact).</summary>
+        public void TakeDailyRation(string rationId, int wakeHour)
+        {
+            if (string.IsNullOrEmpty(rationId)) { GameLog.Warn(TAG, "TakeDailyRation called with an empty ration id"); return; }
+            _dailyRations[RationKey(rationId)] = DailyRationRules.Take(StoredRation(rationId), CurrentRationPeriod(wakeHour));
+        }
+
+        private DailyRationState? StoredRation(string rationId) =>
+            _dailyRations.TryGetValue(RationKey(rationId), out var state) ? state : (DailyRationState?)null;
+
+        private static long CurrentRationPeriod(int wakeHour)
+        {
+            GameClock clock = GameClock.Active;
+            return clock != null ? DailyRationRules.Period(clock.Now, wakeHour) : 0L;
+        }
+
+        private static string RationKey(string rationId) => $"{WorldFactPrefix.Ration}.{rationId}";
 
         // ── Timed facts ───────────────────────────────────────────────────────
 
@@ -369,6 +416,18 @@ namespace Game.Core
             if (crafts != null)
                 foreach (var pair in crafts)
                     if (pair.Value > 0) _recipeCrafts[pair.Key] = pair.Value;
+        }
+
+        /// <summary>Copy of every daily ration state.</summary>
+        public Dictionary<string, DailyRationState> CaptureDailyRations() => new Dictionary<string, DailyRationState>(_dailyRations);
+
+        /// <summary>Replaces every daily ration state (null → none, e.g. older saves = every ration full). Raises no events.</summary>
+        public void RestoreDailyRations(Dictionary<string, DailyRationState> rations)
+        {
+            _dailyRations.Clear();
+            if (rations != null)
+                foreach (var pair in rations)
+                    if (!string.IsNullOrEmpty(pair.Key) && pair.Value.taken > 0) _dailyRations[pair.Key] = pair.Value;
         }
 
         // ── Internal ──────────────────────────────────────────────────────────

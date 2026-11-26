@@ -13,6 +13,8 @@ namespace Game.Core
         Dialogue,
         Recipe,
         Meal,
-        Knockout
+        Knockout,
+        Crafted,
+        Ration
     }
 }

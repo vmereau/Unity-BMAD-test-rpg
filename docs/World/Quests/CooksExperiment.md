@@ -21,7 +21,7 @@
 
 ## Prerequisites (outside the quest data)
 
-1. **`WorldFact_Cooking_MealDiscovered`** ("HasDiscoveredAMealYet") — set by `CookingUI`'s Experiment tab the first time
+1. ✅ **`WorldFact_Cooking_MealDiscovered`** **Done** (`spec-tob-cooking-prerequisites`). The asset exists in `Data/Facts/` and is wired on `CookingUI.prefab`. Set by `CookingUI`'s Experiment tab the first time
    it **discovers** a recipe whose output is a Meal (`PotionItemSO.Kind == Meal`), i.e. the cook that shows "New recipe: …".
    Not set by a recipe item, by cooking an already-known recipe, by the failed dish or by a potion. Stored, so it's true
    for discoveries made **before** the quest. Serialized field on `CookingUI` (fact reference), Quest Explorer setter.
@@ -37,7 +37,6 @@
 
 | Asset name | Type | Key / trigger |
 |---|---|---|
-| `WorldFact_Cooking_MealDiscovered` | `WorldFact` | `CookingUI` Experiment, first meal discovery (Prerequisite 1) |
 | `DialogueFact_KitchenHand_Experiment_Offered` | `DialogueFact` | Set when `Start_KitchenHand_ExperimentOffer` plays |
 | `DialogueFact_KitchenHand_Experiment_Accepted` | `DialogueFact` | Choice "Give me a hint." |
 | `DialogueFact_KitchenHand_Experiment_AlreadyFound` | `DialogueFact` | Gated choice "I've already found a dish of my own." |
@@ -50,6 +49,7 @@
 | Asset name | Type | Where it lives |
 |---|---|---|
 | `QuestFact_WorkersSandwich_Completed` | `QuestFact` | created by `WorkersSandwich` |
+| `WorldFact_Cooking_MealDiscovered` | `WorldFact` | `Data/Facts/`, set by `CookingUI` (Prerequisite 1) |
 
 ---
 

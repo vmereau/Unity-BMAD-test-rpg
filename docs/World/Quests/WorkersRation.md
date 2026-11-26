@@ -5,7 +5,7 @@
 > Spec path: `docs/World/Quests/WorkersRation.md`
 > Design with `/quests:design`, build with `/quests:implement WorkersRation`, check with `/quests:audit WorkersRation`.
 > Chain: **WorkersRation** → `WorkersSandwich` → `CooksExperiment` (Tob's cooking tutorial, npc-020).
-> **Blocked on code** — see *Prerequisites* (new `MealEatenFact`, daily ration give, `Item_WorkersSoup`).
+> **Blocked on content** — see *Prerequisites* (`Item_WorkersSoup`, Tob placed). Code prerequisites done.
 
 ---
 
@@ -21,14 +21,15 @@
 
 ## Prerequisites (outside the quest data)
 
-1. **`MealEatenFact`** — new computed fact type (`Game/Facts/Meal Eaten Fact`, field `_meal` = a `PotionItemSO`), true
+1. ✅ **`MealEatenFact`** **Done** (`spec-tob-cooking-prerequisites`). Computed fact type (`Game/Facts/Meal Eaten Fact`, field `_meal` = a `PotionItemSO`), true
    when `WorldStateManager.IsMealBonusClaimed(meal)`. Key `Meal.Eaten.{itemId}` (debug only). `ClaimMealBonus` must
    raise `OnFactChanged` with that key so quest parts and memories update. Only meaningful for a meal with a
    first-meal bonus (no bonus → never claimed → never true): `Awake`/validator warning when `_meal` has none.
    Quest Explorer: show the meal as the setter (like `RecipeFact`).
 2. **`Item_WorkersSoup`** — new `PotionItemSO`, kind `Meal`, not an ingredient, heal ~15 over time (`SE_WellFed`),
    first-meal bonus **+5 Max HP**, not sold by anyone (only Tob's ration), no recipe. Icon + world prefab.
-3. **Daily ration give** — a dialogue choice that gives an item a limited number of times per day:
+3. ✅ **Daily ration give** **Done** (`spec-tob-cooking-prerequisites`). Built as a `DailyRationDialogueNode` topic (text "My daily ration", `item`, `perDay` 2,
+   `noneLeftLine`, `notNowLine`): a dialogue topic that gives an item a limited number of times per day:
    - Tob's topic *"My daily ration (2 left)"* / *"(1 left)"*; the count is in the label.
    - 2 bowls per day; the count resets **when Tob wakes up at the end of his routine sleep** (not at midnight).
    - Refused while Tob is awake because the player woke him (line: "Not at this hour."), and while none are left
@@ -37,7 +38,7 @@
    - Generic (per NPC, item + count), not soup-specific.
 4. **Tob placed in StartingTown** (cookhouse, 05:00–21:00, sleeps nearby), with `PersistentID` + `KilledFact`.
 
-Prerequisites 1–3 → one `gds-quick-dev` spec before `/quests:implement`. Shared with `WorkersSandwich` / `CooksExperiment`
+Prerequisites 1 and 3 are done; 2 (`/items:create`) and 4 (placement) remain. Shared with `WorkersSandwich` / `CooksExperiment`
 prerequisites (same spec recommended).
 
 ---

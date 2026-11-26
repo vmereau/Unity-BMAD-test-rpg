@@ -21,7 +21,7 @@
 
 ## Prerequisites (outside the quest data)
 
-1. **`CraftedFact`** — new computed fact type (`Game/Facts/Crafted Fact`, field `_recipe` = a `RecipeFact`), true when
+1. ✅ **`CraftedFact`** **Done** (`spec-tob-cooking-prerequisites`). Computed fact type (`Game/Facts/Crafted Fact`, field `_recipe` = a `RecipeFact`), true when
    `WorldStateManager.GetRecipeCraftCount(recipe) > 0`. Key `Crafted.{recipeId}` (debug only). `AddRecipeCraft` must
    raise `OnFactChanged` with that key on the **first** craft (0 → 1). An Experiment cook that matches the recipe counts
    (it already calls `AddRecipeCraft`), so learning the sandwich by experimenting also sets it.

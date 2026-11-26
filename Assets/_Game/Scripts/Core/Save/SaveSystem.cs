@@ -246,6 +246,9 @@ namespace Game.Core
                 recipeCrafts = WorldStateManager.Instance != null
                     ? WorldStateManager.Instance.CaptureRecipeCrafts()
                     : new Dictionary<string, int>(),
+                dailyRations = WorldStateManager.Instance != null
+                    ? WorldStateManager.Instance.CaptureDailyRations()
+                    : new Dictionary<string, DailyRationState>(),
                 factSetTimes = WorldStateManager.Instance != null
                     ? WorldStateManager.Instance.CaptureFactSetTimes()
                     : new Dictionary<string, double>(),
@@ -443,6 +446,7 @@ namespace Game.Core
 
             WorldStateManager.Instance?.RestoreFacts(data.worldFacts);
             WorldStateManager.Instance?.RestoreRecipeCrafts(data.recipeCrafts);
+            WorldStateManager.Instance?.RestoreDailyRations(data.dailyRations);
             WorldStateManager.Instance?.RestoreFactSetTimes(data.factSetTimes);
             if (_gameClock != null) _gameClock.Restore(data.worldTimeSeconds);
             // Copies: later captures must never mutate the loaded data (the new-game snapshot is reused).
@@ -470,6 +474,7 @@ namespace Game.Core
                 _startMenuLoad = false;
                 WorldStateManager.Instance?.RestoreFacts(null);
                 WorldStateManager.Instance?.RestoreRecipeCrafts(null);
+                WorldStateManager.Instance?.RestoreDailyRations(null);
                 WorldStateManager.Instance?.RestoreFactSetTimes(null);
                 if (_gameClock != null) _gameClock.Restore(null);
                 _objectStates.Clear();

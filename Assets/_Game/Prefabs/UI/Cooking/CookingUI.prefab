@@ -3272,6 +3272,7 @@ MonoBehaviour:
   _resultText: {fileID: 4786840316129252200}
   _cookButton: {fileID: 8018555243157461098}
   _failedDish: {fileID: 11400000, guid: b117364e57dda0745a1bc9031321b812, type: 2}
+  _mealDiscoveredFact: {fileID: 11400000, guid: dcb38c584b172b447a5caadd6945765c, type: 2}
   _recipeListRoot: {fileID: 6308086619436287519}
   _recipeRowPrefab: {fileID: 5017557824697646869, guid: f047043f3006a9d49a99ab7a8d315d28, type: 3}
   _noRecipesText: {fileID: 6940551057051881201}

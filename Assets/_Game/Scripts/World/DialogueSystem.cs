@@ -39,6 +39,8 @@ namespace Game.World
         [SerializeField] private GameEventSO_Void _onPlayerKnockedOut;
         [Tooltip("An NPC asks to close the dialogue it opened (OnDialogueCloseRequested): closes only that NPC's dialogue.")]
         [SerializeField] private GameEventSO_DialogueCloseRequest _onDialogueCloseRequested;
+        [Tooltip("\"Received: …\" toast raised when a daily ration topic gives the player its item (OnRewardItemReceived). Null = no toast.")]
+        [SerializeField] private GameEventSO_String _onItemReceived;
 
         public bool IsOpen { get; private set; }
 
@@ -58,6 +60,7 @@ namespace Game.World
         private string _currentNPCName;
         private NPCPresence _currentRequester; // the NPC whose request opened this dialogue (null: forced line, none)
         private readonly System.Collections.Generic.HashSet<DialogueNode> _warnedNoId = new();
+        private readonly System.Collections.Generic.HashSet<DailyRationDialogueNode> _warnedNoWakeHour = new();
 
         private void OnEnable()
         {
@@ -160,7 +163,8 @@ namespace Game.World
                     _playerStateManager.SetInDialogue(true);
                 CursorManager.Unlock();
                 GameLog.Info(TAG, $"{data.npcName} forces topic '{data.forcedStartNode.name}' on the player");
-                if (string.IsNullOrEmpty(data.forcedLine))
+                // A daily ration must go through its checks: its opening line is dropped.
+                if (string.IsNullOrEmpty(data.forcedLine) || data.forcedStartNode is DailyRationDialogueNode)
                 {
                     StartTopic(data.forcedStartNode);
                     return;
@@ -255,14 +259,105 @@ namespace Game.World
         public void StartTopic(StartDialogueNode startNode)
         {
             _currentStartNode = startNode;
-            if (startNode != null)
+            if (startNode == null) return;
+            // A daily ration is a service the player comes back for: never marked seen, so never dimmed / sorted down.
+            if (!(startNode is DailyRationDialogueNode))
                 MarkSeen(startNode, startNode.Id);
             if (startNode.nextNode == null)
             {
                 GameLog.Warn(TAG, $"StartDialogueNode '{startNode.name}' has no nextNode — cannot start topic");
                 return;
             }
+            if (startNode is DailyRationDialogueNode ration)
+            {
+                StartRationTopic(ration);
+                return;
+            }
             AdvanceToNode(startNode.nextNode);
+        }
+
+        /// <summary>Topic row text: the node text, plus " (N left)" for a daily ration.</summary>
+        public string TopicLabel(StartDialogueNode node)
+        {
+            if (node == null) return string.Empty;
+            if (node is DailyRationDialogueNode ration && WorldStateManager.Instance != null)
+                return DailyRationRules.Label(node.text, RationsLeft(ration));
+            return node.text;
+        }
+
+        // ── Daily ration ──────────────────────────────────────────────────────
+
+        // Refused (an NPC line, nothing given) while the NPC should be asleep or none are left; else one item to the
+        // player and the normal chain. A refusal line ends on the topic list.
+        private void StartRationTopic(DailyRationDialogueNode ration)
+        {
+            WorldStateManager world = WorldStateManager.Instance;
+            if (world == null || string.IsNullOrEmpty(ration.Id))
+            {
+                GameLog.Warn(TAG, world == null
+                    ? $"No WorldStateManager — daily ration '{ration.name}' can't be counted, nothing given"
+                    : $"Daily ration '{ration.name}' has no id (reimport / validate the asset) — nothing given");
+                _currentStartNode = null;
+                _dialogueUI.RestoreTopics();
+                return;
+            }
+            if (IsRequesterInSleepBlock())
+            {
+                AdvanceToNode(GetOpeningLineNode(ration.notNowLine, null));
+                return;
+            }
+            if (RationsLeft(ration) <= 0)
+            {
+                AdvanceToNode(GetOpeningLineNode(ration.noneLeftLine, null));
+                return;
+            }
+            if (ration.item == null || _playerInventory == null)
+            {
+                GameLog.Warn(TAG, $"Daily ration '{ration.name}': no item or no player inventory — nothing given");
+                _currentStartNode = null;
+                _dialogueUI.RestoreTopics();
+                return;
+            }
+            if (!_playerInventory.AddItem(ration.item))
+            {
+                GameLog.Warn(TAG, $"Daily ration '{ration.name}': {ration.item.itemName} refused by the player's inventory — nothing counted");
+                AdvanceToNode(GetOpeningLineNode(ration.inventoryFullLine, null));
+                return;
+            }
+            world.TakeDailyRation(ration.Id, WakeHourFor(ration));
+            _onItemReceived?.Raise(PlayerRewardSO.FormatItemReceived(ration.item.itemName, 1));
+            GameLog.Info(TAG, $"{_currentNPCName} gave the daily ration {ration.item.itemName} ({RationsLeft(ration)} left)");
+            AdvanceToNode(ration.nextNode);
+        }
+
+        private int RationsLeft(DailyRationDialogueNode ration) =>
+            WorldStateManager.Instance != null
+                ? WorldStateManager.Instance.GetDailyRationRemaining(ration.Id, ration.perDay, WakeHourFor(ration))
+                : 0;
+
+        // The NPC is in its Sleep block yet talking: the player woke it up (a sleeper offers "Wake", not "Talk").
+        private bool IsRequesterInSleepBlock()
+        {
+            // A story sequence owns a suspended NPC: its last block may be stale.
+            NpcRoutine routine = RequesterRoutine();
+            return routine != null && !routine.IsSuspended && routine.CurrentActivity == NpcActivity.Sleep;
+        }
+
+        // The ration day starts when the NPC gets up (end of its Sleep block). No routine / Sleep block → midnight, warned once.
+        private int WakeHourFor(DailyRationDialogueNode ration)
+        {
+            NpcRoutine routine = RequesterRoutine();
+            if (routine != null && routine.TryGetWakeHour(out int hour)) return hour;
+            if (_warnedNoWakeHour.Add(ration))
+                GameLog.Warn(TAG, $"Daily ration '{ration.name}': {_currentNPCName} has no NpcRoutine with a timed Sleep block — the ration resets at midnight");
+            return 0;
+        }
+
+        private NpcRoutine RequesterRoutine()
+        {
+            if (_currentRequester == null) return null;
+            NpcRoutine routine = _currentRequester.GetComponentInParent<NpcRoutine>();
+            return routine != null ? routine : _currentRequester.GetComponentInChildren<NpcRoutine>();
         }
 
         /// <summary>
@@ -278,9 +373,9 @@ namespace Game.World
                 return;
             }
             
-            if (_currentStartNode.dialogueFact == null)
+            if (_currentStartNode.dialogueFact == null || _currentStartNode is DailyRationDialogueNode)
             {
-                // Repeatable topic (no fact to record) — nothing to do.
+                // Repeatable topic (no fact to record; a daily ration always is) — nothing to do.
             }
             else if (WorldStateManager.Instance != null)
             {

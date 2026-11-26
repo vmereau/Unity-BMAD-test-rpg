@@ -159,6 +159,43 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void V19_CraftedFactWithoutRecipe_IsError()
+        {
+            _quest.steps[0].parts.Add(Part(Make<CraftedFact>("CraftedFact_None")));
+            StringAssert.Contains("has no recipe fact", Single(Validate(), "V19", IssueSeverity.Error).Message);
+        }
+
+        [Test]
+        public void V19_MealEatenFactWithoutMeal_InMemory_IsError()
+        {
+            _offer.unlockConditions = new Fact[] { Make<MealEatenFact>("MealEatenFact_None") };
+            Assert.IsTrue(Validate().Any(i => i.Rule == "V19" && i.Message.Contains("has no meal")));
+        }
+
+        [Test]
+        public void V19_CraftedFactNoRecipeSO_IsError()
+        {
+            var recipe = Make<RecipeFact>("RecipeFact_Any").Init("Any");
+            var crafted = Make<CraftedFact>("CraftedFact_Any").Init(recipe);
+            _quest.steps[0].parts.Add(Part(crafted));
+            _sources.AllFacts = new Fact[] { crafted };
+            StringAssert.Contains("no RecipeSO uses", Single(Validate(), "V19", IssueSeverity.Error).Message);
+        }
+
+        [Test]
+        public void V19_CraftedFactWithRecipeSO_IsClean()
+        {
+            var recipe = Make<RecipeFact>("RecipeFact_Any").Init("Any");
+            var crafted = Make<CraftedFact>("CraftedFact_Any").Init(recipe);
+            var recipeSO = Make<Game.Crafting.RecipeSO>("Recipe_Any");
+            recipeSO.knownFact = recipe;
+            _quest.steps[0].parts.Add(Part(crafted));
+            _sources.AllFacts = new Fact[] { crafted };
+            _sources.Recipes = new[] { recipeSO };
+            Assert.IsFalse(Validate().Any(i => i.Rule == "V19"));
+        }
+
+        [Test]
         public void V18_ElapsedFactOverStoredSource_IsClean()
         {
             _quest.steps[0].parts.Add(Part(Make<ElapsedFact>("ElapsedFact_Kill").Init(_killFact, 2f)));

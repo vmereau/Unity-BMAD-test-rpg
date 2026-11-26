@@ -12,12 +12,14 @@
 |---|---|---|---|---|
 | `KilledFact` | `Killed.{guid}` | stored | `PersistentID.RegisterDeath(credited)` → `WorldStateManager.RegisterKill` (always; credit only gates kill XP). A container's `PersistentID` fact (`KilledFact_HiddenStashChest`, `KilledFact_HobbsBox`) is only its save key and has no setter | quest steps, memory conditions, `PlayerRewardSO` |
 | `DialogueFact` | `Dialogue.Played.{nodeId}` | stored | `DialogueSystem` when a `StartDialogueNode.dialogueFact` plays or a `ChoiceOption.dialogueFact` is picked | quest start/completed parts, memory conditions, rewards |
-| `WorldFact` | `World.{eventKey}` | stored | Scene / data components via `WorldStateManager.SetWorldEvent`: `TollGate` (paid / deferred / Harl beaten), `ArrivalSequence` (`WorldFact_Arrival_Done` when event-001 ends or is dev-skipped), `PlayerSaveAdapter.ApplyOrigin` on the new-game boot (`OriginSO.originFact` + `SaveSystem._hadBelongingsFact`), `ContainerTakeFact` (first take from a container), `NPCPresence` talk openers (`NpcTalkOpener.played`), `WorldFactTrigger` (player inside a box volume, optional hour window / fact / NPC gates), `DoorLatch._unlatchedFact`. `DialogueSystem` never sets one. Per-asset setters and readers: **Quest Explorer → Facts** (a fact with no setter, e.g. `WorldFact_QuarryPassageOpened`, shows there) | toll gates, `ArrivalSequence` (plays when unset), `NPCPresence._availableAfter` / `_talkOpeners`, memory conditions, quest parts, `FactRemovedObject` |
+| `WorldFact` | `World.{eventKey}` | stored | Scene / data components via `WorldStateManager.SetWorldEvent`: `TollGate` (paid / deferred / Harl beaten), `CookingUI._mealDiscoveredFact` (`WorldFact_Cooking_MealDiscovered`: first Experiment cook that learns a recipe whose output is a Meal — `CookingRules.IsMealDiscovery`), `ArrivalSequence` (`WorldFact_Arrival_Done` when event-001 ends or is dev-skipped), `PlayerSaveAdapter.ApplyOrigin` on the new-game boot (`OriginSO.originFact` + `SaveSystem._hadBelongingsFact`), `ContainerTakeFact` (first take from a container), `NPCPresence` talk openers (`NpcTalkOpener.played`), `WorldFactTrigger` (player inside a box volume, optional hour window / fact / NPC gates), `DoorLatch._unlatchedFact`. `DialogueSystem` never sets one. Per-asset setters and readers: **Quest Explorer → Facts** (a fact with no setter, e.g. `WorldFact_QuarryPassageOpened`, shows there) | toll gates, `ArrivalSequence` (plays when unset), `NPCPresence._availableAfter` / `_talkOpeners`, memory conditions, quest parts, `FactRemovedObject` |
 | `RecipeFact` | `Recipe.Known.{recipeId}` | stored | `CookingUI` Experiment tab on first discovery, or using a `RecipeItemSO` → `WorldStateManager.SetRecipeKnown` (setter shown as the `RecipeSO` in Quest Explorer) | cooking Recipes tab, quest parts, memory conditions |
 | `QuestFact` | `Quest.{questId}.{State\|StepN}` | computed | derived from the quest's parts | memory conditions, other quests, rewards |
 | `SkillFact` | `Skill.{skillId}` | computed | `PlayerSkills.HasSkill` | memory conditions |
 | `StatFact` | `Stat.Requirements(n)` | computed | `PlayerStats` thresholds | memory conditions |
 | `HourWindowFact` | `Hour.{start}-{end}` (debug only) | computed | true while `GameClock.Active`'s hour is in [start, end) (wraps midnight, start == end = all day, no clock = false). Raises **no** change event: pull-only, use it in memory conditions / choice gates (re-evaluated on each dialogue open), **never** in quest parts, talk openers or `FactRemovedObject` | Venn's `Mem_BarnGuard_NightPatrol` (unlock) and `_Greeting` / `_NightTalk` (invalidation = hidden while true), fact `HourWindowFact_Night_00_03` |
+| `MealEatenFact` | `Meal.Eaten.{itemId}` (debug / event only) | computed | true once `_meal`'s (`PotionItemSO`) first-meal bonus is claimed (`IsMealBonusClaimed`); the first `ClaimMealBonus` raises `OnFactChanged` with this key. A food without a bonus never makes it true (`OnValidate` warning, validator V19). Quest Explorer setter: the meal | quest parts (`WorkersRation`), memory conditions |
+| `CraftedFact` | `Crafted.{recipeId}` (debug / event only) | computed | true once `GetRecipeCraftCount(_recipe) > 0` (`_recipe` = a `RecipeFact`); `AddRecipeCraft` raises `OnFactChanged` with this key on the first craft (0 → 1). An Experiment cook matching the recipe counts. Quest Explorer setter: the `RecipeSO` | quest parts (`WorkersSandwich`), memory conditions |
 | `ElapsedFact` | `Elapsed.{sourceKey}.{h}h` (debug only) | computed | true once `_source` (a **stored** fact) is true and `_hours` game hours (decimals) passed since it turned true — timed dialogue | `NPCPresence._talkOpeners` (Hobb: `ElapsedFact_Hobb_BelongingsRummaged_2h`), any memory / quest condition |
 
 **Seen markers** (`Dialogue.Seen.{nodeId}` / `Dialogue.Seen.{nodeId}.{choiceIndex}`) also live in
@@ -30,8 +32,12 @@ event, and must never be used as quest / memory conditions. UI-only (`DialogueUI
 
 **Meal bonus claims** (`Meal.BonusClaimed.{itemId}`) follow the same rule: saved in `_worldFacts`, written only by
 `WorldStateManager.ClaimMealBonus` (first eat of a `PotionItemSO` with a permanent bonus), read by
-`IsMealBonusClaimed`, no event, not a fact. The max-HP part of the bonus is saved separately
+`IsMealBonusClaimed`, not a fact. The first claim raises `OnFactChanged` with the `MealEatenFact` key (the computed fact that reads it). The max-HP part of the bonus is saved separately
 (`PlayerSaveData.bonusMaxHealth`); stat bonuses are in the saved base stats.
+
+**Daily rations** (`Ration.{nodeId}` → `DailyRationState { period, taken }`) are not facts either: kept in their own
+`WorldStateManager` store (`GetDailyRationRemaining` / `TakeDailyRation`), saved as the optional `SaveData.dailyRations`
+(null in older saves = every ration full), no event. Rules: `Scripts/World/DIALOGUE_SYSTEM.md` → Daily ration topic.
 
 **Timed facts:** `WorldStateManager` records `GameClock.Now` when a stored fact turns false → true (`_factSetTimes`, saved
 as `SaveData.factSetTimes`). Setting it true again keeps the first time; false clears it. No time (older save, set while no
@@ -42,7 +48,8 @@ runs is remembered with its deadline, and `WorldStateManager.Update` raises `OnF
 restore, re-registered by the quest reseed. A computed source (Quest /
 Skill / Stat / Elapsed) has no time → validator V18. Quest Explorer lists no readers for the source through an `ElapsedFact`.
 
-Computed facts are never written to `WorldStateManager._worldFacts` and cannot be toggled.
+Computed facts are never written to `WorldStateManager._worldFacts` and cannot be toggled (`SetFact` refuses a
+`MealEatenFact` / `CraftedFact` with a warning).
 Never build a fact key by hand — always go through the typed `WorldStateManager` API.
 
 ---

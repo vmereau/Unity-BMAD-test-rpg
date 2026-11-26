@@ -119,6 +119,8 @@ namespace Game.Core
         public Dictionary<string, bool> worldFacts;
         /// <summary>RecipeFact key → times cooked. Optional: null in saves made before it existed (= nothing cooked).</summary>
         public Dictionary<string, int> recipeCrafts;
+        /// <summary>Daily ration key → ration day + count taken. Optional: null in saves made before it existed (= every ration full).</summary>
+        public Dictionary<string, DailyRationState> dailyRations;
         /// <summary>
         /// Fact key → game time it turned true (for <c>ElapsedFact</c>). Optional: null in saves made before it existed
         /// (= every true fact counts as set long ago).

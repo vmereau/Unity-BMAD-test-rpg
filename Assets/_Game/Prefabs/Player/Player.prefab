@@ -684,6 +684,7 @@ MonoBehaviour:
   _animator: {fileID: 256641999253984500}
   _defaultAnimatorController: {fileID: 9100000, guid: 80d02372912f4e04c9f4fd0c3e624e40, type: 2}
   _onVisualsRefreshed: {fileID: 11400000, guid: 2360a371ed2298b42981d2b6ed275384, type: 2}
+  _torchShadows: 1
 --- !u!114 &8895864641979124537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -991,6 +992,7 @@ MonoBehaviour:
   _onDialogueSignal: {fileID: 11400000, guid: fc6e04a585688194e9bfa886ca614015, type: 2}
   _onPlayerKnockedOut: {fileID: 11400000, guid: e95f69b49a889ac408a3b4d3ee346dfd, type: 2}
   _onDialogueCloseRequested: {fileID: 11400000, guid: 8a2b5e40d7331bf418092e0a81a0e36c, type: 2}
+  _onItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
 --- !u!114 &6376491736541447869
 MonoBehaviour:
   m_ObjectHideFlags: 0

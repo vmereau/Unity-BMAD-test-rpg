@@ -29,6 +29,7 @@ namespace Game.Editor.QuestExplorer
         public const string SCENES_FOLDER = "Assets/_Game/Scenes";
         public const string QUEST_EVENTS_PREFAB_PATH = "Assets/_Game/Prefabs/QuestEventsManager.prefab";
         public const string QUEST_LOG_PREFAB_PATH = "Assets/_Game/Prefabs/UI/QuestLog/QuestLogUI.prefab";
+        public const string COOKING_UI_PREFAB_PATH = "Assets/_Game/Prefabs/UI/Cooking/CookingUI.prefab";
 
         private static readonly Regex GuidRegex = new Regex("guid: ([0-9a-f]{32})", RegexOptions.Compiled);
         private static readonly HashSet<string> s_warnedPrefabs = new HashSet<string>();
@@ -67,7 +68,29 @@ namespace Game.Editor.QuestExplorer
 
             s.EventsManagerQuests = ReadQuestList<QuestEventsManager>(QUEST_EVENTS_PREFAB_PATH, "_quests");
             s.QuestLogQuests = ReadQuestList<QuestLogUI>(QUEST_LOG_PREFAB_PATH, "_allQuests");
+            AddPrefabSetter<CookingUI>(s, COOKING_UI_PREFAB_PATH, "_mealDiscoveredFact", FactLinkSource.CookingDiscovery,
+                "Cooking: first meal discovered by experimenting (CookingUI)");
             return s;
+        }
+
+        // A WorldFact field on a UI / system prefab component (e.g. CookingUI._mealDiscoveredFact). Owner = the prefab asset.
+        private static void AddPrefabSetter<T>(IndexSources s, string prefabPath, string factField, FactLinkSource source,
+            string label) where T : Component
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            var component = prefab != null ? prefab.GetComponentInChildren<T>(true) : null;
+            if (component == null)
+            {
+                if (s_warnedPrefabs.Add(prefabPath))
+                    GameLog.Warn(TAG, $"{typeof(T).Name} not found at '{prefabPath}' — its fact setter isn't indexed");
+                return;
+            }
+            using var so = new SerializedObject(component);
+            if (so.FindProperty(factField)?.objectReferenceValue is WorldFact fact)
+                s.AssetFactSetters.Add(new FactLink
+                {
+                    Fact = fact, Kind = FactLinkKind.Setter, Source = source, Owner = prefab, Label = label
+                });
         }
 
         private static void AddSceneSetter(IndexSources s, Component setter, FactLinkSource source, string label,
