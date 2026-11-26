@@ -1,11 +1,11 @@
 # Quest Spec — WorkersSandwich
 
 > Template version: 1.1
-> Status: `ready`
+> Status: `implemented`
 > Spec path: `docs/World/Quests/WorkersSandwich.md`
 > Design with `/quests:design`, build with `/quests:implement WorkersSandwich`, check with `/quests:audit WorkersSandwich`.
 > Chain: `WorkersRation` → **WorkersSandwich** → `CooksExperiment` (Tob's cooking tutorial, npc-020).
-> **Ready to implement** — all prerequisites done (2026-11-26): `CraftedFact`, items, recipe and recipe item.
+> **Implemented** 2026-11-26 (`/quests:implement`); `quest_report WorkersSandwich` clean.
 
 ---
 
@@ -180,11 +180,16 @@ rewards:
 
 ## Implementation Checklist
 
-- [ ] Prerequisites 1–4 done (`gds-quick-dev` spec + `/items:create` + Tob shop stock)
-- [ ] Fact assets created — `Data/NPCs/KitchenHand/Facts/` (dialogue facts), `Data/Facts/` (Recipe / Crafted / Quest facts)
-- [ ] QuestSO created — `Assets/_Game/Data/Quests/WorkersSandwich/Quest_WorkersSandwich.asset`
-- [ ] Dialogue chains created — `Data/NPCs/KitchenHand/Dialogues/SomethingToCarry/`, `TheSandwich/`
-- [ ] Memory entries created under `Data/NPCs/KitchenHand/Memories/`
-- [ ] PlayerRewardSO created — `PlayerReward_WorkersSandwich_Recipe` (item), `PlayerReward_WorkersSandwich_Completed` (75 XP)
-- [ ] Registered — `QuestEventsManager` (auto) and `QuestLogUI._allQuests`
-- [ ] `quest_report WorkersSandwich` shows no Error / Warning
+- [x] Prerequisites 1–4 done (`gds-quick-dev` spec + `/items:create` + Tob shop stock)
+- [x] Fact assets created
+  - `Assets/_Game/Data/NPCs/KitchenHand/Facts/DialogueFact_KitchenHand_Sandwich_Offered.asset`, `_RecipeTaken`, `_AlreadyKnown`, `_Done`
+  - `Assets/_Game/Data/Facts/CraftedFact_WorkersSandwich.asset` (`_recipe` = `RecipeFact_WorkersSandwich`)
+  - `Assets/_Game/Data/Facts/QuestFact_WorkersSandwich_Started.asset`, `_Step1.asset`, `_Completed.asset`
+- [x] QuestSO created — `Assets/_Game/Data/Quests/WorkersSandwich/Quest_WorkersSandwich.asset`
+- [x] Dialogue chains created
+  - `Data/NPCs/KitchenHand/Dialogues/SomethingToCarry/`: `Start_KitchenHand_SomethingToCarry` → `Text_KitchenHand_SomethingToCarry` → `Choice_KitchenHand_SomethingToCarry` (→ `Text_KitchenHand_SandwichGiven` / `Text_KitchenHand_SandwichKnown` / end)
+  - `Data/NPCs/KitchenHand/Dialogues/TheSandwich/`: `Start_KitchenHand_TheSandwich` → `Text_KitchenHand_TheSandwich` → `Choice_KitchenHand_TheSandwich`
+- [x] Memory entries created under `Data/NPCs/KitchenHand/Memories/` — `Mem_KitchenHand_SandwichOffer`, `Mem_KitchenHand_Gate_SandwichKnown`, `Mem_KitchenHand_SandwichReport` (synced into `NPC_KitchenHand.memories`)
+- [x] PlayerRewardSO created — `Data/Rewards/PlayerReward_WorkersSandwich_Recipe.asset` (Dialogue `_RecipeTaken` → 1 × `Item_Recipe_WorkersSandwich`), `Data/Rewards/PlayerReward_WorkersSandwich_Completed.asset` (75 XP); synced to `Player.prefab`
+- [x] Registered — `QuestEventsManager` and `QuestLogUI._allQuests`
+- [x] `quest_report WorkersSandwich` shows no Error / Warning

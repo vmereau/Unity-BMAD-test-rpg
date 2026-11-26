@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac92814fd7f780849a2ffc435cc5ae4b, type: 3}
+  m_Name: Start_KitchenHand_MixingThings
+  m_EditorClassIdentifier: Game::Game.Dialogue.StartDialogueNode
+  text: Mixing things
+  nextNode: {fileID: 11400000, guid: 37219ca127481fd499be4a774a0ef28b, type: 2}
+  _id: bd87263bfb8ea704a82b547a207b42f9
+  dialogueFact: {fileID: 11400000, guid: 360a365528d6f134d90776c3a822d089, type: 2}

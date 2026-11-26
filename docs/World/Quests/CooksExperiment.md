@@ -1,11 +1,11 @@
 # Quest Spec — CooksExperiment
 
 > Template version: 1.1
-> Status: `ready`
+> Status: `implemented`
 > Spec path: `docs/World/Quests/CooksExperiment.md`
 > Design with `/quests:design`, build with `/quests:implement CooksExperiment`, check with `/quests:audit CooksExperiment`.
 > Chain: `WorkersRation` → `WorkersSandwich` → **CooksExperiment** (Tob's cooking tutorial, npc-020).
-> **Ready to implement** — all prerequisites done (2026-11-26): `WorldFact_Cooking_MealDiscovered` setter, experiment-only Forager's Stew.
+> **Implemented** 2026-11-26 (`/quests:implement`); prerequisites: `WorldFact_Cooking_MealDiscovered` setter, experiment-only Forager's Stew.
 
 ---
 
@@ -168,11 +168,15 @@ rewards:
 
 ## Implementation Checklist
 
-- [ ] Prerequisites 1–2 done (`gds-quick-dev` spec + `/items:create`)
-- [ ] Fact assets created — `Data/NPCs/KitchenHand/Facts/` (dialogue facts), `Data/Facts/` (World / Quest facts)
-- [ ] QuestSO created — `Assets/_Game/Data/Quests/CooksExperiment/Quest_CooksExperiment.asset`
-- [ ] Dialogue chains created — `Data/NPCs/KitchenHand/Dialogues/MixingThings/`, `FoundADish/`
-- [ ] Memory entries created under `Data/NPCs/KitchenHand/Memories/`
-- [ ] PlayerRewardSO created — `PlayerReward_CooksExperiment_Completed` (100 XP)
-- [ ] Registered — `QuestEventsManager` (auto) and `QuestLogUI._allQuests`
-- [ ] `quest_report CooksExperiment` shows no Error / Warning
+- [x] Prerequisites 1–2 done (`spec-tob-cooking-prerequisites`, `/items:create` Forager's Stew)
+- [x] Fact assets created
+  - `Assets/_Game/Data/NPCs/KitchenHand/Facts/DialogueFact_KitchenHand_Experiment_Offered.asset`, `_Accepted`, `_AlreadyFound`, `_Done`
+  - `Assets/_Game/Data/Facts/QuestFact_CooksExperiment_Started.asset`, `QuestFact_CooksExperiment_Completed.asset`
+- [x] QuestSO created — `Assets/_Game/Data/Quests/CooksExperiment/Quest_CooksExperiment.asset`
+- [x] Dialogue chains created
+  - `Data/NPCs/KitchenHand/Dialogues/MixingThings/`: `Start_KitchenHand_MixingThings` ("Mixing things", sets `_Offered`) → `Text_KitchenHand_MixingThings` → `Choice_KitchenHand_MixingThings` → `Text_KitchenHand_ExperimentHint` / `Text_KitchenHand_ExperimentKnown` (gated by `Mem_KitchenHand_Gate_MealDiscovered`) / Later
+  - `Data/NPCs/KitchenHand/Dialogues/FoundADish/`: `Start_KitchenHand_FoundADish` ("I found a dish") → `Text_KitchenHand_FoundADish` (spec lines 1–2) → `Choice_KitchenHand_FoundADish` (line 3 as prompt, "I'll keep trying things." sets `_Done`)
+- [x] Memory entries created under `Data/NPCs/KitchenHand/Memories/`: `Mem_KitchenHand_ExperimentOffer`, `Mem_KitchenHand_Gate_MealDiscovered`, `Mem_KitchenHand_ExperimentReport` (synced into `NPC_KitchenHand.memories`)
+- [x] PlayerRewardSO created — `Assets/_Game/Data/Rewards/PlayerReward_CooksExperiment_Completed.asset` (100 XP, synced to `Player.prefab`)
+- [x] Registered — `QuestEventsManager` (synced) and `QuestLogUI._allQuests`
+- [x] `quest_report CooksExperiment` shows no Error / Warning (audit: no new issues)

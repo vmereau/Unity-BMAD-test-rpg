@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_KitchenHand_ExperimentOffer
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 9db3ff6a07656854f81b14c1a00c9814, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: 5fe1b0bbfb495c046b37a4d94cfac285, type: 2}
+  - {fileID: 11400000, guid: 231b68b1360701d4d8e47109c36f4936, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: bd87263bfb8ea704a82b547a207b42f9, type: 2}

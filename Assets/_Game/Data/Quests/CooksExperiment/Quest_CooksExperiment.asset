@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_CooksExperiment
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: CooksExperiment
+  title: Something New
+  description: 'Tob says a good cook finds dishes by mixing ingredients, not by reading recipes. He only gave me a hint: onion and pork aren''t only good on bread, try them with something from the woods. I should experiment at a fire until I find a new dish.'
+  startPart:
+    fact: {fileID: 11400000, guid: 360a365528d6f134d90776c3a822d089, type: 2}
+    entry: Tob wants me to find a dish of my own by mixing ingredients at a fire.
+  completedParts:
+  - fact: {fileID: 11400000, guid: 276330743ff9e89439b1fe31b4e9df64, type: 2}
+    entry: I found a new dish by experimenting, and Tob was pleased.
+  - fact: {fileID: 11400000, guid: 231b68b1360701d4d8e47109c36f4936, type: 2}
+    entry: I had already found a dish of my own.
+  failedParts: []
+  steps:
+  - title: Find a new dish
+    description: 'At a fire, put ingredients together in the Experiment tab until something new comes out. Tob''s hint: onion and pork, with something from the woods.'
+    parts:
+    - fact: {fileID: 11400000, guid: dcb38c584b172b447a5caadd6945765c, type: 2}
+      entry: I discovered a new dish.

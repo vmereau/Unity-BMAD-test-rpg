@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_KitchenHand_SandwichOffer
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 703a80f172ba9124194a0771dc5ea245, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: 8fcb588276e78bd49ae188dbe6d33d9a, type: 2}
+  - {fileID: 11400000, guid: e21965ee85930894191b3714d57ec40e, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: b142db83782d56e489dc8f9498789088, type: 2}

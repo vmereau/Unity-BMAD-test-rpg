@@ -854,6 +854,7 @@ MonoBehaviour:
   _onRewardItemReceived: {fileID: 11400000, guid: 5689a6c213f1f124987a0efe2fd69f55, type: 2}
   _rewards:
   - {fileID: 11400000, guid: abcc43408fb7d4848a323285fc7e4181, type: 2}
+  - {fileID: 11400000, guid: a83cf0195568a954fa7567bd553fb734, type: 2}
   - {fileID: 11400000, guid: 3a23962b747a12d4cac50cd5d4a23ea4, type: 2}
   - {fileID: 11400000, guid: 7664698c6f623ae45a116348c96cf46d, type: 2}
   - {fileID: 11400000, guid: 1993fa74ae4bb1a43b68aac3b9d13c18, type: 2}
@@ -869,6 +870,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9cc06fd79b542ee4492762602eaacf87, type: 2}
   - {fileID: 11400000, guid: 36727ae989b4d5f4ba08e6a83360b05b, type: 2}
   - {fileID: 11400000, guid: bdbd9dc8ea638ac449cf2a1b05527ff5, type: 2}
+  - {fileID: 11400000, guid: 2e88e66f467c24041b80277e020b96c1, type: 2}
+  - {fileID: 11400000, guid: 5ed9210def1f68c4d9b3ed42481e145d, type: 2}
 --- !u!114 &1472871286454628577
 MonoBehaviour:
   m_ObjectHideFlags: 0

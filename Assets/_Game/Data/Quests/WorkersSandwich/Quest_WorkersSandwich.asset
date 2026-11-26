@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_WorkersSandwich
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: WorkersSandwich
+  title: Bread, Onion and Pork
+  description: 'Tob gave me his recipe for the sandwich the workers carry to the quarry: bread, onion and salt pork. He sells the onion and the pork himself. I should cook one at a fire.'
+  startPart:
+    fact: {fileID: 11400000, guid: bc77b7d801ad0d742b9827c48deeddb9, type: 2}
+    entry: Tob wants to teach me the sandwich the workers carry to the quarry.
+  completedParts:
+  - fact: {fileID: 11400000, guid: 33de3e186e7db3c4ea2230f9df58dd12, type: 2}
+    entry: I cooked Tob's sandwich and he approved.
+  - fact: {fileID: 11400000, guid: e21965ee85930894191b3714d57ec40e, type: 2}
+    entry: I already knew how to make Tob's sandwich.
+  failedParts: []
+  steps:
+  - title: Learn the recipe
+    description: Read the recipe Tob gave me.
+    parts:
+    - fact: {fileID: 11400000, guid: c0af80c286f13ea4abcc91393b7e6927, type: 2}
+      entry: I know how to make the Worker's Sandwich.
+  - title: Cook it
+    description: Buy onion and salt pork from Tob, then cook the sandwich at a fire.
+    parts:
+    - fact: {fileID: 11400000, guid: 6d3a01f257ac75547b6b7cb83fa5d315, type: 2}
+      entry: I cooked a Worker's Sandwich.

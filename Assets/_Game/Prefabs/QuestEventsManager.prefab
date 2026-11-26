@@ -45,11 +45,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Game.Quest.QuestEventsManager
   _quests:
+  - {fileID: 11400000, guid: bc02814cf061bfb46ad01d07eaf67a24, type: 2}
   - {fileID: 11400000, guid: 718c2d235a98afe4d9d8e0db801cce29, type: 2}
   - {fileID: 11400000, guid: 71698268bdb0585458c485c6257c5d4f, type: 2}
   - {fileID: 11400000, guid: a17d292038ce07447aa24379d7fc89f9, type: 2}
   - {fileID: 11400000, guid: 91f8069d228f06f4caa6cedbc6c1dcf5, type: 2}
   - {fileID: 11400000, guid: 97f066f3993890d4e9c2ca071a980888, type: 2}
+  - {fileID: 11400000, guid: d3efe6d5566d0f5499b47c1be1dcb9e6, type: 2}
   onFactChanged: {fileID: 11400000, guid: 6bf707fa813f5d244a06a1e7a879c09b, type: 2}
   _onQuestStarted: {fileID: 11400000, guid: 67aad4bc5c2e30b4aaed68fd09a6b30e, type: 2}
   _onQuestCompleted: {fileID: 11400000, guid: daa28683af9d08841ace38e079c87b14, type: 2}

@@ -58,9 +58,15 @@ MonoBehaviour:
   nightState: 2
   prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
   memories:
+  - {fileID: 11400000, guid: f95857445e5b7fa45bc1322b3bf77243, type: 2}
+  - {fileID: 11400000, guid: 49439f74bc411be409e1a6c140d74ea8, type: 2}
+  - {fileID: 11400000, guid: a447a0eae613bc741aff25e4341e7a08, type: 2}
+  - {fileID: 11400000, guid: 0381edeb99a616f49a6aa3099639171c, type: 2}
   - {fileID: 11400000, guid: 24bff3598de5f8442b8dd0743017b06f, type: 2}
   - {fileID: 11400000, guid: a06e7eb4a776d5744b17e5c1637e543b, type: 2}
   - {fileID: 11400000, guid: 02d8946f9274f0f43a2b97a1efd7b555, type: 2}
+  - {fileID: 11400000, guid: 85095a2d4e0a7034cb76aa393e8d163b, type: 2}
+  - {fileID: 11400000, guid: 946fa025bfd1c31469f744ef90be20f5, type: 2}
   - {fileID: 11400000, guid: a5ce708ba8a95fb47871aa25938b4d79, type: 2}
   _killedFact: {fileID: 11400000, guid: 485b6544b23932f469b60a8b140f9703, type: 2}
   _head: {fileID: 11400000, guid: a1cffd3b9d006e14f86083ca0ff7ef95, type: 2}
