@@ -46,6 +46,7 @@
 
 `EntityBrain` flows: Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking → (Searching) → back; witnesses:
 (Suspicious) → **Watching** → back; theft witnesses / restricted-area owners: **Pursuing** → **Confronting** → back;
+an owner that heard a trespasser who fell silent: Suspicious → non-combat **Searching** (investigation) → back;
 knockout winner over the player: **Looting** → back; toll collector: **Intercepting** (driven by `TollGate`) → back or
 brawl; routine **Sleeping**; stance **Staggered / KnockedDown**; Dead. Warning / Engaging basics and the damage rules are
 in **Rules** below.

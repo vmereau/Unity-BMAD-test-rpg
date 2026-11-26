@@ -47,6 +47,8 @@ namespace Game.Stealth
         [Header("Hearing")]
         [Tooltip("Seconds to fill awareness from 0 to 1 while the target is heard (walking / running inside a hearing radius). Hostile and trespass modes only.")]
         [Min(0.05f)] public float hearingFillTime = 2f;
+        [Tooltip("Seconds to fill awareness from 0 to 1 while an awake restricted-area owner hears a trespasser in its area. Asleep owners keep Hearing Fill Time.")]
+        [Min(0.05f)] public float trespassHearingFillTime = 1f;
         [Tooltip("Hearing radius multiplier when line of sight is blocked (sound muffled by walls).")]
         [Range(0f, 1f)] public float occludedHearingFactor = 0.5f;
         [Tooltip("Below this flat speed (m/s) the player makes no noise.")]

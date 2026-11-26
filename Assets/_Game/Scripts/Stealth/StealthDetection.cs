@@ -107,5 +107,12 @@ namespace Game.Stealth
         /// <summary>Awareness gained per second while the target is heard. 0 when <paramref name="hearingFillTime"/> ≤ 0.</summary>
         public static float HearingFillPerSecond(bool heard, float hearingFillTime) =>
             heard && hearingFillTime > 0f ? 1f / hearingFillTime : 0f;
+
+        /// <summary>
+        /// Hearing fill time in use: <paramref name="trespassFillTime"/> for an awake owner hearing a trespasser,
+        /// <paramref name="normalFillTime"/> otherwise (hostile mode, or asleep in any mode).
+        /// </summary>
+        public static float HearingFillTime(bool trespassing, bool asleep, float normalFillTime, float trespassFillTime) =>
+            trespassing && !asleep ? trespassFillTime : normalFillTime;
     }
 }

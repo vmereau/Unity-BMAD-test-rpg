@@ -27,6 +27,7 @@ MonoBehaviour:
   losCheckInterval: 0.1
   targetScanInterval: 0.25
   hearingFillTime: 2
+  trespassHearingFillTime: 1
   occludedHearingFactor: 0.5
   noiseMinSpeed: 0.5
   runNoiseSpeed: 4.5

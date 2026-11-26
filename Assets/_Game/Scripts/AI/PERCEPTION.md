@@ -112,6 +112,18 @@
   brain needs no change: Suspicious faces `LastSeenPosition` (= last *sensed*), alerted states keep tracking a heard
   target. Checks that mean "sees" (unknown-source hit retarget, Watching trespass check) read `CanSeeTarget`, which
   stays vision-only. Hearing radii are capped at the sight range, so Warning's `dist > DetectionRange` cancel can't loop.
+  An **awake owner hearing a trespasser** fills at `StealthConfigSO.trespassHearingFillTime` (1 s; `StealthDetection.HearingFillTime`),
+  hostile mode and asleep owners at `hearingFillTime` (2 s).
+- **Trespass noise investigation** (spec-trespass-hearing-fast-detection): a Suspicious owner that has heard the trespasser
+  records the last spot inside the area where it sensed them (`_trespassHeardSpot`, cleared on entering Suspicious). Once
+  they are neither seen nor heard for 0.5 s (`TRESPASS_INVESTIGATE_DELAY`: out of range, sneaking, still, or the perception
+  mode dropped them when they left the area; not when the target turned hostile) → `TransitionToSearching(investigate: true)`
+  (`IsInvestigating`): **not combat** (dialogue opens; the search waits while the cursor is unlocked), `BaseSpeed`, awareness
+  kept (no `searchStartAwareness`), walks to the spot, turns `SearchDuration`, `EndSearch` → routine. Unlike a combat search
+  it still witnesses thefts, joins nearby fights (`TryJoinNearbyFight`) and counts as unaware for sneak attacks. Checked
+  before Suspicious's `Awareness <= 0` resume (a mode switch zeroes the meter). Re-detected during any search →
+  `RespondToTrespasser`; a trespasser whose area stopped being restricted before the rescan is ignored, not engaged (unless
+  it is the aggro target). Vision-only suspicion never investigates.
 - **Detection while patrolling:** perception ticks every frame in every state and `HandlePatrol` checks it before path
   handling; the cone follows `transform.forward`, which the NavMeshAgent turns along the path (`updateRotation` is only
   disabled by `EntityCombatTactics` while circling / backing off / closing in, and restored when tactics end) — a walking guard sees ahead, a waiting one keeps its arrival facing.

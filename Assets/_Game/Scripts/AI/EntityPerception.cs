@@ -24,7 +24,7 @@ namespace Game.AI
     /// <see cref="TrespassArea"/>). Priority: hostile &gt; trespass &gt; witness.
     /// <b>Hearing</b> (hostile and trespass modes, never witness): a target whose <see cref="IStealthTarget.Noise"/> is
     /// Walk / Run inside the Entity's walk / run hearing radius (360°, × occludedHearingFactor without line of sight)
-    /// fills the same meter at 1 / hearingFillTime. <see cref="CanSeeTarget"/> stays vision-only; the last seen
+    /// fills the same meter at 1 / hearingFillTime (1 / trespassHearingFillTime for an awake owner hearing a trespasser). <see cref="CanSeeTarget"/> stays vision-only; the last seen
     /// position and <see cref="TimeSinceSeen"/> track the last time the target was <i>sensed</i> (seen or heard).
     /// Inactive (no-op) when DetectionRange ≤ 0 and no witness profile is enabled.
     /// </summary>
@@ -252,7 +252,8 @@ namespace Game.AI
                 float fill = Mathf.Max(
                     StealthDetection.FillPerSecond(visibility, entity.AwarenessFillTime, TargetIsSneaking,
                         _config.sneakFillRateMultiplier),
-                    StealthDetection.HearingFillPerSecond(CanHearTarget, _config.hearingFillTime));
+                    StealthDetection.HearingFillPerSecond(CanHearTarget, StealthDetection.HearingFillTime(
+                        IsTrespassing, IsAsleep, _config.hearingFillTime, _config.trespassHearingFillTime)));
                 CanSeeTarget = visibility > 0f;
                 bool sensed = CanSeeTarget || CanHearTarget;
                 LastVisibility = visibility;

@@ -17,7 +17,8 @@ namespace Game.AI
 {
     /// <summary>
     /// Generic entity state machine: Idle / Patrolling → (Suspicious) → Warning → Engaging ⇄ Attacking →
-    /// (Searching) → Idle / Patrolling; Dead from any state.
+    /// (Searching) → Idle / Patrolling; Dead from any state. A restricted-area owner that heard a trespasser goes
+    /// Suspicious → Searching (non-combat investigation of the last heard spot) once the trespasser falls silent.
     /// Stealth targets (the player) are acquired through the optional <see cref="EntityPerception"/> awareness
     /// meter (vision cone + line of sight); other hostiles through the TargetRegistry radius check. Without an
     /// active perception, every hostile is acquired by radius and Suspicious / Searching never happen.
@@ -211,6 +212,13 @@ namespace Game.AI
 
         private float _searchTimer;
         private bool _searchArrived;
+        // Suspicious stint of a restricted-area owner: last spot inside the area where the trespasser was sensed, once heard.
+        private bool _hasTrespassHeardSpot;
+        private Vector3 _trespassHeardSpot;
+        // Searching started by TryInvestigateTrespassNoise: non-combat, theft-aware, pauses while a menu / dialogue is open.
+        private bool _searchInvestigating;
+        // Neither seen nor heard for this long before a Suspicious owner goes to check the spot (hearing flickers at radius edges).
+        private const float TRESPASS_INVESTIGATE_DELAY = 0.5f;
         private float _previousHealth;
         private bool _healthSubscribed;
         private EntityStance _stance;
@@ -605,6 +613,9 @@ namespace Game.AI
             return true;
         }
 
+        // Non-combat Searching of a restricted-area owner checking where it heard a trespasser.
+        private bool IsInvestigating => _state == EntityState.Searching && _searchInvestigating;
+
         private bool IsAlertedState() =>
             _state == EntityState.Warning || _state == EntityState.Engaging || _state == EntityState.Attacking;
 
@@ -706,6 +717,8 @@ namespace Game.AI
             if (TryTakePerceptionTarget()) { RespondToDetectedTarget(); return; }
             if (TryAcquireTargetThrottled()) { RespondToDetectedTarget(); return; } // non-stealth hostile
             if (TryJoinNearbyFight()) return;
+            // Before the awareness check: a perception mode switch (trespasser left the area) resets the meter to 0.
+            if (TryInvestigateTrespassNoise()) return;
             if (_perception.Awareness <= 0f)
             {
                 GameLog.Info(TAG, $"{gameObject.name} no longer suspicious — resuming");
@@ -714,6 +727,29 @@ namespace Game.AI
             }
             if (_perception.HasLastSeenPosition)
                 FacePoint(_perception.LastSeenPosition, StealthConfig.suspiciousTurnSpeed);
+        }
+
+        // Owner that heard a trespasser: records the last in-area spot it sensed them at; once they are neither seen nor
+        // heard (out of range, sneaking, standing still, left the area) it walks there and looks around (non-combat).
+        private bool TryInvestigateTrespassNoise()
+        {
+            bool trespass = _perception.IsTrespassing && _perception.TrespassArea != null && _perception.Target != null;
+            bool sensed = trespass && (_perception.CanSeeTarget || _perception.CanHearTarget);
+            if (sensed && (_hasTrespassHeardSpot || _perception.CanHearTarget))
+            {
+                Vector3 position = _perception.Target.Transform.position;
+                if (_perception.TrespassArea.Contains(position))
+                {
+                    _trespassHeardSpot = position;
+                    _hasTrespassHeardSpot = true;
+                }
+                return false;
+            }
+            if (!_hasTrespassHeardSpot || sensed) return false;
+            if (_perception.Target != null && !_perception.IsTrespassing && !_perception.IsWitnessing) return false; // hostile now: normal rules
+            if (_perception.TimeSinceSeen < TRESPASS_INVESTIGATE_DELAY) return false;
+            TransitionToSearching(investigate: true);
+            return true;
         }
 
         private void HandleWarning()
@@ -929,10 +965,25 @@ namespace Game.AI
                     RespondToTrespasser(_perception.TrespassArea);
                     return;
                 }
-                if (!IsWitnessTarget()) { TransitionToEngaging(); return; }
+                // A non-hostile trespasser whose area stopped being restricted (grace / hours, before the next rescan)
+                // is not a fight unless it is this owner's aggro target.
+                bool calmTrespasser = _perception.IsTrespassing &&
+                                      (_meleeAttacker == null || _meleeAttacker.AggroTarget != _currentTarget);
+                if (!IsWitnessTarget() && !calmTrespasser) { TransitionToEngaging(); return; }
                 _currentTarget = null;
             }
             if (TryAcquireTargetThrottled()) { TransitionToEngaging(); return; } // non-stealth hostile
+            if (_searchInvestigating)
+            {
+                if (TryJoinNearbyFight()) return;
+                if (!CursorManager.IsLocked)
+                {
+                    // Talking to it / a menu open: wait where it stands, the search resumes afterwards.
+                    if (_agent.isOnNavMesh) _agent.isStopped = true;
+                    return;
+                }
+                if (!_searchArrived && _agent.isOnNavMesh) _agent.isStopped = false;
+            }
 
             if (!_searchArrived)
             {
@@ -952,6 +1003,7 @@ namespace Game.AI
 
         private void EndSearch()
         {
+            _searchInvestigating = false;
             SetCombatState(false);
             GameLog.Info(TAG, $"{gameObject.name} gave up the search");
             ResumeNonCombat();
@@ -1114,7 +1166,7 @@ namespace Game.AI
         private void HandleTheftCommitted(TheftCommittedData data)
         {
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
-                _state != EntityState.Watching && _state != EntityState.Pursuing) return;
+                _state != EntityState.Watching && _state != EntityState.Pursuing && !IsInvestigating) return;
             if (_stance != null && _stance.IsIncapacitated) return; // staggered / knocked down: misses the theft
             if (_entityHealth.IsUnconscious) return;
             if (!PerceptionActive || !_perception.CanWitness) return;
@@ -2256,7 +2308,7 @@ namespace Game.AI
         public bool IsUnawareOf(GameObject attacker)
         {
             if (_state != EntityState.Idle && _state != EntityState.Patrolling && _state != EntityState.Suspicious &&
-                _state != EntityState.Sleeping)
+                _state != EntityState.Sleeping && !IsInvestigating)
                 return false;
             if (Time.time - _lastDamagedTime < DamageAlertDuration) return false; // already hit recently
             return !(PerceptionActive && _perception.IsFullyAware);
@@ -2705,6 +2757,7 @@ namespace Game.AI
         {
             _state = EntityState.Suspicious;
             _agent.isStopped = true;
+            _hasTrespassHeardSpot = false;
             GameLog.Info(TAG, $"{gameObject.name} is suspicious ({_perception.Awareness * 100f:0}% aware)");
         }
 
@@ -2718,23 +2771,31 @@ namespace Game.AI
             TryWarn();
         }
 
-        private void TransitionToSearching()
+        // investigate: a Suspicious restricted-area owner checking the last spot it heard a trespasser at — not combat,
+        // walking speed, destination = that spot.
+        private void TransitionToSearching(bool investigate = false)
         {
             _animationDriver?.SetWarning(false);
-            SetCombatState(true); // still alert while searching
+            if (!investigate) SetCombatState(true); // still alert while searching
             if (_meleeAttacker != null) _meleeAttacker.EndAttack();
             _state = EntityState.Searching;
+            _searchInvestigating = investigate;
             _currentTarget = null;
             _agent.isStopped = false;
             _agent.stoppingDistance = 0f;
-            _agent.speed = _persistentID.Entity.EngageSpeed;
+            _agent.speed = investigate ? _persistentID.Entity.BaseSpeed : _persistentID.Entity.EngageSpeed;
             _searchTimer = _persistentID.Entity.SearchDuration;
-            Vector3 destination = _perception.HasLastSeenPosition ? _perception.LastSeenPosition : transform.position;
+            Vector3 destination = investigate ? _trespassHeardSpot
+                : _perception.HasLastSeenPosition ? _perception.LastSeenPosition : transform.position;
+            _hasTrespassHeardSpot = false;
             // Unreachable last seen position → search from where we stand.
             _searchArrived = !_agent.isOnNavMesh || !_agent.SetDestination(destination);
             if (_searchArrived) _agent.isStopped = true;
-            _perception.SetAwareness(StealthConfig.searchStartAwareness);
-            GameLog.Info(TAG, $"{gameObject.name} lost sight of its target — searching last seen position");
+            // An investigation keeps the meter as it is (it may be higher, or already belong to another target).
+            if (!investigate) _perception.SetAwareness(StealthConfig.searchStartAwareness);
+            GameLog.Info(TAG, investigate
+                ? $"{gameObject.name} heard a trespasser — checking the spot"
+                : $"{gameObject.name} lost sight of its target — searching last seen position");
         }
 
         // Back to the pre-alert behaviour: the routine target (a patrol resumes its current waypoint), else Idle.

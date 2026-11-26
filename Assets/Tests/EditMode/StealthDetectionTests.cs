@@ -257,5 +257,20 @@ namespace Tests.EditMode
             Assert.That(StealthDetection.HearingFillPerSecond(false, 2f), Is.EqualTo(0f));
             Assert.That(StealthDetection.HearingFillPerSecond(true, 0f), Is.EqualTo(0f));
         }
+
+        [Test]
+        public void HearingFillTime_AwakeTrespass_UsesTrespassTime() =>
+            Assert.That(StealthDetection.HearingFillTime(true, false, 2f, 1f), Is.EqualTo(1f));
+
+        [Test]
+        public void HearingFillTime_AsleepTrespass_UsesNormalTime() =>
+            Assert.That(StealthDetection.HearingFillTime(true, true, 2f, 1f), Is.EqualTo(2f));
+
+        [Test]
+        public void HearingFillTime_Hostile_UsesNormalTime()
+        {
+            Assert.That(StealthDetection.HearingFillTime(false, false, 2f, 1f), Is.EqualTo(2f));
+            Assert.That(StealthDetection.HearingFillTime(false, true, 2f, 1f), Is.EqualTo(2f));
+        }
     }
 }
