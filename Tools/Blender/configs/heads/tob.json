@@ -1,0 +1,75 @@
+{
+    "name": "Tob",
+    "preview_tone": "#B08A66",
+    "note": "Tob (KitchenHand), early 20s: wide short rounded face, low flat nose, black close-cropped curls, patchy young moustache, nick scar through his left eyebrow -- portrait face (spec-npc-portrait-faces): face shape + detail from refs/, paint = scalp / side hair only",
+    "deforms": [],
+    "paint": [
+        {
+            "op": "skin",
+            "hair_only": true,
+            "mirror_x": true,
+            "hair_range": [
+                0.02,
+                0.12
+            ],
+            "ellipsoid": {
+                "center": [
+                    0.066,
+                    -0.04,
+                    1.625
+                ],
+                "radius": [
+                    0.03,
+                    0.04,
+                    0.035
+                ],
+                "inner": 0.5
+            },
+            "note": "clear the base hero's beard at the jaw angle (behind the side projection): Tob's cheeks and jaw are clean"
+        },
+        {
+            "op": "tint",
+            "color": [
+                0.06,
+                0.05,
+                0.05
+            ],
+            "strength": 1.0,
+            "contrast": 0.9,
+            "hairline": {
+                "z_front": 1.765,
+                "z_temple": 1.745,
+                "z_back": 1.6,
+                "soft": 0.01
+            }
+        },
+        {
+            "op": "tint",
+            "color": [
+                0.06,
+                0.05,
+                0.05
+            ],
+            "strength": 1.0,
+            "contrast": 0.9,
+            "mirror_x": true,
+            "ellipsoid": {
+                "center": [
+                    0.072,
+                    -0.04,
+                    1.72
+                ],
+                "radius": [
+                    0.028,
+                    0.035,
+                    0.05
+                ],
+                "inner": 0.4
+            },
+            "note": "short black sideburns, joined to the temple hairline"
+        }
+    ],
+    "portrait": {
+        "landmarks": "Tools/Blender/configs/heads/refs/tob_landmarks.json"
+    }
+}

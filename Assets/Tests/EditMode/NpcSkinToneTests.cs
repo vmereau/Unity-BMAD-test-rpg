@@ -27,6 +27,7 @@ public class NpcSkinToneTests
         // spec-npc-faces-second-batch
         ("CompanyGuard/NPC_CompanyGuard_ArrivalLeft", "Fair"), ("CompanyGuard/NPC_CompanyGuard_ArrivalRight", "Olive"),
         ("WarehouseGuard/NPC_WarehouseGuard", "Deep"), ("Bandit/NPC_Bandit", "Weathered"),
+        ("KitchenHand/NPC_KitchenHand", "Olive"),
     };
 
     private GameObject _root;
@@ -250,7 +251,7 @@ public class NpcSkinToneTests
             Assert.AreEqual(baseRef, head.GetFloat("_SkinRefLuminance"), 1e-6f, $"{head.name}: base ref luminance (same tone transform at the neck)");
             Assert.AreEqual(0f, head.GetFloat("_SkinToneStrength"), 1e-6f, $"{head.name}: untoned by default");
         }
-        Assert.AreEqual(17, heads, "shipped head materials (13 painted / portrait + 4 Meshy: spec-npc-meshy-heads)");
+        Assert.AreEqual(18, heads, "shipped head materials (14 painted / portrait + 4 Meshy: spec-npc-meshy-heads)");
     }
 
     [Test]

@@ -26,6 +26,7 @@ public class NpcHeadAppearanceTests
         ("CompanyGuard/NPC_CompanyGuard_ArrivalRight", "GuardRight"),
         ("WarehouseGuard/NPC_WarehouseGuard", "WarehouseGuard"), ("Bandit/NPC_Bandit", "Bandit"),
         // spec-npc-meshy-heads: Warden, TentMate, BeatenWorker and Storekeeper moved to their Meshy heads (above).
+        ("KitchenHand/NPC_KitchenHand", "Tob"),
     };
 
     private GameObject _root;

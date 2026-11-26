@@ -125,6 +125,9 @@ Gotchas:
   `skin` + `hair_only` layers (one over the sideburn, one centred on the jaw angle ≈ x 0.066, y −0.04, z 1.625), placed
   **before** the beard layer (`tentmate.json`). Light hair: keep `grey` `contrast` ≤ 0.5 or the base hair's dark detail
   shows as speckles.
+- **Throat stubble belongs to the body:** the grey stubble under the jaw continues below the seam in the body texture,
+  so clearing it with a head `skin` layer leaves a hard line at z 1.585 (tried on Tob). Leave it; every NPC on this body
+  has it.
 - `run()` renders only the man's left; to see his right, exec the script with `("r34", -40), ("rside", -90)` added to
   the `_render` angle tuple in memory (rendering after `run()` returns gives magenta: the preview image is freed).
 
