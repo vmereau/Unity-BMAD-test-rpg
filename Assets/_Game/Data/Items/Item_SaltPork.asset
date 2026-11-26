@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
+  m_Name: Item_SaltPork
+  m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
+  itemId: 70321d58ab814358a5d70fe02e3a3310
+  itemName: Salt Pork
+  description: Fatty pork packed in coarse salt and tied with twine. It keeps for weeks, and it tastes like it.
+  icon: {fileID: 21300000, guid: 80cc63b157420284081cc47611081ed1, type: 3}
+  maxStacks: 20
+  worldItemPrefab: {fileID: 3962508416539535331, guid: 08b01352fb320c14aab463f2175efa00, type: 3}
+  buyValue: 6
+  sellValue: 2
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0

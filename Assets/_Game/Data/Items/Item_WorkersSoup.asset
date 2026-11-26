@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
+  m_Name: Item_WorkersSoup
+  m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
+  itemId: 65087dca5a644a78896ae13372bb4167
+  itemName: Worker's Soup
+  description: Thin broth with barley and a few roots. It won't make anyone fat, but it keeps a man on his feet until evening.
+  icon: {fileID: 21300000, guid: 4b00e48fdcce59f48b6d12fb574e1f2d, type: 3}
+  maxStacks: 20
+  worldItemPrefab: {fileID: 6292393250660467396, guid: 250110201ab5808419042902b6b28f6e, type: 3}
+  buyValue: 6
+  sellValue: 3
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0

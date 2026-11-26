@@ -27,7 +27,7 @@
    for discoveries made **before** the quest. Serialized field on `CookingUI` (fact reference), Quest Explorer setter.
 2. **An experiment-only dish** (otherwise a dead end, see *Flow*): proposed `Item_ForagersStew` (Salt Pork + Onion +
    Brown Mushroom), `Recipe_ForagersStew` + `RecipeFact_ForagersStew`, on `CookingStation_Base._recipes`, **no recipe
-   item anywhere**. Meal, heal ~30, optional first-meal bonus (proposed +1 Endurance). Tob's hint points at it.
+   item anywhere**. Meal, heal ~30, first-meal bonus **+1 Endurance** (confirmed 2026-11-26). Assets built by `/items:create` (base `ItemSO`, 18 g / 8 g); type and stats still to set. Tob's hint points at it.
 
 ---
 
