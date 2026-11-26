@@ -65,7 +65,7 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
      explication du premier repas.
   2. Expérimenter : Tob donne seulement un indice / les ingrédients, le joueur trouve la combinaison
      (candidat : Apple Mushroom Sandwich, +5 PV max au premier repas).
-  3. Acheter une recette chez le Storekeeper (ex. Apple Trout Sandwich) et la cuisiner.
+  3. Acheter une recette chez Tob (ex. Apple Trout Sandwich) et la cuisiner.
   4. (Optionnel) Varier : manger plusieurs plats différents pour la première fois → récompense.
 - **Prochaine session (Unity ouvert) :**
   - ~~Lancer `quests:design`~~ (fait), puis `quests:implement` et `quests:audit` une fois les prérequis livrés.

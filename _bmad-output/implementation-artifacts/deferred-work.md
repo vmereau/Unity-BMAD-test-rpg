@@ -1538,3 +1538,13 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 - **No integration test of the DialogueSystem ration flow** (refusals, inventory full, label refresh): only the pure rules
   and the WorldStateManager store are tested. Play-test once `Mem_KitchenHand_Ration` exists.
 - **The ration label keeps the count while the NPC is in its Sleep block**, then picking it plays the "not now" line.
+
+## spec-tob-food-shop (2026-11-26)
+
+- **Saves made before the move keep the old stock**: `SaveableObject.Restore` replaces scene starting items with the
+  saved inventory, so the Storekeeper still has the food and Tob's shop is empty (dev saves only; no migration).
+- **HiddenStash base feed path has no unconditional seller**: Apple / Bread are only sold by Tob after `WorkersRation`;
+  before that the player needs Brann's chest, Hobb's box or Tob's soup ration (`docs/World/Quests/HiddenStash.md` playtest
+  line "give an apple (base)").
+- **Tob is the only food / recipe seller**: if he is killed, onion and salt pork can't be bought and `WorkersSandwich`
+  can't be finished (salt pork has no other source). Consider `CanBeExecuted` false or a second seller.

@@ -69,7 +69,8 @@ entirely out of his talk.
 | SomethingToCarry | `WorkersRation` done | Starts `WorkersSandwich`, gives his sandwich recipe (or "I already know this meal") |
 | TheSandwich | Sandwich cooked | Completes `WorkersSandwich` |
 | MixingThings | `WorkersSandwich` done | Starts `CooksExperiment` with a hint (or "I've already found a dish") |
-| FoundADish | A meal discovered by experimenting | Completes `CooksExperiment`, mentions the Storekeeper's written recipes |
+| FoundADish | A meal discovered by experimenting | Completes `CooksExperiment`, mentions the written recipes he sells |
+| Shop | `WorkersRation` done, permanent | "What do you sell?" — opens his shop: raw food (apple, bread, brown mushroom, trout, onion, salt pork) and the two sandwich recipe items (moved from the Storekeeper) |
 
 ---
 

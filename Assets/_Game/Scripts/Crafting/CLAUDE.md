@@ -25,7 +25,7 @@
   read it like any `Fact` (`PlayerRewardSO` does not — its `RewardFactType` has no Recipe entry yet). Write it only through `WorldStateManager.SetRecipeKnown`; read with `IsRecipeKnown`.
 - Setters: the Experiment tab's first successful cook of a recipe (Quest Explorer shows the recipe as the fact's
   `[Recipe]` setter) and **recipe items** (`RecipeItemSO`, e.g. `Item_Recipe_AppleMushroomSandwich` and
-  `Item_Recipe_AppleTroutSandwich`, both sold by the Storekeeper): `OnUse` sets the fact, raises `OnRecipeLearned` (toast "Recipe learned: …") and is consumed; it is
+  `Item_Recipe_AppleTroutSandwich`, both sold by Tob, the kitchen hand): `OnUse` sets the fact, raises `OnRecipeLearned` (toast "Recipe learned: …") and is consumed; it is
   rejected (`CanUse()` false → Use disabled, item kept, only sellable) once the recipe is known. Quest Explorer
   doesn't list recipe items as setters yet (the recipe is enough to avoid "never set").
 - `RecipeFact._recipeId` is the save key — never rename it once shipped. It also keys the craft count.
@@ -55,7 +55,7 @@
 
 ## First-meal bonus
 
-A cooked food can grant a one-time permanent bonus (e.g. Apple Mushroom Sandwich: +5 Max HP; Apple Trout Sandwich — Bread + Apple + Trout, Trout sold by the Storekeeper: +1 Strength) the first time it is eaten — data on
+A cooked food can grant a one-time permanent bonus (e.g. Apple Mushroom Sandwich: +5 Max HP; Apple Trout Sandwich — Bread + Apple + Trout, Trout sold by Tob: +1 Strength) the first time it is eaten — data on
 the food item, not on the recipe, so a bought / looted copy counts too. Details: `ScriptableObjects/Items/CLAUDE.md`
 (`PotionItemSO`); claim key in `Data/Facts/CLAUDE.md`.
 

@@ -15,7 +15,7 @@
 |---|---|
 | `questId` | `WorkersSandwich` |
 | `title` | Bread, Onion and Pork |
-| `description` | Tob gave me his recipe for the sandwich the workers carry to the quarry: bread, onion and salt pork. The Storekeeper sells the onion and the pork. I should cook one at a fire. |
+| `description` | Tob gave me his recipe for the sandwich the workers carry to the quarry: bread, onion and salt pork. He sells the onion and the pork himself. I should cook one at a fire. |
 
 ---
 
@@ -26,7 +26,7 @@
    raise `OnFactChanged` with that key on the **first** craft (0 → 1). An Experiment cook that matches the recipe counts
    (it already calls `AddRecipeCraft`), so learning the sandwich by experimenting also sets it.
 2. ✅ **New items** **Done** (2026-11-26) (`/items:create`, Meshy models + icons):
-   - `Item_Onion`, `Item_SaltPork` — ingredients (`isIngredient`), sold by the Storekeeper (scene stock, `/NPC:shop-dialogue`). Built by `/items:create` (Onion 3 g / 1 g, Salt Pork 6 g / 2 g); Storekeeper stock done (5 each, StartingTown); raw food (heal 4 / 8 over 20 / 30 min).
+   - `Item_Onion`, `Item_SaltPork` — ingredients (`isIngredient`), sold by Tob (his shop, open once `WorkersRation` is completed; scene stock, `/NPC:shop-dialogue`). Built by `/items:create` (Onion 3 g / 1 g, Salt Pork 6 g / 2 g); Tob stock done (5 each, StartingTown; moved from the Storekeeper by `spec-tob-food-shop`); raw food (heal 4 / 8 over 20 / 30 min).
    - `Item_WorkersSandwich` — `PotionItemSO` Meal, heal ~25 over time, first-meal bonus **+5 Max HP** (decided 2026-11-26). Assets built by `/items:create`, 15 g / 7 g; heal 25 over 60 min.
 3. ✅ **Recipe** **Done** (2026-11-26) — `Recipe_WorkersSandwich` (Bread + Onion + Salt Pork → `Item_WorkersSandwich`),
    `RecipeFact_WorkersSandwich` (`_recipeId` `WorkersSandwich`), added to `CookingStation_Base._recipes`.
@@ -86,7 +86,7 @@ steps:
       - fact:  RecipeFact_WorkersSandwich
         entry: "I know how to make the Worker's Sandwich."
   - title: "Cook it"
-    description: "Buy onion and salt pork from the Storekeeper, then cook the sandwich at a fire."
+    description: "Buy onion and salt pork from Tob, then cook the sandwich at a fire."
     parts:
       - fact:  CraftedFact_WorkersSandwich
         entry: "I cooked a Worker's Sandwich."
@@ -121,7 +121,7 @@ npcs:
         dialogue_topic: SomethingToCarry   # label "Something to carry"
         dialogue:
           - NPC: "Soup's fine, but a worker needs something to carry to the quarry."   [start node, sets: DialogueFact_KitchenHand_Sandwich_Offered]
-          - NPC: "Bread, onion, salt pork. The Storekeeper has the onion and the pork."
+          - NPC: "Bread, onion, salt pork. I sell the onion and the pork, now you've had your soup."
           - Player: "Show me."                  → Text_KitchenHand_SandwichGiven  [sets: DialogueFact_KitchenHand_Sandwich_RecipeTaken]
           - Player: "I already know this meal." → Text_KitchenHand_SandwichKnown  [sets: DialogueFact_KitchenHand_Sandwich_AlreadyKnown]  [requires: Mem_KitchenHand_Gate_SandwichKnown]
           - Player: "Later."                    → END
@@ -180,7 +180,7 @@ rewards:
 
 ## Implementation Checklist
 
-- [ ] Prerequisites 1–4 done (`gds-quick-dev` spec + `/items:create` + Storekeeper stock)
+- [ ] Prerequisites 1–4 done (`gds-quick-dev` spec + `/items:create` + Tob shop stock)
 - [ ] Fact assets created — `Data/NPCs/KitchenHand/Facts/` (dialogue facts), `Data/Facts/` (Recipe / Crafted / Quest facts)
 - [ ] QuestSO created — `Assets/_Game/Data/Quests/WorkersSandwich/Quest_WorkersSandwich.asset`
 - [ ] Dialogue chains created — `Data/NPCs/KitchenHand/Dialogues/SomethingToCarry/`, `TheSandwich/`

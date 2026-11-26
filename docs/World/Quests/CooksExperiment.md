@@ -127,7 +127,7 @@ npcs:
         dialogue:
           - NPC: "You found one yourself? Told you. Mix, taste, remember."
           - NPC: "And eat it with care the first time. Something new does the body good."
-          - NPC: "The Storekeeper sells written recipes too, if you'd rather read than burn."
+          - NPC: "I sell a few written recipes too, if you'd rather read than burn."
           - Player: "I'll keep trying things."  → END  [sets: DialogueFact_KitchenHand_Experiment_Done]
 ```
 
@@ -158,7 +158,7 @@ rewards:
 
 - **Already discovered a meal before** (any time, e.g. Apple Mushroom Sandwich found by experimenting, or the
   Worker's Sandwich found before `WorkersSandwich`): the gate opens, "I've already found a dish of my own." completes the quest at once.
-- **Dead end without Prerequisite 2:** a player who bought both Storekeeper recipe items (Apple Mushroom, Apple Trout)
+- **Dead end without Prerequisite 2:** a player who bought both recipe items from Tob's shop (Apple Mushroom, Apple Trout)
   and got the Worker's Sandwich from Tob would have no meal left to discover. The experiment-only Forager's Stew
   guarantees one.
 - "Later.": quest started, the topic stays until a choice is made. The step can still complete in the meantime;
