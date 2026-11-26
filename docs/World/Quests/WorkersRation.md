@@ -27,7 +27,7 @@
    first-meal bonus (no bonus → never claimed → never true): `Awake`/validator warning when `_meal` has none.
    Quest Explorer: show the meal as the setter (like `RecipeFact`).
 2. **`Item_WorkersSoup`** — new `PotionItemSO`, kind `Meal`, not an ingredient, heal ~15 over time (`SE_WellFed`),
-   first-meal bonus **+5 Max HP**, not sold by anyone (only Tob's ration), no recipe. Icon + world prefab.
+   first-meal bonus **+5 Max HP**, not sold by anyone (only Tob's ration), no recipe. Icon + world prefab built by `/items:create` (base `ItemSO`, 6 g / 3 g); type and stats still to set.
 3. ✅ **Daily ration give** **Done** (`spec-tob-cooking-prerequisites`). Built as a `DailyRationDialogueNode` topic (text "My daily ration", `item`, `perDay` 2,
    `noneLeftLine`, `notNowLine`): a dialogue topic that gives an item a limited number of times per day:
    - Tob's topic *"My daily ration (2 left)"* / *"(1 left)"*; the count is in the label.
@@ -36,9 +36,9 @@
      ("That's your two for today.").
    - The remaining count is saved.
    - Generic (per NPC, item + count), not soup-specific.
-4. **Tob placed in StartingTown** (cookhouse, 05:00–21:00, sleeps nearby), with `PersistentID` + `KilledFact`.
+4. ✅ **Tob placed in StartingTown** **Done** (2026-11-26). `KitchenHand` (NPC_base Variant) by the cookhouse fire, `PersistentID` + `KilledFact_KitchenHand`; routine 05–07 kitchen garden (farm), 07–21 cookhouse fire, 21–05 asleep in `KitchenHandBed` (cookhouse). Wake hour 05:00.
 
-Prerequisites 1 and 3 are done; 2 (`/items:create`) and 4 (placement) remain. Shared with `WorkersSandwich` / `CooksExperiment`
+Prerequisites 1, 3 and 4 are done; 2 has its assets (`/items:create`) but its type and stats are still to set. Shared with `WorkersSandwich` / `CooksExperiment`
 prerequisites (same spec recommended).
 
 ---

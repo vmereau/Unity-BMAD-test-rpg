@@ -378,7 +378,9 @@ wanted again, restore vertical boxes (lip across the ring gap, walls on the pit'
   the arrival gate; do not assume they share an anchor. `Bed`, `PlayerSpawnPoint`, TentMate's spots and BeatenWorker
   are hand-placed and don't follow the layout's `players-tent` point. `Bed` is in the player's hut (0.38, 48.15),
   TentMate's routine is round his hut `worker-mate` next door, BeatenWorker stands at the campfire (7.4, 40.4).
-- Cook and cooking station remain outside TentCamp as hand-owned gameplay objects.
+- Cook and cooking station remain outside TentCamp as hand-owned gameplay objects. Tob (`KitchenHand`, scene root) stands between the canteen counter and the fireplace; his bed
+  `KitchenHandBed` (`Bed_WorkerPallet` + scene-added `NpcApproach` / `NpcSleepAnchor` / `Ownership`) is under `TentCamp/Canteen`,
+  inside the cookhouse against the south side wall.
 - Hut doors stay at least 2.1 m high and steps under 0.3 m (see **Camp centre**).
 
 ### Mafia buildings and arena overlooks

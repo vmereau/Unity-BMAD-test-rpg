@@ -26,8 +26,8 @@
    raise `OnFactChanged` with that key on the **first** craft (0 → 1). An Experiment cook that matches the recipe counts
    (it already calls `AddRecipeCraft`), so learning the sandwich by experimenting also sets it.
 2. **New items** (`/items:create`, Meshy models + icons):
-   - `Item_Onion`, `Item_SaltPork` — ingredients (`isIngredient`), sold by the Storekeeper (scene stock, `/NPC:shop-dialogue`).
-   - `Item_WorkersSandwich` — `PotionItemSO` Meal, heal ~25 over time, **no first-meal bonus** (open: add one?).
+   - `Item_Onion`, `Item_SaltPork` — ingredients (`isIngredient`), sold by the Storekeeper (scene stock, `/NPC:shop-dialogue`). Built by `/items:create` (Onion 3 g / 1 g, Salt Pork 6 g / 2 g); Storekeeper stock done (5 each, StartingTown); `isIngredient` still to set.
+   - `Item_WorkersSandwich` — `PotionItemSO` Meal, heal ~25 over time, first-meal bonus **+5 Max HP** (decided 2026-11-26). Assets built by `/items:create` (base `ItemSO`, 15 g / 7 g); type and stats still to set.
 3. **Recipe** — `Recipe_WorkersSandwich` (Bread + Onion + Salt Pork → `Item_WorkersSandwich`),
    `RecipeFact_WorkersSandwich` (`_recipeId` `WorkersSandwich`), added to `CookingStation_Base._recipes`.
 4. **Recipe item** — `Item_Recipe_WorkersSandwich` (`RecipeItemSO`), **not sold**: only given by Tob (reward below).

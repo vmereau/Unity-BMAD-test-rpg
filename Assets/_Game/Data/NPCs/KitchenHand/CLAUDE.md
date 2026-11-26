@@ -64,6 +64,7 @@ the real kitchen work while Aldric "sees to the guests" — and he has learned n
 
 | Asset | Path |
 |-------|------|
-| Scene | Not placed yet — canteen cookhouse in StartingTown (Cook at (-6,20), fireplace at (-7,22)) |
+| Scene | `StartingTown.unity` root `KitchenHand` (NPC_base Variant) at (-10.6, 22.3), between the cookhouse counter and `CookingStation_Fireplace` (-9.4, 21.2) |
+| Routine | 05–07 `NpcRoutineSpots/Spot_KitchenHand_Garden` (farm kitchen garden, (-31, -64)), 07–21 his spawn spot at the fire, 21–05 Sleep in `TentCamp/Canteen/KitchenHandBed` (pallet inside the cookhouse, `Ownership` = Tob). Wake hour 05:00 (daily ration reset) |
 | Quest role | Cooking tutorial chain `WorkersRation` → `WorkersSandwich` → `CooksExperiment` (specs in `docs/World/Quests/`, status `ready`, not implemented): first-meal effect, cooking a given recipe, discovering a dish by experimenting. Also hands out the daily soup ration (2 per day) |
-| KilledFact | Not set — create and assign once placed with a `PersistentID` |
+| KilledFact | `Data/Enemies/StartingTown/Generic/KilledFact_KitchenHand.asset` (scene `PersistentID` and `NPC_KitchenHand._killedFact`) |
