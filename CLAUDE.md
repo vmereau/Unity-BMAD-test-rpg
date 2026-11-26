@@ -80,6 +80,7 @@ The `bmad-cis-*` skills were added by hand and are not managed by the installer.
 | `characters:concept-prompt <outfit>` | Build a T-pose character concept prompt (base hero + outfit) for Meshy image-to-3D, from the `Art/Characters/Humanoids` template |
 | `characters:portrait-face [NPC]` | Give an NPC a portrait-matched face: front + side portrait prompts, then MediaPipe fit, projection, bake and assign (asks which NPC when none is given) |
 | `characters:meshy-head [NPC]` | Give an NPC a Meshy 3D head from its portrait pair: generation (30 credits, asks first), trim, landmarks, ear fit, bake onto the canonical head, verify and assign |
+| `world:redesign-area <area> [phase]` | Take a graybox area to final look: site survey and program, concept pack (massing captures, image-to-image prompts, build brief), user's artworks and verdict, then the build (dresser / generated prefab / tool-assembled kit) with two pauses |
 | `perso:what-next [focus]` | Read recent specs, GDD aims, `docs/IDEAS.md` and `deferred-work.md`, then recommend ranked next steps (read-only) |
 | `perso:commit` | Stage, commit, and push changes |
 | `perso:wrap-up` | End of session — record learned patterns in the owning folder CLAUDE.md / rule file |
