@@ -57,7 +57,10 @@ MonoBehaviour:
   dayState: 1
   nightState: 2
   prefab: {fileID: 7999054167717068420, guid: 6e36d857e371618449c425aa4f35c816, type: 3}
-  memories: []
+  memories:
+  - {fileID: 11400000, guid: 24bff3598de5f8442b8dd0743017b06f, type: 2}
+  - {fileID: 11400000, guid: a06e7eb4a776d5744b17e5c1637e543b, type: 2}
+  - {fileID: 11400000, guid: 02d8946f9274f0f43a2b97a1efd7b555, type: 2}
   _killedFact: {fileID: 11400000, guid: 485b6544b23932f469b60a8b140f9703, type: 2}
   _head: {fileID: 11400000, guid: a1cffd3b9d006e14f86083ca0ff7ef95, type: 2}
   _skinTone: {fileID: 11400000, guid: cae8b7adcc50da74198893873c272014, type: 2}

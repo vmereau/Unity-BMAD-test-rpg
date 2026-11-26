@@ -1,11 +1,11 @@
 # Quest Spec — WorkersRation
 
 > Template version: 1.1
-> Status: `ready`
+> Status: `implemented`
 > Spec path: `docs/World/Quests/WorkersRation.md`
 > Design with `/quests:design`, build with `/quests:implement WorkersRation`, check with `/quests:audit WorkersRation`.
 > Chain: **WorkersRation** → `WorkersSandwich` → `CooksExperiment` (Tob's cooking tutorial, npc-020).
-> **Ready to implement** — all prerequisites done (2026-11-26): `Item_WorkersSoup`, daily ration, `MealEatenFact`, Tob placed.
+> **Implemented** 2026-11-26 (`/quests:implement`). `quest_report WorkersRation`: no Error / Warning (Info V13 only: "two bowls" in the description is not a step count).
 
 ---
 
@@ -180,11 +180,18 @@ The +5 Max HP comes from the soup itself (first-meal bonus), not from the quest.
 
 ## Implementation Checklist
 
-- [ ] Prerequisites 1–4 done (`gds-quick-dev` spec, Tob placed)
-- [ ] Fact assets created — `Assets/_Game/Data/NPCs/KitchenHand/Facts/` (dialogue facts), `Data/Facts/` (Meal / Quest facts)
-- [ ] QuestSO created — `Assets/_Game/Data/Quests/WorkersRation/Quest_WorkersRation.asset`
-- [ ] Dialogue chains created — `Data/NPCs/KitchenHand/Dialogues/NewHere/`, `DailyRation/`, `AboutTheSoup/`
-- [ ] Memory entries created under `Data/NPCs/KitchenHand/Memories/`
-- [ ] PlayerRewardSO created — `Data/Rewards/PlayerReward_WorkersRation_Completed.asset` (50 XP)
-- [ ] Registered — `QuestEventsManager` (auto) and `QuestLogUI._allQuests`
-- [ ] `quest_report WorkersRation` shows no Error / Warning
+- [x] Prerequisites 1–4 done (`spec-tob-cooking-prerequisites`, Tob placed)
+- [x] Fact assets created
+  - `Assets/_Game/Data/NPCs/KitchenHand/Facts/DialogueFact_KitchenHand_Ration_Offered.asset`
+  - `Assets/_Game/Data/NPCs/KitchenHand/Facts/DialogueFact_KitchenHand_Ration_Done.asset`
+  - `Assets/_Game/Data/Facts/MealEatenFact_WorkersSoup.asset` (`_meal` = `Item_WorkersSoup`)
+  - `Assets/_Game/Data/Facts/QuestFact_WorkersRation_Started.asset`, `_Step0.asset`, `_Completed.asset`
+- [x] QuestSO created: `Assets/_Game/Data/Quests/WorkersRation/Quest_WorkersRation.asset`
+- [x] Dialogue chains created
+  - `Data/NPCs/KitchenHand/Dialogues/NewHere/`: `Start_KitchenHand_NewHere` (sets `_Ration_Offered`) → `Text_KitchenHand_NewHere` → `_2` → `_3`
+  - `Data/NPCs/KitchenHand/Dialogues/DailyRation/`: `Start_KitchenHand_DailyRation` (`DailyRationDialogueNode`, `Item_WorkersSoup`, 2 per day) → `Text_KitchenHand_DailyRation`
+  - `Data/NPCs/KitchenHand/Dialogues/AboutTheSoup/`: `Start_KitchenHand_AboutTheSoup` → `Text_KitchenHand_AboutTheSoup` → `_2` → `Choice_KitchenHand_AboutTheSoup` ("Good to know." sets `_Ration_Done`)
+- [x] Memory entries created under `Data/NPCs/KitchenHand/Memories/`: `Mem_KitchenHand_RationOffer`, `Mem_KitchenHand_Ration`, `Mem_KitchenHand_RationReport` (synced into `NPC_KitchenHand.memories`)
+- [x] PlayerRewardSO created: `Data/Rewards/PlayerReward_WorkersRation_Completed.asset` (50 XP, synced to `Player.prefab`)
+- [x] Registered: `QuestEventsManager` (auto) and `QuestLogUI._allQuests`
+- [x] `quest_report WorkersRation` shows no Error / Warning

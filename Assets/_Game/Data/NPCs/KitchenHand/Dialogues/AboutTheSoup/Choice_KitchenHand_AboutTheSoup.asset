@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2bbd71de1c0dc944832b9f2ea09e57c, type: 3}
+  m_Name: Choice_KitchenHand_AboutTheSoup
+  m_EditorClassIdentifier: Game::Game.Dialogue.ChoiceDialogueNode
+  text: The first time does the most good. After that it's just a meal.
+  nextNode: {fileID: 0}
+  _id: cd2e61ad2e538064584ae45f33449ff4
+  choices:
+  - text: Good to know.
+    requiredMemory: {fileID: 0}
+    nextNode: {fileID: 0}
+    dialogueFact: {fileID: 11400000, guid: fe5f69a0f6fdad44686b5781e241c870, type: 2}
+    goldCost: 0
+    requiredItem: {fileID: 0}
+    giveToNpc: 0
+    requiredCategory: 0
+    hideWhenMissing: 0
+    signal: {fileID: 0}

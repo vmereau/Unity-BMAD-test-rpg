@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b39fb047c6fa040bb2f031da1e5ed1, type: 3}
+  m_Name: Quest_WorkersRation
+  m_EditorClassIdentifier: Game::Game.Quest.QuestSO
+  questId: WorkersRation
+  title: A Bowl of Soup
+  description: Tob, the kitchen hand at the canteen, hands every worker two bowls of soup a day. He says the first bowl of something new does the body the most good. Eat the Worker's Soup and tell him how it sat.
+  startPart:
+    fact: {fileID: 11400000, guid: 7e7572ec7587eea4baf1e26dc693d8b2, type: 2}
+    entry: Tob at the canteen gives every worker a ration of soup. He wants me to eat my first bowl hot.
+  completedParts:
+  - fact: {fileID: 11400000, guid: fe5f69a0f6fdad44686b5781e241c870, type: 2}
+    entry: 'Tob explained it: the first time you eat something new, it does the body the most good.'
+  failedParts: []
+  steps:
+  - title: Eat the soup
+    description: Ask Tob for my daily ration and eat a bowl of the Worker's Soup.
+    parts:
+    - fact: {fileID: 11400000, guid: 88e642d4cfbdb124abcb84a6937c362a, type: 2}
+      entry: I ate my first bowl of the Worker's Soup.

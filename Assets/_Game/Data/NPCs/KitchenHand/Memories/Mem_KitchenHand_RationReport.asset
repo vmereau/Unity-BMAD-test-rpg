@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ae694cfce352e4aac5bffa47c11818, type: 3}
+  m_Name: Mem_KitchenHand_RationReport
+  m_EditorClassIdentifier: Game::Game.NPC.NPCMemoryEntrySO
+  unlockConditions:
+  - {fileID: 11400000, guid: 9d48b5cd46f913f4baf41f9b2d66219d, type: 2}
+  - {fileID: 11400000, guid: fcfe908eae41db7429bbb53a080afd2a, type: 2}
+  invalidationConditions:
+  - {fileID: 11400000, guid: 703a80f172ba9124194a0771dc5ea245, type: 2}
+  effects:
+    startdialog: {fileID: 11400000, guid: 6d2ee26bb8083b349a505ebc2e520669, type: 2}

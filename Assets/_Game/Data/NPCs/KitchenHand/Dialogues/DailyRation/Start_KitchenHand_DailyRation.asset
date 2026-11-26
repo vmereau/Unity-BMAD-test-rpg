@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fb4f75c01dc0d54e8bc86b7a8e6443a, type: 3}
+  m_Name: Start_KitchenHand_DailyRation
+  m_EditorClassIdentifier: Game::Game.Dialogue.DailyRationDialogueNode
+  text: My daily ration
+  nextNode: {fileID: 11400000, guid: c60eed73dd446b740a4dfc70989cd49d, type: 2}
+  _id: f849f77384d054b4182ffaf2f2cb0e8f
+  dialogueFact: {fileID: 0}
+  item: {fileID: 11400000, guid: ed58c361a7819d840ae23addc4271551, type: 2}
+  perDay: 2
+  noneLeftLine: That's your two for today. Come back tomorrow.
+  notNowLine: Not at this hour. Let me sleep.
+  inventoryFullLine: Your hands are full. Make some room first.
