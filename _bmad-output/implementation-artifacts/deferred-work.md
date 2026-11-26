@@ -1456,8 +1456,8 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
 
 ## Area 1 palisade rebuild (`spec-area-1-palisade-rebuild.md`, 2026-11-26)
 
-- **Collapsed stretch.** `CampEdge/BrokenStretch` (8 m west of the warehouse) is still a graybox rail on two posts.
-  Agreed with Valentin as its own spec: fallen and leaning logs, the same kit.
+- [Done 2026-11-26, `spec-area-1-broken-stretch.md`] **Collapsed stretch.** `CampEdge/BrokenStretch` (8 m west of the
+  warehouse) was a graybox rail on two posts. Agreed with Valentin as its own spec: fallen and leaning logs, the same kit.
 - **Gates and arrival towers.** `ArrivalGate/Tower_L`, `Tower_R` and the inner, dock, compound, ramp, fields and fort
   cart gates are graybox or kit pieces; the log wall ends on a post at each. Artwork P2 shows the towers as lashed
   clusters of heavier logs.
@@ -1483,3 +1483,37 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   kit, a removed panel and the scan path were checked by hand in the scene; only the mesh assembly has tests.
 - **The palisade's review left three task lines reworded rather than built as first written**: one mesh asset instead
   of a folder of meshes, no material remap on the kit's FBX (materials are assigned by the tool), no leaning logs.
+
+## Area 1 broken stretch (`spec-area-1-broken-stretch.md`, 2026-11-26)
+
+- **Night guard at the breach.** The stool and the cold fire basket mark the spot; the NPC, its routine and what it
+  does when the player crosses are a later spec (agreed with Valentin). Until then the gap is an unwatched way out
+  into `RA_Docks` at night.
+- **Finishing pass** (Valentin: "it may need a finishing pass after"): a washout channel with standing water, tools
+  (axe in a block, mallet, rope coils, pitch bucket), wood chips on the shelf, fallen logs still lashed in pairs,
+  moss on the old wood, rougher stones, a lighter quarry stone. The stretch is 3,924 triangles of a 40,000 budget.
+- **The fire barely shows from the yard.** Only a lane about 1 m wide sees it; the tarp bay's canvas, hut
+  `worker-hut`, `SM_Rock_01_1` and near-bank birches hide it elsewhere. Valentin chose to promise the view from the
+  rock bank only. Moving or lowering the tarp bay (`HomeYardDresser`) would open the yard.
+- **Sight checks use physics rays**, which pass through cloth and trees: the "fire in view" notes written before this
+  spec were checked that way. A render test (a coloured sphere at the fire, counted pixels) is the reliable check.
+- **Four stale hand edits** (`CampEdge/BrokenStretch/Blocker`, `Post_A`, `Post_B`, `Rail`) warn on every Camp Edge
+  run; untick them in the Hand Edits window.
+- **The rope with rags has no collider**, so the player walks through it. A trigger that makes it sway, or a lower
+  rope, would hide that.
+- **The scar's place is fixed in world axes** (`SCAR_OFFSET` assumes a wall running east-west with the river to the
+  north) and the hollow does not follow a moved `fence-break` (Camp Edge warns).
+- **No automated test for the scene pass** (`BrokenStretchBuilder.TryLoad`, `Build`, the graybox fallback, the rock
+  surface rays): checked by hand in the scene. The placement maths and the parts file have tests.
+- **No terrain run or Sites run was made for this spec**, so "the hollow and the scar survive a terrain run" is true
+  by construction only (captured sculpt, paint hook after the camp's source paint). Valentin sculpted during the
+  spec (the ground under `dock-fence-lower` changed); Camp Edge was rerun, Sites was not.
+- **The fire's sight window has no automated check**: it was measured by a render test run by hand (6.3 m on the
+  wall line from the rock bank). An editor command that does the same count would let later yard changes be checked.
+- **Listed content not built in the first pass**: the washout, tools, a half-pointed log on the trestles, a fallen log
+  toward the water, stones spilled on the river side (three of eleven are).
+- **The parts file is written before the FBX.** A failed export leaves them a version apart; the builder now compares
+  triangle counts per mesh and refuses, but writing the file last (or under a temporary name) would avoid the state.
+- **Review leftovers, low**: the Blender script removes orphan meshes that share a part's name when run inside a live
+  session (as `build_palisade.py` does); a box collider's `yaw` is read and placed but no part uses it yet; the
+  menu command assumes a square terrain.

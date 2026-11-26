@@ -71,12 +71,16 @@ Built by Camp Edge (`Editor/World/CLAUDE.md` → Camp Edge for the procedure).
 - East of the north palisade's end at (30, 51.9) it is open round to the inner fence's east end: the wilderness trail and
   the shore both leave that way (see **Lakeside**).
 - The docks are outside the ring, inside the Company compound (below).
-- `BrokenStretch` (x −1..7 on the north fence) keeps the hunter's fire in view from the worker huts: keep the line from
-  (10, 40) to (−24, 109) clear. Its blocker uses a collider on `Ignore Raycast`, which the player still hits and sight
-  rays and the camera skip (so it needs a Not Walkable volume: `Editor/World/CLAUDE.md` → NavMesh bake).
+- `BrokenStretch` (x −1..7 on the north fence) is the collapsed wall under repair (`Editor/World/CLAUDE.md` → Broken
+  stretch): stumps, leaning end logs, scaffold, hoist, quarry stone, a rope with rags, and new logs on the shore.
+  **The player can walk out through it**, onto the shelf and the shore inside `RA_Docks` (restricted 21–06); agents
+  cannot path through. The hunter's fire shows through it from the rock bank at its foot (x 1..8, z 47–51), and
+  only as a sliver from the yard: the tarp bay's canvas and hut `worker-hut` hide it there
+  (`Art/Environment/Camp/BROKEN_STRETCH_CONCEPTS.md` → Where the fire shows from). Add nothing tall on the shelf
+  between the gap and (−24, 109): the scaffold and the hoist already stand at the west edge of that view.
 - `outer-fence-4` has five panels; on the bank at its east end the panel tops reach y 8.6.
 - All 13 palisade lines draw log walls (the 165 panels left standing by the saved edits, about 190,000 triangles); the colliders are still the 0.6 m boxes,
-  so the player stops about 0.15 m short of the logs' face. `BrokenStretch`, the arrival towers and every gate are
+  so the player stops about 0.15 m short of the logs' face. The arrival towers and every gate are
   still graybox. Rails and lashings are on the camp side of each line (`Editor/World/CLAUDE.md` → Palisade log walls).
 
 ---
@@ -115,7 +119,7 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
   heading east from the player's hut goes round its foot.
 - The dock spur at x 24.5 clears the hand-placed barricades and runs into the river; `DockGate` stands open, and
   restricting it is later gameplay.
-- `BrokenStretch` is unchanged, so the fire still shows from the huts.
+- The work yard outside `BrokenStretch` leaves the walk from the warehouse's river ramp to the dock clear.
 - Each area keeps part of its block free for later NPCs.
 
 ### Camp centre

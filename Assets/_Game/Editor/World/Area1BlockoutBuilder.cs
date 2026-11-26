@@ -156,7 +156,7 @@ namespace Game.Editor.World
             Vector2 breakPoint = Position(features["fence-break"]);
             List<PanelInfo> panels = BuildPalisade(features, terrain, timber, edge, breakPoint);
             BuildArrivalGate(features, terrain, timber, edge);
-            BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint);
+            string stretch = BuildBrokenStretch(features["outer-fence-3"], terrain, timber, edge, breakPoint, applyEdits);
             BuildRail("ShoreRail", features[SHORE_RAIL_FEATURE], SHORE_RAIL_GAP_EVERY, SHORE_RAIL_POST_HEIGHT, terrain, timber, edge);
             BuildRail("RampRail", features[RAMP_RAIL_FEATURE], 0, RAMP_RAIL_POST_HEIGHT, terrain, timber, edge);
 
@@ -167,7 +167,7 @@ namespace Game.Editor.World
             // From here the root is rebuilt, so the scene is dirty whatever the log pass does.
             EditorSceneManager.MarkSceneDirty(root.scene);
             string wall = DressPalisade(panels, terrain, onlyLine); // after the edits: a panel raised or removed by hand decides its logs
-            GameLog.Info(TAG, $"Done. {panels.Count} palisade panels built, position hash {hash}, {wall}. "
+            GameLog.Info(TAG, $"Done. {panels.Count} palisade panels built, position hash {hash}, {wall}, {stretch}. "
                 + "Save the scene (the wall meshes are already on disk) and rebake the NavMesh.");
             return true;
         }
@@ -428,15 +428,37 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// Open to sight, closed to walking. The rail sits above the tents-to-fire rays. The blocker is on Ignore Raycast so
-        /// sight tests and the camera skip it, and bakes collect render meshes, so the NavMesh needs its own volume.
+        /// The collapsed stretch and its repair works, dressed by <see cref="BrokenStretchBuilder"/>: open to sight, and
+        /// to a player who climbs over. Without its model it falls back to the graybox rail. Returns a line for the log.
         /// </summary>
-        private static void BuildBrokenStretch(JObject fence, Terrain terrain, Material timber, Transform edge, Vector2 at)
+        /// <param name="report">Off for a hand-edit scan, which builds the same thing again and should not log it twice.</param>
+        private static string BuildBrokenStretch(JObject fence, Terrain terrain, Material timber, Transform edge, Vector2 at, bool report)
         {
             var stretch = new GameObject("BrokenStretch").transform;
             stretch.SetParent(edge, false);
 
             Vector2 direction = NearestSegmentDirection(Points(fence), at);
+            if (BrokenStretchBuilder.TryLoad(out BrokenStretchBuilder.Kit kit, out string problem))
+            {
+                BrokenStretchBuilder.Build(kit, stretch, new StretchFrame(at, direction, CampMiddle), terrain);
+                if (report && Vector2.Distance(at, BrokenStretchBuilder.SunkAt) > BrokenStretchBuilder.SUNK_TOLERANCE)
+                    GameLog.Warn(TAG, $"The break point moved to {at}, but the ground was sunk and painted for it at {BrokenStretchBuilder.SunkAt}: "
+                        + "the hollow and its bare earth are stale there. Smooth it by hand, capture the sculpt, and move BrokenStretchBuilder.SunkAt.");
+                return $"broken stretch dressed ({kit.Parts.Length} parts)";
+            }
+
+            if (report) GameLog.Error(TAG, $"{problem}; the broken stretch stays graybox.");
+            BuildGrayboxStretch(stretch, direction, terrain, timber, at);
+            return "broken stretch graybox";
+        }
+
+        /// <summary>
+        /// The placeholder: open to sight, closed to walking. The rail sits above the tents-to-fire rays. The blocker is on
+        /// Ignore Raycast so sight tests and the camera skip it, and bakes collect render meshes, so the NavMesh needs its
+        /// own volume.
+        /// </summary>
+        private static void BuildGrayboxStretch(Transform stretch, Vector2 direction, Terrain terrain, Material timber, Vector2 at)
+        {
             Quaternion yaw = Yaw(direction);
             float ground = Ground(terrain, at);
             float width = BREAK_HALF_WIDTH * 2f;

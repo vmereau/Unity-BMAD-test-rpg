@@ -12,7 +12,8 @@
 |--------------------------|-------|--------|
 | `Build Area 1 Terrain` | `Area1TerrainBuilder` (+ `Area1TerrainMath`, `Area1TerrainSculpt`) | `StartingTownTerrain.asset`: sculpt, paint, forest |
 | `Capture Area 1 Terrain Sculpt` | `Area1TerrainSculpt` | `docs/World/Areas/area-001/terrain-sculpt.bin` |
-| `Build Area 1 Camp Edge` | `Area1BlockoutBuilder` (+ `PalisadeMesh`, `PalisadeKit`) | `Area1_Blockout/CampEdge` only, and the wall meshes in `Art/Environment/Camp/Generated/Palisade.asset` |
+| `Build Area 1 Camp Edge` | `Area1BlockoutBuilder` (+ `PalisadeMesh`, `PalisadeKit`, `BrokenStretchBuilder`, `BrokenStretchLayout`) | `Area1_Blockout/CampEdge` only, and the wall meshes in `Art/Environment/Camp/Generated/Palisade.asset` |
+| `Sink Area 1 Broken Stretch Ground` | `BrokenStretchBuilder` | Live terrain: a 0.3 m hollow and bare-earth paint outside the broken stretch (one-time; see **Broken stretch**) |
 | `Build Area 1 Sites` | `Area1SitesBuilder` (+ `Area1CampInterior`, `Area1TentCamp`, `Area1Stoneworks`, `Area1Timberworks`, `Area1Garrison`, `Area1Farm`, `Area1RemoteSites`, `Area1Worker*`) | The site roots under `Area1_Blockout` (see **Ownership**) |
 | `Build Area 1 Worker Settlement` | `Area1WorkerSettlement` | Scoped settlement build; refuses while the settlement is hand-owned |
 | `Area 1 Hand Edits` | `Area1HandEditsWindow` / `Area1HandEdits` | `docs/World/Areas/area-001/hand-edits.json` |
@@ -161,13 +162,54 @@ gets a wall of logs assembled from the palisade kit (`Art/Environment/Camp/model
   `M_Camp_PalisadeLog`, `M_Camp_PalisadeFoot` or `M_Camp_Rope`, model and sizes a version apart) the run logs an
   error and leaves the boxes graybox; the saved meshes stay on disk, unreferenced. A hand-edit scan builds boxes only
   and writes no asset (`Run` returns before the log pass when `applyEdits` is off).
-- `BrokenStretch`, the `ArrivalGate` towers and both rails are still graybox.
+- The `ArrivalGate` towers and both rails are still graybox.
 - Look test on one line: `Area1BlockoutBuilder.Run(root, true, out problem, "outer-fence-3")` (internal; the other
   lines draw boxes until the next full run, their saved meshes are kept; an unknown line is refused before anything
   is rebuilt).
 - Sizes (log, post and rail radii, the head's length, offsets across the wall) live in `build_palisade.py` and reach
   Unity through `Palisade.json`. The assembly's own numbers (bury depth, raggedness, rail heights) are the constants at
   the top of `PalisadeMesh`. Tests: `Tests/EditMode/PalisadeMeshTests` (a stand-in kit, no model needed).
+
+### Broken stretch
+
+`CampEdge/BrokenStretch` (the collapsed 8 m at the layout's `fence-break`) is dressed by `BrokenStretchBuilder` from
+`Art/Environment/Camp/models/broken stretch/` (`build_broken_stretch.py` writes `BrokenStretch.fbx` and
+`BrokenStretch.json`). Look, layout rules and where the fire shows from: `Art/Environment/Camp/BROKEN_STRETCH_CONCEPTS.md`.
+
+- **The script owns the layout.** The parts file lists every part: its mesh, where it stands in the stretch's own
+  frame (x along the wall, z out of the camp), how it meets the ground (`ground`, `surface` = terrain or a camp rock,
+  `span` = a log resting on two points, `strut` = a unit pole stretched between two points) and its colliders. Move
+  a prop there, run the script (`blender -b -P`), then Camp Edge. `BrokenStretchLayout` is the pure placement.
+- **No invisible wall.** Every part big enough to stop a person has capsule or box colliders of its own shape
+  (child `Col_N`): logs, stumps, stones, the scaffold's uprights and deck, the hoist's legs, props, trestles, the
+  rope line's stakes. The rope itself, the ladder, bearers, boards and chips have none. The player walks through
+  the torn-out middle; nothing is on Ignore Raycast. A strut's capsule is sized for its stretched length.
+- **Agents stay out of the gap**: `BrokenStretch/NotWalkable` is a strip across it (the file's `notWalkable`). It does
+  not cover the work yard, because the walk from the warehouse ramp to the dock crosses the shelf.
+- **Walks kept clear** (`Tests/EditMode/BrokenStretchTests` checks every collider's reach against them, in the
+  stretch's frame): a 2.5 m walk from the gap to the ramp's foot (boards on the mud mark it), the walk from the
+  ramp's foot west to the dock, and the ground east of the ramp that the docks' other entrance crosses. The hoist
+  stands west of the gap walk, not over it: its legs lean, and narrow anything under them at head height. The new
+  logs lie on the west shore (world x -3..-10, z 62-66), a place chosen by hand: the ramp's foot lands on the shelf
+  at world (4, 56.2-59.7), and the east shore is the docks' other entrance. The script holds that group as one
+  turned block (`SHORE_AT`, `SHORE_TURN`).
+- **A part moved by hand is reset by the next Camp Edge run.** Put the new place in the script, or save it as a hand
+  edit (a saved part stops following the ground).
+- The log radii in the script are copied from `build_palisade.py`: change both together.
+- **Rocks count as ground** only when they are the camp's hand-placed `SM_Rock*` objects outside `Area1_Blockout`
+  (`IsCampRock`): a scan builds a second copy of every tool root, so anything else under a ray would differ between
+  a scan and a run.
+- **It writes no asset**, so a hand-edit scan runs it (without logging). Without the model, a usable parts file (a
+  wrong shape anywhere in it, another `version`, or triangle counts that differ from the model's), or a material,
+  the run logs an error and builds the old rail, posts and blocker.
+- **Ground:** `Tools/World/Sink Area 1 Broken Stretch Ground` lowered the shelf by up to 0.3 m outside the old line
+  and painted it Mud, and wrote `docs/World/Areas/area-001/broken-stretch-ground.json`: while that file exists the
+  command only repaints. The hollow is in the captured sculpt, and the terrain tool paints the same patch
+  (`BrokenStretchBuilder.ScarWeight` at `ScarCentre`) whenever the layout has `fence-break`, so a terrain run should
+  keep both; no terrain run has exercised that yet. Hollow and paint stay where they were sunk (`SunkAt`): if
+  `fence-break` moves, Camp Edge warns.
+- `hand-edits.json` still holds four entries for the old `Blocker`, `Post_A`, `Post_B` and `Rail`: each run warns that
+  they match nothing. Untick them in the Hand Edits window to drop them.
 
 ### Settlement hand-owned flag
 
@@ -252,6 +294,8 @@ These author hand-owned geometry once; they are not part of the run order.
   Do not remove roots just to rerun it: edit the saved geometry by hand. Its `QUARTERS_*` constants describe the
   original small hut, not the rebuilt hall (`HALL_*`). It never saves or bakes automatically. Navigation uses the
   existing `Terrain_StartingArea` surface and asset-manager bake path.
+- **`Tools/World/Sink Area 1 Broken Stretch Ground`** (`BrokenStretchBuilder.SinkGround`) is done: see **Broken
+  stretch** → Ground. It refuses outside the Area 1 scene.
 - **`Tools/World/Dress Home Yard`** (`HomeYardDresser`) rebuilds `PlayersZone/HomeYardDressing` (every home-yard prop,
   both night lights, the tarp bay, the lean-to, the east yard tarps, the drying line and the mud boards): rerunning asks first, then discards
   hand edits inside it with no undo; rebake afterwards. It refuses unless both huts are unscaled `WorkerHut_Home`

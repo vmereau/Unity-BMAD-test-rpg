@@ -82,6 +82,7 @@ namespace Game.Editor.World
 
         private const string COMPOUND_FEATURE = "compound";
         private const string FIGHT_PIT_FEATURE = "fight-pit";
+        private const string BREAK_FEATURE = "fence-break";
         private const string LAKESIDE_FEATURE = "lakeside";
         private const string FORT_TOWER_FEATURE = "fort-tower";
         private const string FORT_ZONE_FEATURE = "zone-3";
@@ -98,6 +99,7 @@ namespace Game.Editor.World
         private const string PATH_PREFIX = "path-";
 
         private enum Layer { Grass, Mud, Road, Cobble, Rock, Count }
+        internal const int MUD_LAYER = (int)Layer.Mud;   // for tools that paint the live terrain
 
         private readonly struct Shape
         {
@@ -164,6 +166,7 @@ namespace Game.Editor.World
             public PaintedLine[] PaintedLines; // in paint order: later lines lie on top
             public Vector2 CompoundCenter, CompoundSize;
             public Math.FightPit Pit;
+            public bool HasBreak;               // the layout has the broken stretch: its scar of bare earth is painted
             public Vector2 LakesideCenter, LakesideSize;
             public Vector2 GangHouse;
             public Vector2 FortCenter, FortSize;
@@ -665,6 +668,14 @@ namespace Game.Editor.World
                     float pitFloor = layout.Pit.FloorRadius;
                     Math.BlendLayer(w, (int)Layer.Mud, 1f - Math.Ramp(Vector2.Distance(p, layout.Pit.Center), pitFloor - 0.5f, pitFloor + 1f));
 
+                    // Bare wet earth where the ground slipped under the broken stretch: the patch the stretch's ground command
+                    // painted, at the place it was sunk (it does not follow a moved break point; Camp Edge warns).
+                    if (layout.HasBreak)
+                    {
+                        float scar = BrokenStretchBuilder.ScarWeight(p, BrokenStretchBuilder.ScarCentre);
+                        if (scar > 0f) Math.BlendLayer(w, (int)Layer.Mud, scar);
+                    }
+
                     PaintLines(layout, w, p, false);
 
                     float total = w.Sum();
@@ -900,6 +911,7 @@ namespace Game.Editor.World
                 CompoundCenter = Position(compound),
                 CompoundSize = new Vector2((float)compound["w"], (float)compound["d"]),
                 Pit = Area1SitesBuilder.ReadFightPit(features[FIGHT_PIT_FEATURE], features[FORT_TOWER_FEATURE]),
+                HasBreak = features.TryGetValue(BREAK_FEATURE, out JObject fenceBreak) && Area1BlockoutBuilder.HasPosition(fenceBreak),
                 GangHouse = Position(features[GANG_HOUSE_FEATURE]),
                 FortCenter = Position(features[FORT_ZONE_FEATURE]),
                 FortSize = new Vector2((float)features[FORT_ZONE_FEATURE]["w"], (float)features[FORT_ZONE_FEATURE]["d"]),

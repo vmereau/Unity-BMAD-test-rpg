@@ -4,7 +4,7 @@
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
 > `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
 > model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
-> Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`.
+> Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`.
 
 ---
 
@@ -24,7 +24,10 @@ Custom pieces so far: `worker bed`, `door flap`, `floor bed` (+ `FloorBed_Model.
 down −Y, sleeves along X), `worker hut` (the hut shell, below), `warehouse` (the Area 1 hall with its ramps,
 landing, hoist and rubble: one FBX, a parts file and a ground capture; see `Prefabs/World/Warehouse/CLAUDE.md`),
 `palisade` (a kit, not a wall: six log heads, two posts, a rail and a rope lashing, with `Palisade.json`; the Camp
-Edge tool assembles them, see `Editor/World/CLAUDE.md` → Palisade log walls).
+Edge tool assembles them, see `Editor/World/CLAUDE.md` → Palisade log walls), `broken stretch` (38 meshes for the
+collapsed wall and its repair works, each on its own pivot, with `BrokenStretch.json` saying where each goes; see
+`Editor/World/CLAUDE.md` → Broken stretch. New wood is `M_Camp_NewLog`, the same texture at about 2.1; rags are
+`M_Camp_Rag`).
 
 ---
 

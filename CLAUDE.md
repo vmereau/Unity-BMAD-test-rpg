@@ -118,7 +118,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 |------|------------------------------|--------|
 | Assembly & input | `CLAUDE.md` | `Game.asmdef`, `InputSystem_Actions` dual-file contract |
 | Scenes | `Scenes/CLAUDE.md` (+ `STARTING_TOWN.md`) | Boot flow, play scenarios, Core.unity managers, MCP scene-load quirk, StartingTown overview; topic file: per-site layout facts — read before placing / moving anything in StartingTown |
-| Area 1 world tools | `Editor/World/CLAUDE.md` | `Tools/World/...` builders: run order, terrain capture, NavMesh bake rule, hand edits, palisade log walls, grading, root ownership, play tests |
+| Area 1 world tools | `Editor/World/CLAUDE.md` | `Tools/World/...` builders: run order, terrain capture, NavMesh bake rule, hand edits, palisade log walls, broken stretch, grading, root ownership, play tests |
 | Core | `Scripts/Core/CLAUDE.md` | `CursorManager`, `GameLog`, `GameConstants`, `WorldStateManager` / world facts, theft / gold request payloads |
 | Save / Time | `Scripts/Core/Save/CLAUDE.md`, `Scripts/Core/Time/CLAUDE.md` | `SaveSystem` / save files / restore rules; `GameClock`, `GameTime`, `DayNightController` |
 | Animation drivers | `Scripts/Core/Animations/CLAUDE.md` | `AIAnimationDriver` polymorphism (Brain/Health → Driver → Bridge) |
@@ -151,7 +151,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
 | Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`, `RUINS_LOOK_TEST.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet); topic file: look-test batch + verdict log |
-| Camp kit | `Art/Environment/Camp/CLAUDE.md` (+ `WAREHOUSE_CONCEPTS.md`, `PALISADE_CONCEPTS.md`) | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces, round logs); topic files: warehouse and palisade reference captures, artwork prompts and build briefs |
+| Camp kit | `Art/Environment/Camp/CLAUDE.md` (+ `WAREHOUSE_CONCEPTS.md`, `PALISADE_CONCEPTS.md`, `BROKEN_STRETCH_CONCEPTS.md`) | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces, round logs); topic files: warehouse, palisade and broken-stretch reference captures, artwork prompts and build briefs |
 | UI art | `Art/UI/CLAUDE.md` (+ `UI_METRICS.md`) | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview); topic file: UI metrics, screen catalog |
 | Inventory filter glyphs | `Art/UI/Inventory/CLAUDE.md` | Filter-glyph icon prompt and import settings |
 | Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |

@@ -136,7 +136,7 @@ Measured on the placeholder (`Editor/World/Area1BlockoutBuilder.BuildPalisade`, 
 | Hand edits | `hand-edits.json` pins 31 panels (position and size, several raised by hand) and removes `outer-fence/Panel_001` and `_002` (the fields gate) |
 | Warehouse | `outer-fence-3/Panel_060` ends at x 9.31 and `Panel_061` starts at x 20.69, inside the gable walls; the round junction logs stand at the warehouse's local x ±5.86, z 0 |
 | Openings | Arrival gate (two graybox towers, `CampEdge/ArrivalGate`), inner gate, dock gate, compound gate, ramp and fields gates, fort cart gate: all stay as they are; the wall ends on a full log at each |
-| Stays graybox | `CampEdge/BrokenStretch` (the 8 m collapsed stretch west of the warehouse), the arrival towers, every gate |
+| Stays graybox | The arrival towers, every gate. (`CampEdge/BrokenStretch`, the 8 m collapsed stretch west of the warehouse, was left graybox by this pack and dressed later: `BROKEN_STRETCH_CONCEPTS.md`) |
 | Tool | Camp Edge owns the root and rebuilds it on every run; the wall follows the ground, so it is rebuilt after any terrain run |
 
 ---
@@ -185,4 +185,4 @@ Measured on the placeholder (`Editor/World/Area1BlockoutBuilder.BuildPalisade`, 
 - The posts read less than P6's heavy post, and the rails are straight poles, 0.13 m against the 0.11 m decided.
 - The darker foot is 0.3 m high, not the half metre decided: a taller band read as paint.
 - Rails are on the camp side only (P2 painted them outside).
-- The arrival towers, every gate and the collapsed stretch are still graybox (own specs).
+- The arrival towers and every gate are still graybox (own specs).

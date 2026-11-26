@@ -165,7 +165,7 @@ Gameplay and tool constraints:
   surface, so the interior floor is kept even though the interior is not dressed.
 - **The fence line must stay closed under the floor**: Camp Edge clips the palisade at the footprint and the
   `Skirt` closes the gap. The rubble wall takes over that job, visually and as a collider.
-- **The gap west of the hall stays open**: `BrokenStretch` (x −1..7, a rail on short posts) keeps the hunter's fire in
+- **The gap west of the hall stays open**: `BrokenStretch` (x −1..7, since dressed as the collapsed wall under repair) keeps the hunter's fire in
   view from the worker huts. No palisade there.
 - `HomeYardDresser` ties the east yard's ramp tarp to the camp ramp: keep an **active** object at exactly
   `Area1_Blockout/Warehouse/Ramp_Camp`, with a `BoxCollider`, scaled (3.5, 0.2, 13.85) so that its local ±0.5 are the

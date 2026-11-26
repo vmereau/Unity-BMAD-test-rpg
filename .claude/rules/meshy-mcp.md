@@ -91,3 +91,13 @@ unexpectedly. Prompt rules and the per-clip prompt log for combat clips:
   view, flat shadowless light", nano-banana-pro, 9 credits) gave a clean single shaft. Keep the icon image as the icon.
 - `meshy-t2` + `meshy-n1` 2K at `target_polycount` 3000 = 15 credits, ~2,750 tris, FBX 0.01 units long (scale 55 for
   0.55 m), centred at the origin, the long axis on +Y as in the image. Base colour only (no PBR maps with n1).
+
+## Image to image (`meshy_image_to_image`) — environment concepts
+
+- A scene capture repainted from a long template prompt works (`nano-banana-pro`, `aspect_ratio` 16:9, 9 credits,
+  30–70 s, output 1376 × 768): composition and placeholder shapes are kept. Give two `reference_file_paths`, the capture
+  first and an accepted artwork second, and say in the prompt which is which ("repaint the first input image", "the
+  second image is a material reference only").
+- Small props drift toward the foreground (a stool and a fire basket moved in two views of four), and a steep
+  top-down view lost what was outside the subject (a river and a dock became a stream between rocks): name such
+  things in the view paragraph as "stays exactly as it is".
