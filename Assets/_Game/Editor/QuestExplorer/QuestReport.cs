@@ -220,12 +220,14 @@ namespace Game.Editor.QuestExplorer
 
         private static void AppendSetters(StringBuilder sb, Fact fact, QuestReferenceIndex index, string indent)
         {
+            var setters = index.GetSetters(fact);
             if (!QuestValidator.IsStored(fact))
             {
-                sb.AppendLine($"{indent}- computed (no setter)");
+                // Computed facts may still have a known source (MealEatenFact → meal, CraftedFact → recipe).
+                if (setters.Count == 0) { sb.AppendLine($"{indent}- computed (no setter)"); return; }
+                foreach (var s in setters) sb.AppendLine($"{indent}- computed, made true by [{s.Source}] {s.Label}");
                 return;
             }
-            var setters = index.GetSetters(fact);
             if (setters.Count == 0) sb.AppendLine($"{indent}- NEVER SET");
             foreach (var s in setters) sb.AppendLine($"{indent}- set by [{s.Source}] {s.Label}");
         }
