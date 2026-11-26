@@ -11,16 +11,20 @@ the placeholder, one image-to-image prompt per capture, and the facts the rebuil
 
 ## Chosen direction
 
-- **Timber on posts, open underneath.** A plank hall on heavy squared posts standing on padstones on the rock clump;
-  daylight and bare rock show between the posts. No masonry storey: cut, seamless stone is the ruins' signature
-  (`ART_DIRECTION.md` → Environment).
-- **Rubble only on the fence line.** Under the middle of the hall, where the palisade would run, a rough dry-stone
-  wall of local rubble fills the gap between rock and floor. It replaces the placeholder's `Skirt`.
+- **Timber on posts over a rubble bank.** A plank hall on heavy squared posts standing on padstones on the rock clump.
+  Behind the posts, a rough dry-stone bank of local rubble, 1–2 m high, is packed under the perimeter (as in artworks
+  W2, W3, W5, W6). It is rubble, never a masonry storey: cut, seamless stone is the ruins' signature
+  (`ART_DIRECTION.md` → Environment). It replaces the placeholder's `Skirt` and closes the fence line.
 - **Better kept than the huts, through construction.** Squared sawn posts and braces, tight boards, a full shingle
   roof, strap-hinged cart doors, tarred post feet. Same wood family as the huts: weathered, never new.
 - **One line with the palisade.** The fence meets the hall in the middle of each gable end, under the ridge: the post
   there is a round log of palisade size and the fence butts into it. Every other post is squared.
-- **Ramps are carpentry.** Plank decks on trestles with a low kerb, not floating slabs. Never stairs: carts use them.
+- **Ramps are carpentry.** Plank decks on trestles with post-and-rail handrails outside the deck, not floating slabs.
+  Never stairs: carts use them.
+- **Lanterns by the cart doors** are night lights, unlit by day.
+
+The prompt template below still carries the earlier wording (open underside, kerb only): the first batch was accepted,
+so it was not rewritten. For a regenerated view, swap those two sentences for the lines above.
 
 Older concept of the same building, seen from outside the dock gate: `Artworks/Starting area/Camp/Docks/Dock checkpoint.png`.
 
@@ -175,10 +179,10 @@ a view only if it is needed as a clean reference. "Kept?" is the user's call.
 | W5 overview | 2026-11-26 | | **Carry:** the whole massing: roof, braced posts over rubble, ramp to the yard, fence to the stake gate. **Ignore:** palisade drawn across the gap west of the hall; the hall reads taller than its 4 m walls. |
 | W6 camp ramp and rocks | 2026-11-26 | | **Carry:** ramp construction from below (posts, stringers, deck boards, kerb beam at the edge, no handrail), a dry-stone wall under the floor behind the ramp, door with strap hinges. **Ignore:** nothing structural. |
 
-**Open points the images raise for the build** (decide before the rebuild spec):
+**Decided by the user on 2026-11-26, from the images** (these override the prompts' wording where they differ):
 
-1. **Rubble under the floor.** The chosen direction keeps the underside open with rubble only on the fence line; W2,
-   W3, W5 and W6 pack rubble between the perimeter posts, 1–2 m high, and it reads well.
-2. **Ramp edges.** W1, W2, W4 and W5 show post-and-rail handrails; W6 shows only a kerb beam. Either must leave the
-   deck 3.5 m clear.
-3. **Lanterns.** Painted lit in daylight; in game they would be night lights (`ClockNightLight`).
+1. **Rubble under the floor: as in the images.** A rough dry-stone bank of local rubble, 1–2 m high, packed under the
+   perimeter between the posts, which stand on padstones in front of it. It also closes the fence line under the floor.
+2. **Ramp edges: handrails.** Post-and-rail handrails on the outer side of the trestle posts, so the deck stays
+   3.5 m clear.
+3. **Lanterns: night lights.** One by each cart door, driven by `ClockNightLight` like the yard's fire and candle.
