@@ -13,7 +13,7 @@ namespace Game.AI
         private static readonly HashSet<int> _claimed = new();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetOnPlay() => _claimed.Clear();
+        internal static void ResetOnPlay() => _claimed.Clear(); // internal: EditMode tests clear it in SetUp
 
         /// <summary>Claims <paramref name="theftId"/>. True only for the first caller (first catcher wins).</summary>
         public static bool TryClaim(int theftId) => _claimed.Add(theftId);

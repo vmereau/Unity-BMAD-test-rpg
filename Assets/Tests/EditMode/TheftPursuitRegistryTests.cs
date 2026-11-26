@@ -5,10 +5,14 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Edit Mode tests for <see cref="TheftPursuitRegistry"/> (first catcher claims a theft incident).
-    /// The registry is static and never cleared here — every test uses its own large, distinct ids.
+    /// The registry is static and outlives a test run (no domain reload between runs), so each test starts from a
+    /// cleared registry.
     /// </summary>
     public class TheftPursuitRegistryTests
     {
+        [SetUp]
+        public void SetUp() => TheftPursuitRegistry.ResetOnPlay();
+
         [Test]
         public void TryClaim_FirstTrue_SecondFalse()
         {
