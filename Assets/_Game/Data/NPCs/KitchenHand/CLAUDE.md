@@ -65,5 +65,5 @@ the real kitchen work while Aldric "sees to the guests" — and he has learned n
 | Asset | Path |
 |-------|------|
 | Scene | Not placed yet — canteen cookhouse in StartingTown (Cook at (-6,20), fireplace at (-7,22)) |
-| Quest role | Cooking tutorial quest chain — teaches recipe discovery by experimenting (station Experiment tab), recipe items (Storekeeper) and first-eat meal bonuses; to design with `quests:design` |
+| Quest role | Cooking tutorial chain `WorkersRation` → `WorkersSandwich` → `CooksExperiment` (specs in `docs/World/Quests/`, status `ready`, not implemented): first-meal effect, cooking a given recipe, discovering a dish by experimenting. Also hands out the daily soup ration (2 per day) |
 | KilledFact | Not set — create and assign once placed with a `PersistentID` |

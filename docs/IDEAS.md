@@ -48,7 +48,11 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 ## AI / NPCs
 
 ### Tob (aide de cuisine) : suite de quêtes tutoriel cuisine
-- **Date:** 2026-11-21 · **Status:** à designer
+- **Date:** 2026-11-21 · **Status:** designé (2026-11-26) : `docs/World/Quests/WorkersRation.md`,
+  `WorkersSandwich.md`, `CooksExperiment.md` (`ready`). Reste : spec code (`MealEatenFact`, `CraftedFact`,
+  `WorldFact_Cooking_MealDiscovered`, ration quotidienne), objets (soupe, oignon, porc salé, sandwich, Forager's
+  Stew), puis `quests:implement`. L'étape 4 (« manger plusieurs plats ») est reportée : à reprendre quand il y aura
+  plus de plats à bonus (s'appuiera sur `MealEatenFact`).
 - **Decision (2026-11-21):** deux personnages. Aldric (`Data/NPCs/Cook/`) reste receleur. Tob (npc-020,
   `Data/NPCs/KitchenHand/`, ~20 ans) enseigne la cuisine et **ne parle jamais des affaires d'Aldric** (ni
   indice, ni renvoi vers lui). Fiche : `Data/NPCs/KitchenHand/CLAUDE.md` ; doc monde : `docs/World/NPCs/npc-020-tob.md`.
@@ -64,7 +68,7 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
   3. Acheter une recette chez le Storekeeper (ex. Apple Trout Sandwich) et la cuisiner.
   4. (Optionnel) Varier : manger plusieurs plats différents pour la première fois → récompense.
 - **Prochaine session (Unity ouvert) :**
-  - Lancer `quests:design` sur la piste ci-dessus, puis `quests:implement` et `quests:audit`.
+  - ~~Lancer `quests:design`~~ (fait), puis `quests:implement` et `quests:audit` une fois les prérequis livrés.
   - `NPC_KitchenHand.asset` a été écrit à la main en YAML (copie de `NPC_FieldHand`) : vérifier qu'il
     s'importe sans erreur (`read_console`).
   - Placer Tob dans StartingTown au cookhouse (Cook à (-6,20), feu à (-7,22)) avec routine, `PersistentID`

@@ -9,7 +9,7 @@
 > role: cooking tutor / quest-giver
 > personality: Eager, friendly, discreet
 > unity-asset: Assets/_Game/Data/NPCs/KitchenHand/
-> quests-given: TBD (cooking tutorial chain)
+> quests-given: WorkersRation → WorkersSandwich → CooksExperiment (docs/World/Quests/)
 > quests-involved: TBD
 > events: TBD
 > knows-of: TBD
@@ -63,11 +63,18 @@ entirely out of his talk.
 
 | Topic ID | Trigger | Summary |
 |----------|---------|---------|
-| (fill with the quest chain) | | |
+| NewHere | First talk | Starts `WorkersRation`, opens the daily ration |
+| DailyRation | After NewHere, permanent | Two bowls of Worker's Soup per day, reset when he wakes; refused if woken |
+| AboutTheSoup | Soup eaten | Explains the first-meal effect in-world, completes `WorkersRation` |
+| SomethingToCarry | `WorkersRation` done | Starts `WorkersSandwich`, gives his sandwich recipe (or "I already know this meal") |
+| TheSandwich | Sandwich cooked | Completes `WorkersSandwich` |
+| MixingThings | `WorkersSandwich` done | Starts `CooksExperiment` with a hint (or "I've already found a dish") |
+| FoundADish | A meal discovered by experimenting | Completes `CooksExperiment`, mentions the Storekeeper's written recipes |
 
 ---
 
 ## Open Threads
 
-- Dialogue scripts and cooking quest chain not yet written
+- Cooking quest chain designed (specs `ready`), not implemented: blocked on a code spec (meal-eaten / crafted
+  facts, meal-discovered fact, daily ration give) and new items (soup, onion, salt pork, sandwich, forager's stew)
 - Not placed in StartingTown; no `KilledFact`, head or skin tone yet
