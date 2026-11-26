@@ -2,7 +2,7 @@
 
 > Loaded when Claude accesses files in this folder. Worker camp art pass: the board-built hut shell, the Hivemind kit
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
-> `Prefabs/World/Huts/CLAUDE.md`.
+> `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`.
 
 ---
 

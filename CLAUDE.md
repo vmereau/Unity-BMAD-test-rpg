@@ -150,7 +150,7 @@ rules here. Don't duplicate a rule that already lives in `project-context.md` or
 | Items data | `ScriptableObjects/Items/CLAUDE.md` (+ `ADDING_ITEM_TYPES.md`) | `ItemSO` family, fields, `Resolved*` rules; topic file: adding an item type |
 | Art direction | `Art/ART_DIRECTION.md` | Shared palette, materials vocabulary, banned prompt words, per-asset-type direction — read before any art prompt |
 | Environment / ruins | `Art/Environment/CLAUDE.md` (+ `ANCIENT_CIVILIZATION.md`, `RUINS_LOOK_TEST.md`) | Ancient-civilization design language, ruins prompt templates (mood concept, image-to-3D sheet); topic file: look-test batch + verdict log |
-| Camp kit | `Art/Environment/Camp/CLAUDE.md` | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces) |
+| Camp kit | `Art/Environment/Camp/CLAUDE.md` (+ `WAREHOUSE_CONCEPTS.md`) | Worker camp kit rules (wall modules, roofs, scale, kit lights, custom Blender pieces); topic file: warehouse reference captures, artwork prompts and build brief |
 | UI art | `Art/UI/CLAUDE.md` (+ `UI_METRICS.md`) | UI sprite catalog + prompt template, sprite import recipe, `UILayoutCapture` (measure / preview); topic file: UI metrics, screen catalog |
 | Inventory filter glyphs | `Art/UI/Inventory/CLAUDE.md` | Filter-glyph icon prompt and import settings |
 | Origin illustrations | `Art/UI/Origins/CLAUDE.md` | Origin pick artwork: illustration prompt template + per-origin scenes, import, `OriginSO._artwork` |
