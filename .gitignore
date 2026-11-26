@@ -61,3 +61,7 @@ Assets/Hivemind.meta
 
 # Raw Meshy downloads used by the Blender fit scripts (large, kept locally)
 Tools/Blender/sources/base_hero_v2/
+
+# Local Mixamo animation packs (large, kept locally)
+/Assets/mixamo packs/
+/Assets/mixamo packs.meta
