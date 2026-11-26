@@ -111,4 +111,41 @@ public class CameraRigMathTests
         Assert.That(shoulder.y, Is.EqualTo(0.4f).Within(EPS));
         Assert.That(distance, Is.EqualTo(3.15f).Within(EPS));
     }
+
+    // --- Mouse-wheel zoom (min 1.5, max 6, step 0.5) ---
+
+    [TestCase(4.5f, 1f, 4.0f, TestName = "StepZoomTarget_WheelForward_ZoomsIn")]
+    [TestCase(4.5f, -1f, 5.0f, TestName = "StepZoomTarget_WheelBack_ZoomsOut")]
+    [TestCase(1.5f, 1f, 1.5f, TestName = "StepZoomTarget_AtMin_StaysAtMin")]
+    [TestCase(6.0f, -1f, 6.0f, TestName = "StepZoomTarget_AtMax_StaysAtMax")]
+    [TestCase(4.5f, 120f, 4.0f, TestName = "StepZoomTarget_PlatformRange_IsOneStep")]
+    [TestCase(4.5f, -120f, 5.0f, TestName = "StepZoomTarget_PlatformRangeBack_IsOneStep")]
+    [TestCase(4.5f, 0f, 4.5f, TestName = "StepZoomTarget_NoWheel_Unchanged")]
+    [TestCase(1.7f, 1f, 1.5f, TestName = "StepZoomTarget_PartialStepPastMin_Clamped")]
+    public void StepZoomTarget(float target, float wheel, float expected)
+        => Assert.That(CameraRigMath.StepZoomTarget(target, wheel, 0.5f, 1.5f, 6f), Is.EqualTo(expected).Within(EPS));
+
+    [Test]
+    public void EaseZoom_MovesTowardsTarget_WithoutOvershoot()
+    {
+        float next = CameraRigMath.EaseZoom(4.5f, 4.0f, 10f, 0.016f);
+        Assert.That(next, Is.LessThan(4.5f));
+        Assert.That(next, Is.GreaterThan(4.0f));
+    }
+
+    [Test]
+    public void EaseZoom_LargeStep_NeverOvershoots()
+        => Assert.That(CameraRigMath.EaseZoom(4.5f, 4.0f, 10f, 10f), Is.EqualTo(4.0f).Within(EPS));
+
+    [Test]
+    public void EaseZoom_Converges_AndSnapsToTarget()
+    {
+        float d = 4.5f;
+        for (int i = 0; i < 300; i++) d = CameraRigMath.EaseZoom(d, 1.5f, 10f, 0.016f);
+        Assert.That(d, Is.EqualTo(1.5f));
+    }
+
+    [Test]
+    public void EaseZoom_ZeroDeltaTime_Unchanged()
+        => Assert.That(CameraRigMath.EaseZoom(4.5f, 4.0f, 10f, 0f), Is.EqualTo(4.5f).Within(EPS));
 }

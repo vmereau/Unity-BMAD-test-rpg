@@ -43,6 +43,26 @@ namespace Game.Player
         }
 
         /// <summary>
+        /// New zoom target after one frame of mouse wheel: wheel forward (positive) brings the camera closer.
+        /// The wheel value is clamped to one notch per frame, so ±1 and ±120 per notch give the same step.
+        /// </summary>
+        public static float StepZoomTarget(float target, float wheelY, float step, float min, float max)
+        {
+            float notches = Mathf.Clamp(wheelY, -1f, 1f);
+            return Mathf.Clamp(target - notches * step, min, max);
+        }
+
+        /// <summary>
+        /// Frame-rate independent exponential ease of the arm towards the zoom target; never overshoots,
+        /// snaps once within 1 mm.
+        /// </summary>
+        public static float EaseZoom(float current, float target, float speed, float deltaTime)
+        {
+            float next = Mathf.Lerp(current, target, 1f - Mathf.Exp(-Mathf.Max(0f, speed) * Mathf.Max(0f, deltaTime)));
+            return Mathf.Abs(next - target) < 0.001f ? target : next;
+        }
+
+        /// <summary>
         /// Blends the resting rig towards the bow aim offset. <paramref name="aimOffset"/> uses the
         /// follow-offset convention: x, y = shoulder offset, -z = arm distance.
         /// </summary>

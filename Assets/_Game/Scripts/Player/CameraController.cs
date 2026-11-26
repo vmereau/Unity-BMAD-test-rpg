@@ -9,7 +9,7 @@ namespace Game.Player
     /// Reads mouse Look input and drives the CameraTarget pivot rotation (yaw + pitch).
     /// Cinemachine (CinemachineThirdPersonFollow) orbits the camera around CameraTarget and owns
     /// obstacle collision. This script does NOT move the camera directly: it only sets the rig
-    /// shoulder offset and arm distance (look-up shortening, bow aim).
+    /// shoulder offset and arm distance (mouse-wheel zoom, look-up shortening, bow aim).
     /// Cursor is locked on start; Escape unlocks, left-click re-locks.
     /// </summary>
     public class CameraController : MonoBehaviour
@@ -23,13 +23,23 @@ namespace Game.Player
         [Tooltip("Arm distance multiplier at full look-up (pitch = Pitch Min). 1 = constant distance.")]
         [SerializeField, Range(0.1f, 1f)] private float _lookUpDistanceScale = 0.5f;
         [Tooltip("Most upward pitch allowed while swimming, so the camera stays above the water surface " +
-                 "(-5° keeps a 4.5 m arm ≈ 0.25 m above it at swimFloatDepth 1.45).")]
+                 "(-5° keeps a 4.5 m arm ≈ 0.25 m above it at swimFloatDepth 1.45, the 6 m zoom max ≈ 0.13 m).")]
         [SerializeField, Range(-70f, 0f)] private float _swimPitchMin = -5f;
         [Tooltip("Degrees per second the pitch limit eases to / from the swim limit (no snap on entering water).")]
         [SerializeField, Min(1f)] private float _swimPitchEaseSpeed = 180f;
         [Tooltip("A CameraTarget jump longer than this in one frame (teleport, load, spawn) warps the camera " +
                  "instead of letting the rig damping sweep it across the distance.")]
         [SerializeField, Min(0.5f)] private float _warpDistance = 3f;
+        [Header("Mouse-wheel zoom")]
+        [Tooltip("Closest arm the wheel can reach (close over the shoulder). Floored at CameraRigMath.MinArmDistance.")]
+        [SerializeField, Min(0.5f)] private float _zoomMinDistance = 1.5f;
+        [Tooltip("Farthest arm the wheel can reach.")]
+        [SerializeField, Min(0.5f)] private float _zoomMaxDistance = 6f;
+        [Tooltip("Arm change per wheel notch, in metres.")]
+        [SerializeField, Min(0.05f)] private float _zoomStep = 0.5f;
+        [Tooltip("Exponential ease sharpness of the arm towards the zoom target (higher = faster).")]
+        [SerializeField, Min(0.1f)] private float _zoomEaseSpeed = 10f;
+        [Header("References")]
         [SerializeField] private CinemachineThirdPersonFollow _thirdPersonFollow;
         [SerializeField] private LockOnSystem _lockOnSystem;
         [SerializeField] private CombatConfigSO _combatConfig;
@@ -45,6 +55,8 @@ namespace Game.Player
         private Vector3 _defaultShoulderOffset;
         private float _defaultCameraDistance;
         private float _defaultFieldOfView;
+        private float _zoomTarget;   // arm the wheel asks for (base distance before aim / look-up)
+        private float _zoomDistance; // eased towards _zoomTarget
         private float _aimBlend; // 0 = normal camera, 1 = full bow aim (blended at CombatConfigSO.aimBlendSpeed)
         private Vector3 _lastTargetPosition;
 
@@ -79,6 +91,7 @@ namespace Game.Player
                 _defaultShoulderOffset = _thirdPersonFollow.ShoulderOffset;
                 _defaultCameraDistance = _thirdPersonFollow.CameraDistance;
             }
+            InitZoom();
             if (_cinemachineCamera != null)
                 _defaultFieldOfView = _cinemachineCamera.Lens.FieldOfView;
             if (_stateManager == null)
@@ -115,7 +128,35 @@ namespace Game.Player
                     RotateCamera();
             }
 
+            UpdateZoom();
             ApplyRig();
+        }
+
+        // Validates the zoom limits and starts the zoom at the prefab arm (clamped into the limits).
+        private void InitZoom()
+        {
+            if (_zoomMinDistance > _zoomMaxDistance)
+            {
+                GameLog.Warn(TAG, $"CameraController: zoom min {_zoomMinDistance} > max {_zoomMaxDistance} — swapped");
+                (_zoomMinDistance, _zoomMaxDistance) = (_zoomMaxDistance, _zoomMinDistance);
+            }
+            _zoomMinDistance = Mathf.Max(_zoomMinDistance, CameraRigMath.MinArmDistance);
+            _zoomMaxDistance = Mathf.Max(_zoomMaxDistance, _zoomMinDistance);
+            _zoomTarget = Mathf.Clamp(_defaultCameraDistance, _zoomMinDistance, _zoomMaxDistance);
+            _zoomDistance = _zoomTarget;
+        }
+
+        // Mouse wheel moves the zoom target (only in free gameplay, not while aiming); the arm eases to it.
+        private void UpdateZoom()
+        {
+            if (CursorManager.IsLocked && _aimBlend <= 0f)
+            {
+                float wheelY = _input.UI.ScrollWheel.ReadValue<Vector2>().y;
+                if (!Mathf.Approximately(wheelY, 0f))
+                    _zoomTarget = CameraRigMath.StepZoomTarget(_zoomTarget, wheelY, _zoomStep,
+                        _zoomMinDistance, _zoomMaxDistance);
+            }
+            _zoomDistance = CameraRigMath.EaseZoom(_zoomDistance, _zoomTarget, _zoomEaseSpeed, Time.unscaledDeltaTime);
         }
 
         private void RotateCamera()
@@ -175,18 +216,20 @@ namespace Game.Player
                 _cameraTarget.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
         }
 
-        // Sets the ThirdPersonFollow shoulder / distance: bow aim blend, then the look-up shortening.
+        // Sets the ThirdPersonFollow shoulder / distance: from the eased wheel zoom, the bow aim blend, then the
+        // look-up shortening (floored at MinArmDistance so a close zoom looking up never enters the head).
         private void ApplyRig()
         {
             if (_thirdPersonFollow == null) return;
 
             Vector3 shoulder = _defaultShoulderOffset;
-            float distance = _defaultCameraDistance;
+            float distance = _zoomDistance; // wheel zoom is the base arm for aim and look-up
             if (_aimBlend > 0f && _combatConfig != null)
-                CameraRigMath.BlendRig(_defaultShoulderOffset, _defaultCameraDistance,
+                CameraRigMath.BlendRig(_defaultShoulderOffset, _zoomDistance,
                     _combatConfig.aimFollowOffset, _aimBlend, out shoulder, out distance);
 
-            distance *= CameraRigMath.RigDistanceScale(_pitch, _pitchMin, _lookUpDistanceScale, _aimBlend);
+            distance = Mathf.Max(CameraRigMath.MinArmDistance,
+                distance * CameraRigMath.RigDistanceScale(_pitch, _pitchMin, _lookUpDistanceScale, _aimBlend));
 
             _thirdPersonFollow.ShoulderOffset = shoulder;
             _thirdPersonFollow.CameraDistance = distance;

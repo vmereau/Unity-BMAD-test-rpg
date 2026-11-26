@@ -27,12 +27,18 @@ Working OTS configuration (spec-third-person-camera-spring-arm):
     `LockToTargetWithWorldUp` setup did, with `_lookDownHeightRise` / `_lookDownZoomIn`) — it felt like the camera
     sliding away from the player indoors.
 - **`CameraController` rig writes** (every `LateUpdate`, pure rules in `CameraRigMath` + `CameraRigMathTests`):
-  bow aim lerps shoulder / distance to `CombatConfigSO.aimFollowOffset` (x, y = shoulder, −z = distance, floored at
-  `MinArmDistance`); then the distance × `RigDistanceScale` (look-up shortening: 1 at level / looking down →
-  `_lookUpDistanceScale` 0.5 at `_pitchMin`, faded out by the aim blend so the short aim arm isn't halved again).
-  While swimming the upward pitch limit eases to `_swimPitchMin` (−5° ≈ 0.25 m above the surface; Water isn't a
-  collider, so this limit is the only thing keeping the camera dry) at `_swimPitchEaseSpeed`, pushing `_pitch` up with
-  it every frame (menus open too). Base shoulder / distance are read from the component in `Awake` — tune them on the
+  the **mouse-wheel zoom** sets the base arm first — `_input.UI.ScrollWheel` (forward = closer) steps a target by
+  `_zoomStep` 0.5 m between `_zoomMinDistance` 1.5 and `_zoomMaxDistance` 6 (starts at the prefab `CameraDistance`),
+  the wheel clamped to one notch per frame (±1 and ±120 per notch give the same step), and the arm eases to it
+  (`_zoomEaseSpeed`, unscaled). The wheel is ignored while the cursor is unlocked (menus scroll) and while
+  `_aimBlend > 0`; the zoom is not saved. Then bow aim lerps shoulder / zoomed distance to
+  `CombatConfigSO.aimFollowOffset` (x, y = shoulder, −z = distance, floored at `MinArmDistance`); then the distance
+  × `RigDistanceScale` (look-up shortening: 1 at level / looking down → `_lookUpDistanceScale` 0.5 at `_pitchMin`,
+  faded out by the aim blend so the short aim arm isn't halved again), floored again at `MinArmDistance`.
+  While swimming the upward pitch limit eases to `_swimPitchMin` (−5° ≈ 0.25 m above the surface at the 4.5 m arm,
+  ≈ 0.13 m at the 6 m zoom max; Water isn't a collider, so this limit is the only thing keeping the camera dry) at
+  `_swimPitchEaseSpeed`, pushing `_pitch` up with it every frame (menus open too). Base shoulder / distance are read
+  from the component in `Awake` (the prefab `CameraDistance` is only the zoom's starting arm) — tune them on the
   prefab; play-mode edits on the component are overwritten each frame.
 - **Teleports:** `CameraController.DetectWarp` calls `CinemachineCore.OnTargetObjectWarped` when `CameraTarget` jumps
   more than `_warpDistance` (3 m) in a frame — otherwise the rig damping sweeps the camera across the map after a
