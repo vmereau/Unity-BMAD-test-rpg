@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
+  m_Script: {fileID: 11500000, guid: 991ec0725183bca4eb0e6f6e4aff6645, type: 3}
   m_Name: Item_WorkersSandwich
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
   itemId: 84cee56dd9b94eb8943ce00eda76131c
@@ -23,3 +23,13 @@ MonoBehaviour:
   isIngredient: 0
   isCraftingMaterial: 0
   isQuestItem: 0
+  consumable: 1
+  _kind: 1
+  _healAmount: 25
+  _readyToEat: 0
+  _overTimeEffect: {fileID: 11400000, guid: 2278b93e14adaae479eafb9a84a50639, type: 2}
+  _durationMinutes: 60
+  _permanentBonuses:
+  - stat: 0
+    amount: 5
+  _onMealBonusGained: {fileID: 11400000, guid: 62972e1b68bace445993f5fa732ea740, type: 2}

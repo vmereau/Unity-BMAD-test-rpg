@@ -5,7 +5,7 @@
 > Spec path: `docs/World/Quests/CooksExperiment.md`
 > Design with `/quests:design`, build with `/quests:implement CooksExperiment`, check with `/quests:audit CooksExperiment`.
 > Chain: `WorkersRation` → `WorkersSandwich` → **CooksExperiment** (Tob's cooking tutorial, npc-020).
-> **Blocked on code / content** — see *Prerequisites* (`WorldFact_Cooking_MealDiscovered` setter, experiment-only dish).
+> **Ready to implement** — all prerequisites done (2026-11-26): `WorldFact_Cooking_MealDiscovered` setter, experiment-only Forager's Stew.
 
 ---
 
@@ -25,9 +25,9 @@
    it **discovers** a recipe whose output is a Meal (`PotionItemSO.Kind == Meal`), i.e. the cook that shows "New recipe: …".
    Not set by a recipe item, by cooking an already-known recipe, by the failed dish or by a potion. Stored, so it's true
    for discoveries made **before** the quest. Serialized field on `CookingUI` (fact reference), Quest Explorer setter.
-2. **An experiment-only dish** (otherwise a dead end, see *Flow*): proposed `Item_ForagersStew` (Salt Pork + Onion +
+2. ✅ **An experiment-only dish** **Done** (2026-11-26) (otherwise a dead end, see *Flow*): proposed `Item_ForagersStew` (Salt Pork + Onion +
    Brown Mushroom), `Recipe_ForagersStew` + `RecipeFact_ForagersStew`, on `CookingStation_Base._recipes`, **no recipe
-   item anywhere**. Meal, heal ~30, first-meal bonus **+1 Endurance** (confirmed 2026-11-26). Assets built by `/items:create` (base `ItemSO`, 18 g / 8 g); type and stats still to set. Tob's hint points at it.
+   item anywhere**. Meal, heal ~30, first-meal bonus **+1 Endurance** (confirmed 2026-11-26). Assets built by `/items:create`, 18 g / 8 g; heal 30 over 60 min; `Recipe_ForagersStew` + `RecipeFact_ForagersStew` on `CookingStation_Base`. Tob's hint points at it.
 
 ---
 

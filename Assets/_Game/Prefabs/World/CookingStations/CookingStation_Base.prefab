@@ -84,6 +84,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 35bd342a5407d8a45a93edfc914cd167, type: 2}
   - {fileID: 11400000, guid: cdf1d3b3b04d92543b41d7f4eaa9e915, type: 2}
   - {fileID: 11400000, guid: 455857b1dac53d143aa3939531544ba6, type: 2}
+  - {fileID: 11400000, guid: a2b81c2ed240f3246b039efb6bd77202, type: 2}
+  - {fileID: 11400000, guid: b98a20f396b1be34ea9f1577c48a4387, type: 2}
+  _kind: 0
+  _requiredSkill: {fileID: 0}
   _onOpenRequested: {fileID: 11400000, guid: 72e52cc6667a03e4cacda9553ee920b9, type: 2}
 --- !u!65 &4032583755551461130
 BoxCollider:
