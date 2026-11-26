@@ -6,7 +6,8 @@
 > model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
 > Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`;
 > the canteen (cookhouse, mess, back alley): `CANTEEN_CONCEPTS.md`; its model and prefab pipeline:
-> `Prefabs/World/Cookhouse/CLAUDE.md`.
+> `Prefabs/World/Cookhouse/CLAUDE.md`. The home yard's owned huts (Tam, Pim and Gerrit, Bren) and its rearranged
+> corners: `HOME_YARD_CONCEPTS.md`.
 
 ---
 

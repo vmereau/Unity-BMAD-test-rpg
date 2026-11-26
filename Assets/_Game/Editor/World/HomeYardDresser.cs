@@ -8,8 +8,10 @@ using UnityEngine;
 namespace Game.Editor.World
 {
     /// <summary>
-    /// Art pass for the player's home yard in StartingTown: props inside the player's and Hobb's huts, the shared
-    /// fire, the repair trunk, the card game and the night lights. Everything goes under
+    /// Art pass for the player's home yard in StartingTown: props inside the player's, Hobb's and the owned huts
+    /// (<see cref="HomeYardHomes"/>: Tam, Pim and Gerrit, Bren), the shared fire with its kettle, the wood, work,
+    /// evening (card game and lantern) and water corners, and the night lights. Beds, boxes and restricted areas of
+    /// the owned huts are hand-owned and set by <see cref="HomeYardOwners"/>. Everything here goes under
     /// <c>PlayersZone/HomeYardDressing</c>; rerunning rebuilds that group and discards hand edits inside it.
     /// </summary>
     internal static class HomeYardDresser
@@ -31,11 +33,26 @@ namespace Game.Editor.World
         private const string ROPE_MATERIAL = "M_Camp_Rope.mat";
         private const string LANES = "ArrivalSequence/HutLanes";
         private const float LANE_CLEARANCE = 0.7f;
+        // Owned huts' belongings (spec-area-1-home-yard-huts-and-yard; built by belongings/Source~/build_belongings.py).
+        // Each hangs or lies from its origin; for the wall pieces local +Z points away from the wall, into the room.
+        private const string BELONGINGS = MODELS + "belongings/";
+        private const string FLAIL = BELONGINGS + "Flail.fbx";
+        private const string TALLY = BELONGINGS + "TallyBoard.fbx";
+        private const string ROLLED_BLANKET = BELONGINGS + "RolledBlanket.fbx";
+        private const string STONE_BLOCK = BELONGINGS + "StoneBlock.fbx";
+        private const string RAG = BELONGINGS + "Rag.fbx";
+        // Cheap carpentry from the same script: the kit's planks cost 3,300-3,900 triangles each.
+        private const string PLANK = BELONGINGS + "Plank.fbx";
+        private const string BOARDS = BELONGINGS + "Boards.fbx";
+        private const string PEG_RAIL = BELONGINGS + "PegRail.fbx";
+        // Light kit crate for every crate table (1,336 triangles; SM_Crate_01 / _02 are about 300k each at LOD0).
+        private const string CRATE = "SM_Crate_B_01";
 
-        // World positions of the graybox groups this pass replaces.
+        // World positions of the yard's groups (HOME_YARD_CONCEPTS.md → Build brief).
         private static readonly Vector2 FirePoint = new Vector2(5.55f, 38.95f);
-        private static readonly Vector2 TrunkPoint = new Vector2(4.19f, 41.96f);
-        private static readonly Vector2 CardsPoint = new Vector2(3.30f, 39.15f);
+        private static readonly Vector2 CardsPoint = new Vector2(1.7f, 37.9f);
+        private static readonly Vector2 WoodPoint = new Vector2(9.6f, 38.9f);
+        private static readonly Vector2 WaterPoint = new Vector2(0.45f, 41.05f);
         // Near worker-tarp-north (3) (5.56, 47.11), on flat open ground east of the player's door, open side to the south
         // (the fire). Moved 1.26 m west of the graybox: there, the north-west wall of the hut then called hut-07 (now
         // the shell worker-hut; from (5.62, 45.63) to
@@ -68,6 +85,8 @@ namespace Game.Editor.World
         private const float FIRE_RANGE = 10f;
         private const float CANDLE_INTENSITY = 2.4f; // the candle stands in the far corner, 1.5 m from the bed
         private const float CANDLE_RANGE = 4.5f;
+        private const float LANTERN_INTENSITY = 3.2f; // the card game's lantern: the evening corner, 4 m from the fire
+        private const float LANTERN_RANGE = 6f;
 
         private static Terrain _terrain;
 
@@ -113,13 +132,28 @@ namespace Game.Editor.World
                      {
                          DOOR_FLAP, GLOW, MATERIALS + CARDS_MATERIAL, FLOOR_BED, CLOTH_BUNDLE, SPADE, SHIRT,
                          WorkerHutKitBuilder.ROOF_POLE, MATERIALS + TARP_MATERIAL, MATERIALS + PATCH_MATERIAL,
-                         MATERIALS + ROPE_MATERIAL,
+                         MATERIALS + ROPE_MATERIAL, FLAIL, TALLY, ROLLED_BLANKET, STONE_BLOCK, RAG, PLANK, BOARDS, PEG_RAIL,
                      })
                 if (AssetDatabase.LoadMainAssetAtPath(asset) == null)
                 {
                     GameLog.Error(TAG, $"Missing {asset}; nothing changed.");
                     return;
                 }
+            // The owned huts: interiors are written for 3 × 3 m shells with the doorway on the table's side.
+            var homeHuts = new System.Collections.Generic.Dictionary<string, Transform>();
+            foreach (HomeYardHomes.Home owned in HomeYardHomes.All)
+            {
+                Transform hut = zoneObject.transform.Find(owned.Hut);
+                string layout = HomeYardHomes.Problem(owned);
+                if (layout != null || hut == null || hut.lossyScale != Vector3.one
+                    || !WorkerHutKitBuilder.TryGetVariant(hut.gameObject, out WorkerHutKitBuilder.Variant shell)
+                    || shell.Mirrored != owned.Mirrored || shell.Long)
+                {
+                    GameLog.Error(TAG, layout ?? $"{ZONE}/{owned.Hut} must be an unscaled 3 × 3 m shell {(owned.Mirrored ? "with" : "without")} a mirrored doorway; nothing changed.");
+                    return;
+                }
+                homeHuts[owned.Key] = hut;
+            }
 
             WorkerHutKitBuilder.ResetKit();
             Transform zone = zoneObject.transform;
@@ -137,9 +171,17 @@ namespace Game.Editor.World
 
             DressPlayerHut(Child("PlayerHut", group, playerHut), dayNight);
             DressMateHut(Child("MateHut", group, mateHut));
-            SettleOnTerrain(DressFire(WorldChild("Fire", group, FirePoint, 0f), dayNight));
-            SettleOnTerrain(DressTrunk(WorldChild("RepairTrunk", group, TrunkPoint, 156f)));
-            SettleOnTerrain(DressCards(WorldChild("CardGame", group, CardsPoint, 0f)));
+            Transform fire = DressFire(WorldChild("Fire", group, FirePoint, 0f), dayNight);
+            SettleOnTerrain(fire);
+            HangKettle(fire);
+            DressTamHut(Child("TamHut", group, homeHuts["Tam"]), dayNight);
+            DressPimGerritHut(Child("PimGerritHut", group, homeHuts["PimGerrit"]), dayNight);
+            DressBrenHut(Child("BrenHut", group, homeHuts["Bren"]), dayNight);
+            SettleOnTerrain(DressDoorBoards(group, homeHuts));
+            SettleOnTerrain(DressWorkCorner(Child("WorkCorner", group, homeHuts["PimGerrit"])));
+            SettleOnTerrain(DressWoodCorner(WorldChild("WoodCorner", group, WoodPoint, 0f)));
+            SettleOnTerrain(DressCards(WorldChild("CardGame", group, CardsPoint, 10f), dayNight));
+            SettleOnTerrain(DressWater(WorldChild("WaterCorner", group, WaterPoint, 0f)));
             SettleOnTerrain(DressYard(Child("Doorstep", group, playerHut)));
             // Not settled afterwards: the bay places everything on the ground itself, so the tie points of its tarp and
             // ropes follow the poles and stakes they hang from.
@@ -148,7 +190,7 @@ namespace Game.Editor.World
             SettleOnTerrain(DressLeanTo(Child("LeanTo", group, mateHut), zone.Find(LEAN_TO_HUT)));
             DressEastYard(group, zone);
             SettleOnTerrain(DressBoards(WorldChild("MudBoards", group, BoardsPoint, 62f)));
-            CheckLanes(group);
+            CheckLanes(group, zone);
 
             _terrain = null;
             EditorSceneManager.MarkSceneDirty(zoneObject.scene);
@@ -191,10 +233,8 @@ namespace Game.Editor.World
             // Two small overlapping patches: one large piece reads as a rectangular mat.
             Prop("SM_Hay_02a", hut, new Vector3(0.2f, 0.1f, -0.35f), 25f, 0.4f, "FloorStraw");
             Prop("SM_Hay_02a", hut, new Vector3(0.6f, 0.09f, 0.45f), 80f, 0.36f, "FloorStraw");
-            // In the corner away from the bed, so the strip beside the bed stays clear to the back wall. The crate's
-            // pivot is at one bottom corner, hence the offset from the table top below.
-            Prop("SM_Crate_01", hut, new Vector3(1.26f, 0f, -1.22f), 4f, 0.45f, "CrateTable", solid: true);
-            Vector3 top = new Vector3(1.02f, 0.47f, -1f);
+            // In the corner away from the bed, so the strip beside the bed stays clear to the back wall.
+            Vector3 top = CrateTable(hut, new Vector3(1.0f, 0f, -1.0f), 4f, 0.8f);
             Prop("SM_Candle_01c", hut, top + new Vector3(0.1f, 0f, -0.08f), 0f, 1f, "Candle");
             Prop("SM_Bowl_01", hut, top + new Vector3(-0.1f, 0f, 0.06f), 30f, 1f, "Bowl");
             Prop("SM_Sack_01", hut, new Vector3(0.45f, 0f, -1.08f), 70f, 1f, "Sack");
@@ -219,7 +259,7 @@ namespace Game.Editor.World
             // along the −X wall at hut-local (−0.89, 0, −0.26), 90°. Keep props off that strip.
             Prop("SM_Hay_02a", hut, new Vector3(0.15f, 0.1f, -0.2f), -35f, 0.4f, "FloorStraw");
             Prop("SM_Hay_02a", hut, new Vector3(0.55f, 0.09f, 0.6f), 60f, 0.36f, "FloorStraw");
-            Prop("SM_Crate_02", hut, new Vector3(0.75f, 0f, -1.25f), -6f, 0.5f, "CrateTable", solid: true);
+            CrateTable(hut, new Vector3(0.58f, 0f, -0.98f), -6f, 0.85f);
             Prop("SM_KettlePot_01", hut, new Vector3(0.45f, 0.5f, -1.02f), 40f, 1f, "Kettle");
             Prop("SM_Mug", hut, new Vector3(0.68f, 0.5f, -0.9f), 0f, 1f, "Mug");
             Prop("SM_Candle_01a", hut, new Vector3(0.3f, 0.5f, -0.85f), 0f, 1f, "Candle");
@@ -248,52 +288,272 @@ namespace Game.Editor.World
             Prop("SM_Bench", fire, new Vector3(-0.6f, 0f, 1.45f), 90f, 0.6f, "Bench", solid: true);
             // SM_Log_Wide_B's pivot is at one end of its 1.7 m Z axis: this log runs north from here, facing the fire.
             Prop("SM_Log_Wide_B", fire, new Vector3(2.25f, 0f, 0.25f), 0f, 0.6f, "LogSeat", solid: true);
-            Prop("SM_firewoodSetA_a1", fire, new Vector3(3.05f, 0f, -0.3f), 80f, 0.8f, "Firewood", solid: true);
-            Prop("SM_Outskirts_CuttedWoodTrunk", fire, new Vector3(3.15f, 0f, 2.75f), 0f, 0.7f, "ChoppingBlock", solid: true);
-            Transform axe = Prop("SM_Axe_01", fire, new Vector3(3.15f, 0.48f, 2.85f), 0f, 1.2f, "Axe");
-            axe.localRotation = Quaternion.Euler(-150f, 30f, 0f);
             NightLight(fire, "FireLight", new Vector3(0f, 0.9f, 0f), FIRE_INTENSITY, FIRE_RANGE, LightShadows.Soft, dayNight,
                 flame != null ? new[] { flame } : null, billboard, FlameGlow);
             return fire;
         }
 
-        private static Transform DressTrunk(Transform trunk)
+        /// <summary>
+        /// The kettle hangs from the tripod's top on a short chain of rope, over the fire. The tripod is part of the
+        /// fire ring's mesh: its top is the highest point of that mesh's bounds, over the ring's middle.
+        /// </summary>
+        private static void HangKettle(Transform fire)
         {
-            Prop("SM_WoodChest_01a", trunk, Vector3.zero, 90f, 1f, "Trunk", solid: true);
-            Prop("SM_RockStone_01b", trunk, new Vector3(-0.9f, 0.08f, 0.3f), 30f, 0.3f, "Whetstone");
-            Transform tool = Prop("SM_Axe_01", trunk, new Vector3(0.1f, 0.64f, 0f), 0f, 1f, "Hatchet");
-            tool.localRotation = Quaternion.Euler(90f, 40f, 0f);
-            Prop("SM_Sack_02", trunk, new Vector3(0f, 0f, -0.8f), 60f, 1f, "Sack");
-            return trunk;
+            Renderer ring = null;
+            foreach (Renderer r in fire.GetComponentsInChildren<Renderer>(true))
+                if (r.name.Contains("FireCamp")) { ring = r; break; }
+            if (ring == null)
+            {
+                GameLog.Warn(TAG, "The fire ring has no tripod mesh: the kettle is not hung.");
+                return;
+            }
+            Bounds b = ring.bounds;
+            Vector3 apex = fire.InverseTransformPoint(new Vector3(b.center.x, b.max.y - 0.06f, b.center.z));
+            Vector3 kettle = new Vector3(apex.x, 0.42f, apex.z);
+            Prop("SM_KettlePot_01", fire, kettle, 25f, 1.1f, "Kettle");
+            Cloth(fire, "KettleRope", CampClothMesh.Rope("HomeYard_KettleRope", kettle + Vector3.up * 0.33f, apex, 0.004f), false);
         }
 
-        // Where the graybox card game stood: a crate (pivot at one bottom corner, so offset to centre it on the group)
-        // with a log seat on three sides, west of the escort lane.
-        private static Transform DressCards(Transform cards)
+        // ------------------------------------------------------------ owned huts (HomeYardHomes; Y4–Y6)
+        // Hut frame: +Z is the doorway, the boards' inner faces at ±1.28. Beds and boxes are hand-owned objects placed
+        // by HomeYardOwners at the table's poses; the props below keep clear of them and of the entry pocket.
+
+        // Tam (mirrored doorway, bed on the +X wall): rags drying on a peg rail, walking stick, crate table, two sacks.
+        private static void DressTamHut(Transform hut, DayNightConfigSO dayNight)
         {
-            Prop("SM_Crate_02", cards, new Vector3(0.36f, 0f, -0.36f), 0f, 0.7f, "CardCrate", solid: true);
+            Straw(hut, new Vector3(-0.3f, 0.1f, -0.3f), 25f, new Vector3(-0.45f, 0.09f, 0.45f), 80f);
+            Vector3 top = CrateTable(hut, new Vector3(-0.78f, 0f, -0.98f), 4f, 0.85f);
+            Candle(hut, top + new Vector3(0.12f, 0f, -0.08f), dayNight);
+            Prop("SM_Bowl_01", hut, top + new Vector3(-0.1f, 0f, 0.08f), 30f, 1f, "Bowl");
+            Prop("SM_Sack_01", hut, new Vector3(-1.02f, 0f, -0.25f), 40f, 1f, "Sack");
+            Prop("SM_Sack_01", hut, new Vector3(-1.02f, 0f, 0.22f), 110f, 0.9f, "Sack");
+            Wall(PEG_RAIL, hut, new Vector3(-1.28f, 1.74f, 0.3f), -1f, "PegRail");
+            Wall(RAG, hut, new Vector3(-1.2f, 1.76f, 0.06f), -1f, "Rag");
+            Wall(RAG, hut, new Vector3(-1.2f, 1.76f, 0.54f), -1f, "Rag");
+            Transform stick = Prop("SM_Stick_05", hut, new Vector3(0.28f, 0.72f, -1.16f), 0f, 0.75f, "WalkingStick");
+            stick.localRotation = Quaternion.Euler(-6f, 0f, 4f);
+        }
+
+        // Pim and Gerrit (doorway on +X, Gerrit's bed on the −X wall, Pim's on the +X wall): the crate table between
+        // the bed heads, Gerrit's flail on his wall, Pim's sack on his bed, a sack by their box, Pim's spade outside.
+        private static void DressPimGerritHut(Transform hut, DayNightConfigSO dayNight)
+        {
+            Straw(hut, new Vector3(0f, 0.1f, -0.2f), -30f, new Vector3(0.15f, 0.09f, 0.55f), 60f);
+            Vector3 top = CrateTable(hut, new Vector3(0f, 0f, -1.02f), 2f, 0.75f);
+            Candle(hut, top + new Vector3(0.1f, 0f, -0.06f), dayNight);
+            Prop("SM_Bowl_01", hut, top + new Vector3(-0.1f, 0f, 0.06f), 30f, 1f, "Bowl");
+            Prop("SM_Sack_01", hut, new Vector3(-1.05f, 0f, 1.0f), 30f, 0.9f, "Sack");
+            Prop("SM_Sack_01", hut, new Vector3(0.89f, BED_TOP, 0.4f), 20f, 0.75f, "Sack");
+            Wall(FLAIL, hut, new Vector3(-1.28f, 1.55f, -0.25f), -1f, "Flail");
+            Transform spade = Model(SPADE, hut, new Vector3(1.32f, 0f, 1.68f), -8f, "Spade");
+            if (spade != null)
+            {
+                spade.localRotation = Quaternion.Euler(-15f, -8f, 0f);
+                spade.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+            }
+        }
+
+        // Bren (mirrored doorway, bed on the +X wall): Odo's blanket rolled at the bed's foot, the stone he shapes with
+        // its chisel and mallet, the tally board on the wall, crate table, two sacks.
+        private static void DressBrenHut(Transform hut, DayNightConfigSO dayNight)
+        {
+            Straw(hut, new Vector3(-0.2f, 0.1f, -0.1f), -20f, new Vector3(-0.5f, 0.09f, 0.55f), 70f);
+            Vector3 top = CrateTable(hut, new Vector3(-0.78f, 0f, -0.98f), -5f, 0.85f);
+            Candle(hut, top + new Vector3(0.12f, 0f, -0.1f), dayNight);
+            Prop("SM_Bowl_01", hut, top + new Vector3(-0.1f, 0f, 0.08f), 30f, 1f, "Bowl");
+            Transform block = Model(STONE_BLOCK, hut, new Vector3(-0.92f, 0f, -0.25f), 12f, "StoneBlock");
+            if (block != null) block.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+            Transform mallet = Prop("SM_Hammer", hut, new Vector3(-0.98f, 0.34f, -0.18f), 60f, 1f, "Mallet");
+            mallet.localRotation = Quaternion.Euler(0f, 60f, 0f);
+            Prop("SM_Sack_01", hut, new Vector3(-1.02f, 0f, 0.32f), 40f, 1f, "Sack");
+            Prop("SM_Sack_01", hut, new Vector3(-1.02f, 0f, 0.74f), 110f, 0.9f, "Sack");
+            Wall(TALLY, hut, new Vector3(-1.27f, 1.62f, -0.55f), -1f, "TallyBoard");
+            Transform roll = Model(ROLLED_BLANKET, hut, new Vector3(0.89f, BED_TOP, 0.48f), 0f, "OdosBlanket");
+            if (roll != null) roll.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+        }
+
+        // Top of a Bed_WorkerPallet's mattress above the floor (the bed's own model).
+        private const float BED_TOP = 0.43f;
+
+        /// <summary>Two straw patches on the floor (Camp density rule).</summary>
+        private static void Straw(Transform hut, Vector3 a, float yawA, Vector3 b, float yawB)
+        {
+            Prop("SM_Hay_02a", hut, a, yawA, 0.4f, "FloorStraw");
+            Prop("SM_Hay_02a", hut, b, yawB, 0.34f, "FloorStraw");
+        }
+
+        /// <summary>
+        /// A light kit crate used as a table, centred on <paramref name="centre"/> (its pivot is at a corner). Returns
+        /// the middle of its top face, in the parent's frame.
+        /// </summary>
+        private static Vector3 CrateTable(Transform parent, Vector3 centre, float yaw, float scale, string name = "CrateTable")
+        {
+            Transform crate = Prop(CRATE, parent, centre, yaw, scale, name, solid: true);
+            Bounds b = Centre(crate, parent, centre);
+            return new Vector3(centre.x, parent.InverseTransformPoint(b.max).y, centre.z);
+        }
+
+        /// <summary>Moves a prop so its rendered middle stands over <paramref name="local"/> and its foot at local.y.</summary>
+        private static Bounds Centre(Transform prop, Transform parent, Vector3 local)
+        {
+            Renderer[] renderers = prop.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return new Bounds(prop.position, Vector3.zero);
+            Bounds b = renderers[0].bounds;
+            foreach (Renderer r in renderers) b.Encapsulate(r.bounds);
+            Vector3 middle = parent.InverseTransformPoint(new Vector3(b.center.x, b.min.y, b.center.z));
+            prop.localPosition += local - middle;
+            b.center += parent.TransformVector(local - middle);
+            return b;
+        }
+
+        /// <summary>A candle on a table top that lights at night (the player's hut's candle, smaller room).</summary>
+        private static void Candle(Transform hut, Vector3 at, DayNightConfigSO dayNight)
+        {
+            Prop("SM_Candle_01a", hut, at, 0f, 0.8f, "Candle");
+            Transform flame = Prop("PS_CandleFlame", hut, at + new Vector3(0f, 0.18f, 0f), 0f, 0.8f, "CandleFlame");
+            foreach (Renderer renderer in flame.GetComponentsInChildren<Renderer>()) renderer.enabled = false;
+            NightLight(flame, "CandleLight", new Vector3(0f, 0.12f, 0.12f), CANDLE_INTENSITY, CANDLE_RANGE, LightShadows.None,
+                dayNight, flame.GetComponentsInChildren<Renderer>(), null, Color.white);
+        }
+
+        /// <summary>A belonging hung on a side wall: its +Z (away from the wall) turned to face into the room.</summary>
+        private static void Wall(string model, Transform hut, Vector3 at, float side, string name)
+        {
+            Transform piece = Model(model, hut, at, side > 0 ? -90f : 90f, name);
+            if (piece != null) piece.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+            else GameLog.Warn(TAG, $"Missing {model}");
+        }
+
+        /// <summary>Boards over the mud in front of each owned doorway. Walk-through.</summary>
+        private static Transform DressDoorBoards(Transform group, System.Collections.Generic.Dictionary<string, Transform> huts)
+        {
+            Transform boards = new GameObject("DoorBoards").transform;
+            boards.SetParent(group, false);
+            boards.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            foreach (HomeYardHomes.Home owned in HomeYardHomes.All)
+            {
+                Transform hut = huts[owned.Key];
+                Vector3 at = hut.TransformPoint(new Vector3((owned.DoorMinX + owned.DoorMaxX) * 0.5f, 0f, 2.05f));
+                at.y = 0.03f; // the group stands at y 0: SettleOnTerrain adds the ground under each panel
+                Transform panel = Model(BOARDS, boards, at, hut.eulerAngles.y + 4f, "Boards_" + owned.Key);
+                if (panel != null) panel.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+            }
+            return boards;
+        }
+
+        // ------------------------------------------------------------ yard corners (Y1, Y3, Y7)
+
+        // Pim's and Gerrit's hut frame: the repair trunk against the front wall left of the doorway (−X half), the
+        // sawhorse a step out from it with a plank and a saw on it. The sawhorse runs along the wall: further out it
+        // comes within 0.7 m of the escort's east lane.
+        private static Transform DressWorkCorner(Transform corner)
+        {
+            Transform trunk = Prop("SM_WoodChest_01a", corner, Vector3.zero, 90f, 1f, "Trunk", solid: true);
+            Centre(trunk, corner, new Vector3(-0.62f, 0f, 1.86f));
+            Transform trestle = Prop("SM_WoodTrestles_01a", corner, Vector3.zero, 90f, 1f, "Sawhorse", solid: true);
+            Bounds b = Centre(trestle, corner, new Vector3(-0.8f, 0f, 2.5f));
+            float top = corner.InverseTransformPoint(b.max).y;
+            Transform plank = Model(PLANK, corner, Vector3.zero, 3f, "Plank");
+            if (plank != null) Centre(plank, corner, new Vector3(-0.8f, top, 2.5f));
+            Transform saw = Prop("SM_Saw", corner, Vector3.zero, 75f, 1f, "Saw");
+            Centre(saw, corner, new Vector3(-0.75f, top + 0.03f, 2.48f));
+            return corner;
+        }
+
+        // East pocket: split firewood stacked under a loose plank lid, the chopping block with its axe in front.
+        private static Transform DressWoodCorner(Transform corner)
+        {
+            Transform stack = Prop("SM_firewoodSetA_a1", corner, Vector3.zero, 0f, 0.62f, "Firewood", solid: true);
+            Bounds b = Centre(stack, corner, new Vector3(0.35f, 0f, -0.1f));
+            float top = corner.InverseTransformPoint(b.max).y;
+            foreach (float x in new[] { 0.22f, 0.5f })
+            {
+                Transform lid = Model(PLANK, corner, Vector3.zero, 90f + x * 10f, "Lid");
+                if (lid == null) continue;
+                lid.localScale = new Vector3(1.4f, 1f, 1f); // 1.7 m: the stack's length
+                Centre(lid, corner, new Vector3(x, top, -0.1f));
+            }
+            Transform block = Prop("SM_Outskirts_CuttedWoodTrunk", corner, Vector3.zero, 0f, 0.55f, "ChoppingBlock", solid: true);
+            Bounds bb = Centre(block, corner, new Vector3(-0.7f, 0f, 1.05f));
+            Transform axe = Prop("SM_Axe_01", corner, new Vector3(-0.68f, corner.InverseTransformPoint(bb.max).y - 0.05f, 1.1f), 0f, 1.2f, "Axe");
+            axe.localRotation = Quaternion.Euler(-150f, 30f, 0f);
+            return corner;
+        }
+
+        // West pocket, between the two hut fronts: a crate with cards and a mug, three stools, and the yard's lantern
+        // hung from a crossbar on a post (Y7). The lantern lights the evening corner at night.
+        private static Transform DressCards(Transform cards, DayNightConfigSO dayNight)
+        {
+            Vector3 top = CrateTable(cards, Vector3.zero, 0f, 0.85f, "CardCrate");
             GameObject deck = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Object.DestroyImmediate(deck.GetComponent<Collider>());
             deck.name = "Cards";
             deck.transform.SetParent(cards, false);
-            deck.transform.localPosition = new Vector3(0.05f, 0.71f, -0.02f);
+            deck.transform.localPosition = top + new Vector3(0.05f, 0.006f, -0.02f);
             deck.transform.localRotation = Quaternion.Euler(0f, 25f, 0f);
             deck.transform.localScale = new Vector3(0.09f, 0.012f, 0.13f);
             deck.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(MATERIALS + CARDS_MATERIAL);
-            Prop("SM_Log_Wide_B", cards, new Vector3(-0.42f, 0f, 0.95f), 90f, 0.6f, "LogSeat", solid: true);
-            Prop("SM_Log_Wide_B", cards, new Vector3(-0.6f, 0f, -0.95f), 90f, 0.6f, "LogSeat", solid: true);
-            Prop("SM_Log_Wide_B", cards, new Vector3(-0.95f, 0f, -0.4f), 0f, 0.6f, "LogSeat", solid: true);
-            Prop("SM_Mug", cards, new Vector3(-0.2f, 0.71f, 0.2f), 0f, 1f, "Mug");
+            Prop("SM_Mug", cards, top + new Vector3(-0.15f, 0f, 0.15f), 0f, 1f, "Mug");
+            foreach ((Vector3 at, float yaw) in new[] { (new Vector3(-0.7f, 0f, -0.15f), 10f), (new Vector3(0.15f, 0f, -0.7f), 40f), (new Vector3(0.7f, 0f, 0.15f), -20f) })
+                Prop("SM_WoodStool_01a", cards, at, yaw, 1f, "Stool", solid: true);
+
+            Vector3 post = new Vector3(-0.95f, 0f, 0.62f);
+            const float HEIGHT = 1.95f;
+            Pole(cards, post, HEIGHT, "LanternPost");
+            // A short crossbar from the post's top toward the crate; the lantern hangs from its end.
+            Vector3 barEnd = post + new Vector3(0.42f, HEIGHT - 0.12f, -0.18f);
+            Transform bar = Model(WorkerHutKitBuilder.ROOF_POLE, cards, (post + Vector3.up * (HEIGHT - 0.12f) + barEnd) * 0.5f, 0f, "Crossbar");
+            if (bar != null)
+            {
+                Vector3 along = barEnd - (post + Vector3.up * (HEIGHT - 0.12f));
+                bar.localRotation = Quaternion.FromToRotation(Vector3.right, along.normalized);
+                bar.localScale = new Vector3((along.magnitude + 0.1f) / 3.7f, 0.6f, 0.6f);
+                bar.gameObject.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
+            }
+            Transform lantern = Prop("SM_Lantern_Hanging", cards, barEnd + Vector3.down * 0.29f, 0f, 1f, "Lantern");
+            NightLight(lantern, "LanternLight", Vector3.zero, LANTERN_INTENSITY, LANTERN_RANGE, LightShadows.None, dayNight,
+                null, null, Color.white);
             return cards;
         }
 
-        // Outside the player's door: boards over the mud, a bucket, a few sacks against the wall.
+        // By the doors' pocket, against hut-02's front beside its doorway: a water barrel, a wash basin on a low bench, a
+        // bucket. The old doorstep bucket and sacks moved here.
+        private static Transform DressWater(Transform water)
+        {
+            Prop("SM_Barrel_01", water, Vector3.zero, 0f, 1f, "WaterBarrel", solid: true);
+            Transform bench = Prop("SM_Bench", water, Vector3.zero, 70f, 1f, "WashBench", solid: true);
+            bench.localScale = new Vector3(0.6f, 0.9f, 0.42f);
+            FitCollider(bench);
+            Bounds b = Centre(bench, water, new Vector3(0.75f, 0f, -0.3f));
+            Transform basin = Prop("SM_Bowl_01", water, Vector3.zero, 0f, 2.4f, "WashBasin");
+            Centre(basin, water, new Vector3(0.75f, water.InverseTransformPoint(b.max).y, -0.3f));
+            Prop("SM_bucketA_a1", water, new Vector3(0.5f, 0f, 0.35f), 0f, 0.42f, "Bucket");
+            return water;
+        }
+
+        /// <summary>
+        /// Replaces a kit prop's own colliders with one box round its first mesh: the kit's collider sits on a child
+        /// that does not follow a squashed (non-uniform) scale, so it no longer matches the shape.
+        /// </summary>
+        private static void FitCollider(Transform prop)
+        {
+            MeshFilter filter = prop.GetComponentInChildren<MeshFilter>();
+            if (filter == null || filter.sharedMesh == null) return;
+            foreach (Collider old in prop.GetComponentsInChildren<Collider>(true)) old.enabled = false;
+            Bounds mesh = filter.sharedMesh.bounds;
+            Vector3 centre = prop.InverseTransformPoint(filter.transform.TransformPoint(mesh.center));
+            Vector3 size = Vector3.Scale(mesh.size, filter.transform.lossyScale);
+            size = new Vector3(size.x / prop.lossyScale.x, size.y / prop.lossyScale.y, size.z / prop.lossyScale.z);
+            var box = prop.gameObject.AddComponent<BoxCollider>();
+            box.center = centre;
+            box.size = size;
+        }
+
+        // Outside the player's door: boards over the mud.
         private static Transform DressYard(Transform hut)
         {
             Transform boards = Prop("SM_AssembledPlanksB_a1", hut, new Vector3(0.55f, 0.03f, 2.45f), 8f, 1f, "DoorBoards");
             boards.localScale = new Vector3(0.62f, 0.35f, 0.62f); // thinner than it is wide: boards, not a platform
-            Prop("SM_bucketA_a1", hut, new Vector3(-0.55f, 0f, 1.95f), 0f, 0.55f, "Bucket", solid: true);
-            Prop("SM_burlapSackSetA_a1", hut, new Vector3(-1.05f, 0f, 2.1f), 40f, 0.7f, "Sacks", solid: true);
             return hut;
         }
 
@@ -708,8 +968,14 @@ namespace Game.Editor.World
         /// Warns for every solid collider in the dressing that comes within <see cref="LANE_CLEARANCE"/> of the arrival
         /// escort's lanes (left and right chains, each ending at the tent mate's and the watch spot).
         /// </summary>
-        private static void CheckLanes(Transform group)
+        private static void CheckLanes(Transform group, Transform zone)
         {
+            // A prop inside a hut's room stands behind that hut's wall: the wall is what the escort passes, not the prop
+            // (worker-hut-03's walls already stand 0.34–0.55 m from the east lane since the rollout).
+            var rooms = new System.Collections.Generic.List<(Transform hut, float halfLength)>();
+            foreach (Transform hut in zone)
+                if (WorkerHutKitBuilder.TryGetVariant(hut.gameObject, out WorkerHutKitBuilder.Variant shell))
+                    rooms.Add((hut, shell.HalfLength - (WorkerHutKitBuilder.HALF_WIDTH - HomeYardHomes.ROOM_HALF)));
             GameObject lanes = GameObject.Find(LANES);
             if (lanes == null)
             {
@@ -735,6 +1001,13 @@ namespace Game.Editor.World
             {
                 if (collider.isTrigger || !collider.enabled) continue;
                 Bounds b = collider.bounds;
+                bool indoors = false;
+                foreach ((Transform hut, float halfLength) in rooms)
+                {
+                    Vector3 local = hut.InverseTransformPoint(b.center);
+                    if (Mathf.Abs(local.x) < HomeYardHomes.ROOM_HALF && Mathf.Abs(local.z) < halfLength) { indoors = true; break; }
+                }
+                if (indoors) continue;
                 foreach (var chain in new[] { leftChain, rightChain })
                     for (int i = 0; i + 1 < chain.Count; i++)
                     {
