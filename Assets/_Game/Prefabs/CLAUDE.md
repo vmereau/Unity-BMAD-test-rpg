@@ -23,6 +23,7 @@
 | `World/Huts/` | Art-pass worker hut prefabs built round the board-built Blender shell (generated; own `CLAUDE.md`) |
 | `World/Warehouse/` | The Area 1 warehouse: generated prefab round a script-built Blender model (own `CLAUDE.md`) |
 | `World/Cookhouse/` | The Area 1 canteen: generated prefab round a script-built Blender model, and its place command (own `CLAUDE.md`) |
+| `World/DockGate/` | The Area 1 dock gate: generated prefab round a script-built Blender model (own `CLAUDE.md`) |
 | `World/Water_Volume` | Lakes, rivers: swimmable water — contract below |
 | `World/Containers/` | `Base_Container` |
 | `World/Doors/` | `Door Base`, `Simple door`, `Poor small door` |

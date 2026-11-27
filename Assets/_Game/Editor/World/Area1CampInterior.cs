@@ -67,10 +67,13 @@ namespace Game.Editor.World
             ("SM_Sack_01", -0.7f, 1.2f, 0f, 70f, 1f, false),
             ("SM_Sack_01", -0.65f, 0.55f, 0f, 200f, 1f, false),
             ("SM_Sack_02", -0.7f, 0.85f, 0.3f, 120f, 1f, false),
-            // crates along the east wall
-            ("SM_Crate_B_01", 4.48f, 3.05f, 0f, 4f, 1.1f, true),
-            ("SM_Crate_B_01", 4.5f, 3.08f, 0.66f, 19f, 0.85f, false),
+            // crates along the east wall, north of the passage to the side room (z 2.3..3.35 stays clear)
             ("SM_Crate_B_01", 4.5f, 4.75f, 0f, -8f, 1f, true),
+            // the side room (x 6.25..8.2, z 0.95..4.4): crates in its south-east corner, casks at the back
+            ("SM_Crate_B_01", 8.1f, 1.05f, 0f, 4f, 1.1f, true),
+            ("SM_Crate_B_01", 8.08f, 1.08f, 0.66f, 19f, 0.85f, false),
+            ("SM_WoodBarrel_01a", 7.75f, 3.95f, 0f, 70f, 1f, true),
+            ("SM_WoodBarrel_01a", 7.0f, 4f, 0f, 190f, 1f, true),
             // sacks by the west pillar, and two casks inside the door (west of its opening)
             ("SM_Sack_01", -0.65f, 4.75f, 0f, 30f, 1f, false),
             ("SM_Sack_01", -0.2f, 5.05f, 0f, 150f, 1f, false),
@@ -159,6 +162,8 @@ namespace Game.Editor.World
                 else GameLog.Warn(TAG, "The warehouse's parts file has no 'hoistDrop': no goods placed under the hoist.");
                 if (WarehouseBuilder.TryGetCellar(out WarehouseBuilder.CellarFacts cellar)) BuildCellarGoods(cellar.FloorY, root);
                 else GameLog.Warn(TAG, "The warehouse's parts file has no usable 'cellar': no stores placed in the cellar.");
+                if (WarehouseBuilder.TryGetQuay(out WarehouseBuilder.QuayFacts quay)) BuildQuayGoods(quay, root);
+                else GameLog.Warn(TAG, "The warehouse's parts file has no usable 'quay': no goods placed on the quay.");
                 return;
             }
             GameLog.Error(TAG, $"{WarehouseBuilder.PREFAB_PATH} not found: built the graybox warehouse instead. Run Tools/World/Build Warehouse Prefab, then Sites again.");
@@ -261,6 +266,31 @@ namespace Game.Editor.World
                     foreach (Collider collider in prop.GetComponentsInChildren<Collider>(true)) collider.enabled = true;
                 else
                     prop.gameObject.AddComponent<Unity.AI.Navigation.NavMeshModifier>().ignoreFromBuild = true;
+            }
+        }
+
+        /// <summary>
+        /// Crates, casks and sacks on the quay and in the barge. The model's script owns where each stands
+        /// (<c>quay.goods</c> in the parts file, in the prefab's frame): this only maps a kit piece to it.
+        /// </summary>
+        private static void BuildQuayGoods(WarehouseBuilder.QuayFacts quay, Transform root)
+        {
+            var goods = new GameObject("QuayGoods").transform;
+            goods.SetParent(root, false);
+            foreach ((string kit, Vector3 position, Vector3 euler, float scale, bool solid) in quay.Goods)
+            {
+                Transform prop = WorkerHutKitBuilder.Piece(kit, goods, Vector3.zero);
+                prop.SetPositionAndRotation(root.TransformPoint(position), root.rotation * Quaternion.Euler(euler));
+                prop.localScale = Vector3.one * scale;
+                if (prop.name.StartsWith(MISSING_PREFIX))
+                {
+                    GameLog.Error(TAG, $"Quay goods: kit piece '{kit}' not found; an empty '{prop.name}' stands in for it.");
+                    continue;
+                }
+                if (solid)
+                    foreach (Collider collider in prop.GetComponentsInChildren<Collider>(true)) collider.enabled = true;
+                // dressing stays out of the bake: the deck's NavMesh is cut by the volumes the model gives, not by props
+                prop.gameObject.AddComponent<Unity.AI.Navigation.NavMeshModifier>().ignoreFromBuild = true;
             }
         }
 

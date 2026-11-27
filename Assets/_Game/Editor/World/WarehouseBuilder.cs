@@ -21,6 +21,10 @@ namespace Game.Editor.World
     /// The cellar under the landing and the hall is part of the model; its door is the game's door prefab, placed here. The room
     /// exists because the terrain has a hole over it: <see cref="PlaceCellar"/> cuts it in the scene and
     /// <see cref="CutCellarHole"/> keeps it through a terrain run.
+    /// The quay (deck, barge, tally room, retaining wall, the cellar's side room) is part of the same model
+    /// (<c>Art/Environment/Camp/QUAY_CONCEPTS.md</c>): the tally room's door is placed here like the cellar's, the
+    /// side room has a second terrain hole, and <see cref="PlaceCellar"/> also rebuilds the restricted boxes of the
+    /// tally room (under <c>RA_Warehouse</c>) and of the quay (under <c>RA_Docks</c>).
     /// </summary>
     public static class WarehouseBuilder
     {
@@ -40,6 +44,11 @@ namespace Game.Editor.World
         private const string AREAS = "RestrictedAreas";
         internal const string CELLAR_AREA = "RA_WarehouseCellar";
         private const string HALL_AREA = "RA_Warehouse";
+        private const string DOCKS_AREA = "RA_Docks";
+        internal const string TALLY_BOX = "TallyRoom";   // child box of RA_Warehouse
+        internal const string QUAY_BOX = "Quay";         // child box of RA_Docks
+        private const string TALLY_DOOR = "TallyDoor";
+        private const string TALLY_DOOR_SAVE_ID = "area1-warehouse-tally-door";
         private const string GUARD = "Assets/_Game/Data/NPCs/WarehouseGuard/NPC_WarehouseGuard.asset";
         private const float FIT_TOLERANCE = 0.05f;
         private const string MATERIAL_PREFIX = "M_Camp_";
@@ -48,13 +57,14 @@ namespace Game.Editor.World
         private const string COLLIDERS = "Colliders";
         private const string MODEL = "Model";
         private const string NAVMESH = "NavMesh";
-        private static readonly string[] NotWalkableParts = { "Roof", "Hoist" };
+        private static readonly string[] NotWalkableParts = { "Roof", "Hoist", "TallyRoof", "TallyFurniture", "Barge" };
         private static readonly string[] PartLists = { "objects", "walk", "colliders", "notWalkable", "lanterns" };
         // Packed under the floor boards: marked Not Walkable it would cut the floor above it out of the NavMesh.
         private const string RUBBLE = "Rubble";
 
-        // Ground capture: a grid in the prefab's frame, wide enough for both ramps' feet and the landing's posts.
-        private const float GRID_MIN_X = -14f, GRID_MAX_X = 11f, GRID_MIN_Z = -19f, GRID_MAX_Z = 10f;
+        // Ground capture: a grid in the prefab's frame, wide enough for both ramps' feet, the landing's posts and
+        // the riverbed under the quay's piles and the barge.
+        private const float GRID_MIN_X = -14f, GRID_MAX_X = 11f, GRID_MIN_Z = -19f, GRID_MAX_Z = 17.5f;
         private const float GRID_STEP = 0.25f;
         private const float RAY_TOP = 30f;
         private const string ROCK_PREFIX = "SM_Rock";
@@ -106,6 +116,126 @@ namespace Game.Editor.World
             public Vector3 DoorPosition;
             public float DoorYaw, DoorScaleY, DoorOpenAngle;
             public Vector3 AreaCentre, AreaSize;
+            /// <summary>The side room's hole rectangle (x, z); zero size when the parts file has no side room.</summary>
+            public Rect SideHole;
+            /// <summary>More boxes of the restricted area (the side room, its passage): name, centre, size.</summary>
+            public List<(string name, Vector3 centre, Vector3 size)> MoreAreas;
+
+            /// <summary>Every hole rectangle of the cellar (x, z).</summary>
+            public IEnumerable<Rect> Holes()
+            {
+                yield return Hole;
+                if (SideHole.width > 0f && SideHole.height > 0f) yield return SideHole;
+            }
+        }
+
+        /// <summary>A door of the game's door prefab, as the parts file places it in the prefab's frame.</summary>
+        public struct DoorFacts
+        {
+            public Vector3 Position;
+            public float Yaw, ScaleY, OpenAngle;
+        }
+
+        /// <summary>What the parts file says about the tally room and the quay, in the prefab's frame.</summary>
+        public struct QuayFacts
+        {
+            public DoorFacts TallyDoor;
+            public Vector3 TallyAreaCentre, TallyAreaSize;
+            public Vector3 QuayAreaCentre, QuayAreaSize;
+            public float DeckY;
+            /// <summary>The deck (x, z).</summary>
+            public Rect Deck;
+            /// <summary>Kit piece, position, euler, scale, solid.</summary>
+            public List<(string kit, Vector3 position, Vector3 euler, float scale, bool solid)> Goods;
+        }
+
+        /// <summary>The tally room and the quay as the parts file on disk describes them. False when missing or malformed.</summary>
+        internal static bool TryGetQuay(out QuayFacts quay) => TryReadQuay(ReadParts(), out quay, out _);
+
+        /// <summary>Reads <c>tally</c> and <c>quay</c> from a parts file. False, with what is wrong, when a field is missing or malformed.</summary>
+        public static bool TryReadQuay(JObject parts, out QuayFacts quay, out string problem)
+        {
+            quay = default;
+            if (parts == null || !(parts["tally"] is JObject tally) || !(parts["quay"] is JObject data))
+            {
+                problem = "no 'tally' or no 'quay' object";
+                return false;
+            }
+            if (!TryReadDoor(tally["door"], out DoorFacts door))
+            {
+                problem = "'tally.door' needs position [x, y, z], yaw, scaleY (above 0) and openAngle";
+                return false;
+            }
+            if (!TryReadBox(tally["restricted"], out Vector3 tallyCentre, out Vector3 tallySize))
+            {
+                problem = "'tally.restricted' needs centre [x, y, z] and size [x, y, z] above 0";
+                return false;
+            }
+            if (!TryReadBox(data["restricted"], out Vector3 quayCentre, out Vector3 quaySize))
+            {
+                problem = "'quay.restricted' needs centre [x, y, z] and size [x, y, z] above 0";
+                return false;
+            }
+            if (!IsNumber(data["deckY"]) || !TryFloats(data["deck"], 4, out float[] deck) || deck[2] <= deck[0] || deck[3] <= deck[1])
+            {
+                problem = "'quay' needs deckY and deck [min x, min z, max x, max z]";
+                return false;
+            }
+            var goods = new List<(string, Vector3, Vector3, float, bool)>();
+            if (!(data["goods"] is JArray list))
+            {
+                problem = "'quay.goods' must be a list";
+                return false;
+            }
+            foreach (JToken token in list)
+            {
+                if (!(token is JObject item) || item["kit"] == null || item["kit"].Type != JTokenType.String
+                    || !TryFloats(item["position"], 3, out float[] at) || !TryFloats(item["euler"], 3, out float[] euler)
+                    || !IsNumber(item["scale"]) || (float)item["scale"] <= 0f || item["solid"] == null || item["solid"].Type != JTokenType.Boolean)
+                {
+                    problem = "every 'quay.goods' entry needs kit, position [x, y, z], euler [x, y, z], scale (above 0) and solid";
+                    return false;
+                }
+                goods.Add(((string)item["kit"], new Vector3(at[0], at[1], at[2]), new Vector3(euler[0], euler[1], euler[2]), (float)item["scale"], (bool)item["solid"]));
+            }
+            quay = new QuayFacts
+            {
+                TallyDoor = door,
+                TallyAreaCentre = tallyCentre,
+                TallyAreaSize = tallySize,
+                QuayAreaCentre = quayCentre,
+                QuayAreaSize = quaySize,
+                DeckY = (float)data["deckY"],
+                Deck = Rect.MinMaxRect(deck[0], deck[1], deck[2], deck[3]),
+                Goods = goods,
+            };
+            problem = null;
+            return true;
+        }
+
+        private static bool TryReadDoor(JToken token, out DoorFacts door)
+        {
+            door = default;
+            if (!(token is JObject data) || !TryFloats(data["position"], 3, out float[] at) || !IsNumber(data["yaw"])
+                || !IsNumber(data["scaleY"]) || !IsNumber(data["openAngle"]) || (float)data["scaleY"] <= 0f) return false;
+            door = new DoorFacts
+            {
+                Position = new Vector3(at[0], at[1], at[2]),
+                Yaw = (float)data["yaw"],
+                ScaleY = (float)data["scaleY"],
+                OpenAngle = (float)data["openAngle"],
+            };
+            return true;
+        }
+
+        private static bool TryReadBox(JToken token, out Vector3 centre, out Vector3 size)
+        {
+            centre = size = Vector3.zero;
+            if (!(token is JObject data) || !TryFloats(data["centre"], 3, out float[] c) || !TryFloats(data["size"], 3, out float[] s)
+                || s[0] <= 0f || s[1] <= 0f || s[2] <= 0f) return false;
+            centre = new Vector3(c[0], c[1], c[2]);
+            size = new Vector3(s[0], s[1], s[2]);
+            return true;
         }
 
         /// <summary>The cellar as the parts file on disk describes it. False when it is missing or malformed.</summary>
@@ -147,8 +277,40 @@ namespace Game.Editor.World
                 problem = "'cellar.restricted' needs centre [x, y, z] and size [x, y, z] above 0";
                 return false;
             }
+            // the side room is optional: a parts file without it describes the cellar alone
+            Rect sideHole = default;
+            if (data["sideHole"] != null)
+            {
+                if (!TryFloats(data["sideHole"], 4, out float[] side) || side[2] <= side[0] || side[3] <= side[1])
+                {
+                    problem = "'cellar.sideHole' must be [min x, min z, max x, max z]";
+                    return false;
+                }
+                sideHole = Rect.MinMaxRect(side[0], side[1], side[2], side[3]);
+            }
+            var more = new List<(string, Vector3, Vector3)>();
+            if (data["restrictedMore"] != null)
+            {
+                if (!(data["restrictedMore"] is JArray boxes))
+                {
+                    problem = "'cellar.restrictedMore' must be a list";
+                    return false;
+                }
+                foreach (JToken token in boxes)
+                {
+                    if (!(token is JObject box) || box["name"] == null || box["name"].Type != JTokenType.String
+                        || !TryReadBox(box, out Vector3 boxCentre, out Vector3 boxSize))
+                    {
+                        problem = "every 'cellar.restrictedMore' entry needs name, centre [x, y, z] and size [x, y, z] above 0";
+                        return false;
+                    }
+                    more.Add(((string)box["name"], boxCentre, boxSize));
+                }
+            }
             cellar = new CellarFacts
             {
+                SideHole = sideHole,
+                MoreAreas = more,
                 Hole = Rect.MinMaxRect(hole[0], hole[1], hole[2], hole[3]),
                 Inside = Rect.MinMaxRect(inside[0], inside[1], inside[2], inside[3]),
                 FloorY = (float)data["floorY"],
@@ -192,17 +354,18 @@ namespace Game.Editor.World
             return new RectInt(x0, z0, Mathf.Max(0, x1 - x0), Mathf.Max(0, z1 - z0));
         }
 
-        /// <summary>The cellar's hole rectangle in the world (x, z), from the parts file alone. False, with an error, when it does not say.</summary>
-        private static bool TryGetCellarHoleWorld(out Rect world)
+        /// <summary>The cellar's hole rectangles in the world (x, z), from the parts file alone. False, with an error, when it does not say.</summary>
+        private static bool TryGetCellarHolesWorld(out List<Rect> world)
         {
-            world = default;
+            world = new List<Rect>();
             JObject parts = ReadParts();
             if (!TryReadCellar(parts, out CellarFacts cellar, out string problem) || !TryGetFit(out Vector3 fitted))
             {
                 GameLog.Error(TAG, $"{PARTS_PATH}: {problem ?? "no 'floorWorldY' / 'centre'"} (run build_warehouse.py); the warehouse cellar's terrain hole was not cut.");
                 return false;
             }
-            world = new Rect(fitted.x + cellar.Hole.xMin, fitted.z + cellar.Hole.yMin, cellar.Hole.width, cellar.Hole.height);
+            foreach (Rect hole in cellar.Holes())
+                world.Add(new Rect(fitted.x + hole.xMin, fitted.z + hole.yMin, hole.width, hole.height));
             return true;
         }
 
@@ -213,17 +376,23 @@ namespace Game.Editor.World
         /// </summary>
         public static bool CutCellarHole(bool[,] holes, Vector2 terrainMin, float size)
         {
-            if (holes == null || !TryGetCellarHoleWorld(out Rect world)) return false;
+            if (holes == null || !TryGetCellarHolesWorld(out List<Rect> world)) return false;
             int resolution = holes.GetLength(0);
-            RectInt cells = HoleCells(world, terrainMin, size, resolution);
-            if (cells.width == 0 || cells.height == 0)
+            var all = new List<RectInt>();
+            foreach (Rect rect in world)
             {
-                GameLog.Error(TAG, "The warehouse cellar's hole holds no terrain cell; nothing cut.");
-                return false;
+                RectInt cells = HoleCells(rect, terrainMin, size, resolution);
+                if (cells.width == 0 || cells.height == 0)
+                {
+                    GameLog.Error(TAG, "A hole of the warehouse cellar holds no terrain cell; nothing cut.");
+                    return false;
+                }
+                all.Add(cells);
             }
-            for (int z = cells.yMin; z < cells.yMax; z++)
-                for (int x = cells.xMin; x < cells.xMax; x++)
-                    holes[z, x] = false;
+            foreach (RectInt cells in all)
+                for (int z = cells.yMin; z < cells.yMax; z++)
+                    for (int x = cells.xMin; x < cells.xMax; x++)
+                        holes[z, x] = false;
             return true;
         }
 
@@ -231,8 +400,9 @@ namespace Game.Editor.World
         private static void PlaceCellarMenu() => PlaceCellar();
 
         /// <summary>
-        /// One-shot authoring for the cellar, with StartingTown open: cuts the terrain hole over the room and
-        /// rebuilds <c>RestrictedAreas/RA_WarehouseCellar</c> (the warehouse guard's, at all hours). Rerunnable.
+        /// One-shot authoring for the cellar, with StartingTown open: cuts the terrain holes over the room and its
+        /// side room and rebuilds <c>RestrictedAreas/RA_WarehouseCellar</c> (the warehouse guard's, at all hours),
+        /// the tally room's box under <c>RA_Warehouse</c> and the quay's box under <c>RA_Docks</c>. Rerunnable.
         /// It never saves and never bakes; a missing input stops it before anything changes.
         /// </summary>
         internal static bool PlaceCellar()
@@ -248,6 +418,11 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, $"{PARTS_PATH}: {problem ?? "no 'floorWorldY' / 'centre'"} (run build_warehouse.py); nothing changed.");
                 return false;
             }
+            if (!TryReadQuay(parts, out QuayFacts quay, out problem))
+            {
+                GameLog.Error(TAG, $"{PARTS_PATH}: {problem} (run build_warehouse.py); nothing changed.");
+                return false;
+            }
             GameObject root = GameObject.Find(SCENE_ROOT);
             GameObject areas = GameObject.Find(AREAS);
             Terrain terrain = Terrain.activeTerrain;
@@ -257,6 +432,12 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, $"Need StartingTown open with {SCENE_ROOT}, the root '{AREAS}' and a terrain, and {GUARD}; nothing changed.");
                 return false;
             }
+            Transform hallArea = areas.transform.Find(HALL_AREA), docksArea = areas.transform.Find(DOCKS_AREA);
+            if (hallArea == null || docksArea == null)
+            {
+                GameLog.Error(TAG, $"Need {AREAS}/{HALL_AREA} and {AREAS}/{DOCKS_AREA} (the tally room and the quay are added to them); nothing changed.");
+                return false;
+            }
             if ((root.transform.position - fitted).magnitude > FIT_TOLERANCE)
             {
                 GameLog.Error(TAG, $"{SCENE_ROOT} stands at {root.transform.position:F2} but the model was fitted at {fitted:F2}: capture the ground and rebuild first; nothing changed.");
@@ -264,19 +445,32 @@ namespace Game.Editor.World
             }
             TerrainData data = terrain.terrainData;
             Vector3 corner = terrain.transform.position;
-            var world = new Rect(fitted.x + cellar.Hole.xMin, fitted.z + cellar.Hole.yMin, cellar.Hole.width, cellar.Hole.height);
-            RectInt cells = HoleCells(world, new Vector2(corner.x, corner.z), data.size.x, data.holesResolution);
-            if (cells.width == 0 || cells.height == 0)
+            var all = new List<RectInt>();
+            foreach (Rect hole in cellar.Holes())
             {
-                GameLog.Error(TAG, "The cellar's hole holds no terrain cell; nothing changed.");
-                return false;
+                var world = new Rect(fitted.x + hole.xMin, fitted.z + hole.yMin, hole.width, hole.height);
+                RectInt cells = HoleCells(world, new Vector2(corner.x, corner.z), data.size.x, data.holesResolution);
+                if (cells.width == 0 || cells.height == 0)
+                {
+                    GameLog.Error(TAG, "A hole of the cellar holds no terrain cell; nothing changed.");
+                    return false;
+                }
+                all.Add(cells);
             }
 
-            data.SetHoles(cells.xMin, cells.yMin, new bool[cells.height, cells.width]); // all false: open
+            var cut = new StringBuilder();
+            foreach (RectInt cells in all)
+            {
+                data.SetHoles(cells.xMin, cells.yMin, new bool[cells.height, cells.width]); // all false: open
+                cut.Append($" x {cells.xMin}..{cells.xMax - 1}, z {cells.yMin}..{cells.yMax - 1};");
+            }
             EditorUtility.SetDirty(data);
             BuildCellarArea(areas.transform, fitted, cellar, guard);
+            // The tally room is the hall's (same owner and hours), the quay the docks': a child box takes its parent's rules.
+            AreaBox(hallArea, TALLY_BOX, fitted + quay.TallyAreaCentre, quay.TallyAreaSize);
+            AreaBox(docksArea, QUAY_BOX, fitted + quay.QuayAreaCentre, quay.QuayAreaSize);
             EditorSceneManager.MarkSceneDirty(root.scene);
-            GameLog.Info(TAG, $"Cellar placed: terrain hole over cells x {cells.xMin}..{cells.xMax - 1}, z {cells.yMin}..{cells.yMax - 1}, {AREAS}/{CELLAR_AREA} rebuilt. Rebake the NavMesh and save.");
+            GameLog.Info(TAG, $"Cellar placed: terrain holes over cells{cut} {AREAS}/{CELLAR_AREA}, {HALL_AREA}/{TALLY_BOX} and {DOCKS_AREA}/{QUAY_BOX} rebuilt. Rebake the NavMesh and save.");
             return true;
         }
 
@@ -302,6 +496,24 @@ namespace Game.Editor.World
             so.FindProperty("_useHours").boolValue = false;
             if (warnings >= 0) so.FindProperty("_warningsBeforeFight").intValue = warnings;
             so.ApplyModifiedPropertiesWithoutUndo();
+            if (cellar.MoreAreas != null)
+                foreach ((string name, Vector3 centre, Vector3 size) in cellar.MoreAreas)
+                    AreaBox(area.transform, name, origin + centre, size);
+        }
+
+        /// <summary>One more box of a restricted area: a child with a trigger <see cref="BoxCollider"/> (the area's shape is every box under it).</summary>
+        private static void AreaBox(Transform area, string name, Vector3 worldCentre, Vector3 size)
+        {
+            Transform old = area.Find(name);
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            var box = new GameObject(name) { layer = area.gameObject.layer };
+            box.transform.SetParent(area, false);
+            box.transform.position = worldCentre;
+            box.transform.rotation = Quaternion.identity;
+            Vector3 scale = area.lossyScale; // RA_Docks is a scaled box: the child's size is given in the world
+            var collider = box.AddComponent<BoxCollider>();
+            collider.isTrigger = true;
+            collider.size = new Vector3(size.x / Mathf.Max(1e-4f, Mathf.Abs(scale.x)), size.y / Mathf.Max(1e-4f, Mathf.Abs(scale.y)), size.z / Mathf.Max(1e-4f, Mathf.Abs(scale.z)));
         }
 
         [MenuItem("Tools/World/Capture Warehouse Ground")]
@@ -371,6 +583,22 @@ namespace Game.Editor.World
                 height = hit.point.y;
                 rock = isRock;
             }
+            // Over a terrain hole (the cellar's) no ray meets the ground: its heights are still there, and the
+            // model is fitted to them (Ground.raw in the script), so the capture reads them from the height map.
+            Terrain terrain = Terrain.activeTerrain;
+            if (terrain != null)
+            {
+                Vector3 corner = terrain.transform.position, size = terrain.terrainData.size;
+                if (from.x >= corner.x && from.x <= corner.x + size.x && from.z >= corner.z && from.z <= corner.z + size.z)
+                {
+                    float sampled = terrain.SampleHeight(from) + corner.y;
+                    if (sampled > height)
+                    {
+                        height = sampled;
+                        rock = false;
+                    }
+                }
+            }
             return !float.IsNegativeInfinity(height);
         }
 
@@ -408,6 +636,11 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, $"{PARTS_PATH}: {problem} (rerun build_warehouse.py); {PREFAB_PATH} left as it was.");
                 return null;
             }
+            if (!TryReadQuay(parts, out QuayFacts quay, out problem))
+            {
+                GameLog.Error(TAG, $"{PARTS_PATH}: {problem} (rerun build_warehouse.py); {PREFAB_PATH} left as it was.");
+                return null;
+            }
             foreach (string list in PartLists)
             {
                 if (parts[list] is JArray) continue;
@@ -420,7 +653,9 @@ namespace Game.Editor.World
             {
                 if (!BuildModel(root.transform, model, parts) || !BuildBoxes(root.transform, parts)) return null;
                 foreach (JToken point in parts["lanterns"]) BuildLantern(root.transform, (JObject)point, lantern, dayNight, glow);
-                BuildCellarDoor(root.transform, door, cellar);
+                BuildDoor(root.transform, door, CELLAR_DOOR, CELLAR_DOOR_SAVE_ID,
+                    new DoorFacts { Position = cellar.DoorPosition, Yaw = cellar.DoorYaw, ScaleY = cellar.DoorScaleY, OpenAngle = cellar.DoorOpenAngle });
+                BuildDoor(root.transform, door, TALLY_DOOR, TALLY_DOOR_SAVE_ID, quay.TallyDoor);
 
                 string folder = PREFAB_PATH.Substring(0, PREFAB_PATH.LastIndexOf('/'));
                 if (!AssetDatabase.IsValidFolder(folder))
@@ -540,20 +775,21 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// The cellar's dock door: the game's door prefab on the model's east jamb, unlocked, swinging into the room,
-        /// with a fixed save id. Left out of the bake, so the shut leaf does not cut the room off the NavMesh.
+        /// A door of the model (the cellar's dock door, the tally room's): the game's door prefab on the model's
+        /// jamb, unlocked, swinging into the room, with a fixed save id (a rebuild keeps the saved door state). Left
+        /// out of the bake, so the shut leaf does not cut the room off the NavMesh.
         /// </summary>
-        private static void BuildCellarDoor(Transform root, GameObject prefab, CellarFacts cellar)
+        private static void BuildDoor(Transform root, GameObject prefab, string name, string saveId, DoorFacts facts)
         {
             var door = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root);
-            door.name = CELLAR_DOOR;
-            door.transform.localPosition = cellar.DoorPosition;
-            door.transform.localRotation = Quaternion.Euler(0f, cellar.DoorYaw, 0f);
-            door.transform.localScale = new Vector3(1f, cellar.DoorScaleY, 1f);
+            door.name = name;
+            door.transform.localPosition = facts.Position;
+            door.transform.localRotation = Quaternion.Euler(0f, facts.Yaw, 0f);
+            door.transform.localScale = new Vector3(1f, facts.ScaleY, 1f);
             door.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
 
             var doorSo = new SerializedObject(door.GetComponent<DoorInteractable>());
-            doorSo.FindProperty("_openAngle").floatValue = cellar.DoorOpenAngle;
+            doorSo.FindProperty("_openAngle").floatValue = facts.OpenAngle;
             doorSo.ApplyModifiedPropertiesWithoutUndo();
 
             var lockSo = new SerializedObject(door.GetComponent<Lockable>());
@@ -563,7 +799,7 @@ namespace Game.Editor.World
             var saveable = door.GetComponent<SaveableObject>();
             if (saveable == null) saveable = door.AddComponent<SaveableObject>(); // the prefab has none; scene doors add it
             var saveSo = new SerializedObject(saveable);
-            saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = CELLAR_DOOR_SAVE_ID;
+            saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = saveId;
             saveSo.ApplyModifiedPropertiesWithoutUndo();
         }
 

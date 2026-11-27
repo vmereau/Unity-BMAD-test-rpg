@@ -24,7 +24,7 @@ namespace Tests.EditMode
         private const float HALF_DEPTH = 4f;
         // Far from anything a loaded scene holds, so only the prefab's own colliders answer the overlap tests.
         private static readonly Vector3 Away = new Vector3(0f, 5000f, 0f);
-        private static readonly string[] Walks = { "Floor", "Landing", "Ramp_River", RAMP_CAMP, "Cellar" };
+        private static readonly string[] Walks = { "Floor", "Landing", "Ramp_River", RAMP_CAMP, "Cellar", "CellarSide", "CellarPassage", "Tally", "Quay" };
         private const string PARTS = "Assets/_Game/Art/Environment/Camp/models/warehouse/Warehouse.json";
         private const float PLAYER_RADIUS = 0.3f;
 
@@ -120,10 +120,11 @@ namespace Tests.EditMode
         {
             // A box under each wall and one on the palisade line, from below the ground up to the floor. The river
             // wall's box and the palisade line's are each in two pieces: the cellar lies between them, closed by its
-            // own walls.
+            // own walls. The east wall's is in three: the passage to the cellar's side room goes under it, and the
+            // side room is closed by its own walls and the retaining wall.
             Transform rubble = _instance.transform.Find("Colliders/Rubble");
             Assert.IsNotNull(rubble);
-            Assert.AreEqual(7, rubble.childCount);
+            Assert.AreEqual(9, rubble.childCount);
             Transform west = rubble.Find("Skirt"), east = rubble.Find("Skirt_Line_East");
             Assert.IsNotNull(west, "the palisade line under the floor stays closed");
             Assert.IsNotNull(east, "the palisade line under the floor stays closed");
@@ -140,6 +141,7 @@ namespace Tests.EditMode
                 var collider = box.GetComponent<BoxCollider>();
                 Assert.IsNotNull(collider, box.name);
                 Assert.AreEqual(0f, box.localPosition.y + collider.size.y * 0.5f, 0.01f, $"{box.name} must reach the floor");
+                if (box.name == "Skirt_East_Header") continue; // over the passage: it comes down to the passage's head
                 Assert.Greater(collider.size.y, 4f, $"{box.name} must reach below the lowest ground");
             }
         }
@@ -290,7 +292,8 @@ namespace Tests.EditMode
             float y = cellar.FloorY + 0.5f;
             var probes = new[]
             {
-                new Vector3(cellar.Hole.xMin, y, cellar.Inside.center.y), new Vector3(cellar.Hole.xMax, y, cellar.Inside.center.y),
+                // (the east probe stands south of the passage to the side room, whose own hole carries on there)
+                new Vector3(cellar.Hole.xMin, y, cellar.Inside.center.y), new Vector3(cellar.Hole.xMax, y, cellar.Inside.center.y - 1f),
                 new Vector3(cellar.Hole.xMin, y, cellar.Inside.yMax - 0.3f), new Vector3(cellar.Hole.xMax, y, cellar.Inside.yMax - 0.3f),
                 new Vector3(cellar.Inside.center.x, y, cellar.Hole.yMin + 0.3f),
             };
@@ -338,11 +341,214 @@ namespace Tests.EditMode
             int open = 0;
             foreach (bool solid in holes)
                 if (!solid) open++;
-            Assert.That(open, Is.InRange(49, 70), "about 7 x 9 cells of 0.98 m");
+            Assert.That(open, Is.InRange(61, 82), "about 7 x 9 cells of 0.98 m, and 3 x 4 for the side room");
+            Assert.IsFalse(holes[567, 534], "the middle of the side room");
+            Assert.IsTrue(holes[567, 536], "the dock spur's logs, east of the side room");
+            Assert.IsTrue(holes[565, 534], "the palisade's line, south of the side room");
+            Assert.IsTrue(holes[570, 534], "the foot of the retaining wall");
             Assert.IsFalse(holes[568, 529], "the middle of the room");
             Assert.IsTrue(holes[573, 529], "the dock shelf in front of the door");
             Assert.IsFalse(holes[563, 529], "under the hall, south of the palisade line");
             Assert.IsTrue(holes[561, 529], "behind the back wall");
+        }
+
+        // ------------------------------------------------------------------------------------ quay, tally room, side room
+
+        private static WarehouseBuilder.QuayFacts Quay()
+        {
+            JObject parts = JObject.Parse(File.ReadAllText(PARTS));
+            Assert.IsTrue(WarehouseBuilder.TryReadQuay(parts, out WarehouseBuilder.QuayFacts quay, out string problem), problem);
+            return quay;
+        }
+
+        [Test]
+        public void TallyDoorway_IsADoorWideAndHeadHigh()
+        {
+            JObject parts = JObject.Parse(File.ReadAllText(PARTS));
+            var opening = (JArray)parts["tally"]["door"]["opening"];   // min z, max z, height
+            float from = (float)opening[0], to = (float)opening[1], height = (float)opening[2];
+            Assert.GreaterOrEqual(to - from, 1f, "the camp's doorways are at least 1 m wide");
+            Assert.GreaterOrEqual(height, HEADROOM);
+
+            // With the leaf swung away, a player-wide box passes through the gable from the hall into the room.
+            Transform door = _instance.transform.Find("TallyDoor");
+            Assert.IsNotNull(door, "the tally room's door is an instance of the game's door prefab");
+            door.gameObject.SetActive(false);
+            Physics.SyncTransforms();
+            float tall = HEADROOM * 0.5f - 0.03f;
+            var centre = Away + new Vector3(6f, 0.05f + tall, (from + to) * 0.5f);
+            CollectionAssert.IsEmpty(Blockers(centre, new Vector3(0.9f, tall, PLAYER_RADIUS), Quaternion.identity), "the doorway");
+        }
+
+        [Test]
+        public void TallyDoor_IsUnlocked_AndKeepsItsSaveId()
+        {
+            Transform door = _instance.transform.Find("TallyDoor");
+            Assert.IsNotNull(door);
+            Assert.IsNotNull(door.GetComponent<DoorInteractable>());
+            Assert.IsFalse(new SerializedObject(door.GetComponent<Lockable>()).FindProperty("_isLocked").boolValue, "locking it is a later spec");
+            Assert.AreEqual("area1-warehouse-tally-door", new SerializedObject(door.GetComponent<SaveableObject>()).FindProperty("_saveId").stringValue);
+            // The leaf hangs on the south jamb and lies north of it when shut, in the gable's line.
+            Assert.Greater((door.rotation * Vector3.right).z, 0.99f);
+            Assert.AreEqual(Quay().TallyDoor.Position.z, door.localPosition.z, 0.001f);
+        }
+
+        [Test]
+        public void TallyRoom_HasAFloor_APlankWall_AndARoof()
+        {
+            JObject parts = JObject.Parse(File.ReadAllText(PARTS));
+            var inside = (JArray)parts["tally"]["inside"];   // min x, min z, max x, max z
+            var middle = Away + new Vector3(((float)inside[0] + (float)inside[2]) * 0.5f, 1f, ((float)inside[1] + (float)inside[3]) * 0.5f);
+            Assert.IsTrue(Physics.Raycast(middle, Vector3.down, out RaycastHit floor, 3f, ~0, QueryTriggerInteraction.Ignore));
+            Assert.AreEqual("Tally", floor.collider.name);
+            Assert.AreEqual(Away.y, floor.point.y, 0.01f, "its floor is the hall's");
+            // The palisade's panels are its south and east walls (the scene's); the model closes the north and the top.
+            Assert.IsTrue(Physics.Raycast(middle, Vector3.forward, 4f, ~0, QueryTriggerInteraction.Ignore), "no plank wall toward the quay");
+            Assert.IsTrue(Physics.Raycast(middle, Vector3.up, out RaycastHit roof, 4f, ~0, QueryTriggerInteraction.Ignore), "no roof");
+            Assert.GreaterOrEqual(roof.point.y - Away.y, HEADROOM);
+
+            WarehouseBuilder.QuayFacts quay = Quay();
+            Assert.GreaterOrEqual(quay.TallyAreaCentre.x - quay.TallyAreaSize.x * 0.5f, (float)inside[0]);
+            Assert.LessOrEqual(quay.TallyAreaCentre.x + quay.TallyAreaSize.x * 0.5f, (float)inside[2]);
+            Assert.GreaterOrEqual(quay.TallyAreaCentre.z - quay.TallyAreaSize.z * 0.5f, (float)inside[1]);
+            Assert.LessOrEqual(quay.TallyAreaCentre.z + quay.TallyAreaSize.z * 0.5f, (float)inside[3]);
+            Assert.Greater(quay.TallyAreaCentre.y - quay.TallyAreaSize.y * 0.5f, -0.5f, "above the cellar's side room, which has its own box");
+        }
+
+        [Test]
+        public void Quay_IsAWalkSurface_WithAClearCartLane()
+        {
+            WarehouseBuilder.QuayFacts quay = Quay();
+            Transform walk = _instance.transform.Find("Quay");
+            Assert.IsNotNull(walk);
+            Assert.AreEqual(quay.DeckY, walk.localPosition.y + walk.localScale.y * 0.5f, 0.01f, "the walk box's top is the deck");
+            Assert.AreEqual(quay.Deck.width, walk.localScale.x, 0.01f);
+            // The deck's south 2 m, over its whole length, a cart high: nothing solid reaches into it.
+            float tall = 1.4f;
+            var centre = Away + new Vector3(quay.Deck.center.x, quay.DeckY + 0.05f + tall, quay.Deck.yMin + 1f);
+            CollectionAssert.IsEmpty(Blockers(centre, new Vector3(quay.Deck.width * 0.5f - 0.05f, tall, 1f), Quaternion.identity), "the cart lane");
+            // ... and the goods Sites places keep north of it (their pivots, with a crate's reach).
+            foreach ((string kit, Vector3 position, _, _, _) in quay.Goods)
+                if (position.z < quay.Deck.yMax)
+                    Assert.Greater(position.z, quay.Deck.yMin + 2f + 0.5f, $"{kit} at {position} stands in the cart lane");
+            Assert.GreaterOrEqual(quay.Goods.Count, 15);
+        }
+
+        [Test]
+        public void QuayLanterns_AreNightLights_OffByDefault()
+        {
+            WarehouseBuilder.QuayFacts quay = Quay();
+            foreach (string name in new[] { "QuayLantern_West", "QuayLantern_East" })
+            {
+                Transform lantern = _instance.transform.Find(name);
+                Assert.IsNotNull(lantern, name);
+                Assert.IsNotNull(lantern.GetComponent<ClockNightLight>(), name);
+                Assert.IsFalse(lantern.GetComponentInChildren<Light>(true).enabled, "ClockNightLight switches it on at dusk");
+                Assert.Greater(lantern.localPosition.y - quay.DeckY, 1.9f, "over a walker's head");
+                Assert.Greater(lantern.localPosition.z, quay.Deck.yMin + 2f, "not over the cart lane");
+            }
+        }
+
+        [Test]
+        public void SideRoom_IsReachedThroughAPassage_AndClosedBeyond()
+        {
+            JObject parts = JObject.Parse(File.ReadAllText(PARTS));
+            var passage = (JArray)parts["cellar"]["side"]["passage"];   // min x, min z, max x, max z
+            var room = (JArray)parts["cellar"]["side"]["inside"];
+            float height = (float)parts["cellar"]["side"]["passageHeight"], top = (float)parts["cellar"]["side"]["top"];
+            WarehouseBuilder.CellarFacts cellar = Cellar();
+            Assert.GreaterOrEqual((float)passage[3] - (float)passage[1], 1f, "the camp's doorways are at least 1 m wide");
+            Assert.GreaterOrEqual(height, HEADROOM);
+            Assert.GreaterOrEqual(top - cellar.FloorY, HEADROOM, "the side room's ceiling");
+
+            // A player-wide box passes from the cellar through the wall into the side room.
+            float tall = HEADROOM * 0.5f - 0.03f;
+            float z = ((float)passage[1] + (float)passage[3]) * 0.5f;
+            var centre = Away + new Vector3(((float)passage[0] + (float)room[0]) * 0.5f, cellar.FloorY + 0.05f + tall, z);
+            var half = new Vector3(((float)room[0] - (float)passage[0]) * 0.5f + 0.4f, tall, PLAYER_RADIUS);
+            CollectionAssert.IsEmpty(Blockers(centre, half, Quaternion.identity), "the passage");
+            foreach (string name in new[] { "CellarSide", "CellarPassage" })
+            {
+                Transform walk = _instance.transform.Find(name);
+                Assert.IsNotNull(walk, name);
+                Assert.AreEqual(cellar.FloorY, walk.localPosition.y + walk.localScale.y * 0.5f, 0.01f, name);
+            }
+
+            // The room is closed on its other three sides and overhead.
+            var middle = Away + new Vector3(((float)room[0] + (float)room[2]) * 0.5f, cellar.FloorY + 1f, ((float)room[1] + (float)room[3]) * 0.5f);
+            foreach (Vector3 way in new[] { Vector3.right, Vector3.forward, Vector3.back, Vector3.up })
+                Assert.IsTrue(Physics.Raycast(middle, way, 4f, ~0, QueryTriggerInteraction.Ignore), $"no wall toward {way}");
+        }
+
+        [Test]
+        public void SideRoom_HoleAndRestrictedBoxes_StayInsideItsWalls()
+        {
+            JObject parts = JObject.Parse(File.ReadAllText(PARTS));
+            var room = (JArray)parts["cellar"]["side"]["inside"];
+            WarehouseBuilder.CellarFacts cellar = Cellar();
+            Assert.Greater(cellar.SideHole.width, 0f, "the side room needs its own terrain hole");
+            Assert.AreEqual(2, cellar.MoreAreas.Count);
+            foreach ((string name, Vector3 centre, Vector3 size) in cellar.MoreAreas)
+            {
+                Assert.Less(centre.y + size.y * 0.5f, -1f, $"{name}: under the tally room, which has its own box");
+                Assert.GreaterOrEqual(centre.z - size.z * 0.5f, (float)room[1], name);
+                Assert.LessOrEqual(centre.z + size.z * 0.5f, (float)room[3], name);
+                Assert.LessOrEqual(centre.x + size.x * 0.5f, (float)room[2], name);
+            }
+            // The hole's edge falls inside a wall's collider on each side, 0.5 m off the floor.
+            float y = cellar.FloorY + 0.5f;
+            float midX = ((float)room[0] + (float)room[2]) * 0.5f, midZ = ((float)room[1] + (float)room[3]) * 0.5f;
+            var probes = new[]
+            {
+                new Vector3(cellar.SideHole.xMax, y, midZ), new Vector3(midX, y, cellar.SideHole.yMin), new Vector3(midX, y, cellar.SideHole.yMax),
+                new Vector3(cellar.SideHole.xMax, y, cellar.SideHole.yMin), new Vector3(cellar.SideHole.xMax, y, cellar.SideHole.yMax),
+            };
+            foreach (Vector3 probe in probes)
+                CollectionAssert.IsNotEmpty(Blockers(Away + probe, Vector3.one * 0.02f, Quaternion.identity), $"hole edge at {probe} is not inside a wall");
+
+            // Area 1's terrain: the cells this rectangle opens, at the warehouse's place.
+            var world = new Rect(15f + cellar.SideHole.xMin, 52f + cellar.SideHole.yMin, cellar.SideHole.width, cellar.SideHole.height);
+            Assert.AreEqual(new RectInt(533, 566, 3, 4), WarehouseBuilder.HoleCells(world, new Vector2(-500f, -500f), 1000f, 1024));
+        }
+
+        [Test]
+        public void SideRoomLantern_IsAlwaysOn_WithShadows()
+        {
+            Transform lantern = _instance.transform.Find("CellarLantern_Side");
+            Assert.IsNotNull(lantern);
+            Assert.IsNull(lantern.GetComponent<ClockNightLight>(), "the room has no window");
+            Assert.IsTrue(lantern.GetComponentInChildren<Light>(true).enabled);
+            Assert.AreNotEqual(LightShadows.None, lantern.GetComponentInChildren<Light>(true).shadows, "unshadowed, it lights the tally room through its floor");
+        }
+
+        private const string GOOD_TALLY = "\"tally\": {\"door\": {\"position\": [0, 0, 0], \"yaw\": 0, \"scaleY\": 1, \"openAngle\": 90}, \"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}}";
+
+        [TestCase("{}")]
+        [TestCase("{\"tally\": {}, \"quay\": 3}")]
+        [TestCase("{\"tally\": {\"door\": {\"position\": [0, 0, 0], \"yaw\": 0, \"scaleY\": 0, \"openAngle\": 90}}, \"quay\": {}}")]
+        [TestCase("{\"tally\": {\"door\": {\"position\": [0, 0, 0], \"yaw\": 0, \"scaleY\": 1, \"openAngle\": 90}, \"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, -1, 1]}}, \"quay\": {}}")]
+        [TestCase("{" + GOOD_TALLY + ", \"quay\": {\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, \"deckY\": \"low\", \"deck\": [0, 0, 1, 1], \"goods\": []}}")]
+        [TestCase("{" + GOOD_TALLY + ", \"quay\": {\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, \"deckY\": -4, \"deck\": [1, 0, 0, 1], \"goods\": []}}")]
+        [TestCase("{" + GOOD_TALLY + ", \"quay\": {\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, \"deckY\": -4, \"deck\": [0, 0, 1, 1]}}")]
+        [TestCase("{" + GOOD_TALLY + ", \"quay\": {\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, \"deckY\": -4, \"deck\": [0, 0, 1, 1], \"goods\": [{\"kit\": \"x\", \"position\": [0, 0], \"euler\": [0, 0, 0], \"scale\": 1, \"solid\": true}]}}")]
+        [TestCase("{" + GOOD_TALLY + ", \"quay\": {\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, \"deckY\": -4, \"deck\": [0, 0, 1, 1], \"goods\": [{\"kit\": \"x\", \"position\": [0, 0, 0], \"euler\": [0, 0, 0], \"scale\": 0, \"solid\": true}]}}")]
+        public void MalformedQuay_IsRefused_WithoutAThrow(string json)
+        {
+            Assert.IsFalse(WarehouseBuilder.TryReadQuay(JObject.Parse(json), out _, out string problem));
+            Assert.IsNotEmpty(problem);
+        }
+
+        [TestCase("\"sideHole\": [0, 0, 1]")]
+        [TestCase("\"sideHole\": [1, 0, 0, 1]")]
+        [TestCase("\"restrictedMore\": 3")]
+        [TestCase("\"restrictedMore\": [{\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}]")]
+        [TestCase("\"restrictedMore\": [{\"name\": \"x\", \"centre\": [0, 0, 0], \"size\": [1, 0, 1]}]")]
+        public void MalformedSideRoom_IsRefused_WithoutAThrow(string field)
+        {
+            string json = "{\"cellar\": {\"hole\": [0, 0, 1, 1], \"inside\": [0, 0, 1, 1], \"floorY\": -4, \"door\": {\"position\": [0, 0, 0], \"yaw\": 0, \"scaleY\": 1, \"openAngle\": 90}, "
+                          + "\"restricted\": {\"centre\": [0, 0, 0], \"size\": [1, 1, 1]}, " + field + "}}";
+            Assert.IsFalse(WarehouseBuilder.TryReadCellar(JObject.Parse(json), out _, out string problem));
+            Assert.IsNotEmpty(problem);
         }
 
         /// <summary>Solid colliders of the prefab in a box, walk surfaces left out.</summary>

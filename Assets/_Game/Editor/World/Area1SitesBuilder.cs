@@ -515,7 +515,16 @@ namespace Game.Editor.World
             var warehouse = AssetDatabase.LoadAssetAtPath<GameObject>(WarehouseBuilder.PREFAB_PATH);
             Area1CampInterior.BuildWarehouse(Area1BlockoutBuilder.Position(warehouseZone), (float)warehouseZone["w"], (float)warehouseZone["d"], terrain, timber,
                 NewRoot(root.transform, WAREHOUSE, warehouse), warehouse != null);
-            Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(features[DOCK_GATE_FEATURE]), DOCK_GATE_WIDTH, terrain, timber, NewRoot(root.transform, DOCK_GATE));
+            // The dock gate root is the generated prefab (DockGateBuilder), seated on the lane; without it, the graybox gate.
+            var dockGate = AssetDatabase.LoadAssetAtPath<GameObject>(DockGateBuilder.PREFAB_PATH);
+            Vector2 dockGateAt = Area1BlockoutBuilder.Position(features[DOCK_GATE_FEATURE]);
+            Transform dockGateRoot = NewRoot(root.transform, DOCK_GATE, dockGate);
+            if (dockGate != null) dockGateRoot.position = new Vector3(dockGateAt.x, Area1BlockoutBuilder.Ground(terrain, dockGateAt), dockGateAt.y);
+            else
+            {
+                GameLog.Error(TAG, $"{DockGateBuilder.PREFAB_PATH} not found: built the graybox dock gate instead. Run Tools/World/Build Dock Gate Prefab, then Sites again.");
+                Area1CampInterior.BuildGate(dockGateAt, DOCK_GATE_WIDTH, terrain, timber, dockGateRoot);
+            }
             Area1CampInterior.BuildGate(Area1BlockoutBuilder.Position(compoundGate), (float)compoundGate["width"], terrain, timber, NewRoot(root.transform, COMPOUND_GATE));
             Area1CampInterior.BuildStagingYard(Area1BlockoutBuilder.Position(features[STAGING_YARD_FEATURE]), terrain, timber, stone, NewRoot(root.transform, STAGING_YARD));
             Area1CampInterior.BuildGuardPost(Area1BlockoutBuilder.Position(guardPost), (float)guardPost["w"], (float)guardPost["d"], (float)guardPost["yaw"], terrain, timber, stone, NewRoot(root.transform, GUARD_POST));

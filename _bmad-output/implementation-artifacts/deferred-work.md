@@ -1595,3 +1595,25 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   of 51,110.
 - **The scene instance was placed without a full Sites run** (the prefab instance set at the pinned pose, goods
   built by the Sites code): a full run has not rebuilt it yet.
+
+## spec-area-1-warehouse-quay (2026-11-27)
+
+- **No loot, lock, key or owner** on the tally room, its strongbox (a model), its door (`TallyDoor`, unlocked) or
+  the side room. The dock gate's leaves do not move.
+- **Triangles:** the 25 kit props on the quay and in the barge are 34,276 at LOD 0 against 20,566 for the new model
+  parts and the gate; with them the build passes the spec's 40,000 cap. Cheapest cut: fewer casks (1,716 each).
+- **No terrain run and no full Sites run** has rebuilt the quay, the second hole or the dock gate (the instances
+  were placed with the scoped calls). On the next Sites run check `QuayGoods`, the gate's seat on the lane and the
+  hole over the side room.
+- **`hand-edits.json` pins eight parts of the old graybox dock gate**: untick them in the Hand Edits window.
+- **The tally room is lit at night by the river door's unshadowed lantern** through the gable, and has no light of
+  its own. The gate's fire is unshadowed too.
+- **The tarp on the quay lies beside the sacks** since the user moved them; move it in the script (`quay()`), or the
+  sacks back under it.
+- **Played walk-through not done by the agent:** paths, capsule sweeps and the restricted boxes were checked in
+  Play by script; walking the quay, the gate, the tally room and the side room with real input, and trespass with
+  the guard near, are the user's.
+- **The side room is 1.95 × 3.45 m**, smaller than the 3 × 4 m asked for: growing it means moving
+  `SM_Rock_06 (17)` or the dock spur.
+- **The other gates are still graybox**; `build_dock_gate.py` is written for this one place (flat lane, fixed
+  post heights).

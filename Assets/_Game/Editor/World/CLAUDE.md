@@ -22,7 +22,8 @@
 | `Dress Home Yard` | `HomeYardDresser` | `PlayersZone/HomeYardDressing` |
 | `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` from the shell models in `Art/Environment/Camp/models/worker hut/` (see the Huts folder's `CLAUDE.md`); rebake afterwards |
 | `Capture Warehouse Ground`, `Build Warehouse Prefab` | `WarehouseBuilder` | The ground capture the warehouse model is fitted to, then `Prefabs/World/Warehouse/Warehouse.prefab` from the model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab, rebake afterwards |
-| `Place Warehouse Cellar` | `WarehouseBuilder` | The terrain hole over the warehouse's cellar (live terrain) and `RestrictedAreas/RA_WarehouseCellar`, both from the parts file's `cellar` (see **One-shot authoring commands**); rebake afterwards |
+| `Place Warehouse Cellar` | `WarehouseBuilder` | The terrain holes over the warehouse's cellar and its side room (live terrain), `RestrictedAreas/RA_WarehouseCellar` and the child boxes `RA_Warehouse/TallyRoom` and `RA_Docks/Quay`, all from the parts file (see **One-shot authoring commands**); rebake afterwards |
+| `Build Dock Gate Prefab` | `DockGateBuilder` | `Prefabs/World/DockGate/DockGate.prefab` from the dock gate model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab as the `DockGate` root |
 | `Build Cookhouse Prefab`, `Place Area 1 Canteen` | `CookhouseBuilder` | `Prefabs/World/Cookhouse/Cookhouse.prefab` from the cookhouse model and its parts file, then the canteen in the scene: levelled ground, the instance, `Canteen/Dressing`, moved gameplay objects, `RestrictedAreas/RA_CookhouseStore` (pipeline: that folder's `CLAUDE.md`); capture the sculpt and rebake afterwards |
 | `Replace Graybox Worker Huts` | `WorkerHutRollout` (+ `WorkerHutRolloutRules`) | Swaps the graybox 3 × 3 m huts of `TentCamp/PlayersZone` and `MafiaZone` for shell prefabs, in place (rules: Huts folder's `CLAUDE.md` → Rollout); rebake afterwards |
 
@@ -118,8 +119,11 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
   `TentCamp`.
 - `Warehouse` is a Sites root whose content is an **instance of the generated warehouse prefab**
   (`Area1SitesBuilder.NewRoot(parent, name, prefab)`), plus `HoistGoods` and `CellarGoods` (the cellar's casks,
-  crates and sacks, placed in the root's frame). Change the model script or
+  crates and sacks, placed in the root's frame) and `QuayGoods` (the quay's and the barge's, each placed where the
+  parts file's `quay.goods` says). Change the model script or
   `WarehouseBuilder`, never the instance; a hand-edit scan compares the prefab's children like any built object.
+- `DockGate` is a Sites root too, an **instance of the generated dock gate prefab** seated on the lane's ground at
+  the layout's `dock-gate`; without the prefab Sites builds the graybox gate there.
 - Sites never touches the hand-built `CampBridge`, `CompanyCliff`, `FightPit` or the root `SM_Barricade_*`. In `Docks`
   it replaces only its own parts, by name (`DeckFloor_*`, `Boat`, `MooringPost`, `MooringRope`; never rebuild
   `Walkway_*`).
@@ -321,9 +325,11 @@ These author hand-owned geometry once; they are not part of the run order.
   an authoring command, not a builder, so it uses `GameObject.Find`. Rerunnable; it cuts the live terrain on its first
   run (capture the sculpt), never saves and never bakes. What it replaces: `Prefabs/World/Cookhouse/CLAUDE.md`.
 
-- **`Tools/World/Place Warehouse Cellar`** (`WarehouseBuilder.PlaceCellar`) cuts the terrain hole over the cellar
-  under the warehouse and rebuilds the hand-owned `RestrictedAreas/RA_WarehouseCellar` (the warehouse guard's, at
-  all hours), so it uses `GameObject.Find`. Rerunnable; it refuses when the scene's `Warehouse` root stands more
+- **`Tools/World/Place Warehouse Cellar`** (`WarehouseBuilder.PlaceCellar`) cuts the terrain holes over the cellar
+  under the warehouse and over its side room, rebuilds the hand-owned `RestrictedAreas/RA_WarehouseCellar` (the
+  warehouse guard's, at all hours, with child boxes for the side room and its passage) and the child boxes
+  `RA_Warehouse/TallyRoom` and `RA_Docks/Quay` (each takes its parent's owner and hours), so it uses
+  `GameObject.Find`. It refuses without `RA_Warehouse` or `RA_Docks`. Rerunnable; it refuses when the scene's `Warehouse` root stands more
   than 5 cm from where the model was fitted, never saves and never bakes. A hole is not a height: the sculpt
   capture does not hold it, and the terrain tool cuts it again itself. Contract:
   `Prefabs/World/Warehouse/CLAUDE.md` → Cellar.

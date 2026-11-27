@@ -2,7 +2,8 @@
 
 > The Area 1 warehouse (`StartingTown` → `Area1_Blockout/Warehouse`): a script-built Blender model wrapped in a
 > generated prefab. Look and build brief: `Art/Environment/Camp/WAREHOUSE_CONCEPTS.md`; the cellar under it:
-> `Art/Environment/Camp/WAREHOUSE_CELLAR_CONCEPTS.md`; wood rules: `Art/Environment/Camp/CLAUDE.md`.
+> `Art/Environment/Camp/WAREHOUSE_CELLAR_CONCEPTS.md`; the quay, the tally room and the cellar's side room:
+> `Art/Environment/Camp/QUAY_CONCEPTS.md`; wood rules: `Art/Environment/Camp/CLAUDE.md`.
 
 ---
 
@@ -16,7 +17,7 @@
 | 2 | `models/warehouse/Source~/build_warehouse.py` in Blender (`blender -b -P`, or in a session `runpy.run_path(path, run_name="__main__")`) | `Warehouse.fbx`, `Warehouse.json` (parts file), `Source~/Warehouse.blend` |
 | 3 | `Tools/World/Build Warehouse Prefab` | `Warehouse.prefab` |
 | 4 | `Tools/World/Build Area 1 Sites` places it (`Area1CampInterior.BuildWarehouse`), then rebake the NavMesh | the scene root, `HoistGoods`, `CellarGoods` |
-| 5 | `Tools/World/Place Warehouse Cellar` (once, and again if the cellar's plan changes) | the terrain hole over the cellar, `RestrictedAreas/RA_WarehouseCellar` |
+| 5 | `Tools/World/Place Warehouse Cellar` (once, and again if the cellar's, the side room's, the tally room's or the quay's plan changes) | the terrain holes over the cellar and its side room, `RestrictedAreas/RA_WarehouseCellar` (with its `SideRoom` and `Passage` boxes), `RA_Warehouse/TallyRoom`, `RA_Docks/Quay` |
 
 - Rerun from step 1 after moving a rock near the hall, sculpting there, or moving the `warehouse` zone: posts,
   trestle legs, padstones and rubble are modelled against the capture. Sites warns when the floor it computes is
@@ -106,6 +107,48 @@ x −1.2..4.9, z −1.9..7.0, floor at world y 0.1 (local −4.55), about 4.3 m 
   root's frame. They keep the walk from the door round the pillars to the back clear.
 - **`RA_WarehouseCellar`** is the warehouse guard's at all hours. It lies inside `RA_Docks` (Company, 21–06) too.
 
+## Quay (`spec-area-1-warehouse-quay`)
+
+Everything added on the river side after the cellar, in the same script and prefab. Sizes are the `QUAY_*`,
+`BARGE*`, `TALLY_*`, `RETAIN_*` and `SIDE_*` constants of the script; the parts file carries them as `quay`,
+`tally`, `retaining`, `cellar.side`, `cellar.sideHole` and `cellar.restrictedMore`.
+
+- **The hall and the cellar keep their look.** The new parts (`Quay`, `Barge`, `Tally`, `TallyRoof`,
+  `TallyFurniture`, `Retaining`, `CellarSide`) draw from their own random stream (`rng2`). What they take out of
+  the old parts (the gable's boards and girt at the tally door, the cellar's east wall at the passage) is drawn
+  into a scratch mesh with the hall's stream, so every other board, shingle and stone stays where it was. Add new
+  pieces to a `rng2` part, never to an old one.
+- **Quay:** deck local x −8.5..9.2, z 9.0..13.5, top at world y 0.0 (walk box `Quay`), on bearers and tarred piles
+  fitted to the captured riverbed. Colliders for the mooring posts, the lantern posts and the net rack; none for
+  the kerb (0.15 m) or the ladder. Its south 2 m is the cart lane: the test sweeps it, and no goods entry may stand
+  in it.
+- **Goods are the script's** (`quay.goods`: kit piece, position, euler, scale, solid). Sites only maps a kit piece
+  to each (`Area1CampInterior.BuildQuayGoods` → `Warehouse/QuayGoods`), all left out of the bake. The crates and
+  sacks stand where the user moved them by hand: move a prop in the script's table, or it comes back on a Sites run.
+- **Barge:** `Barge` object, Not Walkable; colliders for its floor, sides and the gangplank (23.6°).
+- **Tally room:** local x 6.0..9.3, z 0.2..5.6, floor at the hall's. The palisade's panels are its south and east
+  walls (`outer-fence-3/Panel_061`, `_062`, `dock-fence-upper/Panel_147`, `_148`: the scene's, not the prefab's);
+  the model gives the floor, the plank wall, a short west wall north of the hall's corner, and the roof.
+  `TallyDoor` is a nested `Poor small door` in the east gable (z 2.3..3.44, hinge on the south jamb, opens east,
+  unlocked, save id `area1-warehouse-tally-door`, left out of the bake). `Wall_East` is in three colliders round it.
+- **Retaining wall:** `Retaining` object, face at local z 5.7 from the cellar's shoulder (x 6.1) to the dock spur;
+  its body is also the side room's north wall and carries the tally room's floor.
+- **Side room:** inside local x 6.25..8.2, z 0.95..4.4, ceiling at −1.7, floor the cellar's (walk boxes
+  `CellarSide`, `CellarPassage`). Its hole rectangle is `cellar.sideHole` (cells x 533..535, z 566..569); the hall's
+  east gable posts hang over it inside the wall between the two rooms (x 5.6..6.25). `Skirt_East`, `Wall_East` (the
+  cellar's) and `UnderFloor_East` are each split round the passage. `CellarLantern_Side` is always on, with shadows.
+- **Rocks:** `SM_Rock_06 (17)` stands 0.8 m east of the side room's east face, `SM_Rock_08 (4)` 0.2 m over its
+  ceiling (and comes up through the tally room's floor in the south-east corner). Before growing either room,
+  ray-test the new volume against the `SM_Rock*` colliders.
+- **Restricted areas:** a restricted area's shape is every box under it, so the new rooms are child boxes built by
+  `Place Warehouse Cellar` (`AreaBox`): enlarging the parents' boxes would have covered open ground.
+- **Lanterns:** `QuayLantern_West` / `_East` are night lights like the cart doors'.
+- **Ground capture:** over a terrain hole no ray meets the ground, so the capture reads the height map there
+  (`TryGround`): the model is fitted to the bank as it was before the holes. The grid reaches local z +17.5 (the
+  riverbed under the barge).
+- Tests: `WarehousePrefabTests` (tally doorway and door, room's floor / wall / roof, quay lane and goods, lanterns,
+  passage, side room's hole and boxes, malformed `quay` / `tally` / side room refused).
+
 ## Known limits
 
 - The terrain rises up to 7 cm above the floor over about 2 × 2 m inside the hall (world x 13.5–15.5, z 52.2–54.5):
@@ -123,3 +166,7 @@ x −1.2..4.9, z −1.9..7.0, floor at world y 0.1 (local −4.55), about 4.3 m 
   The wall's line passes 0.1–0.3 m north of the logs' axis (z 52.1–52.3 against z 52), so the last log leans on the
   junction log's side rather than its middle. Moving a junction log means changing `WAREHOUSE_LOG_CLEAR` in
   `Area1BlockoutBuilder` too.
+- The river door's lantern is unshadowed and reaches into the tally room through the gable: at night the room is
+  dimly lit although it has no light. Give that lantern shadows, or the room a candle on `ClockNightLight`.
+- The quay's tarp lies beside the sacks since the user moved them; it is a low mound from far away.
+- 25 kit props on the quay and in the barge are 34,276 triangles at LOD 0, twice the new model parts.

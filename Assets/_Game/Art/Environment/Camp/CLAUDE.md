@@ -4,7 +4,8 @@
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
 > `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
 > model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`. The cellar under it (captures, prompts, build brief, as built):
-> `WAREHOUSE_CELLAR_CONCEPTS.md`.
+> `WAREHOUSE_CELLAR_CONCEPTS.md`. The quay in front of it, the tally room, the cellar side room and the dock gate
+> (captures, prompts, build brief, as built): `QUAY_CONCEPTS.md`; the gate's prefab: `Prefabs/World/DockGate/CLAUDE.md`.
 > Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`;
 > the canteen (cookhouse, mess, back alley): `CANTEEN_CONCEPTS.md`; its model and prefab pipeline:
 > `Prefabs/World/Cookhouse/CLAUDE.md`. The home yard's owned huts (Tam, Pim and Gerrit, Bren) and its rearranged
@@ -33,7 +34,10 @@ collapsed wall and its repair works, each on its own pivot, with `BrokenStretch.
 `Editor/World/CLAUDE.md` → Broken stretch. New wood is `M_Camp_NewLog`, the same texture at about 2.1; rags are
 `M_Camp_Rag`), `cookhouse` (the canteen: cookhouse with its interior, porch, mess shelter, one trestle table
 set and the alley fence in one FBX with a parts file; its script loads the warehouse's as a library; see
-`Prefabs/World/Cookhouse/CLAUDE.md`).
+`Prefabs/World/Cookhouse/CLAUDE.md`), `dock gate` (a palisade gateway, two leaves of lashed logs, the guard's
+lean-to and a fire basket in one FBX with a parts file; same library; its round logs' slot is remapped to
+`M_Camp_PalisadeLog`; see `Prefabs/World/DockGate/CLAUDE.md`). The warehouse's script also builds the quay, the
+barge, the tally room, the retaining wall and the cellar's side room (`Prefabs/World/Warehouse/CLAUDE.md` → Quay).
 
 ---
 

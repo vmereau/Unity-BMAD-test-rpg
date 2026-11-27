@@ -54,7 +54,9 @@ Hand-owned root outside the builders: Brann, two routine spots, and `BrannsStash
 `NPC_WarehouseGuard`, always), `RA_WarehouseCellar` (the cellar under it, same owner, always; rebuilt by
 `Tools/World/Place Warehouse Cellar`) and `RA_Docks` (layout `docks` rect clipped north of the warehouse, owner
 `Faction_Company`, 21–06) and `RA_CookhouseStore` (the cookhouse's store room inside its boards, owners `NPC_Cook` and
-`NPC_KitchenHand`, always; rebuilt by `Tools/World/Place Area 1 Canteen`). Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`.
+`NPC_KitchenHand`, always; rebuilt by `Tools/World/Place Area 1 Canteen`). An area's shape is every box under it:
+`RA_Warehouse/TallyRoom`, `RA_WarehouseCellar/SideRoom` and `/Passage` and `RA_Docks/Quay` (the deck and the barge)
+are child boxes rebuilt by `Tools/World/Place Warehouse Cellar`. Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`.
 Keep all three out of `Area1_Blockout` (tool-rebuilt).
 
 ---
@@ -127,8 +129,22 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
   inside the room, and moving the warehouse means running `Place Warehouse Cellar` again and closing the old hole.
   Stores (casks, crates, sacks) are `Warehouse/CellarGoods`; two casks stand outside, east of the door. Contract:
   `Prefabs/World/Warehouse/CLAUDE.md` → Cellar; look: `Art/Environment/Camp/WAREHOUSE_CELLAR_CONCEPTS.md`.
-- The dock spur at x 24.5 clears the hand-placed barricades and runs into the river; `DockGate` stands open, and
-  restricting it is later gameplay.
+- **Quay** (`spec-area-1-warehouse-quay`, part of the warehouse prefab): a plank deck x 6.5..24.2, z 61..65.5 at
+  y 0 along the dock shelf, with a moored barge (x 13.6..21, z 66..68.2), two lantern posts, a net rack at its west
+  end and kit goods along its river edge (`Warehouse/QuayGoods`, placed from the model's parts file). Its south
+  2 m and the shelf beside it are the cart lane from the river ramp's foot to the gate: keep them clear, and put
+  nothing taller than 2 m west of x 9 (the hunter's fire). `DockGuard/WP_3_RampFoot` stands on the deck.
+- **Tally room:** a lean-to east of the hall (x 21..24.3, z 52.2..57.6, floor y 4.65), entered from the hall by
+  `TallyDoor` in the east gable (z 54.3..55.44, unlocked). Its south and east walls are the palisade's panels
+  (`outer-fence-3/Panel_061`, `_062`, `dock-fence-upper/Panel_147`, `_148`): removing or moving one opens the room.
+  Under it a dry-stone retaining wall (face z 57.7) holds the bank, and behind that wall lies the **cellar's side
+  room** (x 21.25..23.2, z 52.95..56.4, floor y 0.1), reached through the cellar's east wall, under a second
+  terrain hole (x 20.5..23.4, z 52.7..56.6). Contract: `Prefabs/World/Warehouse/CLAUDE.md` → Quay; look:
+  `Art/Environment/Camp/QUAY_CONCEPTS.md`.
+- The dock spur at x 24.5 clears the hand-placed barricades and runs into the river. `DockGate` is an instance of
+  the generated `Prefabs/World/DockGate/DockGate.prefab` (that folder's `CLAUDE.md`): a palisade gateway 2.5 m
+  clear and 3.2 m high with two leaves standing open, the guard's lean-to outside it (x 26.3..28.6, z 56.1..57.6)
+  and a fire basket at (27.4, 60.85) that burns at night. Restricting the gate is later gameplay.
 - The work yard outside `BrokenStretch` leaves the walk from the warehouse's river ramp to the dock clear.
 - Each area keeps part of its block free for later NPCs.
 
@@ -171,7 +187,8 @@ The north bank between `Tower_R` and the dock spur.
   the highest point, a skirt closes the underside, and the 1.6 m ramp lengthens up to 7 m of plan until it is no steeper
   than 30°, with a warning if it can't (4.25 m of plan, 4.9 m along the slope, today). `walkway-guard-post` starts at a
   fixed point by the ramp foot, so move it if the ramp moves.
-- The old `GuardPost` lean-tos under `CompoundGate` and `DockGate` are separate objects with the same name.
+- The old `GuardPost` lean-to under `CompoundGate` is a separate object with the same name (the dock gate's is now
+  part of its prefab).
 
 ---
 
