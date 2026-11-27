@@ -22,6 +22,7 @@
 | `Dress Home Yard` | `HomeYardDresser` | `PlayersZone/HomeYardDressing` |
 | `Build Worker Hut Kit Prefabs` | `WorkerHutKitBuilder` | `Prefabs/World/Huts/` from the shell models in `Art/Environment/Camp/models/worker hut/` (see the Huts folder's `CLAUDE.md`); rebake afterwards |
 | `Capture Warehouse Ground`, `Build Warehouse Prefab` | `WarehouseBuilder` | The ground capture the warehouse model is fitted to, then `Prefabs/World/Warehouse/Warehouse.prefab` from the model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab, rebake afterwards |
+| `Place Warehouse Cellar` | `WarehouseBuilder` | The terrain hole over the warehouse's cellar (live terrain) and `RestrictedAreas/RA_WarehouseCellar`, both from the parts file's `cellar` (see **One-shot authoring commands**); rebake afterwards |
 | `Build Cookhouse Prefab`, `Place Area 1 Canteen` | `CookhouseBuilder` | `Prefabs/World/Cookhouse/Cookhouse.prefab` from the cookhouse model and its parts file, then the canteen in the scene: levelled ground, the instance, `Canteen/Dressing`, moved gameplay objects, `RestrictedAreas/RA_CookhouseStore` (pipeline: that folder's `CLAUDE.md`); capture the sculpt and rebake afterwards |
 | `Replace Graybox Worker Huts` | `WorkerHutRollout` (+ `WorkerHutRolloutRules`) | Swaps the graybox 3 × 3 m huts of `TentCamp/PlayersZone` and `MafiaZone` for shell prefabs, in place (rules: Huts folder's `CLAUDE.md` → Rollout); rebake afterwards |
 
@@ -58,6 +59,10 @@ so ground can sit below y = 0. The sculpt, paint and forest come from `Tools/Wor
   warning, so those changes go into `layout.json` or the tool.
 - The camp's ground, paint and holes come from `Art/Terrain/StartingTownTerrain_Source.asset` (the original 500 m
   terrain): don't delete it, and make lasting camp ground edits there.
+- One hole is not in the source asset: the warehouse cellar's. After copying the source's holes, a run opens the
+  cells the warehouse parts file names (`WarehouseBuilder.CutCellarHole`). Without a readable parts file it logs an
+  error, leaves that ground solid and goes on: the cellar is then filled with terrain until `Place Warehouse Cellar`
+  is run again. No terrain run has exercised this yet.
 - A rebuild scatters the forest from the current heights, so the first run after a sculpt changes trees on the sculpted
   ground, and a sculpt's whole-centimetre rounding can move heights by one heightmap step (1.83 cm).
 - Water is one `Water_Volume` covering the valley, top at y = −2. Any non-water ground must stay above that, and
@@ -112,7 +117,8 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
   (`Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave`) and — only when not hand-owned —
   `TentCamp`.
 - `Warehouse` is a Sites root whose content is an **instance of the generated warehouse prefab**
-  (`Area1SitesBuilder.NewRoot(parent, name, prefab)`), plus `HoistGoods`. Change the model script or
+  (`Area1SitesBuilder.NewRoot(parent, name, prefab)`), plus `HoistGoods` and `CellarGoods` (the cellar's casks,
+  crates and sacks, placed in the root's frame). Change the model script or
   `WarehouseBuilder`, never the instance; a hand-edit scan compares the prefab's children like any built object.
 - Sites never touches the hand-built `CampBridge`, `CompanyCliff`, `FightPit` or the root `SM_Barricade_*`. In `Docks`
   it replaces only its own parts, by name (`DeckFloor_*`, `Boat`, `MooringPost`, `MooringRope`; never rebuild
@@ -314,6 +320,13 @@ These author hand-owned geometry once; they are not part of the run order.
   `KitchenHand`, `CookingStation_Fireplace`, `Decor/SM_cartB_a1`, the children of `Camp/Canteen`): it is
   an authoring command, not a builder, so it uses `GameObject.Find`. Rerunnable; it cuts the live terrain on its first
   run (capture the sculpt), never saves and never bakes. What it replaces: `Prefabs/World/Cookhouse/CLAUDE.md`.
+
+- **`Tools/World/Place Warehouse Cellar`** (`WarehouseBuilder.PlaceCellar`) cuts the terrain hole over the cellar
+  under the warehouse and rebuilds the hand-owned `RestrictedAreas/RA_WarehouseCellar` (the warehouse guard's, at
+  all hours), so it uses `GameObject.Find`. Rerunnable; it refuses when the scene's `Warehouse` root stands more
+  than 5 cm from where the model was fitted, never saves and never bakes. A hole is not a height: the sculpt
+  capture does not hold it, and the terrain tool cuts it again itself. Contract:
+  `Prefabs/World/Warehouse/CLAUDE.md` → Cellar.
 
 - **`Tools/World/Replace Graybox Worker Huts`** (`WorkerHutRollout`) edits the hand-owned `TentCamp` by design: it
   deletes each graybox hut it swaps (one undo step, no save, no bake) and never moves one. It measures plots with

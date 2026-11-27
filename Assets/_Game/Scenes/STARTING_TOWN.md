@@ -51,7 +51,8 @@ Hand-owned root outside the builders: Brann, two routine spots, and `BrannsStash
 ### Restricted areas
 
 `RestrictedAreas` (scene root, hand-owned) holds `RestrictedArea` volumes: `RA_Warehouse` (warehouse interior, owner
-`NPC_WarehouseGuard`, always) and `RA_Docks` (layout `docks` rect clipped north of the warehouse, owner
+`NPC_WarehouseGuard`, always), `RA_WarehouseCellar` (the cellar under it, same owner, always; rebuilt by
+`Tools/World/Place Warehouse Cellar`) and `RA_Docks` (layout `docks` rect clipped north of the warehouse, owner
 `Faction_Company`, 21–06) and `RA_CookhouseStore` (the cookhouse's store room inside its boards, owners `NPC_Cook` and
 `NPC_KitchenHand`, always; rebuilt by `Tools/World/Place Area 1 Canteen`). Guards' waypoints live under `NpcPatrolRoutes/<NPC>`; routine spots under `NpcRoutineSpots`.
 Keep all three out of `Area1_Blockout` (tool-rebuilt).
@@ -118,6 +119,14 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
   ramps and the landing have handrails, a rubble bank and collider boxes close the space under the floor, and a
   lantern by each cart door lights at night. The NavMesh still links the low tip of the warehouse's camp ramp, so a walker
   heading east from the player's hut goes round its foot.
+- **Cellar** (`spec-area-1-warehouse-cellar`): a rubble-walled room under the landing and most of the hall, inside faces
+  x 13.8..19.9, z 50.1..59.0, floor y 0.1 (buried rocks stop it at z 50). Its plank door is in the dock-side wall under the landing at
+  x 17.9..19.0 (unlocked; a stone step up from the shelf); a shut hatch lies in the hall's floor at
+  x 14.2..15.2, z 54.3..55.3 with a ladder under it (opening it is a later spec). The terrain has a **hole** there
+  (heights unchanged), hidden in the cellar's walls: sculpting or painting near x 13..21, z 49..59 shows nothing
+  inside the room, and moving the warehouse means running `Place Warehouse Cellar` again and closing the old hole.
+  Stores (casks, crates, sacks) are `Warehouse/CellarGoods`; two casks stand outside, east of the door. Contract:
+  `Prefabs/World/Warehouse/CLAUDE.md` → Cellar; look: `Art/Environment/Camp/WAREHOUSE_CELLAR_CONCEPTS.md`.
 - The dock spur at x 24.5 clears the hand-placed barricades and runs into the river; `DockGate` stands open, and
   restricting it is later gameplay.
 - The work yard outside `BrokenStretch` leaves the walk from the warehouse's river ramp to the dock clear.

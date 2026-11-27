@@ -1566,3 +1566,32 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   prefab was rebuilt from the current parts file. The broken stretch has both checks; copy them if the script changes often.
 - **Ground rectangles, table collider boxes and dressing offsets are written in `CookhouseBuilder`**, not read from the
   parts file: moving `CENTRE`, `MESS` or the porch in the script needs them moved by hand.
+
+## spec-area-1-warehouse-cellar (2026-11-27)
+
+- **Hatch and ladder do nothing yet:** the trapdoor in the hall's floor is boards on a solid walk box and the ladder
+  is a model with a collider. Opening the hatch and climbing is the ladder spec.
+- **No lock, key, owner or loot** on the cellar or its door (`CellarDoor` is unlocked); the casks, crates and sacks
+  are props.
+- **A terrain run has not been tried with the cellar's hole.** `Area1TerrainBuilder` re-cuts it from the warehouse
+  parts file (`WarehouseBuilder.CutCellarHole`, unit-tested on a hole map); check the room after the next run.
+- **Hearing through the floor is not proven.** With the player standing still in the cellar and the guard on the
+  landing 4.5 m overhead, he kept patrolling. Walking and running under him needs a play test with real input.
+- **`RA_WarehouseCellar` lies inside `RA_Docks`** (Company, 21-06): by night two areas claim the room. Not tested
+  which one a witness reports.
+- **Rubble look:** coursed boxes on the kit's rock texture, more regular than the artworks' stones, with dark joints
+  on the inside faces. A sculpted or Meshy-made wall face would get closer.
+- **Door look:** the kit's `Poor small door` (planks with diagonal ledges), not the strap-hinged door of artwork B1.
+- **The hall's root height is a saved hand edit** 7 cm above what Sites computes since the last sculpt: a Sites run
+  warns about the fit, and hoist goods without a saved edit end 7 cm off the ground. Recapture the ground and refit
+  the model (which moves the floor, the waypoints and both restricted areas down), or keep the hand edit.
+- **`hand-edits.json` pins two hoist crates that no longer exist** (`SM_Crate_01`, `SM_Crate_02`, replaced by the
+  light `SM_Crate_B_01`): untick them in the Hand Edits window.
+- **`Place Warehouse Cellar` only opens hole cells.** After shrinking or moving the cellar, close the old cells by
+  hand (or run the terrain tool, which rewrites every hole).
+- **The warehouse model is 57,086 triangles** (accepted by the user), over the spec's 55,000 cap, since every cellar wall became rubble
+  in a larger room (16,766 for `CellarWalls`). Cheapest cut: larger stones above 2.6 m.
+- **Cellar goods are about 27,000 triangles** at LOD0 (10 casks at 1,716, 3 crates at 1,336, sacks), beside a model
+  of 51,110.
+- **The scene instance was placed without a full Sites run** (the prefab instance set at the pinned pose, goods
+  built by the Sites code): a full run has not rebuilt it yet.

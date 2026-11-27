@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Wh_Earth
+    second: {fileID: 2100000, guid: 5205ec4f94eca5d499ce4acb6643e8fb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Wh_Frame
     second: {fileID: 2100000, guid: 16309e701b505cb48af42a3950ba0471, type: 2}
   - first:

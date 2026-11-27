@@ -3,7 +3,8 @@
 > Loaded when Claude accesses files in this folder. Worker camp art pass: the board-built hut shell, the Hivemind kit
 > rules (props, scale, kit lights), custom Blender camp pieces and interior density. Hut prefabs:
 > `Prefabs/World/Huts/CLAUDE.md`. Warehouse look (captures, prompts, build brief): `WAREHOUSE_CONCEPTS.md`; its
-> model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`.
+> model and prefab pipeline: `Prefabs/World/Warehouse/CLAUDE.md`. The cellar under it (captures, prompts, build brief, as built):
+> `WAREHOUSE_CELLAR_CONCEPTS.md`.
 > Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`;
 > the canteen (cookhouse, mess, back alley): `CANTEEN_CONCEPTS.md`; its model and prefab pipeline:
 > `Prefabs/World/Cookhouse/CLAUDE.md`. The home yard's owned huts (Tam, Pim and Gerrit, Bren) and its rearranged
@@ -71,7 +72,8 @@ Targets: `Art/Artworks/Starting area/Camp/H1 home yard day`, `H2 hut interior`, 
   squeezes the mapping across the grain so the piece stays inside one plank (no seam; the grain reads a little
   finer across). Its other materials are also kit textures in own URP Lit materials: `M_Camp_Shingle` and
   `M_Camp_ShinglePale` (the wood texture tinted grey / pale; each shingle is one plank), `M_Camp_TarredWood` (post
-  feet), `M_Camp_Rubble` (`T_RockTile`, box-projected at 1 m per tile), `M_Camp_Iron` (`T_Iron` is an **atlas** of
+  feet), `M_Camp_Rubble` (`T_RockTile`, box-projected at 1 m per tile) and `M_Camp_Earth` (the terrain's mud texture at 3 m per tile: a packed-earth
+  floor), `M_Camp_Iron` (`T_Iron` is an **atlas** of
   hinge shapes: every iron face is mapped inside its one plain patch, `IRON_UV`).
 - **Round logs.** A trunk is wrapped onto two planks of the same texture (three for a post), going there and back
   round it, so the wrap closes without a seam and half a 0.3 m trunk's girth covers about its true width of texture.

@@ -271,7 +271,10 @@ namespace Game.Editor.World
                 for (int x = 0; x < HEIGHT_RES; x++)
                     normalized[z, x] = (heights[z, x] - TERRAIN_Y) / TERRAIN_HEIGHT;
             data.SetHeights(0, 0, normalized);
-            data.SetHoles(0, 0, CopyHoles(source, data.holesResolution));
+            bool[,] holes = CopyHoles(source, data.holesResolution);
+            // The warehouse cellar is a room under the ground: its hole is not in the source asset.
+            WarehouseBuilder.CutCellarHole(holes, new Vector2(-TERRAIN_SIZE * 0.5f, -TERRAIN_SIZE * 0.5f), TERRAIN_SIZE);
+            data.SetHoles(0, 0, holes);
 
             TerrainLayer[] layers = source.terrainLayers;
             data.terrainLayers = new[] { layers[0], layers[1], layers[2], layers[3], rock };

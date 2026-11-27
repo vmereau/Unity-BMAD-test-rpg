@@ -34,11 +34,51 @@ namespace Game.Editor.World
         // the bank: the way from the river ramp to the dock gate passes north of them.
         private static readonly (string kit, Vector2 local, float yaw, float scale, bool solid)[] HoistGoods =
         {
-            ("SM_Crate_01", new Vector2(1.67f, -0.45f), 8f, 0.62f, true),
-            ("SM_Crate_02", new Vector2(2.37f, -0.5f), -15f, 0.5f, true),
+            // SM_Crate_B_01 (0.6 m, 1,336 triangles): the kit's SM_Crate_01 / _02 are film-size meshes (about 300,000 each)
+            ("SM_Crate_B_01", new Vector2(1.67f, -0.45f), 8f, 1.08f, true),
+            ("SM_Crate_B_01", new Vector2(2.37f, -0.5f), -15f, 0.88f, true),
             ("SM_Sack_01", new Vector2(0.47f, 0.4f), 40f, 1f, false),
             ("SM_Sack_01", new Vector2(0.92f, 0.6f), 130f, 1f, false),
             ("SM_Sack_02", new Vector2(1.37f, 0.5f), 75f, 1f, false),
+        };
+
+        /// <summary>
+        /// The cellar's stores, in the warehouse prefab's frame (x east, z north): kit piece, x, z, height above the
+        /// cellar's floor, yaw, scale, solid. They keep clear of the walk from the door
+        /// round the pillars to the back (WarehousePrefabTests), of the ladder's foot and of the door's swing.
+        /// </summary>
+        private static readonly (string kit, float x, float z, float up, float yaw, float scale, bool solid)[] CellarGoods =
+        {
+            // casks against the back wall, east of the corner pier, two of them on top
+            ("SM_WoodBarrel_01a", -0.2f, -1.2f, 0f, 20f, 1f, true),
+            ("SM_WoodBarrel_01a", 0.6f, -1.25f, 0f, 140f, 1f, true),
+            ("SM_WoodBarrel_01a", 1.4f, -1.2f, 0f, 250f, 1f, true),
+            ("SM_WoodBarrel_01a", 0.2f, -1.2f, 0.99f, 75f, 1f, false),
+            ("SM_WoodBarrel_01a", 1f, -1.22f, 0.99f, 310f, 1f, false),
+            // the east back corner
+            ("SM_WoodBarrel_01a", 4.4f, -1.2f, 0f, 60f, 1f, true),
+            ("SM_WoodBarrel_01a", 3.62f, -1.18f, 0f, 200f, 1f, true),
+            ("SM_WoodBarrel_01a", 4.42f, -0.4f, 0f, 115f, 1f, true),
+            ("SM_WoodBarrel_01a", 4.1f, -1f, 0.99f, 15f, 1f, false),
+            // along the east wall by the beam: a cask and a crate
+            ("SM_WoodBarrel_01a", 4.42f, 0.6f, 0f, 33f, 1f, true),
+            ("SM_Crate_B_01", 4.45f, 1.8f, 0f, 12f, 1f, true),
+            // sacks against the west wall, south of the ladder
+            ("SM_Sack_01", -0.7f, 1.2f, 0f, 70f, 1f, false),
+            ("SM_Sack_01", -0.65f, 0.55f, 0f, 200f, 1f, false),
+            ("SM_Sack_02", -0.7f, 0.85f, 0.3f, 120f, 1f, false),
+            // crates along the east wall
+            ("SM_Crate_B_01", 4.48f, 3.05f, 0f, 4f, 1.1f, true),
+            ("SM_Crate_B_01", 4.5f, 3.08f, 0.66f, 19f, 0.85f, false),
+            ("SM_Crate_B_01", 4.5f, 4.75f, 0f, -8f, 1f, true),
+            // sacks by the west pillar, and two casks inside the door (west of its opening)
+            ("SM_Sack_01", -0.65f, 4.75f, 0f, 30f, 1f, false),
+            ("SM_Sack_01", -0.2f, 5.05f, 0f, 150f, 1f, false),
+            ("SM_Sack_02", -0.45f, 4.9f, 0.3f, 80f, 1f, false),
+            ("SM_WoodBarrel_01a", 2.42f, 6.5f, 0f, 95f, 1f, true),
+            // waiting outside on the shelf, east of the door's post (the shelf lies 0.3 m under the cellar's floor)
+            ("SM_WoodBarrel_01a", 5.35f, 7.85f, -0.3f, 40f, 1f, true),
+            ("SM_WoodBarrel_01a", 6.05f, 7.75f, -0.3f, 170f, 0.92f, true),
         };
 
         private const float POST_WALL_HEIGHT = 3f;
@@ -117,6 +157,8 @@ namespace Game.Editor.World
                     GameLog.Warn(TAG, $"Warehouse stands at {root.position:F2} but the model was fitted at {fitted:F2}: run Tools/World/Capture Warehouse Ground (now that the root is in place), build_warehouse.py and Build Warehouse Prefab.");
                 if (WarehouseBuilder.TryGetHoistDrop(out Vector2 drop)) BuildHoistGoods(center + drop, terrain, root);
                 else GameLog.Warn(TAG, "The warehouse's parts file has no 'hoistDrop': no goods placed under the hoist.");
+                if (WarehouseBuilder.TryGetCellar(out WarehouseBuilder.CellarFacts cellar)) BuildCellarGoods(cellar.FloorY, root);
+                else GameLog.Warn(TAG, "The warehouse's parts file has no usable 'cellar': no stores placed in the cellar.");
                 return;
             }
             GameLog.Error(TAG, $"{WarehouseBuilder.PREFAB_PATH} not found: built the graybox warehouse instead. Run Tools/World/Build Warehouse Prefab, then Sites again.");
@@ -197,6 +239,24 @@ namespace Game.Editor.World
                 prop.SetPositionAndRotation(new Vector3(at.x, Area1BlockoutBuilder.Ground(terrain, at), at.y), Quaternion.Euler(0f, yaw, 0f));
                 prop.localScale = Vector3.one * scale;
                 if (prop.name.StartsWith(MISSING_PREFIX)) GameLog.Error(TAG, $"Hoist goods: kit piece '{kit}' not found; an empty '{prop.name}' stands in for it.");
+                else if (solid)
+                    foreach (Collider collider in prop.GetComponentsInChildren<Collider>(true)) collider.enabled = true;
+                else
+                    prop.gameObject.AddComponent<Unity.AI.Navigation.NavMeshModifier>().ignoreFromBuild = true;
+            }
+        }
+
+        private static void BuildCellarGoods(float floorY, Transform root)
+        {
+            var goods = new GameObject("CellarGoods").transform;
+            goods.SetParent(root, false);
+            foreach ((string kit, float x, float z, float up, float yaw, float scale, bool solid) in CellarGoods)
+            {
+                Transform prop = WorkerHutKitBuilder.Piece(kit, goods, Vector3.zero);
+                // In the root's frame, not on the terrain: the room's floor is the model's, and the root can be pinned by a hand edit.
+                prop.SetPositionAndRotation(root.TransformPoint(new Vector3(x, floorY + up, z)), Quaternion.Euler(0f, yaw, 0f));
+                prop.localScale = Vector3.one * scale;
+                if (prop.name.StartsWith(MISSING_PREFIX)) GameLog.Error(TAG, $"Cellar goods: kit piece '{kit}' not found; an empty '{prop.name}' stands in for it.");
                 else if (solid)
                     foreach (Collider collider in prop.GetComponentsInChildren<Collider>(true)) collider.enabled = true;
                 else

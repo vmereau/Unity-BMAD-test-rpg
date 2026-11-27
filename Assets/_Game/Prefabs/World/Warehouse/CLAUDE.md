@@ -1,8 +1,8 @@
 # CLAUDE.md — Assets/_Game/Prefabs/World/Warehouse
 
 > The Area 1 warehouse (`StartingTown` → `Area1_Blockout/Warehouse`): a script-built Blender model wrapped in a
-> generated prefab. Look and build brief: `Art/Environment/Camp/WAREHOUSE_CONCEPTS.md`; wood rules:
-> `Art/Environment/Camp/CLAUDE.md`.
+> generated prefab. Look and build brief: `Art/Environment/Camp/WAREHOUSE_CONCEPTS.md`; the cellar under it:
+> `Art/Environment/Camp/WAREHOUSE_CELLAR_CONCEPTS.md`; wood rules: `Art/Environment/Camp/CLAUDE.md`.
 
 ---
 
@@ -15,7 +15,8 @@
 | 1 | `Tools/World/Capture Warehouse Ground` (`Editor/World/WarehouseBuilder`), with `StartingTown` open | `models/warehouse/Source~/warehouse_ground.json`: terrain + `SM_Rock*` scene roots, 0.25 m grid, heights relative to the floor |
 | 2 | `models/warehouse/Source~/build_warehouse.py` in Blender (`blender -b -P`, or in a session `runpy.run_path(path, run_name="__main__")`) | `Warehouse.fbx`, `Warehouse.json` (parts file), `Source~/Warehouse.blend` |
 | 3 | `Tools/World/Build Warehouse Prefab` | `Warehouse.prefab` |
-| 4 | `Tools/World/Build Area 1 Sites` places it (`Area1CampInterior.BuildWarehouse`), then rebake the NavMesh | the scene root |
+| 4 | `Tools/World/Build Area 1 Sites` places it (`Area1CampInterior.BuildWarehouse`), then rebake the NavMesh | the scene root, `HoistGoods`, `CellarGoods` |
+| 5 | `Tools/World/Place Warehouse Cellar` (once, and again if the cellar's plan changes) | the terrain hole over the cellar, `RestrictedAreas/RA_WarehouseCellar` |
 
 - Rerun from step 1 after moving a rock near the hall, sculpting there, or moving the `warehouse` zone: posts,
   trestle legs, padstones and rubble are modelled against the capture. Sites warns when the floor it computes is
@@ -61,11 +62,62 @@ Local frame: x east, y up, z north (the river); origin on the floor's top at the
   by `ClockNightLight`. Values: the constants at the top of `WarehouseBuilder`.
 - Tests: `Tests/EditMode/WarehousePrefabTests` (ramp box, clear doorways and decks, handrails, lanterns).
 
+## Cellar (`spec-area-1-warehouse-cellar`)
+
+A room under the landing and most of the hall (6.1 × 8.9 m), dry-stone rubble on every side: inside faces local
+x −1.2..4.9, z −1.9..7.0, floor at world y 0.1 (local −4.55), about 4.3 m to the hall's joists. Sizes are the `CELLAR_*` constants of the script.
+
+- **The terrain has a hole over it** (cells x 526..532, z 563..571 of the 1024 hole map). Heights are untouched,
+  so Sites still finds the same floor. The parts file's `cellar.hole` is a rectangle in the prefab's frame; every
+  hole cell wholly inside it is cut (`WarehouseBuilder.HoleCells`). `Place Warehouse Cellar` cuts it in the scene;
+  the terrain tool cuts it again on every run (`CutCellarHole`, after the source asset's holes are copied).
+- **The ground capture still holds the old bank.** `Ground.at` in the script answers with the cellar's floor inside
+  the room, so the hall's two door posts and the landing's middle posts come down to it as pillars on their own. A beam on
+  two more posts (`CELLAR_BEAM_Z`) carries the joists midway to the back wall.
+  `Ground.raw` is the captured ground, for what stands outside.
+- **Walls hide the hole's edge:** 1.2 m thick under the hall's west side and at the back, 0.7 m on the east. The
+  hole stops 0.4 m short of the front wall (its next row of cells would open the shelf outside): the ground left
+  there rises above the floor at x −1.2..0.8, and the front wall's west bay is built 0.55 m into the room over it
+  (`CELLAR_BAY_IN`). Moving a wall inward means checking `cellar.hole` against it
+  (`WarehousePrefabTests.CellarRestrictedBox_AndHole_StayInsideTheWalls`).
+- **The back wall cannot go further south.** Hand-placed rocks (`SM_Rock_06 (20)`, `(21)`, `SM_Rock_07 (2)`, `(4)`)
+  are buried under the hall's south part and reach world z 49.8; the back face stands at z 50.1. One of them pokes
+  0.4 m in at the south-west corner, 2.5–3.5 m up: the corner pier (`CELLAR_PIER`) is there to hide it. Before
+  moving a cellar wall, ray-test the new volume against the `SM_Rock*` colliders: the hole bares what is buried.
+- **Model objects:** `Cellar` (earth floor, door frame, sealing boards under the hall's floor and the landing's
+  deck, joists, ladder) and `CellarWalls` (rubble stones on cores). Both are in the bake. The floor is `M_Camp_Earth` (kit mud texture).
+  A stone on a face seen only from the room has no underside below 1.2 m and no top above 2.1 m (`room=True`).
+- **Closed overhead:** a tight layer of boards under the floor and the deck. Without it the sun draws stripes on
+  the cellar floor through the 4 mm gaps between the boards.
+- **Dock door:** `CellarDoor`, a nested instance of `Prefabs/World/Doors/Poor small door` (1.1 m leaf, stretched
+  1.06 in height for 2.1 m of headroom), hung on the east jamb, unlocked, opening into the room, save id
+  `area1-warehouse-cellar-door`. It is left out of the bake, so the shut leaf does not cut the room off the NavMesh.
+- **Hatch:** boards, two strap hinges and a ring lying 1.6 cm proud of the hall's floor at local x −0.8..0.2,
+  z 2.3..3.3. Visual only: the `Floor` walk box runs under it. Opening it and climbing the ladder is a later spec.
+- **Colliders** `Colliders/Cellar` (walls, the door's step, the hall's and the beam's posts, the ladder); walk box `Cellar`.
+  `Colliders/Rubble/Skirt_River` is in two pieces (`Skirt_River`, `Skirt_River_East`) either side of the room, and
+  so is the palisade line's (`Skirt`, `Skirt_Line_East`): the room passes under that line and its side walls close it;
+  `NavMesh/UnderFloor` is in three, leaving the room out.
+- **Lanterns:** `CellarLantern_Door` outside (a night light like the cart doors') and, inside, `CellarLantern_Inside` on
+  the landing's middle pillar and `CellarLantern_Back` on the beam's west post, marked `always` in the parts file:
+  low lights that are simply on, with no clock. They cast soft shadows: unshadowed, a light that is on by day shows
+  through the front wall on the dock.
+- **Stores:** `CellarGoods` (Sites, the table in `Area1CampInterior`): kit casks, crates and sacks, placed in the
+  root's frame. They keep the walk from the door round the pillars to the back clear.
+- **`RA_WarehouseCellar`** is the warehouse guard's at all hours. It lies inside `RA_Docks` (Company, 21–06) too.
+
 ## Known limits
 
 - The terrain rises up to 7 cm above the floor over about 2 × 2 m inside the hall (world x 13.5–15.5, z 52.2–54.5):
-  the Sites tool samples the footprint on a 5 × 5 grid and misses that crest. It shows as a patch of ground through
-  the boards. Fix: a small terrain dip there (then capture the sculpt), not a higher floor.
+  the Sites tool samples the footprint on a 5 × 5 grid and misses that crest. North of z 51.8 the cellar's hole
+  has removed it; a strip may still show through the boards south of that. Fix: a small terrain dip there (then
+  capture the sculpt), not a higher floor.
+- **The root's pose is a saved hand edit** (`hand-edits.json` → `Warehouse`, y 4.647). A later sculpt lowered what
+  Sites computes to 4.574, so a Sites run warns about the fit and then the hand edit puts the root back. Placing
+  the prefab without a full Sites run means setting that pose by hand. Goods Sites stands on the terrain
+  (`HoistGoods`) are placed before the hand edit moves the root: an unpinned one ends 7 cm off the ground.
+- `hand-edits.json` still pins `Warehouse/HoistGoods/SM_Crate_01` and `SM_Crate_02`, which are now
+  `SM_Crate_B_01`: each Sites run warns that they match nothing. Untick them in the Hand Edits window.
 - The palisade butts into the round junction log at the middle of each gable (0.4 m; the east one runs up to the
   ridge, the west one stops under the hatch): the Camp Edge tool ends its logs 0.06 m outside the footprint there.
   The wall's line passes 0.1–0.3 m north of the logs' axis (z 52.1–52.3 against z 52), so the last log leans on the

@@ -16,6 +16,11 @@ every piece is mapped onto ONE plank, grain along it, 2 m per tile. A timber wid
 squeezed across the grain to stay inside its plank. Stone is box-projected at 1 m per tile.
 
 Sizes that the game depends on (WAREHOUSE_CONCEPTS.md -> Build brief) are the constants of the first block.
+
+The cellar (WAREHOUSE_CELLAR_CONCEPTS.md) is a room under the landing and most of the hall, rubble-walled. The terrain is
+cut away there by a hole (WarehouseBuilder.PlaceCellar reads `cellar.hole` from the parts file), so the ground
+capture still holds the old bank: `Ground.at` answers with the cellar's floor inside the room, and every post
+that stands there comes down to it on its own.
 """
 import json
 import math
@@ -39,6 +44,24 @@ HOIST_REACH = 2.6
 HOIST_ROPE = 5.0
 WALL_BOX = 0.4                       # collider thickness, as the placeholder's walls
 
+# --- Cellar (WAREHOUSE_CELLAR_CONCEPTS.md -> Build brief), in the prefab's frame --------------------
+CELLAR_X = (-1.2, 4.9)               # inside faces, west and east
+CELLAR_Z = (-1.9, 7.0)               # inside faces, back (0.2 m clear of the buried rocks) and front (the dock wall)
+CELLAR_FLOOR_WORLD_Y = 0.1           # set against the dock shelf (y -0.2), not against the hall
+CELLAR_TOP = -0.08                   # walls stop under the sealing boards
+CELLAR_WALL = 1.2                    # thickness where a wall hides the terrain hole's edge
+CELLAR_FRONT = 0.35                  # the front wall, behind the landing's front posts
+CELLAR_DOOR = (2.88, 4.02, 2.14)     # opening: min x, max x, height (the door prefab's leaf is 1.1 m wide)
+CELLAR_DOOR_SCALE_Y = 1.06           # Poor small door is 2.01 m tall: stretched to the camp's 2.1 m headroom
+CELLAR_JAMB = 0.14
+CELLAR_BAY_X = 1.9                   # west of this the front wall is thick: the ground the hole leaves stands in it
+CELLAR_BAY_IN = 0.55                 # ... this far into the room
+CELLAR_PIER = (0.5, 2.0)             # south-west corner pier (width, length): a buried rock reaches into the room there
+CELLAR_BEAM_Z = 1.0                  # a beam on two posts carries the joists midway between the back wall and the hall's north wall
+CELLAR_HATCH = (-0.8, 0.2, 2.3, 3.3) # min x, max x, min z, max z in the hall's floor
+CELLAR_HOLE = (-1.40, -2.85, 5.60, 6.95)   # terrain hole cells must lie wholly inside: min x, min z, max x, max z
+CELLAR_SHOULDER = (5.3, 6.1)         # east of the landing the wall steps down the bank
+
 # --- Construction ---------------------------------------------------------------------------------
 POST = 0.26                          # squared posts
 FACE = 0.04                          # posts' outer face, inside the footprint line
@@ -59,8 +82,10 @@ STONE_TILE = 1.0
 # The plain patch of the kit's iron atlas (T_Iron): every iron face is mapped inside it.
 IRON_UV = (0.04, 0.17, 0.42, 0.055)
 
-WOOD, FRAME, SHINGLE, PALE, RUBBLE, IRON, ROPE, TAR = range(8)
-MATERIALS = ("Wh_Wood", "Wh_Frame", "Wh_Shingle", "Wh_ShinglePale", "Wh_Rubble", "Wh_Iron", "Wh_Rope", "Wh_Tar")
+WOOD, FRAME, SHINGLE, PALE, RUBBLE, IRON, ROPE, TAR, EARTH = range(9)
+MATERIALS = ("Wh_Wood", "Wh_Frame", "Wh_Shingle", "Wh_ShinglePale", "Wh_Rubble", "Wh_Iron", "Wh_Rope", "Wh_Tar",
+             "Wh_Earth")
+TILE_OF = {EARTH: 3.0}    # box projection, metres per tile (rubble: STONE_TILE)
 TAN, COS, SIN = math.tan(PITCH), math.cos(PITCH), math.sin(PITCH)
 DOOR_A, DOOR_B = DOOR_X - DOOR_W * 0.5, DOOR_X + DOOR_W * 0.5
 POST_X = (-(HW - FACE - POST * 0.5), -2.9, DOOR_A - POST * 0.5, DOOR_B + POST * 0.5, HW - FACE - POST * 0.5)
@@ -100,8 +125,15 @@ class Ground:
         self.columns, self.rows = data["columns"], data["rows"]
         self.floor_world_y = data["floorWorldY"]
         self.centre = data["centre"]
+        self.cellar_floor = CELLAR_FLOOR_WORLD_Y - self.floor_world_y
 
     def at(self, x, z):
+        """The ground a post stands on: the cellar's floor inside the room, the captured ground elsewhere."""
+        if CELLAR_X[0] < x < CELLAR_X[1] and CELLAR_Z[0] < z < CELLAR_Z[1]:
+            return self.cellar_floor
+        return self.raw(x, z)
+
+    def raw(self, x, z):
         # a query outside the capture would silently read the edge row: widen the grid in WarehouseBuilder instead
         if not (self.min_x - self.step <= x <= self.min_x + (self.columns - 1) * self.step + self.step
                 and self.min_z - self.step <= z <= self.min_z + (self.rows - 1) * self.step + self.step):
@@ -119,6 +151,12 @@ class Ground:
 
     def high(self, x, z, r=0.15):
         return max(self.at(x + dx, z + dz) for dx in (-r, 0, r) for dz in (-r, 0, r))
+
+    def raw_low(self, x, z, r=0.15):
+        return min(self.raw(x + dx, z + dz) for dx in (-r, 0, r) for dz in (-r, 0, r))
+
+    def raw_high(self, x, z, r=0.15):
+        return max(self.raw(x + dx, z + dz) for dx in (-r, 0, r) for dz in (-r, 0, r))
 
 
 class Mesh:
@@ -157,7 +195,8 @@ class Mesh:
                 if sum(n[k] * (mid[k] - centre_b[k]) for k in range(3)) < 0:
                     idx.reverse()
                 if mode == "stone":
-                    uv = [(off[0] + local[i][b] / STONE_TILE, off[1] + local[i][c] / STONE_TILE) for i in idx]
+                    tile = TILE_OF.get(mat, STONE_TILE)
+                    uv = [(off[0] + local[i][b] / tile, off[1] + local[i][c] / tile) for i in idx]
                 elif mode == "iron":
                     u0, v0, du, dv = IRON_UV
                     uv = [(u0 + du * (0.5 + 0.9 * local[i][b] / max(span[b], 1e-4) * min(1.0, span[b] / 0.4)),
@@ -338,7 +377,8 @@ class Warehouse:
         self.g = ground
         self.rng = random.Random(seed)
         self.parts = {name: Mesh(self.rng) for name in
-                      ("Frame", "Walls", "Floor", "Roof", "Doors", "Ramps", "Landing", "Hoist", "Rubble", "Iron")}
+                      ("Frame", "Walls", "Floor", "Roof", "Doors", "Ramps", "Landing", "Hoist", "Rubble", "Iron",
+                       "Cellar", "CellarWalls")}
         self.colliders, self.walk, self.not_walkable, self.lanterns = [], [], [], []
 
     # -- parts file --------------------------------------------------------------------------------
@@ -745,6 +785,8 @@ class Warehouse:
                     if 0 <= i + int(d) < len(posts_x):
                         self.knee(landing, (x, z), foot, beam_y[0], (d, 0.0), reach=1.1)
         for x in posts_x:   # one diagonal per line of posts, from the inner foot up to the outer head
+            if CELLAR_X[0] < x < CELLAR_X[1]:           # the cellar's front wall stands between the two rows
+                continue
             fa = self.g.low(x, rows_z[1], 0.12) + PAD
             if beam_y[0] - 0.25 - (fa + 0.5) < 0.5:   # no room for a diagonal over high ground
                 continue
@@ -809,6 +851,9 @@ class Warehouse:
             if cell < 0.25:
                 break
             mx, mz = a[0] + ux * (s + cell * 0.5) + inward[0] * face, a[1] + uz * (s + cell * 0.5) + inward[1] * face
+            if CELLAR_X[0] - 0.3 < mx < CELLAR_X[1] + 0.3 and CELLAR_Z[0] < mz < CELLAR_Z[1]:   # the cellar is open here
+                s += cell
+                continue
             g = min(self.g.low(mx - inward[0] * 0.3, mz - inward[1] * 0.3, 0.25), self.g.low(mx, mz, 0.25))
             height = min(2.0, max(1.1, height + rng.uniform(-0.25, 0.25)))
             top = sill_y if full else min(sill_y, g + height)
@@ -849,20 +894,310 @@ class Warehouse:
         self.bank((HW, -HD), (HW, HD), (-1.0, 0.0), sill)
         # the palisade line under the floor, packed to the joists: the fence stays closed here
         self.bank((-HW + 0.5, -0.2), (HW - 0.5, -0.2), (0.0, 1.0), -DECK - 0.02, full=True, face=0.2)
-        low = min(self.g.low(x * 0.5, z, 0.2) for x in range(-12, 13) for z in (-HD, 0.0, HD)) - 0.6
-        low = min(low, min(self.g.low(sx * HW, z * 0.5, 0.2) for sx in (-1, 1) for z in range(-8, 9)) - 0.6)
+        low = min(self.g.raw_low(x * 0.5, z, 0.2) for x in range(-12, 13) for z in (-HD, 0.0, HD)) - 0.6
+        low = min(low, min(self.g.raw_low(sx * HW, z * 0.5, 0.2) for sx in (-1, 1) for z in range(-8, 9)) - 0.6)
         t = 0.5
         # nothing passes under the hall: the perimeter and the palisade line are solid from the ground to the floor
         self.collider("Skirt_Camp", "Rubble", (0.0, low * 0.5, -HD + t * 0.5 + 0.05), (HW * 2.0, -low, t))
-        self.collider("Skirt_River", "Rubble", (0.0, low * 0.5, HD - t * 0.5 - 0.05), (HW * 2.0, -low, t))
+        # under the river wall the line is open over the cellar, whose own walls close it on both sides
+        cx0, cx1 = CELLAR_X
+        self.collider("Skirt_River", "Rubble", ((-HW + cx0) * 0.5, low * 0.5, HD - t * 0.5 - 0.05), (cx0 + HW, -low, t))
+        self.collider("Skirt_River_East", "Rubble", ((HW + cx1) * 0.5, low * 0.5, HD - t * 0.5 - 0.05), (HW - cx1, -low, t))
         self.collider("Skirt_West", "Rubble", (-HW + t * 0.5 + 0.05, low * 0.5, 0.0), (t, -low, HD * 2.0))
         self.collider("Skirt_East", "Rubble", (HW - t * 0.5 - 0.05, low * 0.5, 0.0), (t, -low, HD * 2.0))
-        self.collider("Skirt", "Rubble", (0.0, low * 0.5, 0.0), (HW * 2.0, -low, WALL_BOX))
+        # the palisade line: since the cellar reaches south of it, the cellar's side walls close it there
+        self.collider("Skirt", "Rubble", ((-HW + cx0) * 0.5, low * 0.5, 0.0), (cx0 + HW, -low, WALL_BOX))
+        self.collider("Skirt_Line_East", "Rubble", ((HW + cx1) * 0.5, low * 0.5, 0.0), (HW - cx1, -low, WALL_BOX))
         # The boxes above have no renderer and the rubble is left out of the bake: without a volume the ground
         # under the tall corner could keep NavMesh. Its top stays under the boards, so the floor is not cut.
         under = -0.6
-        self.collider("UnderFloor", "NotWalkable", (0.0, (low + under) * 0.5, 0.0), (HW * 2.0, under - low, HD * 2.0),
-                      into=self.not_walkable)
+        # ... and it leaves the cellar out: its floor is walked on.
+        cz0 = CELLAR_Z[0]
+        for name, xa, xb, za, zb in (("UnderFloor", -HW, HW, -HD, cz0), ("UnderFloor_West", -HW, cx0, cz0, HD),
+                                     ("UnderFloor_East", cx1, HW, cz0, HD)):
+            self.collider(name, "NotWalkable", ((xa + xb) * 0.5, (low + under) * 0.5, (za + zb) * 0.5),
+                          (xb - xa, under - low, zb - za), into=self.not_walkable)
+
+    # -- cellar ------------------------------------------------------------------------------------
+    def face(self, a, b, y0, y1, out, holes=(), top_of=None, bottom_of=None, room=False):
+        """Coursed dry-stone on the upright face a -> b (x, z) from y0 to y1; `out` is the way the face looks.
+        `holes`: (from, to, y from, y to) along the line. A stone has no back face: a core stands behind it.
+        `room`: a face seen only from the cellar's floor, whose low stones need no underside and high ones no top."""
+        walls, rng = self.parts["CellarWalls"], self.rng
+        dx, dz = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dz)
+        ux, uz = dx / length, dz / length
+        az = (out[0], 0.0, out[1])
+        y = y0
+        while y < y1 - 0.06:
+            h = min(rng.uniform(0.15, 0.3), y1 - y)
+            if y1 - (y + h) < 0.1:
+                h = y1 - y
+            spans = [(0.0, length)]
+            for s0, s1, ya, yb in holes:
+                if y + h > ya + 0.01 and y < yb - 0.01:
+                    spans = [p for lo, hi in spans for p in ((lo, min(hi, s0)), (max(lo, s1), hi)) if p[1] - p[0] > 0.05]
+            for lo, hi in spans:
+                s = lo
+                while s < hi - 0.01:
+                    w = rng.uniform(0.26, 0.66)
+                    if hi - (s + w) < 0.2:
+                        w = hi - s
+                    mid = s + w * 0.5
+                    back = 0.13 + rng.uniform(-0.05, 0.03)     # some stones stand proud, some sit back
+                    tilt = rng.uniform(-0.07, 0.07)
+                    turn = rng.uniform(-0.09, 0.09)             # and none lies square to the wall
+                    if (top_of is None or y + h <= top_of(mid) + 0.04) and (bottom_of is None or y + h > bottom_of(mid) - 0.1):
+                        c = (a[0] + ux * mid - out[0] * back, y + h * 0.5, a[1] + uz * mid - out[1] * back)
+                        along = norm((ux + out[0] * turn, tilt, uz + out[1] * turn))
+                        skip = ((2, 0),)
+                        if room:
+                            eye = y + h * 0.5 - self.g.cellar_floor
+                            skip += ((1, 0),) if eye < 1.2 else ((1, 1),) if eye > 2.1 else ()
+                        walls.framed(c, along, (0.0, 1.0, 0.0), az, (w * 0.5 + 0.01, h * 0.5 + 0.008, 0.15),
+                                     0, RUBBLE, skip=skip, mode="stone", jitter=0.2)
+                    s += w
+            y += h
+
+    def core(self, x0, x1, y0, y1, z0, z1, inset=0.08):
+        """The body of a rubble wall, a little inside its faces: what shows in the joints between the stones."""
+        self.parts["CellarWalls"].box((x0 + inset, y0, z0 + inset), (x1 - inset, y1 - 0.02, z1 - inset), 0, RUBBLE,
+                                      skip=((1, 0),), mode="stone")
+
+    def cap(self, x0, x1, z0, z1, y):
+        """Flat stones on a wall top that is open to the sky."""
+        walls, rng = self.parts["CellarWalls"], self.rng
+        z = z0
+        while z < z1 - 0.05:
+            d = min(rng.uniform(0.4, 0.6), z1 - z)
+            x = x0
+            while x < x1 - 0.05:
+                w = min(rng.uniform(0.38, 0.6), x1 - x)
+                h = rng.uniform(0.1, 0.17)
+                walls.stone((x + w * 0.5, y + h * 0.5 - 0.04, z + d * 0.5), (w * 1.05, h, d * 1.05), yaw=rng.uniform(-0.12, 0.12))
+                x += w
+            z += d
+
+    def cellar(self):
+        """The room under the landing and most of the hall: dry-stone rubble on every side, a door to the dock
+        shelf, a shut hatch and a ladder to the hall."""
+        cel, walls, iron, doors = (self.parts[k] for k in ("Cellar", "CellarWalls", "Iron", "Doors"))
+        rng, g = self.rng, self.g
+        x0, x1 = CELLAR_X
+        z0, z1 = CELLAR_Z
+        fy, top = g.cellar_floor, CELLAR_TOP
+        zf = z1 + CELLAR_FRONT                       # the front wall's outer face
+        door_a, door_b, door_h = CELLAR_DOOR
+        rough_a, rough_b = door_a - CELLAR_JAMB, door_b + CELLAR_JAMB
+        lintel_top = fy + door_h + 0.26
+        bay_x, bay_z = CELLAR_BAY_X, z1 - CELLAR_BAY_IN    # the thick west bay of the front wall
+        pier_w, pier_l = CELLAR_PIER
+        pier_x, pier_z = x0 + pier_w, z0 + pier_l
+        beam_z = CELLAR_BEAM_Z
+        sx0, sx1 = CELLAR_SHOULDER
+        strip_w = x0 - 0.25                          # west of the landing a strip stands full height; the rest stays under the ramp
+        west_out, west_top = x0 - 0.8, -0.62
+        # West of the landing the river ramp's deck falls away overhead: nothing there may stand higher than this,
+        # or it comes up through the deck's boards.
+        ramp_x, ramp_top = LANDING[0], -0.2
+
+        # floor: packed earth, a few flat stones trodden in
+        cel.box((x0 - 0.1, fy - 0.3, z0 - 0.1), (x1 + 0.1, fy, z1 + 0.1), 0, EARTH, skip=((1, 0),), mode="stone")
+        for sx, sz in ((3.45, 6.3), (3.1, 5.3), (3.9, 5.0), (2.6, 4.2), (1.2, 3.0), (0.2, 4.6), (4.2, 2.2),
+                       (2.0, 0.3), (3.0, -0.9), (0.9, -0.6)):
+            walls.stone((sx + rng.uniform(-0.2, 0.2), fy - 0.015, sz + rng.uniform(-0.2, 0.2)),
+                        (rng.uniform(0.4, 0.65), 0.07, rng.uniform(0.32, 0.5)))
+
+        # east wall's shoulder: steps down the bank north of the hall, each step just over the ground it hides
+        steps, edges, prev = [], (HD, HD + 1.15, HD + 2.25, zf), top - 0.5
+        for za, zb in zip(edges, edges[1:]):
+            high = max(g.raw_high(x, z, 0.1) for x in (sx0 + 0.1, (sx0 + sx1) * 0.5, sx1) for z in (za, (za + zb) * 0.5, zb))
+            prev = min(prev, high + 0.3)
+            steps.append((za, zb, prev))
+
+        def shoulder_top(z):
+            for za, zb, t in steps:
+                if z <= zb + 1e-4:
+                    return t
+            return steps[-1][2]
+
+        shelf = min(g.raw_low(x * 0.5, zf + 0.1, 0.1) for x in range(-4, 13)) - 0.15
+
+        # cores
+        self.core(x0 - CELLAR_WALL, x1 + 0.7, fy - 0.3, top, z0 - CELLAR_WALL, z0)   # back
+        self.core(x0 - 0.08, pier_x, fy - 0.3, top, z0 - 0.08, pier_z)         # the corner pier
+        self.core(x0 - CELLAR_WALL, x0, fy - 0.3, top, z0 - 0.3, HD)           # west, under the hall
+        self.core(strip_w, x0, fy - 0.3, ramp_top, HD - 0.16, zf)              # west, the strip up to the ramp's head
+        self.core(west_out, strip_w + 0.16, shelf, west_top, HD - 0.16, zf)    # west, under the ramp's head
+        self.core(x1, x1 + 0.7, fy - 0.3, top, z0 - 0.3, HD)                   # east, under the hall
+        self.core(x1, sx0, fy - 0.3, top, HD - 0.16, zf)                       # east, the full-height strip
+        for za, zb, t in steps:
+            self.core(sx0 - 0.16, sx1, shelf, t, za - 0.08, zb + 0.08)
+            self.cap(sx0, sx1, za, zb, t)
+        self.core(bay_x - 0.16, rough_a, fy - 0.3, top, z1, zf)               # front, west of the door
+        self.core(rough_b, sx0 + 0.16, fy - 0.3, top, z1, zf)                  # front, east of the door
+        self.core(rough_a - 0.16, rough_b + 0.16, lintel_top, top, z1, zf)     # front, over the lintel
+        # front, the thick west bay: under the ramp's head, then full height
+        walls.box((x0, fy - 0.3, bay_z + 0.08), (ramp_x, ramp_top - 0.02, zf - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+        walls.box((ramp_x, fy - 0.3, bay_z + 0.08), (bay_x - 0.08, top - 0.02, zf - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+        walls.box((west_out + 0.08, shelf, z1), (x0, west_top - 0.02, zf - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+
+        # rubble faces
+        holes = ((rough_a - bay_x, rough_b - bay_x, fy - 1.0, lintel_top),)
+        holes_out = ((rough_a - west_out, rough_b - west_out, fy - 1.0, lintel_top),)
+        bay_top = lambda s: ramp_top if x0 + s < ramp_x else top
+        self.face((pier_x, z0), (x1, z0), fy - 0.05, top, (0.0, 1.0), room=True)                        # back
+        self.face((pier_x, z0), (pier_x, pier_z), fy - 0.05, top, (1.0, 0.0), room=True)                # the pier
+        self.face((x0, pier_z), (pier_x, pier_z), fy - 0.05, top, (0.0, 1.0), room=True)
+        self.face((x0, pier_z), (x0, bay_z), fy - 0.05, top, (1.0, 0.0), room=True,                    # west, inside
+                  top_of=lambda s: top if pier_z + s < HD - 0.2 else ramp_top)
+        self.face((x1, z1), (x1, z0), fy - 0.05, top, (-1.0, 0.0), room=True)                           # east, inside
+        self.face((x0, bay_z), (bay_x, bay_z), fy - 0.05, top, (0.0, -1.0), top_of=bay_top, room=True)   # front bay, inside
+        self.face((bay_x, bay_z), (bay_x, z1), fy - 0.05, top, (1.0, 0.0), room=True)                # ... and its return
+        self.face((bay_x, z1), (x1, z1), fy - 0.05, top, (0.0, -1.0), holes, room=True)                # front, inside
+
+        def front_top(s):
+            x = west_out + s
+            return west_top if x < strip_w else ramp_top if x < ramp_x else top if x < sx0 else steps[-1][2]
+
+        self.face((west_out, zf), (sx1, zf), shelf, top, (0.0, 1.0), holes_out,                         # front, outside
+                  top_of=front_top, bottom_of=lambda s: g.raw(west_out + s, zf + 0.1))
+        self.face((sx1, HD), (sx1, zf), shelf, steps[0][2], (1.0, 0.0),                                  # shoulder, east
+                  top_of=lambda s: shoulder_top(HD + s), bottom_of=lambda s: g.raw(sx1 + 0.1, HD + s))
+        self.face((sx0, HD), (sx0, zf), steps[-1][2], top, (1.0, 0.0),                                   # the strip above it
+                  bottom_of=lambda s: shoulder_top(HD + s))
+        for (za, zb, upper), (_, _, lower) in zip(steps, steps[1:]):                                     # the steps' risers
+            if upper - lower > 0.12:
+                self.face((sx0, zb), (sx1, zb), lower, upper, (0.0, 1.0))
+        self.face((west_out, zf), (west_out, HD), shelf, west_top, (-1.0, 0.0),                          # west, under the ramp
+                  bottom_of=lambda s: g.raw(west_out - 0.1, zf - s))
+        self.face((strip_w, zf), (strip_w, HD), west_top, ramp_top, (-1.0, 0.0))
+
+        X, Y, Z = (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)
+        for _ in range(9):                             # loose stones at the west bay's foot, outside ...
+            sx = rng.uniform(west_out + 0.3, bay_x - 0.2)
+            sz = zf + rng.uniform(0.05, 0.3)
+            size = rng.uniform(0.2, 0.36)
+            if abs(sx - (LANDING[0] + 0.25)) > 0.4:    # clear of the landing's west post
+                walls.stone((sx, g.raw(sx, sz) + size * 0.3, sz), (size * 1.4, size * 0.8, size))
+        for _ in range(5):                             # ... and inside
+            size = rng.uniform(0.2, 0.34)
+            walls.stone((rng.uniform(x0 + 0.3, bay_x - 0.3), fy + size * 0.3, bay_z - rng.uniform(0.3, 0.5)), (size * 1.4, size * 0.8, size))
+
+        # door: jambs, lintel, threshold; the leaf is the game's door prefab (WarehouseBuilder places it)
+        for xa, xb in ((rough_a, door_a), (door_b, rough_b)):
+            cel.box((xa, fy - 0.05, z1 - 0.02), (xb, fy + door_h, zf + 0.03), 1, FRAME)
+        cel.box((rough_a - 0.2, fy + door_h, z1 - 0.05), (rough_b + 0.2, lintel_top, zf + 0.06), 0, FRAME)
+        cel.box((door_a, fy - 0.05, z1 + 0.04), (door_b, fy + 0.045, zf - 0.02), 0, FRAME)
+        step_top = fy - 0.14
+        door_mid = (door_a + door_b) * 0.5
+        walls.framed((door_mid, step_top - 0.13, zf + 0.26), X, Y, Z, (0.82, 0.13, 0.25), 0, RUBBLE, mode="stone", jitter=0.04)
+        for sx, sz in ((3.3, 8.25), (3.75, 8.95), (3.2, 9.6)):
+            walls.stone((sx, g.raw(sx, sz) + 0.01, sz), (rng.uniform(0.5, 0.7), 0.07, rng.uniform(0.38, 0.5)))
+
+        # the hall's floor and the landing's deck are sealed from below: no daylight falls through the boards
+        hx0, hx1, hz0, hz1 = CELLAR_HATCH
+        lo, hi = x0 - 0.06, x1 + 0.06
+        for za, zb in cel.rows(z0 - 0.06, zf, 0.16):
+            spans = [(lo if zb < HD else ramp_x, hi)]      # north of the hall the layer starts at the landing's edge
+            if zb > hz0 and za < hz1:
+                spans = [(lo, hx0), (hx1, hi)]
+            for xa, xb in spans:
+                for pa, pb in cel.pieces(xa, xb, 2.6, 4.0):
+                    cel.box((pa, -0.075, za), (pb, -0.052, zb), 0, WOOD, skip=((1, 1),))
+        # ... and under the ramp's head a board closes the strip between the west wall and the landing
+        cel.box((x0 - 0.1, ramp_top, HD - 0.1), (ramp_x + 0.02, ramp_top + 0.022, zf), 2, WOOD, skip=((1, 1),))
+        # joists under the hall's floor, trimmed round the hatch
+        for jx in (hx0 - 0.15, hx1 + 0.15, 1.2, 2.05, 2.9, 3.75, 4.6):
+            cel.box((jx - 0.07, -0.26, z0 - 0.1), (jx + 0.07, -0.075, HD - INNER), 2, FRAME)
+        for jz in (hz0 - 0.1, hz1 + 0.1):
+            cel.box((hx0 - 0.08, -0.24, jz - 0.06), (hx1 + 0.08, -0.075, jz + 0.06), 0, FRAME)
+
+        # a beam on two posts under the joists: the hall's floor spans 5.7 m here
+        beam_posts = [px for px in POST_X if x0 < px < x1]
+        cel.box((x0 - 0.1, -0.48, beam_z - 0.1), (x1 + 0.1, -0.26, beam_z + 0.1), 0, FRAME)
+        for bx in beam_posts:
+            walls.stone((bx, fy + 0.03, beam_z), (0.5, 0.12, 0.5), yaw=rng.uniform(-0.3, 0.3))
+            cel.box((bx - POST * 0.5, fy + 0.07, beam_z - POST * 0.5), (bx + POST * 0.5, -0.48, beam_z + POST * 0.5), 1, FRAME)
+
+        # hatch: a lid of boards lying in the hall's floor, strap hinges on its north edge, an iron ring; shut
+        for xa, xb in doors.rows(hx0, hx1, 0.16):
+            doors.box((xa + 0.003, 0.0, hz0 + 0.004), (xb - 0.003, 0.016 + rng.uniform(0.0, 0.004), hz1 - 0.004), 2, WOOD, skip=((1, 0),))
+        for hx in (hx0 + 0.22, hx1 - 0.22):
+            iron.box((hx - 0.024, 0.016, hz1 - 0.55), (hx + 0.024, 0.026, hz1 + 0.07), 2, IRON, mode="iron")
+        iron.box(((hx0 + hx1) * 0.5 - 0.06, 0.018, hz0 + 0.1), ((hx0 + hx1) * 0.5 + 0.06, 0.03, hz0 + 0.13), 0, IRON, mode="iron")
+
+        # ladder under the hatch, leaning north
+        lx, foot_z, head_z, head_y = (hx0 + hx1) * 0.5, hz0 - 0.13, hz1 - 0.05, -0.1
+        for side in (-0.25, 0.25):
+            cel.beam((lx + side, fy, foot_z), (lx + side, head_y, head_z), 0.06, 0.07, FRAME, up=Z)
+        rungs = 13
+        for i in range(1, rungs + 1):
+            t = i / (rungs + 1.0)
+            ry, rz = fy + (head_y - fy) * t, foot_z + (head_z - foot_z) * t
+            cel.beam((lx - 0.27, ry, rz), (lx + 0.27, ry, rz), 0.045, 0.045, FRAME)
+        lean = math.degrees(math.atan2(head_z - foot_z, head_y - fy))
+        ladder_len = math.hypot(head_z - foot_z, head_y - fy)
+
+        # lantern brackets: outside at the door's upper east corner, inside on the middle pillar's south face
+        hook_y = fy + 2.5
+        ox = door_b + 0.42
+        iron.box((ox - 0.012, hook_y, zf - 0.03), (ox + 0.012, hook_y + 0.024, zf + 0.34), 2, IRON, mode="iron")
+        iron.beam((ox, hook_y - 0.22, zf - 0.02), (ox, hook_y, zf + 0.22), 0.018, 0.018, IRON, up=X)
+        self.lanterns.append({"name": "CellarLantern_Door", "position": [round(ox, 3), round(hook_y - 0.34, 3), round(zf + 0.3, 3)], "out": 1})
+        px, pz = (LANDING[0] + LANDING[1]) * 0.5, HD + LANDING[2] * 0.5 - 0.12
+        iron.box((px - 0.012, hook_y, pz - 0.32), (px + 0.012, hook_y + 0.024, pz), 2, IRON, mode="iron")
+        iron.beam((px, hook_y - 0.2, pz), (px, hook_y, pz - 0.2), 0.018, 0.018, IRON, up=X)
+        self.lanterns.append({"name": "CellarLantern_Inside", "position": [round(px, 3), round(hook_y - 0.34, 3), round(pz - 0.28, 3)],
+                              "out": -1, "always": True})
+        qx, qz = beam_posts[0], beam_z - POST * 0.5      # and one for the back half, on the beam's west post
+        iron.box((qx - 0.012, hook_y, qz - 0.32), (qx + 0.012, hook_y + 0.024, qz), 2, IRON, mode="iron")
+        iron.beam((qx, hook_y - 0.2, qz), (qx, hook_y, qz - 0.2), 0.018, 0.018, IRON, up=X)
+        self.lanterns.append({"name": "CellarLantern_Back", "position": [round(qx, 3), round(hook_y - 0.34, 3), round(qz - 0.28, 3)],
+                              "out": -1, "always": True})
+
+        # colliders, walk surface, Not Walkable
+        def wall(name, xa, xb, za, zb, ya=None, yb=None):
+            ya, yb = fy - 0.3 if ya is None else ya, top if yb is None else yb
+            self.collider(name, "Cellar", ((xa + xb) * 0.5, (ya + yb) * 0.5, (za + zb) * 0.5), (xb - xa, yb - ya, zb - za))
+
+        wall("Wall_West", x0 - CELLAR_WALL, x0, z0, HD)
+        wall("Wall_West_Front", strip_w, x0, HD, zf, None, ramp_top)
+        wall("Wall_West_Ramp", west_out, strip_w, HD, zf + 0.05, shelf, west_top)
+        wall("Wall_East", x1, x1 + 0.7, z0, HD)
+        wall("Wall_East_Front", x1, sx0, HD, zf)
+        wall("Wall_East_Shoulder", sx0, sx1, HD, zf, shelf, steps[0][2])
+        wall("Wall_Back", x0 - CELLAR_WALL, x1 + 0.7, z0 - 1.0, z0)
+        wall("Wall_Pier", x0, pier_x, z0, pier_z)
+        wall("Wall_Front_Ramp", strip_w, ramp_x, z1, zf + 0.05, None, ramp_top)
+        wall("Wall_Front_West", ramp_x, door_a, z1, zf + 0.05)
+        wall("Wall_Front_Bay_Ramp", x0, ramp_x, bay_z - 0.05, z1, None, ramp_top)
+        wall("Wall_Front_Bay", ramp_x, bay_x + 0.05, bay_z - 0.05, z1)
+        wall("Wall_Front_East", door_b, sx0, z1, zf + 0.05)
+        wall("Wall_Front_Header", door_a, door_b, z1, zf + 0.05, fy + door_h, top)
+        wall("DoorStep", door_mid - 0.82, door_mid + 0.82, zf, zf + 0.5, step_top - 0.4, step_top)
+        pz_wall = HD - FACE - POST * 0.5
+        hall_posts = [px_wall for px_wall in POST_X if x0 < px_wall < x1]
+        for px_wall in hall_posts:
+            self.collider("CellarPost", "Cellar", (px_wall, (fy - SILL) * 0.5, pz_wall), (POST, -SILL - fy, POST))
+        for bx in beam_posts:
+            self.collider("CellarBeamPost", "Cellar", (bx, (fy - 0.26) * 0.5, beam_z), (POST, -0.26 - fy, POST))
+        self.collider("Ladder", "Cellar", (lx, (fy + head_y) * 0.5, (foot_z + head_z) * 0.5), (0.62, ladder_len, 0.1), (lean, 0.0, 0.0))
+        self.collider("Cellar", "Walk", ((x0 + x1) * 0.5, fy - 0.15, (z0 + z1) * 0.5), (x1 - x0 + 0.2, 0.3, z1 - z0 + 0.2), into=self.walk)
+        self.collider("CellarShoulder", "NotWalkable", ((sx0 + sx1) * 0.5 + 0.05, steps[-1][2] + 1.6, (HD + zf) * 0.5),
+                      (sx1 - sx0 + 0.3, steps[0][2] - steps[-1][2] + 3.2, zf - HD + 0.2), into=self.not_walkable)
+
+        def r3(values):
+            return [round(v, 3) for v in values]
+
+        landing_posts = [(x, HD + LANDING[2] * 0.5) for x in (LANDING[0] + 0.25, (LANDING[0] + LANDING[1]) * 0.5, LANDING[1] - 0.25)]
+        return {"floorY": round(fy, 4), "inside": r3((x0, z0, x1, z1)), "hole": r3(CELLAR_HOLE),
+                "door": {"position": r3((door_b, fy, zf - 0.1)), "yaw": 180.0, "scaleY": CELLAR_DOOR_SCALE_Y, "openAngle": -90.0,
+                         "opening": r3((door_a, door_b, door_h))},
+                "hatch": r3(CELLAR_HATCH),
+                "restricted": {"centre": r3(((x0 + x1) * 0.5, fy + 2.15, (z0 + z1) * 0.5)), "size": r3((x1 - x0 - 0.1, 4.3, z1 - z0 - 0.1))},
+                "posts": [r3((px_wall, pz_wall)) for px_wall in hall_posts] + [r3((bx, beam_z)) for bx in beam_posts]
+                         + [r3(p) for p in landing_posts]}
 
     def build(self):
         self.hall()
@@ -874,8 +1209,9 @@ class Warehouse:
         self.landing()
         drop = self.hoist()
         self.rubble()
+        cellar = self.cellar()
         return {"campRamp": [round(c, 3) for c in camp], "riverRamp": [round(c, 3) for c in river],
-                "hoistDrop": [round(drop[0], 3), round(drop[1], 3)]}
+                "hoistDrop": [round(drop[0], 3), round(drop[1], 3)], "cellar": cellar}
 
 
 def materials():
@@ -884,10 +1220,12 @@ def materials():
     wood = os.path.join(assets, "Hivemind", "HDRP(Default)", "MedievalFantasyVillage", "Art", "Textures", "T_ModularWood_Basecolor.png") if assets else ""
     stone = os.path.join(assets, "Hivemind", "HDRP", "TheMessengerMountain", "Art", "Terrain", "T_RockTile_BaseColor.PNG") if assets else ""
     iron = os.path.join(assets, "Hivemind", "CastleOfEternalMists", "HDRP(Default)", "Art", "Textures", "T_Iron_BaseColor.PNG") if assets else ""
+    earth = os.path.join(assets, "Hivemind", "HDRP(Default)", "MedievalFantasyVillage", "Art", "Landscape", "LanscapeTextures", "T_mud_BaseColor02.png") if assets else ""
     look = {"Wh_Wood": (wood, (1.0, 1.0, 1.0, 1.0)), "Wh_Frame": (wood, (0.72, 0.72, 0.72, 1.0)),
             "Wh_Shingle": (wood, (0.62, 0.68, 0.76, 1.0)), "Wh_ShinglePale": (wood, (1.25, 1.2, 1.05, 1.0)),
             "Wh_Rubble": (stone, (1.1, 1.1, 1.1, 1.0)), "Wh_Iron": (iron, (0.6, 0.6, 0.6, 1.0)),
-            "Wh_Rope": ("", (0.45, 0.38, 0.27, 1.0)), "Wh_Tar": (wood, (0.3, 0.29, 0.28, 1.0))}
+            "Wh_Rope": ("", (0.45, 0.38, 0.27, 1.0)), "Wh_Tar": (wood, (0.3, 0.29, 0.28, 1.0)),
+            "Wh_Earth": (earth, (0.8, 0.78, 0.74, 1.0))}
     for name in MATERIALS:
         path, tint = look[name]
         m = bpy.data.materials.get(name) or bpy.data.materials.new(name)

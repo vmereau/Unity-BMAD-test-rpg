@@ -101,7 +101,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `Area1_Blockout/InnerGate`, `Warehouse`, `DockGate`, `CompoundGate`, `StagingYard`, `GuardPost`, `WorkGangTents`, `Latrine`, `TimberYard`, `WorkshopYard`, `Garrison`, `Walkways` | Camp interior | Same tool; see `STARTING_TOWN.md` → Camp interior, Company compound, Stoneworks, Timberworks, Garrison quarter |
 | `Area1_Blockout/Farm` | Plain south of the fort hill, (−48..44, −50..−148) | Same tool; see `STARTING_TOWN.md` → Farm |
 | `Area1_Blockout/Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave` | Remote | Same tool; see `STARTING_TOWN.md` → Remote sites |
-| `RestrictedAreas` | Scene root (hand-owned) | `RA_Warehouse` / `RA_Docks` / `RA_CookhouseStore` volumes; guard waypoints under `NpcPatrolRoutes/<NPC>`, routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout`; see `STARTING_TOWN.md` → Restricted areas |
+| `RestrictedAreas` | Scene root (hand-owned) | `RA_Warehouse` / `RA_WarehouseCellar` / `RA_Docks` / `RA_CookhouseStore` volumes; guard waypoints under `NpcPatrolRoutes/<NPC>`, routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout`; see `STARTING_TOWN.md` → Restricted areas |
 
 Other hand-owned scene roots (no tool touches them): `WorkSiteManagers`, `SealedPassage`, `HiddenStashQuest`,
 `ArrivalSequence` — see `STARTING_TOWN.md`.
