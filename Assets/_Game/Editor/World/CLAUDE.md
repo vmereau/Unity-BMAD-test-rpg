@@ -260,6 +260,9 @@ the layout's tent / fire points and builds `CampCentre`.
 - Only transforms and existence are compared: materials, components and a disabled object aren't kept.
 - A renamed or reparented object reads as removed plus added, so saving deletes the built original. An object added
   inside a tool root is listed as lost and can't be saved, so move it out of the root.
+- **Before any Sites run, search `Area1_Blockout` for prefab instances that the builders don't create, and move them
+  out first.** A run gives no warning: the hand-built stage deck under `CampCentre/Stage` was lost this way in the gang
+  house run and restored under `Camp/CampCentre/StageKit` (`spec-restore-camp-stage-kit`).
 - Saved edits with no difference in the scene stay listed and ticked: untick them to drop them.
 - Each moved entry also stores where the tool built it, because generated names like `Panel_140` count across lines and
   shift with the layout: a run warns when that changes. A removed entry has no such check.
