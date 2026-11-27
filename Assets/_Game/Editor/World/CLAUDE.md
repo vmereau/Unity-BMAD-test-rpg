@@ -24,6 +24,7 @@
 | `Capture Warehouse Ground`, `Build Warehouse Prefab` | `WarehouseBuilder` | The ground capture the warehouse model is fitted to, then `Prefabs/World/Warehouse/Warehouse.prefab` from the model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab, rebake afterwards |
 | `Place Warehouse Cellar` | `WarehouseBuilder` | The terrain holes over the warehouse's cellar and its side room (live terrain), `RestrictedAreas/RA_WarehouseCellar` and the child boxes `RA_Warehouse/TallyRoom` and `RA_Docks/Quay`, all from the parts file (see **One-shot authoring commands**); rebake afterwards |
 | `Build Dock Gate Prefab` | `DockGateBuilder` | `Prefabs/World/DockGate/DockGate.prefab` from the dock gate model and its parts file (pipeline: that folder's `CLAUDE.md`); Sites places the prefab as the `DockGate` root |
+| `Build Gang House Prefab`, `Build Wilderness Gate Prefab`, `Place Area 1 Gang House` | `GangHouseBuilder`, `DockGateBuilder` | `Prefabs/World/GangHouse/GangHouse.prefab` and `Prefabs/World/DockGate/WildernessGate.prefab` from their models and parts files; then, in the scene, the lowered bank under the gang house's deck, the terrain hole over its basement, the old wilderness opening's barricades removed and `TollGates/TollGate_Wilderness` moved into the gateway (pipeline: `Prefabs/World/GangHouse/CLAUDE.md`); capture the sculpt, run Camp Edge and Sites, rebake afterwards |
 | `Build Cookhouse Prefab`, `Place Area 1 Canteen` | `CookhouseBuilder` | `Prefabs/World/Cookhouse/Cookhouse.prefab` from the cookhouse model and its parts file, then the canteen in the scene: levelled ground, the instance, `Canteen/Dressing`, moved gameplay objects, `RestrictedAreas/RA_CookhouseStore` (pipeline: that folder's `CLAUDE.md`); capture the sculpt and rebake afterwards |
 | `Replace Graybox Worker Huts` | `WorkerHutRollout` (+ `WorkerHutRolloutRules`) | Swaps the graybox 3 × 3 m huts of `TentCamp/PlayersZone` and `MafiaZone` for shell prefabs, in place (rules: Huts folder's `CLAUDE.md` → Rollout); rebake afterwards |
 
@@ -63,7 +64,8 @@ so ground can sit below y = 0. The sculpt, paint and forest come from `Tools/Wor
 - One hole is not in the source asset: the warehouse cellar's. After copying the source's holes, a run opens the
   cells the warehouse parts file names (`WarehouseBuilder.CutCellarHole`). Without a readable parts file it logs an
   error, leaves that ground solid and goes on: the cellar is then filled with terrain until `Place Warehouse Cellar`
-  is run again. No terrain run has exercised this yet.
+  is run again. No terrain run has exercised this yet. The gang house's basement has a hole of its own, cut the
+  same way right after (`GangHouseBuilder.CutBasementHole`; `Place Area 1 Gang House` cuts it in the scene).
 - A rebuild scatters the forest from the current heights, so the first run after a sculpt changes trees on the sculpted
   ground, and a sculpt's whole-centimetre rounding can move heights by one heightmap step (1.83 cm).
 - Water is one `Water_Volume` covering the valley, top at y = −2. Any non-water ground must stay above that, and
@@ -124,6 +126,11 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
   `WarehouseBuilder`, never the instance; a hand-edit scan compares the prefab's children like any built object.
 - `DockGate` is a Sites root too, an **instance of the generated dock gate prefab** seated on the lane's ground at
   the layout's `dock-gate`; without the prefab Sites builds the graybox gate there.
+- `GangHouse` is a Sites root holding an **instance of the generated gang house prefab** at the pose its parts
+  file gives (which must match the layout's `gang-house`, or Sites builds the graybox house), plus `Goods` (kit
+  props placed where the parts file's `goods` says). `GangDock` then holds the boat alone: the deck and the pier
+  are the prefab's. `WildernessGate` is a Sites root too, an instance of the generated gateway at the layout's
+  optional `wilderness-gate` (a point with a `yaw`); without that prefab no gate is built.
 - Sites never touches the hand-built `CampBridge`, `CompanyCliff`, `FightPit` or the root `SM_Barricade_*`. In `Docks`
   it replaces only its own parts, by name (`DeckFloor_*`, `Boat`, `MooringPost`, `MooringRope`; never rebuild
   `Walkway_*`).
@@ -140,7 +147,9 @@ Each build tool replaces only the roots it owns; anything else in the scene is h
   saves it, so prefer changing the layout.
 - Each line in `FenceIds` has its own seeded jitter, so changing one leaves the others' heights alone.
 - The numbers on `Panel_NNN` count across lines, so adding length to an early line shifts every later name, and saved
-  `hand-edits.json` paths must move with them.
+  `hand-edits.json` paths must move with them. A new line goes **last** in `FenceIds` for that reason (`gang-fence`).
+- A line can be buried less deep than the others (`LineBury`): `gang-fence` panels reach 0.4 m under their lowest
+  ground, not 1.5 m, because the smuggling tunnel passes under them (`Prefabs/World/GangHouse/CLAUDE.md` → Tunnel).
 
 ### Palisade log walls
 
@@ -258,6 +267,9 @@ the layout's tent / fire points and builds `CampCentre`.
 - A part of a prefab instance can't be destroyed, so a removal switches it off.
 - A scan can mark the scene modified, because it builds a clone there.
 - A broken file stops a run before anything is destroyed, and a path that no longer resolves only logs a warning.
+- **Index-named objects are pinned by name, not by what they stand for.** `Barricades/NotWalkable_N` follows the
+  scene's root order: removing a hand-placed `SM_Barricade_*` renumbers the rest, and a saved edit then moves
+  another barricade's volume. Untick those rows before removing a barricade.
 
 ---
 
@@ -333,6 +345,13 @@ These author hand-owned geometry once; they are not part of the run order.
   than 5 cm from where the model was fitted, never saves and never bakes. A hole is not a height: the sculpt
   capture does not hold it, and the terrain tool cuts it again itself. Contract:
   `Prefabs/World/Warehouse/CLAUDE.md` → Cellar.
+
+- **`Tools/World/Place Area 1 Gang House`** (`GangHouseBuilder.Place`) lowers the live terrain under the gang
+  house's deck and the lake side of its basement, opens the terrain hole over the basement, deletes the scene
+  roots named `SM_Barricade_*` in the old wilderness opening and moves the hand-owned
+  `TollGates/TollGate_Wilderness` into the gateway, so it uses `GameObject.Find`. Rerunnable; it refuses when the
+  smuggling tunnel no longer meets the opening in the warehouse cellar's side room, never saves and never bakes.
+  Contract: `Prefabs/World/GangHouse/CLAUDE.md`.
 
 - **`Tools/World/Replace Graybox Worker Huts`** (`WorkerHutRollout`) edits the hand-owned `TentCamp` by design: it
   deletes each graybox hut it swaps (one undo step, no save, no bake) and never moves one. It measures plots with

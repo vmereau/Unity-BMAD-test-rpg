@@ -96,6 +96,9 @@ SIDE_Z = (0.95, 4.4)
 SIDE_TOP = -1.7                      # its ceiling: a rock's underside is at -1.5
 SIDE_PASSAGE = (2.3, 3.35, 2.1)      # through the cellar's east wall: min z, max z, height
 SIDE_HOLE = (5.45, 0.70, 8.50, 4.70) # terrain hole cells must lie wholly inside: min x, min z, max x, max z
+SIDE_TUNNEL = (6.7, 7.9, 2.0)        # the smuggling tunnel's way out through the side room's south wall: min x, max x, height.
+                                     # The tunnel itself is the gang house's model (models/gang house): its first point
+                                     # (TUNNEL_PATH) stands on this wall's outer face, in the middle of this opening
 
 # --- Construction ---------------------------------------------------------------------------------
 POST = 0.26                          # squared posts
@@ -467,6 +470,9 @@ class Warehouse:
         self.parts.update({name: Mesh(self.rng2) for name in
                            ("Quay", "Barge", "Tally", "TallyRoof", "TallyFurniture", "Retaining", "CellarSide")})
         self.scratch = Mesh(self.rng)
+        # The tunnel's opening (added after the quay) has a third stream, for the same reason.
+        self.rng3 = random.Random(seed * 13 + 5)
+        self.parts["CellarTunnel"] = Mesh(self.rng3)
         self.cut_boards, self.burnt = [], None
         self.colliders, self.walk, self.not_walkable, self.lanterns = [], [], [], []
 
@@ -1797,11 +1803,14 @@ class Warehouse:
         self.core(mid_x - 0.1, sx0, fy - 0.3, deep, 0.3, pa, into=cs)
         self.core(mid_x - 0.1, sx0, fy - 0.3, deep, pb, sz1 + 0.3, into=cs)
         self.core(mid_x - 0.1, sx0, lintel, deep, pa - 0.16, pb + 0.16, into=cs)
-        self.core(mid_x - 0.1, sx1 + 0.55, fy - 0.3, SIDE_TOP + 0.3, 0.3, sz0, into=cs)       # south
+        # The south wall is pierced by the tunnel's opening and is drawn into `CellarTunnel` further down. What it
+        # was before is still drawn here, into a mesh nobody keeps, so this stream stays as it was for every later part.
+        ghost = Mesh(self.rng2)
+        self.core(mid_x - 0.1, sx1 + 0.55, fy - 0.3, SIDE_TOP + 0.3, 0.3, sz0, into=ghost)    # south
         self.core(sx1, sx1 + 0.55, fy - 0.3, SIDE_TOP + 0.3, 0.3, RETAIN_Z - 0.2, into=cs)    # east
 
         room = dict(walls=cs, rng=rng, room=True)
-        self.face((sx0, sz0), (sx1, sz0), fy - 0.05, SIDE_TOP, (0.0, 1.0), **room)                      # south
+        self.face((sx0, sz0), (sx1, sz0), fy - 0.05, SIDE_TOP, (0.0, 1.0), walls=ghost, rng=rng, room=True)   # south (see above)
         self.face((sx1, sz1), (sx1, sz0), fy - 0.05, SIDE_TOP, (-1.0, 0.0), **room)                     # east
         self.face((sx0, sz1), (sx1, sz1), fy - 0.05, SIDE_TOP, (0.0, -1.0), **room)                     # north: the retaining wall's back
         self.face((sx0, sz0), (sx0, sz1), fy - 0.05, SIDE_TOP, (1.0, 0.0), ((pa - sz0, pb - sz0, fy - 1.0, lintel),), **room)   # west
@@ -1840,10 +1849,28 @@ class Warehouse:
             ya, yb = fy - 0.3 if ya is None else ya, top if yb is None else yb
             self.collider(name, "Cellar", ((xa + xb) * 0.5, (ya + yb) * 0.5, (za + zb) * 0.5), (xb - xa, yb - ya, zb - za))
 
+        # the south wall round the tunnel's opening: stones, a core either side and over it, timber jambs and lintel
+        ct, rng3 = self.parts["CellarTunnel"], self.rng3
+        ta, tb, th = SIDE_TUNNEL
+        thead = fy + th
+        tlintel = thead + 0.2
+        ct.box((mid_x - 0.1 + 0.08, fy - 0.3, 0.38), (ta - 0.02, SIDE_TOP + 0.28, sz0 - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+        ct.box((tb + 0.02, fy - 0.3, 0.38), (sx1 + 0.55 - 0.08, SIDE_TOP + 0.28, sz0 - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+        ct.box((ta - 0.02, tlintel, 0.38), (tb + 0.02, SIDE_TOP + 0.28, sz0 - 0.08), 0, RUBBLE, skip=((1, 0),), mode="stone")
+        self.face((sx0, sz0), (sx1, sz0), fy - 0.05, SIDE_TOP, (0.0, 1.0), ((ta - sx0, tb - sx0, fy - 1.0, tlintel),),
+                  walls=ct, rng=rng3, room=True)
+        for x in (ta - 0.02, tb - 0.1):
+            ct.box((x, fy - 0.02, 0.3), (x + 0.12, thead, sz0 + 0.03), 1, FRAME)
+        lx = ta - 0.25
+        ct.box((lx, thead, 0.3), (tb + 0.25, tlintel + rng3.uniform(-0.01, 0.01), sz0 + 0.06), 0, FRAME)
+        ct.box((ta - 0.05, fy - 0.3, 0.25), (tb + 0.05, fy + 0.002, sz0 + 0.1), 0, EARTH, skip=((1, 0),), mode="stone")
+        self.collider("CellarTunnelSill", "Walk", ((ta + tb) * 0.5, fy - 0.15, (0.2 + sz0 + 0.1) * 0.5), (tb - ta + 0.2, 0.3, sz0 + 0.1 - 0.2), into=self.walk)
         wall("Side_West", mid_x, sx0, 0.3, pa, None, deep)
         wall("Side_West_North", mid_x, sx0, pb, sz1, None, deep)
         wall("Side_West_Header", mid_x, sx0, pa, pb, head, deep)
-        wall("Side_South", mid_x, sx1 + 0.55, 0.3, sz0, None, SIDE_TOP + 0.3)
+        wall("Side_South", mid_x, ta, 0.3, sz0, None, SIDE_TOP + 0.3)
+        wall("Side_South_East", tb, sx1 + 0.55, 0.3, sz0, None, SIDE_TOP + 0.3)
+        wall("Side_South_Header", ta, tb, 0.3, sz0, thead, SIDE_TOP + 0.3)
         wall("Side_East", sx1, sx1 + 0.55, 0.3, sz1 + 0.3, None, SIDE_TOP + 0.3)
         wall("Side_Ceiling", sx0 - 0.1, sx1 + 0.1, sz0 - 0.1, sz1 + 0.1, SIDE_TOP, SIDE_TOP + 0.25)
         self.collider("CellarSide", "Walk", ((sx0 + sx1) * 0.5, fy - 0.15, (sz0 + sz1) * 0.5), (sx1 - sx0 + 0.2, 0.3, sz1 - sz0 + 0.2), into=self.walk)
@@ -1855,6 +1882,8 @@ class Warehouse:
         height = SIDE_TOP - fy
         cellar["sideHole"] = r3(SIDE_HOLE)
         cellar["side"] = {"inside": r3((sx0, sz0, sx1, sz1)), "top": SIDE_TOP, "passage": r3((x1, pa, sx0, pb)), "passageHeight": ph}
+        # the tunnel's opening: min x, max x, height, then the wall's outer and inner faces (z)
+        cellar["tunnel"] = r3((ta, tb, th, 0.3, sz0))
         cellar["restrictedMore"] = [
             {"name": "SideRoom", "centre": r3(((sx0 + sx1) * 0.5, fy + height * 0.5, (sz0 + sz1) * 0.5)), "size": r3((sx1 - sx0 - 0.1, height, sz1 - sz0 - 0.1))},
             {"name": "Passage", "centre": r3(((x1 + sx0) * 0.5, fy + ph * 0.5, (pa + pb) * 0.5)), "size": r3((sx0 - x1 + 0.2, ph, pb - pa - 0.1))}]

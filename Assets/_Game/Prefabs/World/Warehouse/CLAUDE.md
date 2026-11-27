@@ -137,6 +137,15 @@ Everything added on the river side after the cellar, in the same script and pref
   `CellarSide`, `CellarPassage`). Its hole rectangle is `cellar.sideHole` (cells x 533..535, z 566..569); the hall's
   east gable posts hang over it inside the wall between the two rooms (x 5.6..6.25). `Skirt_East`, `Wall_East` (the
   cellar's) and `UnderFloor_East` are each split round the passage. `CellarLantern_Side` is always on, with shadows.
+- **Tunnel opening** (`spec-area-1-gang-river-house`): the side room's south wall is pierced at local
+  x 6.7..7.9, 2 m high (`SIDE_TUNNEL`; `cellar.tunnel` in the parts file), with timber jambs and a lintel. That
+  wall is drawn into its own part, `CellarTunnel`, on a third random stream (`rng3`); the wall it replaces is
+  still drawn into a mesh nobody keeps, so `rng2` and every later part stay as they were. Colliders `Side_South`,
+  `Side_South_East`, `Side_South_Header`; walk box `CellarTunnelSill`. The tunnel beyond is the gang house's
+  model (`Prefabs/World/GangHouse/CLAUDE.md` → Tunnel): its first point stands on this wall's outer face, in the
+  middle of the opening, and `Place Area 1 Gang House` refuses when the two are 5 cm apart. Moving the warehouse
+  or the side room means moving `TUNNEL_PATH` in `build_gang_house.py` too. The side room's two crates stand
+  against its east wall (`Area1CampInterior.CellarGoods`), clear of the opening.
 - **Rocks:** `SM_Rock_06 (17)` stands 0.8 m east of the side room's east face, `SM_Rock_08 (4)` 0.2 m over its
   ceiling (and comes up through the tally room's floor in the south-east corner). Before growing either room,
   ray-test the new volume against the `SM_Rock*` colliders.

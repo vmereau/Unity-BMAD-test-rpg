@@ -274,6 +274,8 @@ namespace Game.Editor.World
             bool[,] holes = CopyHoles(source, data.holesResolution);
             // The warehouse cellar is a room under the ground: its hole is not in the source asset.
             WarehouseBuilder.CutCellarHole(holes, new Vector2(-TERRAIN_SIZE * 0.5f, -TERRAIN_SIZE * 0.5f), TERRAIN_SIZE);
+            // The gang house's basement is another: its hole is not in the source asset either.
+            GangHouseBuilder.CutBasementHole(holes, new Vector2(-TERRAIN_SIZE * 0.5f, -TERRAIN_SIZE * 0.5f), TERRAIN_SIZE);
             data.SetHoles(0, 0, holes);
 
             TerrainLayer[] layers = source.terrainLayers;

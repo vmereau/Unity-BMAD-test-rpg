@@ -23,9 +23,10 @@
   "TallyRoof": 3130,
   "TallyFurniture": 534,
   "Retaining": 1884,
-  "CellarSide": 3524
+  "CellarSide": 3024,
+  "CellarTunnel": 360
  },
- "total": 74132,
+ "total": 73992,
  "objects": [
   "Frame",
   "Walls",
@@ -45,7 +46,8 @@
   "TallyRoof",
   "TallyFurniture",
   "Retaining",
-  "CellarSide"
+  "CellarSide",
+  "CellarTunnel"
  ],
  "walk": [
   {
@@ -136,6 +138,25 @@
     6.3,
     0.3,
     9.1
+   ],
+   "euler": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "name": "CellarTunnelSill",
+   "group": "Walk",
+   "centre": [
+    7.3,
+    -4.6974,
+    0.625
+   ],
+   "size": [
+    1.4,
+    0.3,
+    0.85
    ],
    "euler": [
     0.0,
@@ -1650,13 +1671,51 @@
    "name": "Side_South",
    "group": "Cellar",
    "centre": [
-    7.125,
+    6.1,
     -3.1237,
     0.625
    ],
    "size": [
-    3.25,
+    1.2,
     3.4474,
+    0.65
+   ],
+   "euler": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "name": "Side_South_East",
+   "group": "Cellar",
+   "centre": [
+    8.325,
+    -3.1237,
+    0.625
+   ],
+   "size": [
+    0.85,
+    3.4474,
+    0.65
+   ],
+   "euler": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "name": "Side_South_Header",
+   "group": "Cellar",
+   "centre": [
+    7.3,
+    -1.9737,
+    0.625
+   ],
+   "size": [
+    1.2,
+    1.1474,
     0.65
    ],
    "euler": [
@@ -2521,6 +2580,13 @@
    ],
    "passageHeight": 2.1
   },
+  "tunnel": [
+   6.7,
+   7.9,
+   2.0,
+   0.3,
+   0.95
+  ],
   "restrictedMore": [
    {
     "name": "SideRoom",

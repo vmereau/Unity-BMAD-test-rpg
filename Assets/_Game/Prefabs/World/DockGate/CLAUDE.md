@@ -47,6 +47,15 @@ middle of the opening (world (24.5, −0.18, 59)).
 - Tests: `Tests/EditMode/DockGateTests` (clear gateway, posts / lintel / leaves, fire, bake modifiers, malformed
   parts refused).
 
+## The wilderness gate (same builder, second model)
+
+`WildernessGate.prefab` (this folder) is the same gateway without the lean-to and the fire basket, for the opening
+by the gang house (`Prefabs/World/GangHouse/CLAUDE.md`). `models/wilderness gate/Source~/build_wilderness_gate.py`
+loads **this gate's script** as a library and builds its `gate` and `leaf` parts with another seed: a change to
+`WIDTH`, `CLEAR`, the posts or the leaves here changes both gates. `DockGateBuilder` builds both prefabs
+(`Tools/World/Build Wilderness Gate Prefab`); the second has no `fire` in its parts file and takes its material
+remap from `DockGate.fbx`. Sites places it at the layout's `wilderness-gate`, turned by its `yaw`.
+
 ## Known limits
 
 - `hand-edits.json` still pins eight parts of the old graybox gate (`DockGate/Post_*`, `Lintel`, `Leaf_*`,
@@ -54,4 +63,4 @@ middle of the opening (world (24.5, −0.18, 59)).
 - The leaves do not move: shutting or guarding the gate is later gameplay.
 - The palisade's panels beside the gate (`dock-fence-upper/Panel_148`, `dock-fence-lower/Panel_149`) keep their own
   closing posts next to the gate's.
-- The other gates (compound, ramp, fields, inner, arrival) are still graybox.
+- The other gates (compound, ramp, fields, inner, arrival) are still graybox; the wilderness gate is not.

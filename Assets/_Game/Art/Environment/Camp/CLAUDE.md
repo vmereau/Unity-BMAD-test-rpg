@@ -9,7 +9,9 @@
 > Palisade look (captures, prompts, build brief): `PALISADE_CONCEPTS.md`; the collapsed stretch: `BROKEN_STRETCH_CONCEPTS.md`;
 > the canteen (cookhouse, mess, back alley): `CANTEEN_CONCEPTS.md`; its model and prefab pipeline:
 > `Prefabs/World/Cookhouse/CLAUDE.md`. The home yard's owned huts (Tam, Pim and Gerrit, Bren) and its rearranged
-> corners: `HOME_YARD_CONCEPTS.md`.
+> corners: `HOME_YARD_CONCEPTS.md`. The gang's house on the lake, its deck and pier, the wilderness gate, the basement
+> and the smuggling tunnel (captures, prompts, build brief, as built): `GANG_HOUSE_CONCEPTS.md`; its model and prefab
+> pipeline: `Prefabs/World/GangHouse/CLAUDE.md`.
 
 ---
 
@@ -38,6 +40,10 @@ set and the alley fence in one FBX with a parts file; its script loads the wareh
 lean-to and a fire basket in one FBX with a parts file; same library; its round logs' slot is remapped to
 `M_Camp_PalisadeLog`; see `Prefabs/World/DockGate/CLAUDE.md`). The warehouse's script also builds the quay, the
 barge, the tally room, the retaining wall and the cellar's side room (`Prefabs/World/Warehouse/CLAUDE.md` → Quay).
+`gang house` (the lodge on a rubble base, deck, pier, walkway, basement and the shored smuggling tunnel in one FBX
+with a parts file; same library; its frame stands turned 205° in the scene, so world points go through `to_local`;
+see `Prefabs/World/GangHouse/CLAUDE.md`), `wilderness gate` (the dock gate's gateway alone: its script loads the
+dock gate's and exports two of its parts).
 
 ---
 

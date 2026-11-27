@@ -69,9 +69,10 @@ namespace Game.Editor.World
             ("SM_Sack_02", -0.7f, 0.85f, 0.3f, 120f, 1f, false),
             // crates along the east wall, north of the passage to the side room (z 2.3..3.35 stays clear)
             ("SM_Crate_B_01", 4.5f, 4.75f, 0f, -8f, 1f, true),
-            // the side room (x 6.25..8.2, z 0.95..4.4): crates in its south-east corner, casks at the back
-            ("SM_Crate_B_01", 8.1f, 1.05f, 0f, 4f, 1.1f, true),
-            ("SM_Crate_B_01", 8.08f, 1.08f, 0.66f, 19f, 0.85f, false),
+            // the side room (x 6.25..8.2, z 0.95..4.4): crates against its east wall (its south wall holds the tunnel's
+            // opening, x 6.7..7.9), casks at the back
+            ("SM_Crate_B_01", 7.72f, 2.3f, 0f, 4f, 1f, true),
+            ("SM_Crate_B_01", 7.74f, 2.32f, 0.66f, 19f, 0.85f, false),
             ("SM_WoodBarrel_01a", 7.75f, 3.95f, 0f, 70f, 1f, true),
             ("SM_WoodBarrel_01a", 7.0f, 4f, 0f, 190f, 1f, true),
             // sacks by the west pillar, and two casks inside the door (west of its opening)

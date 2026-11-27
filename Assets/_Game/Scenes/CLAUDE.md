@@ -97,7 +97,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `Area1_Blockout/Fort`, `RampGate`, `CampEdge/RampRail` | Fort hill, (0..50, −31..−71) | Same tool; see `STARTING_TOWN.md` → Fort hill |
 | `Area1_Blockout/Docks`, `BridgeRails`, `Barricades`, `HuntersFire` | Camp side | Same tool; see `STARTING_TOWN.md` → Camp sites |
 | `Area1_Blockout/FightPit` | Lake side | Hand-owned, no tool touches it; see `STARTING_TOWN.md` → Lakeside |
-| `Area1_Blockout/GangHouse`, `GangDock`, `CampEdge/ShoreRail` | Lake side | Same tools; see `STARTING_TOWN.md` → Lakeside |
+| `Area1_Blockout/GangHouse`, `GangDock`, `WildernessGate`, `CampEdge/gang-fence`, `CampEdge/ShoreRail` | Lake side | Same tools; the gang house (with its basement and the smuggling tunnel to the warehouse cellar) and the wilderness gate are instances of generated prefabs (`Prefabs/World/GangHouse/CLAUDE.md`); see `STARTING_TOWN.md` → Lakeside |
 | `Area1_Blockout/InnerGate`, `Warehouse`, `DockGate`, `CompoundGate`, `StagingYard`, `GuardPost`, `WorkGangTents`, `Latrine`, `TimberYard`, `WorkshopYard`, `Garrison`, `Walkways` | Camp interior | Same tool; see `STARTING_TOWN.md` → Camp interior, Company compound, Stoneworks, Timberworks, Garrison quarter |
 | `Area1_Blockout/Farm` | Plain south of the fort hill, (−48..44, −50..−148) | Same tool; see `STARTING_TOWN.md` → Farm |
 | `Area1_Blockout/Ruins`, `QuarryDressing`, `Ruins2Dressing`, `WoodCamp`, `HuntingCamp`, `Cave` | Remote | Same tool; see `STARTING_TOWN.md` → Remote sites |

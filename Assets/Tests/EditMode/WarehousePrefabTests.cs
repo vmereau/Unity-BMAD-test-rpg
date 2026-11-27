@@ -474,10 +474,26 @@ namespace Tests.EditMode
                 Assert.AreEqual(cellar.FloorY, walk.localPosition.y + walk.localScale.y * 0.5f, 0.01f, name);
             }
 
-            // The room is closed on its other three sides and overhead.
+            // The room is closed to the east, to the north and overhead.
             var middle = Away + new Vector3(((float)room[0] + (float)room[2]) * 0.5f, cellar.FloorY + 1f, ((float)room[1] + (float)room[3]) * 0.5f);
-            foreach (Vector3 way in new[] { Vector3.right, Vector3.forward, Vector3.back, Vector3.up })
+            foreach (Vector3 way in new[] { Vector3.right, Vector3.forward, Vector3.up })
                 Assert.IsTrue(Physics.Raycast(middle, way, 4f, ~0, QueryTriggerInteraction.Ignore), $"no wall toward {way}");
+
+            // Its south wall holds the smuggling tunnel's opening (spec-area-1-gang-river-house): a person passes
+            // there, and the wall is whole either side of it.
+            var tunnel = parts["cellar"]["tunnel"] as JArray;   // min x, max x, height, the wall's outer z, its inner z
+            Assert.IsNotNull(tunnel, "cellar.tunnel");
+            float ta = (float)tunnel[0], tb = (float)tunnel[1];
+            Assert.GreaterOrEqual(tb - ta, 1f, "the tunnel's opening is at least 1 m wide");
+            Assert.GreaterOrEqual((float)tunnel[2], 2f, "the tunnel's opening is at least 2 m high");
+            Assert.GreaterOrEqual(ta, (float)room[0], "the opening leaves the room's west corner");
+            Assert.LessOrEqual(tb, (float)room[2], "the opening leaves the room's east corner");
+            float through = ((float)tunnel[3] + (float)tunnel[4]) * 0.5f;
+            var opening = Away + new Vector3((ta + tb) * 0.5f, cellar.FloorY + 0.05f + 0.95f, through);
+            CollectionAssert.IsEmpty(Blockers(opening, new Vector3(PLAYER_RADIUS, 0.95f, ((float)tunnel[4] - (float)tunnel[3]) * 0.5f + 0.2f), Quaternion.identity), "the tunnel's opening");
+            foreach (float x in new[] { ((float)room[0] + ta) * 0.5f, (tb + (float)room[2]) * 0.5f })
+                Assert.IsTrue(Physics.Raycast(new Vector3(Away.x + x, middle.y, middle.z), Vector3.back, 4f, ~0, QueryTriggerInteraction.Ignore), $"no south wall at x {x:F2}");
+            Assert.IsNotNull(_instance.transform.Find("CellarTunnelSill"), "the opening's floor");
         }
 
         [Test]
@@ -495,9 +511,11 @@ namespace Tests.EditMode
                 Assert.LessOrEqual(centre.z + size.z * 0.5f, (float)room[3], name);
                 Assert.LessOrEqual(centre.x + size.x * 0.5f, (float)room[2], name);
             }
-            // The hole's edge falls inside a wall's collider on each side, 0.5 m off the floor.
+            // The hole's edge falls inside a wall's collider on each side, 0.5 m off the floor. On the south side the
+            // probe stands west of the tunnel's opening: in the opening the hole's edge is the ground's, 4 m overhead.
             float y = cellar.FloorY + 0.5f;
-            float midX = ((float)room[0] + (float)room[2]) * 0.5f, midZ = ((float)room[1] + (float)room[3]) * 0.5f;
+            float midZ = ((float)room[1] + (float)room[3]) * 0.5f;
+            float midX = ((float)room[0] + (float)((JArray)parts["cellar"]["tunnel"])[0]) * 0.5f;
             var probes = new[]
             {
                 new Vector3(cellar.SideHole.xMax, y, midZ), new Vector3(midX, y, cellar.SideHole.yMin), new Vector3(midX, y, cellar.SideHole.yMax),

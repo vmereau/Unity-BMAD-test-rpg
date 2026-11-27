@@ -29,6 +29,7 @@ namespace Game.Editor.World
             "outer-fence", "outer-fence-stub", "outer-fence-2", "outer-fence-3", "outer-fence-4", "outer-fence-5", "hill-palisade",
             "inner-fence-west", "inner-fence-east", "dock-fence-upper", "dock-fence-lower",
             "compound-fence-upper", "compound-fence-lower",
+            "gang-fence",   // last: panel numbers count across lines, so a line added earlier would rename every later panel
         };
 
         /// <summary>
@@ -44,8 +45,15 @@ namespace Game.Editor.World
             { "dock-fence-lower", new Vector2(0f, 64f) },
             { "compound-fence-upper", new Vector2(-9.5f, 64f) },
             { "compound-fence-lower", new Vector2(-9.5f, 64f) },
+            { "gang-fence", new Vector2(45f, 45f) },   // the gang house's side: the bridge is outside
         };
         private static readonly Vector2 CampMiddle = new Vector2(0f, 0f);
+
+        /// <summary>
+        /// Lines whose panels reach less deep than <see cref="PANEL_BURY"/>: the smuggling tunnel passes 0.9 m under
+        /// the gang fence's ground on its way into the gang house (Prefabs/World/GangHouse/CLAUDE.md -> Tunnel).
+        /// </summary>
+        private static readonly Dictionary<string, float> LineBury = new Dictionary<string, float> { { "gang-fence", 0.4f } };
 
         private const float POST_CLEAR = 0.8f;            // of a post's radius: the logs beside a post press into it a little
         // The warehouse's junction logs stand 0.14 m inside its footprint and are 0.2 m in radius (build_warehouse.py),
@@ -207,7 +215,7 @@ namespace Game.Editor.World
 
                     GroundUnder(terrain, a, b, out float low, out float mean, out float high);
                     float top = Mathf.Max(mean + PANEL_HEIGHT + jitter, high + PANEL_MIN_CLEARANCE);
-                    float bottom = low - PANEL_BURY;
+                    float bottom = low - (LineBury.TryGetValue(id, out float bury) ? bury : PANEL_BURY);
 
                     Vector2 middle = (a + b) * 0.5f;
                     Vector2 along = b - a;

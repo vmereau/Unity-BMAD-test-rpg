@@ -25,6 +25,24 @@ namespace Game.Editor.World
         private const string MODEL_FOLDER = "Assets/_Game/Art/Environment/Camp/models/dock gate/";
         private const string MODEL_PATH = MODEL_FOLDER + "DockGate.fbx";
         private const string PARTS_PATH = MODEL_FOLDER + "DockGate.json";
+        internal const string WILDERNESS_PREFAB_PATH = "Assets/_Game/Prefabs/World/DockGate/WildernessGate.prefab";
+        private const string WILDERNESS_FOLDER = "Assets/_Game/Art/Environment/Camp/models/wilderness gate/";
+
+        /// <summary>One gate model and the prefab built from it. The wilderness gate is the dock gate's gateway alone.</summary>
+        private readonly struct Kit
+        {
+            public readonly string Prefab, Model, Parts, Script, RemapFrom;
+            public readonly bool HasFire;
+
+            public Kit(string prefab, string model, string parts, string script, bool hasFire, string remapFrom)
+            {
+                Prefab = prefab; Model = model; Parts = parts; Script = script; HasFire = hasFire; RemapFrom = remapFrom;
+            }
+        }
+
+        private static readonly Kit Dock = new Kit(PREFAB_PATH, MODEL_PATH, PARTS_PATH, "build_dock_gate.py", true, null);
+        private static readonly Kit Wilderness = new Kit(WILDERNESS_PREFAB_PATH, WILDERNESS_FOLDER + "WildernessGate.fbx",
+            WILDERNESS_FOLDER + "WildernessGate.json", "build_wilderness_gate.py", false, MODEL_PATH);
         private const string DAY_NIGHT = "Assets/_Game/Data/Config/DayNightConfig.asset";
         private const string GLOW = "Assets/_Game/Art/Materials/Blockout_FireGlow.mat";
         private const string MATERIAL_PREFIX = "M_Camp_";
@@ -51,7 +69,10 @@ namespace Game.Editor.World
         }
 
         /// <summary>Reads the gate's facts from a parts file. False, with what is wrong, when a field is missing or malformed.</summary>
-        public static bool TryReadGate(JObject parts, out GateFacts gate, out string problem)
+        public static bool TryReadGate(JObject parts, out GateFacts gate, out string problem) => TryReadGate(parts, true, out gate, out problem);
+
+        /// <summary>As above; a gateway without a fire basket (<paramref name="needsFire"/> false) has no 'fire'.</summary>
+        public static bool TryReadGate(JObject parts, bool needsFire, out GateFacts gate, out string problem)
         {
             gate = default;
             if (parts == null)
@@ -75,7 +96,8 @@ namespace Game.Editor.World
                 problem = "'opening' must be [min z, max z, height]";
                 return false;
             }
-            if (!TryFloats(parts["fire"], out Vector3 fire))
+            Vector3 fire = Vector3.zero;
+            if (needsFire && !TryFloats(parts["fire"], out fire))
             {
                 problem = "'fire' must be [x, y, z]";
                 return false;
@@ -106,50 +128,62 @@ namespace Game.Editor.World
         [MenuItem("Tools/World/Build Dock Gate Prefab")]
         private static void BuildMenu() => Build();
 
+        [MenuItem("Tools/World/Build Wilderness Gate Prefab")]
+        private static void BuildWildernessMenu() => BuildWilderness();
+
+        /// <summary>The gateway by the gang house: the dock gate's posts, lintel and leaves, without lean-to or fire.</summary>
+        internal static GameObject BuildWilderness() => Build(Wilderness);
+
         /// <summary>
         /// Rebuilds the prefab from the model and its parts file. A missing model, a model object the parts file
         /// names but the FBX lacks, a malformed parts file or a material that is not a camp material stops before
         /// saving, so the prefab (and the scene instance that follows it) is left as it was.
         /// </summary>
-        internal static GameObject Build()
+        internal static GameObject Build() => Build(Dock);
+
+        private static GameObject Build(Kit kit)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode || PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 GameLog.Error(TAG, "Leave Play mode and close Prefab Mode first; nothing changed.");
                 return null;
             }
-            JObject parts = ReadParts();
-            if (File.Exists(MODEL_PATH)) AssetDatabase.ImportAsset(MODEL_PATH, ImportAssetOptions.ForceSynchronousImport);
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH);
+            JObject parts = ReadParts(kit.Parts);
+            if (File.Exists(kit.Model))
+            {
+                AssetDatabase.ImportAsset(kit.Model, ImportAssetOptions.ForceSynchronousImport);
+                if (kit.RemapFrom != null) Remap(kit.RemapFrom, kit.Model);
+            }
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(kit.Model);
             var dayNight = AssetDatabase.LoadAssetAtPath<DayNightConfigSO>(DAY_NIGHT);
             var glow = AssetDatabase.LoadAssetAtPath<Material>(GLOW);
             if (parts == null || model == null || dayNight == null || glow == null)
             {
-                GameLog.Error(TAG, $"Need {MODEL_PATH}, {PARTS_PATH} (run build_dock_gate.py), {DAY_NIGHT} and {GLOW}; {PREFAB_PATH} left as it was.");
+                GameLog.Error(TAG, $"Need {kit.Model}, {kit.Parts} (run {kit.Script}), {DAY_NIGHT} and {GLOW}; {kit.Prefab} left as it was.");
                 return null;
             }
-            if (!TryReadGate(parts, out GateFacts gate, out string problem))
+            if (!TryReadGate(parts, kit.HasFire, out GateFacts gate, out string problem))
             {
-                GameLog.Error(TAG, $"{PARTS_PATH}: {problem} (rerun build_dock_gate.py); {PREFAB_PATH} left as it was.");
+                GameLog.Error(TAG, $"{kit.Parts}: {problem} (rerun {kit.Script}); {kit.Prefab} left as it was.");
                 return null;
             }
 
-            var root = new GameObject(Path.GetFileNameWithoutExtension(PREFAB_PATH));
+            var root = new GameObject(Path.GetFileNameWithoutExtension(kit.Prefab));
             try
             {
-                if (!BuildModel(root.transform, model, parts)) return null;
+                if (!BuildModel(root.transform, model, parts, kit)) return null;
                 BuildBoxes(root.transform, parts);
-                BuildFire(root.transform, gate.Fire, dayNight, glow);
+                if (kit.HasFire) BuildFire(root.transform, gate.Fire, dayNight, glow);
 
-                string folder = PREFAB_PATH.Substring(0, PREFAB_PATH.LastIndexOf('/'));
+                string folder = kit.Prefab.Substring(0, kit.Prefab.LastIndexOf('/'));
                 if (!AssetDatabase.IsValidFolder(folder))
                 {
                     Directory.CreateDirectory(folder);
                     AssetDatabase.Refresh();
                 }
-                GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH, out bool saved);
-                if (saved) GameLog.Info(TAG, $"Saved {PREFAB_PATH} ({parts.Value<int?>("total")} triangles)");
-                else GameLog.Error(TAG, $"Could not save {PREFAB_PATH}");
+                GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, kit.Prefab, out bool saved);
+                if (saved) GameLog.Info(TAG, $"Saved {kit.Prefab} ({parts.Value<int?>("total")} triangles)");
+                else GameLog.Error(TAG, $"Could not save {kit.Prefab}");
                 return saved ? prefab : null;
             }
             finally
@@ -158,8 +192,26 @@ namespace Game.Editor.World
             }
         }
 
+        /// <summary>The gateway's materials (Wh_*) point where the dock gate's do: round logs on the palisade's wood.</summary>
+        private static void Remap(string from, string to)
+        {
+            var source = AssetImporter.GetAtPath(from) as ModelImporter;
+            var target = AssetImporter.GetAtPath(to) as ModelImporter;
+            if (source == null || target == null) return;
+            Dictionary<AssetImporter.SourceAssetIdentifier, Object> have = target.GetExternalObjectMap();
+            bool changed = false;
+            foreach (KeyValuePair<AssetImporter.SourceAssetIdentifier, Object> pair in source.GetExternalObjectMap())
+            {
+                if (pair.Key.type != typeof(Material) || pair.Value == null) continue;
+                if (have.TryGetValue(pair.Key, out Object current) && current == pair.Value) continue;
+                target.AddRemap(pair.Key, pair.Value);
+                changed = true;
+            }
+            if (changed) target.SaveAndReimport();
+        }
+
         /// <summary>The model's objects under <c>Model</c>, all left out of the bake: the lane's NavMesh is the ground's.</summary>
-        private static bool BuildModel(Transform root, GameObject model, JObject parts)
+        private static bool BuildModel(Transform root, GameObject model, JObject parts, Kit kit)
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, root);
             PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
@@ -171,7 +223,7 @@ namespace Game.Editor.World
                 Transform part = instance.transform.Find((string)name);
                 if (part == null || !part.TryGetComponent(out MeshRenderer renderer))
                 {
-                    GameLog.Error(TAG, $"'{MODEL_PATH}' has no object '{name}'; {PREFAB_PATH} left as it was.");
+                    GameLog.Error(TAG, $"'{kit.Model}' has no object '{name}'; {kit.Prefab} left as it was.");
                     complete = false;
                     continue;
                 }
@@ -270,16 +322,16 @@ namespace Game.Editor.World
 
         private static Vector3 Vector(JToken array) => new Vector3((float)array[0], (float)array[1], (float)array[2]);
 
-        private static JObject ReadParts()
+        private static JObject ReadParts(string path)
         {
-            if (!File.Exists(PARTS_PATH)) return null;
+            if (!File.Exists(path)) return null;
             try
             {
-                return JObject.Parse(File.ReadAllText(PARTS_PATH));
+                return JObject.Parse(File.ReadAllText(path));
             }
             catch (System.Exception e) when (e is Newtonsoft.Json.JsonException || e is IOException)
             {
-                GameLog.Error(TAG, $"{PARTS_PATH} could not be read: {e.Message}");
+                GameLog.Error(TAG, $"{path} could not be read: {e.Message}");
                 return null;
             }
         }

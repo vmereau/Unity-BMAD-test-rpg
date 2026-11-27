@@ -1625,3 +1625,26 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   bumping `TrespassersSpotted` each pass. Already true before for "lost sight"; more visible now that an unreachable
   player (e.g. a future shut-hatch cellar) is no longer scolded through the floor. Consider a short grace or a give-up
   cooldown per area.
+
+## spec-area-1-gang-river-house (2026-11-27)
+
+- **Locks, loot and trespass for the smuggling route.** The hidden door, the basement, the tunnel and the side
+  room's opening are open to anyone: no lock or key on `GangHouse/HiddenDoor`, no restricted area over the basement
+  or the tunnel (its west end lies inside `RA_WarehouseCellar`, the warehouse guard's), no lootable stores. The
+  wilderness gate's leaves are fixed open.
+- **Hand edits to untick (the user's):** `GangHouse/BackDeck`, `Post_*`, `Skirt_*`, `Ramp` (17 rows, the old
+  graybox) and `Barricades/NotWalkable_0`..`_4` (two of them now move the remaining barricades' volumes onto the
+  wilderness gateway). Then rerun Sites and rebake.
+- **Triangle budget:** the site is about 94,000 triangles against the 90,000 planned. 19 kit props are 24,280 at
+  LOD 0 and six kit lanterns about 12,000: a lighter lantern, or fewer props, brings it under.
+- **Editor crash on a Play-mode capture from inside the tunnel** (one occurrence, cause unknown, `cam.Render` to a
+  render texture with the four always-on shadowed lanterns in range). Edit-mode captures of the same views work.
+  Worth one walk through the tunnel in a build or in Play with the game camera.
+- **Third-person camera in the tunnel and the stair well** was not judged by eye (the walk test moves the
+  capsule only): 1.3 m between the lagging.
+- **A terrain run has not exercised `GangHouseBuilder.CutBasementHole`** (nor the warehouse cellar's): after the
+  next `Build Area 1 Terrain`, check the 35 cells under the gang house are open and rerun Camp Edge, Sites, rebake.
+- **The gang fence starts inside two boulders** between the gate and the house's corner (panels follow the
+  terrain, not rocks), and ends in the lake 1 m deep: the player can swim round it.
+- **The nets do not hide the door from close by**; the balcony's roof is boards, not shingles; the rubble base is
+  less mossy than the artworks.

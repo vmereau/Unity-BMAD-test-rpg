@@ -804,6 +804,46 @@
       ]
     },
     {
+      "id": "gang-fence",
+      "kind": "fence",
+      "name": "Palisade, gang house",
+      "width": 1,
+      "art": [],
+      "note": "From the wilderness gate's east post over the rock clump, down the bank between the bridge and the gang house, into the lake.",
+      "points": [
+        [
+          33.6,
+          52.05
+        ],
+        [
+          37.3,
+          53
+        ],
+        [
+          39.9,
+          58.5
+        ],
+        [
+          41.6,
+          62.2
+        ],
+        [
+          42.3,
+          64
+        ]
+      ]
+    },
+    {
+      "id": "wilderness-gate",
+      "kind": "point",
+      "name": "Wilderness gate",
+      "x": 31.95,
+      "z": 52,
+      "yaw": 90,
+      "art": [],
+      "note": "Cart gateway between the north palisade's end and the gang-house palisade, on the way to the bridge. Local +X faces into the camp, so the leaves stand open on the camp side. The racket guard's toll post is beside it."
+    },
+    {
       "id": "inner-gate",
       "kind": "point",
       "name": "Inner gate",

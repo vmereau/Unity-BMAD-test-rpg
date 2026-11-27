@@ -124,6 +124,8 @@ namespace Game.Editor.World
         private const string GUARD_POST = "GuardPost";
         private const string GANG_HOUSE = "GangHouse";
         private const string GANG_DOCK = "GangDock";
+        private const string WILDERNESS_GATE = "WildernessGate";
+        private const string WILDERNESS_GATE_FEATURE = "wilderness-gate";   // optional: a point with a yaw
         private const string COMPOUND_GATE_FEATURE = "compound-gate";
         private const string STAGING_YARD_FEATURE = "staging-yard";
         private const string GUARD_POST_FEATURE = "guard-post";
@@ -569,9 +571,37 @@ namespace Game.Editor.World
             Area1Stoneworks.BuildHoists(Area1BlockoutBuilder.Points(fortHoist), terrain, timber, stone, stoneworks);
             Area1Stoneworks.BuildOxPen(Area1BlockoutBuilder.Position(features[OX_PEN_FEATURE]), (float)features[OX_PEN_FEATURE]["yaw"], terrain, timber, stone, stoneworks);
             Area1Stoneworks.BuildRubble(Area1BlockoutBuilder.Position(features[RUBBLE_TIP_FEATURE]), terrain, stone, stoneworks);
-            Transform house = NewRoot(root.transform, GANG_HOUSE);
-            Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
-            Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
+            // The gang house root is the generated prefab (GangHouseBuilder), which brings its own deck and pier: the dock
+            // root then holds the boat alone. Without the prefab, or with a layout that moved the house, the graybox pair.
+            var gangPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(GangHouseBuilder.PREFAB_PATH);
+            Transform house = NewRoot(root.transform, GANG_HOUSE, gangPrefab);
+            string gangProblem = $"{GangHouseBuilder.PREFAB_PATH} not found (run Tools/World/Build Gang House Prefab)";
+            if (gangPrefab != null && GangHouseBuilder.TrySeat(house, Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["yaw"], out Vector3 boatAt, out Vector2 boatAlong, out gangProblem))
+            {
+                GangHouseBuilder.BuildGoods(house);
+                BuildBoat(new Vector2(boatAt.x, boatAt.z), boatAlong, timber, NewRoot(root.transform, GANG_DOCK));
+            }
+            else
+            {
+                GameLog.Error(TAG, $"{gangProblem}: built the graybox gang house and dock instead.");
+                if (gangPrefab != null) house = NewRoot(root.transform, GANG_HOUSE);
+                Area1CampInterior.BuildGangHouse(Area1BlockoutBuilder.Position(gangHouse), (float)gangHouse["w"], (float)gangHouse["d"], (float)gangHouse["yaw"], terrain, timber, stone, house);
+                Area1CampInterior.BuildGangDock(Area1BlockoutBuilder.Points(gangDock), (float)gangDock["width"], terrain, timber, house, NewRoot(root.transform, GANG_DOCK));
+            }
+            // The wilderness gate (the gateway beside the gang house) exists only as a generated prefab, seated on the terrace.
+            if (features.TryGetValue(WILDERNESS_GATE_FEATURE, out JObject wildernessGate) && Area1BlockoutBuilder.HasPosition(wildernessGate)
+                && Area1BlockoutBuilder.IsNumber(wildernessGate["yaw"]))
+            {
+                var gatePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DockGateBuilder.WILDERNESS_PREFAB_PATH);
+                if (gatePrefab == null)
+                    GameLog.Error(TAG, $"{DockGateBuilder.WILDERNESS_PREFAB_PATH} not found: no wilderness gate built. Run Tools/World/Build Wilderness Gate Prefab, then Sites again.");
+                else
+                {
+                    Vector2 gateAt = Area1BlockoutBuilder.Position(wildernessGate);
+                    NewRoot(root.transform, WILDERNESS_GATE, gatePrefab).SetPositionAndRotation(
+                        new Vector3(gateAt.x, Area1BlockoutBuilder.Ground(terrain, gateAt), gateAt.y), Quaternion.Euler(0f, (float)wildernessGate["yaw"], 0f));
+                }
+            }
             Area1TentCamp.BuildCampCentre(tentCamp, terrain, timber, stone, flag, NewRoot(root.transform, Area1TentCamp.CAMP_CENTRE));
             if (!workerHandOwned)
                 Area1TentCamp.BuildTentCamp(tentCamp, tent, terrain, timber, stone, canvas, NewRoot(root.transform, Area1TentCamp.TENT_CAMP));

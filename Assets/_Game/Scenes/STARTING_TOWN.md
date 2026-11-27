@@ -67,13 +67,15 @@ Built by Camp Edge (`Editor/World/CLAUDE.md` → Camp Edge for the procedure).
 
 - The ring has four open gaps, plus the warehouse doors as a guarded way through: arrival (−38.4, 36.3, open towers, no
   blocker: `PassBlocker` is the story lock), wood (−51, 5.6), quarry (55.8, −5.8) and `RampGate` (−6.9, −51). The hill
-  closes it on the south (see **Fort hill**).
+  closes it on the south (see **Fort hill**). The way to the bridge now passes a fifth opening, the `WildernessGate`
+  (see **Lakeside**).
 - West of (−31.5, −43.3) `outer-fence` runs along the hilltop, then turns east along the hill's north foot into the wood
   opening, because anywhere at the bank's foot a running jump from the hill clears the panels. Inside, that leaves a
   bank about 7 m high in front of the wall, and an empty shelf on the hill behind it. Test this line with a running start
   from 5 m out.
-- East of the north palisade's end at (30, 51.9) it is open round to the inner fence's east end: the wilderness trail and
-  the shore both leave that way (see **Lakeside**).
+- East of the north palisade's end at (30, 51.9) stands the wilderness gate, and `gang-fence` carries the palisade on
+  from it into the lake (see **Lakeside**). South of that it is still open round to the inner fence's east end,
+  along the lake shore.
 - The docks are outside the ring, inside the Company compound (below).
 - `BrokenStretch` (x −1..7 on the north fence) is the collapsed wall under repair (`Editor/World/CLAUDE.md` → Broken
   stretch): stumps, leaning end logs, scaffold, hoist, quarry stone, a rope with rags, and new logs on the shore.
@@ -139,7 +141,8 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
   (`outer-fence-3/Panel_061`, `_062`, `dock-fence-upper/Panel_147`, `_148`): removing or moving one opens the room.
   Under it a dry-stone retaining wall (face z 57.7) holds the bank, and behind that wall lies the **cellar's side
   room** (x 21.25..23.2, z 52.95..56.4, floor y 0.1), reached through the cellar's east wall, under a second
-  terrain hole (x 20.5..23.4, z 52.7..56.6). Contract: `Prefabs/World/Warehouse/CLAUDE.md` → Quay; look:
+  terrain hole (x 20.5..23.4, z 52.7..56.6). Its south wall holds the opening of the gang's smuggling tunnel
+  (x 21.7..22.9; see **Lakeside**). Contract: `Prefabs/World/Warehouse/CLAUDE.md` → Quay; look:
   `Art/Environment/Camp/QUAY_CONCEPTS.md`.
 - The dock spur at x 24.5 clears the hand-placed barricades and runs into the river. `DockGate` is an instance of
   the generated `Prefabs/World/DockGate/DockGate.prefab` (that folder's `CLAUDE.md`): a palisade gateway 2.5 m
@@ -233,10 +236,25 @@ The camp's east side is open.
   freely. The bench, stone and log there are hand-placed. The crest is highest towards `fort-tower` and the gap faces
   north. The tower looks down into the bowl, so from a top eye at y 26.6 the bank alone hides only the near half of the
   floor; the detailed pit will replace this placeholder.
-- **GangHouse** shares `BuildHouseShell` with `GuardPost`: the ground falls under it, so its floor is 1.6 m over the camp
-  side and it has a ramp. `BackDeck` sits just above the highest ground under it, is reached from the sides, and sets
-  the height of `GangDock`. It stands on the tents-to-ruins line, with the ridge at y 6.9 and the chimney at y 7.6; keep
-  both under y 10.
+- **GangHouse** (`spec-area-1-gang-river-house`) is an instance of the generated
+  `Prefabs/World/GangHouse/GangHouse.prefab` (contract, pipeline and known limits: that folder's `CLAUDE.md`; look:
+  `Art/Environment/Camp/GANG_HOUSE_CONCEPTS.md`), at (43.5, 2.15, 53.5) turned 205°: one room on a rubble base, a
+  ramp to its camp door, a balcony over the lake, a deck at y −0.5 along the base's foot, a pier out to the boat
+  (`GangDock` now holds the boat alone) and a walkway down its east end, the only way to the deck on foot. It
+  stands on the tents-to-ruins line, with the ridge at y 6.8 and the chimney at y 7.45; keep both under y 10.
+  `HiddenStashQuest` (Brann, his two spots, `BrannsStash`) is unchanged, on the main floor's east half.
+- **Basement and smuggling tunnel:** behind the nets on the deck a door (`GangHouse/HiddenDoor`, unlocked) opens
+  into a rubble basement under the house (a terrain **hole**: heights unchanged, sculpting under the house shows
+  nothing). From its west end a shored tunnel runs about 23 m underground, under the gang fence, the wilderness
+  gateway and the terrace, to an opening in the south wall of the warehouse cellar's side room. Its floor is at
+  y −1.7 from the gateway to the house, 0.3 m above the lake. Agents cannot path through it or through the hidden
+  door. No restricted area, lock or loot yet. Add nothing buried or heavy on its line (x 22..39, z 50.8..55) and
+  do not lower the ground along the gang fence: the fence's panels would drop into it.
+- **Wilderness gate:** `Area1_Blockout/WildernessGate` at (31.95, 52), a cart gateway (2.5 m clear, leaves open
+  toward the camp) between the north palisade's end and `CampEdge/gang-fence`, which runs over the rock clump, down
+  the bank 0.9 m west of the gang house and into the lake about 1 m deep (the player can swim round it). The five
+  hand-placed barricades of the old opening are gone; `TollGates/TollGate_Wilderness` stands in the gateway and
+  the racket guard's post (`Spot_RacketGuard_WildernessGate`, (33, 49)) is 3 m inside it. The bridge is outside.
 - `lakeside` is open ground with no trees and no tents (`Area1TentCamp.TryRead` keeps points off it); nothing is built
   there yet.
 
