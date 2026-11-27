@@ -219,6 +219,8 @@ namespace Game.AI
         private bool _searchInvestigating;
         // Neither seen nor heard for this long before a Suspicious owner goes to check the spot (hearing flickers at radius edges).
         private const float TRESPASS_INVESTIGATE_DELAY = 0.5f;
+        // Below this agent speed (m/s) a chasing witness counts as standing still (blocked, arrived) for its give-up timer.
+        private const float PURSUIT_MIN_SPEED = 0.2f;
         private float _previousHealth;
         private bool _healthSubscribed;
         private EntityStance _stance;
@@ -1298,15 +1300,13 @@ namespace Game.AI
                 _pursuitLosTimer = config.losCheckInterval;
                 _pursuitHasLos = _perception.HasLineOfSightTo(_perception.GetVisibilityPoint(_currentTarget));
             }
-            if (_pursuitHasLos)
-            {
-                _pursuitNoSightTimer = 0f;
-                _pursuitLastSeen = targetPos;
-            }
-            else
-            {
-                _pursuitNoSightTimer += dt;
-            }
+            // Heard counts like seen (perception holding the thief in trespass / hostile mode — a theft outside an owned
+            // area is witness mode, which never hears): the pursuer follows the noise, e.g. down into a cellar it can't
+            // see through the floor. Standing still without the catch (unreachable spot, floor above, ledge) runs the timer.
+            bool heard = _perception.Target == _currentTarget && _perception.CanHearTarget;
+            bool sensed = _pursuitHasLos || heard;
+            if (sensed) _pursuitLastSeen = targetPos;
+            _pursuitNoSightTimer = TheftDetection.NextNoSightTime(_pursuitNoSightTimer, dt, sensed, IsWalkingToPursuitSpot());
             _pursuitElapsed += dt;
 
             Vector3 toTarget = targetPos - transform.position;
@@ -1320,15 +1320,26 @@ namespace Game.AI
                 return;
             }
 
-            if (TheftDetection.CanCatch(distance, config.theftCatchDistance, CursorManager.IsLocked) &&
+            // Same level and in sight: a guard on the floor above (flat distance ≈ 0) or behind a wall walks round instead.
+            if (TheftDetection.CanCatch(distance, config.theftCatchDistance, targetPos.y - transform.position.y,
+                    config.theftCatchMaxHeight, _pursuitHasLos, CursorManager.IsLocked) &&
                 TheftPursuitRegistry.TryClaim(_pursuitTheftId))
             {
                 TransitionToConfronting();
                 return;
             }
 
-            _agent.SetDestination(_pursuitHasLos ? targetPos : _pursuitLastSeen);
+            // Unchanged last spot: no re-request every frame (a re-queued path would keep pathPending true).
+            Vector3 destination = sensed ? targetPos : _pursuitLastSeen;
+            if (sensed || (_agent.destination - destination).sqrMagnitude > 0.01f) _agent.SetDestination(destination);
         }
+
+        // Making headway on the chase: a path being computed, or more than half a metre past the stopping distance left
+        // and actually moving (a blocked agent, an Infinity remaining distance or the end of a partial path don't count).
+        private bool IsWalkingToPursuitSpot() =>
+            _agent.isOnNavMesh && (_agent.pathPending ||
+                                   (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance + 0.5f &&
+                                    _agent.velocity.sqrMagnitude > PURSUIT_MIN_SPEED * PURSUIT_MIN_SPEED));
 
         private void TransitionToConfronting()
         {

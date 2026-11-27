@@ -81,9 +81,14 @@ namespace Game.Stealth
         public int witnessBubblePriority = 0;
 
         [Header("Theft Chase")]
-        [Tooltip("Flat distance (m) at which a chasing witness catches the thief and confronts them.")]
+        [Tooltip("Flat distance (m) at which a chasing witness catches the thief and confronts them (also needs line of " +
+                 "sight and the height gap below theftCatchMaxHeight).")]
         public float theftCatchDistance = 1.8f;
-        [Tooltip("Seconds without line of sight before a chasing witness gives up.")]
+        [Tooltip("Largest height gap (m) between the chasing witness and the thief that still counts as a catch: a stair " +
+                 "step does, a floor above / below (cellar under the hall) doesn't.")]
+        public float theftCatchMaxHeight = 1.2f;
+        [Tooltip("Seconds a chasing witness stands still without catching the thief (at the last spot it saw / heard them, " +
+                 "blocked, or under a thief it can't reach) before it gives up.")]
         public float theftChaseLoseSightTime = 4f;
         [Tooltip("Flat distance (m) to the thief beyond which a chasing witness gives up.")]
         public float theftChaseMaxDistance = 20f;
@@ -134,6 +139,7 @@ namespace Game.Stealth
             witnessWarnCooldown       = Mathf.Max(0f, witnessWarnCooldown);
             witnessBubbleDuration     = Mathf.Max(0f, witnessBubbleDuration);
             theftCatchDistance        = Mathf.Max(0.5f, theftCatchDistance);
+            theftCatchMaxHeight       = Mathf.Max(0.3f, theftCatchMaxHeight); // below that, a slope blocks every catch
             theftChaseLoseSightTime   = Mathf.Max(0f, theftChaseLoseSightTime);
             theftChaseMaxDistance     = Mathf.Max(0f, theftChaseMaxDistance);
             theftChaseMaxDuration     = Mathf.Max(0f, theftChaseMaxDuration);

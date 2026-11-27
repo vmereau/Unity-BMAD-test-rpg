@@ -101,22 +101,96 @@ namespace Tests.EditMode
 
         // ── CanCatch ───────────────────────────────────────────────────────────
 
+        private static bool Catch(float distance, float gap = 0f, bool los = true, bool cursorLocked = true) =>
+            TheftDetection.CanCatch(distance, 1.8f, gap, 1.2f, los, cursorLocked);
+
         [Test]
         public void CanCatch_CursorUnlocked_False()
         {
-            Assert.IsFalse(TheftDetection.CanCatch(1f, 1.8f, false));
+            Assert.IsFalse(Catch(1f, cursorLocked: false));
         }
 
         [Test]
         public void CanCatch_AtCatchDistance_True()
         {
-            Assert.IsTrue(TheftDetection.CanCatch(1.8f, 1.8f, true));
+            Assert.IsTrue(Catch(1.8f));
         }
 
         [Test]
         public void CanCatch_BeyondCatchDistance_False()
         {
-            Assert.IsFalse(TheftDetection.CanCatch(1.81f, 1.8f, true));
+            Assert.IsFalse(Catch(1.81f));
+        }
+
+        [Test]
+        public void CanCatch_SameFloor_True()
+        {
+            Assert.IsTrue(Catch(1.5f, 0.1f));
+        }
+
+        [Test]
+        public void CanCatch_FloorAbove_False()
+        {
+            Assert.IsFalse(Catch(0.5f, 2.5f));
+        }
+
+        [Test]
+        public void CanCatch_FloorBelow_False()
+        {
+            Assert.IsFalse(Catch(0.5f, -2.5f));
+        }
+
+        [Test]
+        public void CanCatch_StairStep_True()
+        {
+            Assert.IsTrue(Catch(1.5f, 0.8f));
+            Assert.IsTrue(Catch(1.5f, -1.2f));
+        }
+
+        [Test]
+        public void CanCatch_ThroughWall_False()
+        {
+            Assert.IsFalse(Catch(1.5f, los: false));
+        }
+
+        [Test]
+        public void CanCatch_JustAboveHeightLimit_False()
+        {
+            Assert.IsFalse(Catch(1f, 1.21f));
+            Assert.IsFalse(Catch(1f, -1.21f));
+        }
+
+        [Test]
+        public void CanCatch_AtHeightLimit_True()
+        {
+            Assert.IsTrue(Catch(1f, 1.2f));
+        }
+
+        // ── NextNoSightTime ────────────────────────────────────────────────────
+
+        [Test]
+        public void NextNoSightTime_SensedAndProgressing_Resets()
+        {
+            Assert.AreEqual(0f, TheftDetection.NextNoSightTime(3f, 0.1f, true, true));
+        }
+
+        [Test]
+        public void NextNoSightTime_WalkingToLastSpotUnsensed_Holds()
+        {
+            Assert.AreEqual(3f, TheftDetection.NextNoSightTime(3f, 0.1f, false, true));
+        }
+
+        [Test]
+        public void NextNoSightTime_StoppedUnsensed_Counts()
+        {
+            Assert.AreEqual(3.1f, TheftDetection.NextNoSightTime(3f, 0.1f, false, false), 1e-5f);
+        }
+
+        [Test]
+        public void NextNoSightTime_StoppedButHeard_Counts()
+        {
+            // Heard from a spot it can't reach (floor above, shut hatch): it still gives up.
+            Assert.AreEqual(3.1f, TheftDetection.NextNoSightTime(3f, 0.1f, true, false), 1e-5f);
         }
 
         // ── ShouldStopTrespassChase ────────────────────────────────────────────

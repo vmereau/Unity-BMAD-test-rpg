@@ -49,10 +49,16 @@
   radius, + immediate LOS raycast). **Every** seeing witness goes **Pursuing** (non-combat — `IsInCombat` false; agent
   at `EngageSpeed`, `stoppingDistance = 0.8 × theftCatchDistance`), shouts one `TheftAlertBarks` bubble and increments
   `TheftsWitnessed` (runtime, escalation hook). A new theft while Pursuing adopts the new id and restarts the timers.
-  Give up (`TheftDetection.ShouldGiveUp`): no LOS for `theftChaseLoseSightTime`, beyond `theftChaseMaxDistance`, after
+  Give up (`TheftDetection.ShouldGiveUp`): give-up timer ≥ `theftChaseLoseSightTime` (see below), beyond `theftChaseMaxDistance`, after
   `theftChaseMaxDuration`, thief dead, or the incident claimed by another witness. A hostile found by the throttled
-  radius scan while Pursuing takes over (normal Warning / Engaging reaction, like Watching). Catch (`CanCatch`: flat distance ≤
-  `theftCatchDistance` **and the cursor locked** — waits while a menu is open) + `TheftPursuitRegistry.TryClaim` →
+  radius scan while Pursuing takes over (normal Warning / Engaging reaction, like Watching). **Sensed = seen (LOS) or heard**
+  (`CanHearTarget` on the chased target — perception in trespass / hostile mode, so also a theft inside an area the witness
+  owns; witness mode never hears): it refreshes `_pursuitLastSeen` and the agent paths to the target, otherwise to the last
+  sensed spot (re-requested only when it moves). Give-up timer (`TheftDetection.NextNoSightTime`): sensed while making
+  headway → 0; walking on unsensed → held; **standing still** (`IsWalkingToPursuitSpot` false: arrived, end of a partial
+  path, blocked, < 0.2 m/s) → runs even if heard, so a guard over an unreachable cellar or under a ledge gives up. Catch (`CanCatch`: flat distance ≤ `theftCatchDistance`,
+  height gap ≤ `theftCatchMaxHeight` 1.2 m, **LOS**, **and the cursor locked** — waits while a menu is open; a guard on the
+  floor above a cellar, or behind a wall, walks round instead of scolding through it) + `TheftPursuitRegistry.TryClaim` →
   **Confronting**: stops, faces the thief, raises `OnNPCDialogueRequested` with `forcedLine` (item thefts use
   `ItemTheftScoldBarks`, else `TheftScoldBarks`, else a default line); resumes its routine when the dialogue closes
   (cursor locked again) or after `theftConfrontOpenTimeout` if it never opened. A hostile hit while Pursuing /

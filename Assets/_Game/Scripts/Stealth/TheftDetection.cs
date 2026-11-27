@@ -19,9 +19,19 @@ namespace Game.Stealth
             float elapsed, float maxDuration) =>
             timeWithoutSight >= loseSightTime || distance > maxDistance || elapsed >= maxDuration;
 
-        /// <summary>The thief is caught: close enough and no menu / dialogue open (cursor locked).</summary>
-        public static bool CanCatch(float distance, float catchDistance, bool cursorLocked) =>
-            cursorLocked && distance <= catchDistance;
+        /// <summary>The thief is caught: close enough on the flat, on about the same level (a floor above / below doesn't
+        /// count, a stair step does), in line of sight (not through a wall) and no menu / dialogue open (cursor locked).</summary>
+        public static bool CanCatch(float flatDistance, float catchDistance, float heightGap, float maxHeightGap,
+            bool hasLineOfSight, bool cursorLocked) =>
+            cursorLocked && hasLineOfSight && flatDistance <= catchDistance &&
+            (heightGap < 0f ? -heightGap : heightGap) <= maxHeightGap;
+
+        /// <summary>Next value of a chasing witness's give-up timer (compared with the lose-sight time). Sensing the thief
+        /// (seen or heard) while still making headway resets it; walking on without sensing them holds it; once the
+        /// witness stands still — at the last sensed spot, at the end of a partial path, blocked, or stopped under a thief
+        /// it can't catch (floor above, ledge) — it runs, sensed or not.</summary>
+        public static float NextNoSightTime(float current, float deltaTime, bool sensed, bool progressing) =>
+            progressing ? (sensed ? 0f : current) : current + deltaTime;
 
         /// <summary>A trespass chase ends once its area no longer restricts the target: the target left every box, or
         /// the area stopped being restricted (hours / grace). Theft chases and chases without an area never stop here.</summary>

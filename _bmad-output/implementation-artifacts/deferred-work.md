@@ -1617,3 +1617,11 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   `SM_Rock_06 (17)` or the dock spur.
 - **The other gates are still graybox**; `build_dock_gate.py` is written for this one place (flat lane, fixed
   post heights).
+
+## From spec-chase-catch-verticality (2026-11-27)
+
+- **Trespass chase give-up → re-chase loop.** A trespass chase that gives up (timer / 30 s cap) while the player is still
+  inside the area starts no grace, so the owner re-detects them (1 s hearing fill) and chases again with a fresh bark,
+  bumping `TrespassersSpotted` each pass. Already true before for "lost sight"; more visible now that an unreachable
+  player (e.g. a future shut-hatch cellar) is no longer scolded through the floor. Consider a short grace or a give-up
+  cooldown per area.
