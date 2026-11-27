@@ -156,6 +156,11 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
 Sites builds `CampCentre` (stage, punishment post, flags round the square, on the inner gate and on the warehouse) from
 `Editor/World/Area1TentCamp` and the `camp-centre` point, even while the settlement is hand-owned.
 
+- **The stage's deck is hand-owned:** `Camp/CampCentre/StageKit` (same world pose as the tool's `Stage`) holds the kit
+  beams, floors, stair and torches. The tool's `Stage` keeps only the post, pillory, chain and banner, pinned by
+  `hand-edits.json`, which also removes its blockout `Platform` / `Step_*`. Never add art under
+  `Area1_Blockout/CampCentre`: a Sites run replaces the root, and hand edits can't keep added children (the deck was
+  lost that way in the gang house run, `spec-restore-camp-stage-kit`).
 - Three 6 m sight lanes run from the post to `arrival-gate`, `wilderness-trail`'s first point and `inner-gate`.
 - `Area1TentCamp.TryRead` still checks the layout's tent / fire points (`players-tent`, `tents-*`, `fire-*`,
   `black-market`, `zone-ditch`) before every Sites run: it stops a run if any stands in a lane, on the square, on

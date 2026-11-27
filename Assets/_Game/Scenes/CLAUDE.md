@@ -104,7 +104,7 @@ New props sit under `Camp/<Zone>`. Design source: `docs/World/Areas/area-001-com
 | `RestrictedAreas` | Scene root (hand-owned) | `RA_Warehouse` / `RA_WarehouseCellar` / `RA_Docks` / `RA_CookhouseStore` volumes; guard waypoints under `NpcPatrolRoutes/<NPC>`, routine spots under `NpcRoutineSpots`. Keep all three out of `Area1_Blockout`; see `STARTING_TOWN.md` → Restricted areas |
 
 Other hand-owned scene roots (no tool touches them): `WorkSiteManagers`, `SealedPassage`, `HiddenStashQuest`,
-`ArrivalSequence` — see `STARTING_TOWN.md`.
+`ArrivalSequence`, `Camp/CampCentre/StageKit` (the stage's deck) — see `STARTING_TOWN.md`.
 
 Enemies live outside the basin: spiders in and at the mouth of the tutorial cave near (85, −45), bandit patrol around
 (−110, 30). They aren't tool-owned: a Sites run leaves them alone, and moving a site doesn't move them.
