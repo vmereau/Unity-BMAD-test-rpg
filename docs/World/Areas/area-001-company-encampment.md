@@ -114,6 +114,8 @@ This area serves as the game's tutorial, first demo, and prologue. It ends with 
 
 **Tone:** Oppressive but not hopeless. The injustice is immediate and personal. Freedom is visible — literally — across the river.
 
+**Population:** Men only. No women or girls live in the Company encampment, workers and guards alike. Anyone's family lives back in the kingdom, and money for them goes home with the barges. NPC backstories and dialogue must not put a wife, daughter or mother in the camp.
+
 ### The Company's Tolerance
 
 The fights are illegal in name only. The Company knows about the pit and lets it run: as long as the workers can work, a little "entertainment" costs it nothing. The pit stays tucked out of sight, so nobody has to look at it, and some guards take bets on the fights.

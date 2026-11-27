@@ -76,6 +76,16 @@ Inventory / Crafting · UI / UX · Audio / Art · Tech / Tools
 - **To explore:** qui enseigne le crochetage ; une chaîne de quêtes de voleur / pickpocket pour Aldric ;
   `docs/World/NPCs/npc-011-innkeeper.md` parle encore d'une auberge (à mettre à jour).
 
+## Player / Progression
+
+### Vol à la tire (pickpocket) sur les NPC
+- **Date:** 2026-11-27 · **Status:** brut
+- **Idea:** prendre un objet dans l'inventaire d'un NPC éveillé sans l'assommer (ex. la copie de la clé du tunnel
+  que portent les gardes complices, quête `SmugglersTunnel`). Aujourd'hui seul le pillage après K.O. ou mort, ou le
+  vol dans un coffre, donne accès à ces objets.
+- **To explore:** compétence dédiée ou lien avec la discrétion (`StealthDetection`) ; échec = témoin / poursuite
+  comme un vol ; NPC endormi plus facile ; quels objets sont « pickpocketables ».
+
 ---
 
 ## Archived
