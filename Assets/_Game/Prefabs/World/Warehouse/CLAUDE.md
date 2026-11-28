@@ -91,7 +91,8 @@ x −1.2..4.9, z −1.9..7.0, floor at world y 0.1 (local −4.55), about 4.3 m 
 - **Closed overhead:** a tight layer of boards under the floor and the deck. Without it the sun draws stripes on
   the cellar floor through the 4 mm gaps between the boards.
 - **Dock door:** `CellarDoor`, a nested instance of `Prefabs/World/Doors/Poor small door` (1.1 m leaf, stretched
-  1.06 in height for 2.1 m of headroom), hung on the east jamb, unlocked, opening into the room, save id
+  1.06 in height for 2.1 m of headroom), hung on the east jamb, **locked** (`Key_WarehouseCellar` or a pick at Lockpicking 1, set by the builder through
+  `RouteDoorLocks`), opening into the room, save id
   `area1-warehouse-cellar-door`. It is left out of the bake, so the shut leaf does not cut the room off the NavMesh.
 - **Hatch:** boards, two strap hinges and a ring lying 1.6 cm proud of the hall's floor at local x −0.8..0.2,
   z 2.3..3.3. Visual only: the `Floor` walk box runs under it. Opening it and climbing the ladder is a later spec.
@@ -144,8 +145,15 @@ Everything added on the river side after the cellar, in the same script and pref
   `Side_South_East`, `Side_South_Header`; walk box `CellarTunnelSill`. The tunnel beyond is the gang house's
   model (`Prefabs/World/GangHouse/CLAUDE.md` → Tunnel): its first point stands on this wall's outer face, in the
   middle of the opening, and `Place Area 1 Gang House` refuses when the two are 5 cm apart. Moving the warehouse
-  or the side room means moving `TUNNEL_PATH` in `build_gang_house.py` too. The side room's two crates stand
-  against its east wall (`Area1CampInterior.CellarGoods`), clear of the opening.
+  or the side room means moving `TUNNEL_PATH` in `build_gang_house.py` too. The side room's two crates (`Area1CampInterior.CellarGoods`) stand in
+  front of the opening, not against the east wall: the way through passes west of them.
+- **Tunnel door** (spec-smuggling-route-locks-and-keys): `TunnelDoor_Cellar`, a nested `Poor small door` on the
+  side room's face of the opening, built from `cellar.tunnel` (no model change, constants `TUNNEL_DOOR_*` in
+  `WarehouseBuilder`): the 1.1 m leaf covers the jambs' 1.0 m clear width, stands 0.15 m off the inner face (clear of
+  the jambs and the lintel), hangs on the **east** jamb and swings into the room against the east wall. The side
+  room's two crates do **not** stand against its east wall: they stand right in front of the opening (world x
+  22.1–22.7); a west hinge would have left 0.27 m beside them. Locked with `Key_GangTunnel` (Lockpicking 1), save id
+  `area1-warehouse-tunnel-door`, out of the bake. The `TallyDoor` stays unlocked.
 - **Rocks:** `SM_Rock_06 (17)` stands 0.8 m east of the side room's east face, `SM_Rock_08 (4)` 0.2 m over its
   ceiling (and comes up through the tally room's floor in the south-east corner). Before growing either room,
   ray-test the new volume against the `SM_Rock*` colliders.

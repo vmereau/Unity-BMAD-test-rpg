@@ -116,7 +116,7 @@ class GangHouse:
                       ("Frame", "Walls", "Floor", "Roof", "Doors", "Hearth", "Base", "Iron", "Furniture", "Shelters",
                        "Decks", "Piles", "Nets", "Basement", "BasementWalls", "Tunnel", "TunnelTimber")}
         self.colliders, self.walk, self.not_walkable, self.lights, self.lanterns, self.anchors = [], [], [], [], [], {}
-        self.door, self.tunnel_nodes = None, []
+        self.door, self.tunnel_nodes, self.tunnel_door_facts = None, [], None
         self.goods = []
 
     # -- parts file --------------------------------------------------------------------------------
@@ -561,6 +561,7 @@ class GangHouse:
             turns.append(0.0 if abs(c) < 0.05 else (1.0 if c > 0 else -1.0))
         turns.append(0.0)
         legs = []
+        doorways = []                                    # the last stretch's frames, where the mouth's door may hang
         frame_at = 0.35
         for i, (a, b) in enumerate(zip(nodes, nodes[1:])):
             d = dirs[i]
@@ -644,10 +645,13 @@ class GangHouse:
                     capb = [at(frame_at, -hw - 0.1)[k] + Y[k] * (TUNNEL_H + 0.06) for k in range(3)]
                     timber.log(capa, capb, rng.uniform(0.065, 0.08), FRAME, sides=7, rings=3, wobble=0.008)
                     legs.append((i, frame_at, at(frame_at, hw - 0.06, TUNNEL_H - 0.25), side))
+                    if last:
+                        doorways.append((len(legs) - 1, frame_at, length, at, d, side, f))
                 frame_at += FRAME_STEP
             frame_at -= length
-        # lanterns on three props: they always burn
-        for name, pick in (("TunnelLantern_West", 2), ("TunnelLantern_Middle", len(legs) // 2), ("TunnelLantern_East", len(legs) - 2)):
+        door_leg = self.tunnel_door(doorways)
+        # lanterns on three props: they always burn. The east one hangs a frame short of the door's
+        for name, pick in (("TunnelLantern_West", 2), ("TunnelLantern_Middle", len(legs) // 2), ("TunnelLantern_East", door_leg - 1)):
             i, _, point, side = legs[max(0, min(len(legs) - 1, pick))]
             hook = [point[k] - side[k] * 0.16 for k in range(3)]
             self.lanterns.append({"name": name, "position": [round(hook[0], 3), round(hook[1] - 0.27, 3), round(hook[2], 3)],
@@ -659,6 +663,25 @@ class GangHouse:
         self.collider("TunnelStrip", "NotWalkable", (mid[0], mid[1] + 1.0, mid[2]), (TUNNEL_W + 1.0, 3.0, 1.2),
                       (0.0, math.degrees(math.atan2(f[0], f[2])), 0.0), into=self.not_walkable)
         self.tunnel_nodes = [[round(c, 3) for c in node] for node in nodes]
+
+    def tunnel_door(self, doorways):
+        """The door at the basement's end of the tunnel: the game's door prefab hung on the house side of the last
+        frame outside the west wall, its leaf (1.1 m) across the frame's props (1.04 m apart), swinging toward the
+        house along the straight tunnel. Nothing is drawn for it. Returns the frame's index among the props."""
+        leaf, gap = 1.1, 0.17                            # the leaf's width; the props' radius, half the leaf's thickness, a gap
+        face_x = HX + BASE_OUT                           # the west wall's outer face
+        best = None
+        for k, s, length, at, d, side, f in doorways:
+            wall_at = (face_x - at(0.0)[0]) / d[0]       # where the axis meets the wall's face
+            if s + gap + leaf + 0.1 < min(s + FRAME_STEP, wall_at, length):
+                best = (k, s, at, side, f)
+        if best is None:
+            raise RuntimeError("no frame of the tunnel's last stretch leaves room for the mouth's door")
+        k, s, at, side, f = best
+        hinge = at(s + gap, -(leaf * 0.5))               # the prefab's leaf runs along its +x (here: +side) from the hinge
+        self.tunnel_door_facts = {"position": [round(c, 3) for c in hinge], "yaw": round(math.degrees(math.atan2(f[0], f[2])), 2),
+                                  "scaleY": 1.0, "openAngle": -90.0}
+        return k
 
     def hearth(self):
         mesh, frame = self.parts["Hearth"], self.parts["Frame"]
@@ -1028,7 +1051,8 @@ def main():
              "colliders": house.colliders, "notWalkable": house.not_walkable, "lanterns": house.lanterns,
              "lights": house.lights, "goods": house.goods, "anchors": house.anchors,
              "basement": {"room": list(ROOM), "floorY": DECK_Y, "hole": list(HOLE), "door": house.door},
-             "tunnel": {"nodes": house.tunnel_nodes, "width": TUNNEL_W, "height": TUNNEL_H, "worldPath": [list(p) for p in TUNNEL_PATH]}}
+             "tunnel": {"nodes": house.tunnel_nodes, "width": TUNNEL_W, "height": TUNNEL_H, "worldPath": [list(p) for p in TUNNEL_PATH],
+                        "door": house.tunnel_door_facts}}
     with open(os.path.join(out, name + ".json"), "w") as f:
         json.dump(parts, f, indent=1)
     for o in objects:

@@ -25,8 +25,11 @@ namespace Game.Inventory
                  "the player through dialogue (ChoiceOption.requiredItem).")]
         public bool isQuestItem;
 
-        /// <summary>True when the item may leave the player's inventory through trade, drop, container or action bar.</summary>
-        public static bool CanPlayerPart(ItemSO item) => item != null && !item.isQuestItem;
+        /// <summary>
+        /// True when the item may leave the player's inventory through trade, drop, container or action bar
+        /// (never for quest items and keys).
+        /// </summary>
+        public static bool CanPlayerPart(ItemSO item) => item != null && !item.isQuestItem && !(item is KeyItemSO);
 
 #if UNITY_EDITOR
         protected virtual void OnValidate()

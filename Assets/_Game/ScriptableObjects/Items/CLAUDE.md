@@ -33,6 +33,7 @@ ItemSO                              (base — any item in the inventory)
     ├── ArmorSO                     (Helmet/Armor/Necklace slots; a ring asset uses `slot = Ring1` and equips to Ring1 or Ring2 — `EquipmentRules`)
     ├── ShieldSO                    (occupies Offhand; blockStaminaCost, perfectBlockWindow, heldPose / backPose — armor = defenseBonus)
     └── TorchSO                     (occupies Offhand; light source, no stats; heldPose / stowPose — see TorchSO below)
+KeyItemSO                           (ItemSO: a key a Lockable names as its _keyItem — see KeyItemSO below)
 
 WeaponArchetypeSO                   (weapon family preset — Weapons/WeaponArchetypeSO.cs)
   + WeaponPose (struct), WeaponSheathSocket (Hip/Back), WeaponHand (Right/Left), SignedAxis, WeaponGripMath (static) — all in Weapons/
@@ -218,6 +219,25 @@ Equips to Offhand like a shield and replaces one; unlike a shield it **stays equ
 (`EquipmentRules.CoexistsWithTwoHands`) and is stowed while one is drawn. Detail category "Torch", no stat rows, filter Misc.
 Built with `ItemAssetBuilder` (base `ItemSO`), then turned into a `TorchSO` by swapping the asset's `m_Script` GUID — keeps
 `itemId` and every reference.
+
+---
+
+## KeyItemSO (concrete) — spec-smuggling-route-locks-and-keys
+
+`Assets/_Game/ScriptableObjects/Items/KeyItemSO.cs`, menu **Items → Key**, no fields of its own. Every key is one
+(`KeyItemTests` fails on a `Key_*` / `Item_Key_*` asset that isn't). A `Lockable` whose `_keyItem` the player holds
+opens with nothing consumed and no skill (`Scripts/World/CLAUDE.md` → Locks).
+
+- **Never parted with:** `ItemSO.CanPlayerPart` is false for it, like a quest item (no drop, sale, container put or
+  action-bar binding; the buttons hide). Detail category **Key** (after the quest-item rule), filter tab **Misc**.
+- **Worth nothing:** `OnValidate` forces `buyValue` / `sellValue` to 0. Leave `isQuestItem` off: the category would
+  read "Quest Item".
+- Copies of one key stack (`maxStacks` 5 on every key: some have several sources). No world prefab needed (it can't be
+  dropped).
+- **One exception to "never parted with":** a key taken from an owned container is stolen goods, and a guard's
+  confiscation (`InventorySystem.HandleStolenGoodsRequested`) takes it back without asking `CanPlayerPart`.
+- Keys: `Data/Items/Quest/Item_Key_QuarrySouthDoor` (converted by an `m_Script` swap, `itemId` kept),
+  `Key_WarehouseCellar`, `Key_GangTunnel`, `Key_GangBasement` (placeholder icon: the quarry key's).
 
 ---
 

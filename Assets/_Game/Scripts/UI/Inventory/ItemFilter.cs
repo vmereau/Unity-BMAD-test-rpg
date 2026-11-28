@@ -28,6 +28,7 @@ namespace Game.UI
         {
             null => ItemFilter.Misc,
             { isQuestItem: true } => ItemFilter.Misc,
+            KeyItemSO => ItemFilter.Misc,
             { isIngredient: true } => ItemFilter.Ingredients,
             { isCraftingMaterial: true } => ItemFilter.CraftingMaterials,
             WeaponSO => ItemFilter.Weapons,

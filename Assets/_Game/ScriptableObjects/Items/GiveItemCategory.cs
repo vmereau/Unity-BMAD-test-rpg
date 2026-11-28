@@ -19,7 +19,7 @@ namespace Game.Inventory
         /// <summary>True when <paramref name="item"/> can be given for <paramref name="category"/>. Quest items never match.</summary>
         public static bool Matches(ItemSO item, GiveItemCategory category)
         {
-            if (item == null || item.isQuestItem) return false;
+            if (!ItemSO.CanPlayerPart(item)) return false;   // quest items and keys are never given for a category
             if (!(item is PotionItemSO food)) return false;
             switch (category)
             {

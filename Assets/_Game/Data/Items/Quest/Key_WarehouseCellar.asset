@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a9e6c0f8b64daf4a891bd290e6ddfa1, type: 3}
+  m_Name: Key_WarehouseCellar
+  m_EditorClassIdentifier: Game::Game.Inventory.KeyItemSO
+  itemId: a445fcee39e142a8892d06592709ed59
+  itemName: Warehouse Cellar Key
+  description: A Company key on a leather thong. It opens the dock door of the warehouse cellar.
+  icon: {fileID: 21300000, guid: f0196f5ff122a7b49b3a5ca12e564608, type: 3}
+  maxStacks: 5
+  worldItemPrefab: {fileID: 0}
+  buyValue: 0
+  sellValue: 0
+  isIngredient: 0
+  isCraftingMaterial: 0
+  isQuestItem: 0

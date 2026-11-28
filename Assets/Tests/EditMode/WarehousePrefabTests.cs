@@ -194,12 +194,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void CellarDoor_IsUnlocked_SwingsIn_AndKeepsItsSaveId()
+        public void CellarDoor_SwingsIn_AndKeepsItsSaveId()
         {
             Transform door = _instance.transform.Find("CellarDoor");
             Assert.IsNotNull(door);
             Assert.IsNotNull(door.GetComponent<DoorInteractable>());
-            Assert.IsFalse(new SerializedObject(door.GetComponent<Lockable>()).FindProperty("_isLocked").boolValue, "locking it is a later spec");
             var saveable = door.GetComponent<SaveableObject>();
             Assert.IsNotNull(saveable);
             Assert.AreEqual("area1-warehouse-cellar-door", new SerializedObject(saveable).FindProperty("_saveId").stringValue);
@@ -496,6 +495,57 @@ namespace Tests.EditMode
             Assert.IsNotNull(_instance.transform.Find("CellarTunnelSill"), "the opening's floor");
         }
 
+        // SmugglersTunnel P1 (spec-smuggling-route-locks-and-keys): the route's doors are locked, picked at Lockpicking 1
+        // or opened by their key; out of the bake, each with its own fixed save id. The tally room's door stays open to all.
+        [TestCase("CellarDoor", "Key_WarehouseCellar", "area1-warehouse-cellar-door")]
+        [TestCase("TunnelDoor_Cellar", "Key_GangTunnel", "area1-warehouse-tunnel-door")]
+        public void RouteDoor_IsLocked_WithItsKey_OutOfTheBake(string name, string key, string saveId)
+        {
+            Transform door = _instance.transform.Find(name);
+            Assert.IsNotNull(door, name);
+            Assert.IsNotNull(door.GetComponent<DoorInteractable>(), name);
+            var lockable = door.GetComponent<Lockable>();
+            Assert.IsNotNull(lockable, name);
+            Assert.IsTrue(lockable.IsLocked, $"{name} is locked");
+            Assert.AreEqual("beginner_lockpicking", lockable.RequiredSkillId, $"{name} is picked at Lockpicking 1");
+            Assert.IsInstanceOf<Game.Inventory.KeyItemSO>(lockable.KeyItem, $"{name}'s key");
+            Assert.AreEqual(key, lockable.KeyItem.name);
+            Component modifier = door.GetComponent("NavMeshModifier");
+            Assert.IsNotNull(modifier, $"{name} has a NavMeshModifier");
+            Assert.IsTrue(new SerializedObject(modifier).FindProperty("m_IgnoreFromBuild").boolValue, $"{name} is left out of the bake");
+            Assert.AreEqual(saveId, new SerializedObject(door.GetComponent<SaveableObject>()).FindProperty("_saveId").stringValue);
+        }
+
+        [Test]
+        public void TunnelDoor_CoversTheOpening_FromTheSideRoom_AndSwingsClearOfTheWalls()
+        {
+            WarehouseBuilder.CellarFacts cellar = Cellar();
+            Assert.IsTrue(cellar.HasTunnel, "cellar.tunnel");
+            Transform door = _instance.transform.Find("TunnelDoor_Cellar");
+            Assert.IsNotNull(door);
+            Transform visual = door.Find("Visual");
+            Assert.IsNotNull(visual, "the door prefab's Visual");
+            var leaf = visual.GetComponent<BoxCollider>();
+            Assert.IsNotNull(leaf, "the leaf's collider");
+            Bounds shut = leaf.bounds;
+            // shut, the leaf spans the opening's clear width and stands on the side room's side of the wall
+            Assert.LessOrEqual(shut.min.x - Away.x, cellar.TunnelMinX + 0.1f, "the leaf leaves the west jamb's gap open");
+            Assert.GreaterOrEqual(shut.max.x - Away.x, cellar.TunnelMaxX - 0.1f, "the leaf leaves the east jamb's gap open");
+            Assert.Greater(shut.min.z - Away.z, cellar.TunnelInnerZ, "the leaf stands in the wall");
+            float open = new SerializedObject(door.GetComponent<DoorInteractable>()).FindProperty("_openAngle").floatValue;
+            Transform solids = _instance.transform.Find("Colliders");
+            foreach (float angle in new[] { 0f, open })
+            {
+                visual.localRotation = Quaternion.Euler(0f, angle, 0f);
+                Physics.SyncTransforms();
+                Vector3 half = Vector3.Scale(leaf.size, leaf.transform.lossyScale) * 0.5f * 0.95f;
+                foreach (Collider hit in Physics.OverlapBox(leaf.transform.TransformPoint(leaf.center), half, leaf.transform.rotation, ~0, QueryTriggerInteraction.Ignore))
+                    Assert.IsFalse(hit.transform.IsChildOf(solids), $"the leaf at {angle}° meets {hit.name}");
+                if (angle != 0f)
+                    Assert.Greater(leaf.bounds.min.z - Away.z, cellar.TunnelInnerZ, "the leaf swings into the side room");
+            }
+        }
+
         [Test]
         public void SideRoom_HoleAndRestrictedBoxes_StayInsideItsWalls()
         {
@@ -577,6 +627,7 @@ namespace Tests.EditMode
             {
                 if (!collider.transform.IsChildOf(_instance.transform)) continue;
                 if (collider.transform.parent == _instance.transform && System.Array.IndexOf(Walks, collider.name) >= 0) continue;
+                if (collider.GetComponentInParent<DoorInteractable>() != null) continue;   // a leaf is the door's, not the wall's
                 found.Add($"{collider.transform.parent.name}/{collider.name}");
             }
             return found;

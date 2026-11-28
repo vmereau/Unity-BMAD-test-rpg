@@ -93,8 +93,9 @@ at world y −0.5 (the deck's), 2.35 m to the joists.
   is lowered instead (`anchors.groundCutInside`, inside the footprint only, no bank round it). Before growing the
   room, run `GangHousePrefabTests.BasementHole_LiesInsideTheFootprint_AndOverTheRoom`.
 - **Hidden door:** `HiddenDoor`, a nested `Prefabs/World/Doors/Poor small door` in the lake wall at local
-  x 1.45..2.59, on the deck, behind the nets (hinge on the east jamb, opens into the room, unlocked, stretched
-  1.06 in height, save id `area1-gang-house-hidden-door`). Locking it is a later spec.
+  x 1.45..2.59, on the deck, behind the nets (hinge on the east jamb, opens into the room, stretched
+  1.06 in height, save id `area1-gang-house-hidden-door`), **locked**: `Key_GangBasement` or a pick at Lockpicking 1
+  (the builder sets the lock, `RouteDoorLocks`; spec-smuggling-route-locks-and-keys).
 - **Stair well** at the west end (local x 0.45..3, z −0.27..1.5): a landing at the tunnel's level and five plank
   treads up to the room's floor, under one smooth ramp collider (`BasementSteps`, 28°).
 - A beam on two posts under the joists, a slatted panel leaning beside the tunnel's mouth, boards closing the
@@ -130,7 +131,16 @@ gateway itself (x 32.4), east again along z 54.2 into the house's west wall. Its
   the planks, and the earth layer runs behind every wall and over the roof.
 - **Agents never take it:** `NavMesh/TunnelStrip`, a Not Walkable slab across its second stretch. The hidden door
   is out of the bake too, so nobody paths into the basement.
-- Three lanterns always burn in it (`TunnelLantern_*`), with shadows.
+- Three lanterns always burn in it (`TunnelLantern_*`), with shadows. `TunnelLantern_East` hangs one frame short of
+  the door's frame (`door_leg - 1`), clear of the leaf.
+- **Door at the basement's end:** `TunnelDoor_Basement`, a nested `Poor small door` hung on the house side of the
+  last stretch's shoring frame outside the west wall (about 1.65 m from its outer face): the leaf (1.1 m) covers the
+  frame's props (1.04 m apart), swings toward the house along the straight tunnel, nothing is modelled for it. The
+  script picks the frame (`tunnel_door`, which raises when no frame leaves room for the leaf's swing) and writes
+  `tunnel.door` (hinge position, yaw, scaleY, openAngle) to the parts file; the builder refuses a parts file
+  without it. Locked with `Key_GangTunnel` (Lockpicking 1), save id `area1-gang-house-tunnel-door`, out of the bake.
+  The slanted mouth on the wall itself (about 1.59 m wide, a landing only 0.3 m deep in front of it) has no room
+  for a leaf. The tunnel's other door is the warehouse's (`Warehouse/CLAUDE.md` → Tunnel opening).
 
 ## What the place command does
 
@@ -154,7 +164,7 @@ gateway itself (x 32.4), east again along z 54.2 into the house's west wall. Its
 - The palisade's panels follow the terrain: between the gate and the house's corner the `gang-fence` logs start
   inside two boulders (`SM_Rock_07 (7)`, `SM_Rock_06 (25)`).
 - The palisade ends in the lake about 1 m deep: the player can swim round it.
-- The camp and balcony doors are fixed open leaves; locks, keys, loot and restricted areas are later specs.
+- The camp and balcony doors are fixed open leaves; restricted areas are a later spec (SmugglersTunnel P6).
 - The balcony's lean-to roof is rough boards on pole rafters (the artwork drew shingles).
 - The nets are two layers of cord: the hidden door shows through them from close by.
 - 19 kit props (`Goods`) are 24,280 triangles at LOD 0 and the six kit lanterns about 12,000: with them the whole

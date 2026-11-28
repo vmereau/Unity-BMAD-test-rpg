@@ -9,17 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1898d17eff2395b4087a0dd2aef52a28, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a9e6c0f8b64daf4a891bd290e6ddfa1, type: 3}
   m_Name: Item_Key_QuarrySouthDoor
   m_EditorClassIdentifier: Game::Game.Inventory.ItemSO
   itemId: d9e4c305abe44edca6cb17c0d5dc8d3f
   itemName: Key to the South Face Door
   description: A heavy iron key from Overseer Dace's hut. It fits the Company door that seals the crack in the quarry's south face.
   icon: {fileID: 21300000, guid: f0196f5ff122a7b49b3a5ca12e564608, type: 3}
-  maxStacks: 1
+  maxStacks: 5
   worldItemPrefab: {fileID: 5461866462715180719, guid: 9cd7ce0a870ed3947b285bb68ed5d3d6, type: 3}
   buyValue: 0
   sellValue: 0
   isIngredient: 0
   isCraftingMaterial: 0
-  isQuestItem: 1
+  isQuestItem: 0

@@ -1648,3 +1648,22 @@ The Meshy three-hit sword combo was rejected on look and reverted; sword and axe
   terrain, not rocks), and ends in the lake 1 m deep: the player can swim round it.
 - **The nets do not hide the door from close by**; the balcony's roof is boards, not shingles; the rubble base is
   less mossy than the artworks.
+
+## spec-smuggling-route-locks-and-keys (2026-11-28)
+
+- **Gate guard's bed and chest are unowned** (`SmugglersTunnel/GateGuardBed`, `GateGuardChest` on barracks
+  `Bunk_1`): set `Ownership._owner` to the gate guard's `NPCEntity` when P8 creates him, and his routine's Sleep bed.
+  The Dock Guard's bed (`DockGuardBed`, his post's lean-to) has no `NpcApproach` / `NpcSleepAnchor` and no Sleep block
+  either: add them with P8 if he is to sleep there by day.
+- **Placeholder icons:** the three gang / warehouse keys use the quarry key's icon, the dock tally a notice's.
+- **The side room's crates stand in front of the tunnel opening** (`Area1CampInterior.CellarGoods`), not against the
+  east wall as the docs said: the way through passes west of them (0.85 m). Move them east at the next Sites pass if
+  the side room should read as a store with a back door.
+- **`GateGuardBed` overlaps the barracks' graybox `Wall_Back`** like `BarnGuardBed` on `Bunk_0` (the bunks stand against
+  it); harmless until the barracks gets its art pass.
+- **Saves from before this change reopen two locks:** `CellarDoor` and `HiddenDoor` keep their save ids, so a save made while
+  they were unlocked restores them unlocked (`SaveableObject` → `Lockable.RestoreLocked`). Fine for dev saves; a save
+  version / migration would matter once players have saves.
+- **NPCs walk through the locked route doors:** every door leaf is out of the bake, so a path crossing one ignores the
+  lock. No routine crosses them today; P10 (NPCs open doors) is the fix.
+

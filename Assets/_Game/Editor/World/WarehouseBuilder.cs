@@ -41,6 +41,12 @@ namespace Game.Editor.World
         private const string DOOR_PATH = "Assets/_Game/Prefabs/World/Doors/Poor small door.prefab";
         private const string CELLAR_DOOR = "CellarDoor";
         private const string CELLAR_DOOR_SAVE_ID = "area1-warehouse-cellar-door"; // fixed, so a rebuild keeps the saved door state
+        internal const string TUNNEL_DOOR = "TunnelDoor_Cellar";
+        private const string TUNNEL_DOOR_SAVE_ID = "area1-warehouse-tunnel-door";
+        // build_warehouse.py: the jambs stand 0.10 m inside the opening, the lintel 0.06 m proud of the inner face. The
+        // prefab's leaf runs -0.02..1.08 m along its x from the hinge and is 0.155 m thick.
+        private const float TUNNEL_DOOR_HINGE_IN = 0.05f;
+        private const float TUNNEL_DOOR_OFF_FACE = 0.15f;
         private const string AREAS = "RestrictedAreas";
         internal const string CELLAR_AREA = "RA_WarehouseCellar";
         private const string HALL_AREA = "RA_Warehouse";
@@ -120,6 +126,21 @@ namespace Game.Editor.World
             public Rect SideHole;
             /// <summary>More boxes of the restricted area (the side room, its passage): name, centre, size.</summary>
             public List<(string name, Vector3 centre, Vector3 size)> MoreAreas;
+            /// <summary>The side room's tunnel opening: min x, max x, height, the wall's outer z, its inner z (all zero without one).</summary>
+            public float TunnelMinX, TunnelMaxX, TunnelHeight, TunnelOuterZ, TunnelInnerZ;
+            public bool HasTunnel => TunnelMaxX > TunnelMinX;
+
+            /// <summary>
+            /// The tunnel's door: the leaf (1.1 m) on the side room's face, over the jambs (1.0 m clear), hinged on the
+            /// east one and swinging into the room, so it opens against the east wall and leaves the way west of the
+            /// side room's crates (which stand in front of the opening) free. Its back face clears the jambs and the
+            /// lintel (to the inner face + 6 cm).
+            /// </summary>
+            public DoorFacts TunnelDoor => new DoorFacts
+            {
+                Position = new Vector3(TunnelMaxX - TUNNEL_DOOR_HINGE_IN, FloorY, TunnelInnerZ + TUNNEL_DOOR_OFF_FACE),
+                Yaw = 180f, ScaleY = 1f, OpenAngle = 90f,
+            };
 
             /// <summary>Every hole rectangle of the cellar (x, z).</summary>
             public IEnumerable<Rect> Holes()
@@ -307,8 +328,16 @@ namespace Game.Editor.World
                     more.Add(((string)box["name"], boxCentre, boxSize));
                 }
             }
+            // the tunnel's opening is optional too (a parts file from before the gang house has none)
+            float[] tunnel = { 0f, 0f, 0f, 0f, 0f };
+            if (data["tunnel"] != null && data["tunnel"].Type != JTokenType.Null && (!TryFloats(data["tunnel"], 5, out tunnel) || tunnel[1] <= tunnel[0] || tunnel[2] <= 0f))
+            {
+                problem = "'cellar.tunnel' must be [min x, max x, height, outer z, inner z]";
+                return false;
+            }
             cellar = new CellarFacts
             {
+                TunnelMinX = tunnel[0], TunnelMaxX = tunnel[1], TunnelHeight = tunnel[2], TunnelOuterZ = tunnel[3], TunnelInnerZ = tunnel[4],
                 SideHole = sideHole,
                 MoreAreas = more,
                 Hole = Rect.MinMaxRect(hole[0], hole[1], hole[2], hole[3]),
@@ -631,6 +660,14 @@ namespace Game.Editor.World
                 GameLog.Error(TAG, $"Need {MODEL_PATH}, {PARTS_PATH} (run build_warehouse.py), {LANTERN_PATH}, {DAY_NIGHT}, {GLOW} and {DOOR_PATH} (with DoorInteractable + Lockable); {PREFAB_PATH} left as it was.");
                 return null;
             }
+            var absent = new List<string>();
+            var (skill, cellarKey) = RouteDoorLocks.Load(RouteDoorLocks.KEY_WAREHOUSE_CELLAR, absent);
+            var (_, tunnelKey) = RouteDoorLocks.Load(RouteDoorLocks.KEY_GANG_TUNNEL, absent);
+            if (absent.Count > 0)
+            {
+                GameLog.Error(TAG, $"Missing: {string.Join(", ", absent)}; {PREFAB_PATH} left as it was.");
+                return null;
+            }
             if (!TryReadCellar(parts, out CellarFacts cellar, out string problem))
             {
                 GameLog.Error(TAG, $"{PARTS_PATH}: {problem} (rerun build_warehouse.py); {PREFAB_PATH} left as it was.");
@@ -653,8 +690,12 @@ namespace Game.Editor.World
             {
                 if (!BuildModel(root.transform, model, parts) || !BuildBoxes(root.transform, parts)) return null;
                 foreach (JToken point in parts["lanterns"]) BuildLantern(root.transform, (JObject)point, lantern, dayNight, glow);
-                BuildDoor(root.transform, door, CELLAR_DOOR, CELLAR_DOOR_SAVE_ID,
-                    new DoorFacts { Position = cellar.DoorPosition, Yaw = cellar.DoorYaw, ScaleY = cellar.DoorScaleY, OpenAngle = cellar.DoorOpenAngle });
+                RouteDoorLocks.Lock(BuildDoor(root.transform, door, CELLAR_DOOR, CELLAR_DOOR_SAVE_ID,
+                    new DoorFacts { Position = cellar.DoorPosition, Yaw = cellar.DoorYaw, ScaleY = cellar.DoorScaleY, OpenAngle = cellar.DoorOpenAngle }), skill, cellarKey);
+                if (cellar.HasTunnel)
+                    RouteDoorLocks.Lock(BuildDoor(root.transform, door, TUNNEL_DOOR, TUNNEL_DOOR_SAVE_ID, cellar.TunnelDoor), skill, tunnelKey);
+                else
+                    GameLog.Warn(TAG, $"{PARTS_PATH} has no cellar.tunnel: no {TUNNEL_DOOR} built (rerun build_warehouse.py)");
                 BuildDoor(root.transform, door, TALLY_DOOR, TALLY_DOOR_SAVE_ID, quay.TallyDoor);
 
                 string folder = PREFAB_PATH.Substring(0, PREFAB_PATH.LastIndexOf('/'));
@@ -776,10 +817,10 @@ namespace Game.Editor.World
 
         /// <summary>
         /// A door of the model (the cellar's dock door, the tally room's): the game's door prefab on the model's
-        /// jamb, unlocked, swinging into the room, with a fixed save id (a rebuild keeps the saved door state). Left
+        /// jamb, unlocked (the route's doors are then locked by <see cref="RouteDoorLocks"/>), swinging into the room, with a fixed save id (a rebuild keeps the saved door state). Left
         /// out of the bake, so the shut leaf does not cut the room off the NavMesh.
         /// </summary>
-        private static void BuildDoor(Transform root, GameObject prefab, string name, string saveId, DoorFacts facts)
+        private static GameObject BuildDoor(Transform root, GameObject prefab, string name, string saveId, DoorFacts facts)
         {
             var door = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root);
             door.name = name;
@@ -801,6 +842,7 @@ namespace Game.Editor.World
             var saveSo = new SerializedObject(saveable);
             saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = saveId;
             saveSo.ApplyModifiedPropertiesWithoutUndo();
+            return door;
         }
 
         /// <summary>

@@ -168,14 +168,23 @@ namespace Tests.EditMode
         [TestCase("{\"version\": 2, \"objects\": [], \"walk\": [{\"name\": \"x\", \"centre\": [0, 0, 0], \"size\": [1, 1]}], \"colliders\": [], \"notWalkable\": [], \"lanterns\": [], \"lights\": [], \"goods\": [], \"centre\": [1, 2], \"yaw\": 0, \"floorWorldY\": 0, \"anchors\": {}}")]
         [TestCase("{\"version\": 2, \"objects\": [], \"walk\": [], \"colliders\": [], \"notWalkable\": [], \"lanterns\": [], \"lights\": [], \"goods\": [{\"kit\": \"x\"}], \"centre\": [1, 2], \"yaw\": 0, \"floorWorldY\": 0, \"anchors\": {}}")]
         [TestCase("{\"version\": 2, \"objects\": [], \"walk\": [], \"colliders\": [], \"notWalkable\": [], \"lanterns\": [], \"lights\": [], \"goods\": [], \"centre\": [1, 2], \"yaw\": 0, \"floorWorldY\": 0, \"anchors\": {\"campDoor\": [0, 1]}}")]
+        [TestCase(null, TestName = "MalformedParts_TunnelWithoutADoor_IsRefused")]
         public void MalformedParts_AreRefused_WithoutAThrow(string json)
         {
-            Assert.IsFalse(GangHouseBuilder.TryReadHouse(JObject.Parse(json), out _, out string problem));
+            JObject parts;
+            if (json != null) parts = JObject.Parse(json);
+            else
+            {
+                // the real parts file with the tunnel's door taken out
+                parts = JObject.Parse(File.ReadAllText(PARTS));
+                ((JObject)parts["tunnel"]).Remove("door");
+            }
+            Assert.IsFalse(GangHouseBuilder.TryReadHouse(parts, out _, out string problem));
             Assert.IsNotEmpty(problem);
         }
 
         [Test]
-        public void HiddenDoor_IsTheGamesDoor_Unlocked_InAPersonSizedOpening()
+        public void HiddenDoor_IsTheGamesDoor_InAPersonSizedOpening()
         {
             float[] opening = House().Anchor("hiddenDoor");   // min x, max x, height, the wall's outer face (z), the sill's y
             Assert.GreaterOrEqual(opening[1] - opening[0], DOOR_WIDTH, "width");
@@ -183,15 +192,67 @@ namespace Tests.EditMode
             Transform door = _instance.transform.Find("HiddenDoor");
             Assert.IsNotNull(door, "HiddenDoor");
             Assert.IsNotNull(door.GetComponent<DoorInteractable>());
-            var lockable = door.GetComponent<Lockable>();
-            Assert.IsNotNull(lockable);
-            Assert.IsFalse(new SerializedObject(lockable).FindProperty("_isLocked").boolValue, "locking it is a later spec");
             // the wall's own boxes leave the opening free (the leaf is the door's, not the wall's)
             var centre = new Vector3((opening[0] + opening[1]) * 0.5f, opening[4] + 1.0f, opening[3] + 0.33f);
             Transform walls = _instance.transform.Find("Colliders/Base");
             Assert.IsNotNull(walls);
             foreach (Collider hit in Physics.OverlapBox(Away + centre, new Vector3(0.3f, 0.9f, 0.25f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore))
                 Assert.IsFalse(hit.transform.IsChildOf(walls), $"{hit.name} closes the hidden door's opening");
+        }
+
+        // SmugglersTunnel P1 (spec-smuggling-route-locks-and-keys): the gang's doors are locked, picked at Lockpicking 1
+        // or opened by their key; out of the bake, each with its own fixed save id.
+        [TestCase("HiddenDoor", "Key_GangBasement", "area1-gang-house-hidden-door")]
+        [TestCase("TunnelDoor_Basement", "Key_GangTunnel", "area1-gang-house-tunnel-door")]
+        public void RouteDoor_IsLocked_WithItsKey_OutOfTheBake(string name, string key, string saveId)
+        {
+            Transform door = _instance.transform.Find(name);
+            Assert.IsNotNull(door, name);
+            Assert.IsNotNull(door.GetComponent<DoorInteractable>(), name);
+            var lockable = door.GetComponent<Lockable>();
+            Assert.IsNotNull(lockable, name);
+            Assert.IsTrue(lockable.IsLocked, $"{name} is locked");
+            Assert.AreEqual("beginner_lockpicking", lockable.RequiredSkillId, $"{name} is picked at Lockpicking 1");
+            Assert.IsInstanceOf<Game.Inventory.KeyItemSO>(lockable.KeyItem, $"{name}'s key");
+            Assert.AreEqual(key, lockable.KeyItem.name);
+            Component modifier = door.GetComponent("NavMeshModifier");
+            Assert.IsNotNull(modifier, $"{name} has a NavMeshModifier");
+            Assert.IsTrue(new SerializedObject(modifier).FindProperty("m_IgnoreFromBuild").boolValue, $"{name} is left out of the bake");
+            Assert.AreEqual(saveId, new SerializedObject(door.GetComponent<SaveableObject>())
+                .FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue);
+        }
+
+        [Test]
+        public void TunnelDoor_StandsAcrossTheTunnel_OutsideTheWall_AndSwingsClear()
+        {
+            GangHouseBuilder.HouseFacts house = House();
+            Transform door = _instance.transform.Find("TunnelDoor_Basement");
+            Assert.IsNotNull(door);
+            Vector3 a = house.TunnelNodes[house.TunnelNodes.Length - 2], b = house.TunnelNodes[house.TunnelNodes.Length - 1];
+            Vector3 along = (b - a).normalized;
+            // the leaf faces down the last stretch, and its middle stands on the tunnel's axis
+            Vector3 flat = new Vector3(along.x, 0f, along.z).normalized;   // the leaf stands upright, the stretch may slope
+            Assert.Greater(Vector3.Dot(door.localRotation * Vector3.forward, flat), 0.99f, "the leaf is square to the tunnel");
+            Vector3 middle = door.localPosition + door.localRotation * new Vector3(0.53f, 0f, 0f);
+            Vector3 fromA = middle - a;
+            Vector3 across = fromA - along * Vector3.Dot(fromA, along);
+            Assert.Less(new Vector2(across.x, across.z).magnitude, 0.05f, "the leaf is off the tunnel's axis");
+            Assert.Greater(door.localPosition.x, house.Anchor("mouth")[3] + 1.5f, "the door stands beyond the west wall (1.5 m thick)");
+            // shut and swung open, the leaf touches none of the house's solids
+            Transform visual = door.Find("Visual");
+            Assert.IsNotNull(visual, "the door prefab's Visual");
+            var leaf = visual.GetComponent<BoxCollider>();
+            Assert.IsNotNull(leaf, "the leaf's collider");
+            float open = new SerializedObject(door.GetComponent<DoorInteractable>()).FindProperty("_openAngle").floatValue;
+            Transform solids = _instance.transform.Find("Colliders");
+            foreach (float angle in new[] { 0f, open })
+            {
+                visual.localRotation = Quaternion.Euler(0f, angle, 0f);
+                Physics.SyncTransforms();
+                Vector3 half = Vector3.Scale(leaf.size, leaf.transform.lossyScale) * 0.5f * 0.95f;
+                foreach (Collider hit in Physics.OverlapBox(leaf.transform.TransformPoint(leaf.center), half, leaf.transform.rotation, ~0, QueryTriggerInteraction.Ignore))
+                    Assert.IsFalse(hit.transform.IsChildOf(solids), $"the leaf at {angle}° meets {hit.name}");
+            }
         }
 
         [Test]

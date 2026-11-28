@@ -125,7 +125,7 @@ its walls are the fence there, and the rubble boxes (`Warehouse/Colliders/Rubble
   heading east from the player's hut goes round its foot.
 - **Cellar** (`spec-area-1-warehouse-cellar`): a rubble-walled room under the landing and most of the hall, inside faces
   x 13.8..19.9, z 50.1..59.0, floor y 0.1 (buried rocks stop it at z 50). Its plank door is in the dock-side wall under the landing at
-  x 17.9..19.0 (unlocked; a stone step up from the shelf); a shut hatch lies in the hall's floor at
+  x 17.9..19.0 (locked: `Key_WarehouseCellar` or Lockpicking 1; a stone step up from the shelf); a shut hatch lies in the hall's floor at
   x 14.2..15.2, z 54.3..55.3 with a ladder under it (opening it is a later spec). The terrain has a **hole** there
   (heights unchanged), hidden in the cellar's walls: sculpting or painting near x 13..21, z 49..59 shows nothing
   inside the room, and moving the warehouse means running `Place Warehouse Cellar` again and closing the old hole.
@@ -248,12 +248,12 @@ The camp's east side is open.
   (`GangDock` now holds the boat alone) and a walkway down its east end, the only way to the deck on foot. It
   stands on the tents-to-ruins line, with the ridge at y 6.8 and the chimney at y 7.45; keep both under y 10.
   `HiddenStashQuest` (Brann, his two spots, `BrannsStash`) is unchanged, on the main floor's east half.
-- **Basement and smuggling tunnel:** behind the nets on the deck a door (`GangHouse/HiddenDoor`, unlocked) opens
+- **Basement and smuggling tunnel:** behind the nets on the deck a door (`GangHouse/HiddenDoor`, locked: `Key_GangBasement` or Lockpicking 1) opens
   into a rubble basement under the house (a terrain **hole**: heights unchanged, sculpting under the house shows
   nothing). From its west end a shored tunnel runs about 23 m underground, under the gang fence, the wilderness
   gateway and the terrace, to an opening in the south wall of the warehouse cellar's side room. Its floor is at
   y −1.7 from the gateway to the house, 0.3 m above the lake. Agents cannot path through it or through the hidden
-  door. No restricted area, lock or loot yet. Add nothing buried or heavy on its line (x 22..39, z 50.8..55) and
+  door. A locked door at each end of the tunnel (`Key_GangTunnel`; see Smuggling route holders below). No restricted area yet. Add nothing buried or heavy on its line (x 22..39, z 50.8..55) and
   do not lower the ground along the gang fence: the fence's panels would drop into it.
 - **Wilderness gate:** `Area1_Blockout/WildernessGate` at (31.95, 52), a cart gateway (2.5 m clear, leaves open
   toward the camp) between the north palisade's end and `CampEdge/gang-fence`, which runs over the rock clump, down
@@ -589,6 +589,26 @@ East side of the home yard, built by `Dress Home Yard` in `HomeYardDressing/East
 - His 21–06 routine block is Sleep in it.
 - Moving the bed or the box means rechecking the approach on the NavMesh. Moving the box or rerunning the dresser with
   new prop positions means rechecking the NavMesh path to that spot.
+
+---
+
+## Smuggling route holders (`SmugglersTunnel`, hand-owned)
+
+Root `SmugglersTunnel` (spec-smuggling-route-locks-and-keys; quest `docs/World/Quests/SmugglersTunnel.md` P2–P3). Every
+container is a `Base_Container` with `Ownership`, `SaveableObject`, a `PersistentID` (its own `KilledFact` save key) and a
+`ContainerTakeFact` on its key / tally.
+
+- `DockGuardBed` (`Bed_FloorPallet`, owned by the Dock Guard) lies over the graybox `CompoundGate/GuardPost/Bedroll`,
+  along it; `DockGuardChest` (owned) stands east of it under the lean-to, reached from outside its north posts (the roof
+  is about 1.2 m up): a `Key_GangTunnel` copy → `WorldFact_Smuggling_DockGuardKeyFound`. Not west of the lean-to: the
+  compound gate's `Leaf_South` stands there.
+- `GateGuardBed` (`Bed_WorkerPallet`) on barracks `Bunk_1`, as `BarnGuardBed` on `Bunk_0`; `GateGuardChest` at its foot:
+  a `Key_GangTunnel` copy → `WorldFact_Smuggling_GateGuardKeyFound`. Both unowned until the gate guard exists (P8).
+- `BasementCrate` (kit `SM_Crate_B_01`, the container's chest model off) in the gang basement against the camp wall,
+  between the stacked crates and the stair well, owned by Brann: `Item_DockTally` → `WorldFact_Smuggling_DockTallyTaken`.
+  The kit crate's pivot is off-centre: its box collider is fitted to the mesh, not the root.
+- Keys elsewhere: `Key_WarehouseCellar` in `WarehouseGuard`'s starting items, `Key_GangTunnel` + `Key_GangBasement` in
+  `HiddenStashQuest/BrannsStash`.
 
 ---
 

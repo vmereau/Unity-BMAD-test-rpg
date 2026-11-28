@@ -24,8 +24,8 @@ namespace Game.Crafting
         /// True when <paramref name="item"/> is a material of a <paramref name="kind"/> station: cooking takes
         /// <see cref="ItemSO.isIngredient"/> items, smithing takes <see cref="ItemSO.isCraftingMaterial"/> items.
         /// </summary>
-        /// Quest items are never materials (they only leave the player through dialogue).
-        public static bool IsMaterialFor(CraftingKind kind, ItemSO item) => item != null && !item.isQuestItem && kind switch
+        /// Quest items and keys are never materials (<see cref="ItemSO.CanPlayerPart"/>).
+        public static bool IsMaterialFor(CraftingKind kind, ItemSO item) => ItemSO.CanPlayerPart(item) && kind switch
         {
             CraftingKind.Smithing => item.isCraftingMaterial,
             _ => item.isIngredient

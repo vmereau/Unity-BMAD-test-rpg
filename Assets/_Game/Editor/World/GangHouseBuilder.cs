@@ -38,6 +38,8 @@ namespace Game.Editor.World
         private const string DOOR_PATH = "Assets/_Game/Prefabs/World/Doors/Poor small door.prefab";
         private const string HIDDEN_DOOR = "HiddenDoor";
         private const string HIDDEN_DOOR_SAVE_ID = "area1-gang-house-hidden-door"; // fixed, so a rebuild keeps the saved door state
+        internal const string TUNNEL_DOOR = "TunnelDoor_Basement";
+        private const string TUNNEL_DOOR_SAVE_ID = "area1-gang-house-tunnel-door";
         private const string WAREHOUSE = "/Area1_Blockout/Warehouse";
         private const string WAREHOUSE_PARTS = "Assets/_Game/Art/Environment/Camp/models/warehouse/Warehouse.json";
         private const int NOT_WALKABLE = 1;
@@ -86,6 +88,10 @@ namespace Game.Editor.World
             /// <summary>The tunnel's line on its floor, in the prefab's frame, from the warehouse's side room to the basement.</summary>
             public Vector3[] TunnelNodes;
             public float TunnelWidth, TunnelHeight;
+            /// <summary>The tunnel's door at the basement's end, hung on the last frame outside the west wall.</summary>
+            public DoorPlacement TunnelDoor;
+
+            public DoorPlacement HiddenDoor => new DoorPlacement { Position = DoorPosition, Yaw = DoorYaw, ScaleY = DoorScaleY, OpenAngle = DoorOpenAngle };
 
             public Vector3 Origin => new Vector3(Centre.x, FloorWorldY, Centre.y);
             public Quaternion Rotation => Quaternion.Euler(0f, Yaw, 0f);
@@ -100,6 +106,22 @@ namespace Game.Editor.World
                 for (int i = 0; i < values.Length; i++) values[i] = (float)array[i];
                 return values;
             }
+        }
+
+        /// <summary>Where a door of the game's door prefab hangs: its hinge (prefab frame), turn, stretch in height and swing.</summary>
+        public struct DoorPlacement
+        {
+            public Vector3 Position;
+            public float Yaw, ScaleY, OpenAngle;
+        }
+
+        private static bool TryReadPlacement(JToken token, out DoorPlacement placement)
+        {
+            placement = default;
+            if (!(token is JObject door) || !IsVector(door["position"]) || !IsNumber(door["yaw"]) || !IsNumber(door["scaleY"])
+                || !IsNumber(door["openAngle"]) || (float)door["scaleY"] <= 0f) return false;
+            placement = new DoorPlacement { Position = Vector(door["position"]), Yaw = (float)door["yaw"], ScaleY = (float)door["scaleY"], OpenAngle = (float)door["openAngle"] };
+            return true;
         }
 
         /// <summary>Reads and checks a parts file. False, with what is wrong, when a field is missing or malformed.</summary>
@@ -196,6 +218,11 @@ namespace Game.Editor.World
                 }
                 line[i] = Vector(nodes[i]);
             }
+            if (!TryReadPlacement(tunnel["door"], out DoorPlacement tunnelDoor))
+            {
+                problem = "'tunnel.door' needs position [x, y, z], yaw, scaleY (above 0) and openAngle";
+                return false;
+            }
             house = new HouseFacts
             {
                 Centre = new Vector2((float)centre[0], (float)centre[1]), Yaw = (float)parts["yaw"],
@@ -203,7 +230,7 @@ namespace Game.Editor.World
                 Hole = new Vector4((float)hole[0], (float)hole[1], (float)hole[2], (float)hole[3]),
                 DoorPosition = Vector(door["position"]), DoorYaw = (float)door["yaw"], DoorScaleY = (float)door["scaleY"],
                 DoorOpenAngle = (float)door["openAngle"], TunnelNodes = line,
-                TunnelWidth = (float)tunnel["width"], TunnelHeight = (float)tunnel["height"],
+                TunnelWidth = (float)tunnel["width"], TunnelHeight = (float)tunnel["height"], TunnelDoor = tunnelDoor,
             };
             problem = null;
             return true;
@@ -256,6 +283,8 @@ namespace Game.Editor.World
             if (lantern == null) absent.Add(LANTERN_PATH);
             if (dayNight == null) absent.Add(DAY_NIGHT);
             if (glow == null) absent.Add(GLOW);
+            var (skill, basementKey) = RouteDoorLocks.Load(RouteDoorLocks.KEY_GANG_BASEMENT, absent);
+            var (_, tunnelKey) = RouteDoorLocks.Load(RouteDoorLocks.KEY_GANG_TUNNEL, absent);
             if (absent.Count > 0)
             {
                 GameLog.Error(TAG, $"Missing: {string.Join(", ", absent)}; {PREFAB_PATH} left as it was.");
@@ -274,7 +303,8 @@ namespace Game.Editor.World
                 BuildBoxes(root.transform, parts);
                 foreach (JToken point in parts["lanterns"]) BuildLantern(root.transform, (JObject)point, lantern, dayNight, glow);
                 foreach (JToken point in parts["lights"]) BuildFireLight(root.transform, (JObject)point, dayNight);
-                BuildDoor(root.transform, doorPrefab, facts);
+                RouteDoorLocks.Lock(BuildDoor(root.transform, doorPrefab, HIDDEN_DOOR, HIDDEN_DOOR_SAVE_ID, facts.HiddenDoor), skill, basementKey);
+                RouteDoorLocks.Lock(BuildDoor(root.transform, doorPrefab, TUNNEL_DOOR, TUNNEL_DOOR_SAVE_ID, facts.TunnelDoor), skill, tunnelKey);
 
                 string folder = PREFAB_PATH.Substring(0, PREFAB_PATH.LastIndexOf('/'));
                 if (!AssetDatabase.IsValidFolder(folder))
@@ -398,31 +428,29 @@ namespace Game.Editor.World
         }
 
         /// <summary>
-        /// The hidden door behind the nets: the game's door prefab on the model's jamb, unlocked, swinging into the
-        /// basement, with a fixed save id. Left out of the bake, so the shut leaf does not cut the room off the NavMesh.
+        /// A door of the model (the hidden door behind the nets, the tunnel's door at the basement's end): the game's
+        /// door prefab where the parts file hangs it, with a fixed save id (a rebuild keeps the saved door state). Left
+        /// out of the bake, so the shut leaf does not cut the room off the NavMesh. The caller locks it.
         /// </summary>
-        private static void BuildDoor(Transform root, GameObject prefab, HouseFacts facts)
+        private static GameObject BuildDoor(Transform root, GameObject prefab, string name, string saveId, DoorPlacement placement)
         {
             var door = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root);
-            door.name = HIDDEN_DOOR;
-            door.transform.localPosition = facts.DoorPosition;
-            door.transform.localRotation = Quaternion.Euler(0f, facts.DoorYaw, 0f);
-            door.transform.localScale = new Vector3(1f, facts.DoorScaleY, 1f);
+            door.name = name;
+            door.transform.localPosition = placement.Position;
+            door.transform.localRotation = Quaternion.Euler(0f, placement.Yaw, 0f);
+            door.transform.localScale = new Vector3(1f, placement.ScaleY, 1f);
             door.AddComponent<NavMeshModifier>().ignoreFromBuild = true;
 
             var doorSo = new SerializedObject(door.GetComponent<DoorInteractable>());
-            doorSo.FindProperty("_openAngle").floatValue = facts.DoorOpenAngle;
+            doorSo.FindProperty("_openAngle").floatValue = placement.OpenAngle;
             doorSo.ApplyModifiedPropertiesWithoutUndo();
-
-            var lockSo = new SerializedObject(door.GetComponent<Lockable>());
-            lockSo.FindProperty("_isLocked").boolValue = false;
-            lockSo.ApplyModifiedPropertiesWithoutUndo();
 
             var saveable = door.GetComponent<SaveableObject>();
             if (saveable == null) saveable = door.AddComponent<SaveableObject>(); // the prefab has none; scene doors add it
             var saveSo = new SerializedObject(saveable);
-            saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = HIDDEN_DOOR_SAVE_ID;
+            saveSo.FindProperty(Game.Editor.Save.SaveableObjectValidator.SAVE_ID_PROPERTY).stringValue = saveId;
             saveSo.ApplyModifiedPropertiesWithoutUndo();
+            return door;
         }
 
         /// <summary>
